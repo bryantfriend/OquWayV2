@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OquWay Application Launcher</title>
+  <link rel="stylesheet" href="./css/launcher.css">
+</head>
+
+<body>
+  <main class="launcher-shell">
+    <section class="hero">
+      <div class="hero__content">
+        <p class="eyebrow">OquWay v2</p>
+        <h1>OquWay</h1>
+        <p class="version-badge">Launcher Version 1.0.0</p>
+        <p class="subtitle">Select an OquWay Application</p>
+      </div>
+
+      <aside class="status-panel" aria-label="Portal status">
+        <div>
+          <span>Environment</span>
+          <strong>GitHub Pages Development Portal</strong>
+        </div>
+        <div>
+          <span>Version</span>
+          <strong>OquWay v2</strong>
+        </div>
+      </aside>
+    </section>
+
+    <section class="toolbar" aria-label="Application search">
+      <label for="appSearch">Search applications</label>
+      <input id="appSearch" type="search" placeholder="Search applications..." autocomplete="off">
+    </section>
+
+    <section id="appGrid" class="app-grid" aria-live="polite"></section>
+  </main>
+
+  <footer class="launcher-footer">
+    <span>&copy; <span id="currentYear"></span> OquWay</span>
+  </footer>
+
+  <script src="./js/launcher.js"></script>
+</body>
+
+</html>
