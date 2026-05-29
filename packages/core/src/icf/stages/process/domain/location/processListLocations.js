@@ -47,6 +47,46 @@ function shouldIncludeLocation(executionState, location) {
 function normalizeLocationRecord(locationId, data) {
   var location = Object.assign({ id: locationId }, data || {});
 
+  if (!location.status) {
+    location.status = location.isArchived === true ? "archived" : "active";
+  }
+
+  if (location.status === "archived") {
+    location.isArchived = true;
+  } else if (location.isArchived === true) {
+    location.status = "archived";
+  } else {
+    location.isArchived = false;
+  }
+
+  if (!location.type) {
+    location.type = "Private location";
+  }
+
+  if (!location.country) {
+    location.country = "Kyrgyzstan";
+  }
+
+  if (!location.photoUrl && location.imageUrl) {
+    location.photoUrl = location.imageUrl;
+  }
+
+  if (!location.socialLinks) {
+    location.socialLinks = {};
+  }
+
+  if (!Array.isArray(location.languages)) {
+    location.languages = ["en", "ru"];
+  }
+
+  if (!Array.isArray(location.adminUids)) {
+    location.adminUids = [];
+  }
+
+  if (!location.subscription) {
+    location.subscription = {};
+  }
+
   if (!location.loginMode) {
     location.loginMode = "fruit";
   }

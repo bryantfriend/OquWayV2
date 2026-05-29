@@ -17,7 +17,18 @@ export async function processLoadAdminProfile(executionState) {
 
     return { valid: true };
   } catch (error) {
-    return createProcessError("ADMIN_PROFILE_LOAD_FAILED", error.message);
+    executionState.warnings.push({
+      code: "ADMIN_PROFILE_LOAD_FALLBACK",
+      message: "Admin profile could not be loaded, so the authenticated actor was used instead: " + error.message
+    });
+    executionState.result = {
+      admin: sanitizeAdminProfile({
+        id: actor && actor.id ? actor.id : "",
+        email: actor && actor.email ? actor.email : "",
+        role: actor && actor.role ? actor.role : ""
+      }, actor || {})
+    };
+    return { valid: true };
   }
 }
 
@@ -34,23 +45,14 @@ export async function processCreateLocation(executionState) {
   var payload = executionState.payload;
 
   try {
-    var createDuplicateResult = await findDuplicateLocationSlug(payload.loginSlug, "");
+    var createDuplicateResult = payload.status === "archived" ? { hasDuplicate: false } : await findDuplicateLocationSlug(payload.loginSlug, "");
 
     if (createDuplicateResult.hasDuplicate) {
       return createProcessError("LOCATION_LOGIN_SLUG_DUPLICATE", "That loginSlug is already used by another location.");
     }
 
     var locationRef = doc(collection(db, "locations"));
-    var location = {
-      name: payload.name,
-      status: payload.status,
-      loginMode: payload.loginMode,
-      loginSlug: payload.loginSlug,
-      loginPath: "/l/" + payload.loginSlug,
-      imageUrl: payload.imageUrl,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    };
+    var location = buildLocationWriteData(payload, true);
 
     await setDoc(locationRef, location);
     executionState.result = {
@@ -67,7 +69,7 @@ export async function processUpdateLocation(executionState) {
   var payload = executionState.payload;
 
   try {
-    var updateDuplicateResult = await findDuplicateLocationSlug(payload.loginSlug, payload.locationId);
+    var updateDuplicateResult = payload.status === "archived" ? { hasDuplicate: false } : await findDuplicateLocationSlug(payload.loginSlug, payload.locationId);
 
     if (updateDuplicateResult.hasDuplicate) {
       return createProcessError("LOCATION_LOGIN_SLUG_DUPLICATE", "That loginSlug is already used by another location.");
@@ -75,11 +77,36 @@ export async function processUpdateLocation(executionState) {
 
     await setDoc(doc(db, "locations", payload.locationId), {
       name: payload.name,
+      type: payload.type,
       status: payload.status,
+      isArchived: payload.isArchived,
+      description: payload.description,
+      schoolCode: payload.schoolCode,
+      photoUrl: payload.photoUrl,
+      imageUrl: payload.photoUrl,
+      address: payload.address,
+      city: payload.city,
+      region: payload.region,
+      country: payload.country,
+      twoGisUrl: payload.twoGisUrl,
+      latitude: payload.latitude,
+      longitude: payload.longitude,
+      contact: payload.contact,
+      email: payload.email,
+      website: payload.website,
+      hours: payload.hours,
+      socialLinks: payload.socialLinks,
       loginMode: payload.loginMode,
       loginSlug: payload.loginSlug,
-      loginPath: "/l/" + payload.loginSlug,
-      imageUrl: payload.imageUrl,
+      loginPath: payload.loginPath,
+      allowStudentLogin: payload.allowStudentLogin,
+      languages: payload.languages,
+      intentionStoreEnabled: payload.intentionStoreEnabled,
+      parentPortalEnabled: payload.parentPortalEnabled,
+      courseEditorEnabled: payload.courseEditorEnabled,
+      gamificationEnabled: payload.gamificationEnabled,
+      adminUids: payload.adminUids,
+      subscription: payload.subscription,
       updatedAt: serverTimestamp()
     }, { merge: true });
 
@@ -94,12 +121,21 @@ export async function processUpdateLocation(executionState) {
 }
 
 async function findDuplicateLocationSlug(loginSlug, locationId) {
+  if (!loginSlug) {
+    return {
+      hasDuplicate: false
+    };
+  }
+
   var slugQuery = query(collection(db, "locations"), where("loginSlug", "==", loginSlug));
   var snapshot = await getDocs(slugQuery);
   var hasDuplicate = false;
 
   snapshot.forEach(function (locationSnap) {
-    if (locationSnap.id !== locationId) {
+    var data = locationSnap.data() || {};
+    var isArchived = data.isArchived === true || data.status === "archived";
+
+    if (locationSnap.id !== locationId && !isArchived) {
       hasDuplicate = true;
     }
   });
@@ -107,6 +143,49 @@ async function findDuplicateLocationSlug(loginSlug, locationId) {
   return {
     hasDuplicate: hasDuplicate
   };
+}
+
+function buildLocationWriteData(payload, includeCreatedAt) {
+  var location = {
+    name: payload.name,
+    type: payload.type,
+    status: payload.status,
+    isArchived: payload.isArchived,
+    description: payload.description,
+    schoolCode: payload.schoolCode,
+    photoUrl: payload.photoUrl,
+    imageUrl: payload.photoUrl,
+    address: payload.address,
+    city: payload.city,
+    region: payload.region,
+    country: payload.country,
+    twoGisUrl: payload.twoGisUrl,
+    latitude: payload.latitude,
+    longitude: payload.longitude,
+    contact: payload.contact,
+    email: payload.email,
+    website: payload.website,
+    hours: payload.hours,
+    socialLinks: payload.socialLinks,
+    loginMode: payload.loginMode,
+    loginSlug: payload.loginSlug,
+    loginPath: payload.loginPath,
+    allowStudentLogin: payload.allowStudentLogin,
+    languages: payload.languages,
+    intentionStoreEnabled: payload.intentionStoreEnabled,
+    parentPortalEnabled: payload.parentPortalEnabled,
+    courseEditorEnabled: payload.courseEditorEnabled,
+    gamificationEnabled: payload.gamificationEnabled,
+    adminUids: payload.adminUids,
+    subscription: payload.subscription,
+    updatedAt: serverTimestamp()
+  };
+
+  if (includeCreatedAt) {
+    location.createdAt = serverTimestamp();
+  }
+
+  return location;
 }
 
 export async function processListClasses(executionState) {
@@ -209,7 +288,7 @@ export async function processListStudents(executionState) {
         seenStudentIds[studentSnap.id] = true;
 
         var student = sanitizeStudent(studentSnap.id, studentSnap.data());
-        if (matchesSearch(student, payload.searchText)) {
+        if (matchesStudentFilters(student, payload) && matchesSearch(student, payload.searchText)) {
           students.push(student);
         }
       });
@@ -224,19 +303,18 @@ export async function processListStudents(executionState) {
 
     return { valid: true };
   } catch (error) {
-    return createProcessError("STUDENTS_LOAD_FAILED", error.message);
+    executionState.warnings.push({
+      code: "STUDENTS_LOAD_FAILED",
+      message: "Students could not be loaded: " + error.message
+    });
+    executionState.result = {
+      students: []
+    };
+    return { valid: true };
   }
 }
 
 function createStudentListQuery(roleName, payload) {
-  if (payload.classId) {
-    return query(collection(db, "users"), where("role", "==", roleName), where("classId", "==", payload.classId));
-  }
-
-  if (payload.locationId) {
-    return query(collection(db, "users"), where("role", "==", roleName), where("locationId", "==", payload.locationId));
-  }
-
   return query(collection(db, "users"), where("role", "==", roleName));
 }
 
@@ -417,6 +495,18 @@ function sanitizeStudent(studentId, data) {
     fruitPasswordSet: data.fruitPasswordSet === true || Boolean(data.fruitPasswordHash || data.fruitPassword || data.fruit),
     fruitPasswordUpdatedAt: data.fruitPasswordUpdatedAt || null
   };
+}
+
+function matchesStudentFilters(student, payload) {
+  if (payload.classId && student.classId !== payload.classId) {
+    return false;
+  }
+
+  if (payload.locationId && student.locationId !== payload.locationId) {
+    return false;
+  }
+
+  return true;
 }
 
 function matchesSearch(student, searchText) {

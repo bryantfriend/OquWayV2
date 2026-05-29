@@ -9,6 +9,18 @@ export function validateLocationPayload(executionState) {
   validateEnum(errors, "status", payload.status, ["active", "inactive", "archived"]);
   validateEnum(errors, "loginMode", payload.loginMode, ["fruit", "standard", "hybrid"]);
   validateLoginSlug(errors, payload.loginSlug);
+  validateOptionalUrl(errors, "photoUrl", payload.photoUrl || payload.imageUrl);
+  validateOptionalUrl(errors, "website", payload.website);
+  validateOptionalUrl(errors, "twoGisUrl", payload.twoGisUrl);
+  validateOptionalUrl(errors, "socialLinks.instagram", payload.socialLinks && payload.socialLinks.instagram);
+  validateOptionalUrl(errors, "socialLinks.facebook", payload.socialLinks && payload.socialLinks.facebook);
+  validateOptionalUrl(errors, "socialLinks.telegram", payload.socialLinks && payload.socialLinks.telegram);
+  validateOptionalUrl(errors, "socialLinks.whatsapp", payload.socialLinks && payload.socialLinks.whatsapp);
+  validateOptionalUrl(errors, "socialLinks.youtube", payload.socialLinks && payload.socialLinks.youtube);
+  validateOptionalEmail(errors, payload.email);
+  validateOptionalNumber(errors, "latitude", payload.latitude);
+  validateOptionalNumber(errors, "longitude", payload.longitude);
+  validateOptionalNumber(errors, "subscription.maxStudents", payload.subscription && payload.subscription.maxStudents);
 
   return buildValidationResult(errors);
 }
@@ -28,6 +40,18 @@ export function validateLocationUpdatePayload(executionState) {
   validateEnum(errors, "status", payload.status, ["active", "inactive", "archived"]);
   validateEnum(errors, "loginMode", payload.loginMode, ["fruit", "standard", "hybrid"]);
   validateLoginSlug(errors, payload.loginSlug);
+  validateOptionalUrl(errors, "photoUrl", payload.photoUrl || payload.imageUrl);
+  validateOptionalUrl(errors, "website", payload.website);
+  validateOptionalUrl(errors, "twoGisUrl", payload.twoGisUrl);
+  validateOptionalUrl(errors, "socialLinks.instagram", payload.socialLinks && payload.socialLinks.instagram);
+  validateOptionalUrl(errors, "socialLinks.facebook", payload.socialLinks && payload.socialLinks.facebook);
+  validateOptionalUrl(errors, "socialLinks.telegram", payload.socialLinks && payload.socialLinks.telegram);
+  validateOptionalUrl(errors, "socialLinks.whatsapp", payload.socialLinks && payload.socialLinks.whatsapp);
+  validateOptionalUrl(errors, "socialLinks.youtube", payload.socialLinks && payload.socialLinks.youtube);
+  validateOptionalEmail(errors, payload.email);
+  validateOptionalNumber(errors, "latitude", payload.latitude);
+  validateOptionalNumber(errors, "longitude", payload.longitude);
+  validateOptionalNumber(errors, "subscription.maxStudents", payload.subscription && payload.subscription.maxStudents);
 
   return buildValidationResult(errors);
 }
@@ -171,6 +195,10 @@ function validateLoginSlug(errors, value) {
     "assets"
   ];
 
+  if (!slug) {
+    return;
+  }
+
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
     errors.push({
       code: "LOCATION_LOGIN_SLUG_INVALID",
@@ -183,6 +211,63 @@ function validateLoginSlug(errors, value) {
     errors.push({
       code: "LOCATION_LOGIN_SLUG_RESERVED",
       message: "That loginSlug is reserved. Please choose another one."
+    });
+  }
+}
+
+function validateOptionalUrl(errors, fieldName, value) {
+  var text = "";
+
+  if (value === undefined || value === null || value === "") {
+    return;
+  }
+
+  text = String(value).trim();
+
+  if (!text) {
+    return;
+  }
+
+  try {
+    var parsedUrl = new URL(text);
+
+    if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+      throw new Error("Unsupported URL protocol.");
+    }
+  } catch (error) {
+    errors.push({
+      code: "INVALID_URL",
+      message: fieldName + " must be a valid http or https URL."
+    });
+  }
+}
+
+function validateOptionalEmail(errors, value) {
+  var text = "";
+
+  if (value === undefined || value === null || value === "") {
+    return;
+  }
+
+  text = String(value).trim();
+
+  if (text && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text)) {
+    errors.push({
+      code: "INVALID_EMAIL",
+      message: "email must look like a valid email address."
+    });
+  }
+}
+
+function validateOptionalNumber(errors, fieldName, value) {
+  if (value === undefined || value === null || value === "") {
+    return;
+  }
+
+  if (!Number.isFinite(Number(value))) {
+    errors.push({
+      code: "INVALID_NUMBER",
+      message: fieldName + " must be a number."
     });
   }
 }
