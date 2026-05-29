@@ -8,6 +8,8 @@ var appElement = document.getElementById("app");
 var state = {
   isLoading: true,
   isSaving: false,
+  authPhase: "checkingAuth",
+  needsLogin: false,
   activeTab: "overview",
   message: "",
   messageType: "info",
@@ -57,45 +59,93 @@ async function initializeDashboard(user) {
   if (!user) {
     setState({
       isLoading: false,
-      message: "Sign in as a super admin or platform admin to continue.",
-      messageType: "error"
+      authPhase: "loginRequired",
+      needsLogin: true,
+      actor: null,
+      admin: null,
+      message: "",
+      messageType: "info"
     });
     return;
   }
 
-  var actor = await createActor(user);
+  setState({
+    isLoading: true,
+    authPhase: "profileLoading",
+    needsLogin: false,
+    actor: null,
+    admin: null,
+    message: "Checking admin access...",
+    messageType: "info"
+  });
 
-  if (!isAdminRole(actor.role)) {
+  try {
+    var actor = await createActor(user);
+
+    if (actor.profileMissing && !actor.role) {
+      setState({
+        isLoading: false,
+        authPhase: "profileMissing",
+        needsLogin: false,
+        actor: actor,
+        message: "Your account exists, but no admin profile was found.",
+        messageType: "error"
+      });
+      return;
+    }
+
+    if (!isAdminRole(actor.role)) {
+      setState({
+        isLoading: false,
+        authPhase: "unauthorized",
+        needsLogin: false,
+        actor: actor,
+        message: "This account cannot access the Super Admin Dashboard.",
+        messageType: "error"
+      });
+      return;
+    }
+
+    state.actor = actor;
+    state.authPhase = "authorized";
+    state.needsLogin = false;
+    await loadAdminProfile();
+    await refreshAllData();
+  } catch (error) {
     setState({
       isLoading: false,
-      actor: actor,
-      message: "This account cannot access the Super Admin Dashboard.",
+      authPhase: "unauthorized",
+      needsLogin: false,
+      actor: {
+        id: user.uid,
+        email: user.email || "",
+        role: ""
+      },
+      message: "Could not check admin access. Please try signing in again.",
       messageType: "error"
     });
-    return;
   }
-
-  state.actor = actor;
-  await loadAdminProfile();
-  await refreshAllData();
 }
 
 async function createActor(user) {
   var tokenResult = await getIdTokenResult(user, true);
   var role = "";
+  var profileResult = null;
 
   if (tokenResult && tokenResult.claims && typeof tokenResult.claims.role === "string") {
-    role = tokenResult.claims.role;
+    role = normalizeAdminRole(tokenResult.claims.role);
   }
 
   if (!role) {
-    role = await loadRoleFromProfile(user.uid);
+    profileResult = await loadRoleFromProfile(user.uid);
+    role = normalizeAdminRole(profileResult.role);
   }
 
   return {
     id: user.uid,
     email: user.email || "",
-    role: role
+    role: role,
+    profileMissing: profileResult ? profileResult.missing : false
   };
 }
 
@@ -106,14 +156,25 @@ async function loadRoleFromProfile(userId) {
     if (userSnap.exists()) {
       var data = userSnap.data() || {};
       if (typeof data.role === "string") {
-        return data.role;
+        return {
+          role: data.role,
+          missing: false
+        };
       }
+
+      return {
+        role: "",
+        missing: false
+      };
     }
   } catch (error) {
-    return "";
+    throw error;
   }
 
-  return "";
+  return {
+    role: "",
+    missing: true
+  };
 }
 
 async function loadAdminProfile() {
@@ -159,8 +220,13 @@ function render() {
     return;
   }
 
-  if (state.isLoading) {
+  if (state.isLoading || state.authPhase === "checkingAuth" || state.authPhase === "profileLoading") {
     appElement.innerHTML = buildLoadingView();
+    return;
+  }
+
+  if (state.needsLogin) {
+    appElement.innerHTML = buildLoginView();
     return;
   }
 
@@ -173,11 +239,18 @@ function render() {
 }
 
 function buildLoadingView() {
-  return '<section class="sa-loading"><div class="sa-spinner"></div><h1>Loading Super Admin Dashboard</h1><p>Checking access and loading school data.</p></section>';
+  var title = state.authPhase === "profileLoading" ? "Checking admin access..." : "Loading Super Admin Dashboard";
+  var note = state.authPhase === "profileLoading" ? "Verifying your profile and permissions." : "Checking access and loading school data.";
+
+  return '<section class="sa-loading" aria-busy="true"><div class="sa-spinner"></div><h1>' + escapeHtml(title) + '</h1><p>' + escapeHtml(note) + '</p></section>';
 }
 
 function buildAccessDeniedView() {
-  return '<section class="sa-access-card"><h1>Super Admin Access Required</h1><p>' + escapeHtml(state.message || "Sign in with a super admin account.") + '</p><button type="button" class="sa-btn" data-action="sign-out">Sign out</button></section>';
+  return '<section class="sa-access-card"><h1>Super Admin Access Required</h1><p>' + escapeHtml(state.message || "Sign in with a super admin or platform admin account.") + '</p><div class="sa-form sa-form-2"><button type="button" class="sa-btn sa-btn-secondary" data-action="go-admin-login">Go to Login</button><button type="button" class="sa-btn" data-action="sign-out">Sign out</button></div></section>';
+}
+
+function buildLoginView() {
+  return '<section class="sa-access-card sa-login-card"><p class="sa-eyebrow">Admin Login</p><h1>Sign in to Super Admin</h1><p>Use a super admin or platform admin account. We will bring you back here after login.</p><div class="sa-form"><button type="button" class="sa-btn" data-action="go-admin-login">Go to Login</button></div></section>';
 }
 
 function buildDashboardView() {
@@ -605,6 +678,8 @@ function updateExistingRecord(kind, id, field, value) {
 async function handleAction(action, id) {
   if (action === "refresh-data") {
     await refreshAllData();
+  } else if (action === "go-admin-login") {
+    await goAdminLogin();
   } else if (action === "create-location") {
     await saveIntent("CreateLocationIntent", state.locationForm, "Location created.");
     state.locationForm = createLocationForm();
@@ -750,13 +825,27 @@ async function signOutAdmin() {
     window.sessionStorage.removeItem("oquwayStudentSessionStartedAt");
   }
 
+  rememberReturnDestination();
   await signOut(auth);
-  setState({
-    actor: null,
-    admin: null,
-    message: "Signed out.",
-    messageType: "info"
-  });
+  window.location.href = buildAdminLoginUrl();
+}
+
+async function goAdminLogin() {
+  rememberReturnDestination();
+  if (auth.currentUser) {
+    await signOut(auth);
+  }
+  window.location.href = buildAdminLoginUrl();
+}
+
+function rememberReturnDestination() {
+  if (window.sessionStorage) {
+    window.sessionStorage.setItem("oquwayAdminReturnTo", window.location.href);
+  }
+}
+
+function buildAdminLoginUrl() {
+  return "../course-creator-dashboard/login.html?returnTo=" + encodeURIComponent(window.location.href);
 }
 
 async function runAdminIntent(intentType, payload) {
@@ -906,10 +995,24 @@ function readAdminName() {
 }
 
 function isAdminRole(role) {
-  return role === "superAdmin"
-    || role === "platformAdmin"
-    || role === "ROLE_SUPER_ADMIN"
-    || role === "ROLE_PLATFORM_ADMIN";
+  var normalizedRole = normalizeAdminRole(role);
+
+  return normalizedRole === "superAdmin"
+    || normalizedRole === "platformAdmin";
+}
+
+function normalizeAdminRole(role) {
+  var normalizedRole = readSafeString(role).replace(/[^a-z0-9]/gi, "").toLowerCase();
+
+  if (normalizedRole === "superadmin" || normalizedRole === "rolesuperadmin") {
+    return "superAdmin";
+  }
+
+  if (normalizedRole === "platformadmin" || normalizedRole === "roleplatformadmin") {
+    return "platformAdmin";
+  }
+
+  return readSafeString(role);
 }
 
 function readTabLabel(tab) {
@@ -954,6 +1057,18 @@ function escapeHtml(value) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+function readSafeString(value) {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (value === undefined || value === null) {
+    return "";
+  }
+
+  return String(value);
 }
 
 window.goSuperAdmin = function () {
