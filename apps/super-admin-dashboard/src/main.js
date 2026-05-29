@@ -1,7 +1,7 @@
 import { getIdTokenResult, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../../../packages/core/src/infrastructure/firebase/auth.js";
 import { storage } from "../../../packages/core/src/infrastructure/firebase/storage.js";
-import { collection, db, doc, getDoc, getDocs } from "../../../packages/core/src/infrastructure/firebase/firestore.js";
+import { collection, db, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../packages/core/src/infrastructure/firebase/firestore.js";
 import { getIntentDefinition } from "../../../packages/core/src/icf/engine/intentRegistry.js";
 import { runIntentPipeline } from "../../../packages/core/src/icf/engine/runIntentPipeline.js";
 
@@ -26,6 +26,7 @@ var state = {
   admin: null,
   actor: null,
   locations: [],
+  users: [],
   classes: [],
   students: [],
   courses: [],
@@ -35,12 +36,21 @@ var state = {
     classId: "",
     searchText: ""
   },
+  userFilters: {
+    searchText: "",
+    role: "",
+    locationId: "",
+    status: ""
+  },
   assignmentFilters: {
     courseId: "",
     targetType: "",
     status: ""
   },
   locationForm: createLocationForm(),
+  userForm: createUserForm(),
+  activeUserId: "",
+  userCreateOpen: false,
   classForm: createClassForm(),
   studentForm: createStudentForm(),
   assignmentForm: createAssignmentForm(),
@@ -49,7 +59,9 @@ var state = {
   resetFruitPassword: []
 };
 
-var tabs = ["overview", "locations", "classes", "students", "assignments", "loginTools"];
+var tabs = ["overview", "locations", "users", "students", "classes", "assignments", "loginTools"];
+var userRoles = ["student", "teacher", "parent", "schoolAdmin", "regionalAdmin", "ministryUser", "platformAdmin", "superAdmin"];
+var userStatuses = ["active", "inactive", "suspended", "archived"];
 var fruits = ["apple", "watermelon", "banana", "strawberry", "pineapple", "mango", "kiwi", "orange", "cherry"];
 var fruitLabels = {
   apple: "🍎",
@@ -173,6 +185,13 @@ async function loadRoleFromProfile(userId) {
 
     if (userSnap.exists()) {
       var data = userSnap.data() || {};
+      if (Array.isArray(data.roles)) {
+        return {
+          role: readPrimaryAdminRole(data.roles),
+          missing: false
+        };
+      }
+
       if (typeof data.role === "string") {
         return {
           role: data.role,
@@ -239,6 +258,7 @@ async function refreshAllData() {
     isLoading: false,
     isRefreshing: false,
     locations: readDataList(locationsResult, "locations"),
+    users: overviewData.users.map(getSafeUser),
     classes: readDataList(classesResult, "classes"),
     students: readDataList(studentsResult, "students"),
     courses: readDataList(coursesResult, "courses"),
@@ -392,6 +412,10 @@ function buildActiveTab() {
     return buildLocationsTab();
   }
 
+  if (state.activeTab === "users") {
+    return buildUsersTab();
+  }
+
   if (state.activeTab === "classes") {
     return buildClassesTab();
   }
@@ -422,6 +446,7 @@ function buildOverviewTab() {
 
   html += renderActionCenter();
   html += renderQuickActions();
+  html += renderUserMetrics();
   html += renderGrowthChart(state.overviewChartRange);
   html += '<section class="sa-overview-grid sa-overview-grid-2">' + renderHealthCards() + renderLoginHealth() + '</section>';
   html += '<section class="sa-overview-grid sa-overview-grid-2">' + renderCompletionScore() + renderRoadmap() + '</section>';
@@ -482,7 +507,7 @@ function renderQuickActions() {
     { label: "Create Location", action: "overview-create-location", available: true },
     { label: "Create Class", action: "overview-create-class", available: true },
     { label: "Create Student", action: "overview-create-student", available: true },
-    { label: "Create Teacher", action: "", available: false },
+    { label: "Create Teacher", action: "overview-create-teacher", available: true },
     { label: "Create Course", action: "overview-create-course", available: true },
     { label: "Open Login Tools", action: "overview-open-login-tools", available: true }
   ];
@@ -496,6 +521,18 @@ function renderQuickActions() {
 
   html += '</div></article>';
   return html;
+}
+
+function renderUserMetrics() {
+  var stats = readUserStats();
+
+  return '<article class="sa-card sa-overview-card"><div class="sa-section-title"><div><h2>User Management</h2><p>Identity, roles, access status, and location assignment health.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="overview-open-users">Open Users</button></div><div class="sa-mini-grid">'
+    + buildMiniMetric(stats.totalUsers, "Total users")
+    + buildMiniMetric(stats.activeUsers, "Active users")
+    + buildMiniMetric(stats.multiRoleUsers, "Multi-role users")
+    + buildMiniMetric(stats.missingLocationUsers, "Missing location")
+    + buildMiniMetric(stats.suspendedUsers, "Suspended")
+    + '</div></article>';
 }
 
 function renderHealthCards() {
@@ -687,6 +724,150 @@ function buildLocationsTab() {
     + buildLocationCreatePanel()
     + '<article class="sa-card sa-location-list-card"><div class="sa-section-title"><div><h2>All Locations</h2><p>Manage school profiles, login links, access, and subscription settings.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data"' + disabled(isBusy()) + '>' + buildButtonContent("Refresh", "refresh-data") + '</button></div>' + buildLocationRows() + '</article>'
     + '</section>';
+}
+
+function buildUsersTab() {
+  return '<section class="sa-stack sa-user-page" aria-busy="' + (state.isRefreshing ? "true" : "false") + '">'
+    + buildUsersHeader()
+    + buildUserStatsCards()
+    + buildUserCreatePanel()
+    + '<article class="sa-card"><div class="sa-section-title"><div><h2>All Users</h2><p>Manage profile-only identity, roles, access status, and location scope.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data"' + disabled(isBusy()) + '>' + buildButtonContent("Refresh", "refresh-data") + '</button></div>' + buildUserFilters() + buildUserRows() + '</article>'
+    + '</section>';
+}
+
+function buildUsersHeader() {
+  return '<div class="sa-page-head"><div><p class="sa-eyebrow">Identity & Access</p><h2>Users</h2><p>Profile-only management for students, teachers, parents, school admins, regional admins, ministry users, platform admins, and super admins.</p></div><button type="button" class="sa-btn" data-action="toggle-create-user"' + disabled(isBusy()) + '>' + (state.userCreateOpen ? "Close Create" : "Create User Profile") + '</button></div>';
+}
+
+function buildUserStatsCards() {
+  var stats = readUserStats();
+
+  return '<section class="sa-grid sa-grid-4">'
+    + buildMetricCard("Total Users", stats.totalUsers, "Profiles in users collection")
+    + buildMetricCard("Active", stats.activeUsers, "Profiles currently active")
+    + buildMetricCard("Multiple Roles", stats.multiRoleUsers, "Users with more than one role")
+    + buildMetricCard("Suspended", stats.suspendedUsers, "Profiles needing review")
+    + '</section>';
+}
+
+function buildUserCreatePanel() {
+  if (!state.userCreateOpen) {
+    return "";
+  }
+
+  return '<article class="sa-card"><div class="sa-section-title"><div><h2>Create User Profile</h2><p>This creates a Firestore profile only. Firebase Auth accounts are not created from this screen.</p></div></div>' + buildUserForm("new", state.userForm, true) + '</article>';
+}
+
+function buildUserFilters() {
+  var html = '<div class="sa-user-filters">';
+  html += '<label>Search<input data-user-filter="searchText" value="' + escapeHtml(state.userFilters.searchText) + '" placeholder="Name, email, or phone"></label>';
+  html += '<label>Role' + buildBasicOptionsSelect('data-user-filter="role"', state.userFilters.role, userRoles, "All roles") + '</label>';
+  html += '<label>Location' + buildOptionsSelect('data-user-filter="locationId"', state.userFilters.locationId, state.locations, "All locations") + '</label>';
+  html += '<label>Status' + buildBasicOptionsSelect('data-user-filter="status"', state.userFilters.status, userStatuses, "All statuses") + '</label>';
+  html += '</div>';
+  return html;
+}
+
+function buildUserRows() {
+  var users = readFilteredUsers();
+  var html = '<div class="sa-user-list">';
+  var index = 0;
+
+  if (state.isRefreshing && state.users.length === 0) {
+    return buildUserSkeleton();
+  }
+
+  if (users.length === 0) {
+    return '<div class="sa-empty"><strong>No users match these filters.</strong><span>Create a profile or clear the filters to see everyone.</span></div>';
+  }
+
+  while (index < users.length) {
+    html += buildUserCard(users[index]);
+    index = index + 1;
+  }
+
+  html += '</div>';
+  return html;
+}
+
+function buildUserSkeleton() {
+  return '<div class="sa-user-list" aria-busy="true"><div class="sa-location-skeleton"><span></span><div><i></i><i></i><i></i></div></div><div class="sa-location-skeleton"><span></span><div><i></i><i></i><i></i></div></div></div>';
+}
+
+function buildUserCard(user) {
+  var isOpen = state.activeUserId === user.id;
+  var html = '<article class="sa-user-card">';
+
+  html += '<div class="sa-user-summary">' + buildAvatar(user) + '<div class="sa-user-main"><div class="sa-location-title-row"><h3>' + escapeHtml(user.displayName || user.name || user.email || user.id) + '</h3>' + buildStatusBadge(user.status) + '</div><p>' + escapeHtml(user.email || "No email") + '</p><small>' + escapeHtml(user.phone || "No phone") + '</small><div class="sa-role-badges">' + buildRoleBadges(user.roles) + '</div></div>';
+  html += '<div class="sa-user-meta"><span>' + escapeHtml(readUserLocationSummary(user)) + '</span><span>Updated ' + escapeHtml(formatDateTime(normalizeTimestamp(user.updatedAt))) + '</span></div>';
+  html += '<div class="sa-row-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="edit-user" data-id="' + escapeHtml(user.id) + '">' + (isOpen ? "Close" : "Edit") + '</button></div></div>';
+
+  if (isOpen) {
+    html += '<div class="sa-location-detail">' + buildUserForm(user.id, normalizeUserForm(user), false) + '</div>';
+  }
+
+  html += '</article>';
+  return html;
+}
+
+function buildUserForm(formId, form, isCreate) {
+  var html = '<div class="sa-user-form">';
+
+  if (isCreate) {
+    html += '<section class="sa-location-form-section"><h3>Profile Identity</h3><div class="sa-user-fields">' + buildInput("user", formId, "userId", "UID / Profile ID", form.userId, "Leave blank to auto-generate") + buildInput("user", formId, "displayName", "Display Name", form.displayName) + buildInput("user", formId, "email", "Email", form.email, "name@example.com") + buildInput("user", formId, "phone", "Phone", form.phone) + '</div></section>';
+  } else {
+    html += '<section class="sa-location-form-section"><h3>Profile Identity</h3><div class="sa-user-fields">' + buildInput("user", formId, "displayName", "Display Name", form.displayName) + buildInput("user", formId, "phone", "Phone", form.phone) + buildInput("user", formId, "photoUrl", "Photo URL", form.photoUrl) + '<label>Email<input value="' + escapeHtml(form.email) + '" disabled></label></div></section>';
+  }
+
+  html += '<section class="sa-location-form-section"><h3>Roles & Access</h3><div class="sa-user-fields">' + buildRoleMultiSelect(formId, form.roles) + buildLocationMultiSelect(formId, form.locationIds) + buildPrimaryLocationSelect(formId, form.primaryLocationId) + buildSelect("user", formId, "status", form.status, userStatuses) + '</div></section>';
+  html += buildRelationshipHints(formId, form);
+  html += '<div class="sa-location-actions"><button type="button" class="sa-btn" data-action="' + (isCreate ? "create-user" : "update-user") + '" data-id="' + escapeHtml(formId) + '"' + disabled(isBusy()) + '>' + buildButtonContent(isCreate ? "Create Profile" : "Save User", (isCreate ? "create-user:new" : "update-user:" + formId)) + '</button></div>';
+  html += '</div>';
+  return html;
+}
+
+function buildRoleMultiSelect(formId, selectedRoles) {
+  var html = '<label>Roles<select multiple size="8" data-field-kind="user" data-field-id="' + escapeHtml(formId) + '" data-field="roles">';
+  var index = 0;
+
+  while (index < userRoles.length) {
+    html += '<option value="' + escapeHtml(userRoles[index]) + '"' + selected(selectedRoles.indexOf(userRoles[index]) !== -1 ? userRoles[index] : "", userRoles[index]) + '>' + escapeHtml(readRoleLabel(userRoles[index])) + '</option>';
+    index = index + 1;
+  }
+
+  html += '</select></label>';
+  return html;
+}
+
+function buildLocationMultiSelect(formId, selectedLocationIds) {
+  var html = '<label>Locations<select multiple size="6" data-field-kind="user" data-field-id="' + escapeHtml(formId) + '" data-field="locationIds">';
+  var index = 0;
+
+  while (index < state.locations.length) {
+    html += '<option value="' + escapeHtml(state.locations[index].id) + '"' + selected(selectedLocationIds.indexOf(state.locations[index].id) !== -1 ? state.locations[index].id : "", state.locations[index].id) + '>' + escapeHtml(state.locations[index].name || state.locations[index].id) + '</option>';
+    index = index + 1;
+  }
+
+  html += '</select></label>';
+  return html;
+}
+
+function buildPrimaryLocationSelect(formId, selectedValue) {
+  return '<label>Primary Location' + buildOptionsSelect('data-field-kind="user" data-field-id="' + escapeHtml(formId) + '" data-field="primaryLocationId"', selectedValue, state.locations, "None") + '</label>';
+}
+
+function buildRelationshipHints(formId, form) {
+  var html = "";
+
+  if (form.roles.indexOf("parent") !== -1) {
+    html += '<section class="sa-location-form-section"><h3>Parent Relationship Hints</h3><p>Optional for now. Add linked student IDs as comma-separated values when parent profile support is ready.</p><div class="sa-user-fields">' + buildInput("user", formId, "childStudentIdsText", "Child Student IDs", form.childStudentIdsText, "studentA, studentB") + '</div></section>';
+  }
+
+  if (form.roles.indexOf("teacher") !== -1) {
+    html += '<section class="sa-location-form-section"><h3>Teacher Relationship Hints</h3><p>Optional for now. Add assigned class IDs as comma-separated values if teacher profile support exists.</p><div class="sa-user-fields">' + buildInput("user", formId, "classIdsText", "Class IDs", form.classIdsText, "classA, classB") + '</div></section>';
+  }
+
+  return html;
 }
 
 function buildLocationsHeader() {
@@ -894,8 +1075,8 @@ function buildClassForm(formId, form) {
 
 function buildStudentsTab() {
   return '<section class="sa-stack">'
-    + '<article class="sa-card"><h2>Create Student</h2>' + buildStudentForm("new", state.studentForm, true) + '</article>'
-    + '<article class="sa-card"><h2>Students</h2>' + buildAdminFilters(true) + buildStudentRows() + '</article>'
+    + '<article class="sa-card"><h2>Create Student</h2><p>Students are user-linked learning profiles. Manage identity and access in User Management.</p>' + buildStudentForm("new", state.studentForm, true) + '</article>'
+    + '<article class="sa-card"><h2>Students</h2><p>Students are user-linked learning profiles. Manage identity and access in User Management.</p>' + buildAdminFilters(true) + buildStudentRows() + '</article>'
     + '</section>';
 }
 
@@ -911,6 +1092,7 @@ function buildStudentRows() {
     var student = state.students[index];
     html += '<article class="sa-student-card">';
     html += '<div class="sa-student-head">' + buildAvatar(student) + '<div><strong>' + escapeHtml(student.name || student.id) + '</strong><small>' + escapeHtml(student.role) + ' · ' + escapeHtml(student.status || "no status") + '</small><small>Fruit configured: ' + (student.fruitPasswordSet ? "Yes" : "No") + '</small></div></div>';
+    html += '<div class="sa-summary"><p>Linked user: ' + escapeHtml(readLinkedUserLabel(student)) + '</p></div>';
     html += buildStudentForm(student.id, normalizeStudentForm(student), false);
     html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="open-reset-fruit" data-id="' + escapeHtml(student.id) + '">Reset Fruit Password</button>';
     html += '</article>';
@@ -1232,6 +1414,12 @@ function handleInput(event) {
     return;
   }
 
+  if (target.getAttribute("data-user-filter")) {
+    state.userFilters[target.getAttribute("data-user-filter")] = target.value;
+    render();
+    return;
+  }
+
   if (target.getAttribute("data-login-tool-student")) {
     setState({ loginToolStudentId: target.value });
     return;
@@ -1262,6 +1450,10 @@ function updateFormValue(target) {
   var field = target.getAttribute("data-field");
   var value = target.type === "checkbox" ? target.checked : target.value;
 
+  if (target.multiple) {
+    value = readSelectedValues(target);
+  }
+
   if (field === "isVisible") {
     value = value === "true";
   }
@@ -1275,6 +1467,9 @@ function updateFormValue(target) {
     state.classForm[field] = value;
   } else if (kind === "student" && id === "new") {
     state.studentForm[field] = value;
+  } else if (kind === "user" && id === "new") {
+    setUserFormValue(state.userForm, field, value);
+    render();
   } else if (kind === "assignment" && id === "new") {
     if (field === "targetType" && state.assignmentForm.targetType !== value) {
       state.assignmentForm.targetId = "";
@@ -1294,6 +1489,8 @@ function updateExistingRecord(kind, id, field, value) {
     list = state.locations;
   } else if (kind === "class") {
     list = state.classes;
+  } else if (kind === "user") {
+    list = state.users;
   } else if (kind === "assignment") {
     list = state.assignments;
   }
@@ -1311,6 +1508,11 @@ function updateExistingRecord(kind, id, field, value) {
       }
 
       list[index][field] = value;
+      if (kind === "user") {
+        setUserFormValue(list[index], field, value);
+        render();
+        return;
+      }
       render();
       return;
     }
@@ -1342,6 +1544,14 @@ async function handleAction(action, id) {
     await archiveLocation(id, true);
   } else if (action === "restore-location") {
     await archiveLocation(id, false);
+  } else if (action === "toggle-create-user") {
+    setState({ userCreateOpen: !state.userCreateOpen, activeUserId: "", message: "" });
+  } else if (action === "edit-user") {
+    setState({ activeUserId: state.activeUserId === id ? "" : id, userCreateOpen: false, message: "" });
+  } else if (action === "create-user") {
+    await saveUserProfile("create", "new");
+  } else if (action === "update-user") {
+    await saveUserProfile("update", id);
   } else if (action === "create-class") {
     await saveIntent("CreateClassIntent", state.classForm, "Class created.");
     state.classForm = createClassForm();
@@ -1417,6 +1627,11 @@ function handleOverviewAction(action, id) {
     return;
   }
 
+  if (action === "overview-create-teacher") {
+    setState({ activeTab: "users", userCreateOpen: true, activeUserId: "", userForm: Object.assign(createUserForm(), { roles: ["teacher"] }), message: "" });
+    return;
+  }
+
   if (action === "overview-open-locations") {
     setState({ activeTab: "locations", message: "" });
     return;
@@ -1443,7 +1658,7 @@ function handleOverviewAction(action, id) {
   }
 
   if (action === "overview-open-users") {
-    setState({ activeTab: "loginTools", message: "Teacher and admin user management is not yet a dedicated Super Admin tab.", messageType: "info" });
+    setState({ activeTab: "users", activeUserId: id || "", message: "" });
   }
 }
 
@@ -1547,6 +1762,45 @@ async function archiveLocation(locationId, shouldArchive) {
   }
 
   setState({ isSaving: false, pendingAction: "", message: readIntentError(result), messageType: "error" });
+}
+
+async function saveUserProfile(mode, userId) {
+  var source = mode === "create" ? state.userForm : normalizeUserForm(findUser(userId) || { id: userId });
+  var payload = normalizeUserProfilePayload(source, mode === "create" ? "" : userId);
+  var validationError = validateUserProfile(payload, mode);
+  var actionKey = mode === "create" ? "create-user:new" : "update-user:" + userId;
+
+  if (validationError) {
+    setState({ message: validationError, messageType: "error" });
+    return false;
+  }
+
+  if (mode === "update" && isCurrentUserSelfDemotion(userId, payload.roles)) {
+    setState({ message: "For safety, this dashboard will not remove your own superAdmin/platformAdmin role. Ask another platform admin to make that change.", messageType: "error" });
+    return false;
+  }
+
+  try {
+    setState({ isSaving: true, pendingAction: actionKey, message: mode === "create" ? "Creating profile..." : "Saving user...", messageType: "info" });
+    var profileRef = mode === "create" && !payload.userId ? doc(collection(db, "users")) : doc(db, "users", payload.userId || userId);
+    var record = buildUserProfileRecord(payload, mode === "create");
+
+    await setDoc(profileRef, record, { merge: true });
+
+    if (mode === "create") {
+      state.userForm = createUserForm();
+      state.userCreateOpen = false;
+    }
+
+    state.activeUserId = "";
+    setState({ isSaving: false, pendingAction: "", message: mode === "create" ? "User profile created." : "User saved.", messageType: "success" });
+    await refreshAllData();
+    setState({ message: mode === "create" ? "User profile created." : "User saved.", messageType: "success" });
+    return true;
+  } catch (error) {
+    setState({ isSaving: false, pendingAction: "", message: "Could not save user profile: " + (error.message || "Unknown error"), messageType: "error" });
+    return false;
+  }
 }
 
 async function copyLoginLink(loginSlug) {
@@ -1752,6 +2006,22 @@ function setState(changes) {
 
 function createLocationForm() {
   return getDefaultLocation();
+}
+
+function createUserForm() {
+  return {
+    userId: "",
+    displayName: "",
+    email: "",
+    phone: "",
+    photoUrl: "",
+    roles: ["teacher"],
+    locationIds: [],
+    primaryLocationId: "",
+    status: "active",
+    childStudentIdsText: "",
+    classIdsText: ""
+  };
 }
 
 function createClassForm() {
@@ -2118,7 +2388,7 @@ function buildSearchResults(queryText) {
     locations: searchRecords(state.locations, query, "overview-open-location", function (location) { return [location.name, location.city, location.region, location.loginSlug].join(" "); }, function (location) { return [location.city, location.region].filter(Boolean).join(", ") || location.loginSlug || "Location"; }),
     classes: searchRecords(state.classes, query, "overview-open-class", function (classRecord) { return classRecord.name || ""; }, function (classRecord) { return readLocationName(classRecord.locationId); }),
     students: searchRecords(state.students, query, "overview-open-student", function (student) { return [student.name, student.displayName, student.email, student.username].join(" "); }, function (student) { return readClassName(student.classId); }),
-    users: searchRecords(state.overviewData.users, query, "overview-open-users", function (user) { return [user.name, user.displayName, user.email, user.role].join(" "); }, function (user) { return user.role || "User"; }),
+    users: searchRecords(state.users, query, "overview-open-users", function (user) { return [user.name, user.displayName, user.email, user.phone, normalizeRoles(user.roles, user.role).join(" ")].join(" "); }, function (user) { return normalizeRoles(user.roles, user.role).map(readRoleLabel).join(", ") || "User"; }),
     courses: searchRecords(state.courses, query, "overview-open-course", function (course) { return [readCourseTitle(course), course.id, course.status].join(" "); }, function (course) { return course.status || "Course"; })
   };
 }
@@ -2432,6 +2702,21 @@ function setLocationFormValue(location, field, value) {
   }
 }
 
+function setUserFormValue(user, field, value) {
+  if (field === "roles") {
+    user.roles = normalizeRoles(value, user.role);
+    user.role = readPrimaryRole(user.roles);
+    return;
+  }
+
+  if (field === "locationIds") {
+    user.locationIds = normalizeIdList(value);
+    return;
+  }
+
+  user[field] = value;
+}
+
 function splitCommaList(value) {
   var result = [];
   var source = value;
@@ -2456,6 +2741,24 @@ function splitCommaList(value) {
   }
 
   return result;
+}
+
+function normalizeIdList(value) {
+  return splitCommaList(value);
+}
+
+function readSelectedValues(selectElement) {
+  var values = [];
+  var index = 0;
+
+  while (index < selectElement.options.length) {
+    if (selectElement.options[index].selected) {
+      values.push(selectElement.options[index].value);
+    }
+    index = index + 1;
+  }
+
+  return values;
 }
 
 function parseOptionalNumber(value) {
@@ -2507,6 +2810,30 @@ function validateLocationForm(location) {
 
   if (!areValidSocialLinks(location.socialLinks)) {
     return "Social links must be valid http or https URLs.";
+  }
+
+  return "";
+}
+
+function validateUserProfile(user, mode) {
+  if (mode === "create" && user.userId && !/^[A-Za-z0-9_-]+$/.test(user.userId)) {
+    return "UID / Profile ID can only use letters, numbers, underscores, and hyphens.";
+  }
+
+  if (user.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(user.email)) {
+    return "Email must look like a valid email address.";
+  }
+
+  if (!isValidOptionalUrl(user.photoUrl)) {
+    return "Photo URL must be a valid http or https URL.";
+  }
+
+  if (user.roles.length === 0 && user.status !== "inactive" && user.status !== "archived") {
+    return "Active or suspended users must have at least one role.";
+  }
+
+  if (user.primaryLocationId && user.locationIds.indexOf(user.primaryLocationId) === -1) {
+    return "Primary location must also be included in the user location scope.";
   }
 
   return "";
@@ -2628,6 +2955,66 @@ function readLocationStats() {
   return stats;
 }
 
+function readUserStats() {
+  var stats = {
+    totalUsers: state.users.length,
+    activeUsers: 0,
+    multiRoleUsers: 0,
+    missingLocationUsers: 0,
+    suspendedUsers: 0
+  };
+  var index = 0;
+
+  while (index < state.users.length) {
+    var user = getSafeUser(state.users[index]);
+
+    if (user.status === "active") {
+      stats.activeUsers = stats.activeUsers + 1;
+    }
+
+    if (user.roles.length > 1) {
+      stats.multiRoleUsers = stats.multiRoleUsers + 1;
+    }
+
+    if (user.locationIds.length === 0 && user.roles.indexOf("superAdmin") === -1 && user.roles.indexOf("platformAdmin") === -1) {
+      stats.missingLocationUsers = stats.missingLocationUsers + 1;
+    }
+
+    if (user.status === "suspended") {
+      stats.suspendedUsers = stats.suspendedUsers + 1;
+    }
+
+    index = index + 1;
+  }
+
+  return stats;
+}
+
+function readFilteredUsers() {
+  var users = [];
+  var query = state.userFilters.searchText.trim().toLowerCase();
+  var index = 0;
+
+  while (index < state.users.length) {
+    var user = getSafeUser(state.users[index]);
+    var searchable = [user.displayName, user.email, user.phone, user.id].join(" ").toLowerCase();
+    var matchesSearch = !query || searchable.indexOf(query) !== -1;
+    var matchesRole = !state.userFilters.role || user.roles.indexOf(state.userFilters.role) !== -1;
+    var matchesLocation = !state.userFilters.locationId || user.locationIds.indexOf(state.userFilters.locationId) !== -1 || user.primaryLocationId === state.userFilters.locationId;
+    var matchesStatus = !state.userFilters.status || user.status === state.userFilters.status;
+
+    if (matchesSearch && matchesRole && matchesLocation && matchesStatus) {
+      users.push(user);
+    }
+
+    index = index + 1;
+  }
+
+  return users.sort(function (a, b) {
+    return (a.displayName || a.email || a.id).localeCompare(b.displayName || b.email || b.id);
+  });
+}
+
 function isBusy() {
   return state.isSaving || state.isRefreshing;
 }
@@ -2671,6 +3058,97 @@ function normalizeClassForm(classRecord) {
   };
 }
 
+function getSafeUser(user) {
+  var safeUser = user || {};
+  var roles = normalizeRoles(safeUser.roles, safeUser.role);
+  var locationIds = normalizeIdList(safeUser.locationIds || safeUser.locations || safeUser.locationId);
+  var primaryLocationId = readSafeString(safeUser.primaryLocationId || safeUser.locationId);
+
+  if (primaryLocationId && locationIds.indexOf(primaryLocationId) === -1) {
+    locationIds.push(primaryLocationId);
+  }
+
+  return Object.assign({}, safeUser, {
+    id: readSafeString(safeUser.id || safeUser.uid || safeUser.userId),
+    userId: readSafeString(safeUser.userId || safeUser.uid || safeUser.id),
+    displayName: readSafeString(safeUser.displayName || safeUser.name),
+    email: readSafeString(safeUser.email),
+    phone: readSafeString(safeUser.phone),
+    photoUrl: readSafeString(safeUser.photoUrl || safeUser.imageUrl),
+    roles: roles,
+    role: readPrimaryRole(roles),
+    locationIds: locationIds,
+    primaryLocationId: primaryLocationId,
+    status: readSafeString(safeUser.status || "active"),
+    childStudentIds: normalizeIdList(safeUser.childStudentIds),
+    classIds: normalizeIdList(safeUser.classIds)
+  });
+}
+
+function normalizeUserForm(user) {
+  var safeUser = getSafeUser(user || {});
+
+  return {
+    userId: safeUser.userId || safeUser.id || "",
+    displayName: safeUser.displayName,
+    email: safeUser.email,
+    phone: safeUser.phone,
+    photoUrl: safeUser.photoUrl,
+    roles: safeUser.roles.slice(),
+    locationIds: safeUser.locationIds.slice(),
+    primaryLocationId: safeUser.primaryLocationId,
+    status: safeUser.status,
+    childStudentIdsText: safeUser.childStudentIdsText || safeUser.childStudentIds.join(", "),
+    classIdsText: safeUser.classIdsText || safeUser.classIds.join(", ")
+  };
+}
+
+function normalizeUserProfilePayload(form, userId) {
+  var safeForm = normalizeUserForm(Object.assign({}, form, { id: userId || form.userId || form.id }));
+  var locationIds = normalizeIdList(safeForm.locationIds);
+
+  if (safeForm.primaryLocationId && locationIds.indexOf(safeForm.primaryLocationId) === -1) {
+    locationIds.push(safeForm.primaryLocationId);
+  }
+
+  return {
+    userId: readSafeString(safeForm.userId || userId),
+    displayName: readSafeString(safeForm.displayName).trim(),
+    email: readSafeString(safeForm.email).trim(),
+    phone: readSafeString(safeForm.phone).trim(),
+    photoUrl: readSafeString(safeForm.photoUrl).trim(),
+    roles: normalizeRoles(safeForm.roles, safeForm.role),
+    locationIds: locationIds,
+    primaryLocationId: readSafeString(safeForm.primaryLocationId).trim(),
+    status: readSafeString(safeForm.status || "active"),
+    childStudentIds: splitCommaList(safeForm.childStudentIdsText),
+    classIds: splitCommaList(safeForm.classIdsText)
+  };
+}
+
+function buildUserProfileRecord(payload, isCreate) {
+  var record = {
+    displayName: payload.displayName,
+    email: payload.email,
+    phone: payload.phone,
+    photoUrl: payload.photoUrl,
+    roles: payload.roles,
+    role: readLegacyRole(payload.roles),
+    locationIds: payload.locationIds,
+    primaryLocationId: payload.primaryLocationId,
+    status: payload.status,
+    childStudentIds: payload.childStudentIds,
+    classIds: payload.classIds,
+    updatedAt: serverTimestamp()
+  };
+
+  if (isCreate) {
+    record.createdAt = serverTimestamp();
+  }
+
+  return record;
+}
+
 function normalizeStudentForm(student) {
   return {
     studentId: student.id,
@@ -2695,6 +3173,10 @@ function findClass(id) {
 
 function findStudent(id) {
   return findById(state.students, id);
+}
+
+function findUser(id) {
+  return findById(state.users, id);
 }
 
 function findCourse(id) {
@@ -2728,6 +3210,31 @@ function readClassName(id) {
 function readCourseName(id) {
   var course = findCourse(id);
   return course ? readCourseTitle(course) : id;
+}
+
+function readUserLocationSummary(user) {
+  var safeUser = getSafeUser(user);
+
+  if (safeUser.locationIds.length === 0) {
+    return "No location scope";
+  }
+
+  return safeUser.locationIds.map(readLocationName).join(", ");
+}
+
+function readLinkedUserLabel(student) {
+  var linkedUserId = student && (student.userId || student.uid);
+  var linkedUser = linkedUserId ? findUser(linkedUserId) : null;
+
+  if (!linkedUserId) {
+    return "No linked user yet.";
+  }
+
+  if (!linkedUser) {
+    return linkedUserId;
+  }
+
+  return (linkedUser.displayName || linkedUser.email || linkedUser.id) + " (" + linkedUser.id + ")";
 }
 
 function readCourseTitle(course) {
@@ -2800,13 +3307,14 @@ function isSuperAdminRole(role) {
 }
 
 function normalizeAdminRole(role) {
-  var normalizedRole = readSafeString(role).replace(/[^a-z0-9]/gi, "").toLowerCase();
+  var normalizedRole = readSafeString(role).replace(/^role/i, "");
+  var userRole = normalizeUserRole(normalizedRole);
 
-  if (normalizedRole === "superadmin" || normalizedRole === "rolesuperadmin") {
+  if (userRole === "superAdmin") {
     return "superAdmin";
   }
 
-  if (normalizedRole === "platformadmin" || normalizedRole === "roleplatformadmin") {
+  if (userRole === "platformAdmin") {
     return "platformAdmin";
   }
 
@@ -2821,12 +3329,148 @@ function readTabLabel(tab) {
   return tab.charAt(0).toUpperCase() + tab.slice(1);
 }
 
-function buildAvatar(student) {
-  if (student.photoUrl) {
-    return '<img class="sa-avatar" src="' + escapeHtml(student.photoUrl) + '" alt="">';
+function buildAvatar(record) {
+  if (record.photoUrl) {
+    return '<img class="sa-avatar" src="' + escapeHtml(record.photoUrl) + '" alt="">';
   }
 
-  return '<div class="sa-avatar sa-avatar-fallback">👤</div>';
+  return '<div class="sa-avatar sa-avatar-fallback">' + escapeHtml(readInitials(record.displayName || record.name || record.email || record.id)) + '</div>';
+}
+
+function buildRoleBadges(roles) {
+  var safeRoles = normalizeRoles(roles, "");
+  var html = "";
+  var index = 0;
+
+  if (safeRoles.length === 0) {
+    return '<span class="sa-role-badge sa-role-empty">No roles</span>';
+  }
+
+  while (index < safeRoles.length) {
+    html += '<span class="sa-role-badge sa-role-' + escapeHtml(safeRoles[index]) + '">' + escapeHtml(readRoleLabel(safeRoles[index])) + '</span>';
+    index = index + 1;
+  }
+
+  return html;
+}
+
+function buildStatusBadge(status) {
+  return '<span class="sa-status sa-status-' + escapeHtml(status || "active") + '">' + escapeHtml(status || "active") + '</span>';
+}
+
+function readRoleLabel(role) {
+  var labels = {
+    student: "Student",
+    teacher: "Teacher",
+    parent: "Parent",
+    schoolAdmin: "School Admin",
+    regionalAdmin: "Regional Admin",
+    ministryUser: "Ministry User",
+    platformAdmin: "Platform Admin",
+    superAdmin: "Super Admin"
+  };
+
+  return labels[role] || role;
+}
+
+function normalizeRoles(roles, legacyRole) {
+  var source = Array.isArray(roles) ? roles.slice() : [];
+
+  if (source.length === 0 && legacyRole) {
+    source.push(legacyRole);
+  }
+
+  return source.map(normalizeUserRole).filter(function (role, index, list) {
+    return role && userRoles.indexOf(role) !== -1 && list.indexOf(role) === index;
+  });
+}
+
+function normalizeUserRole(role) {
+  var normalizedRole = readSafeString(role).replace(/[^a-z0-9]/gi, "").toLowerCase();
+
+  if (normalizedRole === "schooladmin") {
+    return "schoolAdmin";
+  }
+
+  if (normalizedRole === "regionaladmin") {
+    return "regionalAdmin";
+  }
+
+  if (normalizedRole === "ministryuser" || normalizedRole === "ministry") {
+    return "ministryUser";
+  }
+
+  if (normalizedRole === "platformadmin") {
+    return "platformAdmin";
+  }
+
+  if (normalizedRole === "superadmin") {
+    return "superAdmin";
+  }
+
+  if (normalizedRole === "student" || normalizedRole === "teacher" || normalizedRole === "parent") {
+    return normalizedRole;
+  }
+
+  return "";
+}
+
+function readPrimaryRole(roles) {
+  var priority = ["superAdmin", "platformAdmin", "ministryUser", "regionalAdmin", "schoolAdmin", "teacher", "parent", "student"];
+  var safeRoles = normalizeRoles(roles, "");
+  var index = 0;
+
+  while (index < priority.length) {
+    if (safeRoles.indexOf(priority[index]) !== -1) {
+      return priority[index];
+    }
+
+    index = index + 1;
+  }
+
+  return safeRoles[0] || "";
+}
+
+function readLegacyRole(roles) {
+  var safeRoles = normalizeRoles(roles, "");
+
+  if (safeRoles.indexOf("superAdmin") !== -1) {
+    return "superAdmin";
+  }
+
+  if (safeRoles.indexOf("platformAdmin") !== -1) {
+    return "platformAdmin";
+  }
+
+  if (safeRoles.indexOf("student") !== -1) {
+    return "student";
+  }
+
+  return readPrimaryRole(safeRoles);
+}
+
+function readPrimaryAdminRole(roles) {
+  var safeRoles = normalizeRoles(roles, "");
+
+  if (safeRoles.indexOf("superAdmin") !== -1) {
+    return "superAdmin";
+  }
+
+  if (safeRoles.indexOf("platformAdmin") !== -1) {
+    return "platformAdmin";
+  }
+
+  return readPrimaryRole(safeRoles);
+}
+
+function isCurrentUserSelfDemotion(userId, nextRoles) {
+  var currentUserId = state.actor ? state.actor.id : "";
+
+  if (!currentUserId || currentUserId !== userId) {
+    return false;
+  }
+
+  return !isSuperAdminRole(readPrimaryAdminRole(nextRoles));
 }
 
 function readFruitLabel(fruit) {

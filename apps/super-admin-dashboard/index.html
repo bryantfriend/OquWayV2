@@ -692,7 +692,8 @@
 
         .sa-table,
         .sa-student-list,
-        .sa-location-list {
+        .sa-location-list,
+        .sa-user-list {
             display: grid;
             gap: 12px;
         }
@@ -860,6 +861,118 @@
             flex-wrap: wrap;
         }
 
+        .sa-user-filters {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr 1fr 1fr;
+            gap: 10px;
+            margin: 16px 0;
+        }
+
+        .sa-user-card {
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            padding: 16px;
+            box-shadow: 0 14px 40px rgba(16,32,51,0.06);
+        }
+
+        .sa-user-summary {
+            display: grid;
+            grid-template-columns: 58px minmax(0, 1fr) minmax(180px, 0.8fr) auto;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .sa-user-main {
+            min-width: 0;
+        }
+
+        .sa-user-main h3,
+        .sa-user-main p,
+        .sa-user-main small {
+            margin: 3px 0;
+            overflow-wrap: anywhere;
+        }
+
+        .sa-user-main p,
+        .sa-user-main small,
+        .sa-user-meta span {
+            color: var(--muted);
+            font-weight: 800;
+        }
+
+        .sa-user-meta {
+            display: grid;
+            gap: 5px;
+            font-size: 0.82rem;
+        }
+
+        .sa-user-form {
+            display: grid;
+            gap: 14px;
+        }
+
+        .sa-user-fields {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            align-items: start;
+        }
+
+        .sa-user-fields select[multiple] {
+            min-height: 154px;
+        }
+
+        .sa-role-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .sa-role-badge {
+            border-radius: 999px;
+            padding: 5px 9px;
+            font-size: 0.72rem;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .sa-role-teacher {
+            background: #ecfdf5;
+            color: #047857;
+        }
+
+        .sa-role-parent {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .sa-role-schoolAdmin,
+        .sa-role-regionalAdmin {
+            background: #ede9fe;
+            color: #6d28d9;
+        }
+
+        .sa-role-ministryUser {
+            background: #cffafe;
+            color: #0e7490;
+        }
+
+        .sa-role-platformAdmin,
+        .sa-role-superAdmin {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .sa-role-empty {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
         .sa-btn-spinner {
             width: 14px;
             height: 14px;
@@ -979,6 +1092,12 @@
         }
 
         .sa-status-paused {
+            background: #fff7ed;
+            color: #c2410c;
+        }
+
+        .sa-status-inactive,
+        .sa-status-suspended {
             background: #fff7ed;
             color: #c2410c;
         }
@@ -1183,7 +1302,10 @@
             .sa-overview-skeleton,
             .sa-quick-actions,
             .sa-mini-grid,
-            .sa-search-groups {
+            .sa-search-groups,
+            .sa-user-filters,
+            .sa-user-summary,
+            .sa-user-fields {
                 grid-template-columns: 1fr;
             }
 
