@@ -1,0 +1,28 @@
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js";
+import { reorderPracticeModeSteps } from "./practiceModeShells.js";
+
+export async function processReorderPracticeModeSteps(executionState) {
+  var payload = executionState.payload;
+  var session = executionState.context.session;
+  var practiceModes = reorderPracticeModeSteps(session.practiceModes, payload.practiceModeKey, payload.orderedStepIds);
+
+  try {
+    await setDoc(doc(db, "courses", payload.courseId, "modules", payload.moduleId, "sessions", payload.sessionId), {
+      practiceModes: practiceModes,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+
+    executionState.result = Object.assign({}, session, { practiceModes: practiceModes });
+    return { valid: true };
+  } catch (error) {
+    return {
+      valid: false,
+      errors: [
+        {
+          code: "PRACTICE_MODE_STEP_REORDER_FAILED",
+          message: "Failed to reorder practice mode steps: " + error.message
+        }
+      ]
+    };
+  }
+}

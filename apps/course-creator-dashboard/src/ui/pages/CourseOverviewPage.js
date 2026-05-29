@@ -1,0 +1,963 @@
+import { courseEditorStore } from '../state/courseEditorState.js';
+import { courseEditorService } from '../services/courseEditorService.js';
+import { courseAssignmentService } from '../services/courseAssignmentService.js';
+
+export class CourseOverviewPage {
+  constructor(courseId) {
+    this.courseId = courseId;
+    this.unsubscribe = null;
+    this.userHasEditedMetadata = false;
+    this.localTags = [];
+    this.editingModuleId = null;
+    this.assignments = [];
+    this.assignmentsLoading = false;
+    this.ALL_LANGUAGES = [
+      { code: 'en', name: 'English (en)' },
+      { code: 'ru', name: 'Russian (ru)' },
+      { code: 'ky', name: 'Kyrgyz (ky)' }
+    ];
+  }
+
+  render() {
+    return `
+      <div id="course-overview-root" class="min-h-screen bg-gray-50 flex flex-col">
+        <!-- Top Nav -->
+        <nav class="bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center z-10 sticky top-0 shadow-sm">
+          <div class="flex items-center gap-4">
+            <span class="text-blue-600 font-bold text-xl tracking-tight">OquWay</span>
+            <div class="h-6 w-px bg-gray-300"></div>
+            <span class="text-gray-600 font-medium text-sm" id="headerContextualTitle">Loading Overview...</span>
+          </div>
+          <div class="flex items-center gap-3 text-sm">
+            <span id="saveStatusIndicator" class="text-green-600 font-medium flex items-center gap-1 mr-2 hidden">
+              <i class="fa-regular fa-circle-check"></i> Autosave
+            </span>
+            <a href="#dashboard" class="border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg font-medium transition shadow-sm">Back to Catalog</a>
+            <button id="publishCourseBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition flex items-center gap-2">
+              <i class="fa-solid fa-arrow-up-from-bracket"></i> Publish Update
+            </button>
+          </div>
+        </nav>
+
+        <main class="max-w-7xl mx-auto w-full px-6 py-8 flex gap-8 pb-32">
+
+          <!-- Left Column: Modules List -->
+          <div class="flex-1">
+            <div class="flex justify-between items-center mb-6">
+              <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Course Modules</h1>
+              <div class="flex items-center gap-3">
+                <span id="moduleCreateStatusMsg" style="display:none" class="text-sm font-medium"></span>
+                <button id="addModuleBtn" class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg font-semibold transition shadow-sm flex items-center gap-2 text-sm">
+                  <i class="fa-solid fa-plus text-gray-400"></i> New Module
+                </button>
+              </div>
+            </div>
+
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-200">
+                    <th class="py-3 px-6 font-semibold w-12 text-center">Order</th>
+                    <th class="py-3 px-6 font-semibold">Module Title</th>
+                    <th class="py-3 px-6 font-semibold text-center w-24">Status</th>
+                    <th class="py-3 px-6 font-semibold text-right w-32">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="moduleTableBody" class="divide-y divide-gray-100 text-sm">
+                  ${buildModuleSkeletonRows(3)}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Right Column: Course Settings -->
+          <div class="w-96 shrink-0">
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 sticky top-24">
+              <h2 class="text-lg font-bold text-gray-900 tracking-tight mb-5 border-b border-gray-100 pb-3">Course Metadata</h2>
+
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-xs font-semibold text-gray-700 mb-1">Course Title</label>
+                  <input type="text" id="courseTitleInput" class="course-meta-input w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" data-field="title" placeholder="Loading...">
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-gray-700 mb-1">Course Description</label>
+                  <textarea id="courseDescriptionInput" class="course-meta-input w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[88px]" data-field="description" placeholder="Short course description..."></textarea>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-gray-700 mb-1">Status</label>
+                  <select id="courseStatusSelect" class="course-meta-input w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-gray-700 mb-1">Tags</label>
+                  <div id="tagsContainer" class="flex flex-wrap gap-2 mb-2 min-h-[24px]"></div>
+                  <div class="flex gap-2">
+                    <input type="text" id="newTagInput" class="course-meta-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Add tag...">
+                    <button id="addTagBtn" class="bg-gray-100 border border-gray-300 px-3 py-1.5 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-200 transition">Add</button>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-gray-700 mb-1">Supported Languages (Ctrl+Click to Select Multiple)</label>
+                  <select id="courseLangsSelect" multiple class="course-meta-input w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 h-28">
+                    <!-- Populated via JS -->
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-gray-700 mb-1">Default Language</label>
+                  <select id="courseDefaultLangSelect" class="course-meta-input w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <!-- Populated via JS -->
+                  </select>
+                </div>
+              </div>
+
+              <button id="saveMetadataBtn" class="w-full mt-6 bg-gray-900 hover:bg-black text-white font-semibold py-2.5 rounded-lg shadow-sm transition text-sm flex justify-center items-center gap-2">
+                Save Settings
+              </button>
+
+              <div class="mt-6 pt-4 border-t border-gray-100 text-xs text-gray-500 flex justify-between">
+                <span>Version: <span id="courseVersionText" class="font-medium text-gray-800">1</span></span>
+                <span>Status: <span id="courseStatusText" class="font-medium text-gray-800">draft</span></span>
+              </div>
+
+              <div class="mt-6 pt-5 border-t border-gray-100">
+                <div class="flex items-center justify-between gap-3 mb-4">
+                  <div>
+                    <h2 class="text-lg font-bold text-gray-900 tracking-tight">Assignments</h2>
+                    <p class="text-xs text-gray-500 mt-1">Control which students can see this course.</p>
+                  </div>
+                  <button id="refreshAssignmentsBtn" class="text-xs font-bold text-blue-600 hover:text-blue-700">Refresh</button>
+                </div>
+
+                <div id="assignmentStatusMessage" class="hidden mb-3 text-xs font-semibold"></div>
+
+                <div class="space-y-3">
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Target Type</label>
+                    <select id="assignmentTargetTypeSelect" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      <option value="class">Class</option>
+                      <option value="student">Student</option>
+                      <option value="location">Location</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Target ID</label>
+                    <input id="assignmentTargetIdInput" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Paste class, student, or location ID">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Initial Status</label>
+                    <select id="assignmentStatusSelect" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      <option value="active">Active</option>
+                      <option value="paused">Paused</option>
+                    </select>
+                  </div>
+                  <button id="createAssignmentBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg shadow-sm transition text-sm">
+                    Assign Course
+                  </button>
+                </div>
+
+                <div id="assignmentList" class="mt-5 space-y-2">
+                  ${buildAssignmentSkeletonRows(2)}
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Module Title Edit Modal -->
+        <div id="moduleTitleModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 transition-opacity">
+          <div class="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden transform transition-all">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+              <h3 class="text-lg font-bold text-gray-900">Edit Module Titles</h3>
+              <button id="closeModuleTitleBtn" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="px-6 py-4 space-y-3 max-h-[60vh] overflow-y-auto" id="moduleTitleInputsContainer">
+              <!-- Dynamically generated inputs based on course languages -->
+            </div>
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 justify-end flex gap-2">
+              <button id="cancelModuleTitleBtn" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition">Cancel</button>
+              <button id="saveModuleTitleBtn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium text-white transition shadow-sm">Save Titles</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    `;
+  }
+
+  renderTags() {
+    var container = document.getElementById('tagsContainer');
+    if (!container) {
+      return;
+    }
+
+    if (this.localTags.length === 0) {
+      container.innerHTML = '<span class="text-gray-400 text-xs italic">No tags added yet</span>';
+      return;
+    }
+
+    container.innerHTML = this.localTags.map(function (t, i) {
+      return '<span class="bg-blue-50 text-blue-600 border border-blue-100 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase shadow-sm">'
+        + t
+        + '<i class="fa-solid fa-xmark cursor-pointer text-blue-300 hover:text-red-500 transition remove-tag-btn" data-index="' + i + '"></i>'
+        + '</span>';
+    }).join('');
+  }
+
+  renderLangsSelect(selectEl, selectedCodes) {
+    selectEl.innerHTML = this.ALL_LANGUAGES.map(function (lang) {
+      var isSelected = selectedCodes.indexOf(lang.code) !== -1;
+      return '<option value="' + lang.code + '" ' + (isSelected ? 'selected' : '') + '>' + lang.name + '</option>';
+    }).join('');
+  }
+
+  renderDefaultLangSelect(selectEl, selectedCodes, defaultCode) {
+    var filteredLangs = this.ALL_LANGUAGES.filter(function (l) {
+      return selectedCodes.indexOf(l.code) !== -1;
+    });
+
+    selectEl.innerHTML = filteredLangs.map(function (lang) {
+      var isSelected = lang.code === defaultCode;
+      return '<option value="' + lang.code + '" ' + (isSelected ? 'selected' : '') + '>' + lang.name + '</option>';
+    }).join('');
+
+    if (selectEl.options.length > 0 && selectEl.selectedIndex === -1) {
+      selectEl.selectedIndex = 0;
+    }
+  }
+
+  getLocalizedText(value, defaultLanguage) {
+    var languageCode = defaultLanguage;
+
+    if (!languageCode) {
+      languageCode = 'en';
+    }
+
+    if (typeof value === 'string') {
+      return value;
+    }
+
+    if (!value || typeof value !== 'object') {
+      return '';
+    }
+
+    if (typeof value[languageCode] === 'string' && value[languageCode].length > 0) {
+      return value[languageCode];
+    }
+
+    if (typeof value.en === 'string' && value.en.length > 0) {
+      return value.en;
+    }
+
+    if (typeof value.ru === 'string' && value.ru.length > 0) {
+      return value.ru;
+    }
+
+    if (typeof value.ky === 'string' && value.ky.length > 0) {
+      return value.ky;
+    }
+
+    return '';
+  }
+
+  buildLocalizedText(existingValue, defaultLanguage, inputValue) {
+    var localizedText = {
+      en: '',
+      ru: '',
+      ky: ''
+    };
+
+    if (typeof existingValue === 'string') {
+      localizedText.en = existingValue;
+    }
+
+    if (existingValue && typeof existingValue === 'object') {
+      localizedText.en = this.readLanguageText(existingValue.en);
+      localizedText.ru = this.readLanguageText(existingValue.ru);
+      localizedText.ky = this.readLanguageText(existingValue.ky);
+    }
+
+    if (defaultLanguage !== 'ru' && defaultLanguage !== 'ky') {
+      defaultLanguage = 'en';
+    }
+
+    localizedText[defaultLanguage] = inputValue;
+    return localizedText;
+  }
+
+  readLanguageText(value) {
+    if (typeof value !== 'string') {
+      return '';
+    }
+
+    return value;
+  }
+
+  openModuleTitleModal(moduleId) {
+    this.editingModuleId = moduleId;
+    var state = courseEditorStore.getState();
+    var course = state.course;
+    if (!course) {
+      return;
+    }
+
+    var matchingModules = state.modules.filter(function (m) {
+      return (m.id || m.moduleId) === moduleId;
+    });
+    var module = matchingModules[0];
+    if (!module) {
+      return;
+    }
+
+    var titleObj = module.title || (module.config && module.config.title) || {};
+    if (typeof titleObj === 'string') {
+      titleObj = { en: titleObj };
+    }
+
+    var supportedLangs = course.languages || ['en'];
+    var container = document.getElementById('moduleTitleInputsContainer');
+    var self = this;
+
+    container.innerHTML = supportedLangs.map(function (code) {
+      var matchingLang = self.ALL_LANGUAGES.filter(function (l) {
+        return l.code === code;
+      });
+      var langDef = matchingLang[0];
+      var labelName = langDef ? langDef.name : code;
+      var currentVal = titleObj[code] || '';
+      return '<div>'
+        + '<label class="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wide">' + labelName + '</label>'
+        + '<input type="text" data-lang="' + code + '" value="' + currentVal + '" class="module-title-lang-input w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Module name in ' + labelName + '...">'
+        + '</div>';
+    }).join('');
+
+    document.getElementById('moduleTitleModal').classList.remove('hidden');
+  }
+
+  attachEvents() {
+    var self = this;
+    courseEditorStore.resetState();
+
+    this.unsubscribe = courseEditorStore.subscribe(function (newState) {
+      self.updateUI(newState);
+    });
+
+    courseEditorService.openCourseEditor(this.courseId);
+    this.loadAssignments();
+
+    document.getElementById('refreshAssignmentsBtn').addEventListener('click', function () {
+      self.loadAssignments();
+    });
+
+    document.getElementById('createAssignmentBtn').addEventListener('click', function () {
+      self.createAssignment();
+    });
+
+    document.getElementById('assignmentList').addEventListener('click', function (e) {
+      var statusBtn = e.target.closest('.assignment-status-btn');
+      var archiveBtn = e.target.closest('.assignment-archive-btn');
+
+      if (statusBtn) {
+        self.updateAssignmentStatus(
+          statusBtn.getAttribute('data-id'),
+          statusBtn.getAttribute('data-status')
+        );
+        return;
+      }
+
+      if (archiveBtn) {
+        self.archiveAssignment(archiveBtn.getAttribute('data-id'));
+      }
+    });
+
+    document.getElementById('publishCourseBtn').addEventListener('click', function () {
+      courseEditorService.publishCourse(self.courseId);
+    });
+
+    document.getElementById('addModuleBtn').addEventListener('click', function () {
+      var btn = document.getElementById('addModuleBtn');
+      var statusMsg = document.getElementById('moduleCreateStatusMsg');
+
+      showModuleBtnPending(btn, 'Preparing\u2026');
+      showModuleStatusMsg(statusMsg, 'creating', '<span class="oqu-spinner oqu-spinner-blue"></span> Preparing module structure\u2026');
+
+      courseEditorService.addModule(self.courseId).then(function () {
+        showModuleStatusMsg(statusMsg, 'success', '<span class="oqu-success-icon">&#10003;</span> Module added!');
+        restoreModuleBtn(btn, '<i class="fa-solid fa-plus text-gray-400"></i> New Module');
+        setTimeout(function () {
+          statusMsg.style.display = 'none';
+        }, 2000);
+      }).catch(function (err) {
+        showModuleStatusMsg(statusMsg, 'error', '&#9888; Failed: ' + err.message);
+        restoreModuleBtn(btn, '<i class="fa-solid fa-plus text-gray-400"></i> New Module');
+      });
+    });
+
+    // Event delegation for opening Module Step Editor and Title Modal
+    var tbody = document.getElementById('moduleTableBody');
+    tbody.addEventListener('click', function (e) {
+      var editBtn = e.target.closest('.open-module-btn');
+      if (editBtn) {
+        var moduleId = editBtn.getAttribute('data-id');
+        window.location.hash = '#module-editor?courseId=' + self.courseId + '&moduleId=' + moduleId;
+        return;
+      }
+
+      var titleBtn = e.target.closest('.edit-module-name-btn');
+      if (titleBtn) {
+        var moduleId = titleBtn.getAttribute('data-id');
+        self.openModuleTitleModal(moduleId);
+      }
+    });
+
+    // Drag and Drop Module Reordering
+    var draggedRowIndex = null;
+
+    tbody.addEventListener('dragstart', function (e) {
+      var row = e.target.closest('tr.module-row');
+      if (!row) {
+        return;
+      }
+      draggedRowIndex = parseInt(row.getAttribute('data-index'), 10);
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/html', row.innerHTML);
+      row.classList.add('opacity-50');
+    });
+
+    tbody.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      var row = e.target.closest('tr.module-row');
+      if (row && row.getAttribute('data-index') !== String(draggedRowIndex)) {
+        row.classList.add('bg-blue-50', 'border-t-2', 'border-blue-400');
+      }
+      return false;
+    });
+
+    tbody.addEventListener('dragleave', function (e) {
+      var row = e.target.closest('tr.module-row');
+      if (row) {
+        row.classList.remove('bg-blue-50', 'border-t-2', 'border-blue-400');
+      }
+    });
+
+    tbody.addEventListener('drop', function (e) {
+      e.stopPropagation();
+      var row = e.target.closest('tr.module-row');
+      if (row) {
+        row.classList.remove('bg-blue-50', 'border-t-2', 'border-blue-400');
+        var dropIndex = parseInt(row.getAttribute('data-index'), 10);
+        if (draggedRowIndex !== null && draggedRowIndex !== dropIndex) {
+          courseEditorService.reorderModules(self.courseId, draggedRowIndex, dropIndex).then(function () {
+            courseEditorService.saveDraft(self.courseId);
+          });
+        }
+      }
+      return false;
+    });
+
+    tbody.addEventListener('dragend', function (e) {
+      var row = e.target.closest('tr.module-row');
+      if (row) {
+        row.classList.remove('opacity-50');
+      }
+      var rows = tbody.querySelectorAll('tr.module-row');
+      for (var i = 0; i < rows.length; i++) {
+        rows[i].classList.remove('bg-blue-50', 'border-t-2', 'border-blue-400');
+      }
+      draggedRowIndex = null;
+    });
+
+    // Track when user is typing/editing locally so we don't accidentally overwrite with state polling
+    var inputs = document.querySelectorAll('.course-meta-input');
+    for (var i = 0; i < inputs.length; i++) {
+      inputs[i].addEventListener('input', function () { self.userHasEditedMetadata = true; });
+      inputs[i].addEventListener('change', function () { self.userHasEditedMetadata = true; });
+    }
+
+    // Tags Logic
+    var newTagInput = document.getElementById('newTagInput');
+    var addTagBtn = document.getElementById('addTagBtn');
+
+    function addTag() {
+      var val = newTagInput.value.trim();
+      if (val && self.localTags.indexOf(val) === -1) {
+        self.localTags.push(val);
+        self.renderTags();
+        self.userHasEditedMetadata = true;
+        newTagInput.value = '';
+      }
+    }
+
+    addTagBtn.addEventListener('click', addTag);
+    newTagInput.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        addTag();
+      }
+    });
+    document.getElementById('tagsContainer').addEventListener('click', function (e) {
+      if (e.target.classList.contains('remove-tag-btn')) {
+        var idx = parseInt(e.target.getAttribute('data-index'), 10);
+        self.localTags.splice(idx, 1);
+        self.renderTags();
+        self.userHasEditedMetadata = true;
+      }
+    });
+
+    // Language Select dependent logic
+    var langsSelect = document.getElementById('courseLangsSelect');
+    var dLangSelect = document.getElementById('courseDefaultLangSelect');
+    langsSelect.addEventListener('change', function () {
+      self.userHasEditedMetadata = true;
+      var selectedCodes = [];
+      for (var i = 0; i < langsSelect.options.length; i++) {
+        if (langsSelect.options[i].selected) {
+          selectedCodes.push(langsSelect.options[i].value);
+        }
+      }
+      var currentDefault = dLangSelect.value;
+      self.renderDefaultLangSelect(dLangSelect, selectedCodes, currentDefault);
+    });
+
+    // Submit Save Settings
+    document.getElementById('saveMetadataBtn').addEventListener('click', function () {
+      var state = courseEditorStore.getState();
+      var course = state.course || {};
+      var title = document.getElementById('courseTitleInput').value.trim();
+      var description = document.getElementById('courseDescriptionInput').value.trim();
+      var status = document.getElementById('courseStatusSelect').value || 'draft';
+      var langs = [];
+      for (var i = 0; i < langsSelect.options.length; i++) {
+        if (langsSelect.options[i].selected) {
+          langs.push(langsSelect.options[i].value);
+        }
+      }
+      var defaultLang = dLangSelect.value;
+      var btn = document.getElementById('saveMetadataBtn');
+
+      btn.innerHTML = '<span class="oqu-spinner"></span> Saving\u2026';
+      btn.disabled = true;
+      btn.classList.add('oqu-btn-pending');
+
+      courseEditorService.updateCourseMetadata(self.courseId, {
+        title: self.buildLocalizedText(course.title, defaultLang || 'en', title),
+        description: self.buildLocalizedText(course.description, defaultLang || 'en', description),
+        status: status,
+        tags: self.localTags.slice(),
+        languages: langs.length ? langs : ['en'],
+        defaultLanguage: defaultLang || 'en'
+      }).then(function (result) {
+        btn.disabled = false;
+        btn.classList.remove('oqu-btn-pending');
+
+        if (!result || !result.emitted || !result.emitted.success) {
+          btn.textContent = 'Save Settings';
+          return;
+        }
+
+        self.userHasEditedMetadata = false;
+        btn.innerHTML = '<span class="oqu-success-icon">&#10003;</span> Saved';
+        btn.classList.replace('bg-gray-900', 'bg-green-600');
+        setTimeout(function () {
+          btn.textContent = 'Save Settings';
+          btn.classList.replace('bg-green-600', 'bg-gray-900');
+        }, 2000);
+      }).catch(function (err) {
+        btn.textContent = 'Save Settings';
+        btn.disabled = false;
+        btn.classList.remove('oqu-btn-pending');
+        console.error('[CourseOverview] Save settings failed:', err);
+      });
+    });
+
+    // Module Title Modal Events
+    function closeModalFn() {
+      document.getElementById('moduleTitleModal').classList.add('hidden');
+    }
+
+    document.getElementById('closeModuleTitleBtn').addEventListener('click', closeModalFn);
+    document.getElementById('cancelModuleTitleBtn').addEventListener('click', closeModalFn);
+    document.getElementById('saveModuleTitleBtn').addEventListener('click', function () {
+      if (!self.editingModuleId) {
+        return;
+      }
+      var titleInputs = document.querySelectorAll('.module-title-lang-input');
+      var newTitleObj = {};
+      for (var i = 0; i < titleInputs.length; i++) {
+        var langCode = titleInputs[i].getAttribute('data-lang');
+        var val = titleInputs[i].value.trim();
+        if (val) {
+          newTitleObj[langCode] = val;
+        }
+      }
+      if (Object.keys(newTitleObj).length === 0) {
+        newTitleObj.en = 'Untitled Module';
+      }
+
+      courseEditorService.updateModule(self.courseId, self.editingModuleId, {
+        title: newTitleObj,
+        description: {},
+        status: 'draft'
+      });
+      closeModalFn();
+    });
+  }
+
+  updateUI(state) {
+    if (state.error) {
+      document.getElementById('headerContextualTitle').textContent = 'Error Loading Course';
+      document.getElementById('moduleTableBody').innerHTML = '<tr><td colspan="4" class="py-10 text-center text-red-600 font-bold border-b bg-red-50">ERROR: ' + state.error + '</td></tr>';
+      return;
+    }
+
+    if (!state.course && state.isFetching) {
+      document.getElementById('headerContextualTitle').textContent = 'Loading your learning path\u2026';
+      document.getElementById('moduleTableBody').innerHTML = buildModuleSkeletonRows(3);
+      return;
+    }
+
+    var course = state.course;
+    if (course) {
+      var defaultLanguage = course.defaultLanguage || 'en';
+      var courseTitle = this.getLocalizedText(course.title, defaultLanguage) || 'Untitled';
+      document.getElementById('headerContextualTitle').innerHTML = courseTitle + ' <span class="text-gray-400 mx-1">&rarr;</span> Config &amp; Modules Overview';
+
+      if (!this.userHasEditedMetadata) {
+        var titleInput = document.getElementById('courseTitleInput');
+        titleInput.value = this.getLocalizedText(course.title, defaultLanguage);
+
+        var descriptionInput = document.getElementById('courseDescriptionInput');
+        descriptionInput.value = this.getLocalizedText(course.description, defaultLanguage);
+
+        var statusSelect = document.getElementById('courseStatusSelect');
+        statusSelect.value = course.status || 'draft';
+
+        this.localTags = (course.tags || []).slice();
+        this.renderTags();
+
+        var langsSelect = document.getElementById('courseLangsSelect');
+        var supportedLangs = course.languages || ['en'];
+        this.renderLangsSelect(langsSelect, supportedLangs);
+
+        var dLangSelect = document.getElementById('courseDefaultLangSelect');
+        this.renderDefaultLangSelect(dLangSelect, supportedLangs, course.defaultLanguage || 'en');
+      }
+
+      document.getElementById('courseVersionText').textContent = course.version || 1;
+      document.getElementById('courseStatusText').textContent = course.status || 'draft';
+    }
+
+    var saveIndicator = document.getElementById('saveStatusIndicator');
+    if (state.isDraftSaving) {
+      saveIndicator.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
+      saveIndicator.classList.remove('hidden');
+      saveIndicator.className = 'text-yellow-600 font-medium flex items-center gap-1 mr-2';
+    } else if (state.lastSaved) {
+      saveIndicator.innerHTML = '<i class="fa-regular fa-circle-check"></i> Saved';
+      saveIndicator.classList.remove('hidden');
+      saveIndicator.className = 'text-green-600 font-medium flex items-center gap-1 mr-2';
+    }
+
+    this.renderModuleList(state.modules);
+  }
+
+  loadAssignments() {
+    var self = this;
+    this.assignmentsLoading = true;
+    this.renderAssignments();
+    this.showAssignmentStatus('loading', 'Loading assignments...');
+
+    courseAssignmentService.listCourseAssignments(this.courseId).then(function (assignments) {
+      self.assignments = assignments;
+      self.assignmentsLoading = false;
+      self.renderAssignments();
+      self.showAssignmentStatus('success', 'Assignments loaded.');
+      setTimeout(function () {
+        self.hideAssignmentStatus();
+      }, 1400);
+    }).catch(function (error) {
+      self.assignmentsLoading = false;
+      self.renderAssignments();
+      self.showAssignmentStatus('error', error.message);
+    });
+  }
+
+  createAssignment() {
+    var self = this;
+    var targetTypeSelect = document.getElementById('assignmentTargetTypeSelect');
+    var targetIdInput = document.getElementById('assignmentTargetIdInput');
+    var statusSelect = document.getElementById('assignmentStatusSelect');
+    var createButton = document.getElementById('createAssignmentBtn');
+    var targetId = targetIdInput.value.trim();
+
+    if (!targetId) {
+      this.showAssignmentStatus('error', 'Add a target ID before assigning the course.');
+      return;
+    }
+
+    createButton.disabled = true;
+    createButton.textContent = 'Assigning...';
+    this.showAssignmentStatus('loading', 'Creating assignment...');
+
+    courseAssignmentService.createCourseAssignment(
+      this.courseId,
+      targetTypeSelect.value,
+      targetId,
+      statusSelect.value
+    ).then(function () {
+      targetIdInput.value = '';
+      createButton.disabled = false;
+      createButton.textContent = 'Assign Course';
+      self.showAssignmentStatus('success', 'Course assignment saved.');
+      self.loadAssignments();
+    }).catch(function (error) {
+      createButton.disabled = false;
+      createButton.textContent = 'Assign Course';
+      self.showAssignmentStatus('error', error.message);
+    });
+  }
+
+  updateAssignmentStatus(assignmentId, status) {
+    var self = this;
+    this.showAssignmentStatus('loading', 'Updating assignment...');
+
+    courseAssignmentService.updateCourseAssignment(assignmentId, status).then(function () {
+      self.showAssignmentStatus('success', 'Assignment updated.');
+      self.loadAssignments();
+    }).catch(function (error) {
+      self.showAssignmentStatus('error', error.message);
+    });
+  }
+
+  archiveAssignment(assignmentId) {
+    var self = this;
+    this.showAssignmentStatus('loading', 'Archiving assignment...');
+
+    courseAssignmentService.archiveCourseAssignment(assignmentId).then(function () {
+      self.showAssignmentStatus('success', 'Assignment archived.');
+      self.loadAssignments();
+    }).catch(function (error) {
+      self.showAssignmentStatus('error', error.message);
+    });
+  }
+
+  renderAssignments() {
+    var list = document.getElementById('assignmentList');
+
+    if (!list) {
+      return;
+    }
+
+    if (this.assignmentsLoading) {
+      list.innerHTML = buildAssignmentSkeletonRows(2);
+      return;
+    }
+
+    if (!this.assignments || this.assignments.length === 0) {
+      list.innerHTML = '<div class="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-center text-xs text-gray-500 font-medium">No assignments yet. Add a class, student, or location target above.</div>';
+      return;
+    }
+
+    list.innerHTML = this.assignments.map(function (assignment) {
+      return buildAssignmentRow(assignment);
+    }).join('');
+  }
+
+  showAssignmentStatus(type, message) {
+    var statusMessage = document.getElementById('assignmentStatusMessage');
+
+    if (!statusMessage) {
+      return;
+    }
+
+    var colorClass = 'text-blue-700 bg-blue-50 border-blue-100';
+
+    if (type === 'error') {
+      colorClass = 'text-red-700 bg-red-50 border-red-100';
+    }
+
+    if (type === 'success') {
+      colorClass = 'text-green-700 bg-green-50 border-green-100';
+    }
+
+    statusMessage.className = 'mb-3 text-xs font-semibold border rounded-lg px-3 py-2 ' + colorClass;
+    statusMessage.textContent = message;
+  }
+
+  hideAssignmentStatus() {
+    var statusMessage = document.getElementById('assignmentStatusMessage');
+
+    if (statusMessage) {
+      statusMessage.className = 'hidden mb-3 text-xs font-semibold';
+      statusMessage.textContent = '';
+    }
+  }
+
+  renderModuleList(modules) {
+    var tbody = document.getElementById('moduleTableBody');
+
+    if (!modules || modules.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" class="py-10 text-center text-gray-500 border-b">No modules added yet. Create one above to get started.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = modules.map(function (m, idx) {
+      var titleObj = m.title || (m.config && m.config.title) || 'Untitled Module';
+      var displayTitle = 'Untitled Module';
+
+      if (typeof titleObj === 'string') {
+        displayTitle = titleObj;
+      } else if (typeof titleObj === 'object' && titleObj !== null) {
+        displayTitle = titleObj.en || Object.values(titleObj)[0] || 'Untitled Module';
+      }
+
+      var dirtyDot = m.isDirty
+        ? '<span class="inline-flex items-center gap-1 text-orange-500 font-bold ml-2 text-[10px] uppercase tracking-wider"><div class="w-1.5 h-1.5 rounded-full bg-orange-500"></div>Unsaved</span>'
+        : '';
+
+      var moduleId = m.id || m.moduleId;
+
+      return '<tr class="hover:bg-gray-50 transition group module-row" draggable="true" data-index="' + idx + '">'
+        + '<td class="py-4 px-6 border-b border-gray-100 text-center text-gray-400 font-medium text-xs module-drag-handle cursor-grab active:cursor-grabbing">'
+        + '<i class="fa-solid fa-grip-vertical mr-2 hover:text-gray-600 transition pointer-events-none"></i>'
+        + (idx + 1)
+        + '</td>'
+        + '<td class="py-4 px-6 border-b border-gray-100 font-semibold text-gray-900 pointer-events-none">'
+        + '<div class="flex items-center gap-3">'
+        + '<span class="text-base">' + displayTitle + '</span>'
+        + '<button data-id="' + moduleId + '" class="edit-module-name-btn hidden group-hover:flex bg-white hover:bg-gray-100 border border-gray-200 text-gray-500 hover:text-blue-600 transition w-6 h-6 items-center justify-center rounded-md shadow-sm opacity-0 group-hover:opacity-100 pointer-events-auto"><i class="fa-solid fa-pen text-[10px]"></i></button>'
+        + dirtyDot
+        + '</div>'
+        + '</td>'
+        + '<td class="py-4 px-6 border-b border-gray-100 text-center">'
+        + '<span class="' + (m.isDraft === false ? 'text-green-600' : 'text-yellow-600') + ' text-xs font-bold uppercase tracking-wider">' + (m.isDraft === false ? 'Published' : 'Draft') + '</span>'
+        + '</td>'
+        + '<td class="py-4 px-6 border-b border-gray-100 text-right">'
+        + '<button data-id="' + moduleId + '" class="open-module-btn border border-gray-200 bg-white hover:bg-gray-50 text-blue-600 hover:text-blue-700 px-3 py-1.5 rounded text-sm font-bold transition shadow-sm items-center gap-1 inline-flex">'
+        + 'Edit Sessions <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>'
+        + '</button>'
+        + '</td>'
+        + '</tr>';
+    }).join('');
+  }
+
+  destroy() {
+    if (this.unsubscribe) {
+      this.unsubscribe();
+    }
+  }
+}
+
+function showModuleBtnPending(btn, label) {
+  btn.innerHTML = '<span class="oqu-spinner oqu-spinner-blue"></span> ' + label;
+  btn.disabled = true;
+  btn.classList.add('oqu-btn-pending');
+}
+
+function restoreModuleBtn(btn, html) {
+  btn.innerHTML = html;
+  btn.disabled = false;
+  btn.classList.remove('oqu-btn-pending');
+}
+
+function showModuleStatusMsg(msgEl, type, html) {
+  var colorClass = 'text-blue-600';
+  if (type === 'error') {
+    colorClass = 'text-red-600';
+  }
+  if (type === 'success') {
+    colorClass = 'text-green-600';
+  }
+  msgEl.className = 'text-sm font-medium flex items-center gap-1.5 ' + colorClass;
+  msgEl.innerHTML = html;
+  msgEl.style.display = 'flex';
+}
+
+function buildModuleSkeletonRows(rowCount) {
+  var rows = '';
+  var row = 0;
+
+  while (row < rowCount) {
+    rows += '<tr>'
+      + '<td class="py-4 px-6 border-b border-gray-100"><div class="oqu-skeleton-line" style="height:12px;width:30px;margin:0 auto"></div></td>'
+      + '<td class="py-4 px-6 border-b border-gray-100"><div class="oqu-skeleton-line" style="height:14px;width:65%"></div></td>'
+      + '<td class="py-4 px-6 border-b border-gray-100"><div class="oqu-skeleton-line" style="height:12px;width:48px;margin:0 auto"></div></td>'
+      + '<td class="py-4 px-6 border-b border-gray-100"><div class="oqu-skeleton-line" style="height:28px;width:90px;margin-left:auto;border-radius:8px"></div></td>'
+      + '</tr>';
+    row = row + 1;
+  }
+
+  return rows;
+}
+
+function buildAssignmentRow(assignment) {
+  var assignmentId = escapeHtml(assignment.id || '');
+  var targetType = escapeHtml(assignment.targetType || 'target');
+  var targetId = escapeHtml(assignment.targetId || '');
+  var status = assignment.status || 'active';
+  var nextStatus = status === 'active' ? 'paused' : 'active';
+  var nextStatusLabel = status === 'active' ? 'Pause' : 'Activate';
+
+  return '<div class="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">'
+    + '<div class="flex items-start justify-between gap-2">'
+    + '<div class="min-w-0">'
+    + '<div class="text-[10px] font-black uppercase tracking-wide text-gray-400">' + targetType + '</div>'
+    + '<div class="text-xs font-bold text-gray-900 truncate">' + targetId + '</div>'
+    + '</div>'
+    + '<span class="' + buildAssignmentStatusClass(status) + '">' + escapeHtml(status) + '</span>'
+    + '</div>'
+    + '<div class="mt-3 flex gap-2">'
+    + '<button class="assignment-status-btn flex-1 rounded-lg border border-blue-100 bg-blue-50 px-2 py-1.5 text-[11px] font-bold text-blue-700 hover:bg-blue-100" data-id="' + assignmentId + '" data-status="' + nextStatus + '">' + nextStatusLabel + '</button>'
+    + '<button class="assignment-archive-btn flex-1 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1.5 text-[11px] font-bold text-gray-600 hover:bg-gray-100" data-id="' + assignmentId + '">Archive</button>'
+    + '</div>'
+    + '</div>';
+}
+
+function buildAssignmentStatusClass(status) {
+  if (status === 'active') {
+    return 'rounded-full bg-green-50 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-green-700';
+  }
+
+  if (status === 'paused') {
+    return 'rounded-full bg-yellow-50 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-yellow-700';
+  }
+
+  return 'rounded-full bg-gray-100 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-gray-600';
+}
+
+function buildAssignmentSkeletonRows(rowCount) {
+  var rows = '';
+  var row = 0;
+
+  while (row < rowCount) {
+    rows += '<div class="rounded-xl border border-gray-100 bg-white p-3">'
+      + '<div class="oqu-skeleton-line" style="height:10px;width:48px;margin-bottom:8px"></div>'
+      + '<div class="oqu-skeleton-line" style="height:12px;width:80%"></div>'
+      + '</div>';
+    row = row + 1;
+  }
+
+  return rows;
+}
+
+function escapeHtml(value) {
+  if (typeof value !== 'string') {
+    return '';
+  }
+
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}

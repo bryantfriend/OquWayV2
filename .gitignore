@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Firebase and local secrets
+.env
+.env.*
+serviceAccountKey.json
+functions/serviceAccountKey.json
+
+# Local tooling and generated outputs
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+test-results/
+coverage/
+dist/
+build/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/

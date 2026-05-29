@@ -1,0 +1,46 @@
+import { createIntent } from "../../../../../packages/core/src/icf/engine/createIntent.js";
+import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js";
+import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js";
+
+function getActor() {
+    const user = auth.currentUser;
+    if (!user) {
+        return null;
+    }
+
+    return {
+        id: user.uid,
+        name: user.displayName || user.email,
+        role: "ROLE_COURSE_CREATOR" // Inject role here until custom claims are setup
+    };
+}
+
+export const catalogCourseService = {
+    async createCatalogCourse(payload) {
+        const intentResult = createIntent({
+            type: "CreateCourseIntent",
+            payload: payload,
+            actor: getActor()
+        });
+
+        if (!intentResult.ok) {
+            return intentResult;
+        }
+
+        return await runIntentPipeline(intentResult.definition, intentResult.executionInput);
+    },
+
+    async fetchAllCatalogCourses() {
+        const intentResult = createIntent({
+            type: "ListCoursesIntent",
+            payload: {},
+            actor: getActor()
+        });
+
+        if (!intentResult.ok) {
+            return intentResult;
+        }
+
+        return await runIntentPipeline(intentResult.definition, intentResult.executionInput);
+    }
+};

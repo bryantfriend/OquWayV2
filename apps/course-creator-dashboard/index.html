@@ -1,0 +1,1768 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Course Creator - Phase A Catalog</title>
+  <!-- Prevent Live Preview 404 hang for favicon -->
+  <link rel="icon" href="data:,">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* ── ICF Creation / Loading Feedback ───────────────────────── */
+
+    @keyframes oquSpinCw {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    @keyframes oquSkeletonShimmer {
+      0%   { background-position: -400px 0; }
+      100% { background-position:  400px 0; }
+    }
+
+    @keyframes oquSuccessScale {
+      0%   { transform: scale(0.4); opacity: 0; }
+      60%  { transform: scale(1.15); opacity: 1; }
+      100% { transform: scale(1);    opacity: 1; }
+    }
+
+    .oqu-spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: oquSpinCw 0.65s linear infinite;
+      vertical-align: middle;
+    }
+
+    .oqu-spinner-blue {
+      border-color: rgba(59,130,246,0.25);
+      border-top-color: #3b82f6;
+    }
+
+    .oqu-skeleton-line {
+      border-radius: 6px;
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 37%, #f0f0f0 63%);
+      background-size: 400px 100%;
+      animation: oquSkeletonShimmer 1.4s ease infinite;
+    }
+
+    .oqu-skeleton-card {
+      border-radius: 10px;
+      background: linear-gradient(90deg, #f4f4f4 25%, #eaeaea 37%, #f4f4f4 63%);
+      background-size: 400px 100%;
+      animation: oquSkeletonShimmer 1.4s ease infinite;
+    }
+
+    .oqu-success-icon {
+      display: inline-block;
+      animation: oquSuccessScale 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    }
+
+    .oqu-status-banner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .oqu-status-creating {
+      background: #eff6ff;
+      color: #2563eb;
+      border: 1px solid #bfdbfe;
+    }
+
+    .oqu-status-error {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    .oqu-status-success {
+      background: #f0fdf4;
+      color: #16a34a;
+      border: 1px solid #bbf7d0;
+    }
+
+    .oqu-btn-pending {
+      opacity: 0.75;
+      cursor: not-allowed !important;
+      pointer-events: none;
+    }
+
+    /* ── Status Pills ─────────────────────────────────────────────── */
+
+    .oqu-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .oqu-pill-shell   { background: #f3f4f6; color: #6b7280; }
+    .oqu-pill-draft   { background: #fef3c7; color: #b45309; }
+    .oqu-pill-ready   { background: #dbeafe; color: #1d4ed8; }
+    .oqu-pill-active  { background: #dcfce7; color: #15803d; }
+    .oqu-pill-disabled{ background: #f1f5f9; color: #94a3b8; }
+    .oqu-pill-archived{ background: #1e293b; color: #94a3b8; }
+
+    /* ── Accordion ────────────────────────────────────────────────── */
+
+    .oqu-accordion-body {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+                  opacity 0.22s ease;
+    }
+
+    .oqu-accordion-body.oqu-accordion-open {
+      max-height: 4000px;
+      opacity: 1;
+      transition: max-height 0.42s cubic-bezier(0.4, 0, 0.2, 1),
+                  opacity 0.28s ease;
+    }
+
+    .oqu-accordion-chevron {
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      display: inline-block;
+    }
+
+    .oqu-accordion-header.oqu-accordion-header-open .oqu-accordion-chevron {
+      transform: rotate(90deg);
+    }
+
+    .oqu-accordion-header {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      padding: 12px 16px;
+      gap: 10px;
+      border-radius: 10px;
+      transition: background 0.15s ease;
+    }
+
+    .oqu-accordion-header:hover {
+      background: #f9fafb;
+    }
+
+    .oqu-accordion-header.oqu-accordion-header-open {
+      background: #eff6ff;
+    }
+
+    /* ── Progress Bar ─────────────────────────────────────────────── */
+
+    .oqu-progress-track {
+      flex-shrink: 0;
+      width: 56px;
+      height: 4px;
+      background: #e5e7eb;
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+
+    .oqu-progress-fill {
+      height: 100%;
+      border-radius: 9999px;
+      background: linear-gradient(90deg, #3b82f6, #60a5fa);
+      transition: width 0.4s ease;
+    }
+
+    .oqu-progress-fill.oqu-progress-done {
+      background: linear-gradient(90deg, #22c55e, #4ade80);
+    }
+
+    /* ── Step Type Picker ─────────────────────────────────────────── */
+
+    .oqu-step-picker {
+      display: none;
+      border: 1px solid #e0e7ff;
+      border-radius: 10px;
+      background: #fff;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(59,130,246,0.10);
+      margin-top: 4px;
+    }
+
+    .oqu-step-picker-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #374151;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+      transition: background 0.12s ease;
+    }
+
+    .oqu-step-picker-option:hover {
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .oqu-step-picker-option + .oqu-step-picker-option {
+      border-top: 1px solid #f3f4f6;
+    }
+
+    /* ── Property Grid ────────────────────────────────────────────── */
+
+    .oqu-prop-section-label {
+      font-size: 9px;
+      font-weight: 800;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+      margin-top: 16px;
+    }
+
+    .oqu-prop-section-label:first-child {
+      margin-top: 0;
+    }
+
+    .oqu-prop-row {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 8px 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    .oqu-prop-row:last-child {
+      border-bottom: none;
+    }
+
+    .oqu-prop-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .oqu-prop-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: #111827;
+      line-height: 1.4;
+    }
+
+    .oqu-prop-value-muted {
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    /* ── Workspace Sticky Header ──────────────────────────────────── */
+
+    .oqu-workspace-sticky {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: #fff;
+      border-bottom: 1px solid #f0f0f0;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+    }
+
+    /* ── Preview Box ──────────────────────────────────────────────── */
+
+    .pm-preview-box {
+      cursor: pointer;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: #fff;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+      text-align: left;
+    }
+
+    .pm-preview-box:hover {
+      border-color: #93c5fd;
+      box-shadow: 0 2px 8px rgba(59,130,246,0.10);
+      background: #f8fbff;
+    }
+
+    .pm-preview-box.pm-preview-box-active {
+      border-color: #3b82f6;
+      background: #eff6ff;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+    }
+
+    /* ── Step navigation tiles ────────────────────────────────────── */
+
+    .oqu-step-tile {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 1.5px solid #e5e7eb;
+      background: #fff;
+      transition: border-color 0.12s, background 0.12s, box-shadow 0.12s;
+      text-align: left;
+      width: 100%;
+    }
+
+    .oqu-step-order-number {
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+      border-radius: 9999px;
+      background: #f3f4f6;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 900;
+      color: #6b7280;
+    }
+
+    .oqu-step-tile:hover {
+      border-color: #93c5fd;
+      background: #f8fbff;
+    }
+
+    .oqu-step-tile.oqu-step-tile-active {
+      border-color: #3b82f6;
+      background: #eff6ff;
+      box-shadow: 0 0 0 2px rgba(59,130,246,0.14);
+    }
+
+    .oqu-step-tile-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .oqu-step-icon-btn {
+      width: 22px;
+      height: 22px;
+      border-radius: 7px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      color: #6b7280;
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1;
+      transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+    }
+
+    .oqu-step-icon-btn:hover:not(:disabled) {
+      border-color: #93c5fd;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .oqu-step-icon-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .oqu-step-delete-btn {
+      border: 1px solid #fee2e2;
+      background: #fff7f7;
+      color: #dc2626;
+      border-radius: 7px;
+      padding: 4px 7px;
+      font-size: 9px;
+      font-weight: 900;
+      transition: background 0.12s ease;
+    }
+
+    .oqu-step-delete-btn:hover {
+      background: #fee2e2;
+    }
+
+    /* ── Preview canvas ───────────────────────────────────────────── */
+
+    .oqu-preview-canvas {
+      background: #f4f6f9;
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 20px 16px 28px;
+      min-height: 240px;
+      max-height: 460px;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .oqu-preview-canvas-full {
+      max-height: 620px;
+      padding: 20px;
+    }
+
+    .oqu-preview-toolbar {
+      position: sticky;
+      top: 0;
+      align-self: flex-start;
+      z-index: 2;
+      margin-right: 12px;
+    }
+
+    .oqu-student-view-btn,
+    .oqu-back-editor-btn {
+      border: 1px solid #dbeafe;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-radius: 9999px;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 900;
+      box-shadow: 0 4px 12px rgba(37,99,235,0.10);
+      transition: background 0.12s ease, transform 0.12s ease;
+    }
+
+    .oqu-student-view-btn:hover,
+    .oqu-back-editor-btn:hover {
+      background: #dbeafe;
+      transform: translateY(-1px);
+    }
+
+    .oqu-preview-card {
+      background: #fff;
+      border-radius: 20px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 6px 28px rgba(0,0,0,0.09);
+      width: 100%;
+      max-width: 400px;
+      padding: 24px 22px;
+    }
+
+    .oqu-preview-type-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 9px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6b7280;
+      margin-bottom: 14px;
+      padding: 3px 9px;
+      background: #f3f4f6;
+      border-radius: 9999px;
+    }
+
+    .oqu-preview-word {
+      font-size: 28px;
+      font-weight: 800;
+      color: #111827;
+      margin-bottom: 14px;
+      line-height: 1.15;
+    }
+
+    .oqu-preview-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+
+    .oqu-preview-instructions {
+      font-size: 12px;
+      color: #6b7280;
+      line-height: 1.65;
+      margin-bottom: 16px;
+    }
+
+    .oqu-preview-image-ph {
+      width: 100%;
+      height: 100px;
+      background: linear-gradient(135deg, #f0f9ff, #dbeafe);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin-bottom: 14px;
+    }
+
+    .oqu-preview-audio-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: #2563eb;
+      color: #fff;
+      padding: 7px 16px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: default;
+      margin-bottom: 12px;
+      border: none;
+    }
+
+    .oqu-preview-record-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: #dc2626;
+      color: #fff;
+      padding: 9px 18px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: default;
+      margin-top: 6px;
+      border: none;
+    }
+
+    .oqu-preview-audio-track {
+      width: 100%;
+      height: 5px;
+      background: #e5e7eb;
+      border-radius: 9999px;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .oqu-preview-audio-fill {
+      width: 28%;
+      height: 100%;
+      background: #3b82f6;
+      border-radius: 9999px;
+    }
+
+    .oqu-preview-input-mock {
+      width: 100%;
+      min-height: 72px;
+      background: #f9fafb;
+      border: 1.5px dashed #d1d5db;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #d1d5db;
+      font-size: 11px;
+      font-style: italic;
+      margin-top: 10px;
+    }
+
+    .oqu-preview-reveal-btn {
+      width: 100%;
+      background: #f3f4f6;
+      border: none;
+      border-radius: 10px;
+      padding: 11px;
+      font-size: 12px;
+      color: #6b7280;
+      font-weight: 600;
+      cursor: default;
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .oqu-preview-unsupported {
+      border: 1.5px dashed #fbbf24;
+      background: #fffbeb;
+    }
+
+    .oqu-full-preview-wrap {
+      width: min(820px, 100%);
+    }
+
+    .oqu-full-preview-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 10px;
+    }
+
+    /* ── Step picker modal ────────────────────────────────────────── */
+
+    .oqu-step-picker-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: rgba(15,23,42,0.38);
+      backdrop-filter: blur(5px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .oqu-step-picker-modal {
+      width: min(760px, 100%);
+      max-height: min(720px, 90vh);
+      overflow-y: auto;
+      background: #ffffff;
+      border: 1px solid rgba(219,234,254,0.95);
+      border-radius: 24px;
+      box-shadow: 0 28px 80px rgba(15,23,42,0.28);
+      padding: 22px;
+    }
+
+    .oqu-step-picker-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .oqu-step-picker-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 9999px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      color: #6b7280;
+      font-size: 20px;
+      line-height: 1;
+      font-weight: 700;
+      transition: background 0.12s ease;
+    }
+
+    .oqu-step-picker-close:hover {
+      background: #f3f4f6;
+    }
+
+    .oqu-step-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .oqu-step-picker-category-list {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .oqu-step-picker-category-title {
+      font-size: 10px;
+      font-weight: 900;
+      color: #2563eb;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 8px;
+    }
+
+    .oqu-step-picker-card {
+      border: 1.5px solid #e5e7eb;
+      background: linear-gradient(145deg, #ffffff, #f8fbff);
+      border-radius: 18px;
+      padding: 15px;
+      text-align: left;
+      display: flex;
+      gap: 13px;
+      min-height: 122px;
+      transition: border-color 0.14s ease, transform 0.14s ease, box-shadow 0.14s ease;
+    }
+
+    .oqu-step-picker-card:hover {
+      border-color: #60a5fa;
+      transform: translateY(-2px);
+      box-shadow: 0 14px 32px rgba(37,99,235,0.14);
+    }
+
+    .oqu-step-picker-card-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 13px;
+      background: #eff6ff;
+      color: #2563eb;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 15px;
+    }
+
+    .oqu-step-picker-card-body {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .oqu-step-picker-card-title {
+      font-size: 13px;
+      font-weight: 900;
+      color: #111827;
+      margin-bottom: 4px;
+    }
+
+    .oqu-step-picker-card-description {
+      font-size: 11px;
+      line-height: 1.45;
+      color: #6b7280;
+      margin-bottom: 10px;
+    }
+
+    .oqu-step-picker-card-category {
+      margin-top: auto;
+      align-self: flex-start;
+      border-radius: 9999px;
+      background: #f1f5f9;
+      color: #64748b;
+      padding: 3px 8px;
+      font-size: 9px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .oqu-step-picker-card-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: auto;
+    }
+
+    .oqu-step-picker-card-complexity {
+      border-radius: 9999px;
+      background: #ecfdf5;
+      color: #047857;
+      padding: 3px 8px;
+      font-size: 9px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Student preview ──────────────────────────────────────────── */
+
+    .oqu-student-preview-shell {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: radial-gradient(circle at top, #eff6ff 0, #f8fafc 42%, #ffffff 100%);
+    }
+
+    .oqu-student-preview-topbar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 18px;
+      background: rgba(255,255,255,0.88);
+      border-bottom: 1px solid #e5e7eb;
+      backdrop-filter: blur(8px);
+      position: sticky;
+      top: 0;
+      z-index: 3;
+    }
+
+    .oqu-student-preview-canvas {
+      flex: 1;
+      min-height: 430px;
+      max-height: 640px;
+      overflow-y: auto;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 34px 20px;
+    }
+
+    .oqu-student-preview-card {
+      width: min(440px, 100%);
+    }
+
+    .oqu-student-preview-card-full {
+      width: min(860px, 100%);
+    }
+
+    .oqu-student-player-shell {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .oqu-student-player-header {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 22px;
+      box-shadow: 0 12px 32px rgba(15,23,42,0.08);
+      padding: 22px;
+    }
+
+    .oqu-student-player-header h1 {
+      font-size: 24px;
+      line-height: 1.15;
+      font-weight: 900;
+      color: #111827;
+      margin: 0 0 10px;
+    }
+
+    .oqu-student-player-header p {
+      font-size: 13px;
+      line-height: 1.7;
+      color: #64748b;
+      margin: 0;
+    }
+
+    .oqu-student-player-body {
+      width: 100%;
+    }
+
+    .oqu-player-step {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 22px;
+      box-shadow: 0 16px 40px rgba(15,23,42,0.10);
+      padding: 24px;
+      color: #1f2937;
+    }
+
+    .oqu-player-step h2 {
+      font-size: 24px;
+      line-height: 1.2;
+      font-weight: 900;
+      color: #111827;
+      margin: 0 0 12px;
+    }
+
+    .oqu-player-step p {
+      font-size: 14px;
+      line-height: 1.75;
+      color: #4b5563;
+      margin: 0 0 16px;
+    }
+
+    .oqu-player-image {
+      width: 100%;
+      max-height: 220px;
+      object-fit: cover;
+      border-radius: 16px;
+      margin-bottom: 18px;
+      border: 1px solid #eef2ff;
+      background: #f8fafc;
+    }
+
+    .oqu-player-callout {
+      border: 1px solid #bbf7d0;
+      background: #f0fdf4;
+      color: #166534;
+      border-radius: 16px;
+      padding: 14px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.55;
+      margin-bottom: 16px;
+    }
+
+    .oqu-player-translation {
+      color: #2563eb;
+      font-size: 15px;
+      font-weight: 900;
+      margin-bottom: 14px;
+    }
+
+    .oqu-player-audio {
+      width: 100%;
+      margin: 8px 0 16px;
+    }
+
+    .oqu-player-empty-media {
+      border: 1px dashed #cbd5e1;
+      background: #f8fafc;
+      color: #94a3b8;
+      border-radius: 14px;
+      padding: 16px;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .oqu-player-details {
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 16px;
+      background: #f9fafb;
+      font-size: 13px;
+    }
+
+    .oqu-player-timer-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .oqu-player-timer-row span,
+    .oqu-player-note {
+      border-radius: 9999px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .oqu-player-record-shell {
+      width: 100%;
+      border: 1px solid #fecaca;
+      background: #fef2f2;
+      color: #dc2626;
+      border-radius: 16px;
+      padding: 14px;
+      font-size: 13px;
+      font-weight: 900;
+      margin-bottom: 14px;
+    }
+
+    .oqu-player-scale {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .oqu-player-scale span {
+      border: 1px solid #bfdbfe;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-radius: 12px;
+      padding: 12px 0;
+      text-align: center;
+      font-weight: 900;
+    }
+
+    .oqu-player-text-response {
+      width: 100%;
+      min-height: 110px;
+      border: 1px solid #d1d5db;
+      border-radius: 14px;
+      padding: 12px;
+      font-size: 14px;
+      margin-bottom: 12px;
+      resize: vertical;
+    }
+
+    .oqu-player-complete-btn {
+      width: 100%;
+      border: none;
+      border-radius: 16px;
+      background: #2563eb;
+      color: #fff;
+      padding: 13px 16px;
+      font-size: 13px;
+      font-weight: 900;
+      box-shadow: 0 10px 24px rgba(37,99,235,0.22);
+    }
+
+    .oqu-full-experience-step {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .oqu-experience-kicker {
+      display: inline-flex;
+      border-radius: 9999px;
+      background: rgba(37,99,235,0.10);
+      color: #1d4ed8;
+      padding: 5px 10px;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.10em;
+      margin-bottom: 14px;
+    }
+
+    .oqu-experience-hero,
+    .oqu-cyber-mission-header,
+    .oqu-island-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+
+    .oqu-experience-orb,
+    .oqu-island-sun {
+      width: 70px;
+      height: 70px;
+      flex-shrink: 0;
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      background: #eff6ff;
+      color: #2563eb;
+    }
+
+    .oqu-custom-experience-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      border: 1px solid #bfdbfe;
+      background: linear-gradient(135deg, #eff6ff, #f8fafc);
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    .oqu-experience-code,
+    .oqu-cyber-code-area pre {
+      white-space: pre-wrap;
+      background: #0f172a;
+      color: #bfdbfe;
+      border-radius: 16px;
+      padding: 14px;
+      font-size: 12px;
+      overflow-x: auto;
+      margin: 0;
+    }
+
+    .oqu-cyber-mission-step {
+      background: radial-gradient(circle at top right, rgba(34,211,238,0.20), transparent 32%), #08111f;
+      color: #dbeafe;
+      border-color: #1e3a8a;
+    }
+
+    .oqu-cyber-mission-step h2,
+    .oqu-cyber-mission-step p {
+      color: #e0f2fe;
+    }
+
+    .oqu-cyber-badge {
+      border: 1px solid #22d3ee;
+      color: #67e8f9;
+      border-radius: 9999px;
+      padding: 6px 10px;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .oqu-cyber-layout {
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .oqu-cyber-panel,
+    .oqu-cyber-code-area,
+    .oqu-cyber-preview-area {
+      border: 1px solid rgba(34,211,238,0.35);
+      background: rgba(15,23,42,0.82);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .oqu-cyber-preview-area {
+      grid-column: span 2;
+    }
+
+    .oqu-cyber-window-label {
+      color: #67e8f9;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.10em;
+      margin-bottom: 8px;
+    }
+
+    .oqu-cyber-preview-box {
+      border: 1px dashed rgba(103,232,249,0.50);
+      border-radius: 14px;
+      padding: 24px;
+      text-align: center;
+      color: #93c5fd;
+    }
+
+    .oqu-cyber-success {
+      border: 1px solid rgba(74,222,128,0.40);
+      background: rgba(20,83,45,0.34);
+      color: #bbf7d0;
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 14px;
+      font-weight: 900;
+    }
+
+    .oqu-drag-island-step {
+      background: linear-gradient(180deg, #ecfeff, #fef9c3 62%, #dcfce7);
+      border-color: #bae6fd;
+    }
+
+    .oqu-island-board {
+      border: 2px solid #7dd3fc;
+      background: linear-gradient(135deg, rgba(125,211,252,0.26), rgba(255,255,255,0.72));
+      border-radius: 28px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .oqu-island-water {
+      min-height: 140px;
+      border: 2px dashed #38bdf8;
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0369a1;
+      font-weight: 900;
+      margin-bottom: 14px;
+      background: rgba(255,255,255,0.45);
+    }
+
+    .oqu-island-card-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .oqu-island-card {
+      background: #fff;
+      border: 1px solid #facc15;
+      border-radius: 14px;
+      padding: 9px 12px;
+      color: #92400e;
+      font-size: 12px;
+      font-weight: 900;
+      box-shadow: 0 8px 18px rgba(180,83,9,0.12);
+    }
+
+    /* ── Practice mode playtest ───────────────────────────────────── */
+
+    .oqu-playtest-shell {
+      background:
+        radial-gradient(circle at top left, rgba(16,185,129,0.16), transparent 36%),
+        linear-gradient(180deg, #ecfdf5 0%, #f8fafc 48%, #ffffff 100%);
+    }
+
+    .oqu-playtest-topbar {
+      border-bottom-color: #d1fae5;
+    }
+
+    .oqu-playtest-progress-label {
+      flex-shrink: 0;
+      border: 1px solid #bbf7d0;
+      background: #f0fdf4;
+      color: #047857;
+      border-radius: 9999px;
+      padding: 7px 11px;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .oqu-playtest-progress-track {
+      height: 6px;
+      background: #d1fae5;
+      overflow: hidden;
+    }
+
+    .oqu-playtest-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #10b981, #34d399);
+      border-radius: 0 9999px 9999px 0;
+      transition: width 0.22s ease;
+    }
+
+    .oqu-playtest-canvas {
+      min-height: 390px;
+      max-height: 570px;
+      padding-bottom: 24px;
+    }
+
+    .oqu-playtest-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 18px 18px;
+      background: rgba(255,255,255,0.9);
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .oqu-playtest-nav-btn {
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      color: #374151;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 900;
+      transition: background 0.12s ease, transform 0.12s ease;
+    }
+
+    .oqu-playtest-nav-btn:hover:not(:disabled) {
+      background: #f9fafb;
+      transform: translateY(-1px);
+    }
+
+    .oqu-playtest-nav-btn:disabled {
+      opacity: 0.42;
+      cursor: not-allowed;
+    }
+
+    .oqu-playtest-complete-btn {
+      border: none;
+      background: #059669;
+      color: #ffffff;
+      border-radius: 14px;
+      padding: 11px 18px;
+      font-size: 12px;
+      font-weight: 900;
+      box-shadow: 0 10px 24px rgba(5,150,105,0.20);
+      transition: background 0.12s ease, transform 0.12s ease;
+    }
+
+    .oqu-playtest-complete-btn:hover {
+      background: #047857;
+      transform: translateY(-1px);
+    }
+
+    .oqu-playtest-empty,
+    .oqu-playtest-finished {
+      width: min(420px, 100%);
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 24px;
+      box-shadow: 0 16px 40px rgba(15,23,42,0.10);
+      padding: 32px 26px;
+      text-align: center;
+    }
+
+    /* ── Reusable course player ───────────────────────────────────── */
+
+    .course-player-root {
+      min-height: 100%;
+    }
+
+    .course-player-shell {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      background:
+        radial-gradient(circle at 18% 0%, rgba(14,165,233,0.18), transparent 30%),
+        radial-gradient(circle at 86% 8%, rgba(16,185,129,0.18), transparent 34%),
+        linear-gradient(180deg, #f0f9ff 0%, #f8fafc 48%, #ffffff 100%);
+    }
+
+    .course-player-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 4;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 22px;
+      background: rgba(255,255,255,0.9);
+      border-bottom: 1px solid #dbeafe;
+      backdrop-filter: blur(10px);
+    }
+
+    .course-player-back-btn {
+      flex-shrink: 0;
+      border: 1px solid #bfdbfe;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-radius: 9999px;
+      padding: 9px 13px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .course-player-title-block {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .course-player-kicker {
+      color: #0284c7;
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .course-player-title-block h1 {
+      margin: 0;
+      color: #0f172a;
+      font-size: 19px;
+      line-height: 1.15;
+      font-weight: 950;
+    }
+
+    .course-player-title-block p {
+      margin: 4px 0 0;
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .course-player-step-count {
+      flex-shrink: 0;
+      border: 1px solid #bae6fd;
+      background: #f0f9ff;
+      color: #0369a1;
+      border-radius: 9999px;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .course-player-progress-track {
+      height: 8px;
+      background: #dbeafe;
+      overflow: hidden;
+    }
+
+    .course-player-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #0ea5e9, #10b981);
+      border-radius: 0 9999px 9999px 0;
+      transition: width 0.24s ease;
+    }
+
+    .course-player-warning {
+      margin: 14px auto 0;
+      width: min(860px, calc(100% - 40px));
+      border: 1px solid #fed7aa;
+      background: #fff7ed;
+      color: #c2410c;
+      border-radius: 16px;
+      padding: 10px 13px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .course-player-stage {
+      flex: 1;
+      min-height: 430px;
+      max-height: 650px;
+      overflow-y: auto;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 34px 20px 28px;
+    }
+
+    .course-player-step-card {
+      width: min(900px, 100%);
+    }
+
+    .course-player-render-target {
+      width: 100%;
+    }
+
+    .course-player-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 16px 20px 12px;
+      background: rgba(255,255,255,0.92);
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .course-player-nav-btn,
+    .course-player-complete-btn,
+    .course-player-restart-btn {
+      border: none;
+      border-radius: 15px;
+      padding: 11px 17px;
+      font-size: 12px;
+      font-weight: 900;
+      transition: transform 0.12s ease, background 0.12s ease, opacity 0.12s ease;
+    }
+
+    .course-player-nav-btn {
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #334155;
+    }
+
+    .course-player-complete-btn,
+    .course-player-restart-btn {
+      background: #0f172a;
+      color: #ffffff;
+      box-shadow: 0 12px 28px rgba(15,23,42,0.18);
+    }
+
+    .course-player-nav-btn:hover:not(:disabled),
+    .course-player-complete-btn:hover,
+    .course-player-restart-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .course-player-nav-btn:disabled {
+      opacity: 0.42;
+      cursor: not-allowed;
+    }
+
+    .course-player-skip-note {
+      padding: 0 20px 16px;
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 800;
+      text-align: center;
+      background: rgba(255,255,255,0.92);
+    }
+
+    .course-player-empty-state,
+    .course-player-complete-card {
+      width: min(640px, calc(100% - 40px));
+      margin: 46px auto;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 30px;
+      box-shadow: 0 24px 70px rgba(15,23,42,0.12);
+      padding: 38px 30px;
+      text-align: center;
+    }
+
+    .course-player-empty-icon,
+    .course-player-complete-icon {
+      width: 74px;
+      height: 74px;
+      margin: 0 auto 18px;
+      border-radius: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ecfeff;
+      color: #0891b2;
+      font-size: 34px;
+      font-weight: 950;
+    }
+
+    .course-player-empty-state h2,
+    .course-player-complete-card h2 {
+      margin: 0 0 8px;
+      color: #0f172a;
+      font-size: 24px;
+      font-weight: 950;
+    }
+
+    .course-player-empty-state p,
+    .course-player-complete-card p {
+      margin: 0;
+      color: #64748b;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .course-player-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin: 24px 0;
+    }
+
+    .course-player-summary-grid div {
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      border-radius: 18px;
+      padding: 14px 10px;
+    }
+
+    .course-player-summary-grid strong,
+    .course-player-summary-grid span {
+      display: block;
+    }
+
+    .course-player-summary-grid strong {
+      color: #0f172a;
+      font-size: 18px;
+      font-weight: 950;
+      margin-bottom: 4px;
+    }
+
+    .course-player-summary-grid span {
+      color: #64748b;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .course-player-complete-actions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .course-player-fallback-label {
+      display: inline-flex;
+      border-radius: 9999px;
+      background: #fef2f2;
+      color: #dc2626;
+      padding: 6px 10px;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+    }
+
+    .course-player-fallback-type {
+      border: 1px dashed #cbd5e1;
+      background: #f8fafc;
+      border-radius: 14px;
+      padding: 12px;
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .oqu-media-upload-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .oqu-media-upload-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #bfdbfe;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-radius: 9px;
+      padding: 6px 9px;
+      font-size: 10px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: background 0.12s ease;
+    }
+
+    .oqu-media-upload-btn:hover {
+      background: #dbeafe;
+    }
+
+    .oqu-media-upload-btn input {
+      display: none;
+    }
+
+    .oqu-media-upload-status {
+      font-size: 10px;
+      font-weight: 800;
+      color: #64748b;
+    }
+
+    .oqu-media-upload-uploading {
+      color: #2563eb;
+    }
+
+    .oqu-media-upload-success {
+      color: #16a34a;
+    }
+
+    .oqu-media-upload-error {
+      color: #dc2626;
+    }
+
+    .oqu-media-preview-empty {
+      border: 1px dashed #e5e7eb;
+      background: #f9fafb;
+      color: #9ca3af;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 10px;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+
+    .oqu-media-preview-image {
+      width: 100%;
+      max-height: 150px;
+      object-fit: cover;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      margin-top: 8px;
+      background: #f8fafc;
+    }
+
+    .oqu-media-preview-audio {
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 760px) {
+      .oqu-step-picker-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .oqu-cyber-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .oqu-cyber-preview-area {
+        grid-column: span 1;
+      }
+
+      .course-player-topbar,
+      .course-player-footer {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .course-player-step-count {
+        align-self: flex-start;
+      }
+
+      .course-player-summary-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .oqu-preview-canvas {
+        max-height: 520px;
+      }
+    }
+
+    /* ── Property inspector fields ────────────────────────────────── */
+
+    .oqu-inspector-field {
+      margin-bottom: 13px;
+    }
+
+    .oqu-inspector-label {
+      display: block;
+      font-size: 9px;
+      font-weight: 800;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 4px;
+    }
+
+    .oqu-inspector-input {
+      width: 100%;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 7px 9px;
+      font-size: 12px;
+      font-family: 'Inter', sans-serif;
+      color: #111827;
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color 0.15s;
+    }
+
+    .oqu-inspector-input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59,130,246,0.10);
+    }
+
+    .oqu-inspector-textarea {
+      width: 100%;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 7px 9px;
+      font-size: 12px;
+      font-family: 'Inter', sans-serif;
+      color: #374151;
+      min-height: 76px;
+      resize: vertical;
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color 0.15s;
+    }
+
+    .oqu-inspector-textarea:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59,130,246,0.10);
+    }
+
+    .oqu-inspector-select {
+      width: 100%;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 6px 9px;
+      font-size: 12px;
+      font-family: 'Inter', sans-serif;
+      color: #111827;
+      outline: none;
+      background: #fff;
+      box-sizing: border-box;
+    }
+
+    .oqu-inspector-divider {
+      height: 1px;
+      background: #f3f4f6;
+      margin: 14px 0;
+    }
+
+    .oqu-inspector-section {
+      font-size: 9px;
+      font-weight: 900;
+      color: #d1d5db;
+      text-transform: uppercase;
+      letter-spacing: 0.10em;
+      margin-bottom: 10px;
+    }
+
+    .oqu-inspector-readonly-label {
+      font-size: 9px;
+      font-weight: 700;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .oqu-inspector-readonly-value {
+      font-size: 12px;
+      font-weight: 600;
+      color: #374151;
+      margin-top: 1px;
+    }
+</style>
+  <!-- Import map for Firebase -->
+  <script type="importmap">
+    {
+      "imports": {
+        "firebase/app": "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js",
+        "firebase/firestore": "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js",
+        "firebase/auth": "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js",
+        "firebase/functions": "https://www.gstatic.com/firebasejs/10.11.1/firebase-functions.js",
+        "firebase/storage": "https://www.gstatic.com/firebasejs/10.11.1/firebase-storage.js"
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+  <div id="app"></div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+
+</html>

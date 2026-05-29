@@ -1,0 +1,356 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+
+    // 🔧 Helpers
+  
+    function hasRole(role) {
+      return request.auth != null && request.auth.token.role == role;
+    }
+    
+    function isSuperAdmin() { return hasRole('superAdmin'); }
+    function isPlatformAdmin() { return hasRole('platformAdmin'); }
+    function isSchoolAdmin() { return hasRole('schoolAdmin'); }
+    function isCourseCreator() { return hasRole('courseCreator'); }
+    function isAccountant() { return hasRole('accountant'); }
+    function isTeacher() { return hasRole('teacher'); }
+
+
+    function user() {
+      return request.auth != null
+        && exists(/databases/$(db)/documents/users/$(request.auth.uid))
+        ? get(/databases/$(db)/documents/users/$(request.auth.uid))
+        : null;
+    }
+
+    function sameSchool() {
+      return user() != null && (
+        // for updates / reads
+        (resource != null && resource.data.schoolId == user().data.schoolId) ||
+        // for creates
+        (request.resource != null && request.resource.data.schoolId == user().data.schoolId)
+      );
+    }
+
+    function isRelevantCourseAssignment() {
+      return request.auth != null
+        && resource.data.status == "active"
+        && (
+          (resource.data.targetType == "student"
+            && resource.data.targetId == request.auth.uid)
+          || (user() != null
+            && resource.data.targetType == "class"
+            && resource.data.targetId == user().data.classId)
+          || (user() != null
+            && resource.data.targetType == "class"
+            && (user().data.classIds is list)
+            && resource.data.targetId in user().data.classIds)
+          || (user() != null
+            && resource.data.targetType == "location"
+            && resource.data.targetId == user().data.locationId)
+          || (user() != null
+            && resource.data.targetType == "location"
+            && resource.data.targetId == user().data.locId)
+          || (user() != null
+            && resource.data.targetType == "location"
+            && (user().data.locationIds is list)
+            && resource.data.targetId in user().data.locationIds)
+        );
+    }
+
+
+    // --- ADMIN ROLES HELPER (FOR ACCOUNTING) ---
+    function isAccountingAdmin() {
+      return request.auth != null && (
+        isSuperAdmin() ||
+        isPlatformAdmin() ||
+        isSchoolAdmin() ||
+        isAccountant()
+      );
+    }
+
+    // 👤 USERS
+    match /users/{uid} {
+      allow read, get, list: if
+        // 1. Allow the user to read their own profile (essential for claims)
+        request.auth.uid == uid ||
+        // 2. Allow any Accounting Admin to read ANY user document
+        isAccountingAdmin() ||
+        // 3. Allow Teachers to read students in their classes (existing logic)
+        (isTeacher() && resource.data.classId in user().data.classIds); 
+
+      // Allow admins to create new users and allow both admins and user to update profile
+      allow update, create: if isAccountingAdmin() || request.auth.uid == uid;
+      
+      allow delete: if isSuperAdmin() || isPlatformAdmin(); 
+      
+      match /modules_completed/{moduleId} {
+        allow read: if request.auth.uid == uid
+                        || isSuperAdmin()
+                        || isPlatformAdmin()
+                        || isSchoolAdmin();
+        allow write: if request.auth.uid == uid;
+      }
+    }
+
+  // 📍 LOCATIONS
+    match /locations/{locId} {
+      allow read: if true;
+      allow create, delete: if isSuperAdmin() || isPlatformAdmin();
+      allow update: if isSuperAdmin()
+        || isPlatformAdmin()
+        || isSchoolAdmin()
+        || isCourseCreator();
+
+      // 🧾 EXPENSE CATEGORIES (subcollection)
+      match /expense_categories/{categoryId} {
+        allow read, list, create, update, delete: if isAccountingAdmin();
+      }
+
+      // 📚 CLASSES (subcollection)
+      // --- ADD THIS BLOCK ---
+      match /classes/{classId} {
+          // Allow accountants/admins to read and write classes
+          allow read, list, create, update, delete: if isAccountingAdmin();
+      }
+    }
+
+
+    // 📚 CLASSES
+    match /classes/{classId} {
+      allow read: if true;
+      allow write: if isSuperAdmin()
+                  || isPlatformAdmin()
+                  || (isSchoolAdmin() && sameSchool());
+    }
+
+    // 🧠 CLASS TEMPLATES
+    match /classTemplates/{templateId} {
+      allow read: if isSuperAdmin() || isPlatformAdmin() || isSchoolAdmin();
+      allow write: if isSuperAdmin() || isPlatformAdmin() || (isSchoolAdmin() && sameSchool());
+    }
+
+    // 📘 COURSES
+    match /courses/{courseId} {
+      allow read: if true;
+      allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+
+      match /modules/{moduleId} {
+        allow read: if true;
+        allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+
+        match /sessions/{sessionId} {
+          allow read: if true;
+          allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+        }
+      }
+    }
+
+    // 📌 COURSE ASSIGNMENTS
+    match /courseAssignments/{assignmentId} {
+      allow read, list: if request.auth != null && (
+        isSuperAdmin()
+        || isPlatformAdmin()
+        || isSchoolAdmin()
+        || isCourseCreator()
+        || isRelevantCourseAssignment()
+      );
+
+      allow create, update: if isSuperAdmin()
+        || isPlatformAdmin()
+        || isSchoolAdmin()
+        || isCourseCreator();
+
+      allow delete: if isSuperAdmin() || isPlatformAdmin();
+    }
+    
+    // 📚 CATALOG COURSES (New V2 Core Database)
+    match /catalogCourses/{courseId} {
+      allow read: if true;
+      allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+
+      match /modules/{moduleId} {
+        allow read: if true;
+        allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+
+        match /sessions/{sessionId} {
+          allow read: if true;
+          allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+        }
+      }
+    }
+
+    // 🎓 STUDENT PROGRESS
+    match /studentProgress/{studentId} {
+      allow read: if request.auth != null && (
+        request.auth.uid == studentId ||
+        isTeacher() ||
+        isSuperAdmin() ||
+        isPlatformAdmin() ||
+        isSchoolAdmin()
+      );
+      allow create, update: if request.auth != null && request.auth.uid == studentId;
+      allow delete: if isSuperAdmin() || isPlatformAdmin();
+
+      match /courses/{courseId} {
+        allow read: if request.auth != null && (
+          request.auth.uid == studentId ||
+          isTeacher() ||
+          isSuperAdmin() ||
+          isPlatformAdmin() ||
+          isSchoolAdmin()
+        );
+        allow create, update: if request.auth != null && request.auth.uid == studentId;
+        allow delete: if isSuperAdmin() || isPlatformAdmin();
+
+        match /sessions/{sessionId} {
+          allow read: if request.auth != null && (
+            request.auth.uid == studentId ||
+            isTeacher() ||
+            isSuperAdmin() ||
+            isPlatformAdmin() ||
+            isSchoolAdmin()
+          );
+          allow create, update: if request.auth != null && request.auth.uid == studentId;
+          allow delete: if isSuperAdmin() || isPlatformAdmin();
+        }
+      }
+    }
+
+    // 👥 CUSTOMERS
+    match /customers/{customerId} {
+      allow read, list: if isAccountingAdmin();
+      allow create: if isAccountingAdmin();
+      allow update: if isAccountingAdmin();
+      allow delete: if isSuperAdmin() || isPlatformAdmin();
+    }
+
+    // 🧩 STEP DEFINITIONS (RUNTIME STEPS)
+    match /courses/{courseId}/modules/{moduleId}/steps/{stepId} {
+      allow read: if true; // students must read steps to run engines
+      allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+    }
+    
+    // 🧩 STEP DEFINITIONS FOR CATALOG COURSES (RUNTIME STEPS)
+    match /catalogCourses/{courseId}/modules/{moduleId}/steps/{stepId} {
+      allow read: if true; // students must read steps to run engines
+      allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+    }
+
+
+    // 📊 STEP RESULTS (Used by Teacher Dashboard)
+    match /stepResults/{resultId} {
+      allow read: if request.auth != null && (
+          isTeacher() || isSuperAdmin() || isPlatformAdmin() || isSchoolAdmin()
+      );
+
+      // Optional: allow students to write their own results
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.studentId;
+
+      // Optional: only admins can delete
+      allow delete: if isSuperAdmin() || isPlatformAdmin();
+
+      // Prevent anyone from updating results (they should be immutable)
+      allow update: if false;
+    }
+
+
+    // 🔐 PERMISSIONS
+    match /permissions/{permId} {
+      allow read, write: if isSuperAdmin() || isPlatformAdmin();
+    }
+
+    // ⚙️ SETTINGS
+    match /config/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isAccountingAdmin();
+    }
+    match /fees/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isAccountingAdmin();
+    }
+    
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isSuperAdmin() || isPlatformAdmin();
+    }
+    
+    // ---
+    // --- ACCOUNTING COLLECTIONS ---
+    // ---
+    
+    // 💰 PAYMENTS
+    match /payments/{payId} {
+      // Use the accounting helper
+      allow read, write: if isAccountingAdmin();
+    }
+
+    // 💸 EXPENSES
+    match /expenses/{expenseId} {
+      // Use the accounting helper
+      allow read, write: if isAccountingAdmin();
+    }
+
+    // 📄 SUBSCRIPTIONS
+    match /subscriptions/{subId} {
+      allow read, write: if isSuperAdmin() || isAccountant();
+    }
+    
+    // 🏷 STEP METADATA (Tags)
+    match /step_metadata/{stepId} {
+      allow read: if true;
+      allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+    }
+
+    // 🛒 STORE PURCHASES
+    match /store_purchases/{purchaseId} {
+      allow read: if isSuperAdmin() || isAccountant() || isSchoolAdmin();
+      allow write: if isSuperAdmin() || isAccountant();
+    }
+
+    // 📊 AUDIT LOGS
+    match /audit_logs/{logId} {
+      allow read: if isSuperAdmin();
+      allow write: if false;
+    }
+
+    // 🧾 RECURRING BILLS
+    match /recurring_bills/{billId} {
+      // Use the accounting helper
+      allow read, list, create, update, delete: if isAccountingAdmin();
+
+      match /history/{entryId} {
+        allow read, write: if isAccountingAdmin();
+      }
+    }
+    
+    // 💵 SALARIES
+    match /salaries/{salaryId} {
+      // Use the same accounting helper
+      allow read, list, create, update, delete: if isAccountingAdmin();
+    }
+    
+    // 📋 LESSON LOG
+    match /lesson_log/{lessonId} {
+      // Allow accountants/admins to read and write lesson logs
+      allow read, write: if isAccountingAdmin();
+    }
+    
+    // 🧩 STEP COLLECTION GROUP (for editors, registry, runtime)
+    match /{path=**}/steps/{stepId} {
+      allow read: if true;
+      allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+    }
+    
+    match /stepTypes/{stepTypeId} {
+      allow read: if true;
+      allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+    }
+    
+    // 🧩 SYSTEM STEP TYPES (Cloud Code)
+    match /system_step_types/{stepId} {
+      allow read: if true;
+      allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+    }
+  }
+}

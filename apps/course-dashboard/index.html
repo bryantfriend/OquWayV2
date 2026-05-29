@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OquWay - Course Dashboard</title>
+    <!-- Import map for Firebase -->
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js",
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js",
+                "firebase/auth": "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js",
+                "firebase/functions": "https://www.gstatic.com/firebasejs/10.11.1/firebase-functions.js",
+                "firebase/storage": "https://www.gstatic.com/firebasejs/10.11.1/firebase-storage.js"
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --bg-color: #f8fafc;
+            --text-color: #1e293b;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="logo">OquWay</div>
+        <div class="dashboard-name">Course Dashboard</div>
+    </header>
+    <main id="app">
+        <h1>Course Management</h1>
+        <p>Loading course content via ICF...</p>
+    </main>
+    <script type="module" src="./src/main.js"></script>
+</body>
+
+</html>

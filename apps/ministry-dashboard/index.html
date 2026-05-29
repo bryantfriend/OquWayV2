@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OquWay - Ministry Dashboard</title>
+    <style>
+        :root {
+            --primary-color: #059669;
+            --bg-color: #f0fdf4;
+            --text-color: #064e3b;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="logo">OquWay</div>
+        <div class="dashboard-name">Ministry Dashboard</div>
+    </header>
+    <main id="app">
+        <h1>National Analytics</h1>
+        <p>Aggregating national educational data...</p>
+    </main>
+    <script type="module" src="./src/main.js"></script>
+</body>
+
+</html>

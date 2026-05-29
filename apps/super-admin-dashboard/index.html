@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OquWay - Super Admin Dashboard</title>
+    <!-- Import map for Firebase -->
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js",
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js",
+                "firebase/auth": "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js",
+                "firebase/functions": "https://www.gstatic.com/firebasejs/10.11.1/firebase-functions.js",
+                "firebase/storage": "https://www.gstatic.com/firebasejs/10.11.1/firebase-storage.js"
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --ink: #102033;
+            --muted: #64748b;
+            --line: #d8e3ef;
+            --paper: #ffffff;
+            --blue: #1d4ed8;
+            --green: #059669;
+            --red: #dc2626;
+            --sand: #fff7ed;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Georgia, "Times New Roman", serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 12% 12%, rgba(29,78,216,0.14), transparent 32%),
+                radial-gradient(circle at 88% 4%, rgba(5,150,105,0.16), transparent 30%),
+                linear-gradient(135deg, #f8fbff 0%, #eef8f4 50%, #fff8ed 100%);
+        }
+
+        button,
+        input,
+        select {
+            font-family: inherit;
+        }
+
+        .header {
+            display: none;
+        }
+
+        main {
+            min-height: 100vh;
+        }
+
+        .sa-shell {
+            display: grid;
+            grid-template-columns: 260px minmax(0, 1fr);
+            min-height: 100vh;
+        }
+
+        .sa-sidebar {
+            background: rgba(16,32,51,0.96);
+            color: white;
+            padding: 28px 18px;
+        }
+
+        .sa-brand {
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: -0.05em;
+        }
+
+        .sa-sidebar p {
+            color: #cbd5e1;
+            font-weight: 800;
+            margin-bottom: 28px;
+        }
+
+        .sa-side-link {
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.06);
+            color: white;
+            border-radius: 16px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            text-align: left;
+            font-weight: 900;
+        }
+
+        .sa-side-link-active {
+            background: white;
+            color: var(--ink);
+        }
+
+        .sa-danger-link,
+        .sa-danger-btn {
+            background: #fee2e2;
+            color: var(--red);
+        }
+
+        .sa-main {
+            padding: 28px;
+            max-width: 1500px;
+        }
+
+        .sa-topbar {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .sa-eyebrow {
+            margin: 0 0 6px;
+            color: var(--blue);
+            text-transform: uppercase;
+            font-size: 0.76rem;
+            letter-spacing: 0.14em;
+            font-weight: 900;
+        }
+
+        .sa-topbar h1 {
+            margin: 0;
+            font-size: clamp(2rem, 5vw, 4rem);
+            letter-spacing: -0.06em;
+            line-height: 0.95;
+        }
+
+        .sa-admin-card,
+        .sa-card,
+        .sa-access-card,
+        .sa-loading {
+            background: rgba(255,255,255,0.9);
+            border: 1px solid var(--line);
+            border-radius: 28px;
+            box-shadow: 0 24px 80px rgba(16,32,51,0.1);
+        }
+
+        .sa-admin-card {
+            padding: 14px 18px;
+            display: grid;
+            gap: 3px;
+            min-width: 220px;
+        }
+
+        .sa-admin-card span,
+        .sa-admin-card small,
+        .sa-card p,
+        .sa-empty,
+        .sa-summary {
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .sa-card {
+            padding: 20px;
+        }
+
+        .sa-card h2 {
+            margin: 0 0 14px;
+        }
+
+        .sa-stack {
+            display: grid;
+            gap: 18px;
+        }
+
+        .sa-grid {
+            display: grid;
+            gap: 18px;
+        }
+
+        .sa-grid-3 {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .sa-metric strong {
+            display: block;
+            font-size: 3rem;
+            letter-spacing: -0.06em;
+        }
+
+        .sa-form,
+        .sa-filters {
+            display: grid;
+            gap: 10px;
+            align-items: end;
+        }
+
+        .sa-form-2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .sa-form-5 {
+            grid-template-columns: 1.2fr 0.7fr 0.7fr 1fr 1.1fr auto;
+        }
+
+        .sa-form-6 {
+            grid-template-columns: 1.2fr 1fr 0.7fr 0.7fr 1fr auto;
+        }
+
+        .sa-form-student {
+            grid-template-columns: 1.1fr 1fr 1fr 0.8fr 1fr 1fr 1fr auto;
+        }
+
+        .sa-filters {
+            grid-template-columns: 1fr 1fr 1fr auto;
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: grid;
+            gap: 5px;
+            font-size: 0.78rem;
+            font-weight: 900;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        input,
+        select {
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 10px 11px;
+            background: white;
+            color: var(--ink);
+            font-size: 0.96rem;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .sa-btn {
+            border: 0;
+            border-radius: 15px;
+            background: var(--blue);
+            color: white;
+            padding: 11px 14px;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .sa-btn-secondary {
+            background: #eff6ff;
+            color: var(--blue);
+            border: 1px solid #bfdbfe;
+        }
+
+        .sa-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .sa-table,
+        .sa-student-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .sa-row,
+        .sa-student-card {
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            background: #fbfdff;
+            padding: 14px;
+        }
+
+        .sa-student-card {
+            display: grid;
+            gap: 12px;
+        }
+
+        .sa-student-head {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .sa-student-head small {
+            display: block;
+            color: var(--muted);
+            font-weight: 800;
+        }
+
+        .sa-avatar {
+            width: 58px;
+            height: 58px;
+            border-radius: 20px;
+            object-fit: cover;
+        }
+
+        .sa-avatar-fallback {
+            background: #dbeafe;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+        }
+
+        .sa-fruit-panel {
+            margin-top: 14px;
+            border: 1px dashed var(--line);
+            border-radius: 20px;
+            padding: 14px;
+            background: var(--sand);
+        }
+
+        .sa-fruit-slots {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .sa-fruit-slots span {
+            min-height: 48px;
+            border: 1px dashed #cbd5e1;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            font-size: 1.5rem;
+        }
+
+        .sa-fruit-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .sa-fruit-btn {
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: white;
+            padding: 10px 0;
+            font-size: 1.45rem;
+            cursor: pointer;
+        }
+
+        .sa-message {
+            border-radius: 18px;
+            padding: 12px 14px;
+            font-weight: 900;
+            margin-bottom: 16px;
+        }
+
+        .sa-message-info {
+            background: #eff6ff;
+            color: var(--blue);
+        }
+
+        .sa-message-success {
+            background: #ecfdf5;
+            color: var(--green);
+        }
+
+        .sa-message-error {
+            background: #fef2f2;
+            color: var(--red);
+        }
+
+        .sa-empty {
+            border: 1px dashed var(--line);
+            border-radius: 20px;
+            padding: 22px;
+            text-align: center;
+            background: #f8fafc;
+        }
+
+        .sa-login-link-preview {
+            grid-column: 1 / -1;
+            border: 1px dashed #bfdbfe;
+            border-radius: 18px;
+            background: #eff6ff;
+            color: var(--blue);
+            padding: 12px;
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            gap: 12px;
+            align-items: center;
+            font-weight: 900;
+        }
+
+        .sa-login-link-preview span {
+            overflow-wrap: anywhere;
+            color: var(--ink);
+        }
+
+        .sa-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15,23,42,0.52);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .sa-modal {
+            width: min(560px, 100%);
+            background: white;
+            border-radius: 30px;
+            padding: 24px;
+            box-shadow: 0 30px 90px rgba(0,0,0,0.24);
+        }
+
+        .sa-modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .sa-access-card,
+        .sa-loading {
+            max-width: 620px;
+            margin: 80px auto;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .sa-spinner {
+            width: 42px;
+            height: 42px;
+            border: 4px solid #dbeafe;
+            border-top-color: var(--blue);
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            animation: saSpin 0.9s linear infinite;
+        }
+
+        @keyframes saSpin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 1050px) {
+            .sa-shell,
+            .sa-grid-3,
+            .sa-form-5,
+            .sa-form-6,
+            .sa-form-student,
+            .sa-filters {
+                grid-template-columns: 1fr;
+            }
+
+            .sa-sidebar {
+                position: static;
+            }
+
+            .sa-topbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="logo">OquWay System</div>
+        <div class="dashboard-name">Super Admin Control</div>
+    </header>
+    <main id="app">
+        <h1>Core System Configuration</h1>
+        <p>Managing the heart of the national educational engine...</p>
+    </main>
+    <script type="module" src="./src/main.js"></script>
+</body>
+
+</html>
