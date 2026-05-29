@@ -360,7 +360,7 @@ function buildDashboardView() {
   html += '<section class="sa-shell">';
   html += '<aside class="sa-sidebar">';
   html += '<div class="sa-brand">OquWay</div>';
-  html += '<p class="sa-sidebar-title">Super Admin <span class="sa-version-badge">v1.1.1</span></p>';
+  html += '<p class="sa-sidebar-title">Super Admin <span class="sa-version-badge">v1.1.2</span></p>';
   html += buildTabs();
   html += '<button type="button" class="sa-side-link sa-danger-link" data-action="sign-out">Sign out</button>';
   html += '</aside>';
@@ -953,7 +953,7 @@ function buildLocationPhoto(location) {
 
 function buildStatusBadge(status) {
   var safeStatus = status || "active";
-  var className = "sa-status";
+  var className = "sa-status sa-status-" + safeStatus;
 
   if (safeStatus === "inactive") {
     className += " sa-status-paused";
@@ -3352,10 +3352,6 @@ function buildRoleBadges(roles) {
   }
 
   return html;
-}
-
-function buildStatusBadge(status) {
-  return '<span class="sa-status sa-status-' + escapeHtml(status || "active") + '">' + escapeHtml(status || "active") + '</span>';
 }
 
 function readRoleLabel(role) {
