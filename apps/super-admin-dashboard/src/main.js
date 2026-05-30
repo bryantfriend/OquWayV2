@@ -6,7 +6,7 @@ import { getIntentDefinition } from "../../../packages/core/src/icf/engine/inten
 import { runIntentPipeline } from "../../../packages/core/src/icf/engine/runIntentPipeline.js";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.4";
+var appVersion = "1.1.5";
 var state = {
   isLoading: true,
   isRefreshing: false,
@@ -164,20 +164,27 @@ async function createActor(user) {
   var tokenResult = await getIdTokenResult(user, true);
   var role = "";
   var profileResult = null;
+  var tokenRole = "";
+  var profileRole = "";
 
   if (tokenResult && tokenResult.claims && typeof tokenResult.claims.role === "string") {
-    role = normalizeAdminRole(tokenResult.claims.role);
+    tokenRole = normalizeAdminRole(tokenResult.claims.role);
+    role = tokenRole;
   }
 
-  if (!role) {
-    profileResult = await loadRoleFromProfile(user.uid);
-    role = normalizeAdminRole(profileResult.role);
+  profileResult = await loadRoleFromProfile(user.uid);
+  profileRole = normalizeAdminRole(profileResult.role);
+
+  if (!isSuperAdminRole(role)) {
+    role = profileRole;
   }
 
   return {
     id: user.uid,
     email: user.email || "",
     role: role,
+    tokenRole: tokenRole,
+    profileRole: profileRole,
     profileMissing: profileResult ? profileResult.missing : false
   };
 }
@@ -221,7 +228,7 @@ async function loadAdminProfile() {
   var result = await runAdminIntent("LoadAdminProfileIntent", {});
 
   if (isSuccess(result)) {
-    state.admin = result.emitted.data.admin;
+    state.admin = normalizeLoadedAdminProfile(result.emitted.data.admin);
     return;
   }
 
@@ -229,6 +236,22 @@ async function loadAdminProfile() {
     id: state.actor.id,
     email: state.actor.email,
     role: state.actor.role
+  };
+}
+
+function normalizeLoadedAdminProfile(admin) {
+  var safeAdmin = admin || {};
+  var normalizedRole = normalizeAdminRole(safeAdmin.role);
+  var adminEmail = readSafeString(safeAdmin.email || (state.actor ? state.actor.email : ""));
+  var actorEmail = state.actor ? readSafeString(state.actor.email) : "";
+  var canUseProfileName = isSuperAdminRole(normalizedRole)
+    && (!adminEmail || !actorEmail || adminEmail.toLowerCase() === actorEmail.toLowerCase());
+
+  return {
+    id: readSafeString(safeAdmin.id || (state.actor ? state.actor.id : "")),
+    email: actorEmail || adminEmail,
+    role: state.actor ? state.actor.role : normalizedRole,
+    name: canUseProfileName ? readSafeString(safeAdmin.name || safeAdmin.displayName) : ""
   };
 }
 
@@ -4162,11 +4185,27 @@ function readAssignmentTargetName(assignment) {
 }
 
 function readAdminName() {
-  if (state.admin && state.admin.name) {
+  if (state.admin && state.admin.name && isSuperAdminRole(state.admin.role) && adminEmailMatchesActor()) {
     return state.admin.name;
   }
 
+  if (state.actor && state.actor.email) {
+    return state.actor.email;
+  }
+
   return "Super Admin";
+}
+
+function adminEmailMatchesActor() {
+  if (!state.admin || !state.actor) {
+    return false;
+  }
+
+  if (!state.admin.email || !state.actor.email) {
+    return true;
+  }
+
+  return state.admin.email.toLowerCase() === state.actor.email.toLowerCase();
 }
 
 function readVisibleTabs() {
