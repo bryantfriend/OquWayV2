@@ -6,7 +6,7 @@ import { getIntentDefinition } from "../../../packages/core/src/icf/engine/inten
 import { runIntentPipeline } from "../../../packages/core/src/icf/engine/runIntentPipeline.js";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.5";
+var appVersion = "1.1.6";
 var state = {
   isLoading: true,
   isRefreshing: false,
@@ -167,8 +167,8 @@ async function createActor(user) {
   var tokenRole = "";
   var profileRole = "";
 
-  if (tokenResult && tokenResult.claims && typeof tokenResult.claims.role === "string") {
-    tokenRole = normalizeAdminRole(tokenResult.claims.role);
+  if (tokenResult && tokenResult.claims) {
+    tokenRole = readRoleFromTokenClaims(tokenResult.claims);
     role = tokenRole;
   }
 
@@ -187,6 +187,31 @@ async function createActor(user) {
     profileRole: profileRole,
     profileMissing: profileResult ? profileResult.missing : false
   };
+}
+
+function readRoleFromTokenClaims(claims) {
+  var role = "";
+  var roles = [];
+
+  if (claims && typeof claims.role === "string") {
+    role = normalizeAdminRole(claims.role);
+  }
+
+  if (claims && Array.isArray(claims.roles)) {
+    roles = roles.concat(claims.roles);
+  }
+
+  if (claims && Array.isArray(claims.userRoles)) {
+    roles = roles.concat(claims.userRoles);
+  }
+
+  if (isSuperAdminRole(role)) {
+    return role;
+  }
+
+  role = readPrimaryAdminRole(roles) || role;
+
+  return normalizeAdminRole(role);
 }
 
 async function loadRoleFromProfile(userId) {
