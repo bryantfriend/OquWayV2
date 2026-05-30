@@ -6,7 +6,7 @@ import { getIntentDefinition } from "../../../packages/core/src/icf/engine/inten
 import { runIntentPipeline } from "../../../packages/core/src/icf/engine/runIntentPipeline.js";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.3";
+var appVersion = "1.1.4";
 var state = {
   isLoading: true,
   isRefreshing: false,
