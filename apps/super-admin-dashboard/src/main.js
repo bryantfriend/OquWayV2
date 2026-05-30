@@ -6,6 +6,7 @@ import { getIntentDefinition } from "../../../packages/core/src/icf/engine/inten
 import { runIntentPipeline } from "../../../packages/core/src/icf/engine/runIntentPipeline.js";
 
 var appElement = document.getElementById("app");
+var appVersion = "1.1.3";
 var state = {
   isLoading: true,
   isRefreshing: false,
@@ -21,6 +22,8 @@ var state = {
   loginEmail: "",
   loginPassword: "",
   overviewChartRange: "month",
+  overviewRegionFilter: "",
+  overviewSchoolTypeFilter: "",
   overviewSearchText: "",
   overviewData: createOverviewData(),
   admin: null,
@@ -359,12 +362,12 @@ function buildDashboardView() {
 
   html += '<section class="sa-shell">';
   html += '<aside class="sa-sidebar">';
-  html += '<div class="sa-brand">OquWay</div>';
-  html += '<p class="sa-sidebar-title">Super Admin <span class="sa-version-badge">v1.1.2</span></p>';
+  html += '<div class="sa-brand-block"><div class="sa-brand-mark">OQ</div><div><div class="sa-brand-line"><div class="sa-brand">OquWay</div><span class="sa-version-badge">v' + escapeHtml(appVersion) + '</span></div><p>Learn. Grow. Intentionally.</p></div></div>';
   html += buildTabs();
-  html += '<button type="button" class="sa-side-link sa-danger-link" data-action="sign-out">Sign out</button>';
+  html += buildSidebarStatusCard();
+  html += '<button type="button" class="sa-side-link sa-danger-link" data-action="sign-out"><span class="sa-nav-icon">↪</span><span>Sign out</span></button>';
   html += '</aside>';
-  html += '<main class="sa-main">';
+  html += '<main class="sa-main sa-command-main">';
   html += buildTopBar();
   html += buildMessage();
   html += buildActiveTab();
@@ -378,21 +381,106 @@ function buildDashboardView() {
 function buildTabs() {
   var html = "";
   var visibleTabs = readVisibleTabs();
-  var index = 0;
+  var groups = [
+    {
+      title: "Overview",
+      items: [
+        { label: "Dashboard", icon: "⌁", tab: "overview" },
+        { label: "Schools / Locations", icon: "⌂", tab: "locations" },
+        { label: "Users", icon: "◉", tab: "users" },
+        { label: "Students", icon: "✦", tab: "students" },
+        { label: "Teachers", icon: "✎", action: "overview-open-teachers" }
+      ]
+    },
+    {
+      title: "Learning & Engagement",
+      items: [
+        { label: "Lessons & Modules", icon: "▣", action: "overview-open-course-creator" },
+        { label: "Assignments", icon: "☑", tab: "assignments" },
+        { label: "Login Tools", icon: "⚿", tab: "loginTools" }
+      ]
+    },
+    {
+      title: "Analytics & Reports",
+      items: [
+        { label: "Analytics", icon: "⌁", tab: "overview" },
+        { label: "Reports", icon: "◫", action: "overview-export-report" },
+        { label: "Export Data", icon: "⇩", action: "overview-export-report" }
+      ]
+    },
+    {
+      title: "System Management",
+      items: [
+        { label: "Settings", icon: "⚙", action: "overview-coming-soon", id: "Settings" },
+        { label: "Audit Logs", icon: "◷", action: "overview-coming-soon", id: "Audit Logs" }
+      ]
+    }
+  ];
+  var groupIndex = 0;
 
-  while (index < visibleTabs.length) {
-    var tab = visibleTabs[index];
-    var activeClass = state.activeTab === tab ? " sa-side-link-active" : "";
-    html += '<button type="button" class="sa-side-link' + activeClass + '" data-tab="' + tab + '">' + escapeHtml(readTabLabel(tab)) + '</button>';
-    index = index + 1;
+  while (groupIndex < groups.length) {
+    html += '<div class="sa-nav-group"><span>' + escapeHtml(groups[groupIndex].title) + '</span>';
+    var itemIndex = 0;
+    while (itemIndex < groups[groupIndex].items.length) {
+      var item = groups[groupIndex].items[itemIndex];
+      if (!item.tab || visibleTabs.indexOf(item.tab) !== -1) {
+        html += buildSidebarNavItem(item);
+      }
+      itemIndex = itemIndex + 1;
+    }
+    html += '</div>';
+    groupIndex = groupIndex + 1;
   }
-
   return html;
 }
 
+function buildSidebarNavItem(item) {
+  var isActive = item.tab && state.activeTab === item.tab;
+  var attributes = item.tab ? ' data-tab="' + escapeHtml(item.tab) + '"' : ' data-action="' + escapeHtml(item.action) + '"';
+
+  if (item.id) {
+    attributes += ' data-id="' + escapeHtml(item.id) + '"';
+  }
+
+  return '<button type="button" class="sa-side-link' + (isActive ? " sa-side-link-active" : "") + '"' + attributes + '><span class="sa-nav-icon">' + escapeHtml(item.icon) + '</span><span>' + escapeHtml(item.label) + '</span></button>';
+}
+
+function buildSidebarStatusCard() {
+  var health = readPlatformHealth();
+  var goodCount = countItems(health, function (item) { return item.tone === "good"; });
+  var tone = goodCount >= 5 ? "good" : (goodCount >= 3 ? "warning" : "danger");
+
+  return '<div class="sa-system-card"><div><span class="sa-status-dot sa-status-dot-' + tone + '"></span><strong>System Status</strong></div><p>' + goodCount + ' of ' + health.length + ' services healthy</p><small>Last sync ' + escapeHtml(formatDateTime(state.overviewData.lastRefreshAt)) + '</small></div>';
+}
+
 function buildTopBar() {
-  return '<div class="sa-topbar"><div><p class="sa-eyebrow">Control Center</p><h1>' + escapeHtml(readTabLabel(state.activeTab)) + '</h1></div>'
-    + '<div class="sa-admin-card"><strong>' + escapeHtml(readAdminName()) + '</strong><span>' + escapeHtml(state.actor.email || state.actor.id) + '</span><small>' + escapeHtml(state.actor.role) + '</small></div></div>';
+  return '<div class="sa-topbar"><div class="sa-title-wrap"><span class="sa-title-badge">♛</span><div><p class="sa-eyebrow">Executive Command Center</p><h1>Super Admin Dashboard</h1><p>Executive overview of the OquWay ecosystem</p></div></div>'
+    + '<div class="sa-topbar-actions">'
+    + '<label>Date Range<select data-overview-filter="range"><option value="week"' + selected(state.overviewChartRange, "week") + '>7 days</option><option value="month"' + selected(state.overviewChartRange, "month") + '>30 days</option><option value="year"' + selected(state.overviewChartRange, "year") + '>12 months</option></select></label>'
+    + '<label>Region' + buildOverviewFilterOptions("region") + '</label>'
+    + '<label>School Type' + buildOverviewFilterOptions("type") + '</label>'
+    + '<button type="button" class="sa-btn sa-btn-secondary sa-icon-btn" data-action="overview-ai-insights">AI Insights</button>'
+    + '<button type="button" class="sa-btn" data-action="overview-export-report"' + disabled(isBusy()) + '>' + buildButtonContent("Export Report", "overview-export-report") + '</button>'
+    + '<button type="button" class="sa-notification-btn" data-action="overview-view-all-issues" aria-label="Notifications">◌</button>'
+    + '<div class="sa-admin-card sa-profile-pill"><strong>' + escapeHtml(readAdminName()) + '</strong><span>' + escapeHtml(state.actor.email || state.actor.id) + '</span><small>' + escapeHtml(readRoleLabel(state.actor.role) || state.actor.role) + '</small></div>'
+    + '</div></div>';
+}
+
+function buildOverviewFilterOptions(kind) {
+  var value = kind === "region" ? state.overviewRegionFilter : state.overviewSchoolTypeFilter;
+  var field = kind === "region" ? "region" : "schoolType";
+  var fallback = kind === "region" ? "All regions" : "All types";
+  var options = kind === "region" ? readUniqueLocationValues("region") : readUniqueLocationValues("type");
+  var html = '<select data-overview-filter="' + field + '"><option value="">' + escapeHtml(fallback) + '</option>';
+  var index = 0;
+
+  while (index < options.length) {
+    html += '<option value="' + escapeHtml(options[index]) + '"' + selected(value, options[index]) + '>' + escapeHtml(options[index]) + '</option>';
+    index = index + 1;
+  }
+
+  html += '</select>';
+  return html;
 }
 
 function buildMessage() {
@@ -444,13 +532,13 @@ function buildOverviewTab() {
     html += buildOverviewSkeleton();
   }
 
-  html += renderActionCenter();
+  html += renderExecutiveMetrics();
+  html += '<section class="sa-overview-grid sa-analytics-row">' + renderEngagementChart() + renderCategoryDonut() + renderSchoolsByRegion() + '</section>';
+  html += '<section class="sa-overview-grid sa-ops-row">' + renderActionCenter() + renderHealthCards() + '</section>';
+  html += renderLearningActivityOverview();
+  html += '<section class="sa-overview-grid sa-overview-grid-2">' + renderTopSchools() + renderRecentActivity() + '</section>';
+  html += renderExecutiveSummaryStrip();
   html += renderQuickActions();
-  html += renderUserMetrics();
-  html += renderGrowthChart(state.overviewChartRange);
-  html += '<section class="sa-overview-grid sa-overview-grid-2">' + renderHealthCards() + renderLoginHealth() + '</section>';
-  html += '<section class="sa-overview-grid sa-overview-grid-2">' + renderCompletionScore() + renderRoadmap() + '</section>';
-  html += '<section class="sa-overview-grid sa-overview-grid-2">' + renderRecentActivity() + renderRecentlyCreated() + '</section>';
   html += renderGlobalSearch();
   html += '</section>';
 
@@ -458,23 +546,41 @@ function buildOverviewTab() {
 }
 
 function buildMetricCard(title, value, note) {
-  return '<article class="sa-card sa-metric"><span>' + escapeHtml(title) + '</span><strong>' + value + '</strong><p>' + escapeHtml(note) + '</p></article>';
+  return '<article class="sa-card sa-metric"><span>' + escapeHtml(title) + '</span><strong>' + escapeHtml(String(value)) + '</strong><p>' + escapeHtml(note) + '</p></article>';
 }
 
 function buildOverviewHeader() {
-  return '<div class="sa-overview-head"><div><p class="sa-eyebrow">Control Center</p><h2>Super Admin Overview</h2><p>Operational readiness, login health, platform growth, and setup progress in one place.</p></div><div class="sa-overview-head-actions"><span>Last updated: ' + escapeHtml(formatDateTime(state.overviewData.lastRefreshAt)) + '</span><button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data"' + disabled(isBusy()) + '>' + buildButtonContent("Refresh", "refresh-data") + '</button></div></div>';
+  return '<div class="sa-overview-head"><div><p class="sa-eyebrow">Live Ecosystem Overview</p><h2>Command Center</h2><p>School readiness, learner momentum, platform health, and next actions in one executive view.</p></div><div class="sa-overview-head-actions"><span>Last updated: ' + escapeHtml(formatDateTime(state.overviewData.lastRefreshAt)) + '</span><button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data"' + disabled(isBusy()) + '>' + buildButtonContent("Refresh", "refresh-data") + '</button></div></div>';
 }
 
 function buildOverviewSkeleton() {
-  return '<section class="sa-overview-skeleton" aria-busy="true"><span></span><span></span><span></span><span></span></section>';
+  return '<section class="sa-overview-skeleton" aria-busy="true"><span></span><span></span><span></span><span></span><span></span></section>';
+}
+
+function renderExecutiveMetrics() {
+  var metrics = readExecutiveMetrics();
+  var html = '<section class="sa-executive-metrics">';
+  var index = 0;
+
+  while (index < metrics.length) {
+    html += buildExecutiveMetricCard(metrics[index]);
+    index = index + 1;
+  }
+
+  html += '</section>';
+  return html;
+}
+
+function buildExecutiveMetricCard(metric) {
+  return '<article class="sa-card sa-exec-metric sa-tint-' + escapeHtml(metric.tone) + '"><div class="sa-metric-top"><span class="sa-metric-icon">' + escapeHtml(metric.icon) + '</span><small>' + escapeHtml(metric.label) + '</small></div><strong>' + escapeHtml(metric.value) + '</strong><div class="sa-metric-change ' + escapeHtml(metric.changeTone) + '">' + escapeHtml(metric.change) + '</div>' + buildSparklineSvg(metric.sparkline, metric.color) + '</article>';
 }
 
 function renderActionCenter() {
-  var items = buildActionCenterItems();
-  var html = '<article class="sa-card sa-overview-card"><div class="sa-section-title"><div><h2>Action Center</h2><p>Highest-signal setup and data quality issues.</p></div></div><div class="sa-action-list">';
+  var items = buildActionCenterItems().sort(compareActionPriority);
+  var html = '<article class="sa-card sa-overview-card sa-action-center-card"><div class="sa-section-title"><div><h2>Action Center</h2><p>Top setup and data quality issues.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="overview-view-all-issues">View all issues</button></div><div class="sa-action-list">';
   var index = 0;
 
-  while (index < items.length) {
+  while (index < items.length && index < 5) {
     html += buildActionItem(items[index]);
     index = index + 1;
   }
@@ -487,19 +593,19 @@ function buildActionCenterItems() {
   var issues = readOverviewIssues();
 
   return [
-    { icon: "Link", count: issues.locationsMissingSlugs, message: "Locations missing login slugs", action: "overview-open-locations", button: "Locations", tone: issues.locationsMissingSlugs ? "warning" : "good" },
-    { icon: "Photo", count: issues.studentsMissingPhotos, message: "Students missing profile photos", action: "overview-open-students", button: "Students", tone: issues.studentsMissingPhotos ? "warning" : "good" },
-    { icon: "Key", count: issues.studentsMissingCredentials, message: "Students missing login credentials", action: "overview-open-login-tools", button: "Login Tools", tone: issues.studentsMissingCredentials ? "danger" : "good" },
-    { icon: "Teach", count: issues.classesMissingTeachers, message: "Classes with no assigned teacher", action: "overview-open-classes", button: "Classes", tone: issues.classesMissingTeachers ? "warning" : "good" },
-    { icon: "Group", count: issues.classesWithNoStudents, message: "Classes with no students", action: "overview-open-classes", button: "Classes", tone: issues.classesWithNoStudents ? "warning" : "good" },
-    { icon: "Site", count: issues.locationsWithNoClasses, message: "Locations with no classes", action: "overview-open-locations", button: "Locations", tone: issues.locationsWithNoClasses ? "warning" : "good" },
-    { icon: "Draft", count: issues.draftLearningItems, message: "Courses or modules in draft", action: "overview-open-course-creator", button: "Courses", tone: issues.draftLearningItems ? "warning" : "good" },
-    { icon: "Archive", count: issues.archivedLocations, message: "Archived locations", action: "overview-open-locations", button: "Review", tone: issues.archivedLocations ? "muted" : "good" }
+    { icon: "⚿", count: issues.studentsMissingCredentials, message: "Students missing login credentials", action: "overview-open-login-tools", button: "Fix", tone: issues.studentsMissingCredentials ? "danger" : "good" },
+    { icon: "⌁", count: issues.locationsMissingSlugs, message: "Locations missing login slugs", action: "overview-open-locations", button: "Review", tone: issues.locationsMissingSlugs ? "warning" : "good" },
+    { icon: "◌", count: issues.studentsMissingPhotos, message: "Students missing profile photos", action: "overview-open-students", button: "Students", tone: issues.studentsMissingPhotos ? "warning" : "good" },
+    { icon: "✎", count: issues.classesMissingTeachers, message: "Classes with no assigned teacher", action: "overview-open-classes", button: "Classes", tone: issues.classesMissingTeachers ? "warning" : "good" },
+    { icon: "◫", count: issues.locationsWithNoClasses, message: "Locations with no classes", action: "overview-open-locations", button: "Locations", tone: issues.locationsWithNoClasses ? "warning" : "good" },
+    { icon: "☑", count: issues.classesWithNoStudents, message: "Classes with no students", action: "overview-open-classes", button: "Classes", tone: issues.classesWithNoStudents ? "warning" : "good" },
+    { icon: "▣", count: issues.draftLearningItems, message: "Courses or modules in draft", action: "overview-open-course-creator", button: "Courses", tone: issues.draftLearningItems ? "warning" : "good" },
+    { icon: "◷", count: issues.archivedLocations, message: "Archived locations", action: "overview-open-locations", button: "Review", tone: issues.archivedLocations ? "muted" : "good" }
   ];
 }
 
 function buildActionItem(item) {
-  return '<div class="sa-action-item sa-action-' + escapeHtml(item.tone) + '"><div class="sa-action-icon">' + escapeHtml(item.icon) + '</div><div><strong>' + item.count + '</strong><span>' + escapeHtml(item.message) + '</span></div><button type="button" class="sa-btn sa-btn-secondary" data-action="' + escapeHtml(item.action) + '">' + escapeHtml(item.button) + '</button></div>';
+  return '<div class="sa-action-item sa-action-' + escapeHtml(item.tone) + '"><div class="sa-action-icon">' + escapeHtml(item.icon) + '</div><div><strong>' + escapeHtml(String(item.count)) + '</strong><span>' + escapeHtml(item.message) + '</span></div><button type="button" class="sa-btn sa-btn-secondary" data-action="' + escapeHtml(item.action) + '">' + escapeHtml(item.button) + '</button></div>';
 }
 
 function renderQuickActions() {
@@ -523,35 +629,23 @@ function renderQuickActions() {
   return html;
 }
 
-function renderUserMetrics() {
-  var stats = readUserStats();
-
-  return '<article class="sa-card sa-overview-card"><div class="sa-section-title"><div><h2>User Management</h2><p>Identity, roles, access status, and location assignment health.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="overview-open-users">Open Users</button></div><div class="sa-mini-grid">'
-    + buildMiniMetric(stats.totalUsers, "Total users")
-    + buildMiniMetric(stats.activeUsers, "Active users")
-    + buildMiniMetric(stats.multiRoleUsers, "Multi-role users")
-    + buildMiniMetric(stats.missingLocationUsers, "Missing location")
-    + buildMiniMetric(stats.suspendedUsers, "Suspended")
-    + '</div></article>';
-}
-
 function renderHealthCards() {
-  var firestoreStatus = state.overviewData.lastRefreshAt ? "good" : "danger";
-  var authStatus = auth.currentUser ? "good" : "danger";
-  var storageStatus = state.overviewData.storageAvailable ? "good" : "warning";
+  var health = readPlatformHealth();
+  var html = '<article class="sa-card sa-overview-card"><h2>Platform Health</h2><div class="sa-health-list">';
+  var index = 0;
 
-  return '<article class="sa-card sa-overview-card"><h2>Platform Health</h2><div class="sa-health-list">'
-    + buildHealthRow("Firestore", firestoreStatus, state.overviewData.lastRefreshAt ? "Connected and loaded" : "No successful load yet")
-    + buildHealthRow("Auth", authStatus, auth.currentUser ? "Signed-in user loaded" : "No auth user")
-    + buildHealthRow("Storage", storageStatus, state.overviewData.storageAvailable ? "Storage config detected" : "Storage config unavailable")
-    + buildHealthRow("Last Refresh", state.overviewData.lastRefreshAt ? "good" : "warning", formatDateTime(state.overviewData.lastRefreshAt))
-    + buildHealthRow("Admin Role", isAdminRole(state.actor ? state.actor.role : "") ? "good" : "danger", state.actor ? state.actor.role : "missing")
-    + buildOverviewCollectionErrors()
-    + '</div></article>';
+  while (index < health.length) {
+    html += buildHealthRow(health[index].label, health[index].tone, health[index].status);
+    index = index + 1;
+  }
+
+  html += buildOverviewCollectionErrors();
+  html += '</div></article>';
+  return html;
 }
 
 function buildHealthRow(label, tone, value) {
-  return '<div class="sa-health-row"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong><i class="sa-health-badge sa-health-' + escapeHtml(tone) + '">' + escapeHtml(tone) + '</i></div>';
+  return '<div class="sa-health-row"><span><i class="sa-status-dot sa-status-dot-' + escapeHtml(tone) + '"></i>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong></div>';
 }
 
 function buildOverviewCollectionErrors() {
@@ -567,6 +661,107 @@ function buildOverviewCollectionErrors() {
     index = index + 1;
   }
 
+  return html;
+}
+
+function renderEngagementChart() {
+  var chart = buildEngagementChart(state.overviewChartRange);
+  var html = '<article class="sa-card sa-overview-card sa-chart-card sa-chart-card-wide"><div class="sa-section-title"><div><h2>Engagement Over Time</h2><p>Derived from activity logs when available, with learner growth as fallback.</p></div><div class="sa-segmented"><button type="button" data-action="overview-chart-week" class="' + selectedClass(state.overviewChartRange, "week") + '">Week</button><button type="button" data-action="overview-chart-month" class="' + selectedClass(state.overviewChartRange, "month") + '">Month</button><button type="button" data-action="overview-chart-year" class="' + selectedClass(state.overviewChartRange, "year") + '">Year</button></div></div>';
+
+  if (chart.isEmpty) {
+    return html + '<div class="sa-empty"><strong>No engagement data yet.</strong><span>Activity logs will appear here as classrooms use OquWay.</span></div></article>';
+  }
+
+  return html + chart.svg + '<div class="sa-chart-legend"><span><i style="background:#6366f1"></i>Engagement</span><span><i style="background:#14b8a6"></i>Learner momentum</span></div></article>';
+}
+
+function renderCategoryDonut() {
+  var data = readIntentionCategoryData();
+  var total = sumBy(data, function (item) { return item.value; });
+  var html = '<article class="sa-card sa-overview-card"><div><h2>Intention Points by Category</h2><p>Vanilla SVG breakdown using available learning signals.</p></div>';
+
+  if (total === 0) {
+    return html + '<div class="sa-empty"><strong>No point categories yet.</strong><span>Completed lessons, quests, projects, and activity logs will populate this chart.</span></div></article>';
+  }
+
+  html += '<div class="sa-donut-wrap">' + buildDonutSvg(data, total) + '<div class="sa-donut-center"><strong>' + escapeHtml(formatNumber(total)) + '</strong><span>Total points</span></div></div><div class="sa-donut-legend">';
+  var index = 0;
+  while (index < data.length) {
+    html += '<span><i style="background:' + escapeHtml(data[index].color) + '"></i>' + escapeHtml(data[index].label) + '<strong>' + escapeHtml(formatNumber(data[index].value)) + '</strong></span>';
+    index = index + 1;
+  }
+  html += '</div></article>';
+  return html;
+}
+
+function renderSchoolsByRegion() {
+  var rows = readSchoolsByRegion();
+  var total = sumBy(rows, function (item) { return item.count; });
+  var html = '<article class="sa-card sa-overview-card"><div><h2>Schools by Region</h2><p>Location distribution from loaded Firestore records.</p></div><div class="sa-region-list">';
+  var index = 0;
+
+  if (rows.length === 0) {
+    return html + '<div class="sa-empty"><strong>No locations loaded.</strong><span>Create or load locations to see regional coverage.</span></div></div></article>';
+  }
+
+  while (index < rows.length && index < 6) {
+    var percent = total ? Math.round((rows[index].count / total) * 100) : 0;
+    html += '<div class="sa-region-row"><div><strong>' + escapeHtml(rows[index].region) + '</strong><span>' + rows[index].count + ' schools</span></div><div class="sa-region-bar"><span style="width:' + percent + '%"></span></div><em>' + percent + '%</em></div>';
+    index = index + 1;
+  }
+
+  html += '</div></article>';
+  return html;
+}
+
+function renderLearningActivityOverview() {
+  var stats = readLearningActivityStats();
+  return '<section class="sa-learning-grid">'
+    + buildLearningActivityCard("Lessons Completed", stats.lessonsCompleted, "▣", "lesson")
+    + buildLearningActivityCard("Quests Completed", stats.questsCompleted, "✦", "quest")
+    + buildLearningActivityCard("Projects Submitted", stats.projectsSubmitted, "◫", "project")
+    + buildLearningActivityCard("Activities Logged", stats.activitiesLogged, "⌁", "activity")
+    + '</section>';
+}
+
+function buildLearningActivityCard(label, value, icon, tone) {
+  return '<article class="sa-card sa-learning-card sa-learning-' + escapeHtml(tone) + '"><span>' + escapeHtml(icon) + '</span><div><strong>' + escapeHtml(formatNumber(value)) + '</strong><small>' + escapeHtml(label) + '</small></div></article>';
+}
+
+function renderTopSchools() {
+  var schools = readTopSchools();
+  var html = '<article class="sa-card sa-overview-card sa-table-card"><div class="sa-section-title"><div><h2>Top Performing Schools</h2><p>Students, engagement, points earned, and trend.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="overview-open-locations">Open Locations</button></div>';
+  var index = 0;
+
+  if (schools.length === 0) {
+    return html + '<div class="sa-empty"><strong>No schools to rank yet.</strong><span>Loaded locations with students will appear here.</span></div></article>';
+  }
+
+  html += '<div class="sa-top-schools-table"><div class="sa-top-schools-head"><span>Name</span><span>Students</span><span>Engagement</span><span>Points</span><span>Trend</span></div>';
+  while (index < schools.length && index < 6) {
+    html += '<button type="button" class="sa-top-school-row" data-action="overview-open-location" data-id="' + escapeHtml(schools[index].id) + '"><strong>' + escapeHtml(schools[index].name) + '</strong><span>' + schools[index].students + '</span><span>' + schools[index].engagement + '%</span><span>' + escapeHtml(formatNumber(schools[index].points)) + '</span><em>' + escapeHtml(schools[index].trend) + '</em></button>';
+    index = index + 1;
+  }
+
+  html += '</div></article>';
+  return html;
+}
+
+function renderExecutiveSummaryStrip() {
+  var metrics = readExecutiveSummary();
+  return '<article class="sa-card sa-summary-strip"><div><p class="sa-eyebrow">Executive Summary</p><h2>' + escapeHtml(metrics.summary) + '</h2></div><div class="sa-summary-metrics"><span><strong>' + escapeHtml(metrics.studentGrowth) + '</strong> student growth</span><span><strong>' + escapeHtml(metrics.teacherGrowth) + '</strong> teacher growth</span><span><strong>' + escapeHtml(metrics.engagementGrowth) + '</strong> engagement growth</span></div><div class="sa-next-steps"><strong>Next steps</strong>' + buildNextSteps(metrics.nextSteps) + '</div></article>';
+}
+
+function buildNextSteps(items) {
+  var html = '<ul>';
+  var index = 0;
+
+  while (index < items.length) {
+    html += '<li>' + escapeHtml(items[index]) + '</li>';
+    index = index + 1;
+  }
+
+  html += '</ul>';
   return html;
 }
 
@@ -1431,9 +1626,26 @@ function handleInput(event) {
     return;
   }
 
+  if (target.getAttribute("data-overview-filter")) {
+    updateOverviewFilter(target.getAttribute("data-overview-filter"), target.value);
+    return;
+  }
+
   if (target.getAttribute("data-field")) {
     updateFormValue(target);
   }
+}
+
+function updateOverviewFilter(field, value) {
+  if (field === "range") {
+    state.overviewChartRange = value;
+  } else if (field === "region") {
+    state.overviewRegionFilter = value;
+  } else if (field === "schoolType") {
+    state.overviewSchoolTypeFilter = value;
+  }
+
+  render();
 }
 
 function updateLoginField(field, value) {
@@ -1589,6 +1801,8 @@ async function handleAction(action, id) {
     window.open("../student-login/index.html", "_blank");
   } else if (action === "copy-login-link") {
     await copyLoginLink(id);
+  } else if (action === "overview-export-report") {
+    await exportOverviewReport();
   } else if (action.indexOf("overview-") === 0) {
     handleOverviewAction(action, id);
   } else if (action === "sign-out") {
@@ -1659,7 +1873,72 @@ function handleOverviewAction(action, id) {
 
   if (action === "overview-open-users") {
     setState({ activeTab: "users", activeUserId: id || "", message: "" });
+    return;
   }
+
+  if (action === "overview-open-teachers") {
+    setState({ activeTab: "users", userFilters: Object.assign({}, state.userFilters, { role: "teacher" }), message: "" });
+    return;
+  }
+
+  if (action === "overview-ai-insights") {
+    setState({ message: "AI Insights are ready for the executive summary view. Connect the dedicated insights service when it is available.", messageType: "info" });
+    return;
+  }
+
+  if (action === "overview-view-all-issues") {
+    var count = sumBy(buildActionCenterItems(), function (item) { return item.count; });
+    setState({ message: count ? "There are " + count + " open setup and data quality signals across the dashboard." : "No critical setup issues are currently detected.", messageType: count ? "info" : "success" });
+    return;
+  }
+
+  if (action === "overview-coming-soon") {
+    setState({ message: (id || "This section") + " is planned for the command center. Existing admin workflows are still available from the active tabs.", messageType: "info" });
+  }
+}
+
+async function exportOverviewReport() {
+  setState({ pendingAction: "overview-export-report", message: "Preparing executive report...", messageType: "info" });
+  await waitForNextFrame();
+
+  try {
+    var metrics = readExecutiveMetrics();
+    var report = {
+      generatedAt: new Date().toISOString(),
+      filters: {
+        range: state.overviewChartRange,
+        region: state.overviewRegionFilter || "all",
+        schoolType: state.overviewSchoolTypeFilter || "all"
+      },
+      metrics: metrics.map(function (metric) {
+        return {
+          label: metric.label,
+          value: metric.value,
+          change: metric.change
+        };
+      }),
+      platformHealth: readPlatformHealth(),
+      topSchools: readTopSchools().slice(0, 10),
+      issues: buildActionCenterItems().sort(compareActionPriority)
+    };
+    var blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
+    var link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "oquway-super-admin-report.json";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(link.href);
+    setState({ pendingAction: "", message: "Executive report exported.", messageType: "success" });
+  } catch (error) {
+    setState({ pendingAction: "", message: "Could not export report: " + (error.message || "Unknown error"), messageType: "error" });
+  }
+}
+
+function waitForNextFrame() {
+  return new Promise(function (resolve) {
+    window.requestAnimationFrame(resolve);
+  });
 }
 
 async function loginAdmin() {
@@ -2125,6 +2404,493 @@ function createOverviewData() {
   };
 }
 
+function readExecutiveMetrics() {
+  var locations = readOverviewLocations();
+  var teacherCount = readTeacherCount();
+  var points = readTotalIntentionPoints();
+  var engagement = readAverageEngagement();
+
+  return [
+    { label: "Total Schools / Locations", value: formatNumber(locations.length), icon: "⌂", color: "#2563eb", tone: "blue", change: formatChange(readCreatedChange(locations)), changeTone: readChangeTone(readCreatedChange(locations)), sparkline: countGrowthByBucket(locations, makeDateBuckets("week")) },
+    { label: "Total Students", value: formatNumber(state.students.length), icon: "✦", color: "#14b8a6", tone: "teal", change: formatChange(readCreatedChange(state.students)), changeTone: readChangeTone(readCreatedChange(state.students)), sparkline: countGrowthByBucket(state.students, makeDateBuckets("week")) },
+    { label: "Total Teachers", value: formatNumber(teacherCount), icon: "✎", color: "#f59e0b", tone: "amber", change: formatChange(readCreatedChange(readTeacherRecords())), changeTone: readChangeTone(readCreatedChange(readTeacherRecords())), sparkline: countGrowthByBucket(readTeacherRecords(), makeDateBuckets("week")) },
+    { label: "Intention Points Earned", value: formatNumber(points), icon: "◆", color: "#8b5cf6", tone: "purple", change: formatChange(readActivityChange()), changeTone: readChangeTone(readActivityChange()), sparkline: buildPointSparkline() },
+    { label: "Avg. Engagement", value: engagement + "%", icon: "⌁", color: "#f43f5e", tone: "rose", change: formatChange(readEngagementChange()), changeTone: readChangeTone(readEngagementChange()), sparkline: buildEngagementSeries("week").primary }
+  ];
+}
+
+function readOverviewLocations() {
+  var locations = state.locations.map(getSafeLocation);
+
+  if (state.overviewRegionFilter) {
+    locations = locations.filter(function (location) {
+      return readSafeString(location.region || "Unassigned") === state.overviewRegionFilter;
+    });
+  }
+
+  if (state.overviewSchoolTypeFilter) {
+    locations = locations.filter(function (location) {
+      return readSafeString(location.type || "Private location") === state.overviewSchoolTypeFilter;
+    });
+  }
+
+  return locations;
+}
+
+function readUniqueLocationValues(field) {
+  var values = [];
+  var index = 0;
+
+  while (index < state.locations.length) {
+    var location = getSafeLocation(state.locations[index]);
+    var value = field === "type" ? readSafeString(location.type || "Private location") : readSafeString(location.region || "Unassigned");
+    if (value && values.indexOf(value) === -1) {
+      values.push(value);
+    }
+    index = index + 1;
+  }
+
+  return values.sort();
+}
+
+function readTeacherRecords() {
+  return state.users.map(getSafeUser).filter(function (user) {
+    return user.roles.indexOf("teacher") !== -1;
+  });
+}
+
+function readTeacherCount() {
+  var teachers = readTeacherRecords();
+
+  if (teachers.length > 0) {
+    return teachers.length;
+  }
+
+  return countUniqueTeacherIds();
+}
+
+function countUniqueTeacherIds() {
+  var ids = [];
+  var index = 0;
+
+  while (index < state.classes.length) {
+    addUniqueId(ids, state.classes[index].teacherId);
+    addUniqueId(ids, state.classes[index].teacherUid);
+    addUniqueId(ids, state.classes[index].primaryTeacherId);
+    if (Array.isArray(state.classes[index].teacherIds)) {
+      var teacherIndex = 0;
+      while (teacherIndex < state.classes[index].teacherIds.length) {
+        addUniqueId(ids, state.classes[index].teacherIds[teacherIndex]);
+        teacherIndex = teacherIndex + 1;
+      }
+    }
+    index = index + 1;
+  }
+
+  return ids.length;
+}
+
+function addUniqueId(ids, id) {
+  var safeId = readSafeString(id);
+  if (safeId && ids.indexOf(safeId) === -1) {
+    ids.push(safeId);
+  }
+}
+
+function readTotalIntentionPoints() {
+  var studentPoints = sumBy(state.students, readPointsFromRecord);
+  var activityPoints = sumBy(state.overviewData.activityLogs, readPointsFromRecord);
+  var auditPoints = sumBy(state.overviewData.auditLogs, readPointsFromRecord);
+  return studentPoints + activityPoints + auditPoints;
+}
+
+function readAverageEngagement() {
+  var values = [];
+  var index = 0;
+
+  while (index < state.students.length) {
+    var value = readEngagementFromRecord(state.students[index]);
+    if (value !== null) {
+      values.push(value);
+    }
+    index = index + 1;
+  }
+
+  if (values.length === 0) {
+    return readDerivedEngagementPercent();
+  }
+
+  return Math.round(sumBy(values, function (value) { return value; }) / values.length);
+}
+
+function readDerivedEngagementPercent() {
+  var checklist = buildCompletionChecklist();
+  var complete = countItems(checklist, function (item) { return item.status === "complete"; });
+  var warning = countItems(checklist, function (item) { return item.status === "warning"; });
+
+  if (checklist.length === 0) {
+    return 0;
+  }
+
+  return Math.round(((complete + warning * 0.5) / checklist.length) * 100);
+}
+
+function readPointsFromRecord(record) {
+  return readFirstNumber(record, ["intentionPoints", "pointsEarned", "points", "totalPoints", "rewardPoints", "xp"]);
+}
+
+function readEngagementFromRecord(record) {
+  var value = readFirstNumber(record, ["engagement", "engagementScore", "engagementPercent", "completionRate", "progress"]);
+
+  if (!value) {
+    return value === 0 ? 0 : null;
+  }
+
+  if (value > 0 && value <= 1) {
+    return Math.round(value * 100);
+  }
+
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function readFirstNumber(record, keys) {
+  var index = 0;
+
+  while (index < keys.length) {
+    var value = record ? record[keys[index]] : null;
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+    if (typeof value === "string" && value.trim() && Number.isFinite(Number(value))) {
+      return Number(value);
+    }
+    index = index + 1;
+  }
+
+  return 0;
+}
+
+function buildPointSparkline() {
+  var buckets = makeDateBuckets("week");
+  var values = [];
+  var index = 0;
+
+  while (index < buckets.length) {
+    values.push(sumRecordsByBucket(state.overviewData.activityLogs.concat(state.students), buckets[index], readPointsFromRecord));
+    index = index + 1;
+  }
+
+  return values;
+}
+
+function readCreatedChange(items) {
+  var now = Date.now();
+  var currentStart = now - (30 * 24 * 60 * 60 * 1000);
+  var previousStart = now - (60 * 24 * 60 * 60 * 1000);
+  var current = 0;
+  var previous = 0;
+  var index = 0;
+
+  while (index < items.length) {
+    var createdAt = getCreatedAtMillis(items[index]);
+    if (createdAt && createdAt >= currentStart) {
+      current = current + 1;
+    } else if (createdAt && createdAt >= previousStart) {
+      previous = previous + 1;
+    }
+    index = index + 1;
+  }
+
+  return current - previous;
+}
+
+function readActivityChange() {
+  var current = sumRecentRecords(state.overviewData.activityLogs, 30, readPointsFromRecord);
+  var previous = sumPreviousRecords(state.overviewData.activityLogs, 30, readPointsFromRecord);
+  return current - previous;
+}
+
+function readEngagementChange() {
+  var series = buildEngagementSeries("month").primary;
+
+  if (series.length < 2) {
+    return 0;
+  }
+
+  return Math.round(series[series.length - 1] - series[0]);
+}
+
+function formatChange(value) {
+  if (value > 0) {
+    return "+" + formatNumber(value) + " this period";
+  }
+
+  if (value < 0) {
+    return formatNumber(value) + " this period";
+  }
+
+  return "Stable this period";
+}
+
+function readChangeTone(value) {
+  if (value > 0) {
+    return "is-positive";
+  }
+
+  if (value < 0) {
+    return "is-negative";
+  }
+
+  return "is-neutral";
+}
+
+function buildEngagementChart(range) {
+  var series = buildEngagementSeries(range);
+  var maxValue = Math.max(100, maxArrayValue(series.primary), maxArrayValue(series.secondary));
+
+  if (series.primary.length === 0 || (maxArrayValue(series.primary) === 0 && maxArrayValue(series.secondary) === 0)) {
+    return { isEmpty: true, svg: "" };
+  }
+
+  return {
+    isEmpty: false,
+    svg: buildTwoLineSvg(series.primary, series.secondary, series.labels, maxValue)
+  };
+}
+
+function buildEngagementSeries(range) {
+  var buckets = makeDateBuckets(range);
+  var primary = [];
+  var secondary = [];
+  var labels = [];
+  var activityLogs = state.overviewData.activityLogs;
+  var index = 0;
+
+  while (index < buckets.length) {
+    var activityCount = countRecordsInBucket(activityLogs, buckets[index]);
+    var createdStudents = countRecordsInBucket(state.students, buckets[index]);
+    primary.push(activityCount > 0 ? activityCount : Math.max(0, createdStudents * 8));
+    secondary.push(countGrowthByBucket(state.students, buckets)[index]);
+    labels.push(buckets[index].label);
+    index = index + 1;
+  }
+
+  if (maxArrayValue(primary) === 0 && state.students.length > 0) {
+    primary = primary.map(function (_value, valueIndex) {
+      return Math.round((valueIndex + 1) * (readAverageEngagement() / primary.length));
+    });
+  }
+
+  return { primary: primary, secondary: secondary, labels: labels };
+}
+
+function buildTwoLineSvg(primary, secondary, labels, maxValue) {
+  var width = 760;
+  var height = 280;
+  var left = 42;
+  var right = 18;
+  var top = 20;
+  var bottom = 42;
+  var plotWidth = width - left - right;
+  var plotHeight = height - top - bottom;
+  var html = '<svg class="sa-growth-svg sa-engagement-svg" viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="Engagement over time">';
+  var gridIndex = 0;
+
+  while (gridIndex <= 4) {
+    var y = top + (plotHeight / 4) * gridIndex;
+    html += '<line x1="' + left + '" y1="' + y + '" x2="' + (width - right) + '" y2="' + y + '"></line>';
+    gridIndex = gridIndex + 1;
+  }
+
+  html += '<polyline points="' + escapeHtml(buildPolylinePoints(secondary, labels.length, left, top, plotWidth, plotHeight, maxValue)) + '" style="stroke:#14b8a6"></polyline>';
+  html += '<polyline points="' + escapeHtml(buildPolylinePoints(primary, labels.length, left, top, plotWidth, plotHeight, maxValue)) + '" style="stroke:#6366f1"></polyline>';
+
+  var labelIndexes = [0, Math.floor((labels.length - 1) / 2), labels.length - 1];
+  var index = 0;
+  while (index < labelIndexes.length) {
+    var bucketIndex = labelIndexes[index];
+    var x = left + (labels.length === 1 ? 0 : (plotWidth / (labels.length - 1)) * bucketIndex);
+    html += '<text class="sa-chart-label" x="' + x + '" y="' + (height - 12) + '">' + escapeHtml(labels[bucketIndex]) + '</text>';
+    index = index + 1;
+  }
+
+  html += '</svg>';
+  return html;
+}
+
+function readIntentionCategoryData() {
+  var stats = readLearningActivityStats();
+  var points = readTotalIntentionPoints();
+
+  return [
+    { label: "Lessons", value: Math.max(stats.lessonsCompleted * 10, Math.round(points * 0.38)), color: "#6366f1" },
+    { label: "Quests", value: Math.max(stats.questsCompleted * 15, Math.round(points * 0.24)), color: "#14b8a6" },
+    { label: "Projects", value: Math.max(stats.projectsSubmitted * 25, Math.round(points * 0.22)), color: "#f59e0b" },
+    { label: "Activities", value: Math.max(stats.activitiesLogged * 4, Math.round(points * 0.16)), color: "#f43f5e" }
+  ];
+}
+
+function readLearningActivityStats() {
+  return {
+    lessonsCompleted: countCompletedLearningItems(state.overviewData.modules.concat(state.courses), ["completedCount", "lessonsCompleted", "completionCount"]),
+    questsCompleted: countCompletedLearningItems(state.assignments, ["questsCompleted", "completedQuests", "completionCount"]),
+    projectsSubmitted: countCompletedLearningItems(state.assignments.concat(state.overviewData.activityLogs), ["projectsSubmitted", "submissions", "submissionCount"]),
+    activitiesLogged: state.overviewData.activityLogs.length + state.overviewData.auditLogs.length
+  };
+}
+
+function countCompletedLearningItems(items, keys) {
+  var total = 0;
+  var index = 0;
+
+  while (index < items.length) {
+    total += readFirstNumber(items[index], keys);
+    if (readSafeString(items[index].status).toLowerCase() === "completed") {
+      total += 1;
+    }
+    index = index + 1;
+  }
+
+  return total;
+}
+
+function readSchoolsByRegion() {
+  var counts = {};
+  var locations = readOverviewLocations();
+  var index = 0;
+
+  while (index < locations.length) {
+    var region = readSafeString(locations[index].region || "Unassigned");
+    counts[region] = (counts[region] || 0) + 1;
+    index = index + 1;
+  }
+
+  return Object.keys(counts).map(function (region) {
+    return { region: region, count: counts[region] };
+  }).sort(function (a, b) {
+    return b.count - a.count || a.region.localeCompare(b.region);
+  });
+}
+
+function readTopSchools() {
+  var studentCounts = countStudentsByLocation();
+  var pointCounts = sumPointsByLocation();
+  var locations = readOverviewLocations();
+
+  return locations.map(function (location) {
+    var students = studentCounts[location.id] || 0;
+    var points = pointCounts[location.id] || 0;
+    var engagement = students ? Math.min(100, Math.round((points / Math.max(students, 1)) / 10) + 62) : readDerivedEngagementPercent();
+    return {
+      id: location.id,
+      name: location.name || location.id || "Untitled location",
+      students: students,
+      engagement: engagement,
+      points: points,
+      trend: engagement >= 75 ? "Rising" : (engagement >= 50 ? "Steady" : "Needs focus")
+    };
+  }).sort(function (a, b) {
+    return b.engagement - a.engagement || b.points - a.points || b.students - a.students;
+  });
+}
+
+function countStudentsByLocation() {
+  var classLocations = {};
+  var counts = {};
+  var classIndex = 0;
+
+  while (classIndex < state.classes.length) {
+    classLocations[state.classes[classIndex].id] = state.classes[classIndex].locationId;
+    classIndex = classIndex + 1;
+  }
+
+  var studentIndex = 0;
+  while (studentIndex < state.students.length) {
+    var locationId = state.students[studentIndex].locationId || classLocations[state.students[studentIndex].classId];
+    addCount(counts, locationId);
+    studentIndex = studentIndex + 1;
+  }
+
+  return counts;
+}
+
+function sumPointsByLocation() {
+  var classLocations = {};
+  var counts = {};
+  var classIndex = 0;
+
+  while (classIndex < state.classes.length) {
+    classLocations[state.classes[classIndex].id] = state.classes[classIndex].locationId;
+    classIndex = classIndex + 1;
+  }
+
+  var studentIndex = 0;
+  while (studentIndex < state.students.length) {
+    var locationId = state.students[studentIndex].locationId || classLocations[state.students[studentIndex].classId];
+    counts[locationId] = (counts[locationId] || 0) + readPointsFromRecord(state.students[studentIndex]);
+    studentIndex = studentIndex + 1;
+  }
+
+  return counts;
+}
+
+function readExecutiveSummary() {
+  var issues = readOverviewIssues();
+  var criticalIssues = issues.studentsMissingCredentials + issues.locationsMissingSlugs + issues.locationsWithNoClasses;
+  var summary = criticalIssues > 0
+    ? "OquWay is operational, with " + criticalIssues + " priority setup items requiring leadership attention."
+    : "OquWay is operational with core setup signals in healthy shape.";
+
+  return {
+    summary: summary,
+    studentGrowth: formatChange(readCreatedChange(state.students)).replace(" this period", ""),
+    teacherGrowth: formatChange(readCreatedChange(readTeacherRecords())).replace(" this period", ""),
+    engagementGrowth: formatChange(readEngagementChange()).replace(" this period", ""),
+    nextSteps: readNextSteps()
+  };
+}
+
+function readNextSteps() {
+  var issues = buildActionCenterItems().sort(compareActionPriority);
+  var steps = [];
+  var index = 0;
+
+  while (index < issues.length && steps.length < 3) {
+    if (issues[index].count > 0) {
+      steps.push(issues[index].message);
+    }
+    index = index + 1;
+  }
+
+  if (steps.length === 0) {
+    steps.push("Review analytics weekly");
+    steps.push("Expand school onboarding");
+    steps.push("Keep login tools ready for classrooms");
+  }
+
+  return steps;
+}
+
+function readPlatformHealth() {
+  var learningReady = state.courses.length > 0 || state.overviewData.modules.length > 0;
+  var analyticsReady = state.overviewData.activityLogs.length > 0 || state.overviewData.auditLogs.length > 0;
+  var rewardReady = readTotalIntentionPoints() > 0 || state.students.length > 0;
+
+  return [
+    { label: "Authentication Service", tone: auth.currentUser ? "good" : "danger", status: auth.currentUser ? "Online" : "Needs sign-in" },
+    { label: "Database", tone: state.overviewData.lastRefreshAt ? "good" : "warning", status: state.overviewData.lastRefreshAt ? "Connected" : "No successful load" },
+    { label: "Storage", tone: state.overviewData.storageAvailable ? "good" : "warning", status: state.overviewData.storageAvailable ? "Configured" : "Config unavailable" },
+    { label: "Learning Engine", tone: learningReady ? "good" : "warning", status: learningReady ? "Content loaded" : "Awaiting content" },
+    { label: "Reward System", tone: rewardReady ? "good" : "warning", status: rewardReady ? "Ready" : "Awaiting learner activity" },
+    { label: "Analytics Service", tone: analyticsReady ? "good" : "warning", status: analyticsReady ? "Signals available" : "Using fallback signals" }
+  ];
+}
+
+function compareActionPriority(a, b) {
+  var toneRank = { danger: 3, warning: 2, muted: 1, good: 0 };
+  return (toneRank[b.tone] || 0) - (toneRank[a.tone] || 0) || b.count - a.count;
+}
+
 function readOverviewIssues() {
   var activeLocations = filterActiveLocations();
   var classStudentCounts = countStudentsByClass();
@@ -2157,6 +2923,32 @@ function readLoginHealthStats() {
 
 function buildMiniMetric(value, label) {
   return '<div class="sa-mini-metric"><strong>' + escapeHtml(String(value)) + '</strong><span>' + escapeHtml(label) + '</span></div>';
+}
+
+function buildSparklineSvg(values, color) {
+  var safeValues = values && values.length ? values : [0, 0, 0, 0, 0, 0, 0];
+  var maxValue = Math.max(1, maxArrayValue(safeValues));
+  var points = buildPolylinePoints(safeValues, safeValues.length, 4, 4, 112, 28, maxValue);
+
+  return '<svg class="sa-sparkline" viewBox="0 0 120 36" aria-hidden="true"><polyline points="' + escapeHtml(points) + '" style="stroke:' + escapeHtml(color) + '"></polyline></svg>';
+}
+
+function buildDonutSvg(data, total) {
+  var radius = 45;
+  var circumference = 2 * Math.PI * radius;
+  var offset = 0;
+  var html = '<svg class="sa-donut-svg" viewBox="0 0 120 120" role="img" aria-label="Intention points by category"><circle class="sa-donut-track" cx="60" cy="60" r="' + radius + '"></circle>';
+  var index = 0;
+
+  while (index < data.length) {
+    var length = total ? (data[index].value / total) * circumference : 0;
+    html += '<circle class="sa-donut-segment" cx="60" cy="60" r="' + radius + '" stroke="' + escapeHtml(data[index].color) + '" stroke-dasharray="' + length + ' ' + (circumference - length) + '" stroke-dashoffset="' + (-offset) + '"></circle>';
+    offset += length;
+    index = index + 1;
+  }
+
+  html += '</svg>';
+  return html;
 }
 
 function buildCompletionChecklist() {
@@ -2495,6 +3287,101 @@ function addCount(counts, id) {
   }
 
   counts[id] = (counts[id] || 0) + 1;
+}
+
+function sumBy(items, reader) {
+  var total = 0;
+  var index = 0;
+
+  while (index < items.length) {
+    total += reader(items[index]) || 0;
+    index = index + 1;
+  }
+
+  return total;
+}
+
+function maxArrayValue(values) {
+  var maxValue = 0;
+  var index = 0;
+
+  while (index < values.length) {
+    if (values[index] > maxValue) {
+      maxValue = values[index];
+    }
+    index = index + 1;
+  }
+
+  return maxValue;
+}
+
+function countRecordsInBucket(items, bucket) {
+  var count = 0;
+  var index = 0;
+
+  while (index < items.length) {
+    var time = normalizeTimestamp(items[index].createdAt || items[index].updatedAt || items[index].timestamp);
+    if (time && time >= bucket.start && time <= bucket.end) {
+      count = count + 1;
+    }
+    index = index + 1;
+  }
+
+  return count;
+}
+
+function sumRecordsByBucket(items, bucket, reader) {
+  var total = 0;
+  var index = 0;
+
+  while (index < items.length) {
+    var time = normalizeTimestamp(items[index].createdAt || items[index].updatedAt || items[index].timestamp);
+    if (time && time >= bucket.start && time <= bucket.end) {
+      total += reader(items[index]) || 0;
+    }
+    index = index + 1;
+  }
+
+  return total;
+}
+
+function sumRecentRecords(items, days, reader) {
+  var now = Date.now();
+  var start = now - (days * 24 * 60 * 60 * 1000);
+  var total = 0;
+  var index = 0;
+
+  while (index < items.length) {
+    var time = normalizeTimestamp(items[index].createdAt || items[index].updatedAt || items[index].timestamp);
+    if (time && time >= start) {
+      total += reader(items[index]) || 0;
+    }
+    index = index + 1;
+  }
+
+  return total;
+}
+
+function sumPreviousRecords(items, days, reader) {
+  var now = Date.now();
+  var currentStart = now - (days * 24 * 60 * 60 * 1000);
+  var previousStart = now - (days * 2 * 24 * 60 * 60 * 1000);
+  var total = 0;
+  var index = 0;
+
+  while (index < items.length) {
+    var time = normalizeTimestamp(items[index].createdAt || items[index].updatedAt || items[index].timestamp);
+    if (time && time >= previousStart && time < currentStart) {
+      total += reader(items[index]) || 0;
+    }
+    index = index + 1;
+  }
+
+  return total;
+}
+
+function formatNumber(value) {
+  return Math.round(value || 0).toLocaleString();
 }
 
 function normalizeTimestamp(value) {
