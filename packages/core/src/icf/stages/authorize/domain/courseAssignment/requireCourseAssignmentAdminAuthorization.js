@@ -13,11 +13,14 @@ export function requireCourseAssignmentAdminAuthorization(executionState) {
     };
   }
 
-  if (actor.role === "ROLE_SUPER_ADMIN"
-      || actor.role === "ROLE_PLATFORM_ADMIN"
-      || actor.role === "ROLE_ADMIN"
-      || actor.role === "ROLE_SCHOOL_ADMIN"
-      || actor.role === "ROLE_COURSE_CREATOR") {
+  var role = normalizeCourseAssignmentAdminRole(actor.role);
+
+  if (role === "superAdmin"
+      || role === "platformAdmin"
+      || role === "admin"
+      || role === "schoolAdmin"
+      || role === "courseCreator"
+      || role === "editor") {
     return { valid: true };
   }
 
@@ -30,4 +33,34 @@ export function requireCourseAssignmentAdminAuthorization(executionState) {
       }
     ]
   };
+}
+
+function normalizeCourseAssignmentAdminRole(role) {
+  var normalizedRole = typeof role === "string" ? role.replace(/[^a-z0-9]/gi, "").toLowerCase() : "";
+
+  if (normalizedRole === "rolesuperadmin" || normalizedRole === "superadmin") {
+    return "superAdmin";
+  }
+
+  if (normalizedRole === "roleplatformadmin" || normalizedRole === "platformadmin") {
+    return "platformAdmin";
+  }
+
+  if (normalizedRole === "roleadmin" || normalizedRole === "admin") {
+    return "admin";
+  }
+
+  if (normalizedRole === "roleschooladmin" || normalizedRole === "schooladmin") {
+    return "schoolAdmin";
+  }
+
+  if (normalizedRole === "rolecoursecreator" || normalizedRole === "coursecreator") {
+    return "courseCreator";
+  }
+
+  if (normalizedRole === "editor") {
+    return "editor";
+  }
+
+  return "";
 }

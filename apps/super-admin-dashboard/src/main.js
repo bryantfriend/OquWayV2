@@ -6,7 +6,7 @@ import { getIntentDefinition } from "../../../packages/core/src/icf/engine/inten
 import { runIntentPipeline } from "../../../packages/core/src/icf/engine/runIntentPipeline.js";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.6";
+var appVersion = "1.1.7";
 var state = {
   isLoading: true,
   isRefreshing: false,
@@ -62,7 +62,7 @@ var state = {
   resetFruitPassword: []
 };
 
-var tabs = ["overview", "locations", "users", "students", "classes", "assignments", "loginTools"];
+var tabs = ["overview", "locations", "users", "students", "teachers", "lessons", "assignments", "loginTools", "analytics", "reports", "settings", "auditLogs"];
 var userRoles = ["student", "teacher", "parent", "schoolAdmin", "regionalAdmin", "ministryUser", "platformAdmin", "superAdmin"];
 var userStatuses = ["active", "inactive", "suspended", "archived"];
 var fruits = ["apple", "watermelon", "banana", "strawberry", "pineapple", "mango", "kiwi", "orange", "cherry"];
@@ -296,8 +296,8 @@ async function refreshAllData() {
     classId: state.filters.classId,
     searchText: state.filters.searchText
   });
-  var coursesResult = await runAdminIntent("ListCoursesIntent", {});
-  var assignmentsResult = await runAdminIntent("ListCourseAssignmentsIntent", {
+  var coursesResult = await readCoursesForAdmin();
+  var assignmentsResult = await readCourseAssignmentsForAdmin({
     courseId: state.assignmentFilters.courseId,
     targetType: state.assignmentFilters.targetType,
     status: state.assignmentFilters.status
@@ -363,6 +363,53 @@ async function readOptionalCollection(collectionName) {
   }
 
   return result;
+}
+
+async function readCoursesForAdmin() {
+  var coursesResult = await readOptionalCollection("courses");
+
+  if (coursesResult.items.length > 0 || coursesResult.available === false) {
+    return buildOptionalDataResult("courses", coursesResult.items);
+  }
+
+  var catalogCoursesResult = await readOptionalCollection("catalogCourses");
+
+  return buildOptionalDataResult("courses", catalogCoursesResult.items);
+}
+
+async function readCourseAssignmentsForAdmin(filters) {
+  var assignmentsResult = await readOptionalCollection("courseAssignments");
+  var assignments = filterCourseAssignments(assignmentsResult.items, filters || {});
+
+  return buildOptionalDataResult("assignments", assignments);
+}
+
+function buildOptionalDataResult(key, items) {
+  var data = {};
+  data[key] = Array.isArray(items) ? items : [];
+
+  return {
+    emitted: {
+      success: true,
+      data: data,
+      errors: [],
+      warnings: []
+    }
+  };
+}
+
+function filterCourseAssignments(assignments, filters) {
+  var safeAssignments = Array.isArray(assignments) ? assignments : [];
+
+  return safeAssignments.filter(function (assignment) {
+    return (!filters.courseId || assignment.courseId === filters.courseId)
+      && (!filters.targetType || assignment.targetType === filters.targetType)
+      && (!filters.status || assignment.status === filters.status);
+  }).sort(function (a, b) {
+    return readSafeString(a.courseId).localeCompare(readSafeString(b.courseId))
+      || readSafeString(a.targetType).localeCompare(readSafeString(b.targetType))
+      || readSafeString(a.targetId).localeCompare(readSafeString(b.targetId));
+  });
 }
 
 function render() {
@@ -437,13 +484,13 @@ function buildTabs() {
         { label: "Schools / Locations", icon: "⌂", tab: "locations" },
         { label: "Users", icon: "◉", tab: "users" },
         { label: "Students", icon: "✦", tab: "students" },
-        { label: "Teachers", icon: "✎", action: "overview-open-teachers" }
+        { label: "Teachers", icon: "✎", tab: "teachers" }
       ]
     },
     {
       title: "Learning & Engagement",
       items: [
-        { label: "Lessons & Modules", icon: "▣", action: "overview-open-course-creator" },
+        { label: "Lessons & Modules", icon: "▣", tab: "lessons" },
         { label: "Assignments", icon: "☑", tab: "assignments" },
         { label: "Login Tools", icon: "⚿", tab: "loginTools" }
       ]
@@ -451,16 +498,15 @@ function buildTabs() {
     {
       title: "Analytics & Reports",
       items: [
-        { label: "Analytics", icon: "⌁", tab: "overview" },
-        { label: "Reports", icon: "◫", action: "overview-export-report" },
-        { label: "Export Data", icon: "⇩", action: "overview-export-report" }
+        { label: "Analytics", icon: "⌁", tab: "analytics" },
+        { label: "Reports", icon: "◫", tab: "reports" }
       ]
     },
     {
       title: "System Management",
       items: [
-        { label: "Settings", icon: "⚙", action: "overview-coming-soon", id: "Settings" },
-        { label: "Audit Logs", icon: "◷", action: "overview-coming-soon", id: "Audit Logs" }
+        { label: "Settings", icon: "⚙", tab: "settings" },
+        { label: "Audit Logs", icon: "◷", tab: "auditLogs" }
       ]
     }
   ];
@@ -541,7 +587,7 @@ function buildMessage() {
 
 function buildActiveTab() {
   if (!canOpenTab(state.activeTab)) {
-    return buildAssignmentsTab();
+    return buildOverviewTab();
   }
 
   if (state.activeTab === "locations") {
@@ -560,12 +606,36 @@ function buildActiveTab() {
     return buildStudentsTab();
   }
 
+  if (state.activeTab === "teachers") {
+    return buildTeachersTab();
+  }
+
+  if (state.activeTab === "lessons") {
+    return buildLessonsTab();
+  }
+
   if (state.activeTab === "assignments") {
     return buildAssignmentsTab();
   }
 
   if (state.activeTab === "loginTools") {
     return buildLoginToolsTab();
+  }
+
+  if (state.activeTab === "analytics") {
+    return buildAnalyticsTab();
+  }
+
+  if (state.activeTab === "reports") {
+    return buildReportsTab();
+  }
+
+  if (state.activeTab === "settings") {
+    return buildSettingsTab();
+  }
+
+  if (state.activeTab === "auditLogs") {
+    return buildAuditLogsTab();
   }
 
   return buildOverviewTab();
@@ -595,6 +665,97 @@ function buildOverviewTab() {
 
 function buildMetricCard(title, value, note) {
   return '<article class="sa-card sa-metric"><span>' + escapeHtml(title) + '</span><strong>' + escapeHtml(String(value)) + '</strong><p>' + escapeHtml(note) + '</p></article>';
+}
+
+function buildTeachersTab() {
+  var teachers = readUsersByRole("teacher");
+  var html = '<section class="sa-stack sa-user-page" aria-busy="' + (state.isRefreshing ? "true" : "false") + '">'
+    + '<div class="sa-page-head"><div><p class="sa-eyebrow">Faculty Operations</p><h2>Teachers</h2><p>Teacher profiles, class coverage, and location assignments.</p></div><button type="button" class="sa-btn" data-action="overview-create-teacher"' + disabled(isBusy()) + '>Create Teacher</button></div>'
+    + '<section class="sa-grid sa-grid-4">'
+    + buildMetricCard("Total Teachers", teachers.length, "Profiles with teacher role")
+    + buildMetricCard("With Classes", countItems(teachers, function (teacher) { return teacher.classIds.length > 0; }), "Assigned class IDs")
+    + buildMetricCard("Active Teachers", countItems(teachers, function (teacher) { return teacher.status === "active"; }), "Ready for classroom use")
+    + buildMetricCard("Need Review", countItems(teachers, function (teacher) { return teacher.status !== "active" || teacher.classIds.length === 0; }), "Missing active setup")
+    + '</section><article class="sa-card"><div class="sa-section-title"><div><h2>Teacher Directory</h2><p>Open a teacher from Users to manage details, roles, and access.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="overview-open-teachers">Open Users Filter</button></div>'
+    + buildRoleUserRows(teachers, "No teacher profiles found yet.")
+    + '</article></section>';
+
+  return html;
+}
+
+function buildLessonsTab() {
+  return '<section class="sa-stack">'
+    + '<div class="sa-page-head"><div><p class="sa-eyebrow">Learning Library</p><h2>Lessons & Modules</h2><p>Course inventory, module signals, and learning readiness for the ecosystem.</p></div><button type="button" class="sa-btn" data-action="overview-open-course-creator">Open Course Creator</button></div>'
+    + renderLearningActivityOverview()
+    + '<section class="sa-overview-grid sa-overview-grid-2">' + renderGrowthChart(state.overviewChartRange) + renderRecentlyCreated() + '</section>'
+    + '<article class="sa-card"><div class="sa-section-title"><div><h2>Course Inventory</h2><p>Loaded from available course collections.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data"' + disabled(isBusy()) + '>' + buildButtonContent("Refresh", "refresh-data") + '</button></div>' + buildCourseInventoryRows() + '</article>'
+    + '</section>';
+}
+
+function buildAnalyticsTab() {
+  return '<section class="sa-stack">'
+    + '<div class="sa-page-head"><div><p class="sa-eyebrow">Analytics</p><h2>Ecosystem Analytics</h2><p>Engagement, intention points, growth, and regional distribution.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data"' + disabled(isBusy()) + '>' + buildButtonContent("Refresh", "refresh-data") + '</button></div>'
+    + '<section class="sa-overview-grid sa-analytics-row">' + renderEngagementChart() + renderCategoryDonut() + renderSchoolsByRegion() + '</section>'
+    + '<section class="sa-overview-grid sa-overview-grid-2">' + renderGrowthChart(state.overviewChartRange) + renderTopSchools() + '</section>'
+    + '</section>';
+}
+
+function buildReportsTab() {
+  return '<section class="sa-stack">'
+    + '<div class="sa-page-head"><div><p class="sa-eyebrow">Reports</p><h2>Executive Reports</h2><p>Generate exports from the currently loaded dashboard data.</p></div><button type="button" class="sa-btn" data-action="overview-export-report"' + disabled(isBusy()) + '>' + buildButtonContent("Export Report", "overview-export-report") + '</button></div>'
+    + renderExecutiveSummaryStrip()
+    + '<section class="sa-overview-grid sa-overview-grid-2">' + renderTopSchools() + renderRecentActivity() + '</section>'
+    + renderCompletionScore()
+    + '</section>';
+}
+
+function buildSettingsTab() {
+  return '<section class="sa-stack">'
+    + '<div class="sa-page-head"><div><p class="sa-eyebrow">System Management</p><h2>Settings</h2><p>Platform configuration snapshot and service readiness.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data"' + disabled(isBusy()) + '>' + buildButtonContent("Refresh", "refresh-data") + '</button></div>'
+    + '<section class="sa-overview-grid sa-overview-grid-2">' + renderHealthCards() + renderCompletionScore() + '</section>'
+    + renderRoadmap()
+    + '</section>';
+}
+
+function buildAuditLogsTab() {
+  return '<section class="sa-stack">'
+    + '<div class="sa-page-head"><div><p class="sa-eyebrow">Audit Logs</p><h2>Operational Activity</h2><p>Recent records and activity logs when the Firestore collections are available.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data"' + disabled(isBusy()) + '>' + buildButtonContent("Refresh", "refresh-data") + '</button></div>'
+    + '<section class="sa-overview-grid sa-overview-grid-2">' + renderRecentActivity() + renderRecentlyCreated() + '</section>'
+    + '</section>';
+}
+
+function buildRoleUserRows(users, emptyMessage) {
+  var html = '<div class="sa-user-list">';
+  var index = 0;
+
+  if (users.length === 0) {
+    return '<div class="sa-empty"><strong>' + escapeHtml(emptyMessage) + '</strong><span>Create profiles or adjust roles from Users.</span></div>';
+  }
+
+  while (index < users.length) {
+    html += buildUserCard(users[index]);
+    index = index + 1;
+  }
+
+  html += '</div>';
+  return html;
+}
+
+function buildCourseInventoryRows() {
+  var html = '<div class="sa-table">';
+  var index = 0;
+
+  if (state.courses.length === 0) {
+    return '<div class="sa-empty"><strong>No courses loaded.</strong><span>Courses will appear here when the course collections are available.</span></div>';
+  }
+
+  while (index < state.courses.length && index < 12) {
+    html += '<article class="sa-assignment-row"><div><strong>' + escapeHtml(readCourseTitle(state.courses[index])) + '</strong><small>Course ID: ' + escapeHtml(state.courses[index].id || "") + '</small></div><div><span class="sa-pill">' + escapeHtml(state.courses[index].status || "draft") + '</span><small>' + escapeHtml(state.courses[index].language || state.courses[index].level || "Learning item") + '</small></div><div class="sa-row-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="overview-open-course" data-id="' + escapeHtml(state.courses[index].id || "") + '">Open</button></div></article>';
+    index = index + 1;
+  }
+
+  html += '</div>';
+  return html;
 }
 
 function buildOverviewHeader() {
@@ -3939,6 +4100,25 @@ function readFilteredUsers() {
     var matchesStatus = !state.userFilters.status || user.status === state.userFilters.status;
 
     if (matchesSearch && matchesRole && matchesLocation && matchesStatus) {
+      users.push(user);
+    }
+
+    index = index + 1;
+  }
+
+  return users.sort(function (a, b) {
+    return (a.displayName || a.email || a.id).localeCompare(b.displayName || b.email || b.id);
+  });
+}
+
+function readUsersByRole(role) {
+  var users = [];
+  var index = 0;
+
+  while (index < state.users.length) {
+    var user = getSafeUser(state.users[index]);
+
+    if (user.roles.indexOf(role) !== -1) {
       users.push(user);
     }
 
