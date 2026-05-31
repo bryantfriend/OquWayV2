@@ -7,7 +7,7 @@ import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/r
 import { roleFilterCards, userRoles, userStatuses } from "../shared/constants.js";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.11";
+var appVersion = "1.1.12";
 var state = {
   isLoading: true,
   isRefreshing: false,
@@ -383,7 +383,9 @@ async function readCourseAssignmentsForAdmin(filters) {
     return assignmentsResult;
   }
 
-  return buildOptionalDataResult("assignments", []);
+  var fallbackResult = await readOptionalCollection("courseAssignments");
+
+  return buildOptionalDataResult("assignments", filterCourseAssignments(fallbackResult.items, filters || {}));
 }
 
 function buildOptionalDataResult(key, items) {
