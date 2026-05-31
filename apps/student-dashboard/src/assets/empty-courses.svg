@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="320" viewBox="0 0 520 320" role="img" aria-label="No courses assigned illustration">
+  <defs>
+    <linearGradient id="sky" x1="58" y1="18" x2="470" y2="296" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EFF6FF"/>
+      <stop offset="0.56" stop-color="#F5F3FF"/>
+      <stop offset="1" stop-color="#FFF7ED"/>
+    </linearGradient>
+  </defs>
+  <rect width="520" height="320" rx="36" fill="url(#sky)"/>
+  <circle cx="90" cy="78" r="34" fill="#FDE68A"/>
+  <circle cx="430" cy="76" r="42" fill="#C4B5FD" opacity="0.72"/>
+  <path d="M70 244c39-41 86-54 139-38 45 14 92 8 139-19 45-26 82-13 112 39v54H70v-36Z" fill="#FFFFFF" opacity="0.72"/>
+  <rect x="164" y="82" width="194" height="156" rx="28" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="5"/>
+  <path d="M198 130h126M198 158h88M198 186h54" stroke="#CBD5E1" stroke-width="11" stroke-linecap="round"/>
+  <circle cx="332" cy="202" r="46" fill="#ECFDF5" stroke="#86EFAC" stroke-width="5"/>
+  <path d="M314 202h36M332 184v36" stroke="#059669" stroke-width="10" stroke-linecap="round"/>
+  <g transform="translate(90 166)">
+    <rect x="0" y="48" width="78" height="64" rx="20" fill="#FFFFFF" stroke="#FED7AA" stroke-width="4"/>
+    <circle cx="39" cy="34" r="27" fill="#F97316"/>
+    <path d="M28 34h22M39 23v22" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(370 172)">
+    <rect x="0" y="38" width="70" height="74" rx="20" fill="#FFFFFF" stroke="#DDD6FE" stroke-width="4"/>
+    <path d="M20 72h30M20 92h18" stroke="#7C3AED" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="34" cy="24" r="23" fill="#2563EB"/>
+    <path d="M25 24h18" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+  </g>
+</svg>

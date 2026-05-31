@@ -61,6 +61,9 @@ export { processUpdatePracticeModeStep } from "./domain/moduleEditor/processUpda
 export { processUpdateStepField } from "./domain/moduleEditor/processUpdateStepField.js";
 export { processUploadStepMedia } from "./domain/moduleEditor/processUploadStepMedia.js";
 export { processLoadStudentCourse } from "./domain/student/processLoadStudentCourse.js";
+export { processLoadStudentDashboard } from "./domain/student/processLoadStudentDashboard.js";
+export { processContinueLearning } from "./domain/student/processContinueLearning.js";
+export { processClaimDailyBonus } from "./domain/student/processClaimDailyBonus.js";
 export { processStartPracticeMode } from "./domain/student/processStartPracticeMode.js";
 export { processCompleteStep } from "./domain/student/processCompleteStep.js";
 export { processCompletePracticeMode } from "./domain/student/processCompletePracticeMode.js";

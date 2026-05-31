@@ -65,14 +65,19 @@ export const studentDashboardService = {
         return null;
       }
 
-      var result = await runStudentIntent("LoadStudentCoursesIntent", {});
+      var result = await runStudentIntent("LoadStudentDashboardIntent", {});
 
       if (result && result.emitted && result.emitted.success) {
+        var courses = result.emitted.data.courses || [];
         studentDashboardStore.setState({
           isLoading: false,
           student: result.emitted.data.student,
-          courses: result.emitted.data.courses || [],
-          selectedCourseId: readFirstCourseId(result.emitted.data.courses || []),
+          courses: courses,
+          continueLearning: result.emitted.data.continueLearning || null,
+          dailyBonus: result.emitted.data.dailyBonus || null,
+          intentionPoints: result.emitted.data.intentionPoints || createEmptyIntentionPoints(),
+          progressSummary: result.emitted.data.progressSummary || null,
+          selectedCourseId: readFirstCourseId(courses),
           actorIsPreview: auth.currentUser ? false : true
         });
         return result.emitted.data;
@@ -84,6 +89,52 @@ export const studentDashboardService = {
         isLoading: false,
         error: error.message,
         actorIsPreview: auth.currentUser ? false : true
+      });
+      return null;
+    }
+  },
+
+  continueLearning: async function (courses) {
+    try {
+      var result = await runStudentIntent("ContinueLearningIntent", {
+        courses: summarizeCoursesForContinue(courses || [])
+      });
+
+      if (result && result.emitted && result.emitted.success) {
+        return result.emitted.data.continueLearning;
+      }
+
+      throw new Error(readIntentErrorMessage(result));
+    } catch (error) {
+      studentDashboardStore.setState({
+        error: error.message
+      });
+      return null;
+    }
+  },
+
+  claimDailyBonus: async function () {
+    studentDashboardStore.setState({
+      statusMessage: "Claiming daily bonus...",
+      error: null
+    });
+
+    try {
+      var result = await runStudentIntent("ClaimDailyBonusIntent", {});
+
+      if (result && result.emitted && result.emitted.success) {
+        studentDashboardStore.setState({
+          dailyBonus: result.emitted.data.dailyBonus,
+          statusMessage: "Daily bonus claimed."
+        });
+        return result.emitted.data.dailyBonus;
+      }
+
+      throw new Error(readIntentErrorMessage(result));
+    } catch (error) {
+      studentDashboardStore.setState({
+        error: error.message,
+        statusMessage: ""
       });
       return null;
     }
@@ -375,6 +426,173 @@ function readFirstCourseId(courses) {
   }
 
   return null;
+}
+
+function createEmptyIntentionPoints() {
+  return {
+    cognitive: 0,
+    physical: 0,
+    creative: 0,
+    social: 0
+  };
+}
+
+function summarizeCoursesForContinue(courses) {
+  var summaries = [];
+  var courseIndex = 0;
+
+  while (courseIndex < courses.length) {
+    summaries.push(summarizeCourseForContinue(courses[courseIndex]));
+    courseIndex = courseIndex + 1;
+  }
+
+  return summaries;
+}
+
+function summarizeCourseForContinue(course) {
+  var firstModule = course && Array.isArray(course.modules) && course.modules.length > 0 ? course.modules[0] : null;
+  var firstSession = firstModule && Array.isArray(firstModule.sessions) && firstModule.sessions.length > 0 ? firstModule.sessions[0] : null;
+
+  return {
+    courseId: course && course.id ? course.id : "",
+    moduleId: firstModule && firstModule.id ? firstModule.id : "",
+    sessionId: firstSession && firstSession.id ? firstSession.id : "",
+    courseTitle: readLocalizedText(course ? course.title : "", "Untitled Course"),
+    moduleTitle: readLocalizedText(firstModule ? firstModule.title : "", "First module"),
+    progressPercent: readCourseProgressPercent(course),
+    lastOpenedAt: readCourseLastOpenedAt(course)
+  };
+}
+
+function readCourseProgressPercent(course) {
+  var modules = course && Array.isArray(course.modules) ? course.modules : [];
+  var total = 0;
+  var complete = 0;
+  var moduleIndex = 0;
+
+  while (moduleIndex < modules.length) {
+    total = total + countModuleSteps(modules[moduleIndex]);
+    complete = complete + countModuleCompletedSteps(modules[moduleIndex]);
+    moduleIndex = moduleIndex + 1;
+  }
+
+  return total > 0 ? Math.round((complete / total) * 100) : 0;
+}
+
+function countModuleSteps(module) {
+  var sessions = module && Array.isArray(module.sessions) ? module.sessions : [];
+  var total = 0;
+  var sessionIndex = 0;
+
+  while (sessionIndex < sessions.length) {
+    total = total + countSessionSteps(sessions[sessionIndex]);
+    sessionIndex = sessionIndex + 1;
+  }
+
+  return total;
+}
+
+function countModuleCompletedSteps(module) {
+  var sessions = module && Array.isArray(module.sessions) ? module.sessions : [];
+  var total = 0;
+  var sessionIndex = 0;
+
+  while (sessionIndex < sessions.length) {
+    total = total + countSessionCompletedSteps(sessions[sessionIndex]);
+    sessionIndex = sessionIndex + 1;
+  }
+
+  return total;
+}
+
+function countSessionSteps(session) {
+  var practiceModes = session && session.practiceModes && typeof session.practiceModes === "object" ? session.practiceModes : {};
+  var keys = Object.keys(practiceModes);
+  var total = 0;
+  var keyIndex = 0;
+
+  while (keyIndex < keys.length) {
+    total = total + (Array.isArray(practiceModes[keys[keyIndex]].steps) ? practiceModes[keys[keyIndex]].steps.length : 0);
+    keyIndex = keyIndex + 1;
+  }
+
+  return total;
+}
+
+function countSessionCompletedSteps(session) {
+  var practiceModes = session && session.progress && session.progress.practiceModes ? session.progress.practiceModes : {};
+  var keys = Object.keys(practiceModes);
+  var completed = [];
+  var keyIndex = 0;
+
+  while (keyIndex < keys.length) {
+    if (Array.isArray(practiceModes[keys[keyIndex]].completedStepIds)) {
+      completed = completed.concat(practiceModes[keys[keyIndex]].completedStepIds);
+    }
+    keyIndex = keyIndex + 1;
+  }
+
+  return completed.filter(function (stepId, index, list) {
+    return stepId && list.indexOf(stepId) === index;
+  }).length;
+}
+
+function readCourseLastOpenedAt(course) {
+  var modules = course && Array.isArray(course.modules) ? course.modules : [];
+  var lastOpenedAt = 0;
+  var moduleIndex = 0;
+
+  while (moduleIndex < modules.length) {
+    lastOpenedAt = Math.max(lastOpenedAt, readModuleLastOpenedAt(modules[moduleIndex]));
+    moduleIndex = moduleIndex + 1;
+  }
+
+  return lastOpenedAt;
+}
+
+function readModuleLastOpenedAt(module) {
+  var sessions = module && Array.isArray(module.sessions) ? module.sessions : [];
+  var lastOpenedAt = 0;
+  var sessionIndex = 0;
+
+  while (sessionIndex < sessions.length) {
+    lastOpenedAt = Math.max(lastOpenedAt, readTimestampMillis(sessions[sessionIndex].progress ? sessions[sessionIndex].progress.updatedAt : null));
+    sessionIndex = sessionIndex + 1;
+  }
+
+  return lastOpenedAt;
+}
+
+function readTimestampMillis(value) {
+  if (!value) {
+    return 0;
+  }
+
+  if (typeof value === "number") {
+    return value;
+  }
+
+  if (typeof value.toMillis === "function") {
+    return value.toMillis();
+  }
+
+  if (value.seconds) {
+    return value.seconds * 1000;
+  }
+
+  return 0;
+}
+
+function readLocalizedText(value, fallbackValue) {
+  if (typeof value === "string" && value.length > 0) {
+    return value;
+  }
+
+  if (value && typeof value.en === "string" && value.en.length > 0) {
+    return value.en;
+  }
+
+  return fallbackValue;
 }
 
 function readIntentErrorMessage(result) {

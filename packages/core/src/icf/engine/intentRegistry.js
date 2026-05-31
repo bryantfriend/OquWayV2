@@ -113,9 +113,12 @@ const registry = {
 
   // Student Dashboard / Player
   LoadStudentCourseIntent: IntentExports.LoadStudentCourseIntent,
+  LoadStudentDashboardIntent: IntentExports.LoadStudentDashboardIntent,
   LoadStudentCoursesIntent: IntentExports.LoadStudentCoursesIntent,
   LoadStudentCourseStructureIntent: IntentExports.LoadStudentCourseStructureIntent,
   LoadStudentProgressIntent: IntentExports.LoadStudentProgressIntent,
+  ClaimDailyBonusIntent: IntentExports.ClaimDailyBonusIntent,
+  ContinueLearningIntent: IntentExports.ContinueLearningIntent,
   StartPracticeModeIntent: IntentExports.StartPracticeModeIntent,
   CompleteStepIntent: IntentExports.CompleteStepIntent,
   CompleteStudentStepIntent: IntentExports.CompleteStudentStepIntent,

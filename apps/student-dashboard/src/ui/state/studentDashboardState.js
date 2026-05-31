@@ -48,6 +48,15 @@ function createInitialState() {
     statusMessage: "",
     student: null,
     courses: [],
+    continueLearning: null,
+    dailyBonus: null,
+    intentionPoints: {
+      cognitive: 0,
+      physical: 0,
+      creative: 0,
+      social: 0
+    },
+    progressSummary: null,
     selectedCourseId: null,
     selectedModuleId: null,
     selectedSessionId: null,

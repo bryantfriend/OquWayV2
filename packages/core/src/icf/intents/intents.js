@@ -127,9 +127,12 @@ export { SaveModuleDraftIntent } from "./moduleEditor/SaveModuleDraftIntent.js";
 // Student Dashboard / Player
 // ----------------------
 export { LoadStudentCourseIntent } from "./student/LoadStudentCourseIntent.js";
+export { LoadStudentDashboardIntent } from "./student/LoadStudentDashboardIntent.js";
 export { LoadStudentCoursesIntent } from "./student/LoadStudentCoursesIntent.js";
 export { LoadStudentCourseStructureIntent } from "./student/LoadStudentCourseStructureIntent.js";
 export { LoadStudentProgressIntent } from "./student/LoadStudentProgressIntent.js";
+export { ClaimDailyBonusIntent } from "./student/ClaimDailyBonusIntent.js";
+export { ContinueLearningIntent } from "./student/ContinueLearningIntent.js";
 export { StartPracticeModeIntent } from "./student/StartPracticeModeIntent.js";
 export { CompleteStepIntent } from "./student/CompleteStepIntent.js";
 export { CompleteStudentStepIntent } from "./student/CompleteStudentStepIntent.js";

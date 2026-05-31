@@ -162,6 +162,9 @@ function handleAppClick(event) {
   var playerCompleteButton = event.target.closest(".oqu-player-complete-btn");
   var reloadButton = event.target.closest(".student-reload-btn");
   var switchStudentButton = event.target.closest(".student-switch-student-btn");
+  var continueButton = event.target.closest(".student-continue-learning-btn");
+  var courseActionButton = event.target.closest(".student-course-open-btn");
+  var bonusButton = event.target.closest(".student-bonus-claim-btn");
 
   if (switchStudentButton) {
     resetStudentLogin();
@@ -170,6 +173,21 @@ function handleAppClick(event) {
 
   if (reloadButton) {
     studentDashboardService.loadDashboard();
+    return;
+  }
+
+  if (bonusButton) {
+    studentDashboardService.claimDailyBonus();
+    return;
+  }
+
+  if (continueButton) {
+    continueLearning();
+    return;
+  }
+
+  if (courseActionButton) {
+    selectCourse(courseActionButton.getAttribute("data-course-id"));
     return;
   }
 
@@ -228,6 +246,23 @@ function selectCourse(courseId) {
     selectedCourseId: courseId,
     selectedModuleId: null,
     selectedSessionId: null,
+    selectedPracticeModeKey: "beforeClass",
+    statusMessage: ""
+  });
+}
+
+async function continueLearning() {
+  var state = studentDashboardStore.getState();
+  var recommendation = await studentDashboardService.continueLearning(state.courses || []);
+
+  if (!recommendation || !recommendation.courseId) {
+    return;
+  }
+
+  studentDashboardStore.setState({
+    selectedCourseId: recommendation.courseId,
+    selectedModuleId: recommendation.moduleId || null,
+    selectedSessionId: recommendation.sessionId || null,
     selectedPracticeModeKey: "beforeClass",
     statusMessage: ""
   });
@@ -360,18 +395,20 @@ function buildDashboardView(state) {
   var courses = state.courses || [];
   var selectedCourse = readSelectedCourse(state);
   var studentName = readStudentName(state.student);
-  var overallProgress = readOverallProgressPercent(courses);
+  var overallProgress = state.progressSummary && typeof state.progressSummary.overallProgressPercent === "number"
+    ? state.progressSummary.overallProgressPercent
+    : readOverallProgressPercent(courses);
   var html = "";
 
-  html += '<section class="student-hero">';
-  html += '<div>';
+  html += '<section class="student-hero student-hero-v2">';
+  html += '<div class="student-avatar-wrap">' + buildStudentAvatar(state.student, studentName) + '</div>';
+  html += '<div class="student-hero-copy">';
   html += '<p class="student-eyebrow">Student Dashboard</p>';
-  html += '<h1>' + escapeHtml(studentName) + '</h1>';
-  html += '<p>Choose a course, open a session, and practice one mode at a time.</p>';
+  html += '<h1>Welcome back, ' + escapeHtml(studentName) + '</h1>';
+  html += '<p>' + escapeHtml(readMotivationalMessage(overallProgress)) + '</p>';
+  html += '<div class="student-profile-meta"><span>' + escapeHtml(readStudentClassLabel(state.student)) + '</span><span>' + escapeHtml(readStudentLocationLabel(state.student)) + '</span></div>';
   html += '</div>';
-  html += '<div class="student-hero-progress">' + overallProgress + '% complete</div>';
-  html += '<button type="button" class="student-switch-student-btn">Switch Student</button>';
-  html += '<button type="button" class="student-reload-btn">Refresh</button>';
+  html += '<div class="student-hero-actions"><div class="student-hero-progress">' + overallProgress + '% complete</div><button type="button" class="student-reload-btn">Refresh</button><button type="button" class="student-switch-student-btn">Switch Student</button></div>';
   html += '</section>';
 
   if (state.actorIsPreview) {
@@ -388,22 +425,31 @@ function buildDashboardView(state) {
 
   if (courses.length === 0) {
     html += '<section class="student-empty">';
-    html += '<div class="student-empty-icon">📚</div>';
+    html += '<img class="student-empty-illustration" src="./src/assets/empty-courses.svg" alt="">';
     html += '<h2>No assigned courses yet</h2>';
-    html += '<p>No courses assigned yet. Ask your teacher to assign a course.</p>';
+    html += '<p>No courses assigned yet. Ask your teacher to assign your first course.</p>';
+    html += buildDailyBonusCard(state.dailyBonus, true);
+    html += buildIntentionPoints(state.intentionPoints);
     html += '</section>';
     return html;
   }
 
-  html += '<div class="student-dashboard-grid">';
-  html += '<aside class="student-panel">';
-  html += '<h2>Assigned Courses</h2>';
+  html += '<section class="student-dashboard-v2-grid">';
+  html += '<div class="student-dashboard-main-stack">';
+  html += buildContinueLearningCard(state.continueLearning, selectedCourse);
+  html += '<section class="student-panel student-my-courses-panel"><div class="student-section-head"><div><p class="student-eyebrow">My Courses</p><h2>Assigned Courses</h2></div><span>' + courses.length + ' course' + (courses.length === 1 ? "" : "s") + '</span></div>';
   html += buildCourseCards(courses, state.selectedCourseId);
-  html += '</aside>';
+  html += '</section>';
   html += '<section class="student-panel student-main-panel">';
   html += buildCourseDetail(selectedCourse, state);
   html += '</section>';
   html += '</div>';
+  html += '<aside class="student-dashboard-side-stack">';
+  html += buildProgressCard(state.progressSummary, overallProgress);
+  html += buildDailyBonusCard(state.dailyBonus, false);
+  html += buildIntentionPoints(state.intentionPoints);
+  html += '</aside>';
+  html += '</section>';
 
   return html;
 }
@@ -412,21 +458,215 @@ function buildCourseCards(courses, selectedCourseId) {
   var html = "";
   var courseIndex = 0;
 
+  html += '<div class="student-course-grid">';
+
   while (courseIndex < courses.length) {
     var course = courses[courseIndex];
     var activeClass = selectedCourseId === course.id ? " student-course-card-active" : "";
     var progressPercent = readCourseProgressPercent(course);
     var moduleCount = readCourseModuleCount(course);
-    html += '<button type="button" class="student-course-card' + activeClass + '" data-course-id="' + escapeHtml(course.id) + '">';
-    html += '<span class="student-course-icon">▣</span>';
-    html += '<span class="student-course-card-copy"><strong>' + escapeHtml(readLocalizedText(course.title, "Untitled Course")) + '</strong><small>' + moduleCount + ' module' + (moduleCount === 1 ? "" : "s") + '</small></span>';
-    html += '<span class="student-course-card-action">' + (progressPercent > 0 ? "Continue" : "Start") + '</span>';
-    html += '<small class="student-course-progress">' + progressPercent + '% complete</small>';
-    html += '</button>';
+    var title = readLocalizedText(course.title, "Untitled Course");
+    html += '<article class="student-course-card' + activeClass + '" data-course-id="' + escapeHtml(course.id) + '">';
+    html += '<div class="student-course-art"><img src="./src/assets/course-illustration.svg" alt=""></div>';
+    html += '<div class="student-course-card-copy"><span class="student-course-status">' + escapeHtml(readCourseStatusLabel(progressPercent)) + '</span><strong>' + escapeHtml(title) + '</strong><p>' + escapeHtml(readLocalizedText(course.description, "Practice activities are ready when your teacher assigns sessions.")) + '</p></div>';
+    html += '<div class="student-course-meta"><span>' + moduleCount + ' module' + (moduleCount === 1 ? "" : "s") + '</span><span>' + progressPercent + '% complete</span></div>';
+    html += '<div class="student-progress-bar"><span style="width:' + progressPercent + '%"></span></div>';
+    html += '<button type="button" class="student-course-open-btn" data-course-id="' + escapeHtml(course.id) + '">' + (progressPercent > 0 ? "Continue" : "Start") + '</button>';
+    html += '</article>';
     courseIndex = courseIndex + 1;
   }
 
+  html += '</div>';
   return html;
+}
+
+function buildContinueLearningCard(continueLearning, selectedCourse) {
+  var recommendation = continueLearning || {};
+  var courseTitle = recommendation.courseTitle || (selectedCourse ? readLocalizedText(selectedCourse.title, "Untitled Course") : "Start your first course");
+  var moduleTitle = recommendation.moduleTitle || "First module";
+  var progressPercent = typeof recommendation.progressPercent === "number" ? recommendation.progressPercent : 0;
+  var actionLabel = recommendation.actionLabel || (progressPercent > 0 ? "Continue" : "Start Learning");
+
+  return '<section class="student-continue-card">'
+    + '<div class="student-continue-copy"><p class="student-eyebrow">Continue Learning</p><h2>' + escapeHtml(courseTitle) + '</h2><p>' + escapeHtml(moduleTitle) + '</p><small>' + escapeHtml(readLastOpenedLabel(recommendation.lastOpenedAt)) + '</small><div class="student-progress-bar"><span style="width:' + progressPercent + '%"></span></div></div>'
+    + '<div class="student-continue-action"><strong>' + progressPercent + '%</strong><button type="button" class="student-continue-learning-btn">' + escapeHtml(actionLabel) + '</button></div>'
+    + '</section>';
+}
+
+function buildProgressCard(progressSummary, overallProgress) {
+  var summary = progressSummary || {};
+
+  return '<section class="student-panel student-progress-card"><p class="student-eyebrow">Progress</p><h2>' + overallProgress + '%</h2><p>Overall learning progress</p><div class="student-progress-ring" style="--progress:' + overallProgress + '%"><span>' + overallProgress + '%</span></div><div class="student-progress-mini"><span>' + (summary.inProgressCourses || 0) + ' in progress</span><span>' + (summary.completedCourses || 0) + ' completed</span></div></section>';
+}
+
+function buildDailyBonusCard(dailyBonus, compact) {
+  var bonus = dailyBonus || {};
+  var available = bonus.available !== false && bonus.claimed !== true;
+  var cardClass = compact ? " student-daily-bonus-compact" : "";
+
+  return '<section class="student-panel student-daily-bonus' + cardClass + '"><img src="./src/assets/daily-bonus.svg" alt=""><div><p class="student-eyebrow">Daily Bonus</p><h2>' + (available ? "Ready to claim" : "Claimed today") + '</h2><p>' + escapeHtml(bonus.countdownLabel || (available ? "Ready now" : "Available again tomorrow")) + '</p><strong>+' + (bonus.rewardXp || 10) + ' XP</strong></div><button type="button" class="student-bonus-claim-btn"' + disabled(!available) + '>' + (available ? "Claim" : "Claimed") + '</button></section>';
+}
+
+function buildIntentionPoints(points) {
+  var safePoints = points || {};
+
+  return '<section class="student-panel student-points-card"><p class="student-eyebrow">Intention Points</p><h2>Rewards</h2><div class="student-points-grid">'
+    + buildPointBalance("Blue", "Cognitive", safePoints.cognitive || 0, "blue")
+    + buildPointBalance("Green", "Physical", safePoints.physical || 0, "green")
+    + buildPointBalance("Orange", "Creative", safePoints.creative || 0, "orange")
+    + buildPointBalance("Purple", "Social", safePoints.social || 0, "purple")
+    + '</div></section>';
+}
+
+function buildPointBalance(colorLabel, label, value, tone) {
+  return '<div class="student-point-balance student-point-' + tone + '"><span>' + escapeHtml(colorLabel) + '</span><strong>' + escapeHtml(String(value)) + '</strong><small>' + escapeHtml(label) + '</small></div>';
+}
+
+function buildStudentAvatar(student, studentName) {
+  var imageUrl = readStudentAvatarUrl(student);
+
+  if (imageUrl) {
+    return '<img class="student-avatar-img" src="' + escapeHtml(imageUrl) + '" alt="">';
+  }
+
+  return '<div class="student-avatar-fallback">' + escapeHtml(readInitials(studentName)) + '</div>';
+}
+
+function readStudentAvatarUrl(student) {
+  if (!student || typeof student !== "object") {
+    return "";
+  }
+
+  if (typeof student.avatarUrl === "string" && student.avatarUrl.length > 0) {
+    return student.avatarUrl;
+  }
+
+  if (typeof student.photoURL === "string" && student.photoURL.length > 0) {
+    return student.photoURL;
+  }
+
+  if (typeof student.photoUrl === "string" && student.photoUrl.length > 0) {
+    return student.photoUrl;
+  }
+
+  return "";
+}
+
+function readInitials(name) {
+  var words = typeof name === "string" ? name.trim().split(/\s+/) : [];
+  var initials = "";
+  var wordIndex = 0;
+
+  while (wordIndex < words.length && initials.length < 2) {
+    if (words[wordIndex].length > 0) {
+      initials += words[wordIndex].charAt(0).toUpperCase();
+    }
+
+    wordIndex = wordIndex + 1;
+  }
+
+  return initials || "OW";
+}
+
+function readMotivationalMessage(overallProgress) {
+  if (overallProgress >= 100) {
+    return "Beautiful work. You completed everything assigned so far.";
+  }
+
+  if (overallProgress >= 60) {
+    return "You are building strong momentum. Keep going with the next activity.";
+  }
+
+  if (overallProgress > 0) {
+    return "Your learning path is underway. A few focused minutes can move it forward.";
+  }
+
+  return "Pick a course and begin your first practice step.";
+}
+
+function readStudentClassLabel(student) {
+  if (!student || typeof student !== "object") {
+    return "Class not set";
+  }
+
+  if (typeof student.className === "string" && student.className.length > 0) {
+    return "Class " + student.className;
+  }
+
+  if (typeof student.classLabel === "string" && student.classLabel.length > 0) {
+    return student.classLabel;
+  }
+
+  if (typeof student.classId === "string" && student.classId.length > 0) {
+    return "Class " + student.classId;
+  }
+
+  if (Array.isArray(student.classIds) && student.classIds.length > 0) {
+    return "Class " + student.classIds[0];
+  }
+
+  return "Class not set";
+}
+
+function readStudentLocationLabel(student) {
+  if (!student || typeof student !== "object") {
+    return "Location not set";
+  }
+
+  if (typeof student.locationName === "string" && student.locationName.length > 0) {
+    return student.locationName;
+  }
+
+  if (typeof student.schoolName === "string" && student.schoolName.length > 0) {
+    return student.schoolName;
+  }
+
+  if (typeof student.locationId === "string" && student.locationId.length > 0) {
+    return student.locationId;
+  }
+
+  if (typeof student.schoolId === "string" && student.schoolId.length > 0) {
+    return student.schoolId;
+  }
+
+  return "Location not set";
+}
+
+function readLastOpenedLabel(lastOpenedAt) {
+  var timestamp = typeof lastOpenedAt === "number" ? lastOpenedAt : 0;
+
+  if (timestamp <= 0) {
+    return "Ready when you are";
+  }
+
+  var elapsedMs = Date.now() - timestamp;
+  var elapsedDays = Math.floor(elapsedMs / 86400000);
+
+  if (elapsedDays <= 0) {
+    return "Last opened today";
+  }
+
+  if (elapsedDays === 1) {
+    return "Last opened yesterday";
+  }
+
+  return "Last opened " + elapsedDays + " days ago";
+}
+
+function readCourseStatusLabel(progressPercent) {
+  if (progressPercent >= 100) {
+    return "Complete";
+  }
+
+  if (progressPercent > 0) {
+    return "In Progress";
+  }
+
+  return "New";
+}
+
+function disabled(value) {
+  return value ? " disabled" : "";
 }
 
 function readCourseModuleCount(course) {

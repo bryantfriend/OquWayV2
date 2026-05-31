@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="300" viewBox="0 0 520 300" role="img" aria-label="Course illustration">
+  <defs>
+    <linearGradient id="bg" x1="42" y1="18" x2="476" y2="286" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#DBEAFE"/>
+      <stop offset="0.54" stop-color="#ECFDF5"/>
+      <stop offset="1" stop-color="#FFF7ED"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="154" y1="74" x2="376" y2="220" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+  <rect width="520" height="300" rx="34" fill="url(#bg)"/>
+  <circle cx="78" cy="62" r="28" fill="#FDE68A"/>
+  <circle cx="448" cy="72" r="36" fill="#C4B5FD" opacity="0.75"/>
+  <circle cx="456" cy="234" r="44" fill="#93C5FD" opacity="0.45"/>
+  <path d="M80 232c40-35 84-44 132-26 37 14 75 11 113-9 51-26 89-16 114 30v41H80v-36Z" fill="#FFFFFF" opacity="0.64"/>
+  <rect x="138" y="58" width="244" height="158" rx="24" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="4"/>
+  <rect x="158" y="80" width="204" height="98" rx="18" fill="url(#screen)"/>
+  <path d="M188 138h92M188 158h62M188 118h126" stroke="#FFFFFF" stroke-width="11" stroke-linecap="round" opacity="0.88"/>
+  <circle cx="326" cy="132" r="26" fill="#FDE68A"/>
+  <path d="M311 133l10 10 22-27" fill="none" stroke="#047857" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="216" y="216" width="88" height="24" rx="10" fill="#1D4ED8"/>
+  <rect x="190" y="242" width="140" height="20" rx="10" fill="#93C5FD"/>
+  <g transform="translate(64 126)">
+    <rect x="0" y="48" width="86" height="78" rx="20" fill="#FFFFFF" stroke="#BBF7D0" stroke-width="4"/>
+    <path d="M24 84h38M24 104h26" stroke="#059669" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="42" cy="28" r="26" fill="#F97316"/>
+    <path d="M42 16v24l17 9" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(386 128)">
+    <rect x="0" y="38" width="72" height="88" rx="18" fill="#FFFFFF" stroke="#DDD6FE" stroke-width="4"/>
+    <path d="M20 74h32M20 94h20" stroke="#7C3AED" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="36" cy="20" r="22" fill="#2563EB"/>
+    <path d="M27 20h18M36 11v18" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+  </g>
+</svg>
