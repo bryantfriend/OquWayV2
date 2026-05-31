@@ -4,6 +4,10 @@ export { requireCourseCreatorOwnershipAuthorization } from "./domain/catalogCour
 export { preventModificationIfPublishedAuthorization } from "./domain/catalogCourse/preventDeleteIfInUseAuthorization.js";
 export { preventDeleteIfInUseAuthorization } from "./domain/catalogCourse/preventDeleteIfInUseAuthorization.js";
 export { requireCourseAssignmentAdminAuthorization } from "./domain/courseAssignment/requireCourseAssignmentAdminAuthorization.js";
+export {
+  requireExternalTaskReviewerAuthorization,
+  requireExternalTaskStudentAuthorization
+} from "./domain/externalTask/requireExternalTaskAuthorization.js";
 export { requireCourseCreatorAuthorization } from "./domain/catalogCourse/requireCourseCreatorAuthorization.js";
 export { requireLocationAdminAuthorization, allowPublicLocationRead } from "./domain/location/requireLocationAdminAuthorization.js";
 export { requirePlatformAdminAuthorization } from "./domain/catalogCourse/requirePlatformAdminAuthorization.js";

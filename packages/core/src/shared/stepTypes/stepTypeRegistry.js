@@ -7,6 +7,7 @@ import { ReflectionStep } from "./ReflectionStep.js";
 import { CustomExperienceStep } from "./CustomExperienceStep.js";
 import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js";
 import { DragMatchIslandStep } from "./DragMatchIslandStep.js";
+import { ExternalTaskStep } from "./ExternalTaskStep.js";
 
 var stepTypes = {
   textBriefing: TextBriefingStep,
@@ -17,7 +18,8 @@ var stepTypes = {
   reflection: ReflectionStep,
   customExperience: CustomExperienceStep,
   cyberCodeMission: CyberCodeMissionStep,
-  dragMatchIsland: DragMatchIslandStep
+  dragMatchIsland: DragMatchIslandStep,
+  externalTask: ExternalTaskStep
 };
 
 export function getStepTypeDefinition(stepType) {
@@ -38,7 +40,8 @@ export function listStepTypeDefinitions() {
     ReflectionStep,
     CustomExperienceStep,
     CyberCodeMissionStep,
-    DragMatchIslandStep
+    DragMatchIslandStep,
+    ExternalTaskStep
   ];
 }
 

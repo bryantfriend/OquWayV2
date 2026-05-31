@@ -26,6 +26,14 @@ export { processDeleteCourseAssignment } from "./domain/courseAssignment/process
 export { processLoadCourseAssignments } from "./domain/courseAssignment/processLoadCourseAssignments.js";
 export { processListCourseAssignments } from "./domain/courseAssignment/processListCourseAssignments.js";
 export { processUpdateCourseAssignment } from "./domain/courseAssignment/processUpdateCourseAssignment.js";
+export {
+  processLoadExternalTaskStep,
+  processLoadExternalTaskSubmissions,
+  processResubmitExternalTask,
+  processReviewExternalTaskSubmission,
+  processSubmitExternalTask,
+  processUploadExternalTaskFile
+} from "./domain/externalTask/externalTaskProcessors.js";
 export { processListLocations } from "./domain/location/processListLocations.js";
 export { processResolveLocationBySlug } from "./domain/location/processResolveLocationBySlug.js";
 export { processUpdateLocationLoginMode } from "./domain/location/processUpdateLocationLoginMode.js";

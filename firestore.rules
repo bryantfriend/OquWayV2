@@ -81,6 +81,27 @@ service cloud.firestore {
       );
     }
 
+    function isExternalTaskReviewer() {
+      return request.auth != null && (
+        isCourseCreator() ||
+        isSchoolAdmin() ||
+        isPlatformAdmin() ||
+        isSuperAdmin()
+      );
+    }
+
+    function isTeacherInExternalTaskScope() {
+      return request.auth != null
+        && isTeacher()
+        && user() != null
+        && (
+          (user().data.classIds is list && resource.data.classId in user().data.classIds) ||
+          (user().data.locationIds is list && resource.data.locationId in user().data.locationIds) ||
+          resource.data.locationId == user().data.locationId ||
+          resource.data.locationId == user().data.primaryLocationId
+        );
+    }
+
     // 👤 USERS
     match /users/{uid} {
       allow read, get, list: if
@@ -189,6 +210,47 @@ service cloud.firestore {
         isPlatformAdmin() ||
         isSchoolAdmin() ||
         isCourseCreator()
+      );
+
+      allow delete: if isSuperAdmin() || isPlatformAdmin();
+    }
+
+    // 🧾 EXTERNAL TASK SUBMISSIONS
+    match /externalTaskSubmissions/{submissionId} {
+      allow create: if request.auth != null
+        && isStudent()
+        && request.resource.data.studentId == request.auth.uid
+        && request.resource.data.reviewStatus == "pending"
+        && request.resource.data.status == "submitted";
+
+      allow read, list: if request.auth != null && (
+        resource.data.studentId == request.auth.uid ||
+        isExternalTaskReviewer() ||
+        isTeacherInExternalTaskScope()
+      );
+
+      allow update: if request.auth != null && (
+        (
+          isStudent()
+          && resource.data.studentId == request.auth.uid
+          && (resource.data.reviewStatus == "pending" || resource.data.reviewStatus == "needsWork")
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+            "reviewStatus",
+            "reviewedBy",
+            "reviewedAt",
+            "teacherFeedback"
+          ])
+        ) ||
+        (
+          (isExternalTaskReviewer() || isTeacherInExternalTaskScope())
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            "reviewStatus",
+            "reviewedBy",
+            "reviewedAt",
+            "teacherFeedback",
+            "updatedAt"
+          ])
+        )
       );
 
       allow delete: if isSuperAdmin() || isPlatformAdmin();

@@ -1,0 +1,59 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function hasRole(role) {
+      return request.auth != null && (
+        request.auth.token.role == role ||
+        (request.auth.token.roles is list && role in request.auth.token.roles) ||
+        (request.auth.token.userRoles is list && role in request.auth.token.userRoles)
+      );
+    }
+
+    function hasAnyRole(role, legacyRole) {
+      return hasRole(role)
+        || (request.auth != null && request.auth.token.role == legacyRole)
+        || (request.auth != null && request.auth.token.roles is list && legacyRole in request.auth.token.roles)
+        || (request.auth != null && request.auth.token.userRoles is list && legacyRole in request.auth.token.userRoles);
+    }
+
+    function isSuperAdmin() { return hasAnyRole('superAdmin', 'ROLE_SUPER_ADMIN'); }
+    function isPlatformAdmin() { return hasAnyRole('platformAdmin', 'ROLE_PLATFORM_ADMIN'); }
+    function isSchoolAdmin() { return hasAnyRole('schoolAdmin', 'ROLE_SCHOOL_ADMIN'); }
+    function isCourseCreator() { return hasAnyRole('courseCreator', 'ROLE_COURSE_CREATOR'); }
+    function isTeacher() { return hasAnyRole('teacher', 'ROLE_TEACHER'); }
+    function isStudent() { return hasAnyRole('student', 'ROLE_STUDENT'); }
+    function isReviewer() { return isTeacher() || isCourseCreator() || isSchoolAdmin() || isPlatformAdmin() || isSuperAdmin(); }
+
+    function isAllowedExternalTaskFile() {
+      return request.resource.size <= 10 * 1024 * 1024
+        && (
+          request.resource.contentType.matches('image/.*') ||
+          request.resource.contentType == 'application/pdf' ||
+          request.resource.contentType == 'application/msword' ||
+          request.resource.contentType == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+          request.resource.contentType == 'application/vnd.ms-powerpoint' ||
+          request.resource.contentType == 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
+          request.resource.contentType == 'application/vnd.ms-excel' ||
+          request.resource.contentType == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        );
+    }
+
+    match /external-task-submissions/{courseId}/{moduleId}/{stepId}/{studentId}/{submissionId}/{fileName} {
+      allow create: if request.auth != null
+        && request.auth.uid == studentId
+        && isStudent()
+        && isAllowedExternalTaskFile();
+
+      allow read: if request.auth != null && (
+        request.auth.uid == studentId ||
+        isReviewer()
+      );
+
+      allow update, delete: if false;
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

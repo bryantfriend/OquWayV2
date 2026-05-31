@@ -229,6 +229,49 @@ export const studentDashboardService = {
       });
       return null;
     }
+  },
+
+  submitExternalTask: async function (payload) {
+    studentDashboardStore.setState({
+      isSavingProgress: true,
+      error: null,
+      statusMessage: "Submitting external task..."
+    });
+
+    try {
+      var result = await runStudentIntent("SubmitExternalTaskIntent", payload || {});
+
+      if (result && result.emitted && result.emitted.success) {
+        studentDashboardStore.setState({
+          isSavingProgress: false,
+          statusMessage: "Submitted for teacher review."
+        });
+        return result.emitted.data;
+      }
+
+      throw new Error(readIntentErrorMessage(result));
+    } catch (error) {
+      studentDashboardStore.setState({
+        isSavingProgress: false,
+        error: error.message,
+        statusMessage: ""
+      });
+      throw error;
+    }
+  },
+
+  loadExternalTaskStep: async function (payload) {
+    try {
+      var result = await runStudentIntent("LoadExternalTaskStepIntent", payload || {});
+
+      if (result && result.emitted && result.emitted.success) {
+        return result.emitted.data;
+      }
+
+      return null;
+    } catch (error) {
+      return null;
+    }
   }
 };
 

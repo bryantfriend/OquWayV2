@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="320" viewBox="0 0 480 320" role="img" aria-labelledby="title">
+  <title id="title">Teacher review illustration</title>
+  <rect width="480" height="320" rx="32" fill="#f5f3ff"/>
+  <rect x="84" y="58" width="190" height="214" rx="22" fill="#fff" stroke="#c4b5fd" stroke-width="4"/>
+  <rect x="116" y="94" width="106" height="14" rx="7" fill="#7c3aed"/>
+  <rect x="116" y="134" width="126" height="10" rx="5" fill="#d8b4fe"/>
+  <rect x="116" y="162" width="98" height="10" rx="5" fill="#d8b4fe"/>
+  <rect x="116" y="190" width="138" height="10" rx="5" fill="#d8b4fe"/>
+  <circle cx="332" cy="120" r="42" fill="#fef3c7"/>
+  <path d="M310 128c14 20 34 20 48 0" fill="none" stroke="#92400e" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="318" cy="112" r="5" fill="#92400e"/>
+  <circle cx="346" cy="112" r="5" fill="#92400e"/>
+  <rect x="292" y="178" width="104" height="62" rx="18" fill="#ede9fe" stroke="#7c3aed" stroke-width="4"/>
+  <path d="M318 209l18 18 36-42" fill="none" stroke="#16a34a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

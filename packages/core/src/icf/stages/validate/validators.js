@@ -18,6 +18,13 @@ export { catalogCourseValidateStepConfigValidation } from "./domain/catalogCours
 export { catalogCourseValidateTagsValidation } from "./domain/catalogCourse/catalogCourseValidateTagsValidation.js";
 export { validateCourseAssignmentPayload, validateCourseAssignmentId, validateCourseAssignmentUpdatePayload } from "./domain/courseAssignment/validateCourseAssignmentPayload.js";
 export {
+  validateExternalTaskReviewPayload,
+  validateExternalTaskStepPayload,
+  validateExternalTaskSubmissionsQuery,
+  validateExternalTaskSubmitPayload,
+  validateExternalTaskUploadPayload
+} from "./domain/externalTask/validateExternalTaskPayloads.js";
+export {
   validateLocationId,
   validateLocationLoginModePayload,
   validateLocationLoginSlugPayload,

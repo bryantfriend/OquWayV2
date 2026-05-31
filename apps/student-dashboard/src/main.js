@@ -856,6 +856,12 @@ function mountPracticeModePlayer(state) {
       onStepComplete: function (step, completionResult, snapshot) {
         savePlayerStepCompletion(step, completionResult, snapshot);
       },
+      onExternalTaskLoad: function (step, snapshot) {
+        return loadExternalTaskStepStatus(step, snapshot);
+      },
+      onExternalTaskSubmit: function (step, submissionRequest, snapshot) {
+        return submitExternalTaskStep(step, submissionRequest, snapshot);
+      },
       onStateChange: function (snapshot) {
         studentDashboardStore.setState({
           currentStepIndex: snapshot.currentStepIndex,
@@ -880,6 +886,42 @@ function resetPracticeModePlayer() {
 
 function savePlayerStepCompletion(step, completionResult, snapshot) {
   completeCurrentStep(readStepId(step, ""), completionResult, snapshot);
+}
+
+async function loadExternalTaskStepStatus(step, snapshot) {
+  var state = studentDashboardStore.getState();
+  var course = readSelectedCourse(state);
+  var module = readSelectedModule(state);
+
+  return studentDashboardService.loadExternalTaskStep({
+    courseId: course ? course.id : snapshot.courseId,
+    moduleId: module ? module.id : snapshot.moduleId,
+    stepId: readStepId(step, "")
+  });
+}
+
+async function submitExternalTaskStep(step, submissionRequest, snapshot) {
+  var state = studentDashboardStore.getState();
+  var course = readSelectedCourse(state);
+  var module = readSelectedModule(state);
+  var session = readSelectedSession(state);
+  var config = submissionRequest && submissionRequest.config ? submissionRequest.config : {};
+
+  return studentDashboardService.submitExternalTask({
+    courseId: course ? course.id : snapshot.courseId,
+    moduleId: module ? module.id : snapshot.moduleId,
+    sessionId: session ? session.id : snapshot.sessionId,
+    practiceModeKey: snapshot.practiceModeKey,
+    modeId: snapshot.practiceModeKey,
+    stepId: readStepId(step, ""),
+    taskTitle: readExternalTaskTitle(step, config),
+    checklistSnapshot: readExternalTaskChecklist(config),
+    studentNote: submissionRequest ? submissionRequest.studentNote : "",
+    files: submissionRequest ? submissionRequest.files : [],
+    maxFileSizeMb: config.maxFileSizeMb || 10,
+    classId: state.student ? state.student.classId : "",
+    locationId: state.student ? (state.student.locationId || state.student.primaryLocationId) : ""
+  });
 }
 
 function updateCourseProgress(courses, progressResult) {
@@ -1312,6 +1354,28 @@ function readStepConfig(step) {
   }
 
   return step.config;
+}
+
+function readExternalTaskTitle(step, config) {
+  if (config && typeof config.title === "string" && config.title.length > 0) {
+    return config.title;
+  }
+
+  return readLocalizedText(step ? step.title : "", "External Task");
+}
+
+function readExternalTaskChecklist(config) {
+  if (config && Array.isArray(config.checklist)) {
+    return config.checklist.slice();
+  }
+
+  if (config && typeof config.checklist === "string") {
+    return config.checklist.split(/\r?\n|,/).map(function (item) {
+      return item.trim();
+    }).filter(Boolean);
+  }
+
+  return [];
 }
 
 function calculatePlayerProgress(stepIndex, stepCount) {

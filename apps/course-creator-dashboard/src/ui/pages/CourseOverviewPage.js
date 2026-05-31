@@ -1,6 +1,7 @@
 import { courseEditorStore } from '../state/courseEditorState.js';
 import { courseEditorService } from '../services/courseEditorService.js';
 import { courseAssignmentService } from '../services/courseAssignmentService.js';
+import { externalTaskReviewService } from '../services/externalTaskReviewService.js';
 
 export class CourseOverviewPage {
   constructor(courseId, options) {
@@ -16,6 +17,10 @@ export class CourseOverviewPage {
     this.assignmentsLoading = false;
     this.assignmentPendingId = "";
     this.assignmentPendingAction = "";
+    this.externalTaskSubmissions = [];
+    this.externalTaskLoading = false;
+    this.externalTaskPendingId = "";
+    this.externalTaskStatusFilter = "pending";
     this.ALL_LANGUAGES = [
       { code: 'en', name: 'English (en)' },
       { code: 'ru', name: 'Russian (ru)' },
@@ -186,6 +191,26 @@ export class CourseOverviewPage {
                 </div>
 
                 <div id="assignmentList" class="mt-5 space-y-2">
+                  ${buildAssignmentSkeletonRows(2)}
+                </div>
+              </div>
+
+              <div class="mt-6 pt-5 border-t border-gray-100">
+                <div class="flex items-center justify-between gap-3 mb-4">
+                  <div>
+                    <h2 class="text-lg font-bold text-gray-900 tracking-tight">External Task Reviews</h2>
+                    <p class="text-xs text-gray-500 mt-1">Review real-world task proof submitted by students.</p>
+                  </div>
+                  <button id="refreshExternalTasksBtn" class="text-xs font-bold text-blue-600 hover:text-blue-700">Refresh</button>
+                </div>
+                <div id="externalTaskStatusMessage" class="hidden mb-3 text-xs font-semibold"></div>
+                <div id="externalTaskFilters" class="mb-3 flex flex-wrap gap-2">
+                  ${buildExternalTaskFilterButton('pending', this.externalTaskStatusFilter)}
+                  ${buildExternalTaskFilterButton('needsWork', this.externalTaskStatusFilter)}
+                  ${buildExternalTaskFilterButton('complete', this.externalTaskStatusFilter)}
+                  ${buildExternalTaskFilterButton('incomplete', this.externalTaskStatusFilter)}
+                </div>
+                <div id="externalTaskReviewList" class="space-y-2">
                   ${buildAssignmentSkeletonRows(2)}
                 </div>
               </div>
@@ -688,6 +713,7 @@ export class CourseOverviewPage {
 
     courseEditorService.openCourseEditor(this.courseId);
     this.loadAssignments();
+    this.loadExternalTaskSubmissions();
 
     if (this.options.focusAssignment) {
       setTimeout(function () {
@@ -712,6 +738,29 @@ export class CourseOverviewPage {
 
     document.getElementById('refreshAssignmentsBtn').addEventListener('click', function () {
       self.loadAssignments();
+    });
+
+    document.getElementById('refreshExternalTasksBtn').addEventListener('click', function () {
+      self.loadExternalTaskSubmissions();
+    });
+
+    document.getElementById('externalTaskFilters').addEventListener('click', function (e) {
+      var filterBtn = e.target.closest('.external-task-filter-btn');
+      if (filterBtn) {
+        self.externalTaskStatusFilter = filterBtn.getAttribute('data-status') || 'pending';
+        self.renderExternalTaskFilters();
+        self.loadExternalTaskSubmissions();
+      }
+    });
+
+    document.getElementById('externalTaskReviewList').addEventListener('click', function (e) {
+      var reviewBtn = e.target.closest('.external-task-review-btn');
+      if (reviewBtn) {
+        self.reviewExternalTaskSubmission(
+          reviewBtn.getAttribute('data-id'),
+          reviewBtn.getAttribute('data-review-status')
+        );
+      }
     });
 
     document.getElementById('createAssignmentBtn').addEventListener('click', function () {
@@ -1201,6 +1250,115 @@ export class CourseOverviewPage {
     }).join('');
   }
 
+  loadExternalTaskSubmissions() {
+    var self = this;
+    this.externalTaskLoading = true;
+    this.renderExternalTaskSubmissions();
+    this.showExternalTaskStatus('loading', 'Loading external task submissions...');
+
+    externalTaskReviewService.loadSubmissions({
+      courseId: this.courseId,
+      reviewStatus: this.externalTaskStatusFilter
+    }).then(function (submissions) {
+      self.externalTaskSubmissions = submissions;
+      self.externalTaskLoading = false;
+      self.renderExternalTaskSubmissions();
+      self.showExternalTaskStatus('success', 'Review queue loaded.');
+      setTimeout(function () {
+        self.hideExternalTaskStatus();
+      }, 1400);
+    }).catch(function (error) {
+      self.externalTaskLoading = false;
+      self.renderExternalTaskSubmissions();
+      self.showExternalTaskStatus('error', error.message);
+    });
+  }
+
+  reviewExternalTaskSubmission(submissionId, reviewStatus) {
+    var self = this;
+    var feedback = window.prompt('Optional teacher feedback', '') || '';
+
+    this.externalTaskPendingId = submissionId;
+    this.renderExternalTaskSubmissions();
+    this.showExternalTaskStatus('loading', 'Saving review...');
+
+    externalTaskReviewService.reviewSubmission(submissionId, reviewStatus, feedback).then(function () {
+      self.externalTaskPendingId = "";
+      self.showExternalTaskStatus('success', 'Review saved.');
+      self.loadExternalTaskSubmissions();
+    }).catch(function (error) {
+      self.externalTaskPendingId = "";
+      self.renderExternalTaskSubmissions();
+      self.showExternalTaskStatus('error', error.message);
+    });
+  }
+
+  renderExternalTaskFilters() {
+    var filters = document.getElementById('externalTaskFilters');
+
+    if (!filters) {
+      return;
+    }
+
+    filters.innerHTML = buildExternalTaskFilterButton('pending', this.externalTaskStatusFilter)
+      + buildExternalTaskFilterButton('needsWork', this.externalTaskStatusFilter)
+      + buildExternalTaskFilterButton('complete', this.externalTaskStatusFilter)
+      + buildExternalTaskFilterButton('incomplete', this.externalTaskStatusFilter);
+  }
+
+  renderExternalTaskSubmissions() {
+    var list = document.getElementById('externalTaskReviewList');
+    var pendingId = this.externalTaskPendingId;
+
+    if (!list) {
+      return;
+    }
+
+    if (this.externalTaskLoading) {
+      list.innerHTML = buildAssignmentSkeletonRows(2);
+      return;
+    }
+
+    if (!this.externalTaskSubmissions || this.externalTaskSubmissions.length === 0) {
+      list.innerHTML = '<div class="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-center text-xs text-gray-500 font-medium">No external task submissions in this queue.</div>';
+      return;
+    }
+
+    list.innerHTML = this.externalTaskSubmissions.map(function (submission) {
+      return buildExternalTaskSubmissionCard(submission, pendingId === submission.id);
+    }).join('');
+  }
+
+  showExternalTaskStatus(type, message) {
+    var statusMessage = document.getElementById('externalTaskStatusMessage');
+
+    if (!statusMessage) {
+      return;
+    }
+
+    var colorClass = 'text-blue-700 bg-blue-50 border-blue-100';
+
+    if (type === 'error') {
+      colorClass = 'text-red-700 bg-red-50 border-red-100';
+    }
+
+    if (type === 'success') {
+      colorClass = 'text-green-700 bg-green-50 border-green-100';
+    }
+
+    statusMessage.className = 'mb-3 rounded-lg border px-3 py-2 text-xs font-semibold ' + colorClass;
+    statusMessage.textContent = message;
+  }
+
+  hideExternalTaskStatus() {
+    var statusMessage = document.getElementById('externalTaskStatusMessage');
+
+    if (statusMessage) {
+      statusMessage.className = 'hidden mb-3 text-xs font-semibold';
+      statusMessage.textContent = '';
+    }
+  }
+
   showAssignmentStatus(type, message) {
     var statusMessage = document.getElementById('assignmentStatusMessage');
 
@@ -1557,6 +1715,82 @@ function readAssignmentPendingLabel(action) {
   }
 
   return 'Saving...';
+}
+
+function buildExternalTaskFilterButton(status, activeStatus) {
+  var active = status === activeStatus;
+  var className = active
+    ? 'external-task-filter-btn rounded-full bg-blue-600 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-white'
+    : 'external-task-filter-btn rounded-full bg-gray-100 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-gray-600 hover:bg-gray-200';
+
+  return '<button type="button" class="' + className + '" data-status="' + escapeHtml(status) + '">' + escapeHtml(readExternalTaskStatusLabel(status)) + '</button>';
+}
+
+function buildExternalTaskSubmissionCard(submission, isPending) {
+  var files = Array.isArray(submission.files) ? submission.files : [];
+  var disabled = isPending ? ' disabled aria-busy="true"' : '';
+  var html = '<div class="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">';
+
+  html += '<div class="flex items-start justify-between gap-2">';
+  html += '<div class="min-w-0"><div class="text-[10px] font-black uppercase tracking-wide text-purple-500">External Task</div>';
+  html += '<div class="text-xs font-bold text-gray-900 truncate">' + escapeHtml(submission.taskTitle || 'Untitled task') + '</div>';
+  html += '<div class="text-[11px] text-gray-500">' + escapeHtml(submission.studentName || submission.studentId || 'Student') + '</div></div>';
+  html += '<span class="' + buildExternalTaskStatusClass(submission.reviewStatus || 'pending') + '">' + escapeHtml(readExternalTaskStatusLabel(submission.reviewStatus || 'pending')) + '</span>';
+  html += '</div>';
+
+  if (submission.studentNote) {
+    html += '<p class="mt-3 rounded-lg bg-slate-50 p-2 text-[11px] font-semibold text-slate-600">' + escapeHtml(submission.studentNote) + '</p>';
+  }
+
+  html += '<div class="mt-3 flex flex-wrap gap-2">';
+  files.forEach(function (file) {
+    html += '<a class="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100" href="' + escapeHtml(file.downloadUrl || '#') + '" target="_blank" rel="noopener">' + escapeHtml(file.name || 'proof file') + '</a>';
+  });
+  if (files.length === 0) {
+    html += '<span class="text-[11px] font-semibold text-slate-400">No file proof attached</span>';
+  }
+  html += '</div>';
+
+  html += '<div class="mt-3 grid grid-cols-3 gap-2">';
+  html += '<button class="external-task-review-btn rounded-lg border border-green-100 bg-green-50 px-2 py-1.5 text-[10px] font-black text-green-700 hover:bg-green-100 disabled:opacity-60" data-id="' + escapeHtml(submission.id || '') + '" data-review-status="complete"' + disabled + '>' + (isPending ? 'Saving...' : 'Complete') + '</button>';
+  html += '<button class="external-task-review-btn rounded-lg border border-amber-100 bg-amber-50 px-2 py-1.5 text-[10px] font-black text-amber-700 hover:bg-amber-100 disabled:opacity-60" data-id="' + escapeHtml(submission.id || '') + '" data-review-status="needsWork"' + disabled + '>Needs Work</button>';
+  html += '<button class="external-task-review-btn rounded-lg border border-red-100 bg-red-50 px-2 py-1.5 text-[10px] font-black text-red-700 hover:bg-red-100 disabled:opacity-60" data-id="' + escapeHtml(submission.id || '') + '" data-review-status="incomplete"' + disabled + '>Incomplete</button>';
+  html += '</div>';
+  html += '</div>';
+
+  return html;
+}
+
+function buildExternalTaskStatusClass(status) {
+  if (status === 'complete') {
+    return 'rounded-full bg-green-50 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-green-700';
+  }
+
+  if (status === 'needsWork') {
+    return 'rounded-full bg-yellow-50 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-yellow-700';
+  }
+
+  if (status === 'incomplete') {
+    return 'rounded-full bg-red-50 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-red-700';
+  }
+
+  return 'rounded-full bg-purple-50 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-purple-700';
+}
+
+function readExternalTaskStatusLabel(status) {
+  if (status === 'needsWork') {
+    return 'Needs Work';
+  }
+
+  if (status === 'complete') {
+    return 'Complete';
+  }
+
+  if (status === 'incomplete') {
+    return 'Incomplete';
+  }
+
+  return 'Pending';
 }
 
 function buildAssignmentStatusClass(status) {

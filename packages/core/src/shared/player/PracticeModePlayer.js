@@ -28,6 +28,8 @@ export class PracticeModePlayer {
     this.onBack = typeof safeOptions.onBack === "function" ? safeOptions.onBack : null;
     this.onStateChange = typeof safeOptions.onStateChange === "function" ? safeOptions.onStateChange : null;
     this.onStepComplete = typeof safeOptions.onStepComplete === "function" ? safeOptions.onStepComplete : null;
+    this.onExternalTaskSubmit = typeof safeOptions.onExternalTaskSubmit === "function" ? safeOptions.onExternalTaskSubmit : null;
+    this.onExternalTaskLoad = typeof safeOptions.onExternalTaskLoad === "function" ? safeOptions.onExternalTaskLoad : null;
     this.handleClick = this.handleClick.bind(this);
     this.applyInitialProgress(safeOptions);
     this.currentStepIndex = clampNumber(readNumber(safeOptions.initialStepIndex, this.currentStepIndex), 0, Math.max(this.steps.length - 1, 0));
@@ -107,6 +109,19 @@ export class PracticeModePlayer {
     if (StepTypeDefinition && typeof StepTypeDefinition.renderPlayer === "function") {
       try {
         StepTypeDefinition.renderPlayer(target, config, {
+          context: this.createCurrentStepContext(step),
+          onExternalTaskLoad: function () {
+            if (self.onExternalTaskLoad) {
+              return self.onExternalTaskLoad(step, self.createStateSnapshot());
+            }
+            return Promise.resolve(null);
+          },
+          onExternalTaskSubmit: function (submissionRequest) {
+            if (self.onExternalTaskSubmit) {
+              return self.onExternalTaskSubmit(step, submissionRequest, self.createStateSnapshot());
+            }
+            return Promise.reject(new Error("External task submission is not available here."));
+          },
           onComplete: function (completionResult) {
             self.completeCurrentStep(completionResult);
           }
@@ -282,6 +297,18 @@ export class PracticeModePlayer {
     }
 
     return this.steps[clampNumber(this.currentStepIndex, 0, this.steps.length - 1)];
+  }
+
+  createCurrentStepContext(step) {
+    return {
+      courseId: this.courseId,
+      moduleId: this.moduleId,
+      sessionId: this.sessionId,
+      practiceModeKey: this.practiceModeKey,
+      modeId: this.practiceModeKey,
+      stepId: readStepId(step, ""),
+      actor: this.actor
+    };
   }
 
   isStepCompleted(stepId) {

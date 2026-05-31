@@ -12,6 +12,11 @@ export { catalogCourseNormalizeModuleOrderNormalization } from "./domain/catalog
 export { catalogCourseNormalizeStepOrderNormalization } from "./domain/catalogCourse/catalogCourseNormalizeStepOrderNormalization.js";
 export { normalizeCourseAssignmentPayload, normalizeCourseAssignmentUpdatePayload, normalizeCourseAssignmentDisablePayload, normalizeCourseAssignmentListPayload } from "./domain/courseAssignment/normalizeCourseAssignmentPayload.js";
 export {
+  normalizeExternalTaskListPayload,
+  normalizeExternalTaskPayload,
+  normalizeExternalTaskReviewPayload
+} from "./domain/externalTask/normalizeExternalTaskPayloads.js";
+export {
   normalizeLocationLoginModePayload,
   normalizeLocationLoginSlugPayload,
   normalizeResolveLocationSlugPayload

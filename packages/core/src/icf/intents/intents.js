@@ -59,6 +59,16 @@ export { DisableCourseAssignmentIntent } from "./courseAssignment/DisableCourseA
 export { DeleteCourseAssignmentIntent } from "./courseAssignment/DeleteCourseAssignmentIntent.js";
 
 // ----------------------
+// External Tasks
+// ----------------------
+export { LoadExternalTaskStepIntent } from "./externalTask/LoadExternalTaskStepIntent.js";
+export { SubmitExternalTaskIntent } from "./externalTask/SubmitExternalTaskIntent.js";
+export { UploadExternalTaskFileIntent } from "./externalTask/UploadExternalTaskFileIntent.js";
+export { LoadExternalTaskSubmissionsIntent } from "./externalTask/LoadExternalTaskSubmissionsIntent.js";
+export { ReviewExternalTaskSubmissionIntent } from "./externalTask/ReviewExternalTaskSubmissionIntent.js";
+export { ResubmitExternalTaskIntent } from "./externalTask/ResubmitExternalTaskIntent.js";
+
+// ----------------------
 // Locations / Login Settings
 // ----------------------
 export { ListLocationsIntent } from "./location/ListLocationsIntent.js";

@@ -2035,7 +2035,7 @@ function createStepTypeCard(StepTypeDefinition) {
 }
 
 function createStepCategoryOrder() {
-  return ["Basic", "Media", "Games", "Coding", "Speaking", "Custom"];
+  return ["Basic", "Media", "Games", "Coding", "Speaking", "Assessment", "Custom"];
 }
 
 function buildUnsupportedStudentPreview(step) {
@@ -2642,6 +2642,7 @@ function readStepDefinitionIcon(stepType) {
   if (stepType === "customExperience") { return "fa-solid fa-shapes"; }
   if (stepType === "cyberCodeMission") { return "fa-solid fa-code"; }
   if (stepType === "dragMatchIsland") { return "fa-solid fa-gamepad"; }
+  if (stepType === "externalTask") { return "fa-solid fa-clipboard-check"; }
   return "fa-solid fa-puzzle-piece";
 }
 

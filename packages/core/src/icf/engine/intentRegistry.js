@@ -24,6 +24,14 @@ const registry = {
   DisableCourseAssignmentIntent: IntentExports.DisableCourseAssignmentIntent,
   DeleteCourseAssignmentIntent: IntentExports.DeleteCourseAssignmentIntent,
 
+  // External Tasks
+  LoadExternalTaskStepIntent: IntentExports.LoadExternalTaskStepIntent,
+  SubmitExternalTaskIntent: IntentExports.SubmitExternalTaskIntent,
+  UploadExternalTaskFileIntent: IntentExports.UploadExternalTaskFileIntent,
+  LoadExternalTaskSubmissionsIntent: IntentExports.LoadExternalTaskSubmissionsIntent,
+  ReviewExternalTaskSubmissionIntent: IntentExports.ReviewExternalTaskSubmissionIntent,
+  ResubmitExternalTaskIntent: IntentExports.ResubmitExternalTaskIntent,
+
   // Locations / Login Settings
   ListLocationsIntent: IntentExports.ListLocationsIntent,
   LoadLocationsIntent: IntentExports.LoadLocationsIntent,

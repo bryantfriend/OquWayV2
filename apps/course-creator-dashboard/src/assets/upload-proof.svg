@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="320" viewBox="0 0 480 320" role="img" aria-labelledby="title">
+  <title id="title">Upload proof illustration</title>
+  <rect width="480" height="320" rx="32" fill="#f0f9ff"/>
+  <path d="M120 228h240a48 48 0 0 0 8-95 74 74 0 0 0-140-34 58 58 0 0 0-83 54 38 38 0 0 0-25 75z" fill="#fff" stroke="#93c5fd" stroke-width="5"/>
+  <path d="M240 204V112M204 148l36-36 36 36" fill="none" stroke="#2563eb" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="158" y="236" width="164" height="18" rx="9" fill="#bfdbfe"/>
+  <rect x="158" y="236" width="104" height="18" rx="9" fill="#22c55e"/>
+</svg>
