@@ -4,6 +4,9 @@ class ModuleEditorStore {
     this.state = {
       course: null,
       module: null,
+      learningContent: createEmptyLearningContent(),
+      learningModes: {},
+      selectedLearningModeId: "primary",
       sessions: [],
       selectedSessionId: null,
       selectedPracticeModeKey: "beforeClass",
@@ -50,6 +53,9 @@ class ModuleEditorStore {
     this.state = {
       course: null,
       module: null,
+      learningContent: createEmptyLearningContent(),
+      learningModes: {},
+      selectedLearningModeId: "primary",
       sessions: [],
       selectedSessionId: null,
       selectedPracticeModeKey: "beforeClass",
@@ -66,3 +72,19 @@ class ModuleEditorStore {
 }
 
 export const moduleEditorStore = new ModuleEditorStore();
+
+function createEmptyLearningContent() {
+  return {
+    vocabulary: [],
+    definitions: [],
+    concepts: [],
+    rules: [],
+    examples: [],
+    images: [],
+    audio: [],
+    video: [],
+    attachments: [],
+    customContent: [],
+    notes: ""
+  };
+}

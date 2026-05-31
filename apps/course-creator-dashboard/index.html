@@ -195,6 +195,34 @@
       padding: 1rem;
     }
 
+    .editor-tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      color: #64748b;
+      border-radius: 999px;
+      padding: 0.55rem 0.9rem;
+      font-size: 0.75rem;
+      font-weight: 900;
+      transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease;
+    }
+
+    .editor-tab-btn:hover {
+      transform: translateY(-1px);
+      border-color: #a7f3d0;
+      background: #f0fdfa;
+      color: #047857;
+    }
+
+    .editor-tab-btn.oqu-editor-tab-active {
+      border-color: #34d399;
+      background: linear-gradient(135deg, #ecfdf5 0%, #eff6ff 100%);
+      color: #065f46;
+      box-shadow: 0 10px 24px rgba(16, 185, 129, 0.14);
+    }
+
     .builder-course-card-top {
       display: flex;
       align-items: flex-start;

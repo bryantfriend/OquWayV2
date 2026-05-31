@@ -52,6 +52,14 @@ export { processCreateSession } from "./domain/moduleEditor/processCreateSession
 export { processCreatePracticeModeShells } from "./domain/moduleEditor/processCreatePracticeModeShells.js";
 export { processListSessions } from "./domain/moduleEditor/processListSessions.js";
 export { processLoadSteps } from "./domain/moduleEditor/processLoadSteps.js";
+export { processLoadLearningContent } from "./domain/moduleEditor/processLoadLearningContent.js";
+export { processSaveLearningContent } from "./domain/moduleEditor/processSaveLearningContent.js";
+export { processLoadLearningModes } from "./domain/moduleEditor/processLoadLearningModes.js";
+export { processCreateLearningMode } from "./domain/moduleEditor/processCreateLearningMode.js";
+export { processDeleteLearningMode } from "./domain/moduleEditor/processDeleteLearningMode.js";
+export { processDuplicateLearningMode } from "./domain/moduleEditor/processDuplicateLearningMode.js";
+export { processGenerateModeFromPrimary } from "./domain/moduleEditor/processGenerateModeFromPrimary.js";
+export { processPullLearningContent } from "./domain/moduleEditor/processPullLearningContent.js";
 export { processListPracticeModeSteps } from "./domain/moduleEditor/processListPracticeModeSteps.js";
 export { processOpenModuleEditor } from "./domain/moduleEditor/processOpenModuleEditor.js";
 export { processDeletePracticeModeStep } from "./domain/moduleEditor/processDeletePracticeModeStep.js";

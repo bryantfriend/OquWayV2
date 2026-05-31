@@ -102,6 +102,14 @@ const registry = {
 
   // Module Editor
   OpenModuleEditorIntent: IntentExports.OpenModuleEditorIntent,
+  LoadLearningContentIntent: IntentExports.LoadLearningContentIntent,
+  SaveLearningContentIntent: IntentExports.SaveLearningContentIntent,
+  LoadLearningModesIntent: IntentExports.LoadLearningModesIntent,
+  CreateLearningModeIntent: IntentExports.CreateLearningModeIntent,
+  DeleteLearningModeIntent: IntentExports.DeleteLearningModeIntent,
+  DuplicateLearningModeIntent: IntentExports.DuplicateLearningModeIntent,
+  GenerateModeFromPrimaryIntent: IntentExports.GenerateModeFromPrimaryIntent,
+  PullLearningContentIntent: IntentExports.PullLearningContentIntent,
   AddStepToPracticeModeIntent: IntentExports.AddStepToPracticeModeIntent,
   CreatePracticeModeShellsIntent: IntentExports.CreatePracticeModeShellsIntent,
   CreateSessionIntent: IntentExports.CreateSessionIntent,

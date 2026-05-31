@@ -1,4 +1,5 @@
 import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js";
+import { createDefaultLearningContent, createLearningModesForTemplate } from "../moduleEditor/learningArchitecture.js";
 
 export async function processCreateModule(executionState) {
   const payload = executionState.payload;
@@ -32,6 +33,9 @@ function createModuleRecord(moduleId, payload, context) {
     description: payload.description,
     order: order,
     status: payload.status,
+    learningContent: createDefaultLearningContent(),
+    learningModes: createLearningModesForTemplate(payload.templateKey || "custom", []),
+    learningArchitectureVersion: 2,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
   };

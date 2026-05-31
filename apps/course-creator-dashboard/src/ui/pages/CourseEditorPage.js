@@ -19,6 +19,7 @@ export class CourseEditorPage {
     this.practiceModePlayer = null;
     this.practiceModePlayerSignature = "";
     this.practiceModePlayerSnapshot = null;
+    this.activeEditorTab = "learningContent";
   }
 
   render() {
@@ -38,34 +39,40 @@ export class CourseEditorPage {
             <span id="saveStatusIndicator" class="font-medium flex items-center gap-1.5 hidden text-xs text-green-600">
               <i class="fa-regular fa-circle-check"></i> Saved
             </span>
-            <span class="border border-gray-100 bg-gray-50 text-gray-400 px-3 py-1.5 rounded-lg font-semibold text-xs cursor-default select-none">Step System MVP</span>
+            <span class="border border-emerald-100 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg font-semibold text-xs cursor-default select-none">Learning System 2.0</span>
             <a href="#overview?courseId=${this.courseId}" class="border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 px-3 py-1.5 rounded-lg font-semibold transition text-xs flex items-center gap-1.5">
               <i class="fa-solid fa-chevron-left text-[9px]"></i> Overview
             </a>
           </div>
         </nav>
 
+        <div id="editorTabBar" class="bg-white border-b border-gray-100 px-6 py-2 flex items-center gap-2 shrink-0">
+          <button type="button" class="editor-tab-btn oqu-editor-tab-active" data-tab="learningContent"><i class="fa-solid fa-layer-group"></i> Learning Content</button>
+          <button type="button" class="editor-tab-btn" data-tab="learningModes"><i class="fa-solid fa-route"></i> Learning Modes</button>
+          <button type="button" class="editor-tab-btn" data-tab="steps"><i class="fa-solid fa-shapes"></i> Steps</button>
+        </div>
+
         <!-- ── THREE-PANEL BODY ───────────────────────────────────── -->
         <div class="flex-1 overflow-hidden flex gap-4 p-4 min-h-0">
 
-          <!-- LEFT: Sessions -->
+          <!-- LEFT: Learning Modes -->
           <div class="flex-col shrink-0 min-h-0 flex" style="width:256px">
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm flex-1 flex flex-col min-h-0 overflow-hidden">
               <div class="px-4 pt-4 pb-3 border-b border-gray-100 shrink-0">
                 <div class="text-[9px] font-black text-gray-400 uppercase tracking-[0.12em] mb-3 flex items-center gap-1.5">
-                  <i class="fa-solid fa-calendar-days text-gray-300"></i>
-                  Sessions
+                  <i class="fa-solid fa-route text-gray-300"></i>
+                  Learning Modes
                 </div>
                 <div id="sessionCreateStatusBanner" style="display:none" class="oqu-status-banner mb-2"></div>
                 <button id="addSessionBtn" class="w-full border border-dashed border-gray-300 bg-white hover:bg-blue-50 hover:border-blue-300 text-gray-600 hover:text-blue-700 py-2 rounded-lg font-semibold transition flex items-center justify-center gap-2 text-xs">
-                  <i class="fa-solid fa-plus text-xs"></i> Add Session
+                  <i class="fa-solid fa-plus text-xs"></i> Add Mode
                 </button>
               </div>
               <div id="sessionList" class="flex-1 overflow-y-auto p-2.5 space-y-1 min-h-0">
                 ${buildSessionSkeletonCards(3)}
               </div>
               <div class="px-4 py-2.5 bg-gray-50 border-t border-gray-100 rounded-b-xl shrink-0">
-                <div id="sessionCountText" class="text-[9px] font-bold text-gray-400 uppercase tracking-wide">0 Sessions</div>
+                <div id="sessionCountText" class="text-[9px] font-bold text-gray-400 uppercase tracking-wide">0 Modes</div>
               </div>
             </div>
           </div>
@@ -91,7 +98,7 @@ export class CourseEditorPage {
                 </div>
               </div>
               <div id="configEditorPane" class="flex-1 overflow-y-auto p-5 min-h-0">
-                <div class="text-xs text-gray-400 text-center py-10">Select a session.</div>
+                <div class="text-xs text-gray-400 text-center py-10">Select a mode or content section.</div>
               </div>
             </div>
           </div>
@@ -111,21 +118,39 @@ export class CourseEditorPage {
 
     moduleEditorService.openModuleEditor(this.courseId, this.moduleId);
 
-    // ── Add Session ────────────────────────────────────────────────────
+    document.getElementById("editorTabBar").addEventListener("click", function (e) {
+      var tabBtn = e.target.closest(".editor-tab-btn");
+      if (!tabBtn) {
+        return;
+      }
+      self.activeEditorTab = tabBtn.getAttribute("data-tab") || "steps";
+      self.studentPreviewMode = false;
+      self.practiceModePlaytestMode = false;
+      self.stepPickerOpen = false;
+      self.resetPracticeModePlayer();
+      self.updateUi(moduleEditorStore.getState());
+    });
+
+    // ── Add Learning Mode ───────────────────────────────────────────────
     document.getElementById("addSessionBtn").addEventListener("click", function () {
       var btn = document.getElementById("addSessionBtn");
       var banner = document.getElementById("sessionCreateStatusBanner");
-      showSessionBtnPending(btn, "Opening workspace\u2026");
-      showSessionBanner(banner, "creating", '<span class="oqu-spinner oqu-spinner-blue"></span> Opening session workspace\u2026');
-      moduleEditorService.addSession(self.courseId, self.moduleId).then(function () {
-        showSessionBanner(banner, "success", '<span class="oqu-success-icon">&#10003;</span> Session created!');
-        restoreSessionBtn(btn, '<i class="fa-solid fa-plus text-xs"></i> Add Session');
+      showSessionBtnPending(btn, "Creating mode\u2026");
+      showSessionBanner(banner, "creating", '<span class="oqu-spinner oqu-spinner-blue"></span> Creating learning mode\u2026');
+      moduleEditorService.createLearningMode(self.courseId, self.moduleId, {
+        title: "Custom Mode",
+        purpose: "A custom learning experience for this module.",
+        modeType: "custom"
+      }).then(function () {
+        self.activeEditorTab = "learningModes";
+        showSessionBanner(banner, "success", '<span class="oqu-success-icon">&#10003;</span> Mode created!');
+        restoreSessionBtn(btn, '<i class="fa-solid fa-plus text-xs"></i> Add Mode');
         setTimeout(function () {
           banner.style.display = "none";
         }, 2000);
       }).catch(function (err) {
         showSessionBanner(banner, "error", "&#9888; Failed: " + err.message);
-        restoreSessionBtn(btn, '<i class="fa-solid fa-plus text-xs"></i> Add Session');
+        restoreSessionBtn(btn, '<i class="fa-solid fa-plus text-xs"></i> Add Mode');
       });
     });
 
@@ -141,7 +166,13 @@ export class CourseEditorPage {
       self.playtestStepIndex = 0;
       self.playtestCompleted = false;
       self.resetPracticeModePlayer();
-      moduleEditorService.selectSession(item.getAttribute("data-id"));
+      var modeId = item.getAttribute("data-mode-id");
+      if (modeId) {
+        self.activeEditorTab = "steps";
+        moduleEditorService.selectLearningMode(modeId);
+      } else {
+        moduleEditorService.selectSession(item.getAttribute("data-id"));
+      }
     });
 
     // ── Workspace delegation (attached once) ───────────────────────────
@@ -169,6 +200,73 @@ export class CourseEditorPage {
     var self = this;
     var state = moduleEditorStore.getState();
     var session = self.findSelectedSession(state);
+
+    var saveLearningContentBtn = event.target.closest(".save-learning-content-btn");
+    if (saveLearningContentBtn) {
+      var learningContent = readLearningContentFromWorkspace();
+      saveLearningContentBtn.disabled = true;
+      saveLearningContentBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving';
+      moduleEditorService.saveLearningContent(this.courseId, this.moduleId, learningContent).then(function () {
+        self.updateUi(moduleEditorStore.getState());
+      }).catch(function (error) {
+        alert("Learning content save failed: " + error.message);
+      }).finally(function () {
+        saveLearningContentBtn.disabled = false;
+        saveLearningContentBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Learning Content';
+      });
+      return;
+    }
+
+    var modeCard = event.target.closest(".learning-mode-card");
+    if (modeCard && !event.target.closest("button")) {
+      self.activeEditorTab = "steps";
+      moduleEditorService.selectLearningMode(modeCard.getAttribute("data-mode-id"));
+      return;
+    }
+
+    var duplicateModeBtn = event.target.closest(".duplicate-learning-mode-btn");
+    if (duplicateModeBtn) {
+      moduleEditorService.duplicateLearningMode(this.courseId, this.moduleId, duplicateModeBtn.getAttribute("data-mode-id")).then(function () {
+        self.updateUi(moduleEditorStore.getState());
+      }).catch(function (error) {
+        alert("Duplicate mode failed: " + error.message);
+      });
+      return;
+    }
+
+    var deleteModeBtn = event.target.closest(".delete-learning-mode-btn");
+    if (deleteModeBtn) {
+      if (!confirm("Delete this learning mode? Existing legacy step data will be kept for migration safety.")) {
+        return;
+      }
+      moduleEditorService.deleteLearningMode(this.courseId, this.moduleId, deleteModeBtn.getAttribute("data-mode-id")).then(function () {
+        self.updateUi(moduleEditorStore.getState());
+      }).catch(function (error) {
+        alert("Delete mode failed: " + error.message);
+      });
+      return;
+    }
+
+    var generateModeBtn = event.target.closest(".generate-mode-from-primary-btn");
+    if (generateModeBtn) {
+      moduleEditorService.generateModeFromPrimary(this.courseId, this.moduleId).then(function () {
+        self.updateUi(moduleEditorStore.getState());
+      }).catch(function (error) {
+        alert("Generate mode failed: " + error.message);
+      });
+      return;
+    }
+
+    var pullContentBtn = event.target.closest(".pull-learning-content-btn");
+    if (pullContentBtn) {
+      moduleEditorService.pullLearningContent(this.courseId, this.moduleId, pullContentBtn.getAttribute("data-step-type"), pullContentBtn.getAttribute("data-source")).then(function (stepDraft) {
+        alert("Draft ready from Learning Content: " + stepDraft.title + ". Add the step, then paste or adapt the generated config.");
+        console.info("[LearningContent] Pulled step draft:", stepDraft);
+      }).catch(function (error) {
+        alert("Pull from Learning Content failed: " + error.message);
+      });
+      return;
+    }
 
     // Close picker overlay
     var closePickerBtn = event.target.closest(".close-step-picker-btn");
@@ -595,7 +693,7 @@ export class CourseEditorPage {
 
     if (!state.course && state.isFetching) {
       document.getElementById("headerCourseTitle").innerHTML =
-        'Loading\u2026 <span class="text-gray-300 mx-1">/</span> Sessions';
+        'Loading\u2026 <span class="text-gray-300 mx-1">/</span> Learning Modes';
       document.getElementById("sessionList").innerHTML = buildSessionSkeletonCards(3);
       return;
     }
@@ -607,9 +705,23 @@ export class CourseEditorPage {
         escapeHtml(this.getModuleTitle(state.module));
     }
 
+    this.renderEditorTabs();
     this.renderSaveIndicator(state);
     this.renderSessionList(state);
     this.renderSessionDetails(state);
+  }
+
+  renderEditorTabs() {
+    var tabButtons = document.querySelectorAll(".editor-tab-btn");
+    var i = 0;
+    while (i < tabButtons.length) {
+      if (tabButtons[i].getAttribute("data-tab") === this.activeEditorTab) {
+        tabButtons[i].classList.add("oqu-editor-tab-active");
+      } else {
+        tabButtons[i].classList.remove("oqu-editor-tab-active");
+      }
+      i = i + 1;
+    }
   }
 
   renderSaveIndicator(state) {
@@ -633,29 +745,30 @@ export class CourseEditorPage {
   renderSessionList(state) {
     var el = document.getElementById("sessionList");
     var sessions = state.sessions || [];
+    var learningModes = createLearningModeList(state.learningModes, sessions);
     var countEl = document.getElementById("sessionCountText");
     if (countEl) {
-      countEl.textContent = sessions.length + " Session" + (sessions.length === 1 ? "" : "s");
+      countEl.textContent = learningModes.length + " Mode" + (learningModes.length === 1 ? "" : "s");
     }
-    if (sessions.length === 0) {
+    if (learningModes.length === 0) {
       el.innerHTML = buildListEmptyState();
       return;
     }
     var html = "";
     var i = 0;
-    while (i < sessions.length) {
-      var session = sessions[i];
-      var isSelected = state.selectedSessionId === session.id;
-      var title = readLocalizedText(session.title, "New Session");
-      var status = readString(session.status, "draft");
+    while (i < learningModes.length) {
+      var mode = learningModes[i];
+      var isSelected = state.selectedLearningModeId === mode.id || state.selectedSessionId === mode.legacySessionId;
+      var title = readString(mode.title, "Learning Mode");
+      var status = readString(mode.status, "draft");
       var wrapperClass = isSelected
-        ? "border-blue-300 bg-blue-50 ring-1 ring-blue-400 shadow-sm"
-        : "border-gray-100 bg-white hover:border-blue-200 hover:bg-gray-50";
-      html += '<div class="relative p-2.5 rounded-lg border cursor-pointer transition ' + wrapperClass + ' session-item flex items-center gap-2.5" data-id="' + session.id + '">';
-      html += '<div class="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center shrink-0 text-[9px] font-black text-gray-400">' + (i + 1) + '</div>';
+        ? "border-emerald-300 bg-emerald-50 ring-1 ring-emerald-300 shadow-sm"
+        : "border-gray-100 bg-white hover:border-emerald-200 hover:bg-gray-50";
+      html += '<div class="relative p-2.5 rounded-xl border cursor-pointer transition ' + wrapperClass + ' session-item flex items-center gap-2.5" data-id="' + (mode.legacySessionId || "") + '" data-mode-id="' + mode.id + '">';
+      html += '<div class="w-7 h-7 rounded-xl bg-gradient-to-br from-emerald-100 to-sky-100 flex items-center justify-center shrink-0 text-[11px] font-black text-emerald-700">' + readLearningModeIcon(mode) + '</div>';
       html += '<div class="flex-1 min-w-0">';
       html += '<div class="text-xs font-bold text-gray-900 truncate leading-tight">' + escapeHtml(title) + '</div>';
-      html += '<div class="mt-1">' + buildStatusPill(status) + '</div>';
+      html += '<div class="mt-1 flex items-center gap-1.5">' + buildStatusPill(status) + (mode.required ? '<span class="text-[9px] font-black text-emerald-600 uppercase">Required</span>' : '') + '</div>';
       html += '</div>';
       html += '</div>';
       i = i + 1;
@@ -668,9 +781,21 @@ export class CourseEditorPage {
     var propsPane = document.getElementById("configEditorPane");
     var session = this.findSelectedSession(state);
 
+    if (this.activeEditorTab === "learningContent") {
+      workspace.innerHTML = buildLearningContentWorkspace(state.learningContent);
+      propsPane.innerHTML = buildLearningContentInspector(state.learningContent);
+      return;
+    }
+
+    if (this.activeEditorTab === "learningModes") {
+      workspace.innerHTML = buildLearningModesWorkspace(state.learningModes, state.sessions, state.selectedLearningModeId);
+      propsPane.innerHTML = buildLearningModesInspector();
+      return;
+    }
+
     if (!session) {
       workspace.innerHTML = '<div class="flex items-center justify-center min-h-full p-12">' + buildEmptyNoSessionHtml() + '</div>';
-      propsPane.innerHTML = '<div class="text-xs text-gray-400 text-center py-10">Select a session to inspect properties.</div>';
+      propsPane.innerHTML = '<div class="text-xs text-gray-400 text-center py-10">Select a learning mode to inspect properties.</div>';
       return;
     }
 
@@ -738,7 +863,7 @@ export class CourseEditorPage {
     // ── Sticky session header ────────────────────────────────────────
     html += '<div class="oqu-workspace-sticky px-5 py-3.5 flex items-center gap-3">';
     html += '<div class="flex-1 min-w-0">';
-    html += '<div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Session ' + (sessionIndex + 1) + '</div>';
+    html += '<div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Learning Mode ' + (sessionIndex + 1) + '</div>';
     html += '<div class="text-sm font-bold text-gray-900 truncate">' + escapeHtml(title) + '</div>';
     html += '</div>';
     html += buildStatusPill(status);
@@ -746,7 +871,7 @@ export class CourseEditorPage {
 
     // ── Practice mode navigation cards (single source of truth) ─────
     html += '<div class="px-5 pt-4 pb-3">';
-    html += '<div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2.5">Practice Modes</div>';
+    html += '<div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2.5">Step Tracks</div>';
     html += '<div class="grid grid-cols-2 gap-2">';
 
     var keys = createPracticeModeKeys();
@@ -781,9 +906,9 @@ export class CourseEditorPage {
       html += '<div class="mx-5 mb-3 rounded-xl border border-amber-200 bg-amber-50 p-3.5 flex items-start gap-3">';
       html += '<i class="fa-solid fa-triangle-exclamation text-amber-500 mt-0.5 shrink-0 text-sm"></i>';
       html += '<div class="flex-1">';
-      html += '<div class="text-xs font-bold text-amber-900 mb-1">Practice modes not initialized</div>';
-      html += '<div class="text-[11px] text-amber-700 mb-2">This session predates practice mode shells.</div>';
-      html += '<button class="repair-practice-modes-btn text-xs bg-amber-600 hover:bg-amber-700 text-white font-semibold px-3 py-1.5 rounded-lg transition">Repair Practice Modes</button>';
+      html += '<div class="text-xs font-bold text-amber-900 mb-1">Step tracks not initialized</div>';
+      html += '<div class="text-[11px] text-amber-700 mb-2">This legacy mode predates step track shells.</div>';
+      html += '<button class="repair-practice-modes-btn text-xs bg-amber-600 hover:bg-amber-700 text-white font-semibold px-3 py-1.5 rounded-lg transition">Repair Step Tracks</button>';
       html += '</div>';
       html += '</div>';
     }
@@ -818,7 +943,7 @@ export class CourseEditorPage {
 
     html += '<div class="flex items-center gap-1.5">';
     html += '<button type="button" class="play-practice-mode-btn border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-lg text-[10px] transition flex items-center gap-1" data-key="' + practiceModeKey + '">';
-    html += '▶ Play Practice Mode';
+    html += '▶ Preview Mode';
     html += '</button>';
     html += '<button type="button" class="add-step-trigger-btn border border-dashed border-blue-300 bg-white hover:bg-blue-50 text-blue-600 font-bold px-2.5 py-1 rounded-lg text-[10px] transition flex items-center gap-1" data-key="' + practiceModeKey + '">';
     html += '<i class="fa-solid fa-plus text-[9px]"></i> Add Step';
@@ -1301,8 +1426,8 @@ export class CourseEditorPage {
     var html = "";
 
     // Context breadcrumb
-    var sessionTitle = readLocalizedText(session.title, "Session");
-    var modeTitle = readLocalizedText(selectedMode.title, "Practice Mode");
+    var sessionTitle = readLocalizedText(session.title, "Learning Mode");
+    var modeTitle = readLocalizedText(selectedMode.title, "Step Track");
     html += '<div class="mb-4">';
     html += '<div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">' + escapeHtml(sessionTitle) + '</div>';
     html += '<div class="text-[10px] font-bold text-blue-600">' + escapeHtml(modeTitle) + '</div>';
@@ -1439,13 +1564,13 @@ export class CourseEditorPage {
     html += '</label>';
     html += '</div>';
 
-    html += '<button type="button" class="save-practice-mode-btn w-full bg-gray-900 hover:bg-black text-white font-bold py-2 rounded-lg text-xs transition mt-1">Save Practice Mode</button>';
+    html += '<button type="button" class="save-practice-mode-btn w-full bg-gray-900 hover:bg-black text-white font-bold py-2 rounded-lg text-xs transition mt-1">Save Step Track</button>';
 
-    // Session read-only context at bottom
+    // Legacy shell context remains visible during migration.
     html += '<div class="oqu-inspector-divider" style="margin-top:20px"></div>';
-    html += '<div class="oqu-inspector-section">Session</div>';
+    html += '<div class="oqu-inspector-section">Mode Shell</div>';
 
-    var sessionTitle = readLocalizedText(session.title, "Session");
+    var sessionTitle = readLocalizedText(session.title, "Learning Mode");
     var sessionStatus = readString(session.status, "draft");
     html += '<div class="flex items-center justify-between">';
     html += '<div class="oqu-inspector-readonly-value">' + escapeHtml(sessionTitle) + '</div>';
@@ -1727,16 +1852,16 @@ function calculateProgress(mode) {
 
 function buildEmptyNoSessionHtml() {
   return '<div class="text-center max-w-[220px]">'
-    + '<div class="text-4xl mb-3">📅</div>'
-    + '<div class="text-sm font-bold text-gray-700 mb-1">No session selected</div>'
-    + '<div class="text-xs text-gray-400 leading-relaxed">Click a session on the left to start designing its practice modes and steps.</div>'
+    + '<div class="text-4xl mb-3">📚</div>'
+    + '<div class="text-sm font-bold text-gray-700 mb-1">No learning mode selected</div>'
+    + '<div class="text-xs text-gray-400 leading-relaxed">Click a mode on the left to start designing its activities.</div>'
     + '</div>';
 }
 
 function buildListEmptyState() {
   return '<div class="text-center p-5">'
-    + '<div class="text-2xl mb-2">📚</div>'
-    + '<div class="text-xs font-bold text-gray-600 mb-1">No sessions yet</div>'
+    + '<div class="text-2xl mb-2">✨</div>'
+    + '<div class="text-xs font-bold text-gray-600 mb-1">No modes yet</div>'
     + '<div class="text-[11px] text-gray-400">Create one to start building this module.</div>'
     + '</div>';
 }
@@ -2514,4 +2639,242 @@ function buildSessionErrorCard(errorMessage) {
     + '<i class="fa-solid fa-triangle-exclamation"></i>'
     + '<span>' + escapeHtml(errorMessage) + '</span>'
     + '</div>';
+}
+
+function buildLearningContentWorkspace(learningContent) {
+  var content = normalizeLearningContentForUi(learningContent);
+  var html = "";
+
+  html += '<div class="p-6 space-y-5">';
+  html += '<div class="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 via-sky-50 to-white p-5 shadow-sm">';
+  html += '<div class="flex items-start justify-between gap-4">';
+  html += '<div>';
+  html += '<div class="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-600">Authoring Source</div>';
+  html += '<h2 class="mt-2 text-2xl font-black text-slate-950">Learning Content</h2>';
+  html += '<p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Hidden from students. Use this as the reusable source material for activities, review, assessment, and future AI-assisted creation.</p>';
+  html += '</div>';
+  html += '<button type="button" class="save-learning-content-btn rounded-2xl bg-slate-950 px-4 py-2 text-xs font-black text-white shadow-sm hover:bg-slate-800"><i class="fa-solid fa-floppy-disk"></i> Save Learning Content</button>';
+  html += '</div>';
+  html += '</div>';
+
+  html += '<div class="grid grid-cols-2 gap-4">';
+  html += buildLearningContentTextarea("Vocabulary", "vocabulary", content.vocabulary, "One word or phrase per line");
+  html += buildLearningContentTextarea("Definitions", "definitions", content.definitions, "Match definitions by line order");
+  html += buildLearningContentTextarea("Concepts", "concepts", content.concepts, "Concepts students should understand");
+  html += buildLearningContentTextarea("Rules", "rules", content.rules, "Grammar, usage, or behavior rules");
+  html += buildLearningContentTextarea("Examples", "examples", content.examples, "Sample sentences or worked examples");
+  html += buildLearningContentTextarea("Custom Content", "customContent", content.customContent, "Any extra authoring notes or source items");
+  html += '</div>';
+
+  html += '<div class="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">';
+  html += '<label class="text-xs font-black uppercase tracking-widest text-slate-400">Creator Notes</label>';
+  html += '<textarea data-learning-content-field="notes" class="mt-3 min-h-[120px] w-full resize-y rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 outline-none focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100" placeholder="Private module notes, assessment ideas, or migration notes.">' + escapeHtml(content.notes) + '</textarea>';
+  html += '</div>';
+
+  html += '<div class="rounded-3xl border border-dashed border-sky-200 bg-sky-50/70 p-5">';
+  html += '<div class="flex items-center justify-between gap-4">';
+  html += '<div><div class="text-sm font-black text-slate-900">Pull From Learning Content</div><div class="mt-1 text-xs leading-5 text-slate-500">Creates a draft config in the console today. Later this same intent can feed AI generation without changing the authoring model.</div></div>';
+  html += '<div class="flex flex-wrap gap-2 justify-end">';
+  html += '<button type="button" class="pull-learning-content-btn rounded-xl border border-sky-200 bg-white px-3 py-2 text-xs font-black text-sky-700 hover:bg-sky-100" data-step-type="dragMatchIsland" data-source="vocabulary">Matching Draft</button>';
+  html += '<button type="button" class="pull-learning-content-btn rounded-xl border border-sky-200 bg-white px-3 py-2 text-xs font-black text-sky-700 hover:bg-sky-100" data-step-type="vocabulary" data-source="vocabulary">Flashcard Draft</button>';
+  html += '<button type="button" class="pull-learning-content-btn rounded-xl border border-sky-200 bg-white px-3 py-2 text-xs font-black text-sky-700 hover:bg-sky-100" data-step-type="reflection" data-source="concepts">Reflection Draft</button>';
+  html += '</div>';
+  html += '</div>';
+  html += '</div>';
+
+  html += '</div>';
+  return html;
+}
+
+function buildLearningContentTextarea(label, field, items, placeholder) {
+  return '<div class="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">'
+    + '<label class="text-xs font-black uppercase tracking-widest text-slate-400">' + escapeHtml(label) + '</label>'
+    + '<textarea data-learning-content-field="' + field + '" class="mt-3 min-h-[150px] w-full resize-y rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 outline-none focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100" placeholder="' + escapeHtml(placeholder) + '">' + escapeHtml(items.join("\n")) + '</textarea>'
+    + '</div>';
+}
+
+function buildLearningContentInspector(learningContent) {
+  var content = normalizeLearningContentForUi(learningContent);
+  var total = content.vocabulary.length + content.definitions.length + content.concepts.length + content.rules.length + content.examples.length + content.customContent.length;
+  var html = "";
+
+  html += '<div class="space-y-4">';
+  html += '<div class="rounded-3xl bg-gradient-to-br from-emerald-50 to-sky-50 p-4 border border-emerald-100">';
+  html += '<div class="text-[10px] font-black uppercase tracking-widest text-emerald-600">Content Health</div>';
+  html += '<div class="mt-2 text-3xl font-black text-slate-950">' + total + '</div>';
+  html += '<div class="text-xs font-semibold text-slate-500">source items ready for activities</div>';
+  html += '</div>';
+  html += '<div class="rounded-2xl border border-slate-100 p-4 text-xs leading-5 text-slate-500">Students never see this tab. Student screens should continue to say only <strong class="text-slate-700">Continue Learning</strong>.</div>';
+  html += '<div class="space-y-2 text-xs text-slate-500">';
+  html += '<div class="font-black uppercase tracking-widest text-slate-400">Migration Notes</div>';
+  html += '<div>Existing session/practice-mode data remains in place.</div>';
+  html += '<div>New activity generators should read this content first, then allow manual edits.</div>';
+  html += '</div>';
+  html += '</div>';
+  return html;
+}
+
+function buildLearningModesWorkspace(learningModes, sessions, selectedModeId) {
+  var modes = createLearningModeList(learningModes, sessions);
+  var html = "";
+
+  html += '<div class="p-6 space-y-5">';
+  html += '<div class="rounded-3xl border border-violet-100 bg-gradient-to-br from-violet-50 via-sky-50 to-white p-5 shadow-sm">';
+  html += '<div class="flex items-start justify-between gap-4">';
+  html += '<div>';
+  html += '<div class="text-[10px] font-black uppercase tracking-[0.18em] text-violet-600">Module Experiences</div>';
+  html += '<h2 class="mt-2 text-2xl font-black text-slate-950">Learning Modes</h2>';
+  html += '<p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Modes replace the old session terminology for authoring. Primary Mode is required; review, practice, assessment, and custom modes can be layered in safely.</p>';
+  html += '</div>';
+  html += '<button type="button" class="generate-mode-from-primary-btn rounded-2xl border border-violet-200 bg-white px-4 py-2 text-xs font-black text-violet-700 shadow-sm hover:bg-violet-50"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate From Primary</button>';
+  html += '</div>';
+  html += '</div>';
+
+  html += '<div class="grid grid-cols-2 gap-4">';
+  modes.forEach(function (mode) {
+    var selected = selectedModeId === mode.id ? " ring-2 ring-emerald-300 border-emerald-200" : " border-slate-100";
+    html += '<div class="learning-mode-card rounded-3xl bg-white p-5 shadow-sm border cursor-pointer hover:-translate-y-0.5 hover:shadow-md transition' + selected + '" data-mode-id="' + mode.id + '">';
+    html += '<div class="flex items-start gap-4">';
+    html += '<div class="h-12 w-12 rounded-2xl bg-gradient-to-br from-emerald-100 to-sky-100 flex items-center justify-center text-lg text-emerald-700">' + readLearningModeIcon(mode) + '</div>';
+    html += '<div class="min-w-0 flex-1">';
+    html += '<div class="flex items-center gap-2 flex-wrap">' + buildStatusPill(mode.status) + (mode.required ? '<span class="rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-black uppercase text-emerald-700">Required</span>' : '') + '</div>';
+    html += '<h3 class="mt-3 text-lg font-black text-slate-950 truncate">' + escapeHtml(mode.title) + '</h3>';
+    html += '<p class="mt-1 text-xs leading-5 text-slate-500">' + escapeHtml(mode.purpose || "Custom learning experience.") + '</p>';
+    html += '</div>';
+    html += '</div>';
+    html += '<div class="mt-4 flex items-center justify-between gap-2">';
+    html += '<span class="text-[10px] font-black uppercase tracking-widest text-slate-400">' + escapeHtml(mode.modeType || "custom") + '</span>';
+    html += '<div class="flex gap-2">';
+    html += '<button type="button" class="duplicate-learning-mode-btn rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-black text-slate-600 hover:bg-slate-50" data-mode-id="' + mode.id + '">Duplicate</button>';
+    if (!mode.required) {
+      html += '<button type="button" class="delete-learning-mode-btn rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[10px] font-black text-rose-600 hover:bg-rose-100" data-mode-id="' + mode.id + '">Delete</button>';
+    }
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  html += '<div class="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">';
+  html += '<div class="text-sm font-black text-slate-900">Compatibility Layer</div>';
+  html += '<p class="mt-2 text-xs leading-5 text-slate-500">Each learning mode can point at a legacy session shell while migration is in progress. The existing Step System continues to run from those shells.</p>';
+  html += '</div>';
+  html += '</div>';
+
+  return html;
+}
+
+function buildLearningModesInspector() {
+  var html = "";
+  html += '<div class="space-y-4">';
+  html += '<div class="rounded-2xl border border-slate-100 p-4">';
+  html += '<div class="text-xs font-black text-slate-900">Templates</div>';
+  html += '<div class="mt-2 text-xs leading-5 text-slate-500">School: Primary + Review. Education Center: Primary only. Intensive: Primary + Review + Practice + Assessment. Custom: Primary only.</div>';
+  html += '</div>';
+  html += '<div class="rounded-2xl border border-slate-100 p-4">';
+  html += '<div class="text-xs font-black text-slate-900">Student Language</div>';
+  html += '<div class="mt-2 text-xs leading-5 text-slate-500">Do not expose mode names to students. They only see Continue Learning.</div>';
+  html += '</div>';
+  html += '</div>';
+  return html;
+}
+
+function readLearningContentFromWorkspace() {
+  var content = {};
+  var fields = document.querySelectorAll("[data-learning-content-field]");
+  var index = 0;
+
+  while (index < fields.length) {
+    var field = fields[index].getAttribute("data-learning-content-field");
+    if (field === "notes") {
+      content[field] = fields[index].value.trim();
+    } else {
+      content[field] = parseLines(fields[index].value);
+    }
+    index = index + 1;
+  }
+
+  return content;
+}
+
+function normalizeLearningContentForUi(learningContent) {
+  var content = learningContent && typeof learningContent === "object" ? learningContent : {};
+  return {
+    vocabulary: readArrayForUi(content.vocabulary),
+    definitions: readArrayForUi(content.definitions),
+    concepts: readArrayForUi(content.concepts),
+    rules: readArrayForUi(content.rules),
+    examples: readArrayForUi(content.examples),
+    images: readArrayForUi(content.images),
+    audio: readArrayForUi(content.audio),
+    video: readArrayForUi(content.video),
+    attachments: readArrayForUi(content.attachments),
+    customContent: readArrayForUi(content.customContent),
+    notes: readString(content.notes, "")
+  };
+}
+
+function createLearningModeList(learningModes, sessions) {
+  var modes = learningModes && typeof learningModes === "object" && !Array.isArray(learningModes) ? learningModes : {};
+  var list = [];
+
+  Object.keys(modes).forEach(function (modeId) {
+    if (modes[modeId] && modes[modeId].status !== "deleted") {
+      list.push(Object.assign({ id: modeId }, modes[modeId]));
+    }
+  });
+
+  if (list.length === 0 && Array.isArray(sessions)) {
+    sessions.forEach(function (session, index) {
+      list.push({
+        id: index === 0 ? "primary" : "legacy-" + session.id,
+        title: index === 0 ? "Primary Mode" : readLocalizedText(session.title, "Legacy Mode"),
+        purpose: "Migrated from legacy session data.",
+        modeType: index === 0 ? "primary" : "legacy",
+        status: session.status || "draft",
+        required: index === 0,
+        legacySessionId: session.id,
+        order: index + 1
+      });
+    });
+  }
+
+  list.sort(function (a, b) {
+    return (a.order || 99) - (b.order || 99);
+  });
+  return list;
+}
+
+function readLearningModeIcon(mode) {
+  if (mode && mode.modeType === "primary") return '<i class="fa-solid fa-star"></i>';
+  if (mode && mode.modeType === "review") return '<i class="fa-solid fa-rotate"></i>';
+  if (mode && mode.modeType === "practice") return '<i class="fa-solid fa-dumbbell"></i>';
+  if (mode && mode.modeType === "assessment") return '<i class="fa-solid fa-clipboard-check"></i>';
+  return '<i class="fa-solid fa-route"></i>';
+}
+
+function parseLines(value) {
+  if (typeof value !== "string") {
+    return [];
+  }
+
+  return value.split(/\r?\n/).map(function (line) {
+    return line.trim();
+  }).filter(function (line) {
+    return line.length > 0;
+  });
+}
+
+function readArrayForUi(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.map(function (item) {
+    if (typeof item === "string") return item;
+    if (item && typeof item === "object") return item.term || item.word || item.title || item.text || "";
+    return "";
+  }).filter(function (item) {
+    return item.length > 0;
+  });
 }

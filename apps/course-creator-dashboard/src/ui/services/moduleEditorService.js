@@ -24,6 +24,9 @@ export const moduleEditorService = {
         moduleEditorStore.setState({
           course: result.emitted.data.course,
           module: result.emitted.data.module,
+          learningContent: result.emitted.data.learningContent || {},
+          learningModes: result.emitted.data.learningModes || {},
+          selectedLearningModeId: result.emitted.data.selectedLearningModeId || "primary",
           sessions: result.emitted.data.sessions || [],
           selectedSessionId: result.emitted.data.selectedSessionId,
           steps: result.emitted.data.steps || [],
@@ -46,6 +49,137 @@ export const moduleEditorService = {
         isFetching: false
       });
     }
+  },
+
+  saveLearningContent: async function (courseId, moduleId, learningContent) {
+    moduleEditorStore.setState({ isDraftSaving: true });
+
+    var result = await runIntentPipeline(getIntentDefinition("SaveLearningContentIntent"), {
+      payload: {
+        courseId: courseId,
+        moduleId: moduleId,
+        learningContent: learningContent
+      },
+      actor: getActor()
+    });
+
+    if (result && result.emitted && result.emitted.success) {
+      moduleEditorStore.setState({
+        learningContent: result.emitted.data.learningContent,
+        isDraftSaving: false,
+        lastSaved: Date.now()
+      });
+      return result;
+    }
+
+    moduleEditorStore.setState({ isDraftSaving: false });
+    throw new Error(readIntentErrorMessage(result));
+  },
+
+  selectLearningMode: function (modeId) {
+    var state = moduleEditorStore.getState();
+    var mode = state.learningModes && state.learningModes[modeId] ? state.learningModes[modeId] : null;
+    var sessionId = mode && mode.legacySessionId ? mode.legacySessionId : state.selectedSessionId;
+
+    moduleEditorStore.setState({
+      selectedLearningModeId: modeId,
+      selectedSessionId: sessionId,
+      selectedPracticeModeKey: "beforeClass",
+      selectedStepId: null
+    });
+  },
+
+  createLearningMode: async function (courseId, moduleId, modeOptions) {
+    var result = await runIntentPipeline(getIntentDefinition("CreateLearningModeIntent"), {
+      payload: Object.assign({
+        courseId: courseId,
+        moduleId: moduleId
+      }, modeOptions || {}),
+      actor: getActor()
+    });
+
+    if (result && result.emitted && result.emitted.success) {
+      mergeLearningModeResult(result.emitted.data);
+      return result;
+    }
+
+    throw new Error(readIntentErrorMessage(result));
+  },
+
+  deleteLearningMode: async function (courseId, moduleId, modeId) {
+    var result = await runIntentPipeline(getIntentDefinition("DeleteLearningModeIntent"), {
+      payload: {
+        courseId: courseId,
+        moduleId: moduleId,
+        modeId: modeId
+      },
+      actor: getActor()
+    });
+
+    if (result && result.emitted && result.emitted.success) {
+      moduleEditorStore.setState({
+        learningModes: result.emitted.data.learningModes,
+        selectedLearningModeId: "primary",
+        lastSaved: Date.now()
+      });
+      return result;
+    }
+
+    throw new Error(readIntentErrorMessage(result));
+  },
+
+  duplicateLearningMode: async function (courseId, moduleId, modeId) {
+    var result = await runIntentPipeline(getIntentDefinition("DuplicateLearningModeIntent"), {
+      payload: {
+        courseId: courseId,
+        moduleId: moduleId,
+        modeId: modeId
+      },
+      actor: getActor()
+    });
+
+    if (result && result.emitted && result.emitted.success) {
+      mergeLearningModeResult(result.emitted.data);
+      return result;
+    }
+
+    throw new Error(readIntentErrorMessage(result));
+  },
+
+  generateModeFromPrimary: async function (courseId, moduleId) {
+    var result = await runIntentPipeline(getIntentDefinition("GenerateModeFromPrimaryIntent"), {
+      payload: {
+        courseId: courseId,
+        moduleId: moduleId,
+        title: "Generated Review Mode"
+      },
+      actor: getActor()
+    });
+
+    if (result && result.emitted && result.emitted.success) {
+      mergeLearningModeResult(result.emitted.data);
+      return result;
+    }
+
+    throw new Error(readIntentErrorMessage(result));
+  },
+
+  pullLearningContent: async function (courseId, moduleId, stepType, source) {
+    var result = await runIntentPipeline(getIntentDefinition("PullLearningContentIntent"), {
+      payload: {
+        courseId: courseId,
+        moduleId: moduleId,
+        stepType: stepType,
+        source: source
+      },
+      actor: getActor()
+    });
+
+    if (result && result.emitted && result.emitted.success) {
+      return result.emitted.data.stepDraft;
+    }
+
+    throw new Error(readIntentErrorMessage(result));
   },
 
   addSession: async function (courseId, moduleId) {
@@ -283,6 +417,34 @@ function replaceSessionInState(updatedSession, selectedStepId) {
     sessions: sessions,
     selectedSessionId: updatedSession.id,
     selectedStepId: nextSelectedStepId,
+    lastSaved: Date.now()
+  });
+}
+
+function mergeLearningModeResult(data) {
+  var state = moduleEditorStore.getState();
+  var sessions = state.sessions.slice();
+  var selectedModeId = data.learningMode && data.learningMode.id ? data.learningMode.id : state.selectedLearningModeId;
+
+  if (data.session) {
+    var found = false;
+    sessions = sessions.map(function (session) {
+      if (session.id === data.session.id) {
+        found = true;
+        return data.session;
+      }
+      return session;
+    });
+    if (!found) {
+      sessions.push(data.session);
+    }
+  }
+
+  moduleEditorStore.setState({
+    learningModes: data.learningModes || state.learningModes,
+    selectedLearningModeId: selectedModeId,
+    selectedSessionId: data.session && data.session.id ? data.session.id : state.selectedSessionId,
+    sessions: sessions,
     lastSaved: Date.now()
   });
 }

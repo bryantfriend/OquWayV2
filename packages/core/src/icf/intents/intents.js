@@ -114,6 +114,14 @@ export { UpdateCourseFieldIntent } from "./courseEditor/UpdateCourseFieldIntent.
 // Module Editor
 // ----------------------
 export { OpenModuleEditorIntent } from "./moduleEditor/OpenModuleEditorIntent.js";
+export { LoadLearningContentIntent } from "./moduleEditor/LoadLearningContentIntent.js";
+export { SaveLearningContentIntent } from "./moduleEditor/SaveLearningContentIntent.js";
+export { LoadLearningModesIntent } from "./moduleEditor/LoadLearningModesIntent.js";
+export { CreateLearningModeIntent } from "./moduleEditor/CreateLearningModeIntent.js";
+export { DeleteLearningModeIntent } from "./moduleEditor/DeleteLearningModeIntent.js";
+export { DuplicateLearningModeIntent } from "./moduleEditor/DuplicateLearningModeIntent.js";
+export { GenerateModeFromPrimaryIntent } from "./moduleEditor/GenerateModeFromPrimaryIntent.js";
+export { PullLearningContentIntent } from "./moduleEditor/PullLearningContentIntent.js";
 export { AddStepToPracticeModeIntent } from "./moduleEditor/AddStepToPracticeModeIntent.js";
 export { CreatePracticeModeShellsIntent } from "./moduleEditor/CreatePracticeModeShellsIntent.js";
 export { CreateSessionIntent } from "./moduleEditor/CreateSessionIntent.js";
