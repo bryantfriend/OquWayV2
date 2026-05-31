@@ -390,7 +390,7 @@ function buildDashboardView(state) {
     html += '<section class="student-empty">';
     html += '<div class="student-empty-icon">📚</div>';
     html += '<h2>No assigned courses yet</h2>';
-    html += '<p>When a course is assigned to you, it will appear here.</p>';
+    html += '<p>No courses assigned yet. Ask your teacher to assign a course.</p>';
     html += '</section>';
     return html;
   }

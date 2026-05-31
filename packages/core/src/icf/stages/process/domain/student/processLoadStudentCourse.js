@@ -27,16 +27,29 @@ export async function processLoadStudentCourse(executionState) {
       }
     }
 
-    var courseAssignmentResult = await loadAssignedCourseIdsFromAssignments(actor, studentProfile);
+    var courseAssignmentResult = await loadAssignedCourseIds(actor, studentProfile, executionState);
     appendWarnings(executionState, courseAssignmentResult.warnings);
 
     var courses = await loadStudentCourses(actor, courseAssignmentResult.courseIds, executionState);
+
+    logStudentCourseDebug({
+      studentId: studentProfile && studentProfile.id ? studentProfile.id : "",
+      uid: actor && actor.id ? actor.id : "",
+      locationId: readFirstProfileLocationId(studentProfile),
+      classId: readFirstProfileClassId(studentProfile),
+      classIds: readProfileClassIds(studentProfile),
+      queryPaths: courseAssignmentResult.queryPaths,
+      rawCourseCount: courseAssignmentResult.courseIds.length,
+      filteredCourseCount: courses.length,
+      rejectionReasons: courseAssignmentResult.rejectionReasons
+    });
 
     executionState.result = {
       student: studentProfile,
       courses: courses,
       assignmentCount: courseAssignmentResult.assignmentCount,
-      assignmentSource: courseAssignmentResult.source
+      assignmentSource: courseAssignmentResult.source,
+      emptyStateMessage: courses.length === 0 ? "No courses assigned yet. Ask your teacher to assign a course." : ""
     };
 
     return { valid: true };
@@ -84,14 +97,9 @@ async function loadAssignedCourseSnaps(courseIds, executionState) {
   var courseIndex = 0;
 
   while (courseIndex < courseIds.length) {
-    var courseSnap = await getDoc(doc(db, "courses", courseIds[courseIndex]));
-    if (courseSnap.exists()) {
+    var courseSnap = await loadCourseSnap(courseIds[courseIndex], executionState);
+    if (courseSnap) {
       courseSnaps.push(courseSnap);
-    } else {
-      executionState.warnings.push({
-        code: "ASSIGNED_COURSE_NOT_FOUND",
-        message: "Assigned course was skipped because it no longer exists: " + courseIds[courseIndex]
-      });
     }
 
     courseIndex = courseIndex + 1;
@@ -100,22 +108,88 @@ async function loadAssignedCourseSnaps(courseIds, executionState) {
   return courseSnaps;
 }
 
+async function loadCourseSnap(courseId, executionState) {
+  var sources = ["courses", "catalogCourses"];
+  var sourceIndex = 0;
+
+  while (sourceIndex < sources.length) {
+    try {
+      var courseSnap = await getDoc(doc(db, sources[sourceIndex], courseId));
+
+      if (courseSnap.exists()) {
+        return courseSnap;
+      }
+    } catch (error) {
+      executionState.warnings.push({
+        code: "ASSIGNED_COURSE_READ_FAILED",
+        message: "Assigned course could not be read from " + sources[sourceIndex] + ": " + readErrorMessage(error)
+      });
+    }
+
+    sourceIndex = sourceIndex + 1;
+  }
+
+  executionState.warnings.push({
+    code: "ASSIGNED_COURSE_NOT_FOUND",
+    message: "Assigned course was skipped because it no longer exists: " + courseId
+  });
+
+  return null;
+}
+
+async function loadAssignedCourseIds(actor, studentProfile, executionState) {
+  var assignmentResult = await loadAssignedCourseIdsFromAssignments(actor, studentProfile);
+  var directCourseIds = readDirectCourseIds(studentProfile, executionState.context.assignedCourseIds);
+  var directIndex = 0;
+
+  while (directIndex < directCourseIds.length) {
+    addUniqueText(assignmentResult.courseIds, directCourseIds[directIndex]);
+    directIndex = directIndex + 1;
+  }
+
+  if (directCourseIds.length > 0) {
+    assignmentResult.source = assignmentResult.source + "+profileCourseIds";
+    assignmentResult.queryPaths.push("users/" + (studentProfile && studentProfile.id ? studentProfile.id : "") + ".assignedCourseIds|courseIds|courses|assignedCourses");
+  }
+
+  return assignmentResult;
+}
+
 async function loadAssignedCourseIdsFromAssignments(actor, studentProfile) {
   var targets = buildStudentAssignmentTargets(actor, studentProfile);
   var courseIds = [];
   var assignmentIds = [];
   var warnings = [];
+  var queryPaths = [];
+  var rejectionReasons = {};
   var targetIndex = 0;
 
   while (targetIndex < targets.length) {
     var target = targets[targetIndex];
-    var assignments = await loadCourseAssignments({
-      targetType: target.targetType,
-      targetId: target.targetId,
-      status: "active"
-    });
+    var queryPath = "courseAssignments where targetType=" + target.targetType + ", targetId=" + target.targetId + ", status=active";
 
-    addAssignmentCourses(courseIds, assignmentIds, assignments);
+    queryPaths.push(queryPath);
+
+    try {
+      var assignments = await loadCourseAssignments({
+        targetType: target.targetType,
+        targetId: target.targetId,
+        status: "active"
+      });
+
+      addAssignmentCourses(courseIds, assignmentIds, assignments);
+
+      if (assignments.length === 0) {
+        addReasonCount(rejectionReasons, "no-assignment-for-target");
+      }
+    } catch (error) {
+      addReasonCount(rejectionReasons, "assignment-query-failed");
+      warnings.push({
+        code: "STUDENT_ASSIGNMENT_QUERY_FAILED",
+        message: queryPath + " failed: " + readErrorMessage(error)
+      });
+    }
+
     targetIndex = targetIndex + 1;
   }
 
@@ -130,7 +204,9 @@ async function loadAssignedCourseIdsFromAssignments(actor, studentProfile) {
     courseIds: courseIds,
     assignmentCount: assignmentIds.length,
     warnings: warnings,
-    source: "courseAssignments"
+    source: "courseAssignments",
+    queryPaths: queryPaths,
+    rejectionReasons: rejectionReasons
   };
 }
 
@@ -177,6 +253,40 @@ function addAssignmentCourses(courseIds, assignmentIds, assignments) {
 
     assignmentIndex = assignmentIndex + 1;
   }
+}
+
+function readDirectCourseIds(studentProfile, contextCourseIds) {
+  var courseIds = [];
+
+  addCourseIdList(courseIds, contextCourseIds);
+  addCourseIdList(courseIds, studentProfile ? studentProfile.assignedCourseIds : null);
+  addCourseIdList(courseIds, studentProfile ? studentProfile.courseIds : null);
+  addCourseIdList(courseIds, studentProfile ? studentProfile.courses : null);
+  addCourseIdList(courseIds, studentProfile ? studentProfile.assignedCourses : null);
+
+  return courseIds;
+}
+
+function addCourseIdList(courseIds, values) {
+  var valueIndex = 0;
+  var source = values;
+
+  if (!Array.isArray(source)) {
+    return;
+  }
+
+  while (valueIndex < source.length) {
+    addUniqueText(courseIds, readCourseId(source[valueIndex]));
+    valueIndex = valueIndex + 1;
+  }
+}
+
+function readCourseId(value) {
+  if (!value || typeof value !== "object") {
+    return readTextValue(value);
+  }
+
+  return readTextValue(value.id || value.courseId || value.refId || value.uid);
 }
 
 function addTarget(targets, targetType, targetId) {
@@ -239,6 +349,18 @@ function addUniqueText(values, value) {
   if (values.indexOf(value) === -1) {
     values.push(value);
   }
+}
+
+function addReasonCount(reasons, reason) {
+  reasons[reason] = (reasons[reason] || 0) + 1;
+}
+
+function readErrorMessage(error) {
+  if (!error) {
+    return "unknown error";
+  }
+
+  return error.code ? error.code + " " + error.message : error.message || String(error);
 }
 
 function readTextField(source, fieldName) {
@@ -416,6 +538,75 @@ function hasStudentLocation(profile) {
   );
 }
 
+function readFirstProfileClassId(profile) {
+  var classIds = readProfileClassIds(profile);
+
+  return classIds.length > 0 ? classIds[0] : "";
+}
+
+function readProfileClassIds(profile) {
+  var classIds = [];
+
+  addUniqueText(classIds, readTextField(profile, "classId"));
+  addTextList(classIds, readArrayField(profile, "classIds"));
+  addTextList(classIds, readArrayField(profile, "assignedClassIds"));
+  addTextList(classIds, readRecordList(profile ? profile.assignedClasses : null, "class"));
+  addTextList(classIds, readRecordList(profile ? profile.classRefs : null, "class"));
+  addTextList(classIds, readRecordList(profile ? profile.classes : null, "class"));
+
+  return classIds;
+}
+
+function readFirstProfileLocationId(profile) {
+  var locationIds = [];
+
+  addUniqueText(locationIds, readTextField(profile, "locationId"));
+  addUniqueText(locationIds, readTextField(profile, "primaryLocationId"));
+  addUniqueText(locationIds, readTextField(profile, "schoolId"));
+  addUniqueText(locationIds, readTextField(profile, "locId"));
+  addTextList(locationIds, readArrayField(profile, "locationIds"));
+  addTextList(locationIds, readArrayField(profile, "schoolIds"));
+
+  return locationIds.length > 0 ? locationIds[0] : "";
+}
+
+function addTextList(target, values) {
+  var valueIndex = 0;
+
+  while (valueIndex < values.length) {
+    addUniqueText(target, values[valueIndex]);
+    valueIndex = valueIndex + 1;
+  }
+}
+
+function logStudentCourseDebug(details) {
+  if (!isDevelopmentHost()) {
+    return;
+  }
+
+  console.info("[student-course-debug]", {
+    studentId: details.studentId,
+    uid: details.uid,
+    locationId: details.locationId,
+    classId: details.classId,
+    classIds: details.classIds,
+    queryPath: details.queryPaths,
+    rawCourseCount: details.rawCourseCount,
+    filteredCourseCount: details.filteredCourseCount,
+    rejectionReasons: details.rejectionReasons
+  });
+}
+
+function isDevelopmentHost() {
+  if (typeof window === "undefined" || !window.location) {
+    return false;
+  }
+
+  return window.location.hostname === "localhost"
+    || window.location.hostname === "127.0.0.1"
+    || window.location.hostname === "";
+}
+
 function readRecordList(values, targetType) {
   var result = [];
   var valueIndex = 0;
@@ -479,12 +670,20 @@ function isStudentVisibleCourse(courseData) {
 
 async function buildCourseTree(actor, courseSnap) {
   var course = Object.assign({ id: courseSnap.id }, courseSnap.data());
-  course.modules = await loadModules(actor, course.id);
+  course.modules = await loadModules(actor, readCourseCollectionName(courseSnap), course.id);
   return course;
 }
 
-async function loadModules(actor, courseId) {
-  var modulesSnap = await getDocs(collection(db, "courses", courseId, "modules"));
+function readCourseCollectionName(courseSnap) {
+  if (courseSnap && courseSnap.ref && courseSnap.ref.parent && courseSnap.ref.parent.id) {
+    return courseSnap.ref.parent.id;
+  }
+
+  return "courses";
+}
+
+async function loadModules(actor, courseCollectionName, courseId) {
+  var modulesSnap = await getDocs(collection(db, courseCollectionName, courseId, "modules"));
   var modules = [];
 
   modulesSnap.forEach(function (moduleSnap) {
@@ -495,15 +694,15 @@ async function loadModules(actor, courseId) {
 
   var moduleIndex = 0;
   while (moduleIndex < modules.length) {
-    modules[moduleIndex].sessions = await loadSessions(actor, courseId, modules[moduleIndex].id);
+    modules[moduleIndex].sessions = await loadSessions(actor, courseCollectionName, courseId, modules[moduleIndex].id);
     moduleIndex = moduleIndex + 1;
   }
 
   return modules;
 }
 
-async function loadSessions(actor, courseId, moduleId) {
-  var sessionsSnap = await getDocs(collection(db, "courses", courseId, "modules", moduleId, "sessions"));
+async function loadSessions(actor, courseCollectionName, courseId, moduleId) {
+  var sessionsSnap = await getDocs(collection(db, courseCollectionName, courseId, "modules", moduleId, "sessions"));
   var sessions = [];
 
   sessionsSnap.forEach(function (sessionSnap) {
