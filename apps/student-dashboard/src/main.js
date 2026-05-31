@@ -99,6 +99,10 @@ function clearStudentSessionMarker() {
 }
 
 function logStartupAuthUser(user) {
+  if (!isDevelopmentHost()) {
+    return;
+  }
+
   if (!user) {
     console.log("[Startup] auth user", {
       uid: "",
@@ -111,6 +115,12 @@ function logStartupAuthUser(user) {
     uid: user.uid,
     isAnonymous: user.isAnonymous
   });
+}
+
+function isDevelopmentHost() {
+  return window.location.hostname === "localhost"
+    || window.location.hostname === "127.0.0.1"
+    || window.location.hostname === "";
 }
 
 async function resetStudentLogin() {

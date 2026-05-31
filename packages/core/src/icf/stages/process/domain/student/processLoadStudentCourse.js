@@ -147,9 +147,16 @@ function buildStudentAssignmentTargets(actor, studentProfile) {
 
   addTarget(targets, "class", readTextField(studentProfile, "classId"));
   addTargetList(targets, "class", readArrayField(studentProfile, "classIds"));
+  addTargetList(targets, "class", readArrayField(studentProfile, "assignedClassIds"));
+  addRecordTargetList(targets, "class", studentProfile ? studentProfile.assignedClasses : null);
+  addRecordTargetList(targets, "class", studentProfile ? studentProfile.classRefs : null);
+  addRecordTargetList(targets, "class", studentProfile ? studentProfile.classes : null);
   addTarget(targets, "location", readTextField(studentProfile, "locationId"));
+  addTarget(targets, "location", readTextField(studentProfile, "primaryLocationId"));
+  addTarget(targets, "location", readTextField(studentProfile, "schoolId"));
   addTarget(targets, "location", readTextField(studentProfile, "locId"));
   addTargetList(targets, "location", readArrayField(studentProfile, "locationIds"));
+  addTargetList(targets, "location", readArrayField(studentProfile, "schoolIds"));
 
   return targets;
 }
@@ -192,6 +199,20 @@ function addTargetList(targets, targetType, values) {
 
   while (valueIndex < values.length) {
     addTarget(targets, targetType, values[valueIndex]);
+    valueIndex = valueIndex + 1;
+  }
+}
+
+function addRecordTargetList(targets, targetType, values) {
+  var valueIndex = 0;
+  var source = values;
+
+  if (!Array.isArray(source)) {
+    source = [];
+  }
+
+  while (valueIndex < source.length) {
+    addTarget(targets, targetType, readRecordId(source[valueIndex], targetType));
     valueIndex = valueIndex + 1;
   }
 }
@@ -262,7 +283,7 @@ function validateStudentProfileForDashboard(studentProfile) {
     };
   }
 
-  if (studentProfile.role !== "student" && studentProfile.role !== "ROLE_STUDENT") {
+  if (!hasStudentRole(studentProfile)) {
     return {
       valid: false,
       errors: [
@@ -274,7 +295,7 @@ function validateStudentProfileForDashboard(studentProfile) {
     };
   }
 
-  if (!isActiveStudentStatus(studentProfile.status)) {
+  if (!isActiveStudentProfile(studentProfile)) {
     return {
       valid: false,
       errors: [
@@ -286,7 +307,7 @@ function validateStudentProfileForDashboard(studentProfile) {
     };
   }
 
-  if (!studentProfile.classId) {
+  if (!hasStudentClass(studentProfile)) {
     return {
       valid: false,
       errors: [
@@ -298,7 +319,7 @@ function validateStudentProfileForDashboard(studentProfile) {
     };
   }
 
-  if (!studentProfile.locationId) {
+  if (!hasStudentLocation(studentProfile)) {
     return {
       valid: false,
       errors: [
@@ -319,6 +340,117 @@ function isActiveStudentStatus(status) {
   }
 
   return status === "active" || status === "approved";
+}
+
+function isActiveStudentProfile(profile) {
+  if (!profile || typeof profile !== "object") {
+    return false;
+  }
+
+  if (profile.isActive === true) {
+    return true;
+  }
+
+  return isActiveStudentStatus(readTextField(profile, "status"));
+}
+
+function hasStudentRole(profile) {
+  return readRoles(profile).indexOf("student") !== -1;
+}
+
+function readRoles(profile) {
+  var source = [];
+  var roles = [];
+  var index = 0;
+
+  if (profile && Array.isArray(profile.roles)) {
+    source = source.concat(profile.roles);
+  }
+
+  if (profile && profile.role) {
+    source.push(profile.role);
+  }
+
+  while (index < source.length) {
+    var role = normalizeRole(source[index]);
+
+    if (role && roles.indexOf(role) === -1) {
+      roles.push(role);
+    }
+
+    index = index + 1;
+  }
+
+  return roles;
+}
+
+function normalizeRole(role) {
+  var normalizedRole = readTextValue(role).replace(/[^a-z0-9]/gi, "").toLowerCase();
+
+  if (normalizedRole === "student" || normalizedRole === "rolestudent") {
+    return "student";
+  }
+
+  return normalizedRole;
+}
+
+function hasStudentClass(profile) {
+  return Boolean(
+    readTextField(profile, "classId")
+      || readArrayField(profile, "classIds").length > 0
+      || readArrayField(profile, "assignedClassIds").length > 0
+      || readRecordList(profile ? profile.assignedClasses : null, "class").length > 0
+      || readRecordList(profile ? profile.classRefs : null, "class").length > 0
+      || readRecordList(profile ? profile.classes : null, "class").length > 0
+  );
+}
+
+function hasStudentLocation(profile) {
+  return Boolean(
+    readTextField(profile, "locationId")
+      || readTextField(profile, "primaryLocationId")
+      || readTextField(profile, "schoolId")
+      || readTextField(profile, "locId")
+      || readArrayField(profile, "locationIds").length > 0
+      || readArrayField(profile, "schoolIds").length > 0
+  );
+}
+
+function readRecordList(values, targetType) {
+  var result = [];
+  var valueIndex = 0;
+  var source = values;
+
+  if (!Array.isArray(source)) {
+    return result;
+  }
+
+  while (valueIndex < source.length) {
+    addUniqueText(result, readRecordId(source[valueIndex], targetType));
+    valueIndex = valueIndex + 1;
+  }
+
+  return result;
+}
+
+function readRecordId(value, targetType) {
+  if (!value || typeof value !== "object") {
+    return readTextValue(value);
+  }
+
+  if (targetType === "class") {
+    return readTextValue(value.id || value.classId || value.refId || value.uid);
+  }
+
+  return readTextValue(value.id || value.locationId || value.schoolId || value.refId || value.uid);
+}
+
+function readTextValue(value) {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  return value;
 }
 
 async function loadAllCourseSnaps() {

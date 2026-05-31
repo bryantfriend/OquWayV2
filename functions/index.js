@@ -166,6 +166,7 @@ async function loginStudent(data) {
 
   const customToken = await admin.auth().createCustomToken(studentId, {
     role: "student",
+    studentId: studentId,
     locationId: locationId,
     classId: classId,
     className: className

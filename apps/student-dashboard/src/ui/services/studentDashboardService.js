@@ -25,6 +25,7 @@ export const studentDashboardService = {
           return profile;
         }
 
+        logStartupProfileRejection(profile, readStudentProfileRejectReason(profile));
         return null;
       }
 
@@ -213,17 +214,48 @@ function getActor() {
 }
 
 function isValidStudentProfile(profile) {
-  return Boolean(
-    profile
-      && isStudentRole(profile.role)
-      && isActiveStudentStatus(profile)
-      && profile.classId
-      && profile.locationId
-  );
+  return readStudentProfileRejectReason(profile) === "";
 }
 
-function isStudentRole(role) {
-  return role === "student" || role === "ROLE_STUDENT";
+function readStudentProfileRejectReason(profile) {
+  if (!profile) {
+    return "profile-missing";
+  }
+
+  if (!isStudentRole(profile)) {
+    return "not-student-role";
+  }
+
+  if (!isActiveStudentStatus(profile)) {
+    return "inactive-status";
+  }
+
+  if (!hasStudentClass(profile)) {
+    return "missing-class";
+  }
+
+  if (!hasStudentLocation(profile)) {
+    return "missing-location";
+  }
+
+  return "";
+}
+
+function isStudentRole(profile) {
+  var roles = [];
+
+  if (profile && Array.isArray(profile.roles)) {
+    roles = roles.concat(profile.roles);
+  }
+
+  if (profile && profile.role) {
+    roles.push(profile.role);
+  }
+
+  return roles.some(function (role) {
+    var normalizedRole = readText(role).replace(/[^a-z0-9]/gi, "").toLowerCase();
+    return normalizedRole === "student" || normalizedRole === "rolestudent";
+  });
 }
 
 function isActiveStudentStatus(profile) {
@@ -239,7 +271,19 @@ function isActiveStudentStatus(profile) {
     return true;
   }
 
+  if (!profile.status) {
+    return true;
+  }
+
   return false;
+}
+
+function hasStudentClass(profile) {
+  return Boolean(profile.classId || (Array.isArray(profile.classIds) && profile.classIds.length > 0));
+}
+
+function hasStudentLocation(profile) {
+  return Boolean(profile.locationId || profile.primaryLocationId || profile.schoolId || (Array.isArray(profile.locationIds) && profile.locationIds.length > 0));
 }
 
 function hasConfirmedStudentSession() {
@@ -274,13 +318,55 @@ function clearStudentSessionMarker() {
 }
 
 function logStartupProfileResult(success, profile) {
+  if (!isDevelopmentHost()) {
+    return;
+  }
+
   console.log("[Startup] profile result", {
     success: success,
+    authUid: auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : "",
+    profilePathChecked: auth.currentUser && auth.currentUser.uid ? "users/" + auth.currentUser.uid : "",
+    profileExists: Boolean(profile),
     role: profile && profile.role ? profile.role : "",
+    roles: profile && Array.isArray(profile.roles) ? profile.roles : [],
     status: profile && profile.status ? profile.status : "",
     classId: profile && profile.classId ? profile.classId : "",
-    locationId: profile && profile.locationId ? profile.locationId : ""
+    classIds: profile && Array.isArray(profile.classIds) ? profile.classIds : [],
+    locationId: profile && profile.locationId ? profile.locationId : "",
+    locationIds: profile && Array.isArray(profile.locationIds) ? profile.locationIds : []
   });
+}
+
+function logStartupProfileRejection(profile, reasonRejected) {
+  if (!isDevelopmentHost()) {
+    return;
+  }
+
+  console.log("[Startup] profile rejected", {
+    authUid: auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : "",
+    profilePathChecked: auth.currentUser && auth.currentUser.uid ? "users/" + auth.currentUser.uid : "",
+    profileExists: Boolean(profile),
+    role: profile && profile.role ? profile.role : "",
+    roles: profile && Array.isArray(profile.roles) ? profile.roles : [],
+    status: profile && profile.status ? profile.status : "",
+    classId: profile && profile.classId ? profile.classId : "",
+    locationId: profile && profile.locationId ? profile.locationId : "",
+    reasonRejected: reasonRejected
+  });
+}
+
+function readText(value) {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  return value;
+}
+
+function isDevelopmentHost() {
+  return window.location.hostname === "localhost"
+    || window.location.hostname === "127.0.0.1"
+    || window.location.hostname === "";
 }
 
 function readFirstCourseId(courses) {

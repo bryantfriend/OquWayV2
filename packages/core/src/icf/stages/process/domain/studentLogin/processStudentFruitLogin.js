@@ -31,6 +31,14 @@ export async function processStudentFruitLogin(executionState) {
     }
 
     await signInWithCustomToken(auth, token);
+    logFruitLoginDebug("signed-in", {
+      studentId: payload.studentId,
+      locationId: payload.locationId,
+      classId: payload.classId,
+      className: payload.className,
+      authUid: auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : "",
+      submittedNormalizedSequence: []
+    });
     var studentProfile = await loadStudentProfile(payload.studentId);
 
     executionState.result = {
@@ -72,6 +80,7 @@ function logFruitLoginDebug(eventName, details) {
     locationId: details.locationId,
     classId: details.classId,
     className: details.className,
+    authUid: details.authUid,
     submittedNormalizedSequence: details.submittedNormalizedSequence
   });
 }
