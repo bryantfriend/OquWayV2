@@ -495,12 +495,12 @@ function readCourseStatus(course) {
 }
 
 function readModuleCount(course) {
-  if (Array.isArray(course.moduleOrder)) {
-    return course.moduleOrder.length;
-  }
-
   if (typeof course.moduleCount === "number") {
     return course.moduleCount;
+  }
+
+  if (Array.isArray(course.moduleOrder)) {
+    return course.moduleOrder.length;
   }
 
   return 0;

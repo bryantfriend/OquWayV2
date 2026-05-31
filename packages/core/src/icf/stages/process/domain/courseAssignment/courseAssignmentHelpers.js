@@ -1,4 +1,4 @@
-import { collection, db, getDocs } from "../../../../../infrastructure/firebase/firestore.js";
+import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js";
 
 export function createCourseAssignmentId() {
   var randomText = Math.random().toString(36).slice(2, 10);
@@ -6,7 +6,20 @@ export function createCourseAssignmentId() {
 }
 
 export async function loadCourseAssignments(filters) {
-  return filterAssignments(readAssignmentsFromSnapshot(await getDocs(collection(db, "courseAssignments"))), filters || {});
+  var safeFilters = filters || {};
+  var assignmentsRef = collection(db, "courseAssignments");
+  var constraints = [];
+
+  appendEqualityConstraint(constraints, "courseId", safeFilters.courseId);
+  appendEqualityConstraint(constraints, "status", safeFilters.status);
+  appendEqualityConstraint(constraints, "targetType", safeFilters.targetType);
+  appendEqualityConstraint(constraints, "targetId", safeFilters.targetId);
+
+  var snapshot = constraints.length > 0
+    ? await getDocs(query(assignmentsRef, ...constraints))
+    : await getDocs(assignmentsRef);
+
+  return filterAssignments(readAssignmentsFromSnapshot(snapshot), safeFilters);
 }
 
 export function sortAssignments(assignments) {
@@ -37,6 +50,14 @@ function readAssignmentsFromSnapshot(snapshot) {
   });
 
   return assignments;
+}
+
+function appendEqualityConstraint(constraints, fieldName, value) {
+  if (!value) {
+    return;
+  }
+
+  constraints.push(where(fieldName, "==", value));
 }
 
 function filterAssignments(assignments, filters) {

@@ -11,14 +11,21 @@ service cloud.firestore {
         (request.auth.token.userRoles is list && role in request.auth.token.userRoles)
       );
     }
+
+    function hasAnyRole(role, legacyRole) {
+      return hasRole(role)
+        || (request.auth != null && request.auth.token.role == legacyRole)
+        || (request.auth != null && request.auth.token.roles is list && legacyRole in request.auth.token.roles)
+        || (request.auth != null && request.auth.token.userRoles is list && legacyRole in request.auth.token.userRoles);
+    }
     
-    function isSuperAdmin() { return hasRole('superAdmin'); }
-    function isPlatformAdmin() { return hasRole('platformAdmin'); }
-    function isSchoolAdmin() { return hasRole('schoolAdmin'); }
-    function isCourseCreator() { return hasRole('courseCreator'); }
-    function isAccountant() { return hasRole('accountant'); }
-    function isTeacher() { return hasRole('teacher'); }
-    function isStudent() { return hasRole('student'); }
+    function isSuperAdmin() { return hasAnyRole('superAdmin', 'ROLE_SUPER_ADMIN'); }
+    function isPlatformAdmin() { return hasAnyRole('platformAdmin', 'ROLE_PLATFORM_ADMIN'); }
+    function isSchoolAdmin() { return hasAnyRole('schoolAdmin', 'ROLE_SCHOOL_ADMIN'); }
+    function isCourseCreator() { return hasAnyRole('courseCreator', 'ROLE_COURSE_CREATOR'); }
+    function isAccountant() { return hasAnyRole('accountant', 'ROLE_ACCOUNTANT'); }
+    function isTeacher() { return hasAnyRole('teacher', 'ROLE_TEACHER'); }
+    function isStudent() { return hasAnyRole('student', 'ROLE_STUDENT'); }
 
 
     function user() {
@@ -148,6 +155,21 @@ service cloud.firestore {
           allow read: if true;
           allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
         }
+
+        match /learningContent/{contentId} {
+          allow read: if true;
+          allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+        }
+
+        match /learningModes/{modeId} {
+          allow read: if true;
+          allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+
+          match /steps/{stepId} {
+            allow read: if true;
+            allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+          }
+        }
       }
     }
 
@@ -159,7 +181,6 @@ service cloud.firestore {
         isSchoolAdmin() ||
         isCourseCreator() ||
         isTeacher() ||
-        isStudent() ||
         isRelevantCourseAssignment()
       );
 
@@ -185,6 +206,21 @@ service cloud.firestore {
         match /sessions/{sessionId} {
           allow read: if true;
           allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+        }
+
+        match /learningContent/{contentId} {
+          allow read: if true;
+          allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+        }
+
+        match /learningModes/{modeId} {
+          allow read: if true;
+          allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+
+          match /steps/{stepId} {
+            allow read: if true;
+            allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+          }
         }
       }
     }

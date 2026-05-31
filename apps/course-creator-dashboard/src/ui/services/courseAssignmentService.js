@@ -36,6 +36,14 @@ export const courseAssignmentService = {
     return readIntentDataOrThrow(result);
   },
 
+  disableCourseAssignment: async function (assignmentId) {
+    var result = await runCourseAssignmentIntent("DisableCourseAssignmentIntent", {
+      assignmentId: assignmentId
+    });
+
+    return readIntentDataOrThrow(result);
+  },
+
   archiveCourseAssignment: async function (assignmentId) {
     var result = await runCourseAssignmentIntent("ArchiveCourseAssignmentIntent", {
       assignmentId: assignmentId

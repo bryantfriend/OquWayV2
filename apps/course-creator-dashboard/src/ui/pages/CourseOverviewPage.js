@@ -14,6 +14,8 @@ export class CourseOverviewPage {
     this.moduleWizardTemplateKey = 'school';
     this.assignments = [];
     this.assignmentsLoading = false;
+    this.assignmentPendingId = "";
+    this.assignmentPendingAction = "";
     this.ALL_LANGUAGES = [
       { code: 'en', name: 'English (en)' },
       { code: 'ru', name: 'Russian (ru)' },
@@ -1128,24 +1130,45 @@ export class CourseOverviewPage {
 
   updateAssignmentStatus(assignmentId, status) {
     var self = this;
-    this.showAssignmentStatus('loading', 'Updating assignment...');
+    var isDisable = status === 'disabled';
+    this.assignmentPendingId = assignmentId;
+    this.assignmentPendingAction = isDisable ? 'disable' : 'update';
+    this.renderAssignments();
+    this.showAssignmentStatus('loading', isDisable ? 'Disabling assignment...' : 'Updating assignment...');
 
-    courseAssignmentService.updateCourseAssignment(assignmentId, status).then(function () {
-      self.showAssignmentStatus('success', 'Assignment updated.');
+    var request = isDisable
+      ? courseAssignmentService.disableCourseAssignment(assignmentId)
+      : courseAssignmentService.updateCourseAssignment(assignmentId, status);
+
+    request.then(function () {
+      self.assignmentPendingId = "";
+      self.assignmentPendingAction = "";
+      self.showAssignmentStatus('success', isDisable ? 'Assignment disabled.' : 'Assignment updated.');
       self.loadAssignments();
     }).catch(function (error) {
+      self.assignmentPendingId = "";
+      self.assignmentPendingAction = "";
+      self.renderAssignments();
       self.showAssignmentStatus('error', error.message);
     });
   }
 
   archiveAssignment(assignmentId) {
     var self = this;
+    this.assignmentPendingId = assignmentId;
+    this.assignmentPendingAction = 'archive';
+    this.renderAssignments();
     this.showAssignmentStatus('loading', 'Archiving assignment...');
 
     courseAssignmentService.archiveCourseAssignment(assignmentId).then(function () {
+      self.assignmentPendingId = "";
+      self.assignmentPendingAction = "";
       self.showAssignmentStatus('success', 'Assignment archived.');
       self.loadAssignments();
     }).catch(function (error) {
+      self.assignmentPendingId = "";
+      self.assignmentPendingAction = "";
+      self.renderAssignments();
       self.showAssignmentStatus('error', error.message);
     });
   }
@@ -1167,8 +1190,14 @@ export class CourseOverviewPage {
       return;
     }
 
+    var pendingId = this.assignmentPendingId;
+    var pendingAction = this.assignmentPendingAction;
+
     list.innerHTML = this.assignments.map(function (assignment) {
-      return buildAssignmentRow(assignment);
+      return buildAssignmentRow(assignment, {
+        isPending: pendingId && pendingId === assignment.id,
+        pendingAction: pendingAction
+      });
     }).join('');
   }
 
@@ -1489,13 +1518,19 @@ function buildModuleSkeletonRows(rowCount) {
   return rows;
 }
 
-function buildAssignmentRow(assignment) {
+function buildAssignmentRow(assignment, options) {
+  var rowOptions = options || {};
   var assignmentId = escapeHtml(assignment.id || '');
   var targetType = escapeHtml(assignment.targetType || 'target');
   var targetId = escapeHtml(assignment.targetId || '');
   var status = assignment.status || 'active';
-  var nextStatus = status === 'active' ? 'paused' : 'active';
-  var nextStatusLabel = status === 'active' ? 'Pause' : 'Activate';
+  var isPending = Boolean(rowOptions.isPending);
+  var pendingLabel = readAssignmentPendingLabel(rowOptions.pendingAction);
+  var nextStatus = status === 'active' ? 'disabled' : 'active';
+  var nextStatusLabel = status === 'active' ? 'Disable' : 'Activate';
+  var buttonDisabled = isPending ? ' disabled aria-busy="true"' : '';
+  var actionLabel = isPending ? pendingLabel : nextStatusLabel;
+  var archiveLabel = isPending && rowOptions.pendingAction === 'archive' ? 'Archiving...' : 'Archive';
 
   return '<div class="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">'
     + '<div class="flex items-start justify-between gap-2">'
@@ -1506,10 +1541,22 @@ function buildAssignmentRow(assignment) {
     + '<span class="' + buildAssignmentStatusClass(status) + '">' + escapeHtml(status) + '</span>'
     + '</div>'
     + '<div class="mt-3 flex gap-2">'
-    + '<button class="assignment-status-btn flex-1 rounded-lg border border-blue-100 bg-blue-50 px-2 py-1.5 text-[11px] font-bold text-blue-700 hover:bg-blue-100" data-id="' + assignmentId + '" data-status="' + nextStatus + '">' + nextStatusLabel + '</button>'
-    + '<button class="assignment-archive-btn flex-1 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1.5 text-[11px] font-bold text-gray-600 hover:bg-gray-100" data-id="' + assignmentId + '">Archive</button>'
+    + '<button class="assignment-status-btn flex-1 rounded-lg border border-blue-100 bg-blue-50 px-2 py-1.5 text-[11px] font-bold text-blue-700 hover:bg-blue-100 disabled:opacity-60 disabled:cursor-not-allowed" data-id="' + assignmentId + '" data-status="' + nextStatus + '"' + buttonDisabled + '>' + actionLabel + '</button>'
+    + '<button class="assignment-archive-btn flex-1 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1.5 text-[11px] font-bold text-gray-600 hover:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed" data-id="' + assignmentId + '"' + buttonDisabled + '>' + archiveLabel + '</button>'
     + '</div>'
     + '</div>';
+}
+
+function readAssignmentPendingLabel(action) {
+  if (action === 'disable') {
+    return 'Disabling...';
+  }
+
+  if (action === 'archive') {
+    return 'Working...';
+  }
+
+  return 'Saving...';
 }
 
 function buildAssignmentStatusClass(status) {

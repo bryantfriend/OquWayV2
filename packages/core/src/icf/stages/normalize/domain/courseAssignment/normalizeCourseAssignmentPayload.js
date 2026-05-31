@@ -35,7 +35,7 @@ export function normalizeCourseAssignmentDisablePayload(executionState) {
 
   return {
     assignmentId: normalizeText(payload.assignmentId),
-    status: "paused"
+    status: "disabled"
   };
 }
 
@@ -93,7 +93,7 @@ function normalizeTargetId(value, targetType, locationId, classId, studentId) {
 function normalizeStatus(value) {
   var status = normalizeText(value);
 
-  if (status === "paused" || status === "archived") {
+  if (status === "paused" || status === "archived" || status === "disabled") {
     return status;
   }
 

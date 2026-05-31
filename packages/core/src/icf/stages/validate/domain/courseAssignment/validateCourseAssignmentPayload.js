@@ -35,7 +35,7 @@ export function validateCourseAssignmentPayload(executionState) {
   if (payload.status && !isValidStatus(readText(payload.status))) {
     errors.push({
       code: "COURSE_ASSIGNMENT_STATUS_INVALID",
-      message: "Course assignment status must be active, paused, or archived."
+      message: "Course assignment status must be active, paused, disabled, or archived."
     });
   }
 
@@ -76,7 +76,7 @@ export function validateCourseAssignmentUpdatePayload(executionState) {
       errors: [
         {
           code: "COURSE_ASSIGNMENT_STATUS_INVALID",
-          message: "Course assignment status must be active, paused, or archived."
+      message: "Course assignment status must be active, paused, disabled, or archived."
         }
       ]
     };
@@ -102,5 +102,5 @@ function isValidTargetType(value) {
 }
 
 function isValidStatus(value) {
-  return value === "active" || value === "paused" || value === "archived";
+  return value === "active" || value === "paused" || value === "disabled" || value === "archived";
 }

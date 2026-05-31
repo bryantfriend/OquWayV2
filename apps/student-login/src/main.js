@@ -17,12 +17,14 @@ var state = {
   selectedLoginMethod: "fruit",
   fruitEntry: [],
   isLoading: true,
+  isLoadingStudents: false,
   isBusy: false,
   message: startupMessage,
   messageType: startupMessage ? "error" : "info"
 };
 
 var fruits = ["apple", "watermelon", "banana", "strawberry", "pineapple", "mango", "kiwi", "orange", "cherry"];
+var startupOptionsLoading = false;
 var fruitLabels = {
   apple: "🍎",
   watermelon: "🍉",
@@ -225,6 +227,10 @@ function buildStudentList() {
     return '<div class="login-empty">Choose a class to see students.</div>';
   }
 
+  if (state.isLoadingStudents) {
+    return '<div class="login-empty">Loading students...</div>';
+  }
+
   if (state.students.length === 0) {
     return '<div class="login-empty">No active students found in this class.</div>';
   }
@@ -369,6 +375,7 @@ function selectLocation(locationId) {
     fruitEntry: [],
     classes: [],
     students: [],
+    isLoadingStudents: false,
     message: ""
   });
 
@@ -385,6 +392,7 @@ function selectClass(classId) {
     selectedStudentId: "",
     fruitEntry: [],
     students: [],
+    isLoadingStudents: Boolean(classId),
     message: ""
   });
 
@@ -445,14 +453,23 @@ async function loadLocations() {
 }
 
 async function loadStartupLoginOptions() {
-  var loginSlug = readLocationSlugFromUrl();
-
-  if (loginSlug) {
-    await resolveLocationBySlug(loginSlug);
+  if (startupOptionsLoading) {
     return;
   }
 
-  await loadLocations();
+  startupOptionsLoading = true;
+  var loginSlug = readLocationSlugFromUrl();
+
+  try {
+    if (loginSlug) {
+      await resolveLocationBySlug(loginSlug);
+      return;
+    }
+
+    await loadLocations();
+  } finally {
+    startupOptionsLoading = false;
+  }
 }
 
 async function resolveLocationBySlug(loginSlug) {
@@ -532,7 +549,7 @@ async function loadClasses(locationId) {
 }
 
 async function loadStudents(locationId, classId, className) {
-  setState({ isBusy: true, message: "Loading students...", messageType: "info" });
+  setState({ isBusy: true, isLoadingStudents: true, message: "Loading students...", messageType: "info" });
   var result = await runLoginIntent("LoadStudentsForClassIntent", {
     locationId: locationId,
     classId: classId,
@@ -543,6 +560,7 @@ async function loadStudents(locationId, classId, className) {
     setState({
       students: result.emitted.data.students || [],
       isBusy: false,
+      isLoadingStudents: false,
       message: ""
     });
     return;
@@ -551,6 +569,7 @@ async function loadStudents(locationId, classId, className) {
   setState({
     students: [],
     isBusy: false,
+    isLoadingStudents: false,
     message: readIntentErrorMessage(result),
     messageType: "error"
   });

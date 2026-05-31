@@ -7,7 +7,7 @@ import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/r
 import { roleFilterCards, userRoles, userStatuses } from "../shared/constants.js";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.13";
+var appVersion = "1.1.14";
 var state = {
   isLoading: true,
   isRefreshing: false,
@@ -60,7 +60,15 @@ var state = {
   assignmentForm: createAssignmentForm(),
   loginToolStudentId: "",
   resetStudentId: "",
-  resetFruitPassword: []
+  resetFruitPassword: [],
+  classPicker: {
+    isOpen: false,
+    formId: "",
+    mode: "primary",
+    searchText: "",
+    includeAllLocations: false,
+    selectedIds: []
+  }
 };
 
 var tabs = ["overview", "locations", "users", "classes", "lessons", "assignments", "loginTools", "analytics", "reports", "settings", "auditLogs"];
@@ -472,6 +480,7 @@ function buildDashboardView() {
   html += buildActiveTab();
   html += '</main>';
   html += buildResetModal();
+  html += buildClassPickerModal();
   html += '</section>';
 
   return html;
@@ -1011,6 +1020,7 @@ function renderRoadmap() {
     { name: "Location Login Links", status: "In Progress" },
     { name: "Course Editor", status: "In Progress" },
     { name: "Student Dashboard", status: "In Progress" },
+    { name: "External Task Verification", status: "Planned" },
     { name: "Parent Portal", status: "Planned" },
     { name: "Ministry Analytics", status: "Planned" }
   ];
@@ -1355,10 +1365,26 @@ function buildRelationshipHints(formId, form) {
   }
 
   if (form.roles.indexOf("student") !== -1) {
-    html += '<section class="sa-location-form-section"><h3>Student Class Assignments</h3><p>Choose the primary class and optional additional class IDs for this student.</p><div class="sa-user-fields">' + buildClassSelect("user", formId, form.classId) + buildInput("user", formId, "classIdsText", "Additional Class IDs", form.classIdsText, "classA, classB") + '</div></section>';
+    html += '<section class="sa-location-form-section"><h3>Student Class Assignments</h3><p>Choose classes from a searchable list. Primary defaults to the student primary location; additional classes can span locations.</p><div class="sa-user-fields">'
+      + buildClassPickerSummary(formId, form)
+      + '</div></section>';
   }
 
   return html;
+}
+
+function buildClassPickerSummary(formId, form) {
+  var additionalIds = splitCommaList(form.classIdsText).filter(function (classId) {
+    return classId && classId !== form.classId;
+  });
+  var additionalLabel = additionalIds.length > 0
+    ? additionalIds.map(readClassName).join(", ")
+    : "No additional classes selected";
+
+  return '<div class="sa-class-picker-summary">'
+    + '<label>Primary Class<div class="sa-login-link-preview"><strong>' + escapeHtml(form.classId ? readClassName(form.classId) : "None selected") + '</strong><span>' + escapeHtml(form.classId ? readLocationName(readClassLocationId(findClass(form.classId))) : "Choose a primary class") + '</span></div><button type="button" class="sa-btn sa-btn-secondary" data-action="open-primary-class-picker" data-id="' + escapeHtml(formId) + '">Choose Primary Class</button></label>'
+    + '<label>Additional Classes<div class="sa-login-link-preview"><strong>' + escapeHtml(additionalLabel) + '</strong><span>Multi-location class support</span></div><button type="button" class="sa-btn sa-btn-secondary" data-action="open-additional-class-picker" data-id="' + escapeHtml(formId) + '">Add Additional Classes</button></label>'
+    + '</div>';
 }
 
 function buildLocationsHeader() {
@@ -1886,7 +1912,36 @@ function buildResetModal() {
   var student = findStudent(state.resetStudentId);
   var name = student ? student.name : state.resetStudentId;
 
-  return '<div class="sa-modal-backdrop"><section class="sa-modal"><h2>Reset Fruit Password</h2><p>' + escapeHtml(name) + '</p>' + buildFruitSelector("reset", state.resetFruitPassword) + '<div class="sa-modal-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="close-reset-fruit">Cancel</button><button type="button" class="sa-btn" data-action="confirm-reset-fruit"' + disabled(state.resetFruitPassword.length !== 4) + '>Confirm Reset</button></div></section></div>';
+  return '<div class="sa-modal-backdrop"><section class="sa-modal"><h2>Reset Fruit Password</h2><p>' + escapeHtml(name) + '</p><p class="sa-summary">A random fruit password is ready locally. It will not be saved until you click Save Password.</p>' + buildFruitSelector("reset", state.resetFruitPassword) + '<div class="sa-modal-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="regenerate-reset-fruit">Regenerate</button><button type="button" class="sa-btn sa-btn-secondary" data-action="close-reset-fruit">Cancel</button><button type="button" class="sa-btn" data-action="confirm-reset-fruit"' + disabled(state.resetFruitPassword.length !== 4) + '>Save Password</button></div></section></div>';
+}
+
+function buildClassPickerModal() {
+  if (!state.classPicker || !state.classPicker.isOpen) {
+    return "";
+  }
+
+  var picker = state.classPicker;
+  var classes = readClassPickerClasses(picker);
+  var title = picker.mode === "primary" ? "Choose Primary Class" : "Add Additional Classes";
+  var html = '<div class="sa-modal-backdrop"><section class="sa-modal"><h2>' + escapeHtml(title) + '</h2><p>Search classes and confirm the selection. Location names are shown beside each class.</p>';
+  html += '<div class="sa-form sa-form-2"><label>Search<input type="search" data-class-picker-search="true" value="' + escapeHtml(picker.searchText) + '" placeholder="Search class or location"></label><label><span>Scope</span><span class="sa-check-row"><input type="checkbox" data-class-picker-all-locations="true"' + (picker.includeAllLocations ? " checked" : "") + '> Search all locations</span></label></div>';
+  html += '<div class="sa-table" style="max-height:320px;overflow:auto;margin-top:12px">';
+
+  if (classes.length === 0) {
+    html += '<div class="sa-empty">No matching classes found.</div>';
+  } else {
+    classes.forEach(function (classRecord) {
+      var selected = picker.selectedIds.indexOf(classRecord.id) !== -1;
+      html += '<button type="button" class="sa-row' + (selected ? ' sa-row-active' : '') + '" data-class-picker-id="' + escapeHtml(classRecord.id) + '">'
+        + '<strong>' + escapeHtml(readClassName(classRecord.id)) + '</strong>'
+        + '<span>' + escapeHtml(readLocationName(readClassLocationId(classRecord))) + '</span>'
+        + '<em>' + (selected ? "Selected" : "Choose") + '</em>'
+        + '</button>';
+    });
+  }
+
+  html += '</div><div class="sa-modal-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="close-class-picker">Cancel</button><button type="button" class="sa-btn" data-action="save-class-picker"' + disabled(picker.mode === "primary" && picker.selectedIds.length !== 1) + '>Save Class Selection</button></div></section></div>';
+  return html;
 }
 
 function buildFruitSelector(mode, values) {
@@ -1915,6 +1970,7 @@ function handleClick(event) {
   var actionButton = event.target.closest("[data-action]");
   var fruitButton = event.target.closest("[data-fruit]");
   var fruitActionButton = event.target.closest("[data-fruit-action]");
+  var classPickerButton = event.target.closest("[data-class-picker-id]");
 
   if (tabButton) {
     var requestedTab = tabButton.getAttribute("data-tab");
@@ -1932,6 +1988,11 @@ function handleClick(event) {
 
   if (fruitActionButton) {
     handleFruitAction(fruitActionButton.getAttribute("data-fruit-action"));
+    return;
+  }
+
+  if (classPickerButton) {
+    toggleClassPickerSelection(classPickerButton.getAttribute("data-class-picker-id"));
     return;
   }
 
@@ -1990,6 +2051,18 @@ function handleInput(event) {
     return;
   }
 
+  if (target.getAttribute("data-class-picker-search")) {
+    state.classPicker.searchText = target.value;
+    render();
+    return;
+  }
+
+  if (target.getAttribute("data-class-picker-all-locations")) {
+    state.classPicker.includeAllLocations = target.checked;
+    render();
+    return;
+  }
+
   if (target.getAttribute("data-field")) {
     updateFormValue(target);
   }
@@ -2040,7 +2113,9 @@ function updateFormValue(target) {
     state.studentForm[field] = value;
   } else if (kind === "user" && id === "new") {
     setUserFormValue(state.userForm, field, value);
-    render();
+    if (shouldRerenderUserFormField(field)) {
+      render();
+    }
   } else if (kind === "assignment" && id === "new") {
     updateAssignmentFormValue(field, value);
     render();
@@ -2111,7 +2186,9 @@ function updateExistingRecord(kind, id, field, value) {
       list[index][field] = value;
       if (kind === "user") {
         setUserFormValue(list[index], field, value);
-        render();
+        if (shouldRerenderUserFormField(field)) {
+          render();
+        }
         return;
       }
       render();
@@ -2120,6 +2197,98 @@ function updateExistingRecord(kind, id, field, value) {
 
     index = index + 1;
   }
+}
+
+function shouldRerenderUserFormField(field) {
+  return field === "roles"
+    || field === "locationIds"
+    || field === "primaryLocationId"
+    || field === "classId";
+}
+
+function openClassPicker(formId, mode) {
+  var form = formId === "new" ? state.userForm : normalizeUserForm(findUser(formId) || { id: formId });
+  var selectedIds = mode === "primary"
+    ? (form.classId ? [form.classId] : [])
+    : splitCommaList(form.classIdsText);
+
+  state.classPicker = {
+    isOpen: true,
+    formId: formId,
+    mode: mode === "additional" ? "additional" : "primary",
+    searchText: "",
+    includeAllLocations: mode === "additional",
+    selectedIds: selectedIds
+  };
+  render();
+}
+
+function closeClassPicker() {
+  state.classPicker = {
+    isOpen: false,
+    formId: "",
+    mode: "primary",
+    searchText: "",
+    includeAllLocations: false,
+    selectedIds: []
+  };
+  render();
+}
+
+function toggleClassPickerSelection(classId) {
+  var picker = state.classPicker;
+  var selectedIds = picker.selectedIds.slice();
+  var index = selectedIds.indexOf(classId);
+
+  if (picker.mode === "primary") {
+    selectedIds = [classId];
+  } else if (index === -1) {
+    selectedIds.push(classId);
+  } else {
+    selectedIds.splice(index, 1);
+  }
+
+  state.classPicker = Object.assign({}, picker, { selectedIds: selectedIds });
+  render();
+}
+
+function saveClassPicker() {
+  var picker = state.classPicker;
+  var form = picker.formId === "new" ? state.userForm : findUser(picker.formId);
+
+  if (!form) {
+    closeClassPicker();
+    return;
+  }
+
+  if (picker.mode === "primary") {
+    var classId = picker.selectedIds[0] || "";
+    var classRecord = findClass(classId);
+    setUserFormValue(form, "classId", classId);
+    setUserFormValue(form, "primaryLocationId", readClassLocationId(classRecord));
+  } else {
+    setUserFormValue(form, "classIdsText", picker.selectedIds.join(", "));
+  }
+
+  closeClassPicker();
+}
+
+function readClassPickerClasses(picker) {
+  var form = picker.formId === "new" ? state.userForm : normalizeUserForm(findUser(picker.formId) || { id: picker.formId });
+  var primaryLocationId = form.primaryLocationId || form.locationId || "";
+  var query = readSafeString(picker.searchText).toLowerCase();
+
+  return state.classes.filter(function (classRecord) {
+    var locationId = readClassLocationId(classRecord);
+    var locationMatches = picker.includeAllLocations || !primaryLocationId || locationId === primaryLocationId;
+    var text = [classRecord.name, classRecord.title, classRecord.id, readLocationName(locationId)].join(" ").toLowerCase();
+
+    return locationMatches && (!query || text.indexOf(query) !== -1);
+  });
+}
+
+function readClassLocationId(classRecord) {
+  return readSafeString(classRecord.locationId || classRecord.schoolId || classRecord.locId);
 }
 
 async function handleAction(action, id) {
@@ -2159,8 +2328,16 @@ async function handleAction(action, id) {
     await updateUserStatus(id, "inactive");
   } else if (action === "delete-user") {
     await deleteUserProfile(id);
+  } else if (action === "open-primary-class-picker") {
+    openClassPicker(id, "primary");
+  } else if (action === "open-additional-class-picker") {
+    openClassPicker(id, "additional");
+  } else if (action === "close-class-picker") {
+    closeClassPicker();
+  } else if (action === "save-class-picker") {
+    saveClassPicker();
   } else if (action === "reset-fruit-user") {
-    await resetFruitPasswordForUser(id);
+    openFruitPasswordReset(id);
   } else if (action === "send-password-reset") {
     await sendStaffPasswordReset(id);
   } else if (action === "create-class") {
@@ -2195,10 +2372,12 @@ async function handleAction(action, id) {
     await refreshAllData();
   } else if (action === "open-reset-fruit") {
     if (id) {
-      setState({ resetStudentId: id, resetFruitPassword: [], message: "" });
+      openFruitPasswordReset(id);
     }
   } else if (action === "close-reset-fruit") {
     setState({ resetStudentId: "", resetFruitPassword: [] });
+  } else if (action === "regenerate-reset-fruit") {
+    setState({ resetFruitPassword: createRandomFruitPassword(), message: "" });
   } else if (action === "confirm-reset-fruit") {
     await resetFruitPassword();
   } else if (action === "open-student-login") {
@@ -2383,7 +2562,7 @@ function rememberReturnDestination() {
 }
 
 function buildAdminLoginUrl() {
-  return "../course-creator-dashboard/login.html?returnTo=" + encodeURIComponent(window.location.href);
+  return "./index.html";
 }
 
 async function updateAssignmentStatus(assignmentId, status) {
@@ -2555,36 +2734,16 @@ async function deleteUserProfile(userId) {
   }
 }
 
-async function resetFruitPasswordForUser(userId) {
+function openFruitPasswordReset(userId) {
   var fruitPassword = createRandomFruitPassword();
   var user = getSafeUser(findUser(userId));
 
   if (!userId || user.roles.indexOf("student") === -1) {
     setState({ message: "Fruit password reset is only available for student users.", messageType: "error" });
-    return false;
+    return;
   }
 
-  setState({ resetStudentId: userId, resetFruitPassword: fruitPassword });
-
-  var saved = await saveIntent("ResetStudentFruitPasswordIntent", {
-    studentId: userId,
-    fruitPassword: fruitPassword
-  }, "Fruit password reset.");
-
-  if (saved) {
-    var label = fruitPassword.map(readFruitLabel).join(" ");
-    setState({
-      resetStudentId: "",
-      resetFruitPassword: [],
-      message: "Fruit password reset for " + (user.displayName || user.id) + ": " + label,
-      messageType: "success"
-    });
-    await refreshAllData();
-    setState({ message: "Fruit password reset for " + (user.displayName || user.id) + ": " + label, messageType: "success" });
-    return true;
-  }
-
-  return false;
+  setState({ resetStudentId: userId, resetFruitPassword: fruitPassword, message: "" });
 }
 
 async function sendStaffPasswordReset(userId) {
@@ -2677,13 +2836,24 @@ async function resetFruitPassword() {
     return;
   }
 
-  await saveIntent("ResetStudentFruitPasswordIntent", {
+  var fruitPassword = state.resetFruitPassword.slice();
+  var saved = await saveIntent("ResetStudentFruitPasswordIntent", {
     studentId: state.resetStudentId,
-    fruitPassword: state.resetFruitPassword
+    fruitPassword: fruitPassword
   }, "Fruit password reset.");
 
-  setState({ resetStudentId: "", resetFruitPassword: [] });
-  await refreshAllData();
+  if (saved) {
+    var student = findStudent(state.resetStudentId) || findUser(state.resetStudentId);
+    var label = fruitPassword.map(readFruitLabel).join(" ");
+    setState({
+      resetStudentId: "",
+      resetFruitPassword: [],
+      message: "Fruit password reset for " + ((student && (student.name || student.displayName)) || "student") + ": " + label,
+      messageType: "success"
+    });
+    await refreshAllData();
+    setState({ message: "Fruit password reset for " + ((student && (student.name || student.displayName)) || "student") + ": " + label, messageType: "success" });
+  }
 }
 
 function addFruit(mode, fruit) {

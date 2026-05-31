@@ -1,4 +1,4 @@
-export var appVersion = "1.1.13";
+export var appVersion = "1.1.14";
 
 export var userRoles = [
   "student",
