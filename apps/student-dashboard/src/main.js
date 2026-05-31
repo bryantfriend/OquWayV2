@@ -415,14 +415,22 @@ function buildCourseCards(courses, selectedCourseId) {
   while (courseIndex < courses.length) {
     var course = courses[courseIndex];
     var activeClass = selectedCourseId === course.id ? " student-course-card-active" : "";
+    var progressPercent = readCourseProgressPercent(course);
+    var moduleCount = readCourseModuleCount(course);
     html += '<button type="button" class="student-course-card' + activeClass + '" data-course-id="' + escapeHtml(course.id) + '">';
-    html += '<span>' + escapeHtml(readLocalizedText(course.title, "Untitled Course")) + '</span>';
-    html += '<small>' + readCourseProgressPercent(course) + '% complete</small>';
+    html += '<span class="student-course-icon">▣</span>';
+    html += '<span class="student-course-card-copy"><strong>' + escapeHtml(readLocalizedText(course.title, "Untitled Course")) + '</strong><small>' + moduleCount + ' module' + (moduleCount === 1 ? "" : "s") + '</small></span>';
+    html += '<span class="student-course-card-action">' + (progressPercent > 0 ? "Continue" : "Start") + '</span>';
+    html += '<small class="student-course-progress">' + progressPercent + '% complete</small>';
     html += '</button>';
     courseIndex = courseIndex + 1;
   }
 
   return html;
+}
+
+function readCourseModuleCount(course) {
+  return Array.isArray(course && course.modules) ? course.modules.length : 0;
 }
 
 function buildCourseDetail(course, state) {

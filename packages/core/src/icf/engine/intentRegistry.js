@@ -14,8 +14,11 @@ const registry = {
   // Course Assignments
   CreateCourseAssignmentIntent: IntentExports.CreateCourseAssignmentIntent,
   ListCourseAssignmentsIntent: IntentExports.ListCourseAssignmentsIntent,
+  LoadCourseAssignmentsIntent: IntentExports.LoadCourseAssignmentsIntent,
   UpdateCourseAssignmentIntent: IntentExports.UpdateCourseAssignmentIntent,
   ArchiveCourseAssignmentIntent: IntentExports.ArchiveCourseAssignmentIntent,
+  DisableCourseAssignmentIntent: IntentExports.DisableCourseAssignmentIntent,
+  DeleteCourseAssignmentIntent: IntentExports.DeleteCourseAssignmentIntent,
 
   // Locations / Login Settings
   ListLocationsIntent: IntentExports.ListLocationsIntent,

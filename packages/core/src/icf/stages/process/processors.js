@@ -22,6 +22,7 @@ export { catalogStepReorderProcessing } from "./domain/catalogCourse/catalogStep
 export { catalogStepUpdateProcessing } from "./domain/catalogCourse/catalogStepUpdateProcessing.js";
 export { processArchiveCourseAssignment } from "./domain/courseAssignment/processArchiveCourseAssignment.js";
 export { processCreateCourseAssignment } from "./domain/courseAssignment/processCreateCourseAssignment.js";
+export { processDeleteCourseAssignment } from "./domain/courseAssignment/processDeleteCourseAssignment.js";
 export { processListCourseAssignments } from "./domain/courseAssignment/processListCourseAssignments.js";
 export { processUpdateCourseAssignment } from "./domain/courseAssignment/processUpdateCourseAssignment.js";
 export { processListLocations } from "./domain/location/processListLocations.js";

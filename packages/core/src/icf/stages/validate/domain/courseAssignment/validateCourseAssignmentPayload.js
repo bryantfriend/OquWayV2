@@ -9,17 +9,26 @@ export function validateCourseAssignmentPayload(executionState) {
     });
   }
 
-  if (!isValidTargetType(readText(payload.targetType))) {
+  var targetType = readText(payload.targetType) || "class";
+
+  if (!isValidTargetType(targetType)) {
     errors.push({
       code: "COURSE_ASSIGNMENT_TARGET_TYPE_INVALID",
-      message: "Course assignment targetType must be location, class, or student."
+      message: "Course assignment targetType must be class or student."
     });
   }
 
-  if (!isNonEmptyText(payload.targetId)) {
+  if (targetType === "class" && !isNonEmptyText(payload.classId) && !isNonEmptyText(payload.targetId)) {
     errors.push({
       code: "COURSE_ASSIGNMENT_TARGET_REQUIRED",
-      message: "Course assignment requires a targetId."
+      message: "Choose a class for this course assignment."
+    });
+  }
+
+  if (targetType === "student" && !isNonEmptyText(payload.studentId) && !isNonEmptyText(payload.targetId)) {
+    errors.push({
+      code: "COURSE_ASSIGNMENT_TARGET_REQUIRED",
+      message: "Choose a student for this course assignment."
     });
   }
 
@@ -89,7 +98,7 @@ function readText(value) {
 }
 
 function isValidTargetType(value) {
-  return value === "location" || value === "class" || value === "student";
+  return value === "class" || value === "student";
 }
 
 function isValidStatus(value) {

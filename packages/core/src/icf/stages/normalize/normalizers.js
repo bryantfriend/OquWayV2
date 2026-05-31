@@ -10,7 +10,7 @@ export { catalogCourseNormalizeTagNormalization } from "./domain/catalogCourse/c
 export { catalogCourseNormalizeLanguagesNormalization } from "./domain/catalogCourse/catalogCourseNormalizeLanguagesNormalization.js";
 export { catalogCourseNormalizeModuleOrderNormalization } from "./domain/catalogCourse/catalogCourseNormalizeModuleOrderNormalization.js";
 export { catalogCourseNormalizeStepOrderNormalization } from "./domain/catalogCourse/catalogCourseNormalizeStepOrderNormalization.js";
-export { normalizeCourseAssignmentPayload, normalizeCourseAssignmentUpdatePayload, normalizeCourseAssignmentListPayload } from "./domain/courseAssignment/normalizeCourseAssignmentPayload.js";
+export { normalizeCourseAssignmentPayload, normalizeCourseAssignmentUpdatePayload, normalizeCourseAssignmentDisablePayload, normalizeCourseAssignmentListPayload } from "./domain/courseAssignment/normalizeCourseAssignmentPayload.js";
 export {
   normalizeLocationLoginModePayload,
   normalizeLocationLoginSlugPayload,

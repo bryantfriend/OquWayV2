@@ -177,7 +177,7 @@ async function loadAssignedCourseIdsFromAssignments(actor, studentProfile) {
         status: "active"
       });
 
-      addAssignmentCourses(courseIds, assignmentIds, assignments);
+      addAssignmentCourses(courseIds, assignmentIds, assignments.filter(isVisibleAssignment));
 
       if (assignments.length === 0) {
         addReasonCount(rejectionReasons, "no-assignment-for-target");
@@ -253,6 +253,18 @@ function addAssignmentCourses(courseIds, assignmentIds, assignments) {
 
     assignmentIndex = assignmentIndex + 1;
   }
+}
+
+function isVisibleAssignment(assignment) {
+  if (!assignment || assignment.visibility === "hidden") {
+    return false;
+  }
+
+  if (assignment.assignmentType && assignment.assignmentType !== "course") {
+    return false;
+  }
+
+  return true;
 }
 
 function readDirectCourseIds(studentProfile, contextCourseIds) {

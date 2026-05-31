@@ -254,6 +254,71 @@
             margin-top: 0.65rem;
         }
 
+        .student-course-card {
+            position: relative;
+            display: grid;
+            grid-template-columns: 44px minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 0.75rem;
+            overflow: hidden;
+        }
+
+        .student-course-card::after {
+            content: "";
+            position: absolute;
+            right: -30px;
+            bottom: -34px;
+            width: 98px;
+            height: 98px;
+            border-radius: 32px;
+            background: rgba(29, 78, 216, 0.08);
+            transform: rotate(18deg);
+        }
+
+        .student-course-icon {
+            position: relative;
+            z-index: 1;
+            width: 44px;
+            height: 44px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #dbeafe 0%, #dcfce7 100%);
+            color: #1d4ed8;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+        }
+
+        .student-course-card-copy,
+        .student-course-card-action,
+        .student-course-progress {
+            position: relative;
+            z-index: 1;
+        }
+
+        .student-course-card-copy {
+            display: grid;
+            gap: 0.18rem;
+            min-width: 0;
+        }
+
+        .student-course-card-copy strong {
+            overflow-wrap: anywhere;
+        }
+
+        .student-course-card-action {
+            border-radius: 999px;
+            background: #eef6ff;
+            color: var(--blue);
+            padding: 0.35rem 0.55rem;
+            font-size: 0.74rem;
+            font-weight: 900;
+        }
+
+        .student-course-progress {
+            grid-column: 2 / 4;
+        }
+
         .student-course-card span,
         .student-module-card span,
         .student-session-card span,
@@ -268,6 +333,10 @@
         .student-practice-mode-card small {
             color: var(--green);
             font-weight: 900;
+        }
+
+        .student-course-card .student-course-card-action {
+            font-size: 0.74rem;
         }
 
         .student-course-card-active,

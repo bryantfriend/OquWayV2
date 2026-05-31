@@ -48,8 +48,11 @@ export { UpdateCourseMetadataIntent } from "./course/UpdateCourseMetadataIntent.
 // ----------------------
 export { CreateCourseAssignmentIntent } from "./courseAssignment/CreateCourseAssignmentIntent.js";
 export { ListCourseAssignmentsIntent } from "./courseAssignment/ListCourseAssignmentsIntent.js";
+export { LoadCourseAssignmentsIntent } from "./courseAssignment/LoadCourseAssignmentsIntent.js";
 export { UpdateCourseAssignmentIntent } from "./courseAssignment/UpdateCourseAssignmentIntent.js";
 export { ArchiveCourseAssignmentIntent } from "./courseAssignment/ArchiveCourseAssignmentIntent.js";
+export { DisableCourseAssignmentIntent } from "./courseAssignment/DisableCourseAssignmentIntent.js";
+export { DeleteCourseAssignmentIntent } from "./courseAssignment/DeleteCourseAssignmentIntent.js";
 
 // ----------------------
 // Locations / Login Settings

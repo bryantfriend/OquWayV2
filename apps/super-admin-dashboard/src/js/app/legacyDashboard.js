@@ -7,7 +7,7 @@ import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/r
 import { roleFilterCards, userRoles, userStatuses } from "../shared/constants.js";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.10";
+var appVersion = "1.1.11";
 var state = {
   isLoading: true,
   isRefreshing: false,
@@ -377,10 +377,13 @@ async function readCoursesForAdmin() {
 }
 
 async function readCourseAssignmentsForAdmin(filters) {
-  var assignmentsResult = await readOptionalCollection("courseAssignments");
-  var assignments = filterCourseAssignments(assignmentsResult.items, filters || {});
+  var assignmentsResult = await runAdminIntent("LoadCourseAssignmentsIntent", filters || {});
 
-  return buildOptionalDataResult("assignments", assignments);
+  if (isSuccess(assignmentsResult)) {
+    return assignmentsResult;
+  }
+
+  return buildOptionalDataResult("assignments", []);
 }
 
 function buildOptionalDataResult(key, items) {
@@ -487,9 +490,9 @@ function buildTabs() {
     {
       title: "Learning & Engagement",
       items: [
-        { label: "Lessons & Modules", icon: "▣", tab: "lessons" },
+        { label: "Courses & Modules", icon: "▣", tab: "lessons" },
         { label: "Classes", icon: "◫", tab: "classes" },
-        { label: "Assignments", icon: "☑", tab: "assignments" },
+        { label: "Course Assignments", icon: "☑", tab: "assignments" },
         { label: "Login Tools", icon: "⚿", tab: "loginTools" }
       ]
     },
@@ -675,7 +678,7 @@ function buildTeachersTab() {
 
 function buildLessonsTab() {
   return '<section class="sa-stack">'
-    + '<div class="sa-page-head"><div><p class="sa-eyebrow">Learning Library</p><h2>Lessons & Modules</h2><p>Course inventory, module signals, and learning readiness for the ecosystem.</p></div><button type="button" class="sa-btn" data-action="overview-open-course-creator">Open Course Creator</button></div>'
+    + '<div class="sa-page-head"><div><p class="sa-eyebrow">Learning Library</p><h2>Courses & Modules</h2><p>Course inventory, module signals, and learning readiness for the ecosystem.</p></div><button type="button" class="sa-btn" data-action="overview-open-course-creator">Open Course Creator</button></div>'
     + renderLearningActivityOverview()
     + '<section class="sa-overview-grid sa-overview-grid-2">' + renderGrowthChart(state.overviewChartRange) + renderRecentlyCreated() + '</section>'
     + '<article class="sa-card"><div class="sa-section-title"><div><h2>Course Inventory</h2><p>Loaded from available course collections.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data"' + disabled(isBusy()) + '>' + buildButtonContent("Refresh", "refresh-data") + '</button></div>' + buildCourseInventoryRows() + '</article>'
@@ -1609,26 +1612,55 @@ function buildStudentForm(formId, form, includeFruitSelector) {
 }
 
 function buildAssignmentsTab() {
-  return '<section class="sa-stack">'
-    + '<article class="sa-card"><h2>Create Course Assignment</h2><p>Choose who should see a course: a whole location, one class, or one student.</p>' + buildAssignmentForm() + '</article>'
-    + '<article class="sa-card"><h2>Course Assignments</h2>' + buildAssignmentFilters() + buildAssignmentRows() + '</article>'
+  return '<section class="sa-stack sa-assignment-page">'
+    + '<div class="sa-page-head"><div><p class="sa-eyebrow">Assign Learning</p><h2>Course Assignments</h2><p>Connect a course to a class or individual student. Assigned courses appear on the Student Dashboard after refresh.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data"' + disabled(isBusy()) + '>' + buildButtonContent("Refresh", "refresh-data") + '</button></div>'
+    + buildAssignmentSummaryCards()
+    + '<article class="sa-assignment-builder"><div class="sa-section-title"><div><h2>Assignment Builder</h2><p>Assign Course → Location → Class or Student.</p></div></div>' + buildAssignmentForm() + '</article>'
+    + '<article class="sa-card"><div class="sa-section-title"><div><h2>Existing Course Assignments</h2><p>Review, disable, or delete assignment records.</p></div></div>' + buildAssignmentFilters() + buildAssignmentRows() + '</article>'
     + '</section>';
 }
 
 function buildAssignmentForm() {
-  return '<div class="sa-form sa-form-assignment">'
-    + buildCourseSelect("assignment", "new", state.assignmentForm.courseId)
-    + buildAssignmentTargetTypeSelect("assignment", "new", state.assignmentForm.targetType)
-    + buildAssignmentTargetSelect("assignment", "new", state.assignmentForm.targetType, state.assignmentForm.targetId)
-    + buildSelect("assignment", "new", "status", state.assignmentForm.status, ["active", "paused", "archived"])
-    + '<button type="button" class="sa-btn" data-action="create-assignment">Create Assignment</button>'
-    + '</div>';
+  var form = state.assignmentForm;
+  var targetSummary = readAssignmentFormTargetSummary(form);
+  var html = '<div class="sa-assignment-builder-grid">';
+
+  html += '<section class="sa-assignment-step"><span>1</span><h3>Select Course</h3><p>Choose the learning program students should see.</p>' + buildCourseSelect("assignment", "new", form.courseId) + '</section>';
+  html += '<section class="sa-assignment-step"><span>2</span><h3>Select Target</h3><p>Assign to a full class or a single student.</p>'
+    + buildAssignmentTargetTypeSelect("assignment", "new", form.targetType)
+    + buildLocationSelect("assignment", "new", form.locationId)
+    + buildAssignmentClassSelect(form.locationId, form.classId)
+    + (form.targetType === "student" ? buildAssignmentStudentSelect(form.locationId, form.classId, form.studentId) : "")
+    + '</section>';
+  html += '<section class="sa-assignment-step sa-assignment-review"><span>3</span><h3>Review & Assign</h3><p>' + escapeHtml(targetSummary) + '</p>'
+    + '<div class="sa-assignment-review-card"><strong>' + escapeHtml(readCourseName(form.courseId) || "Choose a course") + '</strong><small>' + escapeHtml(targetSummary) + '</small><small>Status: ' + escapeHtml(form.status || "active") + '</small></div>'
+    + buildSelect("assignment", "new", "status", form.status, ["active", "paused", "archived"])
+    + '<button type="button" class="sa-btn" data-action="create-assignment"' + disabled(!canCreateAssignment()) + '>' + buildButtonContent("Assign Course", "create-assignment") + '</button>'
+    + '</section>';
+
+  html += '</div>';
+  return html;
+}
+
+function buildAssignmentSummaryCards() {
+  var stats = readAssignmentStats();
+
+  return '<section class="sa-assignment-summary-grid">'
+    + buildAssignmentSummaryCard("Active Assignments", stats.active, "Course links currently visible", "☑", "mint")
+    + buildAssignmentSummaryCard("Courses Assigned", stats.courses, "Unique assigned courses", "▣", "sky")
+    + buildAssignmentSummaryCard("Classes Covered", stats.classes, "Classes with active courses", "◫", "amber")
+    + buildAssignmentSummaryCard("Students Reached", stats.students, "Student-specific assignments", "◉", "rose")
+    + '</section>';
+}
+
+function buildAssignmentSummaryCard(label, value, note, icon, tone) {
+  return '<article class="sa-assignment-summary-card sa-assignment-summary-' + escapeHtml(tone) + '"><div><span>' + escapeHtml(icon) + '</span><small>' + escapeHtml(label) + '</small></div><strong>' + escapeHtml(String(value)) + '</strong><p>' + escapeHtml(note) + '</p></article>';
 }
 
 function buildAssignmentFilters() {
   var html = '<div class="sa-filters sa-assignment-filters">';
   html += '<label>Course' + buildCourseOptionsSelect('data-assignment-filter="courseId"', state.assignmentFilters.courseId, "All courses") + '</label>';
-  html += '<label>Target Type' + buildBasicOptionsSelect('data-assignment-filter="targetType"', state.assignmentFilters.targetType, ["location", "class", "student"], "All targets") + '</label>';
+  html += '<label>Target Type' + buildBasicOptionsSelect('data-assignment-filter="targetType"', state.assignmentFilters.targetType, ["class", "student"], "All targets") + '</label>';
   html += '<label>Status' + buildBasicOptionsSelect('data-assignment-filter="status"', state.assignmentFilters.status, ["active", "paused", "archived"], "All statuses") + '</label>';
   html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data">Apply</button>';
   html += '</div>';
@@ -1640,19 +1672,21 @@ function buildAssignmentRows() {
   var index = 0;
 
   if (state.assignments.length === 0) {
-    return '<div class="sa-empty">No course assignments found yet. Create one above so students see the right courses.</div>';
+    return '<div class="sa-empty"><strong>No course assignments yet.</strong><span>Create one above so students see the right courses.</span></div>';
   }
 
   while (index < state.assignments.length) {
     var assignment = state.assignments[index];
+    var targetLabel = readAssignmentTargetName(assignment);
+    var assignedDate = formatDateTime(assignment.assignedAt || assignment.createdAt || assignment.updatedAt);
     html += '<article class="sa-assignment-row">';
     html += '<div><strong>' + escapeHtml(readCourseName(assignment.courseId)) + '</strong><small>Course ID: ' + escapeHtml(assignment.courseId) + '</small></div>';
-    html += '<div><span class="sa-pill">' + escapeHtml(assignment.targetType) + '</span><strong>' + escapeHtml(readAssignmentTargetName(assignment)) + '</strong><small>Target ID: ' + escapeHtml(assignment.targetId) + '</small></div>';
-    html += '<div><span class="sa-status sa-status-' + escapeHtml(assignment.status || "active") + '">' + escapeHtml(assignment.status || "active") + '</span><small>Assigned by: ' + escapeHtml(assignment.assignedBy || "unknown") + '</small></div>';
+    html += '<div><span class="sa-pill">' + escapeHtml(assignment.targetType || "class") + '</span><strong>' + escapeHtml(targetLabel) + '</strong><small>' + escapeHtml(readAssignmentScopeLine(assignment)) + '</small></div>';
+    html += '<div><span class="sa-status sa-status-' + escapeHtml(assignment.status || "active") + '">' + escapeHtml(assignment.status || "active") + '</span><small>Assigned: ' + escapeHtml(assignedDate || "unknown") + '</small></div>';
     html += '<div class="sa-row-actions">';
-    html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="activate-assignment" data-id="' + escapeHtml(assignment.id) + '">Activate</button>';
-    html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="pause-assignment" data-id="' + escapeHtml(assignment.id) + '">Pause</button>';
-    html += '<button type="button" class="sa-btn sa-danger-btn" data-action="archive-assignment" data-id="' + escapeHtml(assignment.id) + '">Archive</button>';
+    html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="view-assignment" data-id="' + escapeHtml(assignment.id) + '">View</button>';
+    html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="pause-assignment" data-id="' + escapeHtml(assignment.id) + '">Disable</button>';
+    html += '<button type="button" class="sa-btn sa-danger-btn" data-action="delete-assignment" data-id="' + escapeHtml(assignment.id) + '">Delete</button>';
     html += '</div>';
     html += '</article>';
     index = index + 1;
@@ -1720,7 +1754,7 @@ function buildCourseSelect(kind, id, selectedValue) {
 }
 
 function buildAssignmentTargetTypeSelect(kind, id, selectedValue) {
-  return '<label>Target Type' + buildBasicOptionsSelect('data-field-kind="' + kind + '" data-field-id="' + id + '" data-field="targetType"', selectedValue, ["location", "class", "student"], "Choose target type") + '</label>';
+  return '<label>Target Type' + buildBasicOptionsSelect('data-field-kind="' + kind + '" data-field-id="' + id + '" data-field="targetType"', selectedValue, ["class", "student"], "Choose target type") + '</label>';
 }
 
 function buildAssignmentTargetSelect(kind, id, targetType, selectedValue) {
@@ -1735,6 +1769,38 @@ function buildAssignmentTargetSelect(kind, id, targetType, selectedValue) {
   }
 
   return '<label>Target' + buildOptionsSelect(attributes, selectedValue, state.locations, "Choose location") + '</label>';
+}
+
+function buildAssignmentClassSelect(locationId, selectedValue) {
+  var classes = state.classes.filter(function (classRecord) {
+    return !locationId || classRecord.locationId === locationId;
+  });
+
+  return '<label>Class' + buildOptionsSelectFromList('data-field-kind="assignment" data-field-id="new" data-field="classId"', selectedValue, classes, "Choose class") + '</label>';
+}
+
+function buildAssignmentStudentSelect(locationId, classId, selectedValue) {
+  var students = state.students.filter(function (student) {
+    var locationMatches = !locationId || student.locationId === locationId || student.primaryLocationId === locationId || readIdArray(student.locationIds).indexOf(locationId) !== -1;
+    var classMatches = !classId || student.classId === classId || readIdArray(student.classIds).indexOf(classId) !== -1;
+
+    return locationMatches && classMatches;
+  });
+
+  return '<label>Student' + buildOptionsSelectFromList('data-field-kind="assignment" data-field-id="new" data-field="studentId"', selectedValue, students, "Choose student") + '</label>';
+}
+
+function buildOptionsSelectFromList(attributes, selectedValue, items, emptyLabel) {
+  var html = '<select ' + attributes + '><option value="">' + escapeHtml(emptyLabel) + '</option>';
+  var index = 0;
+
+  while (index < items.length) {
+    html += '<option value="' + escapeHtml(items[index].id) + '"' + selected(selectedValue, items[index].id) + '>' + escapeHtml(items[index].name || items[index].displayName || items[index].title || items[index].id) + '</option>';
+    index = index + 1;
+  }
+
+  html += '</select>';
+  return html;
 }
 
 function buildCourseOptionsSelect(attributes, selectedValue, emptyLabel) {
@@ -1974,14 +2040,44 @@ function updateFormValue(target) {
     setUserFormValue(state.userForm, field, value);
     render();
   } else if (kind === "assignment" && id === "new") {
-    if (field === "targetType" && state.assignmentForm.targetType !== value) {
-      state.assignmentForm.targetId = "";
-    }
-    state.assignmentForm[field] = value;
+    updateAssignmentFormValue(field, value);
     render();
   } else {
     updateExistingRecord(kind, id, field, value);
   }
+}
+
+function updateAssignmentFormValue(field, value) {
+  if (field === "targetType" && state.assignmentForm.targetType !== value) {
+    state.assignmentForm.targetType = value;
+    state.assignmentForm.targetId = "";
+    state.assignmentForm.classId = "";
+    state.assignmentForm.studentId = "";
+    return;
+  }
+
+  if (field === "locationId" && state.assignmentForm.locationId !== value) {
+    state.assignmentForm.locationId = value;
+    state.assignmentForm.targetId = "";
+    state.assignmentForm.classId = "";
+    state.assignmentForm.studentId = "";
+    return;
+  }
+
+  if (field === "classId") {
+    state.assignmentForm.classId = value;
+    state.assignmentForm.studentId = "";
+    state.assignmentForm.targetId = state.assignmentForm.targetType === "class" ? value : "";
+    return;
+  }
+
+  if (field === "studentId") {
+    state.assignmentForm.studentId = value;
+    state.assignmentForm.targetId = value;
+    return;
+  }
+
+  state.assignmentForm[field] = value;
 }
 
 function updateExistingRecord(kind, id, field, value) {
@@ -2080,13 +2176,18 @@ async function handleAction(action, id) {
     await saveIntent("UpdateStudentIntent", normalizeStudentForm(findStudent(id)), "Student saved.");
     await refreshAllData();
   } else if (action === "create-assignment") {
-    await saveIntent("CreateCourseAssignmentIntent", state.assignmentForm, "Course assignment created.");
+    await saveIntent("CreateCourseAssignmentIntent", buildAssignmentPayload(state.assignmentForm), "Course assignment created.");
     state.assignmentForm = createAssignmentForm();
     await refreshAllData();
+  } else if (action === "view-assignment") {
+    viewAssignment(id);
   } else if (action === "activate-assignment") {
     await updateAssignmentStatus(id, "active");
   } else if (action === "pause-assignment") {
-    await updateAssignmentStatus(id, "paused");
+    await disableAssignment(id);
+  } else if (action === "delete-assignment") {
+    await saveIntent("DeleteCourseAssignmentIntent", { assignmentId: id }, "Course assignment deleted.");
+    await refreshAllData();
   } else if (action === "archive-assignment") {
     await saveIntent("ArchiveCourseAssignmentIntent", { assignmentId: id }, "Course assignment archived.");
     await refreshAllData();
@@ -2289,6 +2390,27 @@ async function updateAssignmentStatus(assignmentId, status) {
     status: status
   }, "Course assignment updated.");
   await refreshAllData();
+}
+
+async function disableAssignment(assignmentId) {
+  await saveIntent("DisableCourseAssignmentIntent", {
+    assignmentId: assignmentId
+  }, "Course assignment disabled.");
+  await refreshAllData();
+}
+
+function viewAssignment(assignmentId) {
+  var assignment = findAssignment(assignmentId);
+
+  if (!assignment) {
+    setState({ message: "Course assignment was not found.", messageType: "error" });
+    return;
+  }
+
+  setState({
+    message: readCourseName(assignment.courseId) + " assigned to " + readAssignmentTargetName(assignment) + ".",
+    messageType: "info"
+  });
 }
 
 async function saveLocation(intentType, location, successMessage, actionKey) {
@@ -2728,7 +2850,20 @@ function createStudentForm() {
 }
 
 function createAssignmentForm() {
-  return { courseId: "", targetType: "location", targetId: "", status: "active" };
+  return {
+    assignmentType: "course",
+    courseId: "",
+    moduleId: "",
+    targetType: "class",
+    targetId: "",
+    locationId: "",
+    classId: "",
+    studentId: "",
+    status: "active",
+    startsAt: null,
+    dueAt: null,
+    visibility: "visible"
+  };
 }
 
 function normalizeLocationForm(location) {
@@ -4548,6 +4683,10 @@ function findCourse(id) {
   return findById(state.courses, id);
 }
 
+function findAssignment(id) {
+  return findById(state.assignments, id);
+}
+
 function findById(items, id) {
   var index = 0;
 
@@ -4646,20 +4785,151 @@ function readAssignmentTargetName(assignment) {
     return "";
   }
 
-  if (assignment.targetType === "location") {
-    return readLocationName(assignment.targetId);
+  var targetType = assignment.targetType || "class";
+  var targetId = assignment.targetId || assignment.classId || assignment.studentId || assignment.locationId;
+
+  if (targetType === "location") {
+    return readLocationName(targetId);
   }
 
-  if (assignment.targetType === "class") {
-    return readClassName(assignment.targetId);
+  if (targetType === "class") {
+    return readClassName(assignment.classId || targetId);
   }
 
-  if (assignment.targetType === "student") {
-    var student = findStudent(assignment.targetId);
-    return student && student.name ? student.name : assignment.targetId;
+  if (targetType === "student") {
+    var student = findStudent(assignment.studentId || targetId);
+    return student && student.name ? student.name : targetId;
   }
 
-  return assignment.targetId || "";
+  return targetId || "";
+}
+
+function readAssignmentScopeLine(assignment) {
+  var parts = [];
+
+  if (assignment.locationId) {
+    parts.push(readLocationName(assignment.locationId));
+  }
+
+  if (assignment.classId) {
+    parts.push(readClassName(assignment.classId));
+  }
+
+  if (assignment.studentId) {
+    parts.push("Student ID: " + assignment.studentId);
+  }
+
+  if (parts.length === 0 && assignment.targetId) {
+    parts.push("Target ID: " + assignment.targetId);
+  }
+
+  return parts.join(" / ");
+}
+
+function readAssignmentFormTargetSummary(form) {
+  if (!form.courseId) {
+    return "Choose a course first.";
+  }
+
+  if (form.targetType === "student") {
+    return "Assign to " + (form.studentId ? readAssignmentStudentName(form.studentId) : "an individual student") + ".";
+  }
+
+  return "Assign to " + (form.classId ? readClassName(form.classId) : "a class") + ".";
+}
+
+function buildAssignmentPayload(form) {
+  var payload = Object.assign({}, form);
+
+  payload.targetId = form.targetType === "student" ? form.studentId : form.classId;
+  payload.assignmentType = payload.assignmentType || "course";
+  payload.visibility = payload.visibility || "visible";
+
+  return payload;
+}
+
+function readAssignmentStudentName(studentId) {
+  var student = findStudent(studentId);
+
+  return student ? (student.name || student.displayName || student.id) : studentId;
+}
+
+function canCreateAssignment() {
+  var form = state.assignmentForm;
+
+  if (!form.courseId || !form.locationId) {
+    return false;
+  }
+
+  if (form.targetType === "student") {
+    return !!form.studentId;
+  }
+
+  return !!form.classId;
+}
+
+function readAssignmentStats() {
+  var activeAssignments = state.assignments.filter(function (assignment) { return (assignment.status || "active") === "active"; });
+  var courseIds = [];
+  var classIds = [];
+  var studentIds = [];
+  var index = 0;
+
+  while (index < activeAssignments.length) {
+    addUniqueValue(courseIds, activeAssignments[index].courseId);
+    if ((activeAssignments[index].targetType || "class") === "class") {
+      addUniqueValue(classIds, activeAssignments[index].classId || activeAssignments[index].targetId);
+      addStudentsForClass(studentIds, activeAssignments[index].classId || activeAssignments[index].targetId);
+    }
+    if (activeAssignments[index].targetType === "student") {
+      addUniqueValue(studentIds, activeAssignments[index].studentId || activeAssignments[index].targetId);
+    }
+    index = index + 1;
+  }
+
+  return {
+    active: activeAssignments.length,
+    courses: courseIds.length,
+    classes: classIds.length,
+    students: studentIds.length
+  };
+}
+
+function addStudentsForClass(studentIds, classId) {
+  var index = 0;
+
+  if (!classId) {
+    return;
+  }
+
+  while (index < state.students.length) {
+    if (studentBelongsToClass(state.students[index], classId)) {
+      addUniqueValue(studentIds, state.students[index].id || state.students[index].studentId);
+    }
+    index = index + 1;
+  }
+}
+
+function studentBelongsToClass(student, classId) {
+  return student
+    && (student.classId === classId
+      || readIdArray(student.classIds).indexOf(classId) !== -1
+      || readIdArray(student.assignedClasses).indexOf(classId) !== -1
+      || readIdArray(student.classRefs).indexOf(classId) !== -1);
+}
+
+function addUniqueValue(values, value) {
+  if (value && values.indexOf(value) === -1) {
+    values.push(value);
+  }
+}
+
+function readIdArray(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value;
 }
 
 function readAdminName() {

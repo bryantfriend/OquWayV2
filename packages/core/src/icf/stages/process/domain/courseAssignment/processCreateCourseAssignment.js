@@ -7,7 +7,9 @@ export async function processCreateCourseAssignment(executionState) {
 
   try {
     var duplicateAssignments = findDuplicateAssignments(await loadCourseAssignments({
-      courseId: payload.courseId
+      courseId: payload.courseId,
+      targetType: payload.targetType,
+      targetId: payload.targetId
     }), payload);
 
     if (duplicateAssignments.length > 0) {
@@ -22,12 +24,20 @@ export async function processCreateCourseAssignment(executionState) {
     var assignmentId = createCourseAssignmentId();
     var assignmentRecord = {
       id: assignmentId,
+      assignmentType: payload.assignmentType || "course",
       courseId: payload.courseId,
+      moduleId: payload.moduleId || null,
       targetType: payload.targetType,
       targetId: payload.targetId,
+      locationId: payload.locationId || "",
+      classId: payload.targetType === "class" ? payload.classId || payload.targetId : "",
+      studentId: payload.targetType === "student" ? payload.studentId || payload.targetId : null,
       status: payload.status,
+      visibility: payload.visibility || "visible",
       assignedBy: actor.id,
       assignedAt: serverTimestamp(),
+      startsAt: payload.startsAt || null,
+      dueAt: payload.dueAt || null,
       updatedAt: serverTimestamp()
     };
 
