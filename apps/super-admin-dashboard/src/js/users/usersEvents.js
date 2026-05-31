@@ -1,0 +1,36 @@
+import { runAdminIntent } from "../icf/intentRegistry.js";
+
+export function bindUsersEvents(rootElement, handlers) {
+  rootElement.addEventListener("click", function (event) {
+    var target = event.target.closest("[data-action]");
+
+    if (!target) {
+      return;
+    }
+
+    routeUsersAction(target.dataset.action, target.dataset.id || "", handlers || {});
+  });
+}
+
+export async function routeUsersAction(action, id, handlers) {
+  if (action === "filter-users-role") {
+    if (typeof handlers.onFilterRole === "function") {
+      handlers.onFilterRole(id);
+    }
+    return runAdminIntent("FilterUsersIntent", { role: id });
+  }
+
+  if (action === "reset-fruit-user") {
+    return runAdminIntent("ResetFruitPasswordIntent", { userId: id }, handlers.context);
+  }
+
+  if (action === "disable-user") {
+    return runAdminIntent("DisableUserIntent", { userId: id }, handlers.context);
+  }
+
+  if (action === "delete-user") {
+    return runAdminIntent("DeleteUserIntent", { userId: id }, handlers.context);
+  }
+
+  return null;
+}
