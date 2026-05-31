@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="140" viewBox="0 0 180 140" role="img" aria-label="Module stack">
+  <rect width="180" height="140" rx="28" fill="#EFF6FF"/>
+  <rect x="34" y="26" width="112" height="34" rx="14" fill="#2563EB"/>
+  <rect x="24" y="54" width="132" height="34" rx="14" fill="#059669"/>
+  <rect x="42" y="82" width="98" height="34" rx="14" fill="#F97316"/>
+  <path d="M58 43h62M52 71h76M66 99h48" stroke="#fff" stroke-width="8" stroke-linecap="round" opacity=".9"/>
+</svg>

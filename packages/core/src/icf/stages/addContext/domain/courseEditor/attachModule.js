@@ -19,7 +19,7 @@ export async function attachModule(executionState) {
     if (!payload.courseId || !payload.moduleId) return { valid: true };
 
     try {
-        const docRef = doc(db, "courses", payload.courseId, "modules", payload.moduleId);
+        const docRef = doc(db, readCourseCollectionName(executionState), payload.courseId, "modules", payload.moduleId);
         const docSnap = await getDoc(docRef);
 
         if (!docSnap.exists()) {
@@ -38,3 +38,10 @@ export async function attachModule(executionState) {
     }
 }
 
+function readCourseCollectionName(executionState) {
+    if (executionState.context && executionState.context.courseCollectionName) {
+        return executionState.context.courseCollectionName;
+    }
+
+    return "catalogCourses";
+}

@@ -21,12 +21,17 @@ export async function catalogCourseCreateRecordProcessing(executionState) {
 
         title: payload.title,
         description: payload.description || "",
+        subject: payload.subject || "",
+        level: payload.level || "",
+        language: payload.language || payload.defaultLanguage || "en",
+        status: payload.status || "draft",
         iconUrl: payload.iconUrl || "",
 
         languages: payload.languages || ["en"],
         defaultLanguage: payload.defaultLanguage || "en",
 
         tags: payload.tags || [],
+        moduleOrder: [],
 
         version: 1,
         isArchived: false,

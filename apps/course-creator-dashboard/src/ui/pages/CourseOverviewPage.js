@@ -3,8 +3,9 @@ import { courseEditorService } from '../services/courseEditorService.js';
 import { courseAssignmentService } from '../services/courseAssignmentService.js';
 
 export class CourseOverviewPage {
-  constructor(courseId) {
+  constructor(courseId, options) {
     this.courseId = courseId;
+    this.options = options || {};
     this.unsubscribe = null;
     this.userHasEditedMetadata = false;
     this.localTags = [];
@@ -33,6 +34,12 @@ export class CourseOverviewPage {
               <i class="fa-regular fa-circle-check"></i> Autosave
             </span>
             <a href="#dashboard" class="border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg font-medium transition shadow-sm">Back to Catalog</a>
+            <button id="previewCourseBtn" class="border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-4 py-2 rounded-lg font-medium shadow-sm transition flex items-center gap-2">
+              <i class="fa-solid fa-eye"></i> Preview as Student
+            </button>
+            <button id="archiveCourseBtn" class="border border-orange-200 bg-orange-50 hover:bg-orange-100 text-orange-700 px-4 py-2 rounded-lg font-medium shadow-sm transition flex items-center gap-2">
+              <i class="fa-solid fa-box-archive"></i> Archive
+            </button>
             <button id="publishCourseBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition flex items-center gap-2">
               <i class="fa-solid fa-arrow-up-from-bracket"></i> Publish Update
             </button>
@@ -93,6 +100,16 @@ export class CourseOverviewPage {
                     <option value="published">Published</option>
                     <option value="archived">Archived</option>
                   </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-gray-700 mb-1">Subject</label>
+                  <input type="text" id="courseSubjectInput" class="course-meta-input w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="ICT, English, Math">
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-gray-700 mb-1">Level / Grade</label>
+                  <input type="text" id="courseLevelInput" class="course-meta-input w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Grade 7">
                 </div>
 
                 <div>
@@ -172,6 +189,19 @@ export class CourseOverviewPage {
           </div>
 
         </main>
+
+        <div id="coursePreviewModal" class="fixed inset-0 bg-slate-950/70 hidden flex items-center justify-center z-50 p-6">
+          <div class="bg-white rounded-[28px] shadow-2xl w-full max-w-5xl max-h-[88vh] overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-blue-50 to-emerald-50">
+              <div>
+                <p class="text-[10px] font-black text-blue-600 uppercase tracking-wide">Preview Mode</p>
+                <h2 class="text-xl font-black text-gray-950">Student Course Preview</h2>
+              </div>
+              <button id="closeCoursePreviewBtn" class="border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 px-3 py-2 rounded-xl font-bold text-sm">Return to Editor</button>
+            </div>
+            <div id="coursePreviewBody" class="p-6 overflow-y-auto max-h-[72vh]"></div>
+          </div>
+        </div>
 
         <!-- Module Title Edit Modal -->
         <div id="moduleTitleModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 transition-opacity">
@@ -302,6 +332,38 @@ export class CourseOverviewPage {
     return value;
   }
 
+  readResultErrorMessage(result) {
+    if (result && result.emitted && result.emitted.errors && result.emitted.errors.length > 0) {
+      return result.emitted.errors[0].message || result.emitted.errors[0].code || 'Intent failed.';
+    }
+
+    if (result && result.errors && result.errors.length > 0) {
+      return result.errors[0].message || result.errors[0].code || 'Intent failed.';
+    }
+
+    return 'Intent failed.';
+  }
+
+  previewCourse() {
+    var body = document.getElementById('coursePreviewBody');
+    var modal = document.getElementById('coursePreviewModal');
+    var self = this;
+
+    body.innerHTML = '<div class="text-center py-12 text-blue-600 font-black">Loading preview...</div>';
+    modal.classList.remove('hidden');
+
+    courseEditorService.previewCourse(this.courseId).then(function (result) {
+      if (!result || !result.emitted || !result.emitted.success) {
+        body.innerHTML = '<div class="text-center py-12 text-red-600 font-black">' + escapeHtml(self.readResultErrorMessage(result)) + '</div>';
+        return;
+      }
+
+      body.innerHTML = buildCoursePreview(result.emitted.data.course);
+    }).catch(function (error) {
+      body.innerHTML = '<div class="text-center py-12 text-red-600 font-black">' + escapeHtml(error.message) + '</div>';
+    });
+  }
+
   openModuleTitleModal(moduleId) {
     this.editingModuleId = moduleId;
     var state = courseEditorStore.getState();
@@ -354,6 +416,27 @@ export class CourseOverviewPage {
     courseEditorService.openCourseEditor(this.courseId);
     this.loadAssignments();
 
+    if (this.options.focusAssignment) {
+      setTimeout(function () {
+        var assignmentButton = document.getElementById('createAssignmentBtn');
+        if (assignmentButton) {
+          assignmentButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 600);
+    }
+
+    if (this.options.openPreview) {
+      setTimeout(function () {
+        self.previewCourse();
+      }, 900);
+    }
+
+    if (this.options.publishOnOpen) {
+      setTimeout(function () {
+        courseEditorService.publishCourse(self.courseId);
+      }, 900);
+    }
+
     document.getElementById('refreshAssignmentsBtn').addEventListener('click', function () {
       self.loadAssignments();
     });
@@ -381,6 +464,25 @@ export class CourseOverviewPage {
 
     document.getElementById('publishCourseBtn').addEventListener('click', function () {
       courseEditorService.publishCourse(self.courseId);
+    });
+
+    document.getElementById('previewCourseBtn').addEventListener('click', function () {
+      self.previewCourse();
+    });
+
+    document.getElementById('archiveCourseBtn').addEventListener('click', function () {
+      courseEditorService.archiveCourse(self.courseId).then(function (result) {
+        if (!result || !result.emitted || !result.emitted.success) {
+          alert('Archive failed: ' + self.readResultErrorMessage(result));
+          return;
+        }
+        alert('Course archived.');
+        courseEditorService.openCourseEditor(self.courseId);
+      });
+    });
+
+    document.getElementById('closeCoursePreviewBtn').addEventListener('click', function () {
+      document.getElementById('coursePreviewModal').classList.add('hidden');
     });
 
     document.getElementById('addModuleBtn').addEventListener('click', function () {
@@ -534,6 +636,8 @@ export class CourseOverviewPage {
       var course = state.course || {};
       var title = document.getElementById('courseTitleInput').value.trim();
       var description = document.getElementById('courseDescriptionInput').value.trim();
+      var subject = document.getElementById('courseSubjectInput').value.trim();
+      var level = document.getElementById('courseLevelInput').value.trim();
       var status = document.getElementById('courseStatusSelect').value || 'draft';
       var langs = [];
       for (var i = 0; i < langsSelect.options.length; i++) {
@@ -551,6 +655,9 @@ export class CourseOverviewPage {
       courseEditorService.updateCourseMetadata(self.courseId, {
         title: self.buildLocalizedText(course.title, defaultLang || 'en', title),
         description: self.buildLocalizedText(course.description, defaultLang || 'en', description),
+        subject: subject,
+        level: level,
+        language: defaultLang || 'en',
         status: status,
         tags: self.localTags.slice(),
         languages: langs.length ? langs : ['en'],
@@ -640,6 +747,9 @@ export class CourseOverviewPage {
 
         var statusSelect = document.getElementById('courseStatusSelect');
         statusSelect.value = course.status || 'draft';
+
+        document.getElementById('courseSubjectInput').value = course.subject || '';
+        document.getElementById('courseLevelInput').value = course.level || '';
 
         this.localTags = (course.tags || []).slice();
         this.renderTags();
@@ -947,6 +1057,102 @@ function buildAssignmentSkeletonRows(rowCount) {
   }
 
   return rows;
+}
+
+function buildCoursePreview(course) {
+  var modules = Array.isArray(course && course.modules) ? course.modules : [];
+  var title = readPreviewText(course ? course.title : null, 'Untitled Course');
+  var description = readPreviewText(course ? course.description : null, 'Student preview shows the course exactly as learners will scan it.');
+
+  var html = '<section class="space-y-6">';
+  html += '<div class="rounded-[28px] border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-emerald-50 p-6">';
+  html += '<div class="flex items-start justify-between gap-4"><div><p class="text-[10px] font-black uppercase tracking-wide text-blue-600">Preview Mode</p><h1 class="text-3xl font-black text-slate-950">' + escapeHtml(title) + '</h1><p class="mt-2 max-w-2xl text-sm font-semibold leading-6 text-slate-600">' + escapeHtml(description) + '</p></div><img src="./src/assets/preview-student.svg" alt="" class="w-32 h-32 object-contain"></div>';
+  html += '</div>';
+
+  if (modules.length === 0) {
+    html += '<div class="rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-10 text-center"><h2 class="text-xl font-black text-slate-900">No modules yet</h2><p class="mt-2 text-sm font-semibold text-slate-500">Add a module and student steps before publishing.</p></div>';
+    html += '</section>';
+    return html;
+  }
+
+  html += modules.map(function (module, index) {
+    return buildPreviewModule(module, index);
+  }).join('');
+  html += '</section>';
+  return html;
+}
+
+function buildPreviewModule(module, index) {
+  var sessions = Array.isArray(module.sessions) ? module.sessions : [];
+  var stepCount = countPreviewModuleSteps(module);
+  var html = '<article class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">';
+  html += '<div class="flex items-start gap-4"><div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-sm font-black text-blue-700">' + (index + 1) + '</div><div class="min-w-0 flex-1"><h2 class="text-xl font-black text-slate-950">' + escapeHtml(readPreviewText(module.title || (module.config && module.config.title), 'Untitled Module')) + '</h2><p class="mt-1 text-sm font-semibold text-slate-500">' + stepCount + ' student step' + (stepCount === 1 ? '' : 's') + '</p></div></div>';
+
+  if (sessions.length === 0) {
+    html += '<div class="mt-4 rounded-2xl bg-slate-50 p-4 text-sm font-semibold text-slate-500">No sessions or steps yet.</div>';
+  } else {
+    html += '<div class="mt-4 grid gap-3">';
+    html += sessions.map(buildPreviewSession).join('');
+    html += '</div>';
+  }
+
+  html += '</article>';
+  return html;
+}
+
+function buildPreviewSession(session) {
+  var steps = readPreviewSteps(session);
+  var html = '<div class="rounded-2xl border border-slate-100 bg-slate-50 p-4"><div class="flex items-center justify-between gap-3"><strong class="text-sm text-slate-900">' + escapeHtml(readPreviewText(session.title, 'Practice Session')) + '</strong><span class="rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-black uppercase text-emerald-700">' + steps.length + ' steps</span></div>';
+
+  if (steps.length > 0) {
+    html += '<ol class="mt-3 grid gap-2">';
+    html += steps.map(function (step, index) {
+      return '<li class="flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-sm font-semibold text-slate-700"><span class="flex h-7 w-7 items-center justify-center rounded-full bg-blue-50 text-[11px] font-black text-blue-700">' + (index + 1) + '</span><span class="min-w-0 flex-1">' + escapeHtml(readPreviewText(step.title, 'Untitled Step')) + '</span><small class="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black uppercase text-slate-500">' + escapeHtml(step.type || 'step') + '</small></li>';
+    }).join('');
+    html += '</ol>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+function readPreviewSteps(session) {
+  var practiceModes = session && session.practiceModes ? session.practiceModes : {};
+  var steps = [];
+
+  Object.keys(practiceModes).forEach(function (key) {
+    if (practiceModes[key] && Array.isArray(practiceModes[key].steps)) {
+      steps = steps.concat(practiceModes[key].steps);
+    }
+  });
+
+  steps.sort(function (a, b) {
+    return (a.order || 0) - (b.order || 0);
+  });
+  return steps;
+}
+
+function countPreviewModuleSteps(module) {
+  var sessions = Array.isArray(module.sessions) ? module.sessions : [];
+  var count = 0;
+
+  sessions.forEach(function (session) {
+    count = count + readPreviewSteps(session).length;
+  });
+
+  return count;
+}
+
+function readPreviewText(value, fallback) {
+  if (typeof value === 'string' && value.length > 0) {
+    return value;
+  }
+
+  if (value && typeof value === 'object') {
+    return value.en || value.ru || value.ky || fallback;
+  }
+
+  return fallback;
 }
 
 function escapeHtml(value) {

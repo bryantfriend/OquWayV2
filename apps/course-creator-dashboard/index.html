@@ -14,6 +14,379 @@
       font-family: 'Inter', sans-serif;
     }
 
+    .builder-shell {
+      background:
+        radial-gradient(circle at 10% 0%, rgba(37,99,235,0.12), transparent 30%),
+        linear-gradient(135deg, #f8fbff 0%, #f0fdf4 58%, #fff7ed 100%);
+      color: #172033;
+    }
+
+    .builder-nav {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem 1.5rem;
+      background: rgba(255,255,255,0.88);
+      border-bottom: 1px solid rgba(219,229,242,0.9);
+      box-shadow: 0 12px 40px rgba(23,32,51,0.06);
+      backdrop-filter: blur(14px);
+    }
+
+    .builder-brand {
+      display: grid;
+      gap: 0.1rem;
+    }
+
+    .builder-brand span {
+      color: #2563eb;
+      font-size: 1.45rem;
+      font-weight: 900;
+    }
+
+    .builder-brand small,
+    .builder-eyebrow {
+      color: #059669;
+      font-size: 0.72rem;
+      font-weight: 900;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .builder-main {
+      width: min(1240px, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 2rem 0 3rem;
+    }
+
+    .builder-hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1.5rem;
+      background: rgba(255,255,255,0.88);
+      border: 1px solid rgba(219,229,242,0.95);
+      border-radius: 32px;
+      box-shadow: 0 22px 60px rgba(23,32,51,0.10);
+      padding: 1.4rem;
+      overflow: hidden;
+    }
+
+    .builder-hero h1 {
+      margin: 0.2rem 0;
+      font-size: clamp(2.2rem, 5vw, 4.4rem);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .builder-hero p {
+      max-width: 680px;
+      margin: 0;
+      color: #64748b;
+      font-weight: 650;
+      line-height: 1.6;
+    }
+
+    .builder-hero img {
+      width: min(300px, 32vw);
+      flex: 0 0 auto;
+    }
+
+    .builder-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+
+    .builder-search {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      background: rgba(255,255,255,0.86);
+      border: 1px solid #dbe5f2;
+      border-radius: 18px;
+      padding: 0 1rem;
+      min-height: 48px;
+    }
+
+    .builder-search input,
+    .builder-select,
+    .builder-form-grid input,
+    .builder-form-grid textarea,
+    .builder-form-grid select {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: #172033;
+      font-weight: 750;
+    }
+
+    .builder-select {
+      width: 180px;
+      min-height: 48px;
+      background: rgba(255,255,255,0.86);
+      border: 1px solid #dbe5f2;
+      border-radius: 18px;
+      padding: 0 0.8rem;
+    }
+
+    .builder-nav-actions,
+    .builder-card-actions,
+    .builder-modal-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .builder-btn,
+    .builder-card-actions button,
+    .builder-icon-btn {
+      border: 0;
+      border-radius: 999px;
+      padding: 0.78rem 1rem;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
+    }
+
+    .builder-btn:hover,
+    .builder-card-actions button:hover,
+    .builder-icon-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .builder-btn-primary,
+    .builder-card-actions button:nth-child(3),
+    .builder-card-actions button:nth-child(4) {
+      background: #2563eb;
+      color: #fff;
+      box-shadow: 0 12px 28px rgba(37,99,235,0.20);
+    }
+
+    .builder-btn-ghost,
+    .builder-card-actions button,
+    .builder-icon-btn {
+      background: #fff;
+      color: #2563eb;
+      border: 1px solid #bfdbfe;
+    }
+
+    .builder-course-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .builder-course-card {
+      display: grid;
+      gap: 0.85rem;
+      min-height: 330px;
+      background: linear-gradient(145deg, #fff 0%, #f8fbff 58%, #ecfdf5 100%);
+      border: 1px solid rgba(148,163,184,0.34);
+      border-radius: 28px;
+      box-shadow: 0 18px 44px rgba(23,32,51,0.08);
+      padding: 1rem;
+    }
+
+    .builder-course-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.8rem;
+    }
+
+    .builder-course-card-top img {
+      width: 104px;
+      height: 86px;
+      object-fit: contain;
+    }
+
+    .builder-course-card h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 900;
+      line-height: 1.1;
+    }
+
+    .builder-course-card p {
+      margin: 0;
+      color: #64748b;
+      font-size: 0.9rem;
+      font-weight: 650;
+      line-height: 1.5;
+    }
+
+    .builder-course-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+
+    .builder-course-meta span,
+    .builder-badge {
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #2563eb;
+      padding: 0.38rem 0.58rem;
+      font-size: 0.68rem;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .builder-badge-published {
+      background: #dcfce7;
+      color: #047857;
+    }
+
+    .builder-badge-archived {
+      background: #f1f5f9;
+      color: #64748b;
+    }
+
+    .builder-status {
+      border-radius: 18px;
+      padding: 0.85rem 1rem;
+      margin-bottom: 1rem;
+      font-weight: 900;
+    }
+
+    .builder-status-loading {
+      background: #eff6ff;
+      color: #2563eb;
+      border: 1px solid #bfdbfe;
+    }
+
+    .builder-status-success {
+      background: #ecfdf5;
+      color: #047857;
+      border: 1px solid #bbf7d0;
+    }
+
+    .builder-status-error,
+    .builder-error {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    .builder-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15,23,42,0.70);
+      padding: 1rem;
+    }
+
+    .builder-modal.hidden {
+      display: none;
+    }
+
+    .builder-modal-panel {
+      width: min(720px, 100%);
+      background: #fff;
+      border-radius: 30px;
+      box-shadow: 0 30px 80px rgba(15,23,42,0.24);
+      padding: 1.2rem;
+    }
+
+    .builder-modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .builder-modal-head h2 {
+      margin: 0.15rem 0 0;
+      font-size: 1.6rem;
+      font-weight: 900;
+    }
+
+    .builder-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.85rem;
+    }
+
+    .builder-form-grid label {
+      display: grid;
+      gap: 0.35rem;
+      color: #64748b;
+      font-size: 0.72rem;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .builder-form-grid input,
+    .builder-form-grid textarea,
+    .builder-form-grid select {
+      min-height: 46px;
+      border: 1px solid #dbe5f2;
+      border-radius: 16px;
+      padding: 0.65rem 0.8rem;
+      text-transform: none;
+    }
+
+    .builder-form-grid textarea {
+      min-height: 96px;
+      resize: vertical;
+    }
+
+    .builder-field-wide {
+      grid-column: 1 / -1;
+    }
+
+    .builder-empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      background: rgba(255,255,255,0.86);
+      border: 1px dashed #cbd5e1;
+      border-radius: 30px;
+      padding: 2.5rem 1rem;
+    }
+
+    .builder-empty img {
+      width: min(280px, 80%);
+      margin: 0 auto 1rem;
+    }
+
+    .builder-skeleton div,
+    .builder-skeleton span,
+    .builder-skeleton p {
+      border-radius: 14px;
+      background: linear-gradient(90deg, #f1f5f9, #e2e8f0, #f1f5f9);
+      min-height: 20px;
+    }
+
+    @media (max-width: 980px) {
+      .builder-course-grid,
+      .builder-form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .builder-hero,
+      .builder-toolbar,
+      .builder-nav {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .builder-select {
+        width: 100%;
+      }
+    }
+
     /* ── ICF Creation / Loading Feedback ───────────────────────── */
 
     @keyframes oquSpinCw {

@@ -7,7 +7,7 @@ export async function processUpdateModule(executionState) {
   const updatedModule = Object.assign({}, context.module, moduleUpdate);
 
   try {
-    await setDoc(doc(db, "courses", payload.courseId, "modules", payload.moduleId), moduleUpdate, { merge: true });
+    await setDoc(doc(db, readCourseCollectionName(executionState), payload.courseId, "modules", payload.moduleId), moduleUpdate, { merge: true });
     executionState.result = updatedModule;
     return { valid: true };
   } catch (error) {
@@ -30,4 +30,10 @@ function createModuleUpdate(payload) {
     status: payload.status,
     updatedAt: serverTimestamp()
   };
+}
+
+function readCourseCollectionName(executionState) {
+  return executionState.context && executionState.context.courseCollectionName
+    ? executionState.context.courseCollectionName
+    : "catalogCourses";
 }

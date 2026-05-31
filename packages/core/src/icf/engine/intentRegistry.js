@@ -8,8 +8,12 @@ const registry = {
 
   // Course Sandbox
   CreateCourseIntent: IntentExports.CreateCourseIntent,
+  LoadCoursesIntent: IntentExports.LoadCoursesIntent,
   ListCoursesIntent: IntentExports.ListCoursesIntent,
+  UpdateCourseIntent: IntentExports.UpdateCourseIntent,
   UpdateCourseMetadataIntent: IntentExports.UpdateCourseMetadataIntent,
+  DeleteCourseIntent: IntentExports.DeleteCourseIntent,
+  ArchiveCourseIntent: IntentExports.ArchiveCourseIntent,
 
   // Course Assignments
   CreateCourseAssignmentIntent: IntentExports.CreateCourseAssignmentIntent,
@@ -80,7 +84,9 @@ const registry = {
   // Course Editor
   OpenCourseEditorIntent: IntentExports.OpenCourseEditorIntent,
   LoadCourseIntent: IntentExports.LoadCourseIntent,
+  LoadModulesIntent: IntentExports.LoadModulesIntent,
   LoadCourseModulesIntent: IntentExports.LoadCourseModulesIntent,
+  PreviewCourseIntent: IntentExports.PreviewCourseIntent,
   CreateModuleIntent: IntentExports.CreateModuleIntent,
   ListModulesIntent: IntentExports.ListModulesIntent,
   UpdateModuleIntent: IntentExports.UpdateModuleIntent,
@@ -99,6 +105,11 @@ const registry = {
   AddStepToPracticeModeIntent: IntentExports.AddStepToPracticeModeIntent,
   CreatePracticeModeShellsIntent: IntentExports.CreatePracticeModeShellsIntent,
   CreateSessionIntent: IntentExports.CreateSessionIntent,
+  LoadStepsIntent: IntentExports.LoadStepsIntent,
+  CreateStepIntent: IntentExports.CreateStepIntent,
+  UpdateStepIntent: IntentExports.UpdateStepIntent,
+  DeleteStepIntent: IntentExports.DeleteStepIntent,
+  ReorderStepsIntent: IntentExports.ReorderStepsIntent,
   DeletePracticeModeStepIntent: IntentExports.DeletePracticeModeStepIntent,
   ListPracticeModeStepsIntent: IntentExports.ListPracticeModeStepsIntent,
   ListSessionsIntent: IntentExports.ListSessionsIntent,

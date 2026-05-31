@@ -21,7 +21,11 @@ function initApp() {
     if (hash.startsWith("#overview")) {
         const params = new URLSearchParams(hash.replace("#overview?", ""));
         const courseId = params.get("courseId");
-        currentPage = new CourseOverviewPage(courseId);
+        currentPage = new CourseOverviewPage(courseId, {
+            openPreview: params.get("preview") === "1",
+            focusAssignment: params.get("assign") === "1",
+            publishOnOpen: params.get("publish") === "1"
+        });
     } else if (hash.startsWith("#location-login-settings")) {
         currentPage = new LocationLoginSettingsPage();
     } else if (hash.startsWith("#module-editor")) {

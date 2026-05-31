@@ -2,6 +2,7 @@ import { db, writeBatch, doc, serverTimestamp } from "../../../../../infrastruct
 
 export async function processSaveCourseDraft(executionState) {
     const { payload, context } = executionState;
+    const courseCollectionName = readCourseCollectionName(executionState);
     if (!payload.course) {
         return { valid: false, errors: [{ message: "Course payload missing" }] };
     }
@@ -12,7 +13,7 @@ export async function processSaveCourseDraft(executionState) {
     if (payload.modules) {
         for (let i = 0; i < payload.modules.length; i++) {
             const m = payload.modules[i];
-            const modRef = doc(db, "courses", payload.course.id, "modules", m.id || m.moduleId);
+            const modRef = doc(db, courseCollectionName, payload.course.id, "modules", m.id || m.moduleId);
 
             const cleanMod = Object.assign({}, m);
             delete cleanMod.isDirty;
@@ -24,7 +25,7 @@ export async function processSaveCourseDraft(executionState) {
     }
 
     // Update course metadata (including tags, languages, title, etc from UI state)
-    const courseRef = doc(db, "courses", payload.course.id);
+    const courseRef = doc(db, courseCollectionName, payload.course.id);
     const cleanCourse = createCleanCourseDraft(payload.course, context);
     delete cleanCourse.isDirty;
 
@@ -113,5 +114,11 @@ function readActorId(context) {
     }
 
     return "SYSTEM";
+}
+
+function readCourseCollectionName(executionState) {
+    return executionState.context && executionState.context.courseCollectionName
+        ? executionState.context.courseCollectionName
+        : "catalogCourses";
 }
 

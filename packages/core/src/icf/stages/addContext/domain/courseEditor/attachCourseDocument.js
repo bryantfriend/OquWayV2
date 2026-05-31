@@ -5,8 +5,8 @@ export async function attachCourseDocument(executionState) {
     if (!payload.courseId) return { valid: true };
 
     try {
-        const docRef = doc(db, "courses", payload.courseId);
-        const docSnap = await getDoc(docRef);
+        const courseSnapResult = await readCourseSnap(payload.courseId);
+        const docSnap = courseSnapResult.snap;
 
         if (!docSnap.exists()) {
             return {
@@ -15,7 +15,13 @@ export async function attachCourseDocument(executionState) {
             };
         }
 
-        return { valid: true, data: { course: { id: docSnap.id, ...docSnap.data() } } };
+        return {
+            valid: true,
+            data: {
+                course: { id: docSnap.id, ...docSnap.data() },
+                courseCollectionName: courseSnapResult.collectionName
+            }
+        };
     } catch (err) {
         return {
             valid: false,
@@ -24,3 +30,29 @@ export async function attachCourseDocument(executionState) {
     }
 }
 
+async function readCourseSnap(courseId) {
+    const collectionNames = ["catalogCourses", "courses"];
+    let index = 0;
+
+    while (index < collectionNames.length) {
+        const docSnap = await getDoc(doc(db, collectionNames[index], courseId));
+
+        if (docSnap.exists()) {
+            return {
+                collectionName: collectionNames[index],
+                snap: docSnap
+            };
+        }
+
+        index = index + 1;
+    }
+
+    return {
+        collectionName: "catalogCourses",
+        snap: {
+            exists: function () {
+                return false;
+            }
+        }
+    };
+}

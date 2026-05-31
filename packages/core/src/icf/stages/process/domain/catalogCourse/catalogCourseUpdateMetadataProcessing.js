@@ -8,7 +8,7 @@ export async function catalogCourseUpdateMetadataProcessing(executionState) {
     const updatedCourse = Object.assign({}, existingCourse, metadataUpdate);
 
     try {
-        await setDoc(doc(db, "courses", payload.courseId), metadataUpdate, { merge: true });
+        await setDoc(doc(db, readCourseCollectionName(executionState), payload.courseId), metadataUpdate, { merge: true });
         executionState.result = updatedCourse;
         return { valid: true };
     } catch (error) {
@@ -22,6 +22,12 @@ export async function catalogCourseUpdateMetadataProcessing(executionState) {
             ]
         };
     }
+}
+
+function readCourseCollectionName(executionState) {
+    return executionState.context && executionState.context.courseCollectionName
+        ? executionState.context.courseCollectionName
+        : "catalogCourses";
 }
 
 function readExistingCourse(context) {
@@ -40,6 +46,9 @@ function createMetadataUpdate(payload, context) {
     return {
         title: readLocalizedText(payload.title),
         description: readLocalizedText(payload.description),
+        subject: readText(payload.subject),
+        level: readText(payload.level),
+        language: readDefaultLanguage(payload.language || payload.defaultLanguage),
         status: readStatus(payload.status),
         defaultLanguage: readDefaultLanguage(payload.defaultLanguage),
         languages: readLanguages(payload.languages, payload.defaultLanguage),

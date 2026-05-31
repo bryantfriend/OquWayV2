@@ -8,7 +8,7 @@ export async function processAddStepToPracticeMode(executionState) {
   var practiceModes = addStepToPracticeMode(session.practiceModes, payload.practiceModeKey, step);
 
   try {
-    await savePracticeModes(payload, practiceModes);
+    await savePracticeModes(executionState, payload, practiceModes);
     executionState.result = Object.assign({}, session, { practiceModes: practiceModes });
     return { valid: true };
   } catch (error) {
@@ -40,11 +40,17 @@ function createStep(payload) {
   };
 }
 
-async function savePracticeModes(payload, practiceModes) {
-  await setDoc(doc(db, "courses", payload.courseId, "modules", payload.moduleId, "sessions", payload.sessionId), {
+async function savePracticeModes(executionState, payload, practiceModes) {
+  await setDoc(doc(db, readCourseCollectionName(executionState), payload.courseId, "modules", payload.moduleId, "sessions", payload.sessionId), {
     practiceModes: practiceModes,
     updatedAt: serverTimestamp()
   }, { merge: true });
+}
+
+function readCourseCollectionName(executionState) {
+  return executionState.context && executionState.context.courseCollectionName
+    ? executionState.context.courseCollectionName
+    : "catalogCourses";
 }
 
 function generateId(prefix) {

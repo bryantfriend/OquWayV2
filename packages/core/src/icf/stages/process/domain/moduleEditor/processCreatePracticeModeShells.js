@@ -7,7 +7,7 @@ export async function processCreatePracticeModeShells(executionState) {
   var practiceModes = normalizePracticeModes(session.practiceModes);
 
   try {
-    await setDoc(doc(db, "courses", payload.courseId, "modules", payload.moduleId, "sessions", payload.sessionId), {
+    await setDoc(doc(db, readCourseCollectionName(executionState), payload.courseId, "modules", payload.moduleId, "sessions", payload.sessionId), {
       practiceModes: practiceModes,
       updatedAt: serverTimestamp()
     }, { merge: true });
@@ -36,4 +36,10 @@ function readSession(context) {
   }
 
   return {};
+}
+
+function readCourseCollectionName(executionState) {
+  return executionState.context && executionState.context.courseCollectionName
+    ? executionState.context.courseCollectionName
+    : "catalogCourses";
 }

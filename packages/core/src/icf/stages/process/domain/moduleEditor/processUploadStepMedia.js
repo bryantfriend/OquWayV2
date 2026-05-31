@@ -32,7 +32,7 @@ export async function processUploadStepMedia(executionState) {
       config: config
     });
 
-    await savePracticeModes(payload, updatedPracticeModes);
+    await savePracticeModes(executionState, payload, updatedPracticeModes);
 
     executionState.result = {
       session: Object.assign({}, session, { practiceModes: updatedPracticeModes }),
@@ -132,11 +132,17 @@ function createSafeFileName(fileName) {
   return fileName.replace(/[^a-zA-Z0-9._-]/g, "-");
 }
 
-async function savePracticeModes(payload, practiceModes) {
-  await setDoc(doc(db, "courses", payload.courseId, "modules", payload.moduleId, "sessions", payload.sessionId), {
+async function savePracticeModes(executionState, payload, practiceModes) {
+  await setDoc(doc(db, readCourseCollectionName(executionState), payload.courseId, "modules", payload.moduleId, "sessions", payload.sessionId), {
     practiceModes: practiceModes,
     updatedAt: serverTimestamp()
   }, { merge: true });
+}
+
+function readCourseCollectionName(executionState) {
+  return executionState.context && executionState.context.courseCollectionName
+    ? executionState.context.courseCollectionName
+    : "catalogCourses";
 }
 
 function createProcessError(code, message) {

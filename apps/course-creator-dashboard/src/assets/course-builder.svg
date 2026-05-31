@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="300" viewBox="0 0 420 300" role="img" aria-label="Course builder illustration">
+  <defs>
+    <linearGradient id="bg" x1="36" y1="24" x2="382" y2="276" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#DBEAFE"/>
+      <stop offset="0.58" stop-color="#ECFDF5"/>
+      <stop offset="1" stop-color="#FFF7ED"/>
+    </linearGradient>
+  </defs>
+  <rect width="420" height="300" rx="36" fill="url(#bg)"/>
+  <circle cx="72" cy="70" r="28" fill="#FDE68A"/>
+  <circle cx="350" cy="72" r="36" fill="#C4B5FD" opacity=".75"/>
+  <rect x="92" y="78" width="236" height="146" rx="28" fill="#fff" stroke="#BFDBFE" stroke-width="4"/>
+  <rect x="118" y="104" width="88" height="20" rx="10" fill="#2563EB"/>
+  <rect x="118" y="138" width="174" height="14" rx="7" fill="#CBD5E1"/>
+  <rect x="118" y="166" width="136" height="14" rx="7" fill="#CBD5E1"/>
+  <rect x="118" y="194" width="62" height="18" rx="9" fill="#BBF7D0"/>
+  <g transform="translate(274 156)">
+    <rect width="88" height="82" rx="24" fill="#fff" stroke="#FED7AA" stroke-width="4"/>
+    <path d="M24 32h40M24 52h28" stroke="#F97316" stroke-width="9" stroke-linecap="round"/>
+    <circle cx="44" cy="-2" r="26" fill="#059669"/>
+    <path d="M33-2h22M44-13V9" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
+  </g>
+</svg>

@@ -1,5 +1,5 @@
-import { catalogCourseService } from '../services/catalogCourseService.js';
-import { courseCreatorStore } from '../state/courseCreatorState.js';
+import { catalogCourseService } from "../services/catalogCourseService.js";
+import { courseCreatorStore } from "../state/courseCreatorState.js";
 
 export class CatalogCoursePage {
   constructor() {
@@ -8,136 +8,76 @@ export class CatalogCoursePage {
 
   render() {
     return `
-      <!-- Top Navigation -->
-      <nav class="bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center">
-        <div class="flex items-center gap-2">
-          <span class="text-blue-600 font-bold text-xl tracking-tight">OquWay</span>
-        </div>
-        <div class="flex items-center gap-4 text-sm font-semibold text-gray-700">
-          <span>Course Creator Dashboard</span>
-          <div class="flex items-center gap-2 cursor-pointer">
-            <img src="https://ui-avatars.com/api/?name=Admin&background=random" alt="User Avatar" class="w-8 h-8 rounded-full">
-            <i class="fa-solid fa-chevron-down text-gray-400 text-xs"></i>
+      <div id="course-builder-root" class="builder-shell min-h-screen">
+        <nav class="builder-nav">
+          <div class="builder-brand"><span>OquWay</span><small>Course Builder 2.0</small></div>
+          <div class="builder-nav-actions">
+            <a href="#location-login-settings" class="builder-btn builder-btn-ghost">Login Modes</a>
+            <button id="openCreateModalBtn" class="builder-btn builder-btn-primary"><i class="fa-solid fa-plus"></i> New Course</button>
           </div>
-        </div>
-      </nav>
+        </nav>
 
-      <!-- Main Content -->
-      <main class="max-w-6xl mx-auto px-6 py-8">
-        
-        <!-- Header Section -->
-        <div class="flex justify-between items-center mb-6">
-          <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Course Management</h1>
-          
-          <div class="flex items-center gap-3">
-            <div class="relative">
-              <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-              <input type="text" placeholder="Search courses..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-64">
+        <main class="builder-main">
+          <section class="builder-hero">
+            <div>
+              <p class="builder-eyebrow">Create, preview, publish, assign</p>
+              <h1>Course Builder</h1>
+              <p>Build structured learning paths from course metadata through modules and student-ready steps.</p>
             </div>
-            <a href="#location-login-settings" class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg font-medium shadow-sm transition flex items-center gap-2">
-              Login Modes
-            </a>
-            <button id="openCreateModalBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition flex items-center gap-2">
-              <i class="fa-solid fa-plus"></i> Create New Course
-            </button>
-          </div>
-        </div>
+            <img src="./src/assets/course-builder.svg" alt="">
+          </section>
 
-        <!-- Filter Bar -->
-        <div class="flex justify-between items-center mb-4">
-          <div class="flex gap-4">
-            <div class="relative inline-block text-left">
-              <select class="appearance-none bg-white border border-gray-200 text-gray-700 py-2 pl-4 pr-10 rounded-lg shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
-                <option>Filter by Tag</option>
-              </select>
-              <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+          <section class="builder-toolbar">
+            <div class="builder-search">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input id="courseSearchInput" type="search" placeholder="Search courses">
             </div>
-            <div class="relative inline-block text-left">
-              <select class="appearance-none bg-white border border-gray-200 text-gray-700 py-2 pl-4 pr-10 rounded-lg shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
-                <option>Sort by: Date Created</option>
-              </select>
-              <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
-            </div>
-          </div>
-          
-          <div class="flex items-center gap-3">
-            <span class="text-sm font-medium text-gray-600">Show Archived Courses</span>
-            <!-- Toggle Switch Placeholder -->
-            <div class="w-11 h-6 bg-gray-200 rounded-full flex items-center p-1 cursor-not-allowed">
-              <div class="bg-white w-4 h-4 rounded-full shadow-md"></div>
-            </div>
-            <span class="text-sm font-medium text-gray-500">Off</span>
-          </div>
-        </div>
-
-        <!-- Table Container -->
-        <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-gray-50 text-gray-500 text-sm border-b border-gray-200">
-                <th class="py-3 px-6 font-semibold w-1/3">Title</th>
-                <th class="py-3 px-6 font-semibold">Tags</th>
-                <th class="py-3 px-6 font-semibold">Languages</th>
-                <th class="py-3 px-6 font-semibold">Version</th>
-                <th class="py-3 px-6 font-semibold">Created By</th>
-                <th class="py-3 px-6 font-semibold text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="courseTableBody" class="divide-y divide-gray-200">
-              ${buildSkeletonTableRows(6, 5)}
-            </tbody>
-          </table>
-          
-          <!-- Pagination Footer -->
-          <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-between items-center">
-            <span class="text-sm text-gray-600" id="paginationInfo">Showing 0 to 0 of 0 courses</span>
-            <div class="flex items-center space-x-1" id="paginationControls">
-              <!-- Controls rendered dynamically -->
-            </div>
-          </div>
-        </div>
-
-        <!-- Archived Count -->
-        <div class="mt-8">
-          <button class="text-sm font-semibold text-gray-900 hover:text-blue-600 transition">
-            Archived Courses <span class="font-normal text-gray-500">(0)</span> <span class="text-blue-600 ml-1">View &rsaquo;</span>
-          </button>
-        </div>
-
-      </main>
-
-      <!-- Create Modal (Hidden by default) -->
-      <div id="createModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 transition-opacity">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden transform transition-all">
-          <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-            <h3 class="text-lg font-bold text-gray-900">Create New Course</h3>
-            <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
-          </div>
-          <div class="px-6 py-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Course Title</label>
-            <input id="newCourseTitle" type="text" placeholder="e.g. 7th Grade ICT" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
-            
-            <label class="block text-sm font-medium text-gray-700 mb-1">Supported Languages (Hold Ctrl/Cmd to select multiple)</label>
-            <select id="newCourseLanguages" multiple class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4 h-24">
-              <option value="en" selected>English (en)</option>
-              <option value="ru">Russian (ru)</option>
-              <option value="ky">Kyrgyz (ky)</option>
+            <select id="courseStatusFilter" class="builder-select" aria-label="Status filter">
+              <option value="all">All statuses</option>
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+              <option value="archived">Archived</option>
             </select>
+          </section>
 
-            <label class="block text-sm font-medium text-gray-700 mb-1">Default Language</label>
-            <select id="newCourseLanguage" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
-              <option value="en" selected>English (en)</option>
-              <option value="ru">Russian (ru)</option>
-              <option value="ky">Kyrgyz (ky)</option>
-            </select>
-            
-            <p id="createError" class="text-red-500 text-xs hidden mb-2"></p>
-          </div>
-          <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 justify-end flex gap-2 flex-col">
-            <div id="createStatusBanner" style="display:none"></div>
-            <div class="flex gap-2 justify-end">
-              <button id="cancelModalBtn" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition">Cancel</button>
-              <button id="submitCreateBtn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium text-white transition shadow-sm flex items-center gap-2">Create Course</button>
+          <section id="courseBuilderStatus" class="builder-status" hidden></section>
+          <section id="courseGrid" class="builder-course-grid">${buildSkeletonCards(6)}</section>
+        </main>
+
+        <div id="createModal" class="builder-modal hidden">
+          <div class="builder-modal-panel">
+            <div class="builder-modal-head">
+              <div>
+                <p class="builder-eyebrow">New Course</p>
+                <h2>Create course shell</h2>
+              </div>
+              <button id="closeModalBtn" class="builder-icon-btn" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="builder-form-grid">
+              <label>Title<input id="newCourseTitle" type="text" placeholder="ICT Foundations"></label>
+              <label>Subject<input id="newCourseSubject" type="text" placeholder="ICT"></label>
+              <label>Level / Grade<input id="newCourseLevel" type="text" placeholder="Grade 7"></label>
+              <label>Default Language
+                <select id="newCourseLanguage">
+                  <option value="en" selected>English</option>
+                  <option value="ru">Russian</option>
+                  <option value="ky">Kyrgyz</option>
+                </select>
+              </label>
+              <label class="builder-field-wide">Description<textarea id="newCourseDescription" placeholder="What students will learn"></textarea></label>
+              <label class="builder-field-wide">Supported Languages
+                <select id="newCourseLanguages" multiple>
+                  <option value="en" selected>English</option>
+                  <option value="ru">Russian</option>
+                  <option value="ky">Kyrgyz</option>
+                </select>
+              </label>
+            </div>
+            <p id="createError" class="builder-error" hidden></p>
+            <div id="createStatusBanner" class="builder-status" hidden></div>
+            <div class="builder-modal-actions">
+              <button id="cancelModalBtn" class="builder-btn builder-btn-ghost">Cancel</button>
+              <button id="submitCreateBtn" class="builder-btn builder-btn-primary">Create Course</button>
             </div>
           </div>
         </div>
@@ -147,361 +87,471 @@ export class CatalogCoursePage {
 
   async loadData() {
     try {
-      const currentState = courseCreatorStore.getState();
-      if (currentState.courses && currentState.courses.length > 0) {
-        courseCreatorStore.setState({ isFetching: false, error: null });
-        return; // Already loaded, use cache
-      }
-
       courseCreatorStore.setState({ isFetching: true, error: null });
-      const result = await catalogCourseService.fetchAllCatalogCourses();
+      var result = await catalogCourseService.fetchAllCatalogCourses();
+
       if (result && result.emitted && result.emitted.success) {
         courseCreatorStore.setState({
           courses: result.emitted.data || [],
-          isFetching: false
+          isFetching: false,
+          error: null
         });
-      } else {
-        let errorMsg = "Validation or processing failed";
-        errorMsg = this.readResultErrorMessage(result);
-        courseCreatorStore.setState({ error: errorMsg, isFetching: false });
-        throw new Error(errorMsg);
+        return;
       }
-    } catch (err) {
-      console.error("Failed to load courses:", err);
-      document.getElementById('courseTableBody').innerHTML = `<tr><td colspan="6" class="py-10 text-center text-red-500 text-sm">Failed to load courses. Check console.</td></tr>`;
+
+      throw new Error(this.readResultErrorMessage(result));
+    } catch (error) {
+      courseCreatorStore.setState({
+        isFetching: false,
+        error: error.message
+      });
     }
   }
 
-  renderTable(state) {
-    const tbody = document.getElementById('courseTableBody');
-    const info = document.getElementById('paginationInfo');
-    const self = this;
+  renderCourses(state) {
+    var grid = document.getElementById("courseGrid");
+    var status = document.getElementById("courseBuilderStatus");
+
+    if (!grid) {
+      return;
+    }
 
     if (state.isFetching) {
-      tbody.innerHTML = buildSkeletonTableRows(6, 5);
+      grid.innerHTML = buildSkeletonCards(6);
+      hideStatus(status);
       return;
     }
 
     if (state.error) {
-      tbody.innerHTML = `<tr><td colspan="6" class="py-10 text-center text-red-500 text-sm">${state.error}</td></tr>`;
+      grid.innerHTML = "";
+      showStatus(status, "error", state.error);
       return;
     }
 
-    const courses = state.courses;
-    const paginationControls = document.getElementById('paginationControls');
+    var courses = filterCourses(state.courses || [], state.searchQuery || "", state.statusFilter || "all");
 
     if (courses.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="py-10 text-center text-gray-500 text-sm border-b">No active courses found. Create one above!</td></tr>`;
-      info.textContent = `Showing 0 to 0 of 0 courses`;
-      paginationControls.innerHTML = '';
+      grid.innerHTML = buildEmptyState();
+      hideStatus(status);
       return;
     }
 
-    info.textContent = `Showing 1 to ${courses.length} of ${courses.length} courses`;
-    paginationControls.innerHTML = `
-      <button class="px-3 py-1 border border-gray-200 rounded bg-white text-gray-500 disabled:opacity-50 text-sm cursor-not-allowed" disabled><i class="fa-solid fa-chevron-left"></i></button>
-      <button class="px-3 py-1 border border-blue-600 rounded bg-blue-600 text-white text-sm">1</button>
-      <button class="px-3 py-1 border border-gray-200 rounded bg-white text-gray-500 disabled:opacity-50 text-sm cursor-not-allowed" disabled><i class="fa-solid fa-chevron-right"></i></button>
-    `;
-
-    tbody.innerHTML = courses.map(function (course) {
-      const displayTitle = self.getLocalizedText(course.title, course.defaultLanguage) || 'Untitled Course';
-      // Tags mockup
-      const tagsHtml = (course.tags || []).length > 0
-        ? course.tags.map(function (t) { return `<span class="bg-blue-50 text-blue-600 border border-blue-100 px-2 py-1 rounded text-xs font-semibold mr-1">${t}</span>`; }).join('')
-        : `<span class="text-gray-400 text-xs italic">No tags</span>`;
-
-      const langs = course.languages || ['en'];
-      const langHtml = langs.map(function (l) {
-        // Mocking flags simply using country codes or solid colors for UI accuracy
-        let flagSrc = '';
-        if (l === 'en') flagSrc = '🇺🇸';
-        else if (l === 'ru') flagSrc = '🇷🇺';
-        else if (l === 'zh-CN' || l === 'cn') flagSrc = '🇨🇳';
-        else if (l === 'tr') flagSrc = '🇹🇷';
-        else flagSrc = '🌐';
-        return `<span class="text-lg" title="${l}">${flagSrc}</span>`;
-      }).join(' ');
-
-      return `
-        <tr class="hover:bg-gray-50 transition">
-          <td class="py-4 px-6 border-b border-gray-100 flex items-center gap-4">
-            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-xl shadow-sm border border-blue-200">
-              <i class="fa-solid fa-laptop-code"></i>
-            </div>
-            <div>
-              <div class="font-bold text-gray-900 text-base">${displayTitle}</div>
-              <div class="mt-1">${tagsHtml}</div>
-            </div>
-          </td>
-          <td class="py-4 px-6 border-b border-gray-100 align-middle">
-            <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-medium border border-gray-200">Placeholder Tag</span>
-          </td>
-          <td class="py-4 px-6 border-b border-gray-100 align-middle whitespace-nowrap">
-            <div class="flex items-center gap-1">${langHtml}</div>
-          </td>
-          <td class="py-4 px-6 border-b border-gray-100 align-middle text-gray-700 font-medium">
-            ${course.version || 1}
-          </td>
-          <td class="py-4 px-6 border-b border-gray-100 align-middle">
-            <div class="flex items-center gap-3">
-              <img src="https://ui-avatars.com/api/?name=${course.createdByName || course.createdBy || 'Unknown'}&background=random" class="w-8 h-8 rounded-full">
-              <div class="text-sm">
-                <div class="font-bold text-gray-900 drop-shadow-sm">${course.createdByName || 'Unknown User'}</div>
-                <div class="text-gray-500 text-xs">${course.createdBy || 'system'}</div>
-              </div>
-            </div>
-          </td>
-          <td class="py-4 px-6 border-b border-gray-100 align-middle text-center whitespace-nowrap">
-            <button data-id="${course.id}" class="edit-course-btn border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 px-3 py-1.5 rounded text-sm font-semibold transition shadow-sm mr-2 flex inline-flex items-center gap-1">
-              <i class="fa-solid fa-pen text-xs cursor-pointer pointer-events-none"></i> Edit
-            </button>
-            <button class="border border-gray-200 bg-white hover:bg-gray-50 text-gray-400 hover:text-red-500 px-2.5 py-1.5 rounded text-sm transition shadow-sm inline-flex items-center justify-center">
-              <i class="fa-solid fa-trash-can"></i>
-            </button>
-          </td>
-        </tr>
-      `;
-    }).join('');
-  }
-
-  getLocalizedText(value, defaultLanguage) {
-    let languageCode = defaultLanguage;
-
-    if (!languageCode) {
-      languageCode = 'en';
-    }
-
-    if (typeof value === 'string') {
-      return value;
-    }
-
-    if (!value || typeof value !== 'object') {
-      return '';
-    }
-
-    if (typeof value[languageCode] === 'string' && value[languageCode].length > 0) {
-      return value[languageCode];
-    }
-
-    if (typeof value.en === 'string' && value.en.length > 0) {
-      return value.en;
-    }
-
-    if (typeof value.ru === 'string' && value.ru.length > 0) {
-      return value.ru;
-    }
-
-    if (typeof value.ky === 'string' && value.ky.length > 0) {
-      return value.ky;
-    }
-
-    return '';
+    hideStatus(status);
+    grid.innerHTML = courses.map(buildCourseCard.bind(this)).join("");
   }
 
   attachEvents() {
-    const self = this;
+    var self = this;
 
-    // Subscribe to state changes to automatically re-render parts of the UI
-    this.unsubscribe = courseCreatorStore.subscribe(function (newState) {
-      self.renderTable(newState);
+    this.unsubscribe = courseCreatorStore.subscribe(function (state) {
+      self.renderCourses(state);
     });
 
-    self.loadData();
+    this.loadData();
+    this.bindFilters();
+    this.bindCreateModal();
+    this.bindCourseActions();
+  }
 
-    const tbody = document.getElementById('courseTableBody');
-    tbody.addEventListener('click', function (e) {
-      const editBtn = e.target.closest('.edit-course-btn');
-      if (editBtn) {
-        const courseId = editBtn.getAttribute('data-id');
-        window.location.hash = '#overview?courseId=' + courseId;
+  bindFilters() {
+    var searchInput = document.getElementById("courseSearchInput");
+    var statusFilter = document.getElementById("courseStatusFilter");
+
+    searchInput.addEventListener("input", function () {
+      courseCreatorStore.setState({ searchQuery: searchInput.value });
+    });
+
+    statusFilter.addEventListener("change", function () {
+      courseCreatorStore.setState({ statusFilter: statusFilter.value });
+    });
+  }
+
+  bindCourseActions() {
+    var grid = document.getElementById("courseGrid");
+    var self = this;
+
+    grid.addEventListener("click", function (event) {
+      var button = event.target.closest("[data-course-action]");
+
+      if (!button) {
+        return;
+      }
+
+      var courseId = button.getAttribute("data-id");
+      var action = button.getAttribute("data-course-action");
+
+      if (action === "edit") {
+        window.location.hash = "#overview?courseId=" + encodeURIComponent(courseId);
+        return;
+      }
+
+      if (action === "preview") {
+        window.location.hash = "#overview?courseId=" + encodeURIComponent(courseId) + "&preview=1";
+        return;
+      }
+
+      if (action === "assign") {
+        window.location.hash = "#overview?courseId=" + encodeURIComponent(courseId) + "&assign=1";
+        return;
+      }
+
+      if (action === "publish") {
+        window.location.hash = "#overview?courseId=" + encodeURIComponent(courseId) + "&publish=1";
+        return;
+      }
+
+      if (action === "archive") {
+        self.archiveCourse(courseId);
+        return;
+      }
+
+      if (action === "delete") {
+        self.deleteCourse(courseId);
       }
     });
+  }
 
-    const modal = document.getElementById('createModal');
-    const titleInput = document.getElementById('newCourseTitle');
-    const errText = document.getElementById('createError');
+  archiveCourse(courseId) {
+    var self = this;
+    showPageStatus("loading", "Archiving course...");
+    catalogCourseService.archiveCourse(courseId).then(function (result) {
+      if (!result || !result.emitted || !result.emitted.success) {
+        throw new Error(self.readResultErrorMessage(result));
+      }
+      showPageStatus("success", "Course archived.");
+      self.loadData();
+    }).catch(function (error) {
+      showPageStatus("error", error.message);
+    });
+  }
 
-    document.getElementById('openCreateModalBtn').addEventListener('click', function () {
-      titleInput.value = '';
-      document.getElementById('newCourseLanguages').value = 'en';
-      document.getElementById('newCourseLanguage').value = 'en';
-      errText.classList.add('hidden');
-      hideCreateStatusBanner();
-      modal.classList.remove('hidden');
+  deleteCourse(courseId) {
+    var self = this;
+
+    if (!confirm("Delete this course shell? Existing legacy content will not be hard-deleted.")) {
+      return;
+    }
+
+    showPageStatus("loading", "Deleting course...");
+    catalogCourseService.deleteCourse(courseId).then(function (result) {
+      if (!result || !result.emitted || !result.emitted.success) {
+        throw new Error(self.readResultErrorMessage(result));
+      }
+      showPageStatus("success", "Course deleted.");
+      self.loadData();
+    }).catch(function (error) {
+      showPageStatus("error", error.message);
+    });
+  }
+
+  bindCreateModal() {
+    var self = this;
+    var modal = document.getElementById("createModal");
+    var titleInput = document.getElementById("newCourseTitle");
+    var errorText = document.getElementById("createError");
+
+    document.getElementById("openCreateModalBtn").addEventListener("click", function () {
+      resetCreateForm();
+      modal.classList.remove("hidden");
+      titleInput.focus();
     });
 
-    const closeModal = function () {
-      modal.classList.add('hidden');
-    };
+    document.getElementById("closeModalBtn").addEventListener("click", function () {
+      modal.classList.add("hidden");
+    });
 
-    document.getElementById('closeModalBtn').addEventListener('click', closeModal);
-    document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
+    document.getElementById("cancelModalBtn").addEventListener("click", function () {
+      modal.classList.add("hidden");
+    });
 
-    document.getElementById('submitCreateBtn').addEventListener('click', function () {
-      const title = titleInput.value.trim();
-      const defaultLanguage = document.getElementById('newCourseLanguage').value;
-      const languagesSelect = document.getElementById('newCourseLanguages');
-      var selectedLanguages = [];
+    document.getElementById("submitCreateBtn").addEventListener("click", function () {
+      var payload = readCreatePayload();
+      var validation = validateCreatePayload(payload);
 
-      for (var i = 0; i < languagesSelect.options.length; i++) {
-        if (languagesSelect.options[i].selected) {
-          selectedLanguages.push(languagesSelect.options[i].value);
+      hideCreateError(errorText);
+
+      if (!validation.valid) {
+        showCreateError(errorText, validation.message);
+        return;
+      }
+
+      setCreateButtonPending(true);
+      showCreateStatus("loading", "Creating course...");
+
+      catalogCourseService.createCatalogCourse(payload).then(function (result) {
+        if (!result || !result.emitted || !result.emitted.success) {
+          throw new Error(self.readResultErrorMessage(result));
         }
-      }
 
-      errText.classList.add('hidden');
-      hideCreateStatusBanner();
-
-      if (!title) {
-        errText.textContent = "Title is required.";
-        errText.classList.remove('hidden');
-        return;
-      }
-
-      if (selectedLanguages.length === 0) {
-        errText.textContent = "At least one supported language is required.";
-        errText.classList.remove('hidden');
-        return;
-      }
-
-      if (!defaultLanguage) {
-        errText.textContent = "Default language is required.";
-        errText.classList.remove('hidden');
-        return;
-      }
-
-      if (selectedLanguages.indexOf(defaultLanguage) === -1) {
-        errText.textContent = "Default language must be one of the selected supported languages.";
-        errText.classList.remove('hidden');
-        return;
-      }
-
-      var btn = document.getElementById('submitCreateBtn');
-      showBtnPending(btn, 'Building your course shell…');
-      showCreateStatusBanner('creating', '<span class="oqu-spinner oqu-spinner-blue"></span> Building your course shell…');
-
-      var coursePayload = {
-        title: title,
-        description: '',
-        status: 'draft',
-        defaultLanguage: defaultLanguage,
-        tags: [],
-        languages: selectedLanguages
-      };
-
-      catalogCourseService.createCatalogCourse(coursePayload).then(function (res) {
-        if (!res || !res.emitted || !res.emitted.success) {
-          throw new Error(self.readResultErrorMessage(res));
-        }
-        showCreateStatusBanner('success', '<span class="oqu-success-icon">&#10003;</span> Course created!');
-        setTimeout(function () {
-          closeModal();
-          hideCreateStatusBanner();
-          restoreBtn(btn, 'Create Course');
-        }, 900);
-        self.appendCreatedCourse(res.emitted.data);
-      }).catch(function (err) {
-        showCreateStatusBanner('error', '&#9888; ' + err.message);
-        restoreBtn(btn, 'Create Course');
+        showCreateStatus("success", "Course created.");
+        modal.classList.add("hidden");
+        setCreateButtonPending(false);
+        self.loadData();
+      }).catch(function (error) {
+        showCreateStatus("error", error.message);
+        setCreateButtonPending(false);
       });
     });
   }
 
   readResultErrorMessage(result) {
     if (result && result.emitted && result.emitted.errors && result.emitted.errors.length > 0) {
-      if (result.emitted.errors[0].message) {
-        return result.emitted.errors[0].message;
-      }
-
-      if (result.emitted.errors[0].code) {
-        return result.emitted.errors[0].code;
-      }
+      return result.emitted.errors[0].message || result.emitted.errors[0].code || "Intent failed.";
     }
 
     if (result && result.errors && result.errors.length > 0) {
-      if (result.errors[0].message) {
-        return result.errors[0].message;
-      }
-
-      if (result.errors[0].code) {
-        return result.errors[0].code;
-      }
+      return result.errors[0].message || result.errors[0].code || "Intent failed.";
     }
 
-    return "Validation or processing failed";
-  }
-
-  appendCreatedCourse(course) {
-    const currentState = courseCreatorStore.getState();
-    const courses = currentState.courses ? currentState.courses.slice() : [];
-
-    courses.push(course);
-
-    courseCreatorStore.setState({
-      courses: courses,
-      isFetching: false,
-      error: null
-    });
+    return "Intent failed.";
   }
 }
 
-function showBtnPending(btn, label) {
-  btn.innerHTML = '<span class="oqu-spinner"></span> ' + label;
-  btn.disabled = true;
-  btn.classList.add('oqu-btn-pending');
+function buildCourseCard(course) {
+  var title = readLocalizedText(course.title, course.defaultLanguage) || "Untitled Course";
+  var description = readLocalizedText(course.description, course.defaultLanguage) || "Add a description before publishing.";
+  var status = readCourseStatus(course);
+  var moduleCount = readModuleCount(course);
+  var stepCount = readStepCount(course);
+
+  return `
+    <article class="builder-course-card">
+      <div class="builder-course-card-top">
+        <img src="./src/assets/module-stack.svg" alt="">
+        <span class="builder-badge builder-badge-${escapeHtml(status)}">${escapeHtml(status)}</span>
+      </div>
+      <h2>${escapeHtml(title)}</h2>
+      <p>${escapeHtml(description)}</p>
+      <div class="builder-course-meta">
+        <span>${moduleCount} module${moduleCount === 1 ? "" : "s"}</span>
+        <span>${stepCount} step${stepCount === 1 ? "" : "s"}</span>
+        <span>${escapeHtml(readUpdatedLabel(course.updatedAt || course.createdAt))}</span>
+      </div>
+      <div class="builder-card-actions">
+        <button data-course-action="edit" data-id="${escapeHtml(course.id)}">Edit</button>
+        <button data-course-action="preview" data-id="${escapeHtml(course.id)}">Preview</button>
+        <button data-course-action="publish" data-id="${escapeHtml(course.id)}">Publish</button>
+        <button data-course-action="assign" data-id="${escapeHtml(course.id)}">Assign</button>
+        <button data-course-action="archive" data-id="${escapeHtml(course.id)}">Archive</button>
+      </div>
+    </article>
+  `;
 }
 
-function restoreBtn(btn, label) {
-  btn.textContent = label;
-  btn.disabled = false;
-  btn.classList.remove('oqu-btn-pending');
+function filterCourses(courses, searchQuery, statusFilter) {
+  var query = searchQuery.toLowerCase().trim();
+
+  return courses.filter(function (course) {
+    var statusMatches = statusFilter === "all" || readCourseStatus(course) === statusFilter;
+    var text = [
+      readLocalizedText(course.title, course.defaultLanguage),
+      readLocalizedText(course.description, course.defaultLanguage),
+      course.subject || "",
+      course.level || ""
+    ].join(" ").toLowerCase();
+
+    return statusMatches && (!query || text.indexOf(query) !== -1);
+  });
 }
 
-function showCreateStatusBanner(type, html) {
-  var banner = document.getElementById('createStatusBanner');
-  if (!banner) {
+function readCreatePayload() {
+  var languagesSelect = document.getElementById("newCourseLanguages");
+  var selectedLanguages = [];
+
+  for (var index = 0; index < languagesSelect.options.length; index++) {
+    if (languagesSelect.options[index].selected) {
+      selectedLanguages.push(languagesSelect.options[index].value);
+    }
+  }
+
+  return {
+    title: document.getElementById("newCourseTitle").value.trim(),
+    description: document.getElementById("newCourseDescription").value.trim(),
+    subject: document.getElementById("newCourseSubject").value.trim(),
+    level: document.getElementById("newCourseLevel").value.trim(),
+    language: document.getElementById("newCourseLanguage").value,
+    defaultLanguage: document.getElementById("newCourseLanguage").value,
+    languages: selectedLanguages,
+    status: "draft",
+    tags: []
+  };
+}
+
+function validateCreatePayload(payload) {
+  if (!payload.title) {
+    return { valid: false, message: "Course title is required." };
+  }
+
+  if (payload.languages.length === 0) {
+    return { valid: false, message: "Select at least one language." };
+  }
+
+  if (payload.languages.indexOf(payload.defaultLanguage) === -1) {
+    return { valid: false, message: "Default language must be selected." };
+  }
+
+  return { valid: true };
+}
+
+function resetCreateForm() {
+  document.getElementById("newCourseTitle").value = "";
+  document.getElementById("newCourseDescription").value = "";
+  document.getElementById("newCourseSubject").value = "";
+  document.getElementById("newCourseLevel").value = "";
+  document.getElementById("newCourseLanguage").value = "en";
+  var languagesSelect = document.getElementById("newCourseLanguages");
+
+  for (var index = 0; index < languagesSelect.options.length; index++) {
+    languagesSelect.options[index].selected = languagesSelect.options[index].value === "en";
+  }
+
+  hideCreateError(document.getElementById("createError"));
+  hideStatus(document.getElementById("createStatusBanner"));
+}
+
+function setCreateButtonPending(isPending) {
+  var button = document.getElementById("submitCreateBtn");
+  button.disabled = isPending;
+  button.textContent = isPending ? "Creating..." : "Create Course";
+}
+
+function showCreateError(errorText, message) {
+  errorText.textContent = message;
+  errorText.hidden = false;
+}
+
+function hideCreateError(errorText) {
+  errorText.textContent = "";
+  errorText.hidden = true;
+}
+
+function showCreateStatus(type, message) {
+  showStatus(document.getElementById("createStatusBanner"), type, message);
+}
+
+function showPageStatus(type, message) {
+  showStatus(document.getElementById("courseBuilderStatus"), type, message);
+}
+
+function showStatus(element, type, message) {
+  if (!element) {
     return;
   }
-  var typeClass = 'oqu-status-creating';
-  if (type === 'error') {
-    typeClass = 'oqu-status-error';
-  }
-  if (type === 'success') {
-    typeClass = 'oqu-status-success';
-  }
-  banner.className = 'oqu-status-banner ' + typeClass;
-  banner.innerHTML = html;
-  banner.style.display = 'flex';
+
+  element.className = "builder-status builder-status-" + type;
+  element.textContent = message;
+  element.hidden = false;
 }
 
-function hideCreateStatusBanner() {
-  var banner = document.getElementById('createStatusBanner');
-  if (banner) {
-    banner.style.display = 'none';
-    banner.innerHTML = '';
+function hideStatus(element) {
+  if (!element) {
+    return;
   }
+
+  element.hidden = true;
+  element.textContent = "";
 }
 
-function buildSkeletonTableRows(colCount, rowCount) {
-  var rows = '';
-  var row = 0;
+function buildSkeletonCards(count) {
+  var html = "";
+  var index = 0;
 
-  while (row < rowCount) {
-    var cells = '';
-    var col = 0;
-
-    while (col < colCount) {
-      var widthPct = (col === 0) ? 60 : 40;
-      cells += '<td class="py-4 px-6 border-b border-gray-100">'
-        + '<div class="oqu-skeleton-line" style="height:14px;width:' + widthPct + '%"></div>'
-        + '</td>';
-      col = col + 1;
-    }
-
-    rows += '<tr>' + cells + '</tr>';
-    row = row + 1;
+  while (index < count) {
+    html += '<article class="builder-course-card builder-skeleton"><div></div><span></span><p></p><p></p></article>';
+    index = index + 1;
   }
 
-  return rows;
+  return html;
+}
+
+function buildEmptyState() {
+  return '<section class="builder-empty"><img src="./src/assets/empty-course.svg" alt=""><h2>No courses found</h2><p>Create a course shell or adjust your filters.</p></section>';
+}
+
+function readLocalizedText(value, defaultLanguage) {
+  var language = defaultLanguage || "en";
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (!value || typeof value !== "object") {
+    return "";
+  }
+
+  return value[language] || value.en || value.ru || value.ky || "";
+}
+
+function readCourseStatus(course) {
+  if (course && course.isArchived) {
+    return "archived";
+  }
+
+  if (course && course.status) {
+    return course.status;
+  }
+
+  return "draft";
+}
+
+function readModuleCount(course) {
+  if (Array.isArray(course.moduleOrder)) {
+    return course.moduleOrder.length;
+  }
+
+  if (typeof course.moduleCount === "number") {
+    return course.moduleCount;
+  }
+
+  return 0;
+}
+
+function readStepCount(course) {
+  if (typeof course.stepCount === "number") {
+    return course.stepCount;
+  }
+
+  return 0;
+}
+
+function readUpdatedLabel(value) {
+  var date = readDate(value);
+
+  if (!date) {
+    return "Updated recently";
+  }
+
+  return "Updated " + date.toLocaleDateString();
+}
+
+function readDate(value) {
+  if (!value) {
+    return null;
+  }
+
+  if (typeof value.toDate === "function") {
+    return value.toDate();
+  }
+
+  if (value.seconds) {
+    return new Date(value.seconds * 1000);
+  }
+
+  if (typeof value === "number") {
+    return new Date(value);
+  }
+
+  return null;
+}
+
+function escapeHtml(value) {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }

@@ -9,7 +9,7 @@ export async function attachSessionsCollection(executionState) {
   }
 
   try {
-    const sessionsRef = collection(db, "courses", payload.courseId, "modules", payload.moduleId, "sessions");
+    const sessionsRef = collection(db, readCourseCollectionName(executionState), payload.courseId, "modules", payload.moduleId, "sessions");
     const snapshot = await getDocs(sessionsRef);
     const sessions = [];
 
@@ -36,6 +36,14 @@ export async function attachSessionsCollection(executionState) {
       ]
     };
   }
+}
+
+function readCourseCollectionName(executionState) {
+  if (executionState.context && executionState.context.courseCollectionName) {
+    return executionState.context.courseCollectionName;
+  }
+
+  return "catalogCourses";
 }
 
 function normalizeSessionDocument(sessionId, sessionData) {

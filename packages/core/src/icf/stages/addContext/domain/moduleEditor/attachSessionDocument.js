@@ -9,7 +9,7 @@ export async function attachSessionDocument(executionState) {
   }
 
   try {
-    var docRef = doc(db, "courses", payload.courseId, "modules", payload.moduleId, "sessions", payload.sessionId);
+    var docRef = doc(db, readCourseCollectionName(executionState), payload.courseId, "modules", payload.moduleId, "sessions", payload.sessionId);
     var docSnap = await getDoc(docRef);
 
     if (!docSnap.exists()) {
@@ -47,4 +47,12 @@ function normalizeSessionDocument(sessionId, sessionData) {
   var session = Object.assign({ id: sessionId }, sessionData);
   session.practiceModes = normalizePracticeModes(session.practiceModes);
   return session;
+}
+
+function readCourseCollectionName(executionState) {
+  if (executionState.context && executionState.context.courseCollectionName) {
+    return executionState.context.courseCollectionName;
+  }
+
+  return "catalogCourses";
 }

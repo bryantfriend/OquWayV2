@@ -1,6 +1,7 @@
 let state = {
     courses: [],
     searchQuery: "",
+    statusFilter: "all",
     filterTag: "Filter by Tag",
     sortBy: "Date Created",
     showArchived: false,

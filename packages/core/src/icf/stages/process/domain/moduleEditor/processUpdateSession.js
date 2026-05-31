@@ -5,7 +5,7 @@ export async function processUpdateSession(executionState) {
   const sessionUpdate = createSessionUpdate(payload);
 
   try {
-    await setDoc(doc(db, "courses", payload.courseId, "modules", payload.moduleId, "sessions", payload.sessionId), sessionUpdate, { merge: true });
+    await setDoc(doc(db, readCourseCollectionName(executionState), payload.courseId, "modules", payload.moduleId, "sessions", payload.sessionId), sessionUpdate, { merge: true });
     executionState.result = Object.assign({ id: payload.sessionId }, sessionUpdate);
     return { valid: true };
   } catch (error) {
@@ -28,4 +28,10 @@ function createSessionUpdate(payload) {
     status: payload.status,
     updatedAt: serverTimestamp()
   };
+}
+
+function readCourseCollectionName(executionState) {
+  return executionState.context && executionState.context.courseCollectionName
+    ? executionState.context.courseCollectionName
+    : "catalogCourses";
 }

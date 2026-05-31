@@ -8,6 +8,9 @@ export function normalizeCourseMetadata(executionState) {
     data: {
       title: normalizeLocalizedText(payload.title, defaultLanguage),
       description: normalizeLocalizedText(payload.description, defaultLanguage),
+      subject: normalizeTextValue(payload.subject),
+      level: normalizeTextValue(payload.level),
+      language: normalizeLanguage(payload.language, defaultLanguage),
       status: normalizeStatus(payload.status),
       defaultLanguage: defaultLanguage,
       languages: languages,
@@ -146,6 +149,14 @@ function normalizeStatus(status) {
   }
 
   return "draft";
+}
+
+function normalizeLanguage(language, fallbackLanguage) {
+  if (isSupportedLanguage(language)) {
+    return language;
+  }
+
+  return fallbackLanguage;
 }
 
 function normalizeSlug(titleValue, defaultLanguage) {

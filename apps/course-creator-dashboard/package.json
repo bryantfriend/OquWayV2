@@ -1,6 +1,6 @@
 {
   "name": "course-creator-dashboard",
-  "version": "1.0.0",
-  "description": "Minimal Global Catalog Vertical Slice Dashboard",
+  "version": "2.0.0",
+  "description": "OquWay Course Builder 2.0 Dashboard",
   "type": "module"
 }

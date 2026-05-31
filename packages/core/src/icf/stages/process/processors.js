@@ -45,11 +45,13 @@ export { processSaveCourseDraft } from "./domain/courseEditor/processSaveCourseD
 export { processUpdateModuleField } from "./domain/courseEditor/processUpdateModuleField.js";
 export { processValidateCourseStructure } from "./domain/courseEditor/processValidateCourseStructure.js";
 export { processUpdateCourseField } from "./domain/courseEditor/updateCourseFieldProcessor.js";
+export { processPreviewCourse } from "./domain/courseEditor/processPreviewCourse.js";
 export { processAddStep } from "./domain/moduleEditor/processAddStep.js";
 export { processAddStepToPracticeMode } from "./domain/moduleEditor/processAddStepToPracticeMode.js";
 export { processCreateSession } from "./domain/moduleEditor/processCreateSession.js";
 export { processCreatePracticeModeShells } from "./domain/moduleEditor/processCreatePracticeModeShells.js";
 export { processListSessions } from "./domain/moduleEditor/processListSessions.js";
+export { processLoadSteps } from "./domain/moduleEditor/processLoadSteps.js";
 export { processListPracticeModeSteps } from "./domain/moduleEditor/processListPracticeModeSteps.js";
 export { processOpenModuleEditor } from "./domain/moduleEditor/processOpenModuleEditor.js";
 export { processDeletePracticeModeStep } from "./domain/moduleEditor/processDeletePracticeModeStep.js";

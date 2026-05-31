@@ -7,7 +7,7 @@ export async function processCreateModule(executionState) {
   const moduleRecord = createModuleRecord(moduleId, payload, context);
 
   try {
-    await setDoc(doc(db, "courses", payload.courseId, "modules", moduleId), moduleRecord);
+    await setDoc(doc(db, readCourseCollectionName(executionState), payload.courseId, "modules", moduleId), moduleRecord);
     executionState.result = moduleRecord;
     return { valid: true };
   } catch (error) {
@@ -48,4 +48,10 @@ function readNextOrder(modules) {
 function generateId(prefix) {
   const randomText = Math.random().toString(36).slice(2, 10);
   return prefix + "-" + Date.now() + "-" + randomText;
+}
+
+function readCourseCollectionName(executionState) {
+  return executionState.context && executionState.context.courseCollectionName
+    ? executionState.context.courseCollectionName
+    : "catalogCourses";
 }

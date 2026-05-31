@@ -8,7 +8,7 @@ export async function processCreateSession(executionState) {
   const sessionRecord = createSessionRecord(sessionId, payload, context);
 
   try {
-    await setDoc(doc(db, "courses", payload.courseId, "modules", payload.moduleId, "sessions", sessionId), sessionRecord);
+    await setDoc(doc(db, readCourseCollectionName(executionState), payload.courseId, "modules", payload.moduleId, "sessions", sessionId), sessionRecord);
     executionState.result = sessionRecord;
     return { valid: true };
   } catch (error) {
@@ -51,4 +51,10 @@ function readNextOrder(sessions) {
 function generateId(prefix) {
   const randomText = Math.random().toString(36).slice(2, 10);
   return prefix + "-" + Date.now() + "-" + randomText;
+}
+
+function readCourseCollectionName(executionState) {
+  return executionState.context && executionState.context.courseCollectionName
+    ? executionState.context.courseCollectionName
+    : "catalogCourses";
 }

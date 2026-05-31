@@ -320,6 +320,40 @@ export const courseEditorService = {
   }
 };
 
+courseEditorService.previewCourse = async function (courseId) {
+  try {
+    var result = await runIntentPipeline(getIntentDefinition("PreviewCourseIntent"), {
+      payload: {
+        courseId: courseId
+      },
+      actor: getActor()
+    });
+
+    return result;
+  } catch (error) {
+    return {
+      emitted: {
+        success: false,
+        errors: [
+          {
+            code: "COURSE_PREVIEW_FAILED",
+            message: error.message
+          }
+        ]
+      }
+    };
+  }
+};
+
+courseEditorService.archiveCourse = async function (courseId) {
+  return await runIntentPipeline(getIntentDefinition("ArchiveCourseIntent"), {
+    payload: {
+      courseId: courseId
+    },
+    actor: getActor()
+  });
+};
+
 function readIntentErrorMessage(result) {
   if (result && result.emitted && result.emitted.errors && result.emitted.errors.length > 0) {
     if (result.emitted.errors[0].message) {

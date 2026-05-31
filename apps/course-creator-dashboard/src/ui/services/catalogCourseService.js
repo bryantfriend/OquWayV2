@@ -32,7 +32,7 @@ export const catalogCourseService = {
 
     async fetchAllCatalogCourses() {
         const intentResult = createIntent({
-            type: "ListCoursesIntent",
+            type: "LoadCoursesIntent",
             payload: {},
             actor: getActor()
         });
@@ -42,5 +42,31 @@ export const catalogCourseService = {
         }
 
         return await runIntentPipeline(intentResult.definition, intentResult.executionInput);
+    },
+
+    async archiveCourse(courseId) {
+        return runNamedIntent("ArchiveCourseIntent", { courseId: courseId });
+    },
+
+    async deleteCourse(courseId) {
+        return runNamedIntent("DeleteCourseIntent", { courseId: courseId });
+    },
+
+    async previewCourse(courseId) {
+        return runNamedIntent("PreviewCourseIntent", { courseId: courseId });
     }
 };
+
+async function runNamedIntent(intentType, payload) {
+    const intentResult = createIntent({
+        type: intentType,
+        payload: payload,
+        actor: getActor()
+    });
+
+    if (!intentResult.ok) {
+        return intentResult;
+    }
+
+    return await runIntentPipeline(intentResult.definition, intentResult.executionInput);
+}

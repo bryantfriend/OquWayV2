@@ -5,7 +5,7 @@ export async function attachStepsCollection(executionState) {
     if (!payload.courseId || !payload.moduleId) return { valid: true };
 
     try {
-        const stepsRef = collection(db, "courses", payload.courseId, "modules", payload.moduleId, "steps");
+        const stepsRef = collection(db, readCourseCollectionName(executionState), payload.courseId, "modules", payload.moduleId, "steps");
         const snapshot = await getDocs(stepsRef);
 
         const steps = [];
@@ -27,3 +27,10 @@ export async function attachStepsCollection(executionState) {
     }
 }
 
+function readCourseCollectionName(executionState) {
+    if (executionState.context && executionState.context.courseCollectionName) {
+        return executionState.context.courseCollectionName;
+    }
+
+    return "catalogCourses";
+}

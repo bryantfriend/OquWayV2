@@ -5,7 +5,7 @@ export async function attachModulesCollection(executionState) {
     if (!payload.courseId) return { valid: true };
 
     try {
-        const modulesRef = collection(db, "courses", payload.courseId, "modules");
+        const modulesRef = collection(db, readCourseCollectionName(executionState), payload.courseId, "modules");
         const snapshot = await getDocs(modulesRef);
 
         const modules = [];
@@ -27,3 +27,10 @@ export async function attachModulesCollection(executionState) {
     }
 }
 
+function readCourseCollectionName(executionState) {
+    if (executionState.context && executionState.context.courseCollectionName) {
+        return executionState.context.courseCollectionName;
+    }
+
+    return "catalogCourses";
+}

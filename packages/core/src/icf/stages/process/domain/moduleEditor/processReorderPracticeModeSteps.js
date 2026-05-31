@@ -7,7 +7,7 @@ export async function processReorderPracticeModeSteps(executionState) {
   var practiceModes = reorderPracticeModeSteps(session.practiceModes, payload.practiceModeKey, payload.orderedStepIds);
 
   try {
-    await setDoc(doc(db, "courses", payload.courseId, "modules", payload.moduleId, "sessions", payload.sessionId), {
+    await setDoc(doc(db, readCourseCollectionName(executionState), payload.courseId, "modules", payload.moduleId, "sessions", payload.sessionId), {
       practiceModes: practiceModes,
       updatedAt: serverTimestamp()
     }, { merge: true });
@@ -25,4 +25,10 @@ export async function processReorderPracticeModeSteps(executionState) {
       ]
     };
   }
+}
+
+function readCourseCollectionName(executionState) {
+  return executionState.context && executionState.context.courseCollectionName
+    ? executionState.context.courseCollectionName
+    : "catalogCourses";
 }

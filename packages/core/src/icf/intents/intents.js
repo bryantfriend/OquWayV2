@@ -40,8 +40,12 @@ export { FetchCatalogCourseVersionsIntent } from "./catalogCourse/FetchCatalogCo
 // Course Sandbox
 // ----------------------
 export { CreateCourseIntent } from "./course/CreateCourseIntent.js";
+export { LoadCoursesIntent } from "./course/LoadCoursesIntent.js";
 export { ListCoursesIntent } from "./course/ListCoursesIntent.js";
+export { UpdateCourseIntent } from "./course/UpdateCourseIntent.js";
 export { UpdateCourseMetadataIntent } from "./course/UpdateCourseMetadataIntent.js";
+export { DeleteCourseIntent } from "./course/DeleteCourseIntent.js";
+export { ArchiveCourseIntent } from "./course/ArchiveCourseIntent.js";
 
 // ----------------------
 // Course Assignments
@@ -90,7 +94,9 @@ export { VerifySuperAdminAccessIntent } from "./superAdmin/VerifySuperAdminAcces
 // ----------------------
 export { OpenCourseEditorIntent } from "./courseEditor/OpenCourseEditorIntent.js";
 export { LoadCourseIntent } from "./courseEditor/LoadCourseIntent.js";
+export { LoadModulesIntent } from "./courseEditor/LoadModulesIntent.js";
 export { LoadCourseModulesIntent } from "./courseEditor/LoadCourseModulesIntent.js";
+export { PreviewCourseIntent } from "./courseEditor/PreviewCourseIntent.js";
 export { CreateModuleIntent } from "./courseEditor/CreateModuleIntent.js";
 export { ListModulesIntent } from "./courseEditor/ListModulesIntent.js";
 export { UpdateModuleIntent } from "./courseEditor/UpdateModuleIntent.js";
@@ -111,6 +117,11 @@ export { OpenModuleEditorIntent } from "./moduleEditor/OpenModuleEditorIntent.js
 export { AddStepToPracticeModeIntent } from "./moduleEditor/AddStepToPracticeModeIntent.js";
 export { CreatePracticeModeShellsIntent } from "./moduleEditor/CreatePracticeModeShellsIntent.js";
 export { CreateSessionIntent } from "./moduleEditor/CreateSessionIntent.js";
+export { LoadStepsIntent } from "./moduleEditor/LoadStepsIntent.js";
+export { CreateStepIntent } from "./moduleEditor/CreateStepIntent.js";
+export { UpdateStepIntent } from "./moduleEditor/UpdateStepIntent.js";
+export { DeleteStepIntent } from "./moduleEditor/DeleteStepIntent.js";
+export { ReorderStepsIntent } from "./moduleEditor/ReorderStepsIntent.js";
 export { DeletePracticeModeStepIntent } from "./moduleEditor/DeletePracticeModeStepIntent.js";
 export { ListPracticeModeStepsIntent } from "./moduleEditor/ListPracticeModeStepsIntent.js";
 export { ListSessionsIntent } from "./moduleEditor/ListSessionsIntent.js";
