@@ -74,7 +74,6 @@ async function listStudents(data) {
   const db = admin.firestore();
   const students = [];
   const snapshot = await db.collection("users")
-    .where("classId", "==", classId)
     .where("locationId", "==", locationId)
     .where("status", "==", "active")
     .get();
@@ -82,7 +81,7 @@ async function listStudents(data) {
   snapshot.forEach(function (studentDoc) {
     const student = studentDoc.data() || {};
 
-    if (student.role === "student" || student.role === "ROLE_STUDENT") {
+    if (hasStudentRole(student) && studentMatchesClass(student, classId)) {
       students.push(sanitizeStudent(studentDoc.id, student));
     }
   });
@@ -129,7 +128,7 @@ async function loginStudent(data) {
 }
 
 function verifyStudentCanUseFruitLogin(student, classId, locationId) {
-  if (student.role !== "student" && student.role !== "ROLE_STUDENT") {
+  if (!hasStudentRole(student)) {
     throw new HttpsError("permission-denied", "This is not a student account.");
   }
 
@@ -137,11 +136,11 @@ function verifyStudentCanUseFruitLogin(student, classId, locationId) {
     throw new HttpsError("permission-denied", "This student account is not active.");
   }
 
-  if (classId && student.classId !== classId) {
+  if (classId && !studentMatchesClass(student, classId)) {
     throw new HttpsError("permission-denied", "This student is not in the selected class.");
   }
 
-  if (locationId && student.locationId !== locationId) {
+  if (locationId && !studentMatchesLocation(student, locationId)) {
     throw new HttpsError("permission-denied", "This student is not in the selected location.");
   }
 }
@@ -226,7 +225,9 @@ function sanitizeStudent(studentId, data) {
     displayName: readText(data.displayName || data.name),
     photoUrl: readText(data.photoUrl),
     classId: readText(data.classId),
+    classIds: readIdList(data.classIds),
     locationId: readText(data.locationId),
+    locationIds: readIdList(data.locationIds),
     status: readText(data.status || "active")
   };
 }
@@ -244,7 +245,7 @@ async function resetStudentFruitPassword(data) {
 
   const student = studentDoc.data() || {};
 
-  if (student.role !== "student" && student.role !== "ROLE_STUDENT") {
+  if (!hasStudentRole(student)) {
     throw new HttpsError("permission-denied", "Fruit passwords can only be reset for students.");
   }
 
@@ -282,6 +283,115 @@ function verifyAdminCaller(auth) {
   }
 
   throw new HttpsError("permission-denied", "Only super admins or platform admins can reset fruit passwords.");
+}
+
+function hasStudentRole(user) {
+  return readRoles(user).indexOf("student") !== -1;
+}
+
+function studentMatchesClass(student, classId) {
+  const classIds = readIdList(student.classIds);
+
+  if (readText(student.classId) === classId) {
+    return true;
+  }
+
+  return classIds.indexOf(classId) !== -1;
+}
+
+function studentMatchesLocation(student, locationId) {
+  const locationIds = readIdList(student.locationIds);
+
+  if (readText(student.locationId || student.primaryLocationId) === locationId) {
+    return true;
+  }
+
+  return locationIds.indexOf(locationId) !== -1;
+}
+
+function readRoles(user) {
+  const data = user || {};
+  const source = [];
+  const roles = [];
+
+  if (Array.isArray(data.roles)) {
+    source.push(...data.roles);
+  }
+
+  if (data.role) {
+    source.push(data.role);
+  }
+
+  source.forEach(function (role) {
+    const normalizedRole = normalizeRole(role);
+
+    if (normalizedRole && roles.indexOf(normalizedRole) === -1) {
+      roles.push(normalizedRole);
+    }
+  });
+
+  return roles;
+}
+
+function normalizeRole(role) {
+  const normalizedRole = readText(role).replace(/[^a-z0-9]/gi, "").toLowerCase();
+
+  if (normalizedRole === "student") {
+    return "student";
+  }
+
+  if (normalizedRole === "teacher") {
+    return "teacher";
+  }
+
+  if (normalizedRole === "parent") {
+    return "parent";
+  }
+
+  if (normalizedRole === "schooladmin") {
+    return "schoolAdmin";
+  }
+
+  if (normalizedRole === "regionaladmin") {
+    return "regionalAdmin";
+  }
+
+  if (normalizedRole === "ministryuser" || normalizedRole === "ministry") {
+    return "ministryUser";
+  }
+
+  if (normalizedRole === "platformadmin") {
+    return "platformAdmin";
+  }
+
+  if (normalizedRole === "superadmin") {
+    return "superAdmin";
+  }
+
+  return "";
+}
+
+function readIdList(value) {
+  let source = value;
+  const ids = [];
+
+  if (typeof source === "string") {
+    source = source.split(",");
+  }
+
+  if (!Array.isArray(source)) {
+    return ids;
+  }
+
+  source.forEach(function (item) {
+    const id = readText(item).trim();
+
+    if (id && ids.indexOf(id) === -1) {
+      ids.push(id);
+    }
+  });
+
+  return ids;
 }
 
 function compareByName(a, b) {

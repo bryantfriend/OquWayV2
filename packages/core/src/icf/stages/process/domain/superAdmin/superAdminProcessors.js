@@ -271,30 +271,24 @@ export async function processListStudents(executionState) {
   var payload = executionState.payload || {};
 
   try {
-    var roleNames = ["student", "ROLE_STUDENT"];
     var students = [];
     var seenStudentIds = {};
-    var roleIndex = 0;
+    var snapshot = await getDocs(collection(db, "users"));
 
-    while (roleIndex < roleNames.length) {
-      var studentQuery = createStudentListQuery(roleNames[roleIndex], payload);
-      var snapshot = await getDocs(studentQuery);
+    snapshot.forEach(function (studentSnap) {
+      var data = studentSnap.data() || {};
 
-      snapshot.forEach(function (studentSnap) {
-        if (seenStudentIds[studentSnap.id]) {
-          return;
-        }
+      if (seenStudentIds[studentSnap.id] || !hasStudentRole(data)) {
+        return;
+      }
 
-        seenStudentIds[studentSnap.id] = true;
+      seenStudentIds[studentSnap.id] = true;
 
-        var student = sanitizeStudent(studentSnap.id, studentSnap.data());
-        if (matchesStudentFilters(student, payload) && matchesSearch(student, payload.searchText)) {
-          students.push(student);
-        }
-      });
-
-      roleIndex = roleIndex + 1;
-    }
+      var student = sanitizeStudent(studentSnap.id, data);
+      if (matchesStudentFilters(student, payload) && matchesSearch(student, payload.searchText)) {
+        students.push(student);
+      }
+    });
 
     students.sort(compareByName);
     executionState.result = {
@@ -312,10 +306,6 @@ export async function processListStudents(executionState) {
     };
     return { valid: true };
   }
-}
-
-function createStudentListQuery(roleName, payload) {
-  return query(collection(db, "users"), where("role", "==", roleName));
 }
 
 export async function processCreateStudent(executionState) {
@@ -356,6 +346,7 @@ export async function processUpdateStudent(executionState) {
       email: payload.email,
       username: payload.username,
       role: "student",
+      roles: ["student"],
       updatedAt: serverTimestamp()
     }, { merge: true });
 
@@ -440,6 +431,7 @@ async function loadUserProfile(userId) {
 function createStudentRecord(payload) {
   return {
     role: "student",
+    roles: ["student"],
     name: payload.name,
     displayName: payload.name,
     photoUrl: payload.photoUrl,
@@ -484,10 +476,12 @@ function sanitizeStudent(studentId, data) {
   return {
     id: studentId,
     role: readText(data.role || "student"),
+    roles: readRoles(data),
     name: readText(data.name || data.displayName),
     displayName: readText(data.displayName || data.name),
     photoUrl: readText(data.photoUrl),
     classId: readText(data.classId),
+    classIds: readIdList(data.classIds),
     locationId: readText(data.locationId),
     status: readText(data.status || (data.isActive === true ? "active" : "")),
     email: readText(data.email),
@@ -498,7 +492,7 @@ function sanitizeStudent(studentId, data) {
 }
 
 function matchesStudentFilters(student, payload) {
-  if (payload.classId && student.classId !== payload.classId) {
+  if (payload.classId && student.classId !== payload.classId && student.classIds.indexOf(payload.classId) === -1) {
     return false;
   }
 
@@ -507,6 +501,100 @@ function matchesStudentFilters(student, payload) {
   }
 
   return true;
+}
+
+function hasStudentRole(data) {
+  return readRoles(data).indexOf("student") !== -1;
+}
+
+function readRoles(data) {
+  var source = [];
+  var roles = [];
+  var index = 0;
+
+  if (Array.isArray(data.roles)) {
+    source = source.concat(data.roles);
+  }
+
+  if (data.role) {
+    source.push(data.role);
+  }
+
+  while (index < source.length) {
+    var normalizedRole = normalizeRole(source[index]);
+
+    if (normalizedRole && roles.indexOf(normalizedRole) === -1) {
+      roles.push(normalizedRole);
+    }
+
+    index = index + 1;
+  }
+
+  return roles;
+}
+
+function normalizeRole(role) {
+  var normalizedRole = readText(role).replace(/[^a-z0-9]/gi, "").toLowerCase();
+
+  if (normalizedRole === "student") {
+    return "student";
+  }
+
+  if (normalizedRole === "teacher") {
+    return "teacher";
+  }
+
+  if (normalizedRole === "parent") {
+    return "parent";
+  }
+
+  if (normalizedRole === "schooladmin") {
+    return "schoolAdmin";
+  }
+
+  if (normalizedRole === "regionaladmin") {
+    return "regionalAdmin";
+  }
+
+  if (normalizedRole === "ministryuser" || normalizedRole === "ministry") {
+    return "ministryUser";
+  }
+
+  if (normalizedRole === "platformadmin") {
+    return "platformAdmin";
+  }
+
+  if (normalizedRole === "superadmin") {
+    return "superAdmin";
+  }
+
+  return "";
+}
+
+function readIdList(value) {
+  var source = value;
+  var ids = [];
+  var index = 0;
+
+  if (typeof source === "string") {
+    source = source.split(",");
+  }
+
+  if (!Array.isArray(source)) {
+    return ids;
+  }
+
+  while (index < source.length) {
+    var id = readText(source[index]).trim();
+
+    if (id && ids.indexOf(id) === -1) {
+      ids.push(id);
+    }
+
+    index = index + 1;
+  }
+
+  return ids;
 }
 
 function matchesSearch(student, searchText) {

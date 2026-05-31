@@ -868,18 +868,155 @@
             margin: 16px 0;
         }
 
+        .sa-role-card-grid {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(140px, 1fr));
+            gap: 14px;
+        }
+
+        .sa-role-card {
+            position: relative;
+            overflow: hidden;
+            min-height: 178px;
+            display: grid;
+            align-content: space-between;
+            gap: 12px;
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            border-radius: 8px;
+            padding: 16px;
+            color: #0f172a;
+            text-align: left;
+            background: linear-gradient(135deg, #ffffff, #f8fafc);
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+        }
+
+        .sa-role-card:hover,
+        .sa-role-card.is-active {
+            transform: translateY(-3px);
+            border-color: #93c5fd;
+            box-shadow: 0 18px 46px rgba(37, 99, 235, 0.16);
+        }
+
+        .sa-role-card.is-active::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-top: 4px solid #2563eb;
+        }
+
+        .sa-role-card-student { background: linear-gradient(135deg, #ecfdf5, #ffffff); }
+        .sa-role-card-teacher { background: linear-gradient(135deg, #f5f3ff, #ffffff); }
+        .sa-role-card-parent { background: linear-gradient(135deg, #fdf2f8, #ffffff); }
+        .sa-role-card-admin { background: linear-gradient(135deg, #fff7ed, #ffffff); }
+        .sa-role-card-super { background: linear-gradient(135deg, #ecfeff, #ffffff); }
+
+        .sa-role-art {
+            width: 74px;
+            height: 74px;
+            display: grid;
+            place-items: center;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .sa-role-artwork-img {
+            width: 72px;
+            height: 72px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .sa-role-illustration {
+            position: relative;
+            width: 56px;
+            height: 56px;
+            display: block;
+        }
+
+        .sa-role-illustration span,
+        .sa-role-illustration b,
+        .sa-role-illustration em {
+            position: absolute;
+            display: block;
+            border-radius: 999px;
+        }
+
+        .sa-role-illustration span {
+            inset: 6px 12px auto;
+            height: 24px;
+            background: #fde68a;
+        }
+
+        .sa-role-illustration b {
+            inset: 28px 8px 4px;
+            background: linear-gradient(135deg, #2563eb, #14b8a6);
+        }
+
+        .sa-role-illustration em {
+            width: 22px;
+            height: 16px;
+            right: 2px;
+            bottom: 8px;
+            background: #ffffff;
+            border: 2px solid currentColor;
+        }
+
+        .sa-role-illustration-student { color: #059669; }
+        .sa-role-illustration-teacher { color: #7c3aed; }
+        .sa-role-illustration-parent { color: #db2777; }
+        .sa-role-illustration-admin { color: #ea580c; }
+        .sa-role-illustration-super { color: #0891b2; }
+
+        .sa-role-card-copy strong {
+            display: block;
+            font-size: 2rem;
+            line-height: 1;
+        }
+
+        .sa-role-card-copy span,
+        .sa-role-card i {
+            color: var(--muted);
+            font-weight: 900;
+            font-style: normal;
+        }
+
+        .sa-user-table {
+            display: grid;
+            gap: 10px;
+        }
+
+        .sa-user-table-head,
+        .sa-user-summary {
+            display: grid;
+            grid-template-columns: minmax(230px, 1.5fr) minmax(140px, 1fr) minmax(150px, 1fr) minmax(130px, 0.8fr) 96px minmax(130px, 0.8fr) minmax(230px, 1.1fr);
+            gap: 12px;
+            align-items: center;
+        }
+
+        .sa-user-table-head {
+            padding: 0 10px;
+            color: var(--muted);
+            font-size: 0.72rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
         .sa-user-card {
             border: 1px solid var(--line);
-            border-radius: 24px;
+            border-radius: 8px;
             background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
             padding: 16px;
             box-shadow: 0 14px 40px rgba(16,32,51,0.06);
         }
 
-        .sa-user-summary {
+        .sa-user-profile-cell {
             display: grid;
-            grid-template-columns: 58px minmax(0, 1fr) minmax(180px, 0.8fr) auto;
-            gap: 14px;
+            grid-template-columns: 58px minmax(0, 1fr);
+            gap: 12px;
             align-items: center;
         }
 
@@ -1305,8 +1442,14 @@
             .sa-search-groups,
             .sa-user-filters,
             .sa-user-summary,
-            .sa-user-fields {
+            .sa-user-fields,
+            .sa-role-card-grid,
+            .sa-user-table-head {
                 grid-template-columns: 1fr;
+            }
+
+            .sa-user-table-head {
+                display: none;
             }
 
             .sa-page-head,
@@ -2144,7 +2287,9 @@
             .sa-learning-grid,
             .sa-overview-skeleton,
             .sa-summary-metrics,
-            .sa-region-row {
+            .sa-region-row,
+            .sa-role-card-grid,
+            .sa-user-summary {
                 grid-template-columns: 1fr;
             }
 

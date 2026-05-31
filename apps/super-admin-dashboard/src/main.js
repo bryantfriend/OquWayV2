@@ -1,12 +1,12 @@
-import { getIdTokenResult, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../../../packages/core/src/infrastructure/firebase/auth.js";
 import { storage } from "../../../packages/core/src/infrastructure/firebase/storage.js";
-import { collection, db, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../packages/core/src/infrastructure/firebase/firestore.js";
+import { collection, db, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../packages/core/src/infrastructure/firebase/firestore.js";
 import { getIntentDefinition } from "../../../packages/core/src/icf/engine/intentRegistry.js";
 import { runIntentPipeline } from "../../../packages/core/src/icf/engine/runIntentPipeline.js";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.8";
+var appVersion = "1.1.9";
 var state = {
   isLoading: true,
   isRefreshing: false,
@@ -62,9 +62,17 @@ var state = {
   resetFruitPassword: []
 };
 
-var tabs = ["overview", "locations", "users", "students", "teachers", "lessons", "assignments", "loginTools", "analytics", "reports", "settings", "auditLogs"];
+var tabs = ["overview", "locations", "users", "classes", "lessons", "assignments", "loginTools", "analytics", "reports", "settings", "auditLogs"];
 var userRoles = ["student", "teacher", "parent", "schoolAdmin", "regionalAdmin", "ministryUser", "platformAdmin", "superAdmin"];
 var userStatuses = ["active", "inactive", "suspended", "archived"];
+var roleFilterCards = [
+  { key: "", label: "All Users", icon: "ALL", tone: "all", roles: [] },
+  { key: "student", label: "Students", icon: "STU", tone: "student", roles: ["student"] },
+  { key: "teacher", label: "Teachers", icon: "TCH", tone: "teacher", roles: ["teacher"] },
+  { key: "parent", label: "Parents", icon: "PAR", tone: "parent", roles: ["parent"] },
+  { key: "admin", label: "Admins", icon: "ADM", tone: "admin", roles: ["schoolAdmin", "regionalAdmin", "ministryUser", "platformAdmin"] },
+  { key: "superAdmin", label: "Super Admins", icon: "SUP", tone: "super", roles: ["superAdmin"] }
+];
 var fruits = ["apple", "watermelon", "banana", "strawberry", "pineapple", "mango", "kiwi", "orange", "cherry"];
 var fruitLabels = {
   apple: "🍎",
@@ -482,15 +490,14 @@ function buildTabs() {
       items: [
         { label: "Dashboard", icon: "⌁", tab: "overview" },
         { label: "Schools / Locations", icon: "⌂", tab: "locations" },
-        { label: "Users", icon: "◉", tab: "users" },
-        { label: "Students", icon: "✦", tab: "students" },
-        { label: "Teachers", icon: "✎", tab: "teachers" }
+        { label: "Users", icon: "◉", tab: "users" }
       ]
     },
     {
       title: "Learning & Engagement",
       items: [
         { label: "Lessons & Modules", icon: "▣", tab: "lessons" },
+        { label: "Classes", icon: "◫", tab: "classes" },
         { label: "Assignments", icon: "☑", tab: "assignments" },
         { label: "Login Tools", icon: "⚿", tab: "loginTools" }
       ]
@@ -600,14 +607,6 @@ function buildActiveTab() {
 
   if (state.activeTab === "classes") {
     return buildClassesTab();
-  }
-
-  if (state.activeTab === "students") {
-    return buildStudentsTab();
-  }
-
-  if (state.activeTab === "teachers") {
-    return buildTeachersTab();
   }
 
   if (state.activeTab === "lessons") {
@@ -1133,25 +1132,86 @@ function buildLocationsTab() {
 function buildUsersTab() {
   return '<section class="sa-stack sa-user-page" aria-busy="' + (state.isRefreshing ? "true" : "false") + '">'
     + buildUsersHeader()
-    + buildUserStatsCards()
+    + buildUserRoleCards()
     + buildUserCreatePanel()
-    + '<article class="sa-card"><div class="sa-section-title"><div><h2>All Users</h2><p>Manage profile-only identity, roles, access status, and location scope.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data"' + disabled(isBusy()) + '>' + buildButtonContent("Refresh", "refresh-data") + '</button></div>' + buildUserFilters() + buildUserRows() + '</article>'
+    + '<article class="sa-card"><div class="sa-section-title"><div><h2>' + escapeHtml(readActiveUserRoleLabel()) + '</h2><p>Single source of truth for identity, role membership, class scope, login status, and recovery actions.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data"' + disabled(isBusy()) + '>' + buildButtonContent("Refresh", "refresh-data") + '</button></div>' + buildUserFilters() + buildUserRows() + '</article>'
     + '</section>';
 }
 
 function buildUsersHeader() {
-  return '<div class="sa-page-head"><div><p class="sa-eyebrow">Identity & Access</p><h2>Users</h2><p>Profile-only management for students, teachers, parents, school admins, regional admins, ministry users, platform admins, and super admins.</p></div><button type="button" class="sa-btn" data-action="toggle-create-user"' + disabled(isBusy()) + '>' + (state.userCreateOpen ? "Close Create" : "Create User Profile") + '</button></div>';
+  return '<div class="sa-page-head"><div><p class="sa-eyebrow">Identity & Access</p><h2>Users</h2><p>Unified management for students, teachers, parents, admins, and super admins.</p></div><button type="button" class="sa-btn" data-action="toggle-create-user"' + disabled(isBusy()) + '>' + (state.userCreateOpen ? "Close Create" : "Create User Profile") + '</button></div>';
 }
 
-function buildUserStatsCards() {
-  var stats = readUserStats();
+function buildUserRoleCards() {
+  var html = '<section class="sa-role-card-grid" aria-label="Role filters">';
+  var index = 0;
 
-  return '<section class="sa-grid sa-grid-4">'
-    + buildMetricCard("Total Users", stats.totalUsers, "Profiles in users collection")
-    + buildMetricCard("Active", stats.activeUsers, "Profiles currently active")
-    + buildMetricCard("Multiple Roles", stats.multiRoleUsers, "Users with more than one role")
-    + buildMetricCard("Suspended", stats.suspendedUsers, "Profiles needing review")
-    + '</section>';
+  while (index < roleFilterCards.length) {
+    html += buildUserRoleCard(roleFilterCards[index]);
+    index = index + 1;
+  }
+
+  html += '</section>';
+  return html;
+}
+
+function buildUserRoleCard(card) {
+  var isActive = (state.userFilters.role || "") === card.key;
+  var count = countUsersForRoleFilter(card);
+
+  return '<button type="button" class="sa-role-card sa-role-card-' + escapeHtml(card.tone) + (isActive ? " is-active" : "") + '" data-action="filter-users-role" data-id="' + escapeHtml(card.key) + '">'
+    + '<span class="sa-role-art">' + buildRoleArtwork(card) + '</span>'
+    + '<span class="sa-role-card-copy"><strong>' + count + '</strong><span>' + escapeHtml(card.label) + '</span></span>'
+    + '<i>' + escapeHtml(card.icon) + '</i>'
+    + '</button>';
+}
+
+function buildRoleArtwork(card) {
+  var cachedArtwork = readCachedRoleArtwork(card.key || "all");
+
+  if (cachedArtwork) {
+    return '<img class="sa-role-artwork-img" src="' + escapeHtml(cachedArtwork) + '" alt="">';
+  }
+
+  var seed = card.tone || "all";
+  return '<span class="sa-role-illustration sa-role-illustration-' + escapeHtml(seed) + '"><span></span><b></b><em></em></span>';
+}
+
+function readCachedRoleArtwork(roleKey) {
+  if (!window.localStorage) {
+    return "";
+  }
+
+  try {
+    return window.localStorage.getItem("oquwayRoleArtwork:" + roleKey) || "";
+  } catch (error) {
+    return "";
+  }
+}
+
+window.cacheOquwayRoleArtwork = function (roleKey, dataUrl) {
+  if (!window.localStorage || !roleKey || !dataUrl) {
+    return false;
+  }
+
+  window.localStorage.setItem("oquwayRoleArtwork:" + roleKey, dataUrl);
+  render();
+  return true;
+};
+
+function countUsersForRoleFilter(card) {
+  if (!card.key) {
+    return state.users.length;
+  }
+
+  return countItems(state.users, function (user) {
+    return userMatchesRoleFilter(getSafeUser(user), card.key);
+  });
+}
+
+function readActiveUserRoleLabel() {
+  var card = findRoleFilterCard(state.userFilters.role);
+  return card && card.key ? card.label : "All Users";
 }
 
 function buildUserCreatePanel() {
@@ -1174,7 +1234,7 @@ function buildUserFilters() {
 
 function buildUserRows() {
   var users = readFilteredUsers();
-  var html = '<div class="sa-user-list">';
+  var html = '<div class="sa-user-table"><div class="sa-user-table-head"><span>Profile</span><span>Roles</span><span>Location</span><span>Class(es)</span><span>Status</span><span>Last Active</span><span>Actions</span></div>';
   var index = 0;
 
   if (state.isRefreshing && state.users.length === 0) {
@@ -1202,9 +1262,15 @@ function buildUserCard(user) {
   var isOpen = state.activeUserId === user.id;
   var html = '<article class="sa-user-card">';
 
-  html += '<div class="sa-user-summary">' + buildAvatar(user) + '<div class="sa-user-main"><div class="sa-location-title-row"><h3>' + escapeHtml(user.displayName || user.name || user.email || user.id) + '</h3>' + buildStatusBadge(user.status) + '</div><p>' + escapeHtml(user.email || "No email") + '</p><small>' + escapeHtml(user.phone || "No phone") + '</small><div class="sa-role-badges">' + buildRoleBadges(user.roles) + '</div></div>';
-  html += '<div class="sa-user-meta"><span>' + escapeHtml(readUserLocationSummary(user)) + '</span><span>Updated ' + escapeHtml(formatDateTime(normalizeTimestamp(user.updatedAt))) + '</span></div>';
-  html += '<div class="sa-row-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="edit-user" data-id="' + escapeHtml(user.id) + '">' + (isOpen ? "Close" : "Edit") + '</button></div></div>';
+  html += '<div class="sa-user-summary">';
+  html += '<div class="sa-user-profile-cell">' + buildAvatar(user) + '<div class="sa-user-main"><h3>' + escapeHtml(user.displayName || user.name || user.email || user.id) + '</h3><p>' + escapeHtml(user.email || "No email") + '</p><small>' + escapeHtml(user.phone || "No phone") + '</small></div></div>';
+  html += '<div class="sa-role-badges">' + buildRoleBadges(user.roles) + '</div>';
+  html += '<div class="sa-user-meta"><span>' + escapeHtml(readUserLocationSummary(user)) + '</span></div>';
+  html += '<div class="sa-user-meta"><span>' + escapeHtml(readUserClassSummary(user)) + '</span></div>';
+  html += '<div>' + buildStatusBadge(user.status) + '</div>';
+  html += '<div class="sa-user-meta"><span>' + escapeHtml(formatDateTime(readUserLastActive(user))) + '</span></div>';
+  html += '<div class="sa-row-actions">' + buildUserActionButtons(user, isOpen) + '</div>';
+  html += '</div>';
 
   if (isOpen) {
     html += '<div class="sa-location-detail">' + buildUserForm(user.id, normalizeUserForm(user), false) + '</div>';
@@ -1214,13 +1280,30 @@ function buildUserCard(user) {
   return html;
 }
 
+function buildUserActionButtons(user, isOpen) {
+  var html = '<button type="button" class="sa-btn sa-btn-secondary" data-action="edit-user" data-id="' + escapeHtml(user.id) + '">' + (isOpen ? "Close" : "Edit") + '</button>';
+
+  if (user.roles.indexOf("student") !== -1) {
+    html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="reset-fruit-user" data-id="' + escapeHtml(user.id) + '"' + disabled(isBusy()) + '>Reset Fruit</button>';
+  } else {
+    html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="send-password-reset" data-id="' + escapeHtml(user.id) + '"' + disabled(isBusy() || !user.email) + '>Reset Password</button>';
+  }
+
+  if (user.status === "active") {
+    html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="disable-user" data-id="' + escapeHtml(user.id) + '"' + disabled(isBusy()) + '>Disable</button>';
+  }
+
+  html += '<button type="button" class="sa-btn sa-danger-btn" data-action="delete-user" data-id="' + escapeHtml(user.id) + '"' + disabled(isBusy()) + '>Delete</button>';
+  return html;
+}
+
 function buildUserForm(formId, form, isCreate) {
   var html = '<div class="sa-user-form">';
 
   if (isCreate) {
-    html += '<section class="sa-location-form-section"><h3>Profile Identity</h3><div class="sa-user-fields">' + buildInput("user", formId, "userId", "UID / Profile ID", form.userId, "Leave blank to auto-generate") + buildInput("user", formId, "displayName", "Display Name", form.displayName) + buildInput("user", formId, "email", "Email", form.email, "name@example.com") + buildInput("user", formId, "phone", "Phone", form.phone) + '</div></section>';
+    html += '<section class="sa-location-form-section"><h3>Profile Identity</h3><div class="sa-user-fields">' + buildInput("user", formId, "userId", "UID / Profile ID", form.userId, "Leave blank to auto-generate") + buildInput("user", formId, "displayName", "Display Name", form.displayName) + buildInput("user", formId, "email", "Email", form.email, "name@example.com") + buildInput("user", formId, "phone", "Phone", form.phone) + buildInput("user", formId, "photoUrl", "Profile Photo", form.photoUrl, "https://example.com/photo.png") + '</div></section>';
   } else {
-    html += '<section class="sa-location-form-section"><h3>Profile Identity</h3><div class="sa-user-fields">' + buildInput("user", formId, "displayName", "Display Name", form.displayName) + buildInput("user", formId, "phone", "Phone", form.phone) + buildInput("user", formId, "photoUrl", "Photo URL", form.photoUrl) + '<label>Email<input value="' + escapeHtml(form.email) + '" disabled></label></div></section>';
+    html += '<section class="sa-location-form-section"><h3>Profile Identity</h3><div class="sa-user-fields">' + buildInput("user", formId, "displayName", "Display Name", form.displayName) + buildInput("user", formId, "email", "Email", form.email, "name@example.com") + buildInput("user", formId, "phone", "Phone", form.phone) + buildInput("user", formId, "photoUrl", "Profile Photo", form.photoUrl, "https://example.com/photo.png") + '</div></section>';
   }
 
   html += '<section class="sa-location-form-section"><h3>Roles & Access</h3><div class="sa-user-fields">' + buildRoleMultiSelect(formId, form.roles) + buildLocationMultiSelect(formId, form.locationIds) + buildPrimaryLocationSelect(formId, form.primaryLocationId) + buildSelect("user", formId, "status", form.status, userStatuses) + '</div></section>';
@@ -1269,6 +1352,10 @@ function buildRelationshipHints(formId, form) {
 
   if (form.roles.indexOf("teacher") !== -1) {
     html += '<section class="sa-location-form-section"><h3>Teacher Relationship Hints</h3><p>Optional for now. Add assigned class IDs as comma-separated values if teacher profile support exists.</p><div class="sa-user-fields">' + buildInput("user", formId, "classIdsText", "Class IDs", form.classIdsText, "classA, classB") + '</div></section>';
+  }
+
+  if (form.roles.indexOf("student") !== -1) {
+    html += '<section class="sa-location-form-section"><h3>Student Class Assignments</h3><p>Choose the primary class and optional additional class IDs for this student.</p><div class="sa-user-fields">' + buildClassSelect("user", formId, form.classId) + buildInput("user", formId, "classIdsText", "Additional Class IDs", form.classIdsText, "classA, classB") + '</div></section>';
   }
 
   return html;
@@ -1969,10 +2056,20 @@ async function handleAction(action, id) {
     setState({ userCreateOpen: !state.userCreateOpen, activeUserId: "", message: "" });
   } else if (action === "edit-user") {
     setState({ activeUserId: state.activeUserId === id ? "" : id, userCreateOpen: false, message: "" });
+  } else if (action === "filter-users-role") {
+    setState({ userFilters: Object.assign({}, state.userFilters, { role: id || "" }), activeUserId: "", message: "" });
   } else if (action === "create-user") {
     await saveUserProfile("create", "new");
   } else if (action === "update-user") {
     await saveUserProfile("update", id);
+  } else if (action === "disable-user") {
+    await updateUserStatus(id, "inactive");
+  } else if (action === "delete-user") {
+    await deleteUserProfile(id);
+  } else if (action === "reset-fruit-user") {
+    await resetFruitPasswordForUser(id);
+  } else if (action === "send-password-reset") {
+    await sendStaffPasswordReset(id);
   } else if (action === "create-class") {
     await saveIntent("CreateClassIntent", state.classForm, "Class created.");
     state.classForm = createClassForm();
@@ -2046,7 +2143,7 @@ function handleOverviewAction(action, id) {
   }
 
   if (action === "overview-create-student" || action === "overview-open-students" || action === "overview-open-student") {
-    setState({ activeTab: "students", message: "" });
+    setState({ activeTab: "users", activeUserId: action === "overview-open-student" ? id || "" : "", userFilters: Object.assign({}, state.userFilters, { role: "student" }), userCreateOpen: action === "overview-create-student", userForm: Object.assign(createUserForm(), { roles: ["student"] }), message: "" });
     return;
   }
 
@@ -2291,6 +2388,120 @@ async function saveUserProfile(mode, userId) {
   }
 }
 
+async function updateUserStatus(userId, status) {
+  if (!userId) {
+    setState({ message: "Choose a user first.", messageType: "error" });
+    return false;
+  }
+
+  try {
+    setState({ isSaving: true, pendingAction: "disable-user:" + userId, message: "Updating user status...", messageType: "info" });
+    await setDoc(doc(db, "users", userId), {
+      status: status,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    setState({ isSaving: false, pendingAction: "", activeUserId: "", message: "User disabled.", messageType: "success" });
+    await refreshAllData();
+    setState({ message: "User disabled.", messageType: "success" });
+    return true;
+  } catch (error) {
+    setState({ isSaving: false, pendingAction: "", message: "Could not update user status: " + (error.message || "Unknown error"), messageType: "error" });
+    return false;
+  }
+}
+
+async function deleteUserProfile(userId) {
+  var user = findUser(userId);
+  var label = user ? (user.displayName || user.email || user.id) : userId;
+
+  if (!userId) {
+    setState({ message: "Choose a user first.", messageType: "error" });
+    return false;
+  }
+
+  if (!window.confirm("Delete user profile for " + label + "? This removes the Firestore profile but does not delete the Firebase Auth account.")) {
+    return false;
+  }
+
+  try {
+    setState({ isSaving: true, pendingAction: "delete-user:" + userId, message: "Deleting user profile...", messageType: "info" });
+    await deleteDoc(doc(db, "users", userId));
+    setState({ isSaving: false, pendingAction: "", activeUserId: "", message: "User profile deleted.", messageType: "success" });
+    await refreshAllData();
+    setState({ message: "User profile deleted.", messageType: "success" });
+    return true;
+  } catch (error) {
+    setState({ isSaving: false, pendingAction: "", message: "Could not delete user profile: " + (error.message || "Unknown error"), messageType: "error" });
+    return false;
+  }
+}
+
+async function resetFruitPasswordForUser(userId) {
+  var fruitPassword = createRandomFruitPassword();
+  var user = getSafeUser(findUser(userId));
+
+  if (!userId || user.roles.indexOf("student") === -1) {
+    setState({ message: "Fruit password reset is only available for student users.", messageType: "error" });
+    return false;
+  }
+
+  setState({ resetStudentId: userId, resetFruitPassword: fruitPassword });
+
+  var saved = await saveIntent("ResetStudentFruitPasswordIntent", {
+    studentId: userId,
+    fruitPassword: fruitPassword
+  }, "Fruit password reset.");
+
+  if (saved) {
+    var label = fruitPassword.map(readFruitLabel).join(" ");
+    setState({
+      resetStudentId: "",
+      resetFruitPassword: [],
+      message: "Fruit password reset for " + (user.displayName || user.id) + ": " + label,
+      messageType: "success"
+    });
+    await refreshAllData();
+    setState({ message: "Fruit password reset for " + (user.displayName || user.id) + ": " + label, messageType: "success" });
+    return true;
+  }
+
+  return false;
+}
+
+async function sendStaffPasswordReset(userId) {
+  var user = getSafeUser(findUser(userId));
+
+  if (!user.email) {
+    setState({ message: "This user does not have an email address for password reset.", messageType: "error" });
+    return false;
+  }
+
+  if (user.roles.indexOf("student") !== -1 && user.roles.length === 1) {
+    setState({ message: "Student-only users use fruit login. Use Reset Fruit instead.", messageType: "error" });
+    return false;
+  }
+
+  try {
+    setState({ isSaving: true, pendingAction: "send-password-reset:" + userId, message: "Sending Firebase password reset email...", messageType: "info" });
+    await sendPasswordResetEmail(auth, user.email);
+    setState({ isSaving: false, pendingAction: "", message: "Firebase password reset email sent to " + user.email + ".", messageType: "success" });
+    return true;
+  } catch (error) {
+    setState({ isSaving: false, pendingAction: "", message: "Could not send password reset email: " + (error.message || "Unknown error"), messageType: "error" });
+    return false;
+  }
+}
+
+function createRandomFruitPassword() {
+  var values = [];
+
+  while (values.length < 4) {
+    values.push(fruits[Math.floor(Math.random() * fruits.length)]);
+  }
+
+  return values;
+}
+
 async function copyLoginLink(loginSlug) {
   var normalizedSlug = normalizeLoginSlug(loginSlug);
 
@@ -2507,6 +2718,7 @@ function createUserForm() {
     locationIds: [],
     primaryLocationId: "",
     status: "active",
+    classId: "",
     childStudentIdsText: "",
     classIdsText: ""
   };
@@ -4095,7 +4307,7 @@ function readFilteredUsers() {
     var user = getSafeUser(state.users[index]);
     var searchable = [user.displayName, user.email, user.phone, user.id].join(" ").toLowerCase();
     var matchesSearch = !query || searchable.indexOf(query) !== -1;
-    var matchesRole = !state.userFilters.role || user.roles.indexOf(state.userFilters.role) !== -1;
+    var matchesRole = userMatchesRoleFilter(user, state.userFilters.role);
     var matchesLocation = !state.userFilters.locationId || user.locationIds.indexOf(state.userFilters.locationId) !== -1 || user.primaryLocationId === state.userFilters.locationId;
     var matchesStatus = !state.userFilters.status || user.status === state.userFilters.status;
 
@@ -4109,6 +4321,43 @@ function readFilteredUsers() {
   return users.sort(function (a, b) {
     return (a.displayName || a.email || a.id).localeCompare(b.displayName || b.email || b.id);
   });
+}
+
+function userMatchesRoleFilter(user, roleFilter) {
+  var safeFilter = readSafeString(roleFilter);
+  var card = findRoleFilterCard(safeFilter);
+  var roles = user && Array.isArray(user.roles) ? user.roles : [];
+  var index = 0;
+
+  if (!safeFilter) {
+    return true;
+  }
+
+  if (!card || card.roles.length === 0) {
+    return roles.indexOf(safeFilter) !== -1;
+  }
+
+  while (index < card.roles.length) {
+    if (roles.indexOf(card.roles[index]) !== -1) {
+      return true;
+    }
+    index = index + 1;
+  }
+
+  return false;
+}
+
+function findRoleFilterCard(roleFilter) {
+  var index = 0;
+
+  while (index < roleFilterCards.length) {
+    if (roleFilterCards[index].key === readSafeString(roleFilter)) {
+      return roleFilterCards[index];
+    }
+    index = index + 1;
+  }
+
+  return roleFilterCards[0];
 }
 
 function readUsersByRole(role) {
@@ -4196,6 +4445,7 @@ function getSafeUser(user) {
     primaryLocationId: primaryLocationId,
     status: readSafeString(safeUser.status || "active"),
     childStudentIds: normalizeIdList(safeUser.childStudentIds),
+    classId: readSafeString(safeUser.classId),
     classIds: normalizeIdList(safeUser.classIds)
   });
 }
@@ -4213,6 +4463,7 @@ function normalizeUserForm(user) {
     locationIds: safeUser.locationIds.slice(),
     primaryLocationId: safeUser.primaryLocationId,
     status: safeUser.status,
+    classId: safeUser.classId,
     childStudentIdsText: safeUser.childStudentIdsText || safeUser.childStudentIds.join(", "),
     classIdsText: safeUser.classIdsText || safeUser.classIds.join(", ")
   };
@@ -4236,6 +4487,7 @@ function normalizeUserProfilePayload(form, userId) {
     locationIds: locationIds,
     primaryLocationId: readSafeString(safeForm.primaryLocationId).trim(),
     status: readSafeString(safeForm.status || "active"),
+    classId: readSafeString(safeForm.classId).trim(),
     childStudentIds: splitCommaList(safeForm.childStudentIdsText),
     classIds: splitCommaList(safeForm.classIdsText)
   };
@@ -4251,7 +4503,10 @@ function buildUserProfileRecord(payload, isCreate) {
     role: readLegacyRole(payload.roles),
     locationIds: payload.locationIds,
     primaryLocationId: payload.primaryLocationId,
+    locationId: payload.primaryLocationId,
     status: payload.status,
+    name: payload.displayName,
+    classId: payload.classId,
     childStudentIds: payload.childStudentIds,
     classIds: payload.classIds,
     updatedAt: serverTimestamp()
@@ -4335,6 +4590,29 @@ function readUserLocationSummary(user) {
   }
 
   return safeUser.locationIds.map(readLocationName).join(", ");
+}
+
+function readUserClassSummary(user) {
+  var safeUser = getSafeUser(user);
+  var classIds = safeUser.classIds.slice();
+
+  if (safeUser.classId && classIds.indexOf(safeUser.classId) === -1) {
+    classIds.unshift(safeUser.classId);
+  }
+
+  if (classIds.length === 0) {
+    return "No classes";
+  }
+
+  return classIds.map(readClassName).join(", ");
+}
+
+function readUserLastActive(user) {
+  if (!user) {
+    return null;
+  }
+
+  return user.lastActiveAt || user.lastLoginAt || user.lastSeenAt || user.updatedAt || user.createdAt || null;
 }
 
 function readLinkedUserLabel(student) {

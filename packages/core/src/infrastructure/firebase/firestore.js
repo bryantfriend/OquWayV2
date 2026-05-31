@@ -1,5 +1,6 @@
 import {
     collection,
+    deleteDoc,
     doc,
     getDoc,
     getDocs,
@@ -21,6 +22,7 @@ export const db = initializeFirestore(firebaseApp, {
 
 export {
     collection,
+    deleteDoc,
     doc,
     getDoc,
     getDocs,
