@@ -11,7 +11,8 @@ export function normalizeStudentsForClassPayload(executionState) {
 
   return {
     locationId: normalizeText(payload.locationId),
-    classId: normalizeText(payload.classId)
+    classId: normalizeText(payload.classId),
+    className: normalizeText(payload.className)
   };
 }
 
@@ -21,6 +22,7 @@ export function normalizeStudentFruitLoginPayload(executionState) {
   return {
     locationId: normalizeText(payload.locationId),
     classId: normalizeText(payload.classId),
+    className: normalizeText(payload.className),
     studentId: normalizeText(payload.studentId),
     fruits: normalizeFruits(payload.fruits)
   };

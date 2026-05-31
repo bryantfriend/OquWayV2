@@ -11,6 +11,7 @@ export async function processStudentFruitLogin(executionState) {
       studentId: payload.studentId,
       locationId: payload.locationId,
       classId: payload.classId,
+      className: payload.className,
       submittedNormalizedSequence: payload.fruits
     });
 
@@ -18,6 +19,7 @@ export async function processStudentFruitLogin(executionState) {
       action: "login",
       locationId: payload.locationId,
       classId: payload.classId,
+      className: payload.className,
       studentId: payload.studentId,
       fruits: payload.fruits,
       fruitPassword: payload.fruits
@@ -69,6 +71,7 @@ function logFruitLoginDebug(eventName, details) {
     studentId: details.studentId,
     locationId: details.locationId,
     classId: details.classId,
+    className: details.className,
     submittedNormalizedSequence: details.submittedNormalizedSequence
   });
 }

@@ -93,33 +93,52 @@ async function listClasses(data) {
 async function listStudents(data) {
   const locationId = readRequiredText(data.locationId, "locationId");
   const classId = readRequiredText(data.classId, "classId");
+  const className = await readSelectedClassName(admin.firestore(), locationId, classId, data.className);
   const db = admin.firestore();
   const students = [];
-  const snapshot = await db.collection("users")
-    .where("status", "==", "active")
-    .get();
+  const filteredReasons = {};
+  const snapshot = await db.collection("users").get();
 
   snapshot.forEach(function (studentDoc) {
     const student = studentDoc.data() || {};
+    const filterReason = readStudentFilterReason(student, locationId, classId, className);
 
-    if (hasStudentRole(student)
-        && studentMatchesLocation(student, locationId)
-        && studentMatchesClass(student, classId)) {
+    if (!filterReason) {
       students.push(sanitizeStudent(studentDoc.id, student));
+      return;
     }
+
+    addReasonCount(filteredReasons, filterReason);
   });
 
   students.sort(compareByName);
 
-  return {
+  const response = {
     success: true,
     students: students
   };
+
+  if (isDebugRequest(data)) {
+    response.debug = {
+      selectedLocationId: locationId,
+      selectedClassId: classId,
+      selectedClassName: className,
+      queryCollection: "users",
+      rawResultCount: snapshot.size,
+      filteredResultCount: students.length,
+      filteredReasons: filteredReasons
+    };
+
+    logStudentListDebug(response.debug);
+  }
+
+  return response;
 }
 
 async function loginStudent(data) {
   const locationId = readOptionalText(data.locationId);
   const classId = readOptionalText(data.classId);
+  const className = await readSelectedClassName(admin.firestore(), locationId, classId, data.className);
   const studentId = readRequiredText(data.studentId, "studentId");
   const fruits = readFruitArray(data.fruits || data.fruitPassword);
   const db = admin.firestore();
@@ -131,7 +150,7 @@ async function loginStudent(data) {
 
   const student = studentDoc.data() || {};
 
-  verifyStudentCanUseFruitLogin(student, classId, locationId);
+  verifyStudentCanUseFruitLogin(student, classId, locationId, className);
   logFruitPasswordDebug("login", {
     studentId: studentId,
     locationId: locationId,
@@ -148,7 +167,8 @@ async function loginStudent(data) {
   const customToken = await admin.auth().createCustomToken(studentId, {
     role: "student",
     locationId: locationId,
-    classId: classId
+    classId: classId,
+    className: className
   });
 
   return {
@@ -159,16 +179,16 @@ async function loginStudent(data) {
   };
 }
 
-function verifyStudentCanUseFruitLogin(student, classId, locationId) {
+function verifyStudentCanUseFruitLogin(student, classId, locationId, className) {
   if (!hasStudentRole(student)) {
     throw new HttpsError("permission-denied", "This is not a student account.");
   }
 
-  if (student.status && student.status !== "active" && student.status !== "approved") {
+  if (!isActiveStudent(student)) {
     throw new HttpsError("permission-denied", "This student account is not active.");
   }
 
-  if (classId && !studentMatchesClass(student, classId)) {
+  if (classId && !studentMatchesClass(student, classId, className)) {
     throw new HttpsError("permission-denied", "This student is not in the selected class.");
   }
 
@@ -385,22 +405,78 @@ function hasStudentRole(user) {
   return readRoles(user).indexOf("student") !== -1;
 }
 
-function studentMatchesClass(student, classId) {
-  const classIds = readIdList(student.classIds);
+function readStudentFilterReason(student, locationId, classId, className) {
+  if (!hasStudentRole(student)) {
+    return "not-student-role";
+  }
 
-  if (readText(student.classId) === classId) {
+  if (!isActiveStudent(student)) {
+    return "inactive-status";
+  }
+
+  if (!studentMatchesLocation(student, locationId)) {
+    return "location-mismatch";
+  }
+
+  if (!studentMatchesClass(student, classId, className)) {
+    return "class-mismatch";
+  }
+
+  return "";
+}
+
+function isActiveStudent(student) {
+  const status = readText(student.status).toLowerCase();
+
+  if (status) {
+    return status === "active" || status === "approved";
+  }
+
+  if (typeof student.isActive === "boolean") {
+    return student.isActive === true;
+  }
+
+  return true;
+}
+
+function studentMatchesClass(student, classId, className) {
+  const classIds = readIdList([
+    student.classId,
+    student.classIds,
+    student.assignedClassIds,
+    student.assignedClasses,
+    student.classRefs,
+    student.classes
+  ]);
+  const classNames = readNameList([
+    student.className,
+    student.classNames,
+    student.assignedClasses,
+    student.classRefs,
+    student.classes
+  ]);
+  const normalizedClassName = normalizeComparableText(className);
+
+  if (classIds.indexOf(classId) !== -1) {
     return true;
   }
 
-  return classIds.indexOf(classId) !== -1;
+  if (normalizedClassName && classNames.indexOf(normalizedClassName) !== -1) {
+    return true;
+  }
+
+  return false;
 }
 
 function studentMatchesLocation(student, locationId) {
-  const locationIds = readIdList(student.locationIds);
-
-  if (readText(student.locationId || student.primaryLocationId) === locationId) {
-    return true;
-  }
+  const locationIds = readIdList([
+    student.locationId,
+    student.primaryLocationId,
+    student.locationIds,
+    student.locations,
+    student.schoolId,
+    student.schoolIds
+  ]);
 
   return locationIds.indexOf(locationId) !== -1;
 }
@@ -432,19 +508,19 @@ function readRoles(user) {
 function normalizeRole(role) {
   const normalizedRole = readText(role).replace(/[^a-z0-9]/gi, "").toLowerCase();
 
-  if (normalizedRole === "student") {
+  if (normalizedRole === "student" || normalizedRole === "rolestudent") {
     return "student";
   }
 
-  if (normalizedRole === "teacher") {
+  if (normalizedRole === "teacher" || normalizedRole === "roleteacher") {
     return "teacher";
   }
 
-  if (normalizedRole === "parent") {
+  if (normalizedRole === "parent" || normalizedRole === "roleparent") {
     return "parent";
   }
 
-  if (normalizedRole === "schooladmin") {
+  if (normalizedRole === "schooladmin" || normalizedRole === "roleschooladmin") {
     return "schoolAdmin";
   }
 
@@ -456,11 +532,11 @@ function normalizeRole(role) {
     return "ministryUser";
   }
 
-  if (normalizedRole === "platformadmin") {
+  if (normalizedRole === "platformadmin" || normalizedRole === "roleplatformadmin") {
     return "platformAdmin";
   }
 
-  if (normalizedRole === "superadmin") {
+  if (normalizedRole === "superadmin" || normalizedRole === "rolesuperadmin") {
     return "superAdmin";
   }
 
@@ -476,11 +552,20 @@ function readIdList(value) {
   }
 
   if (!Array.isArray(source)) {
-    return ids;
+    source = [source];
   }
 
   source.forEach(function (item) {
-    const id = readText(item).trim();
+    if (Array.isArray(item)) {
+      readIdList(item).forEach(function (nestedId) {
+        if (ids.indexOf(nestedId) === -1) {
+          ids.push(nestedId);
+        }
+      });
+      return;
+    }
+
+    const id = readRecordId(item);
 
     if (id && ids.indexOf(id) === -1) {
       ids.push(id);
@@ -488,6 +573,100 @@ function readIdList(value) {
   });
 
   return ids;
+}
+
+function readNameList(value) {
+  let source = value;
+  const names = [];
+
+  if (typeof source === "string") {
+    source = source.split(",");
+  }
+
+  if (!Array.isArray(source)) {
+    source = [source];
+  }
+
+  source.forEach(function (item) {
+    if (Array.isArray(item)) {
+      readNameList(item).forEach(function (nestedName) {
+        if (names.indexOf(nestedName) === -1) {
+          names.push(nestedName);
+        }
+      });
+      return;
+    }
+
+    const name = readRecordName(item);
+
+    if (name && names.indexOf(name) === -1) {
+      names.push(name);
+    }
+  });
+
+  return names;
+}
+
+function readRecordId(value) {
+  if (!value || typeof value !== "object") {
+    return readText(value).trim();
+  }
+
+  return readText(value.id || value.uid || value.refId || value.classId || value.locationId || value.schoolId).trim();
+}
+
+function readRecordName(value) {
+  if (!value || typeof value !== "object") {
+    return normalizeComparableText(value);
+  }
+
+  return normalizeComparableText(value.name || value.title || value.className || value.label);
+}
+
+async function readSelectedClassName(db, locationId, classId, className) {
+  const explicitClassName = readText(className).trim();
+
+  if (explicitClassName) {
+    return explicitClassName;
+  }
+
+  if (!classId) {
+    return "";
+  }
+
+  const nestedClassDoc = await db.collection("locations").doc(locationId).collection("classes").doc(classId).get();
+
+  if (nestedClassDoc.exists) {
+    return readText((nestedClassDoc.data() || {}).name || (nestedClassDoc.data() || {}).title).trim();
+  }
+
+  const topLevelClassDoc = await db.collection("classes").doc(classId).get();
+
+  if (topLevelClassDoc.exists) {
+    return readText((topLevelClassDoc.data() || {}).name || (topLevelClassDoc.data() || {}).title).trim();
+  }
+
+  return "";
+}
+
+function normalizeComparableText(value) {
+  return readText(value).trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function addReasonCount(reasons, reason) {
+  reasons[reason] = (reasons[reason] || 0) + 1;
+}
+
+function isDebugRequest(data) {
+  return (data && data.debug === true) || process.env.FUNCTIONS_EMULATOR === "true";
+}
+
+function logStudentListDebug(details) {
+  if (process.env.FUNCTIONS_EMULATOR !== "true") {
+    return;
+  }
+
+  console.info("[student-list-debug]", details);
 }
 
 function compareByName(a, b) {
@@ -499,7 +678,7 @@ function shouldIncludeActiveRecord(data) {
     return true;
   }
 
-  return data.status === "active";
+  return data.status === "active" || data.status === "approved";
 }
 
 function readText(value) {

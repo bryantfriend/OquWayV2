@@ -378,6 +378,8 @@ function selectLocation(locationId) {
 }
 
 function selectClass(classId) {
+  var classItem = findClass(classId);
+
   setState({
     selectedClassId: classId,
     selectedStudentId: "",
@@ -387,7 +389,7 @@ function selectClass(classId) {
   });
 
   if (classId) {
-    loadStudents(state.selectedLocationId, classId);
+    loadStudents(state.selectedLocationId, classId, readClassName(classItem));
   }
 }
 
@@ -529,11 +531,12 @@ async function loadClasses(locationId) {
   });
 }
 
-async function loadStudents(locationId, classId) {
+async function loadStudents(locationId, classId, className) {
   setState({ isBusy: true, message: "Loading students...", messageType: "info" });
   var result = await runLoginIntent("LoadStudentsForClassIntent", {
     locationId: locationId,
-    classId: classId
+    classId: classId,
+    className: className
   }, "guest-student");
 
   if (result && result.emitted && result.emitted.success) {
@@ -563,6 +566,7 @@ async function submitFruitLogin() {
   var result = await runLoginIntent("StudentFruitLoginIntent", {
     locationId: state.selectedLocationId,
     classId: state.selectedClassId,
+    className: readClassName(findClass(state.selectedClassId)),
     studentId: state.selectedStudentId,
     fruits: state.fruitEntry
   }, "guest-student");
@@ -753,6 +757,20 @@ function findLocation(locationId) {
     }
 
     locationIndex = locationIndex + 1;
+  }
+
+  return null;
+}
+
+function findClass(classId) {
+  var classIndex = 0;
+
+  while (classIndex < state.classes.length) {
+    if (state.classes[classIndex].id === classId) {
+      return state.classes[classIndex];
+    }
+
+    classIndex = classIndex + 1;
   }
 
   return null;
