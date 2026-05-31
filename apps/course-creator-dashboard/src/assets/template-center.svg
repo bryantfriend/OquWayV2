@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 140" role="img" aria-label="Education center template illustration">
+  <rect x="10" y="14" width="160" height="112" rx="28" fill="#ECFDF5"/>
+  <circle cx="90" cy="70" r="44" fill="#D1FAE5" stroke="#10B981" stroke-width="4"/>
+  <rect x="57" y="51" width="66" height="44" rx="14" fill="#fff" stroke="#86EFAC" stroke-width="4"/>
+  <path d="M72 66h36M72 80h26" stroke="#059669" stroke-width="6" stroke-linecap="round"/>
+  <path d="M43 101c14-10 29-13 44-10 18 3 34 0 50-12" fill="none" stroke="#FBBF24" stroke-width="7" stroke-linecap="round"/>
+</svg>

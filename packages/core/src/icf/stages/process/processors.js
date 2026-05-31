@@ -32,6 +32,11 @@ export { processUpdateLocationLoginMode } from "./domain/location/processUpdateL
 export { processUpdateLocationLoginSlug } from "./domain/location/processUpdateLocationLoginSlug.js";
 export { processAddModule } from "./domain/courseEditor/processAddModule.js";
 export { processCreateModule } from "./domain/courseEditor/processCreateModule.js";
+export { processCreateModuleFromWizard } from "./domain/courseEditor/processCreateModuleFromWizard.js";
+export { processOpenCreateModuleWizard } from "./domain/courseEditor/processOpenCreateModuleWizard.js";
+export { processParseLearningContent } from "./domain/courseEditor/processParseLearningContent.js";
+export { processGenerateModuleSkeleton } from "./domain/courseEditor/processGenerateModuleSkeleton.js";
+export { processGenerateStarterSteps } from "./domain/courseEditor/processGenerateStarterSteps.js";
 export { processListModules } from "./domain/courseEditor/processListModules.js";
 export { processUpdateModule } from "./domain/courseEditor/processUpdateModule.js";
 export { processDeleteModule } from "./domain/courseEditor/processDeleteModule.js";

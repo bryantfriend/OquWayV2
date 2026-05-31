@@ -51,6 +51,56 @@ export const courseEditorService = {
     }
   },
 
+  openCreateModuleWizard: async function (courseId) {
+    return await runIntentPipeline(getIntentDefinition("OpenCreateModuleWizardIntent"), {
+      payload: { courseId: courseId },
+      actor: getActor()
+    });
+  },
+
+  parseLearningContent: async function (courseId, rawText) {
+    return await runIntentPipeline(getIntentDefinition("ParseLearningContentIntent"), {
+      payload: {
+        courseId: courseId,
+        rawText: rawText
+      },
+      actor: getActor()
+    });
+  },
+
+  generateModuleSkeleton: async function (courseId, wizardPayload) {
+    return await runIntentPipeline(getIntentDefinition("GenerateModuleSkeletonIntent"), {
+      payload: Object.assign({ courseId: courseId }, wizardPayload || {}),
+      actor: getActor()
+    });
+  },
+
+  generateStarterSteps: async function (courseId, wizardPayload) {
+    return await runIntentPipeline(getIntentDefinition("GenerateStarterStepsIntent"), {
+      payload: Object.assign({ courseId: courseId }, wizardPayload || {}),
+      actor: getActor()
+    });
+  },
+
+  createModuleFromWizard: async function (courseId, wizardPayload) {
+    var result = await runIntentPipeline(getIntentDefinition("CreateModuleFromWizardIntent"), {
+      payload: Object.assign({ courseId: courseId }, wizardPayload || {}),
+      actor: getActor()
+    });
+
+    if (result && result.emitted && result.emitted.success) {
+      var state = courseEditorStore.getState();
+      var newModules = state.modules.slice();
+      newModules.push(result.emitted.data);
+      courseEditorStore.setState({
+        modules: newModules,
+        selectedModuleId: result.emitted.data.id
+      });
+    }
+
+    return result;
+  },
+
   updateCourseField: async function (courseId, fieldKey, value) {
     try {
       var state = courseEditorStore.getState();

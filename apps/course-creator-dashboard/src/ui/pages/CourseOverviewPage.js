@@ -10,6 +10,8 @@ export class CourseOverviewPage {
     this.userHasEditedMetadata = false;
     this.localTags = [];
     this.editingModuleId = null;
+    this.moduleWizardStep = 1;
+    this.moduleWizardTemplateKey = 'school';
     this.assignments = [];
     this.assignmentsLoading = false;
     this.ALL_LANGUAGES = [
@@ -202,6 +204,8 @@ export class CourseOverviewPage {
             <div id="coursePreviewBody" class="p-6 overflow-y-auto max-h-[72vh]"></div>
           </div>
         </div>
+
+        ${buildCreateModuleWizardModal()}
 
         <!-- Module Title Edit Modal -->
         <div id="moduleTitleModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 transition-opacity">
@@ -405,6 +409,273 @@ export class CourseOverviewPage {
     document.getElementById('moduleTitleModal').classList.remove('hidden');
   }
 
+  openCreateModuleWizard() {
+    var modal = document.getElementById('createModuleWizardModal');
+    var status = document.getElementById('moduleWizardStatus');
+    var self = this;
+
+    if (!modal) {
+      return;
+    }
+
+    this.moduleWizardStep = 1;
+    this.moduleWizardTemplateKey = 'school';
+    this.resetCreateModuleWizardFields();
+    status.textContent = 'Preparing wizard...';
+    status.className = 'text-xs font-bold text-blue-700';
+    modal.classList.remove('hidden');
+    this.showModuleWizardStep(1);
+
+    courseEditorService.openCreateModuleWizard(this.courseId).then(function (result) {
+      if (!result || !result.emitted || !result.emitted.success) {
+        status.textContent = self.readResultErrorMessage(result);
+        status.className = 'text-xs font-bold text-red-700';
+        return;
+      }
+
+      status.textContent = 'Ready to generate a module skeleton.';
+      status.className = 'text-xs font-bold text-emerald-700';
+      self.renderWizardTemplateCards();
+    }).catch(function (error) {
+      status.textContent = error.message;
+      status.className = 'text-xs font-bold text-red-700';
+    });
+  }
+
+  resetCreateModuleWizardFields() {
+    setInputValue('wizardModuleTitleInput', '');
+    setInputValue('wizardDescriptionInput', '');
+    setInputValue('wizardSubjectInput', '');
+    setInputValue('wizardTopicInput', '');
+    setInputValue('wizardLevelInput', '');
+    setInputValue('wizardEstimatedMinutesInput', '15');
+    setInputValue('wizardLanguageSelect', 'en');
+    setInputValue('wizardLearningPasteInput', 'Go = move somewhere\nStop = end movement\nTurn = change direction');
+    setInputValue('wizardVocabularyInput', '');
+    setInputValue('wizardDefinitionsInput', '');
+    setInputValue('wizardConceptsInput', '');
+    setInputValue('wizardRulesInput', '');
+    setInputValue('wizardExamplesInput', '');
+    setInputValue('wizardCustomContentInput', '');
+    setCheckedValue('wizardGenerateStepsToggle', true);
+    setElementHtml('moduleWizardWarnings', '');
+    setElementHtml('moduleWizardPreview', buildWizardEmptyPreview());
+  }
+
+  closeCreateModuleWizard() {
+    var modal = document.getElementById('createModuleWizardModal');
+    if (modal) {
+      modal.classList.add('hidden');
+    }
+  }
+
+  showModuleWizardStep(step) {
+    this.moduleWizardStep = step;
+
+    document.querySelectorAll('[data-wizard-step]').forEach(function (panel) {
+      panel.classList.toggle('hidden', panel.getAttribute('data-wizard-step') !== String(step));
+    });
+
+    document.querySelectorAll('[data-wizard-progress]').forEach(function (item) {
+      var progressStep = parseInt(item.getAttribute('data-wizard-progress'), 10);
+      var isActive = progressStep === step;
+      var isDone = progressStep < step;
+      item.className = isActive || isDone
+        ? 'flex items-center gap-2 rounded-full bg-blue-600 px-3 py-2 text-xs font-black text-white shadow-sm'
+        : 'flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-black text-slate-400 ring-1 ring-slate-200';
+    });
+
+    setElementText('moduleWizardStepNumber', String(step));
+    setElementText('moduleWizardStepLabel', readWizardStepLabel(step));
+
+    var backBtn = document.getElementById('moduleWizardBackBtn');
+    var nextBtn = document.getElementById('moduleWizardNextBtn');
+    var createBtn = document.getElementById('moduleWizardCreateBtn');
+
+    if (backBtn) {
+      backBtn.disabled = step === 1;
+      backBtn.classList.toggle('opacity-40', step === 1);
+    }
+
+    if (nextBtn) {
+      nextBtn.classList.toggle('hidden', step === 4);
+    }
+
+    if (createBtn) {
+      createBtn.classList.toggle('hidden', step !== 4);
+    }
+
+    if (step === 4) {
+      this.previewWizardSkeleton();
+    }
+  }
+
+  renderWizardTemplateCards() {
+    document.querySelectorAll('.wizard-template-card').forEach(function (card) {
+      var isSelected = card.getAttribute('data-template') === this.moduleWizardTemplateKey;
+      card.className = isSelected
+        ? 'wizard-template-card text-left rounded-2xl border-2 border-blue-400 bg-blue-50 p-4 shadow-lg shadow-blue-100 transition hover:-translate-y-1'
+        : 'wizard-template-card text-left rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md';
+    }, this);
+  }
+
+  selectWizardTemplate(templateKey) {
+    this.moduleWizardTemplateKey = normalizeModuleTemplateKey(templateKey);
+    this.renderWizardTemplateCards();
+  }
+
+  parseWizardLearningContent() {
+    var self = this;
+    var rawText = readInputValue('wizardLearningPasteInput');
+    var btn = document.getElementById('moduleWizardParseBtn');
+    var status = document.getElementById('moduleWizardStatus');
+
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Parsing';
+    }
+
+    courseEditorService.parseLearningContent(this.courseId, rawText).then(function (result) {
+      if (!result || !result.emitted || !result.emitted.success) {
+        throw new Error(self.readResultErrorMessage(result));
+      }
+
+      self.populateWizardLearningContent(result.emitted.data.learningContent);
+      self.renderWizardWarnings(result.emitted.data.warnings || result.emitted.warnings || []);
+      status.textContent = 'Learning content parsed. You can edit it before generating.';
+      status.className = 'text-xs font-bold text-emerald-700';
+    }).catch(function (error) {
+      status.textContent = error.message;
+      status.className = 'text-xs font-bold text-red-700';
+    }).finally(function () {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Parse Content';
+      }
+    });
+  }
+
+  populateWizardLearningContent(learningContent) {
+    var content = learningContent || {};
+    setInputValue('wizardVocabularyInput', readContentLines(content.vocabulary).join('\n'));
+    setInputValue('wizardDefinitionsInput', readContentLines(content.definitions).join('\n'));
+    setInputValue('wizardConceptsInput', readContentLines(content.concepts).join('\n'));
+    setInputValue('wizardRulesInput', readContentLines(content.rules).join('\n'));
+    setInputValue('wizardExamplesInput', readContentLines(content.examples).join('\n'));
+    setInputValue('wizardCustomContentInput', readContentLines(content.customContent).join('\n'));
+  }
+
+  renderWizardWarnings(warnings) {
+    if (!warnings || warnings.length === 0) {
+      setElementHtml('moduleWizardWarnings', '<div class="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">Parsed cleanly.</div>');
+      return;
+    }
+
+    setElementHtml('moduleWizardWarnings', warnings.map(function (warning) {
+      return '<div class="rounded-xl bg-amber-50 px-3 py-2 text-xs font-bold text-amber-700">' + escapeHtml(warning.message || 'Review this parsed line.') + '</div>';
+    }).join(''));
+  }
+
+  buildWizardPayload() {
+    return {
+      title: readInputValue('wizardModuleTitleInput'),
+      description: readInputValue('wizardDescriptionInput'),
+      subject: readInputValue('wizardSubjectInput'),
+      topic: readInputValue('wizardTopicInput'),
+      level: readInputValue('wizardLevelInput'),
+      estimatedMinutes: readNumberInput('wizardEstimatedMinutesInput', 15),
+      language: readInputValue('wizardLanguageSelect') || 'en',
+      templateKey: this.moduleWizardTemplateKey,
+      generateStarterSteps: readCheckedValue('wizardGenerateStepsToggle'),
+      learningContent: {
+        vocabulary: readTextareaLines('wizardVocabularyInput'),
+        definitions: readTextareaLines('wizardDefinitionsInput'),
+        concepts: readTextareaLines('wizardConceptsInput'),
+        rules: readTextareaLines('wizardRulesInput'),
+        examples: readTextareaLines('wizardExamplesInput'),
+        customContent: readTextareaLines('wizardCustomContentInput'),
+        notes: ''
+      }
+    };
+  }
+
+  previewWizardSkeleton() {
+    var preview = document.getElementById('moduleWizardPreview');
+    var payload = this.buildWizardPayload();
+
+    if (!preview) {
+      return;
+    }
+
+    preview.innerHTML = '<div class="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm font-black text-blue-700">Generating preview...</div>';
+
+    courseEditorService.generateModuleSkeleton(this.courseId, payload).then(function (result) {
+      if (!result || !result.emitted || !result.emitted.success) {
+        preview.innerHTML = '<div class="rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-black text-red-700">Preview failed.</div>';
+        return;
+      }
+
+      preview.innerHTML = buildWizardSkeletonPreview(result.emitted.data);
+    }).catch(function (error) {
+      preview.innerHTML = '<div class="rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-black text-red-700">' + escapeHtml(error.message) + '</div>';
+    });
+  }
+
+  createModuleFromWizard() {
+    var self = this;
+    var payload = this.buildWizardPayload();
+    var title = payload.title.trim();
+    var status = document.getElementById('moduleWizardStatus');
+    var btn = document.getElementById('moduleWizardCreateBtn');
+
+    if (!title) {
+      status.textContent = 'Module title is required.';
+      status.className = 'text-xs font-bold text-red-700';
+      this.showModuleWizardStep(1);
+      return;
+    }
+
+    if (readLearningContentItemCount(payload.learningContent) === 0) {
+      status.textContent = 'No learning content yet. Creating an editable empty skeleton.';
+      status.className = 'text-xs font-bold text-amber-700';
+    } else {
+      status.textContent = 'Creating module skeleton...';
+      status.className = 'text-xs font-bold text-blue-700';
+    }
+
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Creating';
+    }
+
+    courseEditorService.createModuleFromWizard(this.courseId, payload).then(function (result) {
+      if (!result || !result.emitted || !result.emitted.success) {
+        throw new Error(self.readResultErrorMessage(result));
+      }
+
+      self.closeCreateModuleWizard();
+      showModuleStatusMsg(
+        document.getElementById('moduleCreateStatusMsg'),
+        'success',
+        '<span class="oqu-success-icon">&#10003;</span> Module skeleton generated.'
+      );
+      setTimeout(function () {
+        var statusMsg = document.getElementById('moduleCreateStatusMsg');
+        if (statusMsg) {
+          statusMsg.style.display = 'none';
+        }
+      }, 2200);
+    }).catch(function (error) {
+      status.textContent = error.message;
+      status.className = 'text-xs font-bold text-red-700';
+    }).finally(function () {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-sparkles"></i> Create Module';
+      }
+    });
+  }
+
   attachEvents() {
     var self = this;
     courseEditorStore.resetState();
@@ -486,23 +757,40 @@ export class CourseOverviewPage {
     });
 
     document.getElementById('addModuleBtn').addEventListener('click', function () {
-      var btn = document.getElementById('addModuleBtn');
-      var statusMsg = document.getElementById('moduleCreateStatusMsg');
-      var templateKey = prompt('Choose Template: school, educationCenter, intensive, or custom', 'custom');
-      templateKey = normalizeModuleTemplateKey(templateKey);
+      self.openCreateModuleWizard();
+    });
 
-      showModuleBtnPending(btn, 'Preparing\u2026');
-      showModuleStatusMsg(statusMsg, 'creating', '<span class="oqu-spinner oqu-spinner-blue"></span> Preparing ' + templateKey + ' module structure\u2026');
+    document.getElementById('moduleWizardCloseBtn').addEventListener('click', function () {
+      self.closeCreateModuleWizard();
+    });
 
-      courseEditorService.addModule(self.courseId, { templateKey: templateKey }).then(function () {
-        showModuleStatusMsg(statusMsg, 'success', '<span class="oqu-success-icon">&#10003;</span> Module added!');
-        restoreModuleBtn(btn, '<i class="fa-solid fa-plus text-gray-400"></i> New Module');
-        setTimeout(function () {
-          statusMsg.style.display = 'none';
-        }, 2000);
-      }).catch(function (err) {
-        showModuleStatusMsg(statusMsg, 'error', '&#9888; Failed: ' + err.message);
-        restoreModuleBtn(btn, '<i class="fa-solid fa-plus text-gray-400"></i> New Module');
+    document.getElementById('moduleWizardCancelBtn').addEventListener('click', function () {
+      self.closeCreateModuleWizard();
+    });
+
+    document.getElementById('moduleWizardBackBtn').addEventListener('click', function () {
+      self.showModuleWizardStep(Math.max(1, self.moduleWizardStep - 1));
+    });
+
+    document.getElementById('moduleWizardNextBtn').addEventListener('click', function () {
+      self.showModuleWizardStep(Math.min(4, self.moduleWizardStep + 1));
+    });
+
+    document.getElementById('moduleWizardParseBtn').addEventListener('click', function () {
+      self.parseWizardLearningContent();
+    });
+
+    document.getElementById('moduleWizardPreviewBtn').addEventListener('click', function () {
+      self.previewWizardSkeleton();
+    });
+
+    document.getElementById('moduleWizardCreateBtn').addEventListener('click', function () {
+      self.createModuleFromWizard();
+    });
+
+    document.querySelectorAll('.wizard-template-card').forEach(function (card) {
+      card.addEventListener('click', function () {
+        self.selectWizardTemplate(card.getAttribute('data-template'));
       });
     });
 
@@ -969,6 +1257,196 @@ export class CourseOverviewPage {
   }
 }
 
+function buildCreateModuleWizardModal() {
+  return `
+    <div id="createModuleWizardModal" class="fixed inset-0 hidden bg-slate-950/70 z-50 p-4 lg:p-8 overflow-y-auto">
+      <div class="mx-auto w-full max-w-6xl overflow-hidden rounded-[28px] bg-white shadow-2xl">
+        <div class="bg-gradient-to-r from-blue-50 via-white to-emerald-50 px-6 py-5 border-b border-slate-100">
+          <div class="flex items-start justify-between gap-5">
+            <div class="flex items-center gap-4 min-w-0">
+              <img src="./src/assets/module-wizard.svg" alt="" class="h-16 w-16 rounded-2xl bg-white object-contain shadow-sm ring-1 ring-slate-100">
+              <div class="min-w-0">
+                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600">Create Module Wizard</p>
+                <h2 class="text-2xl font-black text-slate-950">Learning content to module skeleton</h2>
+                <p class="mt-1 text-sm font-semibold text-slate-500">Enter content once, generate learning experiences, then refine.</p>
+              </div>
+            </div>
+            <button id="moduleWizardCloseBtn" class="h-10 w-10 rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm hover:bg-slate-50">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <div class="mt-5 flex flex-wrap items-center gap-2">
+            <span data-wizard-progress="1" class="flex items-center gap-2 rounded-full bg-blue-600 px-3 py-2 text-xs font-black text-white shadow-sm">1 Basics</span>
+            <span data-wizard-progress="2" class="flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-black text-slate-400 ring-1 ring-slate-200">2 Content</span>
+            <span data-wizard-progress="3" class="flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-black text-slate-400 ring-1 ring-slate-200">3 Template</span>
+            <span data-wizard-progress="4" class="flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-black text-slate-400 ring-1 ring-slate-200">4 Generate</span>
+          </div>
+        </div>
+
+        <div class="grid lg:grid-cols-[1fr_320px] min-h-[580px]">
+          <div class="p-6">
+            <div class="mb-5 flex items-center justify-between gap-4">
+              <div>
+                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Step <span id="moduleWizardStepNumber">1</span></p>
+                <h3 id="moduleWizardStepLabel" class="text-xl font-black text-slate-950">Module Basics</h3>
+              </div>
+              <button id="moduleWizardPreviewBtn" class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-600 shadow-sm hover:bg-slate-50">
+                <i class="fa-solid fa-rotate"></i> Refresh Preview
+              </button>
+            </div>
+
+            <section data-wizard-step="1" class="grid gap-4 md:grid-cols-2">
+              ${buildWizardInput('Module Title', 'wizardModuleTitleInput', 'Go, Stop, and Turn', true)}
+              ${buildWizardInput('Subject / Topic Area', 'wizardSubjectInput', 'English / Movement verbs', false)}
+              ${buildWizardInput('Topic', 'wizardTopicInput', 'Action words', false)}
+              ${buildWizardInput('Level / Grade', 'wizardLevelInput', 'Grade 2', false)}
+              ${buildWizardInput('Estimated Minutes', 'wizardEstimatedMinutesInput', '15', false, 'number')}
+              <div>
+                <label class="block text-xs font-black uppercase tracking-wide text-slate-500 mb-1">Language</label>
+                <select id="wizardLanguageSelect" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="en">English</option>
+                  <option value="ru">Russian</option>
+                  <option value="ky">Kyrgyz</option>
+                </select>
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-xs font-black uppercase tracking-wide text-slate-500 mb-1">Description</label>
+                <textarea id="wizardDescriptionInput" class="min-h-[92px] w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="What students will learn..."></textarea>
+              </div>
+            </section>
+
+            <section data-wizard-step="2" class="hidden">
+              <div class="grid gap-5 lg:grid-cols-[1fr_1fr]">
+                <div class="rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
+                  <div class="flex items-center gap-3 mb-3">
+                    <img src="./src/assets/learning-content-import.svg" alt="" class="h-14 w-14 object-contain">
+                    <div>
+                      <h4 class="text-sm font-black text-slate-950">Paste Learning Content</h4>
+                      <p class="text-xs font-semibold text-slate-500">Use lines like Go = move somewhere.</p>
+                    </div>
+                  </div>
+                  <textarea id="wizardLearningPasteInput" class="min-h-[260px] w-full rounded-xl border border-blue-100 bg-white px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                  <button id="moduleWizardParseBtn" class="mt-3 rounded-xl bg-blue-600 px-4 py-2 text-sm font-black text-white shadow-sm hover:bg-blue-700">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Parse Content
+                  </button>
+                  <div id="moduleWizardWarnings" class="mt-3 grid gap-2"></div>
+                </div>
+                <div class="grid gap-3">
+                  ${buildWizardTextarea('Vocabulary', 'wizardVocabularyInput', 'One term per line')}
+                  ${buildWizardTextarea('Definitions', 'wizardDefinitionsInput', 'Definitions aligned by line')}
+                  ${buildWizardTextarea('Concepts', 'wizardConceptsInput', 'Concepts or ideas')}
+                  ${buildWizardTextarea('Rules', 'wizardRulesInput', 'Rules or patterns')}
+                  ${buildWizardTextarea('Examples', 'wizardExamplesInput', 'Example sentences')}
+                  ${buildWizardTextarea('Custom Content', 'wizardCustomContentInput', 'Unstructured notes')}
+                </div>
+              </div>
+            </section>
+
+            <section data-wizard-step="3" class="hidden">
+              <div class="grid gap-4 md:grid-cols-2">
+                ${buildWizardTemplateCard('school', 'template-school.svg', 'School', 'Primary and review modes for classroom rhythm.', 'Primary, Review')}
+                ${buildWizardTemplateCard('educationCenter', 'template-center.svg', 'Education Center', 'Focused mode for guided reinforcement.', 'Primary')}
+                ${buildWizardTemplateCard('intensive', 'template-intensive.svg', 'Intensive', 'Full scaffold for fast multi-mode authoring.', 'Primary, Review, Practice, Assessment')}
+                ${buildWizardTemplateCard('custom', 'generate-module.svg', 'Custom', 'Minimal editable skeleton for special formats.', 'Primary')}
+              </div>
+              <label class="mt-5 flex items-center gap-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm font-black text-emerald-800">
+                <input id="wizardGenerateStepsToggle" type="checkbox" checked class="h-5 w-5 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500">
+                Generate starter steps
+              </label>
+            </section>
+
+            <section data-wizard-step="4" class="hidden">
+              <div id="moduleWizardPreview">${buildWizardEmptyPreview()}</div>
+            </section>
+          </div>
+
+          <aside class="border-l border-slate-100 bg-slate-50 p-6">
+            <img src="./src/assets/generate-module.svg" alt="" class="mx-auto mb-5 h-36 w-36 object-contain">
+            <div class="rounded-2xl border border-white bg-white p-4 shadow-sm">
+              <p class="text-[10px] font-black uppercase tracking-wide text-slate-400">Firestore output</p>
+              <div class="mt-3 grid gap-2 text-xs font-bold text-slate-600">
+                <span>catalogCourses/{courseId}</span>
+                <span>/modules/{moduleId}</span>
+                <span>/learningContent/{contentId}</span>
+                <span>/learningModes/{modeId}</span>
+                <span>/steps/{stepId}</span>
+              </div>
+            </div>
+            <p id="moduleWizardStatus" class="mt-4 text-xs font-bold text-slate-500">Ready.</p>
+          </aside>
+        </div>
+
+        <div class="flex items-center justify-between gap-3 border-t border-slate-100 bg-white px-6 py-4">
+          <button id="moduleWizardCancelBtn" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-black text-slate-600 hover:bg-slate-50">Cancel</button>
+          <div class="flex gap-3">
+            <button id="moduleWizardBackBtn" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-black text-slate-600 hover:bg-slate-50">Back</button>
+            <button id="moduleWizardNextBtn" class="rounded-xl bg-slate-950 px-4 py-2 text-sm font-black text-white hover:bg-black">Next</button>
+            <button id="moduleWizardCreateBtn" class="hidden rounded-xl bg-blue-600 px-4 py-2 text-sm font-black text-white shadow-sm hover:bg-blue-700">
+              <i class="fa-solid fa-sparkles"></i> Create Module
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function buildWizardInput(label, id, placeholder, required, type) {
+  return '<div>'
+    + '<label class="block text-xs font-black uppercase tracking-wide text-slate-500 mb-1">' + label + (required ? ' *' : '') + '</label>'
+    + '<input id="' + id + '" type="' + (type || 'text') + '" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="' + placeholder + '">'
+    + '</div>';
+}
+
+function buildWizardTextarea(label, id, placeholder) {
+  return '<div>'
+    + '<label class="block text-[10px] font-black uppercase tracking-wide text-slate-500 mb-1">' + label + '</label>'
+    + '<textarea id="' + id + '" class="min-h-[70px] w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="' + placeholder + '"></textarea>'
+    + '</div>';
+}
+
+function buildWizardTemplateCard(templateKey, assetName, title, description, modes) {
+  return '<button type="button" data-template="' + templateKey + '" class="wizard-template-card text-left rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md">'
+    + '<div class="flex items-start gap-4">'
+    + '<img src="./src/assets/' + assetName + '" alt="" class="h-20 w-24 rounded-2xl bg-slate-50 object-contain">'
+    + '<div class="min-w-0">'
+    + '<h4 class="text-base font-black text-slate-950">' + title + '</h4>'
+    + '<p class="mt-1 text-xs font-semibold leading-5 text-slate-500">' + description + '</p>'
+    + '<p class="mt-3 text-[10px] font-black uppercase tracking-wide text-blue-600">' + modes + '</p>'
+    + '</div>'
+    + '</div>'
+    + '</button>';
+}
+
+function buildWizardEmptyPreview() {
+  return '<div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center">'
+    + '<h4 class="text-lg font-black text-slate-900">Skeleton preview</h4>'
+    + '<p class="mt-2 text-sm font-semibold text-slate-500">Complete the wizard steps to preview modes and starter activities.</p>'
+    + '</div>';
+}
+
+function buildWizardSkeletonPreview(data) {
+  var module = data && data.module ? data.module : {};
+  var modes = module.learningModes || {};
+  var modeIds = Object.keys(modes);
+  var html = '<div class="rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-emerald-50 p-5">';
+  html += '<div class="flex items-start justify-between gap-4"><div><p class="text-[10px] font-black uppercase tracking-wide text-blue-600">Generated Skeleton</p><h4 class="text-2xl font-black text-slate-950">' + escapeHtml(readPreviewText(module.title, 'Untitled Module')) + '</h4><p class="mt-1 text-sm font-semibold text-slate-600">' + escapeHtml(readPreviewText(module.description, 'Ready for editing.')) + '</p></div><span class="rounded-full bg-white px-3 py-2 text-xs font-black text-blue-700 shadow-sm">' + (data.generatedStepCount || 0) + ' steps</span></div>';
+  html += '<div class="mt-5 grid gap-3 md:grid-cols-2">';
+  html += modeIds.map(function (modeId) {
+    var mode = modes[modeId];
+    var steps = data.stepsByMode && data.stepsByMode[modeId] ? data.stepsByMode[modeId] : [];
+    return '<div class="rounded-2xl border border-white bg-white p-4 shadow-sm">'
+      + '<div class="flex items-center justify-between gap-2"><strong class="text-sm text-slate-950">' + escapeHtml(mode.title || 'Learning Mode') + '</strong><span class="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-black uppercase text-emerald-700">' + steps.length + ' steps</span></div>'
+      + '<p class="mt-1 text-xs font-semibold text-slate-500">' + escapeHtml(mode.purpose || '') + '</p>'
+      + '<div class="mt-3 grid gap-2">' + steps.map(function (step) {
+        return '<span class="rounded-xl bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700">' + escapeHtml(readPreviewText(step.title, 'Starter Step')) + '</span>';
+      }).join('') + '</div>'
+      + '</div>';
+  }).join('');
+  html += '</div></div>';
+  return html;
+}
+
 function showModuleBtnPending(btn, label) {
   btn.innerHTML = '<span class="oqu-spinner oqu-spinner-blue"></span> ' + label;
   btn.disabled = true;
@@ -1059,6 +1537,107 @@ function buildAssignmentSkeletonRows(rowCount) {
   }
 
   return rows;
+}
+
+function setInputValue(id, value) {
+  var element = document.getElementById(id);
+  if (element) {
+    element.value = value;
+  }
+}
+
+function readInputValue(id) {
+  var element = document.getElementById(id);
+  if (!element) {
+    return '';
+  }
+
+  return element.value || '';
+}
+
+function setCheckedValue(id, value) {
+  var element = document.getElementById(id);
+  if (element) {
+    element.checked = Boolean(value);
+  }
+}
+
+function readCheckedValue(id) {
+  var element = document.getElementById(id);
+  return element ? element.checked === true : false;
+}
+
+function setElementHtml(id, html) {
+  var element = document.getElementById(id);
+  if (element) {
+    element.innerHTML = html;
+  }
+}
+
+function setElementText(id, text) {
+  var element = document.getElementById(id);
+  if (element) {
+    element.textContent = text;
+  }
+}
+
+function readTextareaLines(id) {
+  return readInputValue(id).split(/\r?\n/).map(function (line) {
+    return line.trim();
+  }).filter(function (line) {
+    return line.length > 0;
+  });
+}
+
+function readContentLines(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.map(function (item) {
+    if (typeof item === 'string') {
+      return item;
+    }
+
+    if (item && typeof item === 'object') {
+      return item.term || item.word || item.title || item.text || item.definition || '';
+    }
+
+    return '';
+  }).filter(function (line) {
+    return line.length > 0;
+  });
+}
+
+function readNumberInput(id, fallback) {
+  var value = Number(readInputValue(id));
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+}
+
+function readWizardStepLabel(step) {
+  if (step === 2) {
+    return 'Add Learning Content';
+  }
+
+  if (step === 3) {
+    return 'Choose Module Template';
+  }
+
+  if (step === 4) {
+    return 'Generate Module Skeleton';
+  }
+
+  return 'Module Basics';
+}
+
+function readLearningContentItemCount(learningContent) {
+  var total = 0;
+  Object.keys(learningContent || {}).forEach(function (key) {
+    if (Array.isArray(learningContent[key])) {
+      total = total + learningContent[key].length;
+    }
+  });
+  return total;
 }
 
 function normalizeModuleTemplateKey(value) {
