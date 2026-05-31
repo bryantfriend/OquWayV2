@@ -7,16 +7,28 @@ export async function processStudentFruitLogin(executionState) {
   var payload = executionState.payload;
 
   try {
-    var data = await callStudentLoginFunction({
+    logFruitLoginDebug("submit", {
       studentId: payload.studentId,
-      fruitPassword: payload.fruits
+      locationId: payload.locationId,
+      classId: payload.classId,
+      submittedNormalizedSequence: payload.fruits
     });
 
-    if (!data.token) {
+    var data = await callStudentLoginFunction({
+      action: "login",
+      locationId: payload.locationId,
+      classId: payload.classId,
+      studentId: payload.studentId,
+      fruits: payload.fruits,
+      fruitPassword: payload.fruits
+    });
+    var token = data.customToken || data.token;
+
+    if (!token) {
       throw new Error("Student login service did not return a custom token.");
     }
 
-    await signInWithCustomToken(auth, data.token);
+    await signInWithCustomToken(auth, token);
     var studentProfile = await loadStudentProfile(payload.studentId);
 
     executionState.result = {
@@ -46,4 +58,27 @@ async function loadStudentProfile(studentId) {
   }
 
   return Object.assign({ id: userSnap.id }, userSnap.data());
+}
+
+function logFruitLoginDebug(eventName, details) {
+  if (!isDevelopmentHost()) {
+    return;
+  }
+
+  console.info("[fruit-login-debug]", eventName, {
+    studentId: details.studentId,
+    locationId: details.locationId,
+    classId: details.classId,
+    submittedNormalizedSequence: details.submittedNormalizedSequence
+  });
+}
+
+function isDevelopmentHost() {
+  if (typeof window === "undefined" || !window.location) {
+    return false;
+  }
+
+  return window.location.hostname === "localhost"
+    || window.location.hostname === "127.0.0.1"
+    || window.location.hostname === "";
 }

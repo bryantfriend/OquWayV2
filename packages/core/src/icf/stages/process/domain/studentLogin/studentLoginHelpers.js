@@ -5,15 +5,11 @@ export async function callStudentLoginFunction(payload) {
 }
 
 export async function callGetStudentsForClassFunction(payload) {
-  return callCallableFunction("getStudentsForClass", payload);
+  return callCallableFunction("studentLogin", Object.assign({ action: "listStudents" }, payload));
 }
 
 async function callCallableFunction(functionName, payload) {
   var callable = httpsCallable(functions, "studentLogin");
-
-  if (functionName === "getStudentsForClass") {
-    callable = httpsCallable(functions, "getStudentsForClass");
-  }
 
   var response = await callable(payload);
 

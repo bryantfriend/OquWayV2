@@ -36,6 +36,28 @@ export function normalizeStudentStandardLoginPayload(executionState) {
   };
 }
 
+var fruitAliases = {
+  apple: "apple",
+  "\uD83C\uDF4E": "apple",
+  watermelon: "watermelon",
+  "\uD83C\uDF49": "watermelon",
+  banana: "banana",
+  "\uD83C\uDF4C": "banana",
+  strawberry: "strawberry",
+  "\uD83C\uDF53": "strawberry",
+  pineapple: "pineapple",
+  "\uD83C\uDF4D": "pineapple",
+  mango: "mango",
+  "\uD83E\uDD6D": "mango",
+  kiwi: "kiwi",
+  "\uD83E\uDD5D": "kiwi",
+  orange: "orange",
+  "\uD83C\uDF4A": "orange",
+  cherry: "cherry",
+  cherries: "cherry",
+  "\uD83C\uDF52": "cherry"
+};
+
 function normalizeText(value) {
   if (typeof value !== "string") {
     return "";
@@ -53,12 +75,22 @@ function normalizeFruits(values) {
   }
 
   while (fruitIndex < values.length && fruitIndex < 4) {
-    if (typeof values[fruitIndex] === "string") {
-      fruits.push(values[fruitIndex]);
+    var normalizedFruit = normalizeFruitKey(values[fruitIndex]);
+
+    if (normalizedFruit) {
+      fruits.push(normalizedFruit);
     }
 
     fruitIndex = fruitIndex + 1;
   }
 
   return fruits;
+}
+
+function normalizeFruitKey(value) {
+  var rawValue = normalizeText(value);
+  var textValue = rawValue.toLowerCase();
+  var compactValue = textValue.replace(/[^a-z0-9]/g, "");
+
+  return fruitAliases[rawValue] || fruitAliases[textValue] || fruitAliases[compactValue] || "";
 }

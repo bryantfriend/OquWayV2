@@ -32,8 +32,30 @@ exports.resetStudentFruitPassword = onCall(async function (request) {
   const data = request.data || {};
 
   verifyAdminCaller(auth);
-  return resetStudentFruitPassword(data);
+  return resetStudentFruitPassword(data, auth);
 });
+
+const FRUIT_ALIASES = {
+  apple: "apple",
+  "\uD83C\uDF4E": "apple",
+  watermelon: "watermelon",
+  "\uD83C\uDF49": "watermelon",
+  banana: "banana",
+  "\uD83C\uDF4C": "banana",
+  strawberry: "strawberry",
+  "\uD83C\uDF53": "strawberry",
+  pineapple: "pineapple",
+  "\uD83C\uDF4D": "pineapple",
+  mango: "mango",
+  "\uD83E\uDD6D": "mango",
+  kiwi: "kiwi",
+  "\uD83E\uDD5D": "kiwi",
+  orange: "orange",
+  "\uD83C\uDF4A": "orange",
+  cherry: "cherry",
+  cherries: "cherry",
+  "\uD83C\uDF52": "cherry"
+};
 
 async function listClasses(data) {
   const locationId = readRequiredText(data.locationId, "locationId");
@@ -74,14 +96,15 @@ async function listStudents(data) {
   const db = admin.firestore();
   const students = [];
   const snapshot = await db.collection("users")
-    .where("locationId", "==", locationId)
     .where("status", "==", "active")
     .get();
 
   snapshot.forEach(function (studentDoc) {
     const student = studentDoc.data() || {};
 
-    if (hasStudentRole(student) && studentMatchesClass(student, classId)) {
+    if (hasStudentRole(student)
+        && studentMatchesLocation(student, locationId)
+        && studentMatchesClass(student, classId)) {
       students.push(sanitizeStudent(studentDoc.id, student));
     }
   });
@@ -109,6 +132,14 @@ async function loginStudent(data) {
   const student = studentDoc.data() || {};
 
   verifyStudentCanUseFruitLogin(student, classId, locationId);
+  logFruitPasswordDebug("login", {
+    studentId: studentId,
+    locationId: locationId,
+    classId: classId,
+    expectedFieldExists: Boolean(student.fruitPasswordHash),
+    submittedNormalizedSequence: fruits,
+    storedFormatType: readStoredFruitFormat(student)
+  });
 
   if (!verifyFruitPassword(fruits, student)) {
     throw new HttpsError("permission-denied", "Those fruits did not match. Please try again.");
@@ -123,6 +154,7 @@ async function loginStudent(data) {
   return {
     success: true,
     customToken: customToken,
+    token: customToken,
     student: sanitizeStudent(studentId, student)
   };
 }
@@ -151,11 +183,11 @@ function verifyFruitPassword(fruits, student) {
   }
 
   if (Array.isArray(student.fruitPassword)) {
-    return JSON.stringify(student.fruitPassword) === JSON.stringify(fruits);
+    return JSON.stringify(normalizeStoredFruitArray(student.fruitPassword)) === JSON.stringify(fruits);
   }
 
   if (Array.isArray(student.fruit)) {
-    return JSON.stringify(student.fruit) === JSON.stringify(fruits);
+    return JSON.stringify(normalizeStoredFruitArray(student.fruit)) === JSON.stringify(fruits);
   }
 
   return false;
@@ -204,8 +236,31 @@ function readFruitArray(value) {
   }
 
   return value.map(function (fruit) {
-    return String(fruit);
+    return normalizeFruitKey(fruit);
   });
+}
+
+function normalizeStoredFruitArray(value) {
+  try {
+    return readFruitArray(value);
+  } catch (error) {
+    return [];
+  }
+}
+
+function normalizeFruitKey(value) {
+  const rawValue = readText(value).trim();
+  const textValue = rawValue.toLowerCase();
+  const compactValue = textValue.replace(/[^a-z0-9]/g, "");
+  const normalized = FRUIT_ALIASES[rawValue]
+    || FRUIT_ALIASES[textValue]
+    || FRUIT_ALIASES[compactValue];
+
+  if (!normalized) {
+    throw new HttpsError("invalid-argument", "Fruit passwords must use supported fruit keys.");
+  }
+
+  return normalized;
 }
 
 function sanitizeClass(classId, data) {
@@ -232,7 +287,7 @@ function sanitizeStudent(studentId, data) {
   };
 }
 
-async function resetStudentFruitPassword(data) {
+async function resetStudentFruitPassword(data, auth) {
   const studentId = readRequiredText(data.studentId, "studentId");
   const fruits = readFruitArray(data.fruitPassword);
   const db = admin.firestore();
@@ -251,17 +306,58 @@ async function resetStudentFruitPassword(data) {
 
   await studentRef.set({
     fruitPasswordHash: createFruitPasswordHash(fruits),
-    fruitPassword: fruits,
-    fruit: fruits,
     fruitPasswordSet: true,
     fruitPasswordUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    fruitPasswordResetBy: auth && auth.uid ? auth.uid : "",
+    fruitPassword: admin.firestore.FieldValue.delete(),
+    fruit: admin.firestore.FieldValue.delete(),
     updatedAt: admin.firestore.FieldValue.serverTimestamp()
   }, { merge: true });
+
+  logFruitPasswordDebug("reset", {
+    studentId: studentId,
+    locationId: readText(student.locationId || student.primaryLocationId),
+    classId: readText(student.classId),
+    expectedFieldExists: true,
+    submittedNormalizedSequence: fruits,
+    storedFormatType: "hash"
+  });
 
   return {
     success: true,
     studentId: studentId
   };
+}
+
+function readStoredFruitFormat(student) {
+  if (student.fruitPasswordHash && typeof student.fruitPasswordHash === "string") {
+    return "hash";
+  }
+
+  if (Array.isArray(student.fruitPassword)) {
+    return "plain-fruitPassword-array";
+  }
+
+  if (Array.isArray(student.fruit)) {
+    return "plain-fruit-array";
+  }
+
+  return "missing";
+}
+
+function logFruitPasswordDebug(eventName, details) {
+  if (process.env.FUNCTIONS_EMULATOR !== "true") {
+    return;
+  }
+
+  console.info("[fruit-password-debug]", eventName, {
+    studentId: details.studentId,
+    locationId: details.locationId,
+    classId: details.classId,
+    expectedFieldExists: details.expectedFieldExists,
+    submittedNormalizedSequence: details.submittedNormalizedSequence,
+    storedFormatType: details.storedFormatType
+  });
 }
 
 function createFruitPasswordHash(fruits) {

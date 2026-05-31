@@ -5,6 +5,7 @@ export async function processLoadStudentsForClass(executionState) {
 
   try {
     var data = await callGetStudentsForClassFunction({
+      locationId: payload.locationId,
       classId: payload.classId
     });
 
