@@ -6,7 +6,7 @@ import { getIntentDefinition } from "../../../packages/core/src/icf/engine/inten
 import { runIntentPipeline } from "../../../packages/core/src/icf/engine/runIntentPipeline.js";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.9";
+var appVersion = "1.1.10";
 var state = {
   isLoading: true,
   isRefreshing: false,
@@ -66,12 +66,12 @@ var tabs = ["overview", "locations", "users", "classes", "lessons", "assignments
 var userRoles = ["student", "teacher", "parent", "schoolAdmin", "regionalAdmin", "ministryUser", "platformAdmin", "superAdmin"];
 var userStatuses = ["active", "inactive", "suspended", "archived"];
 var roleFilterCards = [
-  { key: "", label: "All Users", icon: "ALL", tone: "all", roles: [] },
-  { key: "student", label: "Students", icon: "STU", tone: "student", roles: ["student"] },
-  { key: "teacher", label: "Teachers", icon: "TCH", tone: "teacher", roles: ["teacher"] },
-  { key: "parent", label: "Parents", icon: "PAR", tone: "parent", roles: ["parent"] },
-  { key: "admin", label: "Admins", icon: "ADM", tone: "admin", roles: ["schoolAdmin", "regionalAdmin", "ministryUser", "platformAdmin"] },
-  { key: "superAdmin", label: "Super Admins", icon: "SUP", tone: "super", roles: ["superAdmin"] }
+  { key: "", label: "All Users", icon: "ALL", tone: "all", artwork: "../../assets/user-role-cards/all-users.svg", roles: [] },
+  { key: "student", label: "Students", icon: "STU", tone: "student", artwork: "../../assets/user-role-cards/students.svg", roles: ["student"] },
+  { key: "teacher", label: "Teachers", icon: "TCH", tone: "teacher", artwork: "../../assets/user-role-cards/teachers.svg", roles: ["teacher"] },
+  { key: "parent", label: "Parents", icon: "PAR", tone: "parent", artwork: "../../assets/user-role-cards/parents.svg", roles: ["parent"] },
+  { key: "admin", label: "Admins", icon: "ADM", tone: "admin", artwork: "../../assets/user-role-cards/admins.svg", roles: ["schoolAdmin", "regionalAdmin", "ministryUser", "platformAdmin"] },
+  { key: "superAdmin", label: "Super Admins", icon: "SUP", tone: "super", artwork: "../../assets/user-role-cards/super-admins.svg", roles: ["superAdmin"] }
 ];
 var fruits = ["apple", "watermelon", "banana", "strawberry", "pineapple", "mango", "kiwi", "orange", "cherry"];
 var fruitLabels = {
@@ -1160,9 +1160,9 @@ function buildUserRoleCard(card) {
   var count = countUsersForRoleFilter(card);
 
   return '<button type="button" class="sa-role-card sa-role-card-' + escapeHtml(card.tone) + (isActive ? " is-active" : "") + '" data-action="filter-users-role" data-id="' + escapeHtml(card.key) + '">'
-    + '<span class="sa-role-art">' + buildRoleArtwork(card) + '</span>'
+    + '<span class="sa-role-card-top"><span class="sa-role-badge-icon">' + escapeHtml(card.icon) + '</span><i>' + escapeHtml(card.icon) + '</i></span>'
     + '<span class="sa-role-card-copy"><strong>' + count + '</strong><span>' + escapeHtml(card.label) + '</span></span>'
-    + '<i>' + escapeHtml(card.icon) + '</i>'
+    + '<span class="sa-role-art">' + buildRoleArtwork(card) + '</span>'
     + '</button>';
 }
 
@@ -1171,6 +1171,10 @@ function buildRoleArtwork(card) {
 
   if (cachedArtwork) {
     return '<img class="sa-role-artwork-img" src="' + escapeHtml(cachedArtwork) + '" alt="">';
+  }
+
+  if (card.artwork) {
+    return '<img class="sa-role-artwork-img" src="' + escapeHtml(card.artwork) + '" alt="">';
   }
 
   var seed = card.tone || "all";

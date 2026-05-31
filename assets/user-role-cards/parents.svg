@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 220" role="img" aria-labelledby="title desc">
+  <title id="title">Parents illustration</title>
+  <desc id="desc">A parent and child profile connected with a heart.</desc>
+  <defs>
+    <linearGradient id="bg" x1="33" y1="18" x2="279" y2="204" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FCE7F3"/>
+      <stop offset=".55" stop-color="#FDF2F8"/>
+      <stop offset="1" stop-color="#FFF7ED"/>
+    </linearGradient>
+    <linearGradient id="parent" x1="86" y1="92" x2="163" y2="184" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#DB2777"/>
+      <stop offset="1" stop-color="#F97316"/>
+    </linearGradient>
+    <linearGradient id="child" x1="178" y1="103" x2="248" y2="183" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F472B6"/>
+      <stop offset="1" stop-color="#A78BFA"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#DB2777" flood-opacity=".18"/>
+    </filter>
+  </defs>
+  <rect x="30" y="18" width="260" height="184" rx="38" fill="url(#bg)"/>
+  <path d="M72 166c52 24 131 24 181-3" fill="none" stroke="#FBCFE8" stroke-width="18" stroke-linecap="round"/>
+  <g filter="url(#shadow)">
+    <path d="M75 183c7-47 85-47 93 0" fill="url(#parent)"/>
+    <circle cx="122" cy="87" r="43" fill="#FDBA74"/>
+    <path d="M83 85c6-40 61-52 84-17-23-2-38-9-50-22-7 20-18 32-34 39z" fill="#7F1D1D"/>
+    <circle cx="106" cy="95" r="5" fill="#172033"/>
+    <circle cx="137" cy="95" r="5" fill="#172033"/>
+    <path d="M109 112c8 8 19 8 27 0" fill="none" stroke="#172033" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  <g filter="url(#shadow)">
+    <path d="M172 184c6-38 74-38 80 0" fill="url(#child)"/>
+    <circle cx="212" cy="105" r="33" fill="#FDE68A"/>
+    <path d="M181 103c2-29 42-43 65-17-17 2-31-2-43-12-3 14-10 23-22 29z" fill="#172033"/>
+    <circle cx="200" cy="112" r="4" fill="#172033"/>
+    <circle cx="225" cy="112" r="4" fill="#172033"/>
+    <path d="M201 127c8 7 17 7 24 0" fill="none" stroke="#172033" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  <path d="M161 77c10-19 38-12 38 10 0 21-38 37-38 37s-38-16-38-37c0-22 28-29 38-10z" fill="#FB7185" filter="url(#shadow)"/>
+  <path d="M70 58c24-17 54-20 81-7M171 55c26-12 55-7 78 12" fill="none" stroke="#F9A8D4" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="255" cy="145" r="7" fill="#FDBA74"/>
+  <circle cx="57" cy="150" r="6" fill="#F472B6"/>
+</svg>
