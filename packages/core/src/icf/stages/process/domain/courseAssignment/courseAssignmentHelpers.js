@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js";
+import { collection, db, getDocs } from "../../../../../infrastructure/firebase/firestore.js";
 
 export function createCourseAssignmentId() {
   var randomText = Math.random().toString(36).slice(2, 10);
@@ -6,39 +6,7 @@ export function createCourseAssignmentId() {
 }
 
 export async function loadCourseAssignments(filters) {
-  var assignmentQuery = collection(db, "courseAssignments");
-  var queryFilters = [];
-
-  if (filters && filters.courseId) {
-    queryFilters.push(where("courseId", "==", filters.courseId));
-  }
-
-  if (filters && filters.status) {
-    queryFilters.push(where("status", "==", filters.status));
-  }
-
-  if (filters && filters.targetType) {
-    queryFilters.push(where("targetType", "==", filters.targetType));
-  }
-
-  if (filters && filters.targetId) {
-    queryFilters.push(where("targetId", "==", filters.targetId));
-  }
-
-  if (queryFilters.length > 0) {
-    assignmentQuery = query(assignmentQuery, queryFilters[0]);
-    if (queryFilters.length === 2) {
-      assignmentQuery = query(collection(db, "courseAssignments"), queryFilters[0], queryFilters[1]);
-    }
-    if (queryFilters.length === 3) {
-      assignmentQuery = query(collection(db, "courseAssignments"), queryFilters[0], queryFilters[1], queryFilters[2]);
-    }
-    if (queryFilters.length === 4) {
-      assignmentQuery = query(collection(db, "courseAssignments"), queryFilters[0], queryFilters[1], queryFilters[2], queryFilters[3]);
-    }
-  }
-
-  return readAssignmentsFromSnapshot(await getDocs(assignmentQuery));
+  return filterAssignments(readAssignmentsFromSnapshot(await getDocs(collection(db, "courseAssignments"))), filters || {});
 }
 
 export function sortAssignments(assignments) {
@@ -69,6 +37,35 @@ function readAssignmentsFromSnapshot(snapshot) {
   });
 
   return assignments;
+}
+
+function filterAssignments(assignments, filters) {
+  return assignments.filter(function (assignment) {
+    return matchesFilter(assignment, "courseId", filters.courseId)
+      && matchesFilter(assignment, "status", filters.status)
+      && matchesFilter(assignment, "targetType", filters.targetType)
+      && matchesTargetId(assignment, filters.targetId);
+  });
+}
+
+function matchesFilter(assignment, fieldName, expectedValue) {
+  if (!expectedValue) {
+    return true;
+  }
+
+  return assignment && assignment[fieldName] === expectedValue;
+}
+
+function matchesTargetId(assignment, expectedTargetId) {
+  if (!expectedTargetId) {
+    return true;
+  }
+
+  return assignment
+    && (assignment.targetId === expectedTargetId
+      || assignment.classId === expectedTargetId
+      || assignment.studentId === expectedTargetId
+      || assignment.locationId === expectedTargetId);
 }
 
 function readText(value) {

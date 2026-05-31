@@ -6,11 +6,7 @@ export async function processCreateCourseAssignment(executionState) {
   var actor = executionState.actor;
 
   try {
-    var duplicateAssignments = findDuplicateAssignments(await loadCourseAssignments({
-      courseId: payload.courseId,
-      targetType: payload.targetType,
-      targetId: payload.targetId
-    }), payload);
+    var duplicateAssignments = await readDuplicateAssignments(payload, executionState);
 
     if (duplicateAssignments.length > 0) {
       executionState.warnings.push({
@@ -18,11 +14,14 @@ export async function processCreateCourseAssignment(executionState) {
         message: "A matching assignment already exists. The existing assignment was returned."
       });
       executionState.result = duplicateAssignments[0];
-      return { valid: true };
+      return {
+        valid: true,
+        data: executionState.result
+      };
     }
 
     var assignmentId = createCourseAssignmentId();
-    var assignmentRecord = {
+    var assignmentRecord = cleanAssignmentRecord({
       id: assignmentId,
       assignmentType: payload.assignmentType || "course",
       courseId: payload.courseId,
@@ -34,26 +33,47 @@ export async function processCreateCourseAssignment(executionState) {
       studentId: payload.targetType === "student" ? payload.studentId || payload.targetId : null,
       status: payload.status,
       visibility: payload.visibility || "visible",
-      assignedBy: actor.id,
+      assignedBy: actor && actor.id ? actor.id : "",
       assignedAt: serverTimestamp(),
       startsAt: payload.startsAt || null,
       dueAt: payload.dueAt || null,
       updatedAt: serverTimestamp()
-    };
+    });
 
     await setDoc(doc(db, "courseAssignments", assignmentId), assignmentRecord);
     executionState.result = assignmentRecord;
-    return { valid: true };
+    return {
+      valid: true,
+      data: executionState.result
+    };
   } catch (error) {
+    logCourseAssignmentCreateDebug(error, payload);
     return {
       valid: false,
       errors: [
         {
           code: "COURSE_ASSIGNMENT_CREATE_FAILED",
-          message: "Failed to create course assignment: " + error.message
+          message: "Failed to create course assignment: " + readErrorMessage(error)
         }
       ]
     };
+  }
+}
+
+async function readDuplicateAssignments(payload, executionState) {
+  try {
+    return findDuplicateAssignments(await loadCourseAssignments({
+      courseId: payload.courseId,
+      targetType: payload.targetType,
+      targetId: payload.targetId
+    }), payload);
+  } catch (error) {
+    executionState.warnings.push({
+      code: "COURSE_ASSIGNMENT_DUPLICATE_CHECK_SKIPPED",
+      message: "Duplicate check was skipped before create: " + readErrorMessage(error)
+    });
+    logCourseAssignmentCreateDebug(error, payload);
+    return [];
   }
 }
 
@@ -75,4 +95,56 @@ function findDuplicateAssignments(assignments, payload) {
   }
 
   return duplicateAssignments;
+}
+
+function cleanAssignmentRecord(record) {
+  var cleanRecord = {};
+  var keys = Object.keys(record);
+  var index = 0;
+
+  while (index < keys.length) {
+    if (typeof record[keys[index]] !== "undefined") {
+      cleanRecord[keys[index]] = record[keys[index]];
+    }
+    index = index + 1;
+  }
+
+  return cleanRecord;
+}
+
+function logCourseAssignmentCreateDebug(error, payload) {
+  if (!isDevelopmentHost()) {
+    return;
+  }
+
+  console.warn("[course-assignment-debug] CreateCourseAssignmentIntent process issue.", {
+    collection: "courseAssignments",
+    errorCode: error && error.code ? error.code : "",
+    errorMessage: readErrorMessage(error),
+    courseId: payload && payload.courseId ? payload.courseId : "",
+    targetType: payload && payload.targetType ? payload.targetType : "",
+    targetIdExists: !!(payload && payload.targetId),
+    locationIdExists: !!(payload && payload.locationId),
+    classIdExists: !!(payload && payload.classId),
+    studentIdExists: !!(payload && payload.studentId)
+  });
+}
+
+function isDevelopmentHost() {
+  return typeof window !== "undefined"
+    && (window.location.hostname === "localhost"
+      || window.location.hostname === "127.0.0.1"
+      || window.location.hostname === "");
+}
+
+function readErrorMessage(error) {
+  if (!error) {
+    return "unknown error";
+  }
+
+  if (error.code && error.message) {
+    return error.code + " " + error.message;
+  }
+
+  return error.message || String(error);
 }

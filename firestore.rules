@@ -5,7 +5,11 @@ service cloud.firestore {
     // 🔧 Helpers
   
     function hasRole(role) {
-      return request.auth != null && request.auth.token.role == role;
+      return request.auth != null && (
+        request.auth.token.role == role ||
+        (request.auth.token.roles is list && role in request.auth.token.roles) ||
+        (request.auth.token.userRoles is list && role in request.auth.token.userRoles)
+      );
     }
     
     function isSuperAdmin() { return hasRole('superAdmin'); }
@@ -14,6 +18,7 @@ service cloud.firestore {
     function isCourseCreator() { return hasRole('courseCreator'); }
     function isAccountant() { return hasRole('accountant'); }
     function isTeacher() { return hasRole('teacher'); }
+    function isStudent() { return hasRole('student'); }
 
 
     function user() {
@@ -146,20 +151,24 @@ service cloud.firestore {
       }
     }
 
-    // 📌 COURSE ASSIGNMENTS
+    // 🎯 COURSE ASSIGNMENTS
     match /courseAssignments/{assignmentId} {
       allow read, list: if request.auth != null && (
-        isSuperAdmin()
-        || isPlatformAdmin()
-        || isSchoolAdmin()
-        || isCourseCreator()
-        || isRelevantCourseAssignment()
+        isSuperAdmin() ||
+        isPlatformAdmin() ||
+        isSchoolAdmin() ||
+        isCourseCreator() ||
+        isTeacher() ||
+        isStudent() ||
+        isRelevantCourseAssignment()
       );
 
-      allow create, update: if isSuperAdmin()
-        || isPlatformAdmin()
-        || isSchoolAdmin()
-        || isCourseCreator();
+      allow create, update: if request.auth != null && (
+        isSuperAdmin() ||
+        isPlatformAdmin() ||
+        isSchoolAdmin() ||
+        isCourseCreator()
+      );
 
       allow delete: if isSuperAdmin() || isPlatformAdmin();
     }
