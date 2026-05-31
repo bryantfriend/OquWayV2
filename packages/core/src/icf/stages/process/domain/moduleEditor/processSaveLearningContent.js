@@ -11,6 +11,7 @@ export async function processSaveLearningContent(executionState) {
       learningContentUpdatedAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     }, { merge: true });
+    await mirrorLearningContent(readCourseCollectionName(executionState), payload.courseId, payload.moduleId, learningContent);
 
     executionState.result = { learningContent: learningContent };
     return { valid: true };
@@ -19,6 +20,22 @@ export async function processSaveLearningContent(executionState) {
       valid: false,
       errors: [{ code: "LEARNING_CONTENT_SAVE_FAILED", message: "Failed to save learning content: " + error.message }]
     };
+  }
+}
+
+async function mirrorLearningContent(collectionName, courseId, moduleId, learningContent) {
+  var sections = Object.keys(learningContent || {});
+  var sectionIndex = 0;
+
+  while (sectionIndex < sections.length) {
+    var section = sections[sectionIndex];
+    await setDoc(doc(db, collectionName, courseId, "modules", moduleId, "learningContent", section), {
+      id: section,
+      type: section,
+      value: learningContent[section],
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    sectionIndex = sectionIndex + 1;
   }
 }
 

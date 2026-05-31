@@ -97,7 +97,7 @@ export const studentDashboardService = {
   continueLearning: async function (courses) {
     try {
       var result = await runStudentIntent("ContinueLearningIntent", {
-        courses: summarizeCoursesForContinue(courses || [])
+        courses: courses || []
       });
 
       if (result && result.emitted && result.emitted.success) {

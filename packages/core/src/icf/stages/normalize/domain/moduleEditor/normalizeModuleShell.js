@@ -6,7 +6,8 @@ export function normalizeModuleShell(executionState) {
     data: {
       title: normalizeLocalizedText(payload.title, "New Module"),
       description: normalizeLocalizedText(payload.description, ""),
-      status: normalizeStatus(payload.status)
+      status: normalizeStatus(payload.status),
+      templateKey: normalizeTemplateKey(payload.templateKey)
     }
   };
 }
@@ -60,4 +61,12 @@ function normalizeStatus(status) {
   }
 
   return "draft";
+}
+
+function normalizeTemplateKey(templateKey) {
+  if (templateKey === "school" || templateKey === "educationCenter" || templateKey === "intensive" || templateKey === "custom") {
+    return templateKey;
+  }
+
+  return "custom";
 }

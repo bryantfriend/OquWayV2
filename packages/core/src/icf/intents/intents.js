@@ -118,6 +118,7 @@ export { LoadLearningContentIntent } from "./moduleEditor/LoadLearningContentInt
 export { SaveLearningContentIntent } from "./moduleEditor/SaveLearningContentIntent.js";
 export { LoadLearningModesIntent } from "./moduleEditor/LoadLearningModesIntent.js";
 export { CreateLearningModeIntent } from "./moduleEditor/CreateLearningModeIntent.js";
+export { RenameLearningModeIntent } from "./moduleEditor/RenameLearningModeIntent.js";
 export { DeleteLearningModeIntent } from "./moduleEditor/DeleteLearningModeIntent.js";
 export { DuplicateLearningModeIntent } from "./moduleEditor/DuplicateLearningModeIntent.js";
 export { GenerateModeFromPrimaryIntent } from "./moduleEditor/GenerateModeFromPrimaryIntent.js";
@@ -152,6 +153,7 @@ export { LoadStudentCourseStructureIntent } from "./student/LoadStudentCourseStr
 export { LoadStudentProgressIntent } from "./student/LoadStudentProgressIntent.js";
 export { ClaimDailyBonusIntent } from "./student/ClaimDailyBonusIntent.js";
 export { ContinueLearningIntent } from "./student/ContinueLearningIntent.js";
+export { SelectContinueLearningIntent } from "./student/SelectContinueLearningIntent.js";
 export { StartPracticeModeIntent } from "./student/StartPracticeModeIntent.js";
 export { CompleteStepIntent } from "./student/CompleteStepIntent.js";
 export { CompleteStudentStepIntent } from "./student/CompleteStudentStepIntent.js";

@@ -1,4 +1,5 @@
 import { processLoadStudentCourse } from "./processLoadStudentCourse.js";
+import { processContinueLearning } from "./processContinueLearning.js";
 
 export async function processLoadStudentDashboard(executionState) {
   var courseResult = await processLoadStudentCourse(executionState);
@@ -10,11 +11,12 @@ export async function processLoadStudentDashboard(executionState) {
   var result = executionState.result || {};
   var student = result.student || executionState.context.studentProfile || null;
   var courses = dedupeCourses(result.courses || []);
+  var continueLearning = await selectContinueLearning(executionState, courses);
 
   executionState.result = Object.assign({}, result, {
     student: student,
     courses: courses,
-    continueLearning: buildContinueLearning(courses),
+    continueLearning: continueLearning,
     intentionPoints: readIntentionPoints(student),
     dailyBonus: readDailyBonus(student),
     progressSummary: buildProgressSummary(courses)
@@ -24,6 +26,20 @@ export async function processLoadStudentDashboard(executionState) {
     valid: true,
     data: executionState.result
   };
+}
+
+async function selectContinueLearning(executionState, courses) {
+  var continueState = Object.assign({}, executionState, {
+    payload: { courses: courses },
+    result: {}
+  });
+  var result = await processContinueLearning(continueState);
+
+  if (result && result.valid && continueState.result && continueState.result.continueLearning) {
+    return continueState.result.continueLearning;
+  }
+
+  return buildContinueLearning(courses);
 }
 
 function dedupeCourses(courses) {

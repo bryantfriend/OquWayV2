@@ -488,11 +488,13 @@ export class CourseOverviewPage {
     document.getElementById('addModuleBtn').addEventListener('click', function () {
       var btn = document.getElementById('addModuleBtn');
       var statusMsg = document.getElementById('moduleCreateStatusMsg');
+      var templateKey = prompt('Choose Template: school, educationCenter, intensive, or custom', 'custom');
+      templateKey = normalizeModuleTemplateKey(templateKey);
 
       showModuleBtnPending(btn, 'Preparing\u2026');
-      showModuleStatusMsg(statusMsg, 'creating', '<span class="oqu-spinner oqu-spinner-blue"></span> Preparing module structure\u2026');
+      showModuleStatusMsg(statusMsg, 'creating', '<span class="oqu-spinner oqu-spinner-blue"></span> Preparing ' + templateKey + ' module structure\u2026');
 
-      courseEditorService.addModule(self.courseId).then(function () {
+      courseEditorService.addModule(self.courseId, { templateKey: templateKey }).then(function () {
         showModuleStatusMsg(statusMsg, 'success', '<span class="oqu-success-icon">&#10003;</span> Module added!');
         restoreModuleBtn(btn, '<i class="fa-solid fa-plus text-gray-400"></i> New Module');
         setTimeout(function () {
@@ -1057,6 +1059,15 @@ function buildAssignmentSkeletonRows(rowCount) {
   }
 
   return rows;
+}
+
+function normalizeModuleTemplateKey(value) {
+  var templateKey = typeof value === 'string' ? value.trim() : '';
+  if (templateKey === 'school' || templateKey === 'educationCenter' || templateKey === 'intensive' || templateKey === 'custom') {
+    return templateKey;
+  }
+
+  return 'custom';
 }
 
 function buildCoursePreview(course) {

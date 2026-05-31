@@ -6,9 +6,13 @@ export async function processCreateModule(executionState) {
   const context = executionState.context;
   const moduleId = generateId("module");
   const moduleRecord = createModuleRecord(moduleId, payload, context);
+  const learningModes = moduleRecord.learningModes;
+  const learningContent = moduleRecord.learningContent;
 
   try {
     await setDoc(doc(db, readCourseCollectionName(executionState), payload.courseId, "modules", moduleId), moduleRecord);
+    await mirrorLearningContent(readCourseCollectionName(executionState), payload.courseId, moduleId, learningContent);
+    await mirrorLearningModes(readCourseCollectionName(executionState), payload.courseId, moduleId, learningModes);
     executionState.result = moduleRecord;
     return { valid: true };
   } catch (error) {
@@ -21,6 +25,33 @@ export async function processCreateModule(executionState) {
         }
       ]
     };
+  }
+}
+
+async function mirrorLearningContent(collectionName, courseId, moduleId, learningContent) {
+  const sections = Object.keys(learningContent || {});
+  let sectionIndex = 0;
+
+  while (sectionIndex < sections.length) {
+    const section = sections[sectionIndex];
+    await setDoc(doc(db, collectionName, courseId, "modules", moduleId, "learningContent", section), {
+      id: section,
+      type: section,
+      value: learningContent[section],
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    sectionIndex = sectionIndex + 1;
+  }
+}
+
+async function mirrorLearningModes(collectionName, courseId, moduleId, learningModes) {
+  const modeIds = Object.keys(learningModes || {});
+  let modeIndex = 0;
+
+  while (modeIndex < modeIds.length) {
+    const modeId = modeIds[modeIndex];
+    await setDoc(doc(db, collectionName, courseId, "modules", moduleId, "learningModes", modeId), learningModes[modeId], { merge: true });
+    modeIndex = modeIndex + 1;
   }
 }
 

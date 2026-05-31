@@ -128,6 +128,30 @@ export const moduleEditorService = {
     throw new Error(readIntentErrorMessage(result));
   },
 
+  renameLearningMode: async function (courseId, moduleId, modeId, title, purpose) {
+    var result = await runIntentPipeline(getIntentDefinition("RenameLearningModeIntent"), {
+      payload: {
+        courseId: courseId,
+        moduleId: moduleId,
+        modeId: modeId,
+        title: title,
+        purpose: purpose
+      },
+      actor: getActor()
+    });
+
+    if (result && result.emitted && result.emitted.success) {
+      moduleEditorStore.setState({
+        learningModes: result.emitted.data.learningModes,
+        selectedLearningModeId: modeId,
+        lastSaved: Date.now()
+      });
+      return result;
+    }
+
+    throw new Error(readIntentErrorMessage(result));
+  },
+
   duplicateLearningMode: async function (courseId, moduleId, modeId) {
     var result = await runIntentPipeline(getIntentDefinition("DuplicateLearningModeIntent"), {
       payload: {

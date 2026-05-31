@@ -180,6 +180,13 @@ export class CourseEditorPage {
       self.handleWorkspaceClick(e);
     });
 
+    document.getElementById("workspaceContent").addEventListener("input", function (e) {
+      var search = e.target.closest(".step-picker-search");
+      if (search) {
+        filterStepPicker(search.value);
+      }
+    });
+
     // ── Inspector delegation (attached once) ───────────────────────────
     document.getElementById("configEditorPane").addEventListener("click", function (e) {
       self.handleInspectorClick(e);
@@ -234,6 +241,22 @@ export class CourseEditorPage {
       return;
     }
 
+    var renameModeBtn = event.target.closest(".rename-learning-mode-btn");
+    if (renameModeBtn) {
+      var renameModeId = renameModeBtn.getAttribute("data-mode-id");
+      var currentMode = moduleEditorStore.getState().learningModes[renameModeId] || {};
+      var nextTitle = prompt("Rename learning mode", currentMode.title || "Learning Mode");
+      if (!nextTitle) {
+        return;
+      }
+      moduleEditorService.renameLearningMode(this.courseId, this.moduleId, renameModeId, nextTitle, currentMode.purpose || "").then(function () {
+        self.updateUi(moduleEditorStore.getState());
+      }).catch(function (error) {
+        alert("Rename mode failed: " + error.message);
+      });
+      return;
+    }
+
     var deleteModeBtn = event.target.closest(".delete-learning-mode-btn");
     if (deleteModeBtn) {
       if (!confirm("Delete this learning mode? Existing legacy step data will be kept for migration safety.")) {
@@ -260,7 +283,21 @@ export class CourseEditorPage {
     var pullContentBtn = event.target.closest(".pull-learning-content-btn");
     if (pullContentBtn) {
       moduleEditorService.pullLearningContent(this.courseId, this.moduleId, pullContentBtn.getAttribute("data-step-type"), pullContentBtn.getAttribute("data-source")).then(function (stepDraft) {
-        alert("Draft ready from Learning Content: " + stepDraft.title + ". Add the step, then paste or adapt the generated config.");
+        var currentState = moduleEditorStore.getState();
+        var currentSession = self.findSelectedSession(currentState);
+        var currentStepId = currentState.selectedStepId;
+        var currentModeKey = currentState.selectedPracticeModeKey || "beforeClass";
+
+        if (currentSession && currentStepId) {
+          var currentStep = findPracticeModeStep(currentSession, currentModeKey, currentStepId);
+          var updatedStep = Object.assign({}, currentStep, {
+            title: { en: stepDraft.title || readLocalizedText(currentStep.title, "Generated Activity"), ru: "", ky: "" },
+            config: Object.assign({}, readStepConfig(currentStep), stepDraft.config || {})
+          });
+          return moduleEditorService.updatePracticeModeStep(self.courseId, self.moduleId, currentSession.id, currentModeKey, updatedStep);
+        }
+
+        alert("Draft ready from Learning Content: " + stepDraft.title + ". Add a step, then use Pull From Learning Content in the inspector.");
         console.info("[LearningContent] Pulled step draft:", stepDraft);
       }).catch(function (error) {
         alert("Pull from Learning Content failed: " + error.message);
@@ -1493,6 +1530,12 @@ export class CourseEditorPage {
 
     html += this.buildStepConfigInspector(step);
 
+    if (supportsLearningContentPull(stepType)) {
+      html += '<button type="button" class="pull-learning-content-btn w-full border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold py-2 rounded-lg text-xs transition mb-2" data-step-type="' + stepType + '" data-source="vocabulary">';
+      html += '<i class="fa-solid fa-wand-magic-sparkles"></i> Pull From Learning Content';
+      html += '</button>';
+    }
+
     html += '<button type="button" class="save-practice-step-btn w-full bg-gray-900 hover:bg-black text-white font-bold py-2 rounded-lg text-xs transition mt-1">Save Step</button>';
 
     html += '</div>';
@@ -1877,9 +1920,15 @@ function buildStepPickerModal(practiceModeKey) {
   html += '<div>';
   html += '<div class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Add Step</div>';
   html += '<div class="text-lg font-black text-gray-950">Choose an activity type</div>';
-  html += '<div class="text-xs text-gray-500 mt-1">Pick a reusable step shell for this practice mode.</div>';
+  html += '<div class="text-xs text-gray-500 mt-1">Search activities, games, reflection, vocabulary, and assessment-ready steps.</div>';
   html += '</div>';
   html += '<button type="button" class="close-step-picker-btn oqu-step-picker-close" aria-label="Close step picker">×</button>';
+  html += '</div>';
+  html += '<div class="px-6 pb-4"><input type="search" class="step-picker-search w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:border-blue-300 focus:ring-4 focus:ring-blue-100" placeholder="Search step activities..."></div>';
+  html += '<div class="px-6 pb-4 flex flex-wrap gap-2">';
+  html += '<span class="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-emerald-700">Popular: Matching Game</span>';
+  html += '<span class="rounded-full bg-sky-50 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-sky-700">Suggested: Flashcards</span>';
+  html += '<span class="rounded-full bg-violet-50 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-violet-700">Assessment-ready</span>';
   html += '</div>';
   html += '<div class="oqu-step-picker-category-list" data-key="' + practiceModeKey + '">';
   html += buildStepPickerOptions();
@@ -1934,7 +1983,7 @@ function buildStepPickerCategory(category, types) {
 function buildStepPickerCard(type) {
   var html = "";
 
-  html += '<button type="button" class="step-type-option oqu-step-picker-card" data-type="' + type.type + '">';
+  html += '<button type="button" class="step-type-option oqu-step-picker-card" data-type="' + type.type + '" data-search-text="' + escapeHtml((type.label + " " + type.description + " " + type.category + " " + type.complexity).toLowerCase()) + '">';
   html += '<span class="oqu-step-picker-card-icon"><i class="' + type.icon + '"></i></span>';
   html += '<span class="oqu-step-picker-card-body">';
   html += '<span class="oqu-step-picker-card-title">' + escapeHtml(type.label) + '</span>';
@@ -1947,6 +1996,18 @@ function buildStepPickerCard(type) {
   html += '</button>';
 
   return html;
+}
+
+function filterStepPicker(value) {
+  var query = typeof value === "string" ? value.trim().toLowerCase() : "";
+  var cards = document.querySelectorAll(".oqu-step-picker-card");
+  var index = 0;
+
+  while (index < cards.length) {
+    var searchText = cards[index].getAttribute("data-search-text") || "";
+    cards[index].style.display = !query || searchText.indexOf(query) !== -1 ? "" : "none";
+    index = index + 1;
+  }
 }
 
 function createStepTypeCards() {
@@ -2584,6 +2645,13 @@ function readStepDefinitionIcon(stepType) {
   return "fa-solid fa-puzzle-piece";
 }
 
+function supportsLearningContentPull(stepType) {
+  return stepType === "dragMatchIsland"
+    || stepType === "vocabulary"
+    || stepType === "reflection"
+    || stepType === "customExperience";
+}
+
 // ── Status option builder ─────────────────────────────────────────────────────
 
 function buildStatusOption(status, currentStatus) {
@@ -2653,6 +2721,7 @@ function buildLearningContentWorkspace(learningContent) {
   html += '<h2 class="mt-2 text-2xl font-black text-slate-950">Learning Content</h2>';
   html += '<p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Hidden from students. Use this as the reusable source material for activities, review, assessment, and future AI-assisted creation.</p>';
   html += '</div>';
+  html += '<img src="./src/assets/learning-content.svg" alt="" class="hidden md:block h-28 w-40 object-contain">';
   html += '<button type="button" class="save-learning-content-btn rounded-2xl bg-slate-950 px-4 py-2 text-xs font-black text-white shadow-sm hover:bg-slate-800"><i class="fa-solid fa-floppy-disk"></i> Save Learning Content</button>';
   html += '</div>';
   html += '</div>';
@@ -2734,8 +2803,8 @@ function buildLearningModesWorkspace(learningModes, sessions, selectedModeId) {
   modes.forEach(function (mode) {
     var selected = selectedModeId === mode.id ? " ring-2 ring-emerald-300 border-emerald-200" : " border-slate-100";
     html += '<div class="learning-mode-card rounded-3xl bg-white p-5 shadow-sm border cursor-pointer hover:-translate-y-0.5 hover:shadow-md transition' + selected + '" data-mode-id="' + mode.id + '">';
-    html += '<div class="flex items-start gap-4">';
-    html += '<div class="h-12 w-12 rounded-2xl bg-gradient-to-br from-emerald-100 to-sky-100 flex items-center justify-center text-lg text-emerald-700">' + readLearningModeIcon(mode) + '</div>';
+  html += '<div class="flex items-start gap-4">';
+    html += '<img src="' + readLearningModeAsset(mode) + '" alt="" class="h-16 w-20 rounded-2xl object-cover bg-slate-50">';
     html += '<div class="min-w-0 flex-1">';
     html += '<div class="flex items-center gap-2 flex-wrap">' + buildStatusPill(mode.status) + (mode.required ? '<span class="rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-black uppercase text-emerald-700">Required</span>' : '') + '</div>';
     html += '<h3 class="mt-3 text-lg font-black text-slate-950 truncate">' + escapeHtml(mode.title) + '</h3>';
@@ -2745,6 +2814,7 @@ function buildLearningModesWorkspace(learningModes, sessions, selectedModeId) {
     html += '<div class="mt-4 flex items-center justify-between gap-2">';
     html += '<span class="text-[10px] font-black uppercase tracking-widest text-slate-400">' + escapeHtml(mode.modeType || "custom") + '</span>';
     html += '<div class="flex gap-2">';
+    html += '<button type="button" class="rename-learning-mode-btn rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-black text-slate-600 hover:bg-slate-50" data-mode-id="' + mode.id + '">Rename</button>';
     html += '<button type="button" class="duplicate-learning-mode-btn rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-black text-slate-600 hover:bg-slate-50" data-mode-id="' + mode.id + '">Duplicate</button>';
     if (!mode.required) {
       html += '<button type="button" class="delete-learning-mode-btn rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[10px] font-black text-rose-600 hover:bg-rose-100" data-mode-id="' + mode.id + '">Delete</button>';
@@ -2851,6 +2921,14 @@ function readLearningModeIcon(mode) {
   if (mode && mode.modeType === "practice") return '<i class="fa-solid fa-dumbbell"></i>';
   if (mode && mode.modeType === "assessment") return '<i class="fa-solid fa-clipboard-check"></i>';
   return '<i class="fa-solid fa-route"></i>';
+}
+
+function readLearningModeAsset(mode) {
+  if (mode && mode.modeType === "primary") return "./src/assets/primary-mode.svg";
+  if (mode && mode.modeType === "review") return "./src/assets/review-mode.svg";
+  if (mode && mode.modeType === "practice") return "./src/assets/practice-mode.svg";
+  if (mode && mode.modeType === "assessment") return "./src/assets/assessment-mode.svg";
+  return "./src/assets/primary-mode.svg";
 }
 
 function parseLines(value) {

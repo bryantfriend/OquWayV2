@@ -20,6 +20,7 @@ export async function processDeleteLearningMode(executionState) {
   });
 
   try {
+    await setDoc(doc(db, readCourseCollectionName(executionState), payload.courseId, "modules", payload.moduleId, "learningModes", modeId), modes[modeId], { merge: true });
     await setDoc(doc(db, readCourseCollectionName(executionState), payload.courseId, "modules", payload.moduleId), {
       learningModes: modes,
       updatedAt: serverTimestamp()

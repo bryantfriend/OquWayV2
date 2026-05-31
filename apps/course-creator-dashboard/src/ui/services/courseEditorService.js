@@ -30,9 +30,10 @@ export const courseEditorService = {
     }
   },
 
-  addModule: async function (courseId) {
+  addModule: async function (courseId, options) {
     try {
-      var result = await runIntentPipeline(getIntentDefinition("CreateModuleIntent"), { payload: { courseId: courseId }, actor: getActor() });
+      var payload = Object.assign({ courseId: courseId }, options || {});
+      var result = await runIntentPipeline(getIntentDefinition("CreateModuleIntent"), { payload: payload, actor: getActor() });
       if (result && result.emitted && result.emitted.success) {
         var state = courseEditorStore.getState();
         var newModules = state.modules.slice();

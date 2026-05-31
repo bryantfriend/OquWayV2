@@ -14,6 +14,7 @@ export async function processCreateLearningMode(executionState) {
 
   try {
     await setDoc(doc(db, readCourseCollectionName(executionState), payload.courseId, "modules", payload.moduleId, "sessions", sessionId), sessionRecord);
+    await setDoc(doc(db, readCourseCollectionName(executionState), payload.courseId, "modules", payload.moduleId, "learningModes", mode.id), mode, { merge: true });
     await setDoc(doc(db, readCourseCollectionName(executionState), payload.courseId, "modules", payload.moduleId), {
       learningModes: modes,
       updatedAt: serverTimestamp()

@@ -56,6 +56,7 @@ export { processLoadLearningContent } from "./domain/moduleEditor/processLoadLea
 export { processSaveLearningContent } from "./domain/moduleEditor/processSaveLearningContent.js";
 export { processLoadLearningModes } from "./domain/moduleEditor/processLoadLearningModes.js";
 export { processCreateLearningMode } from "./domain/moduleEditor/processCreateLearningMode.js";
+export { processRenameLearningMode } from "./domain/moduleEditor/processRenameLearningMode.js";
 export { processDeleteLearningMode } from "./domain/moduleEditor/processDeleteLearningMode.js";
 export { processDuplicateLearningMode } from "./domain/moduleEditor/processDuplicateLearningMode.js";
 export { processGenerateModeFromPrimary } from "./domain/moduleEditor/processGenerateModeFromPrimary.js";
