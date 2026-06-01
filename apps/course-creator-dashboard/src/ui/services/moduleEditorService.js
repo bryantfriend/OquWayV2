@@ -38,14 +38,20 @@ export const moduleEditorService = {
       });
 
       if (result && result.emitted && result.emitted.success) {
+        var learningModes = result.emitted.data.learningModes || {};
+        var selectedModeId = resolveSelectedModeId(learningModes, result.emitted.data.selectedModeId || result.emitted.data.selectedLearningModeId);
+        var sessions = result.emitted.data.sessions || [];
+        var selectedSessionId = resolveSelectedSessionId(sessions, learningModes, selectedModeId, result.emitted.data.selectedSessionId);
+
         moduleEditorStore.setState({
           course: result.emitted.data.course,
           module: result.emitted.data.module,
           learningContent: result.emitted.data.learningContent || {},
-          learningModes: result.emitted.data.learningModes || {},
-          selectedLearningModeId: result.emitted.data.selectedLearningModeId || "primary",
-          sessions: result.emitted.data.sessions || [],
-          selectedSessionId: result.emitted.data.selectedSessionId,
+          learningModes: learningModes,
+          selectedModeId: selectedModeId,
+          selectedLearningModeId: selectedModeId,
+          sessions: sessions,
+          selectedSessionId: selectedSessionId,
           steps: result.emitted.data.steps || [],
           selectedStepId: result.emitted.data.selectedStepId,
           permissions: result.emitted.data.permissions,
@@ -95,15 +101,19 @@ export const moduleEditorService = {
 
   selectLearningMode: function (modeId) {
     var state = moduleEditorStore.getState();
-    var mode = state.learningModes && state.learningModes[modeId] ? state.learningModes[modeId] : null;
-    var sessionId = mode && mode.legacySessionId ? mode.legacySessionId : state.selectedSessionId;
+    var selectedModeId = resolveSelectedModeId(state.learningModes, modeId);
+    var sessionId = resolveSelectedSessionId(state.sessions, state.learningModes, selectedModeId, state.selectedSessionId);
+    var mode = readModeById(state.learningModes, selectedModeId);
 
     moduleEditorStore.setState({
-      selectedLearningModeId: modeId,
+      selectedModeId: selectedModeId,
+      selectedLearningModeId: selectedModeId,
       selectedSessionId: sessionId,
       selectedPracticeModeKey: "beforeClass",
       selectedStepId: null
     });
+
+    logModeSelection(selectedModeId, mode, state.learningModes, "steps");
   },
 
   createLearningMode: async function (courseId, moduleId, modeOptions) {
@@ -136,6 +146,7 @@ export const moduleEditorService = {
     if (result && result.emitted && result.emitted.success) {
       moduleEditorStore.setState({
         learningModes: result.emitted.data.learningModes,
+        selectedModeId: "primary",
         selectedLearningModeId: "primary",
         lastSaved: Date.now()
       });
@@ -160,6 +171,7 @@ export const moduleEditorService = {
     if (result && result.emitted && result.emitted.success) {
       moduleEditorStore.setState({
         learningModes: result.emitted.data.learningModes,
+        selectedModeId: modeId,
         selectedLearningModeId: modeId,
         lastSaved: Date.now()
       });
@@ -465,7 +477,7 @@ function replaceSessionInState(updatedSession, selectedStepId) {
 function mergeLearningModeResult(data) {
   var state = moduleEditorStore.getState();
   var sessions = state.sessions.slice();
-  var selectedModeId = data.learningMode && data.learningMode.id ? data.learningMode.id : state.selectedLearningModeId;
+  var selectedModeId = data.learningMode && data.learningMode.id ? data.learningMode.id : (state.selectedModeId || state.selectedLearningModeId);
 
   if (data.session) {
     var found = false;
@@ -483,6 +495,7 @@ function mergeLearningModeResult(data) {
 
   moduleEditorStore.setState({
     learningModes: data.learningModes || state.learningModes,
+    selectedModeId: selectedModeId,
     selectedLearningModeId: selectedModeId,
     selectedSessionId: data.session && data.session.id ? data.session.id : state.selectedSessionId,
     sessions: sessions,
@@ -528,6 +541,131 @@ function logIntentFailure(intentName, result) {
   if (result.errors) {
     console.warn("[ICF] " + intentName + " errors:", result.errors);
   }
+}
+
+function resolveSelectedModeId(learningModes, requestedModeId) {
+  var modes = learningModes && typeof learningModes === "object" && !Array.isArray(learningModes) ? learningModes : {};
+  var requested = typeof requestedModeId === "string" && requestedModeId.length > 0 ? requestedModeId : "";
+
+  if (requested && modes[requested] && modes[requested].status !== "deleted") {
+    return requested;
+  }
+
+  if (modes.primary && modes.primary.status !== "deleted") {
+    return "primary";
+  }
+
+  var modeIds = Object.keys(modes).filter(function (modeId) {
+    return modes[modeId] && modes[modeId].status !== "deleted";
+  }).sort(function (firstModeId, secondModeId) {
+    return (modes[firstModeId].order || 99) - (modes[secondModeId].order || 99);
+  });
+
+  return modeIds.length > 0 ? modeIds[0] : "primary";
+}
+
+function resolveSelectedSessionId(sessions, learningModes, selectedModeId, fallbackSessionId) {
+  var safeSessions = Array.isArray(sessions) ? sessions : [];
+  var mode = readModeById(learningModes, selectedModeId);
+  var session = null;
+
+  if (mode && mode.legacySessionId) {
+    session = findSessionById(safeSessions, mode.legacySessionId);
+    if (session) {
+      return session.id;
+    }
+  }
+
+  session = findSessionByLearningModeId(safeSessions, selectedModeId);
+  if (session) {
+    return session.id;
+  }
+
+  session = findSessionById(safeSessions, fallbackSessionId);
+  if (session) {
+    return session.id;
+  }
+
+  if (selectedModeId === "primary" && safeSessions.length > 0) {
+    return safeSessions[0].id;
+  }
+
+  return null;
+}
+
+function readModeById(learningModes, modeId) {
+  if (learningModes && modeId && learningModes[modeId]) {
+    return learningModes[modeId];
+  }
+
+  return null;
+}
+
+function findSessionById(sessions, sessionId) {
+  if (!sessionId) {
+    return null;
+  }
+
+  var index = 0;
+  while (index < sessions.length) {
+    if (sessions[index].id === sessionId) {
+      return sessions[index];
+    }
+    index = index + 1;
+  }
+
+  return null;
+}
+
+function findSessionByLearningModeId(sessions, modeId) {
+  var index = 0;
+  while (index < sessions.length) {
+    if (sessions[index].learningModeId === modeId) {
+      return sessions[index];
+    }
+    index = index + 1;
+  }
+
+  return null;
+}
+
+function logModeSelection(selectedModeId, selectedMode, learningModes, tab) {
+  if (!isDevelopmentLoggingEnabled()) {
+    return;
+  }
+
+  var modeIds = Object.keys(learningModes || {});
+
+  if (!selectedMode) {
+    console.warn("[module-editor:mode-select] selected mode missing", {
+      selectedModeId: selectedModeId,
+      availableModeIds: modeIds
+    });
+    return;
+  }
+
+  console.info("[module-editor:mode-select]", {
+    selectedModeId: selectedModeId,
+    selectedModeTitle: readModeTitle(selectedMode, selectedModeId),
+    tab: tab || "steps",
+    modeCount: modeIds.length
+  });
+}
+
+function readModeTitle(mode, fallbackTitle) {
+  if (!mode) {
+    return fallbackTitle;
+  }
+
+  if (typeof mode.title === "string" && mode.title.length > 0) {
+    return mode.title;
+  }
+
+  if (mode.title && typeof mode.title === "object") {
+    return mode.title.en || mode.title.ru || mode.title.ky || fallbackTitle;
+  }
+
+  return fallbackTitle;
 }
 
 function logModuleEditorOpen(courseId, moduleId) {

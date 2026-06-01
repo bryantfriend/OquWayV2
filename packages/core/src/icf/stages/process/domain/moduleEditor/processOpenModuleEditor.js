@@ -3,15 +3,17 @@ import { createDefaultLearningContent, createDefaultLearningModes } from "./lear
 export async function processOpenModuleEditor(executionState) {
   const context = executionState.context;
   const learningModes = createDefaultLearningModes(context.module && context.module.learningModes, context.sessions);
+  const selectedModeId = readSelectedLearningModeId(learningModes);
 
   executionState.result = {
     course: context.course,
     module: context.module,
     learningContent: createDefaultLearningContent(context.module && context.module.learningContent),
     learningModes: learningModes,
-    selectedLearningModeId: readSelectedLearningModeId(learningModes),
+    selectedModeId: selectedModeId,
+    selectedLearningModeId: selectedModeId,
     sessions: readSessions(context.sessions),
-    selectedSessionId: readSelectedSessionId(context.sessions),
+    selectedSessionId: readSelectedSessionId(context.sessions, learningModes, selectedModeId),
     steps: readSteps(context.steps),
     selectedStepId: readSelectedStepId(context.steps),
     permissions: {
@@ -39,9 +41,30 @@ function readSteps(steps) {
   return steps;
 }
 
-function readSelectedSessionId(sessions) {
-  if (Array.isArray(sessions) && sessions.length > 0) {
-    return sessions[0].id;
+function readSelectedSessionId(sessions, learningModes, selectedModeId) {
+  var safeSessions = Array.isArray(sessions) ? sessions : [];
+  var selectedMode = learningModes && selectedModeId ? learningModes[selectedModeId] : null;
+  var index = 0;
+
+  if (selectedMode && selectedMode.legacySessionId) {
+    while (index < safeSessions.length) {
+      if (safeSessions[index].id === selectedMode.legacySessionId) {
+        return safeSessions[index].id;
+      }
+      index = index + 1;
+    }
+  }
+
+  index = 0;
+  while (index < safeSessions.length) {
+    if (safeSessions[index].learningModeId === selectedModeId) {
+      return safeSessions[index].id;
+    }
+    index = index + 1;
+  }
+
+  if (selectedModeId === "primary" && safeSessions.length > 0) {
+    return safeSessions[0].id;
   }
 
   return null;

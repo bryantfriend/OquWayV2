@@ -467,6 +467,21 @@ export class CourseEditorPage {
       return;
     }
 
+    var createModeShellBtn = event.target.closest(".create-mode-shell-btn");
+    if (createModeShellBtn) {
+      createModeShellBtn.disabled = true;
+      createModeShellBtn.innerHTML = '<span class="oqu-spinner oqu-spinner-blue"></span> Preparing...';
+      moduleEditorService.addSession(self.courseId, self.moduleId).then(function () {
+        self.stepPickerOpen = true;
+        self.activeEditorTab = "steps";
+      }).catch(function (error) {
+        alert("Failed to prepare mode shell: " + error.message);
+      }).finally(function () {
+        self.updateUi(moduleEditorStore.getState());
+      });
+      return;
+    }
+
     // Step type option chosen — creates the step via ICF
     var stepOption = event.target.closest(".step-type-option");
     if (stepOption && session) {
@@ -783,6 +798,7 @@ export class CourseEditorPage {
     var el = document.getElementById("sessionList");
     var sessions = state.sessions || [];
     var learningModes = createLearningModeList(state.learningModes, sessions);
+    var selectedModeId = readSelectedModeId(state);
     var countEl = document.getElementById("sessionCountText");
     if (countEl) {
       countEl.textContent = learningModes.length + " Mode" + (learningModes.length === 1 ? "" : "s");
@@ -795,8 +811,8 @@ export class CourseEditorPage {
     var i = 0;
     while (i < learningModes.length) {
       var mode = learningModes[i];
-      var isSelected = state.selectedLearningModeId === mode.id || state.selectedSessionId === mode.legacySessionId;
-      var title = readString(mode.title, "Learning Mode");
+      var isSelected = selectedModeId === mode.id;
+      var title = readLocalizedText(mode.title, "Learning Mode");
       var status = readString(mode.status, "draft");
       var wrapperClass = isSelected
         ? "border-emerald-300 bg-emerald-50 ring-1 ring-emerald-300 shadow-sm"
@@ -817,6 +833,9 @@ export class CourseEditorPage {
     var workspace = document.getElementById("workspaceContent");
     var propsPane = document.getElementById("configEditorPane");
     var session = this.findSelectedSession(state);
+    var selectedLearningMode = this.findSelectedLearningMode(state);
+
+    logModeSelection(state, this.activeEditorTab, selectedLearningMode);
 
     if (this.activeEditorTab === "learningContent") {
       workspace.innerHTML = buildLearningContentWorkspace(state.learningContent);
@@ -825,14 +844,18 @@ export class CourseEditorPage {
     }
 
     if (this.activeEditorTab === "learningModes") {
-      workspace.innerHTML = buildLearningModesWorkspace(state.learningModes, state.sessions, state.selectedLearningModeId);
-      propsPane.innerHTML = buildLearningModesInspector();
+      workspace.innerHTML = buildLearningModesWorkspace(state.learningModes, state.sessions, readSelectedModeId(state));
+      propsPane.innerHTML = selectedLearningMode
+        ? buildSelectedLearningModeInspector(selectedLearningMode, this.activeEditorTab)
+        : buildLearningModesInspector();
       return;
     }
 
     if (!session) {
-      workspace.innerHTML = '<div class="flex items-center justify-center min-h-full p-12">' + buildEmptyNoSessionHtml() + '</div>';
-      propsPane.innerHTML = '<div class="text-xs text-gray-400 text-center py-10">Select a learning mode to inspect properties.</div>';
+      workspace.innerHTML = '<div class="flex items-center justify-center min-h-full p-12">' + buildModeReadyEmptyHtml(selectedLearningMode) + '</div>';
+      propsPane.innerHTML = selectedLearningMode
+        ? buildSelectedLearningModeInspector(selectedLearningMode, this.activeEditorTab)
+        : '<div class="text-xs text-gray-400 text-center py-10">Select a learning mode to inspect properties.</div>';
       return;
     }
 
@@ -1661,13 +1684,62 @@ export class CourseEditorPage {
 
   findSelectedSession(state) {
     var sessions = state.sessions || [];
+    var selectedModeId = readSelectedModeId(state);
+    var selectedMode = this.findSelectedLearningMode(state);
     var i = 0;
+
+    if (selectedMode && selectedMode.legacySessionId) {
+      while (i < sessions.length) {
+        if (sessions[i].id === selectedMode.legacySessionId) {
+          return sessions[i];
+        }
+        i = i + 1;
+      }
+    }
+
+    i = 0;
+    while (i < sessions.length) {
+      if (sessions[i].learningModeId === selectedModeId) {
+        return sessions[i];
+      }
+      i = i + 1;
+    }
+
+    i = 0;
     while (i < sessions.length) {
       if (sessions[i].id === state.selectedSessionId) {
         return sessions[i];
       }
       i = i + 1;
     }
+
+    if (selectedModeId === "primary" && sessions.length > 0) {
+      return sessions[0];
+    }
+
+    return null;
+  }
+
+  findSelectedLearningMode(state) {
+    var modeId = readSelectedModeId(state);
+    var modes = state.learningModes && typeof state.learningModes === "object" ? state.learningModes : {};
+
+    if (modeId && modes[modeId] && modes[modeId].status !== "deleted") {
+      return Object.assign({ id: modeId }, modes[modeId]);
+    }
+
+    if (modes.primary && modes.primary.status !== "deleted") {
+      return Object.assign({ id: "primary" }, modes.primary);
+    }
+
+    var modeIds = Object.keys(modes).filter(function (candidateModeId) {
+      return modes[candidateModeId] && modes[candidateModeId].status !== "deleted";
+    });
+
+    if (modeIds.length > 0) {
+      return Object.assign({ id: modeIds[0] }, modes[modeIds[0]]);
+    }
+
     return null;
   }
 
@@ -1898,6 +1970,23 @@ function buildEmptyNoSessionHtml() {
     + '<div class="text-4xl mb-3">📚</div>'
     + '<div class="text-sm font-bold text-gray-700 mb-1">No learning mode selected</div>'
     + '<div class="text-xs text-gray-400 leading-relaxed">Click a mode on the left to start designing its activities.</div>'
+    + '</div>';
+}
+
+function buildModeReadyEmptyHtml(mode) {
+  if (!mode) {
+    return buildEmptyNoSessionHtml();
+  }
+
+  var title = readLocalizedText(mode.title, "Learning Mode");
+  var isPrimary = mode.id === "primary" || mode.modeType === "primary";
+  var headline = isPrimary ? "Primary Mode is ready. Add your first step." : title + " is ready. Add your first step.";
+
+  return '<div class="text-center max-w-[280px]">'
+    + '<div class="text-4xl mb-3">📚</div>'
+    + '<div class="text-sm font-bold text-gray-700 mb-1">' + escapeHtml(headline) + '</div>'
+    + '<div class="text-xs text-gray-400 leading-relaxed mb-5">This mode has no step shell yet. Preparing it will keep the selected mode active and open the step picker.</div>'
+    + '<button type="button" class="create-mode-shell-btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition">Add Step</button>'
     + '</div>';
 }
 
@@ -2850,6 +2939,33 @@ function buildLearningModesInspector() {
   return html;
 }
 
+function buildSelectedLearningModeInspector(mode, tab) {
+  if (!mode) {
+    return buildLearningModesInspector();
+  }
+
+  var html = "";
+  html += '<div class="space-y-4">';
+  html += '<div class="rounded-3xl bg-gradient-to-br from-emerald-50 to-sky-50 p-4 border border-emerald-100">';
+  html += '<div class="text-[10px] font-black uppercase tracking-widest text-emerald-600">Selected Mode</div>';
+  html += '<div class="mt-2 text-lg font-black text-slate-950">' + escapeHtml(readLocalizedText(mode.title, "Learning Mode")) + '</div>';
+  html += '<div class="mt-1 text-xs font-semibold text-slate-500">' + escapeHtml(readString(mode.purpose, "Learning experience.")) + '</div>';
+  html += '</div>';
+  html += '<div class="rounded-2xl border border-slate-100 p-4">';
+  html += '<div class="oqu-inspector-readonly-label">Mode ID</div>';
+  html += '<div class="oqu-inspector-readonly-value mb-3">' + escapeHtml(readString(mode.id, "primary")) + '</div>';
+  html += '<div class="oqu-inspector-readonly-label">Type</div>';
+  html += '<div class="oqu-inspector-readonly-value mb-3">' + escapeHtml(readString(mode.modeType, "primary")) + '</div>';
+  html += '<div class="oqu-inspector-readonly-label">Status</div>';
+  html += '<div class="mt-1">' + buildStatusPill(readString(mode.status, "draft")) + '</div>';
+  html += '</div>';
+  html += '<div class="rounded-2xl border border-slate-100 p-4 text-xs leading-5 text-slate-500">';
+  html += tab === "learningModes" ? 'Click the Steps tab to edit activities for this mode.' : 'The main panel and inspector are synced to this selected mode.';
+  html += '</div>';
+  html += '</div>';
+  return html;
+}
+
 function readLearningContentFromWorkspace() {
   var content = {};
   var fields = document.querySelectorAll("[data-learning-content-field]");
@@ -2914,6 +3030,55 @@ function createLearningModeList(learningModes, sessions) {
     return (a.order || 99) - (b.order || 99);
   });
   return list;
+}
+
+function readSelectedModeId(state) {
+  if (state && typeof state.selectedModeId === "string" && state.selectedModeId.length > 0) {
+    return state.selectedModeId;
+  }
+
+  if (state && typeof state.selectedLearningModeId === "string" && state.selectedLearningModeId.length > 0) {
+    return state.selectedLearningModeId;
+  }
+
+  return "primary";
+}
+
+function logModeSelection(state, tab, selectedMode) {
+  if (!isDevelopmentLoggingEnabled()) {
+    return;
+  }
+
+  var modes = state && state.learningModes && typeof state.learningModes === "object" ? state.learningModes : {};
+  var selectedModeId = readSelectedModeId(state);
+  var availableModeIds = Object.keys(modes).filter(function (modeId) {
+    return modes[modeId] && modes[modeId].status !== "deleted";
+  });
+
+  if (!selectedMode) {
+    console.warn("[module-editor:mode-select] selected mode missing", {
+      selectedModeId: selectedModeId,
+      availableModeIds: availableModeIds
+    });
+    return;
+  }
+
+  console.info("[module-editor:mode-select]", {
+    selectedModeId: selectedModeId,
+    selectedModeTitle: readLocalizedText(selectedMode.title, selectedModeId),
+    tab: tab || "steps",
+    modeCount: availableModeIds.length
+  });
+}
+
+function isDevelopmentLoggingEnabled() {
+  if (typeof window === "undefined" || !window.location) {
+    return false;
+  }
+
+  return window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1" ||
+    window.location.search.indexOf("debug") !== -1;
 }
 
 function readLearningModeIcon(mode) {
