@@ -1,7 +1,9 @@
 import { auth } from "../../packages/core/src/infrastructure/firebase/auth.js";
+import { db, doc, getDoc } from "../../packages/core/src/infrastructure/firebase/firestore.js";
 import {
     signInWithEmailAndPassword,
     onAuthStateChanged,
+    signOut,
     sendPasswordResetEmail
 } from "firebase/auth";
 
@@ -18,11 +20,21 @@ const resetStatus = document.getElementById("resetStatus");
 const returnToUrl = captureReturnToUrl();
 let redirectStarted = false;
 
-// If already logged in → redirect
-onAuthStateChanged(auth, function (user) {
-    if (user) {
-        redirectToReturnTo();
+showInitialLoginMessage();
+
+onAuthStateChanged(auth, async function (user) {
+    if (!user || redirectStarted) {
+        return;
     }
+
+    const access = await verifyCourseCreatorAccess(user);
+
+    if (access.allowed) {
+        redirectToReturnTo();
+        return;
+    }
+
+    await rejectUnauthorizedUser(access.role);
 });
 
 loginBtn.addEventListener("click", async function () {
@@ -37,10 +49,22 @@ loginBtn.addEventListener("click", async function () {
     }
 
     try {
-        await signInWithEmailAndPassword(auth, email, password);
+        loginBtn.disabled = true;
+        loginBtn.textContent = "Checking access...";
+        const credential = await signInWithEmailAndPassword(auth, email, password);
+        const access = await verifyCourseCreatorAccess(credential.user);
+
+        if (!access.allowed) {
+            await rejectUnauthorizedUser(access.role);
+            return;
+        }
+
         redirectToReturnTo();
     } catch (error) {
-        errorDiv.textContent = error.message;
+        errorDiv.textContent = readFriendlyLoginError(error);
+    } finally {
+        loginBtn.disabled = false;
+        loginBtn.textContent = "Login";
     }
 });
 
@@ -180,7 +204,7 @@ function clearStoredReturnTo() {
 }
 
 function readReferrerReturnTo() {
-    if (!document.referrer || document.referrer.indexOf("/apps/super-admin-dashboard/") === -1) {
+    if (!document.referrer || document.referrer.indexOf("/apps/course-creator-dashboard/") === -1) {
         return "";
     }
 
@@ -192,14 +216,131 @@ function isSafeReturnTo(value) {
         return false;
     }
 
-    if (value.indexOf("/") === 0 && value.indexOf("//") !== 0) {
+    if (value === "./index.html" || value.indexOf("./index.html") === 0) {
         return true;
     }
 
     try {
-        const url = new URL(value);
-        return url.origin === window.location.origin;
+        const url = new URL(value, window.location.href);
+        return url.origin === window.location.origin
+            && url.pathname.indexOf("/apps/course-creator-dashboard/") !== -1
+            && url.pathname.indexOf("/login.html") === -1;
     } catch (error) {
         return false;
     }
+}
+
+async function verifyCourseCreatorAccess(user) {
+    try {
+        const tokenResult = await user.getIdTokenResult();
+        const claims = tokenResult && tokenResult.claims ? tokenResult.claims : {};
+        const profileSnap = await getDoc(doc(db, "users", user.uid));
+        const profile = profileSnap.exists() ? profileSnap.data() : {};
+        const role = normalizeRole(profile.role || claims.role || "");
+        const roles = normalizeRoles([])
+            .concat(normalizeRoles(profile.roles))
+            .concat(normalizeRoles(profile.userRoles))
+            .concat(normalizeRoles(claims.roles))
+            .concat(normalizeRoles(claims.userRoles));
+
+        if (isAllowedCourseCreatorRole(role) || roles.some(isAllowedCourseCreatorRole)) {
+            return { allowed: true, role: role || roles[0] || "" };
+        }
+
+        return { allowed: false, role: role || roles[0] || "" };
+    } catch (error) {
+        console.warn("[course-builder-login] Could not verify Course Creator access.", {
+            uid: user && user.uid ? user.uid : "",
+            errorCode: error && error.code ? error.code : "",
+            message: error && error.message ? error.message : String(error)
+        });
+        return { allowed: false, role: "" };
+    }
+}
+
+async function rejectUnauthorizedUser(role) {
+    const normalizedRole = normalizeRole(role);
+    const message = normalizedRole === "student"
+        ? "Please log in with a Course Creator or Admin account."
+        : "Course Creator access requires an admin or course creator account.";
+
+    try {
+        await signOut(auth);
+    } catch (error) {
+        console.warn("[course-builder-login] Could not sign out unauthorized account.", {
+            role: normalizedRole,
+            errorCode: error && error.code ? error.code : "",
+            message: error && error.message ? error.message : String(error)
+        });
+    }
+
+    clearStoredReturnTo();
+    errorDiv.textContent = message;
+}
+
+function showInitialLoginMessage() {
+    const message = readStoredLoginMessage() || readQueryMessage();
+
+    if (message) {
+        errorDiv.textContent = message;
+    }
+}
+
+function readStoredLoginMessage() {
+    if (!window.sessionStorage) {
+        return "";
+    }
+
+    const message = window.sessionStorage.getItem("oquwayCourseCreatorLoginMessage") || "";
+    window.sessionStorage.removeItem("oquwayCourseCreatorLoginMessage");
+    return message;
+}
+
+function readQueryMessage() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("message") || "";
+}
+
+function readFriendlyLoginError(error) {
+    if (error && error.code === "auth/invalid-email") {
+        return "Enter a valid email address.";
+    }
+
+    if (error && (error.code === "auth/wrong-password" || error.code === "auth/user-not-found" || error.code === "auth/invalid-credential")) {
+        return "Email or password is incorrect.";
+    }
+
+    return error && error.message ? error.message : "Login failed. Please try again.";
+}
+
+function normalizeRoles(value) {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+
+    return value.map(normalizeRole).filter(Boolean);
+}
+
+function normalizeRole(value) {
+    if (typeof value !== "string") {
+        return "";
+    }
+
+    const normalized = value.replace(/^ROLE_/i, "").replace(/[^a-z0-9]/gi, "").toLowerCase();
+
+    if (normalized === "superadmin") return "superAdmin";
+    if (normalized === "platformadmin") return "platformAdmin";
+    if (normalized === "schooladmin") return "schoolAdmin";
+    if (normalized === "coursecreator") return "courseCreator";
+    if (normalized === "admin") return "admin";
+    if (normalized === "student") return "student";
+
+    return normalized;
+}
+
+function isAllowedCourseCreatorRole(role) {
+    return role === "superAdmin"
+        || role === "platformAdmin"
+        || role === "schoolAdmin"
+        || role === "courseCreator";
 }
