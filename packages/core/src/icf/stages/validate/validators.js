@@ -42,6 +42,7 @@ export { validateOrderBounds } from "./domain/courseEditor/validateOrderBounds.j
 export { validateStepTypeRegistered } from "./domain/courseEditor/validateStepTypeRegistered.js";
 export { validateUserPermission } from "./domain/courseEditor/validateUserPermission.js";
 export { validateModuleId } from "./domain/moduleEditor/validateModuleId.js";
+export { validateLearningModeId } from "./domain/moduleEditor/validateLearningModeId.js";
 export { validateModuleStepsPayload } from "./domain/moduleEditor/validateModuleStepsPayload.js";
 export { validatePracticeModeKey } from "./domain/moduleEditor/validatePracticeModeKey.js";
 export { validatePracticeModeStepId } from "./domain/moduleEditor/validatePracticeModeStepId.js";

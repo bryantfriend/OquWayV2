@@ -18,6 +18,7 @@ export { attachModulesCollection } from "./domain/courseEditor/attachModulesColl
 export { attachStepRegistryDefinition } from "./domain/courseEditor/attachStepRegistryDefinition.js";
 export { attachCourseDocumentForModule } from "./domain/moduleEditor/attachCourseDocumentForModule.js";
 export { attachModuleDocument } from "./domain/moduleEditor/attachModuleDocument.js";
+export { attachLearningModeDocument } from "./domain/moduleEditor/attachLearningModeDocument.js";
 export { attachSessionDocument } from "./domain/moduleEditor/attachSessionDocument.js";
 export { attachSessionsCollection } from "./domain/moduleEditor/attachSessionsCollection.js";
 export { attachStepRegistryDefinitionForStep } from "./domain/moduleEditor/attachStepRegistryDefinitionForStep.js";

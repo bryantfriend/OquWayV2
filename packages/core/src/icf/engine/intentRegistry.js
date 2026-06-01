@@ -124,6 +124,7 @@ const registry = {
   DuplicateLearningModeIntent: IntentExports.DuplicateLearningModeIntent,
   GenerateModeFromPrimaryIntent: IntentExports.GenerateModeFromPrimaryIntent,
   PullLearningContentIntent: IntentExports.PullLearningContentIntent,
+  AddStepToLearningModeIntent: IntentExports.AddStepToLearningModeIntent,
   AddStepToPracticeModeIntent: IntentExports.AddStepToPracticeModeIntent,
   CreatePracticeModeShellsIntent: IntentExports.CreatePracticeModeShellsIntent,
   CreateSessionIntent: IntentExports.CreateSessionIntent,

@@ -22,6 +22,10 @@ function readStepType(payload) {
     return payload.stepType;
   }
 
+  if (payload && typeof payload.stepTypeId === "string") {
+    return payload.stepTypeId;
+  }
+
   if (payload && typeof payload.type === "string") {
     return payload.type;
   }

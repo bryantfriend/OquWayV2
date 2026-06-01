@@ -274,20 +274,33 @@ export const moduleEditorService = {
     moduleEditorStore.setState({ selectedPracticeModeKey: practiceModeKey });
   },
 
-  addStepToPracticeMode: async function (courseId, moduleId, sessionId, practiceModeKey, stepType) {
-    var result = await runIntentPipeline(getIntentDefinition("AddStepToPracticeModeIntent"), {
+  addStepToPracticeMode: async function (courseId, moduleId, modeId, sessionId, practiceModeKey, stepType) {
+    if (!modeId) {
+      throw new Error("Select a learning mode before adding a step.");
+    }
+
+    var result = await runIntentPipeline(getIntentDefinition("AddStepToLearningModeIntent"), {
       payload: {
         courseId: courseId,
         moduleId: moduleId,
+        modeId: modeId,
         sessionId: sessionId,
         practiceModeKey: practiceModeKey,
-        stepType: stepType
+        stepType: stepType,
+        stepTypeId: stepType
       },
       actor: getActor()
     });
 
     if (result && result.emitted && result.emitted.success) {
-      replaceSessionInState(result.emitted.data);
+      var data = result.emitted.data || {};
+      if (data.learningMode) {
+        mergeLearningMode(data.learningMode);
+      }
+
+      if (data.session) {
+        replaceSessionInState(data.session, data.stepId);
+      }
       return result;
     }
 
@@ -500,6 +513,23 @@ function mergeLearningModeResult(data) {
     selectedSessionId: data.session && data.session.id ? data.session.id : state.selectedSessionId,
     sessions: sessions,
     lastSaved: Date.now()
+  });
+}
+
+function mergeLearningMode(learningMode) {
+  var state = moduleEditorStore.getState();
+  var modeId = learningMode && learningMode.id ? learningMode.id : null;
+
+  if (!modeId) {
+    return;
+  }
+
+  moduleEditorStore.setState({
+    learningModes: Object.assign({}, state.learningModes, {
+      [modeId]: learningMode
+    }),
+    selectedModeId: modeId,
+    selectedLearningModeId: modeId
   });
 }
 

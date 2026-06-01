@@ -1,20 +1,19 @@
-import { validateAuthenticated, validateCourseId, validateModuleId, validatePracticeModeKey, validatePracticeModeStepType, validateSessionId } from "../../stages/validate/validators.js";
+import { validateAuthenticated, validateCourseId, validateLearningModeId, validateModuleId, validatePracticeModeStepType } from "../../stages/validate/validators.js";
 import { normalizeCourseId, normalizePracticeModeStep } from "../../stages/normalize/normalizers.js";
 import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js";
-import { attachCourseDocumentForModule, attachModuleDocument, attachSessionDocument, attachSessionsCollection } from "../../stages/addContext/contexts.js";
+import { attachCourseDocumentForModule, attachLearningModeDocument, attachModuleDocument, attachSessionsCollection } from "../../stages/addContext/contexts.js";
 import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js";
 import { processAddStepToLearningMode } from "../../stages/process/processors.js";
 import { emitIntentResult } from "../../stages/emit/emitters.js";
 
-export function AddStepToPracticeModeIntent() {
+export function AddStepToLearningModeIntent(intentType) {
   return {
-    type: "AddStepToPracticeModeIntent",
+    type: intentType || "AddStepToLearningModeIntent",
     validate: [
       validateAuthenticated,
       validateCourseId,
       validateModuleId,
-      validateSessionId,
-      validatePracticeModeKey,
+      validateLearningModeId,
       validatePracticeModeStepType
     ],
     normalize: [
@@ -26,8 +25,8 @@ export function AddStepToPracticeModeIntent() {
       attachActorRoleContext,
       attachCourseDocumentForModule,
       attachModuleDocument,
-      attachSessionsCollection,
-      attachSessionDocument
+      attachLearningModeDocument,
+      attachSessionsCollection
     ],
     authorize: [
       requireCourseCreatorAuthorization

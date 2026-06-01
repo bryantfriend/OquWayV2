@@ -61,6 +61,7 @@ export { processValidateCourseStructure } from "./domain/courseEditor/processVal
 export { processUpdateCourseField } from "./domain/courseEditor/updateCourseFieldProcessor.js";
 export { processPreviewCourse } from "./domain/courseEditor/processPreviewCourse.js";
 export { processAddStep } from "./domain/moduleEditor/processAddStep.js";
+export { processAddStepToLearningMode } from "./domain/moduleEditor/processAddStepToLearningMode.js";
 export { processAddStepToPracticeMode } from "./domain/moduleEditor/processAddStepToPracticeMode.js";
 export { processCreateSession } from "./domain/moduleEditor/processCreateSession.js";
 export { processCreatePracticeModeShells } from "./domain/moduleEditor/processCreatePracticeModeShells.js";

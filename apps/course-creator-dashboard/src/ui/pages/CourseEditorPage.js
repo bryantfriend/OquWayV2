@@ -484,9 +484,16 @@ export class CourseEditorPage {
 
     // Step type option chosen — creates the step via ICF
     var stepOption = event.target.closest(".step-type-option");
-    if (stepOption && session) {
+    if (stepOption) {
       var stepType = stepOption.getAttribute("data-type");
       var practiceModeKey = state.selectedPracticeModeKey || "beforeClass";
+      var selectedModeId = readSelectedModeId(state);
+
+      if (!selectedModeId) {
+        alert("Select a learning mode before adding a step.");
+        return;
+      }
+
       this.stepPickerOpen = false;
       this.studentPreviewMode = false;
       this.practiceModePlaytestMode = false;
@@ -494,7 +501,7 @@ export class CourseEditorPage {
       stepOption.innerHTML = '<span class="oqu-spinner oqu-spinner-blue"></span> Adding...';
       stepOption.style.pointerEvents = "none";
       moduleEditorService.addStepToPracticeMode(
-        self.courseId, self.moduleId, session.id, practiceModeKey, stepType
+        self.courseId, self.moduleId, selectedModeId, session ? session.id : null, practiceModeKey, stepType
       ).then(function () {
         autoSelectNewestStep(practiceModeKey);
       }).catch(function (error) {
