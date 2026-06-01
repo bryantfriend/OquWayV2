@@ -2,7 +2,7 @@ import { validateAuthenticated, validateCourseAssignmentId } from "../../stages/
 import { normalizeCourseAssignmentDisablePayload } from "../../stages/normalize/normalizers.js";
 import { attachActorContext, attachActorRoleContext, attachCourseAssignmentContext } from "../../stages/addContext/contexts.js";
 import { requireCourseAssignmentAdminAuthorization } from "../../stages/authorize/authorizers.js";
-import { processUpdateCourseAssignment } from "../../stages/process/processors.js";
+import { processDisableCourseAssignment } from "../../stages/process/processors.js";
 import { emitIntentResult } from "../../stages/emit/emitters.js";
 
 export function DisableCourseAssignmentIntent() {
@@ -24,7 +24,7 @@ export function DisableCourseAssignmentIntent() {
       requireCourseAssignmentAdminAuthorization
     ],
     process: [
-      processUpdateCourseAssignment
+      processDisableCourseAssignment
     ],
     emit: [
       emitIntentResult

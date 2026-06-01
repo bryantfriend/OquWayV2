@@ -7,7 +7,7 @@ import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/r
 import { COURSE_CREATOR_URL, roleFilterCards, userRoles, userStatuses } from "../shared/constants.js";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.17";
+var appVersion = "1.1.18";
 var state = {
   isLoading: true,
   isRefreshing: false,
@@ -67,6 +67,26 @@ var state = {
   resetFruitPassword: [],
   fruitResetSaveStatus: "",
   fruitResetSaveMessage: "",
+  assignmentCoursePicker: {
+    isOpen: false,
+    searchText: "",
+    statusFilter: "",
+    isLoading: false
+  },
+  assignmentTargetPicker: {
+    isOpen: false,
+    targetType: "class",
+    searchText: "",
+    locationId: "",
+    classId: "",
+    includeAllLocations: false,
+    isLoading: false
+  },
+  assignmentDelete: {
+    assignmentId: "",
+    status: "",
+    message: ""
+  },
   classPicker: {
     isOpen: false,
     formId: "",
@@ -488,6 +508,9 @@ function buildDashboardView() {
   html += '</main>';
   html += buildResetModal();
   html += buildClassPickerModal();
+  html += buildAssignmentCoursePickerModal();
+  html += buildAssignmentTargetPickerModal();
+  html += buildAssignmentDeleteModal();
   html += '</section>';
 
   return html;
@@ -1660,12 +1683,10 @@ function buildAssignmentForm() {
   var targetSummary = readAssignmentFormTargetSummary(form);
   var html = '<div class="sa-assignment-builder-grid">';
 
-  html += '<section class="sa-assignment-step"><span>1</span><h3>Select Course</h3><p>Choose the learning program students should see.</p>' + buildCourseSelect("assignment", "new", form.courseId) + '</section>';
+  html += '<section class="sa-assignment-step"><span>1</span><h3>Select Course</h3><p>Choose the learning program students should see.</p>' + buildSelectedAssignmentCourse() + '<button type="button" class="sa-btn sa-btn-secondary" data-action="open-assignment-course-picker">Select Course</button></section>';
   html += '<section class="sa-assignment-step"><span>2</span><h3>Select Target</h3><p>Assign to a full class or a single student.</p>'
-    + buildAssignmentTargetTypeSelect("assignment", "new", form.targetType)
-    + buildLocationSelect("assignment", "new", form.locationId)
-    + buildAssignmentClassSelect(form.locationId, form.classId)
-    + (form.targetType === "student" ? buildAssignmentStudentSelect(form.locationId, form.classId, form.studentId) : "")
+    + buildSelectedAssignmentTarget()
+    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="open-assignment-target-picker">Select Target</button>'
     + '</section>';
   html += '<section class="sa-assignment-step sa-assignment-review"><span>3</span><h3>Review & Assign</h3><p>' + escapeHtml(targetSummary) + '</p>'
     + '<div class="sa-assignment-review-card"><strong>' + escapeHtml(readCourseName(form.courseId) || "Choose a course") + '</strong><small>' + escapeHtml(targetSummary) + '</small><small>Status: ' + escapeHtml(form.status || "active") + '</small></div>'
@@ -1675,6 +1696,30 @@ function buildAssignmentForm() {
 
   html += '</div>';
   return html;
+}
+
+function buildSelectedAssignmentCourse() {
+  var course = findCourse(state.assignmentForm.courseId);
+
+  if (!course) {
+    return '<div class="sa-assignment-choice-card sa-assignment-choice-empty"><strong>No course selected</strong><small>Open the course picker to search courses by title or status.</small></div>';
+  }
+
+  return '<div class="sa-assignment-choice-card"><strong>' + escapeHtml(readCourseTitle(course)) + '</strong><small>' + escapeHtml(readCourseDescription(course) || "No description") + '</small><span class="sa-status sa-status-' + escapeHtml(course.status || "draft") + '">' + escapeHtml(course.status || "draft") + '</span></div>';
+}
+
+function buildSelectedAssignmentTarget() {
+  var form = state.assignmentForm;
+
+  if (form.targetType === "student" && form.studentId) {
+    return '<div class="sa-assignment-choice-card"><strong>' + escapeHtml(readAssignmentStudentName(form.studentId)) + '</strong><small>' + escapeHtml(readClassName(form.classId)) + ' / ' + escapeHtml(readLocationName(form.locationId)) + '</small><span class="sa-pill">student</span></div>';
+  }
+
+  if (form.classId) {
+    return '<div class="sa-assignment-choice-card"><strong>' + escapeHtml(readClassName(form.classId)) + '</strong><small>' + escapeHtml(readLocationName(form.locationId)) + '</small><span class="sa-pill">class</span></div>';
+  }
+
+  return '<div class="sa-assignment-choice-card sa-assignment-choice-empty"><strong>No target selected</strong><small>Choose a class or an individual student in the target picker.</small></div>';
 }
 
 function buildAssignmentSummaryCards() {
@@ -1696,7 +1741,7 @@ function buildAssignmentFilters() {
   var html = '<div class="sa-filters sa-assignment-filters">';
   html += '<label>Course' + buildCourseOptionsSelect('data-assignment-filter="courseId"', state.assignmentFilters.courseId, "All courses") + '</label>';
   html += '<label>Target Type' + buildBasicOptionsSelect('data-assignment-filter="targetType"', state.assignmentFilters.targetType, ["class", "student"], "All targets") + '</label>';
-  html += '<label>Status' + buildBasicOptionsSelect('data-assignment-filter="status"', state.assignmentFilters.status, ["active", "paused", "archived"], "All statuses") + '</label>';
+  html += '<label>Status' + buildBasicOptionsSelect('data-assignment-filter="status"', state.assignmentFilters.status, ["active", "paused", "disabled", "archived"], "All statuses") + '</label>';
   html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data">Apply</button>';
   html += '</div>';
   return html;
@@ -1719,9 +1764,9 @@ function buildAssignmentRows() {
     html += '<div><span class="sa-pill">' + escapeHtml(assignment.targetType || "class") + '</span><strong>' + escapeHtml(targetLabel) + '</strong><small>' + escapeHtml(readAssignmentScopeLine(assignment)) + '</small></div>';
     html += '<div><span class="sa-status sa-status-' + escapeHtml(assignment.status || "active") + '">' + escapeHtml(assignment.status || "active") + '</span><small>Assigned: ' + escapeHtml(assignedDate || "unknown") + '</small></div>';
     html += '<div class="sa-row-actions">';
-    html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="view-assignment" data-id="' + escapeHtml(assignment.id) + '">View</button>';
-    html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="pause-assignment" data-id="' + escapeHtml(assignment.id) + '">Disable</button>';
-    html += '<button type="button" class="sa-btn sa-danger-btn" data-action="delete-assignment" data-id="' + escapeHtml(assignment.id) + '">Delete</button>';
+    html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="view-assignment" data-id="' + escapeHtml(assignment.id) + '"' + disabled(isBusy()) + '>' + buildButtonContent("View", "view-assignment:" + assignment.id) + '</button>';
+    html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="pause-assignment" data-id="' + escapeHtml(assignment.id) + '"' + disabled(isBusy() || assignment.status === "disabled") + '>' + buildButtonContent("Disable", "pause-assignment:" + assignment.id) + '</button>';
+    html += '<button type="button" class="sa-btn sa-danger-btn" data-action="open-delete-assignment" data-id="' + escapeHtml(assignment.id) + '"' + disabled(isBusy()) + '>Delete</button>';
     html += '</div>';
     html += '</article>';
     index = index + 1;
@@ -1987,6 +2032,90 @@ function buildClassPickerModal() {
   return html;
 }
 
+function buildAssignmentCoursePickerModal() {
+  var picker = state.assignmentCoursePicker;
+
+  if (!picker || !picker.isOpen) {
+    return "";
+  }
+
+  var courses = readAssignmentPickerCourses();
+  var html = '<div class="sa-modal-backdrop"><section class="sa-modal sa-assignment-picker-modal"><div class="sa-section-title"><div><p class="sa-eyebrow">Course Assignment</p><h2>Select Course</h2><p>Search courses and choose the learning program to assign.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="close-assignment-course-picker">Close</button></div>';
+  html += '<div class="sa-form sa-form-2"><label>Search<input type="search" data-assignment-course-picker-field="searchText" value="' + escapeHtml(picker.searchText) + '" placeholder="Search title or description"></label><label>Status<select data-assignment-course-picker-field="statusFilter"><option value="">All</option><option value="published"' + selected(picker.statusFilter, "published") + '>Published</option><option value="draft"' + selected(picker.statusFilter, "draft") + '>Draft</option><option value="archived"' + selected(picker.statusFilter, "archived") + '>Archived</option></select></label></div>';
+  html += '<div class="sa-picker-grid">';
+
+  if (picker.isLoading) {
+    html += '<div class="sa-empty"><strong>Loading courses...</strong><span>Preparing the course picker.</span></div>';
+  } else if (courses.length === 0) {
+    html += '<div class="sa-empty"><strong>No courses found.</strong><span>Try a different search or status filter.</span></div>';
+  } else {
+    courses.forEach(function (course) {
+      var isSelected = state.assignmentForm.courseId === course.id;
+      html += '<article class="sa-picker-card' + (isSelected ? ' sa-picker-card-selected' : '') + '"><div><h3>' + escapeHtml(readCourseTitle(course)) + '</h3><p>' + escapeHtml(readCourseDescription(course) || "No description") + '</p></div><div class="sa-picker-meta"><span class="sa-status sa-status-' + escapeHtml(course.status || "draft") + '">' + escapeHtml(course.status || "draft") + '</span><small>' + escapeHtml(readCourseModuleCount(course)) + ' modules</small><small>Updated ' + escapeHtml(formatDateTime(readCourseUpdatedAt(course)) || "unknown") + '</small></div><button type="button" class="sa-btn" data-action="select-assignment-course" data-id="' + escapeHtml(course.id) + '">' + (isSelected ? "Selected" : "Select") + '</button></article>';
+    });
+  }
+
+  html += '</div></section></div>';
+  return html;
+}
+
+function buildAssignmentTargetPickerModal() {
+  var picker = state.assignmentTargetPicker;
+
+  if (!picker || !picker.isOpen) {
+    return "";
+  }
+
+  var items = picker.targetType === "student" ? readAssignmentPickerStudents() : readAssignmentPickerClasses();
+  var html = '<div class="sa-modal-backdrop"><section class="sa-modal sa-assignment-picker-modal"><div class="sa-section-title"><div><p class="sa-eyebrow">Course Assignment</p><h2>Select Target</h2><p>Choose a class or an individual student without saving the assignment yet.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="close-assignment-target-picker">Close</button></div>';
+  html += '<div class="sa-form sa-form-2"><label>Target Type<select data-assignment-target-picker-field="targetType"><option value="class"' + selected(picker.targetType, "class") + '>Class</option><option value="student"' + selected(picker.targetType, "student") + '>Individual Student</option></select></label><label>Location' + buildOptionsSelectFromList('data-assignment-target-picker-field="locationId"', picker.locationId, state.locations, "Choose location") + '</label><label>Search<input type="search" data-assignment-target-picker-field="searchText" value="' + escapeHtml(picker.searchText) + '" placeholder="Search names"></label><label><span>Scope</span><span class="sa-check-row"><input type="checkbox" data-assignment-target-picker-check="includeAllLocations"' + (picker.includeAllLocations ? " checked" : "") + '> Search all locations</span></label></div>';
+
+  if (picker.targetType === "student") {
+    html += '<div class="sa-form sa-form-2"><label>Class Filter' + buildOptionsSelectFromList('data-assignment-target-picker-field="classId"', picker.classId, readAssignmentPickerClassesForFilter(), "All classes") + '</label></div>';
+  }
+
+  html += '<div class="sa-picker-list">';
+
+  if (picker.isLoading) {
+    html += '<div class="sa-empty"><strong>Loading targets...</strong><span>Preparing classes and students.</span></div>';
+  } else if (items.length === 0) {
+    html += '<div class="sa-empty"><strong>No targets found.</strong><span>Try changing the location, search, or all-locations option.</span></div>';
+  } else {
+    items.forEach(function (item) {
+      if (picker.targetType === "student") {
+        html += '<button type="button" class="sa-picker-row" data-action="select-assignment-student" data-id="' + escapeHtml(item.id) + '"><strong>' + escapeHtml(item.name || item.displayName || item.id) + '</strong><span>' + escapeHtml(readClassName(item.classId)) + '</span><small>' + escapeHtml(readLocationName(readStudentLocationId(item))) + '</small></button>';
+      } else {
+        html += '<button type="button" class="sa-picker-row" data-action="select-assignment-class" data-id="' + escapeHtml(item.id) + '"><strong>' + escapeHtml(readClassName(item.id)) + '</strong><span>' + escapeHtml(readLocationName(readClassLocationId(item))) + '</span><small>' + escapeHtml(item.status || "active") + '</small></button>';
+      }
+    });
+  }
+
+  html += '</div></section></div>';
+  return html;
+}
+
+function buildAssignmentDeleteModal() {
+  var modal = state.assignmentDelete;
+
+  if (!modal || !modal.assignmentId) {
+    return "";
+  }
+
+  var assignment = findAssignment(modal.assignmentId);
+  var isDeleting = modal.status === "deleting";
+  var isDeleted = modal.status === "deleted";
+
+  return '<div class="sa-modal-backdrop"><section class="sa-modal sa-delete-assignment-modal"><h2>Delete Course Assignment?</h2><p>This will remove this assignment from students. This cannot be undone.</p><div class="sa-assignment-review-card"><strong>' + escapeHtml(assignment ? readCourseName(assignment.courseId) : modal.assignmentId) + '</strong><small>' + escapeHtml(assignment ? readAssignmentTargetName(assignment) : "") + '</small></div>' + buildAssignmentDeleteAnimation(isDeleting, isDeleted, modal.message) + '<div class="sa-modal-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="close-delete-assignment"' + disabled(isDeleting || isDeleted) + '>Cancel</button><button type="button" class="sa-btn sa-danger-btn" data-action="confirm-delete-assignment"' + disabled(isDeleting || isDeleted) + '>Delete Assignment</button></div></section></div>';
+}
+
+function buildAssignmentDeleteAnimation(isDeleting, isDeleted, message) {
+  if (!isDeleting && !isDeleted) {
+    return "";
+  }
+
+  return '<div class="sa-delete-animation' + (isDeleted ? ' sa-delete-animation-done' : '') + '"><span>▣</span><strong>' + escapeHtml(message || (isDeleted ? "Assignment deleted." : "Deleting assignment...")) + '</strong></div>';
+}
+
 function buildFruitSelector(mode, values) {
   var html = '<div class="sa-fruit-slots">';
   var index = 0;
@@ -2074,6 +2203,21 @@ function handleInput(event) {
   if (target.getAttribute("data-assignment-filter")) {
     state.assignmentFilters[target.getAttribute("data-assignment-filter")] = target.value;
     render();
+    return;
+  }
+
+  if (target.getAttribute("data-assignment-course-picker-field")) {
+    updateAssignmentCoursePicker(target.getAttribute("data-assignment-course-picker-field"), target.value);
+    return;
+  }
+
+  if (target.getAttribute("data-assignment-target-picker-field")) {
+    updateAssignmentTargetPicker(target.getAttribute("data-assignment-target-picker-field"), target.value);
+    return;
+  }
+
+  if (target.getAttribute("data-assignment-target-picker-check")) {
+    updateAssignmentTargetPicker(target.getAttribute("data-assignment-target-picker-check"), target.checked);
     return;
   }
 
@@ -2210,6 +2354,31 @@ function updateAssignmentFormValue(field, value) {
   }
 
   state.assignmentForm[field] = value;
+}
+
+function updateAssignmentCoursePicker(field, value) {
+  state.assignmentCoursePicker[field] = value;
+  render();
+}
+
+function updateAssignmentTargetPicker(field, value) {
+  if (field === "targetType" && state.assignmentTargetPicker.targetType !== value) {
+    state.assignmentTargetPicker.targetType = value === "student" ? "student" : "class";
+    state.assignmentTargetPicker.searchText = "";
+    state.assignmentTargetPicker.classId = "";
+    render();
+    return;
+  }
+
+  if (field === "locationId" && state.assignmentTargetPicker.locationId !== value) {
+    state.assignmentTargetPicker.locationId = value;
+    state.assignmentTargetPicker.classId = "";
+    render();
+    return;
+  }
+
+  state.assignmentTargetPicker[field] = value;
+  render();
 }
 
 function updateExistingRecord(kind, id, field, value) {
@@ -2416,21 +2585,36 @@ async function handleAction(action, id) {
     await saveIntent("UpdateStudentIntent", normalizeStudentForm(findStudent(id)), "Student saved.");
     await refreshAllData();
   } else if (action === "create-assignment") {
-    await saveIntent("CreateCourseAssignmentIntent", buildAssignmentPayload(state.assignmentForm), "Course assignment created.");
-    state.assignmentForm = createAssignmentForm();
-    await refreshAllData();
+    await createAssignment();
   } else if (action === "view-assignment") {
-    viewAssignment(id);
+    await viewAssignment(id);
   } else if (action === "activate-assignment") {
     await updateAssignmentStatus(id, "active");
   } else if (action === "pause-assignment") {
     await disableAssignment(id);
-  } else if (action === "delete-assignment") {
-    await saveIntent("DeleteCourseAssignmentIntent", { assignmentId: id }, "Course assignment deleted.");
-    await refreshAllData();
+  } else if (action === "open-delete-assignment") {
+    openDeleteAssignmentModal(id);
+  } else if (action === "close-delete-assignment") {
+    closeDeleteAssignmentModal();
+  } else if (action === "confirm-delete-assignment") {
+    await deleteAssignmentWithConfirmation();
   } else if (action === "archive-assignment") {
     await saveIntent("ArchiveCourseAssignmentIntent", { assignmentId: id }, "Course assignment archived.");
     await refreshAllData();
+  } else if (action === "open-assignment-course-picker") {
+    openAssignmentCoursePicker();
+  } else if (action === "close-assignment-course-picker") {
+    closeAssignmentCoursePicker();
+  } else if (action === "select-assignment-course") {
+    selectAssignmentCourse(id);
+  } else if (action === "open-assignment-target-picker") {
+    openAssignmentTargetPicker();
+  } else if (action === "close-assignment-target-picker") {
+    closeAssignmentTargetPicker();
+  } else if (action === "select-assignment-class") {
+    selectAssignmentClass(id);
+  } else if (action === "select-assignment-student") {
+    selectAssignmentStudent(id);
   } else if (action === "open-reset-fruit") {
     if (id) {
       openFruitPasswordReset(id);
@@ -2556,6 +2740,14 @@ function openCourseCreatorApp() {
   if (!openedWindow) {
     setState({ message: "Course Creator link is not configured.", messageType: "error" });
   }
+}
+
+function buildCourseCreatorCourseUrl(courseId) {
+  if (!COURSE_CREATOR_URL || !courseId) {
+    return "";
+  }
+
+  return COURSE_CREATOR_URL + "#overview?courseId=" + encodeURIComponent(courseId);
 }
 
 async function exportOverviewReport() {
@@ -2730,14 +2922,38 @@ async function updateAssignmentStatus(assignmentId, status) {
   await refreshAllData();
 }
 
-async function disableAssignment(assignmentId) {
-  await saveIntent("DisableCourseAssignmentIntent", {
-    assignmentId: assignmentId
-  }, "Course assignment disabled.");
-  await refreshAllData();
+async function createAssignment() {
+  setState({ pendingAction: "create-assignment", message: "Creating assignment...", messageType: "info" });
+  var saved = await saveIntent("CreateCourseAssignmentIntent", buildAssignmentPayload(state.assignmentForm), "Course assignment created.");
+
+  if (saved) {
+    state.assignmentForm = createAssignmentForm();
+    closeAssignmentCoursePicker(false);
+    closeAssignmentTargetPicker(false);
+    await refreshAllData();
+    setState({ pendingAction: "", message: "Course assignment created.", messageType: "success" });
+    return;
+  }
+
+  setState({ pendingAction: "" });
 }
 
-function viewAssignment(assignmentId) {
+async function disableAssignment(assignmentId) {
+  setState({ pendingAction: "pause-assignment:" + assignmentId, message: "Disabling assignment...", messageType: "info" });
+  var saved = await saveIntent("DisableCourseAssignmentIntent", {
+    assignmentId: assignmentId
+  }, "Course assignment disabled.");
+
+  if (saved) {
+    await refreshAllData();
+    setState({ pendingAction: "", message: "Course assignment disabled.", messageType: "success" });
+    return;
+  }
+
+  setState({ pendingAction: "" });
+}
+
+async function viewAssignment(assignmentId) {
   var assignment = findAssignment(assignmentId);
 
   if (!assignment) {
@@ -2745,9 +2961,198 @@ function viewAssignment(assignmentId) {
     return;
   }
 
+  var url = buildCourseCreatorCourseUrl(assignment.courseId);
+
+  console.info("[admin-nav] Course assignment view clicked", { assignmentId: assignmentId, courseId: assignment.courseId, url: url });
+
+  if (!url) {
+    setState({ message: "Course Creator link is not configured.", messageType: "error" });
+    return;
+  }
+
+  setState({ pendingAction: "view-assignment:" + assignmentId, message: "Opening course in Course Creator...", messageType: "info" });
+  await waitForMilliseconds(120);
+
+  var openedWindow = window.open(url, "_blank");
+
   setState({
-    message: readCourseName(assignment.courseId) + " assigned to " + readAssignmentTargetName(assignment) + ".",
-    messageType: "info"
+    pendingAction: "",
+    message: openedWindow ? "Opening " + readCourseName(assignment.courseId) + " in Course Creator." : "Course Creator link is not configured.",
+    messageType: openedWindow ? "success" : "error"
+  });
+}
+
+function openAssignmentCoursePicker() {
+  setState({
+    assignmentCoursePicker: {
+      isOpen: true,
+      searchText: "",
+      statusFilter: "",
+      isLoading: true
+    },
+    message: ""
+  });
+  window.setTimeout(function () {
+    if (state.assignmentCoursePicker && state.assignmentCoursePicker.isOpen) {
+      state.assignmentCoursePicker.isLoading = false;
+      render();
+    }
+  }, 120);
+}
+
+function closeAssignmentCoursePicker(shouldRender) {
+  state.assignmentCoursePicker = {
+    isOpen: false,
+    searchText: "",
+    statusFilter: "",
+    isLoading: false
+  };
+
+  if (shouldRender !== false) {
+    render();
+  }
+}
+
+function selectAssignmentCourse(courseId) {
+  state.assignmentForm.courseId = courseId || "";
+  closeAssignmentCoursePicker(false);
+  setState({ message: "Course selected. Choose a target next.", messageType: "success" });
+}
+
+function openAssignmentTargetPicker() {
+  setState({
+    assignmentTargetPicker: {
+      isOpen: true,
+      targetType: state.assignmentForm.targetType || "class",
+      searchText: "",
+      locationId: state.assignmentForm.locationId || state.filters.locationId || "",
+      classId: state.assignmentForm.classId || "",
+      includeAllLocations: false,
+      isLoading: true
+    },
+    message: ""
+  });
+  window.setTimeout(function () {
+    if (state.assignmentTargetPicker && state.assignmentTargetPicker.isOpen) {
+      state.assignmentTargetPicker.isLoading = false;
+      render();
+    }
+  }, 120);
+}
+
+function closeAssignmentTargetPicker(shouldRender) {
+  state.assignmentTargetPicker = {
+    isOpen: false,
+    targetType: "class",
+    searchText: "",
+    locationId: "",
+    classId: "",
+    includeAllLocations: false,
+    isLoading: false
+  };
+
+  if (shouldRender !== false) {
+    render();
+  }
+}
+
+function selectAssignmentClass(classId) {
+  var classRecord = findClass(classId);
+  var locationId = readClassLocationId(classRecord);
+
+  state.assignmentForm.targetType = "class";
+  state.assignmentForm.locationId = locationId;
+  state.assignmentForm.classId = classId || "";
+  state.assignmentForm.studentId = "";
+  state.assignmentForm.targetId = classId || "";
+  closeAssignmentTargetPicker(false);
+  setState({ message: "Class target selected.", messageType: "success" });
+}
+
+function selectAssignmentStudent(studentId) {
+  var student = findAssignmentPickerStudent(studentId);
+  var locationId = readStudentLocationId(student);
+  var classId = student ? readSafeString(student.classId) : "";
+
+  state.assignmentForm.targetType = "student";
+  state.assignmentForm.locationId = locationId;
+  state.assignmentForm.classId = classId;
+  state.assignmentForm.studentId = studentId || "";
+  state.assignmentForm.targetId = studentId || "";
+  closeAssignmentTargetPicker(false);
+  setState({ message: "Student target selected.", messageType: "success" });
+}
+
+function openDeleteAssignmentModal(assignmentId) {
+  setState({
+    assignmentDelete: {
+      assignmentId: assignmentId || "",
+      status: "",
+      message: ""
+    },
+    message: ""
+  });
+}
+
+function closeDeleteAssignmentModal() {
+  setState({
+    assignmentDelete: {
+      assignmentId: "",
+      status: "",
+      message: ""
+    }
+  });
+}
+
+async function deleteAssignmentWithConfirmation() {
+  var assignmentId = state.assignmentDelete.assignmentId;
+
+  if (!assignmentId) {
+    closeDeleteAssignmentModal();
+    return;
+  }
+
+  setState({
+    isSaving: true,
+    pendingAction: "delete-assignment:" + assignmentId,
+    assignmentDelete: {
+      assignmentId: assignmentId,
+      status: "deleting",
+      message: "Deleting assignment..."
+    }
+  });
+
+  var result = await runAdminIntent("DeleteCourseAssignmentIntent", { assignmentId: assignmentId });
+
+  if (isSuccess(result)) {
+    setState({
+      isSaving: false,
+      pendingAction: "",
+      assignmentDelete: {
+        assignmentId: assignmentId,
+        status: "deleted",
+        message: "Assignment deleted."
+      },
+      message: "Course assignment deleted.",
+      messageType: "success"
+    });
+    await waitForMilliseconds(650);
+    closeDeleteAssignmentModal();
+    await refreshAllData();
+    setState({ message: "Course assignment deleted.", messageType: "success" });
+    return;
+  }
+
+  setState({
+    isSaving: false,
+    pendingAction: "",
+    assignmentDelete: {
+      assignmentId: assignmentId,
+      status: "",
+      message: ""
+    },
+    message: readIntentError(result),
+    messageType: "error"
   });
 }
 
@@ -5155,6 +5560,58 @@ function readCourseTitle(course) {
   return course.id || "Untitled course";
 }
 
+function readCourseDescription(course) {
+  if (!course) {
+    return "";
+  }
+
+  if (typeof course.description === "string") {
+    return course.description;
+  }
+
+  if (course.description && typeof course.description.en === "string") {
+    return course.description.en;
+  }
+
+  if (typeof course.summary === "string") {
+    return course.summary;
+  }
+
+  return "";
+}
+
+function readCourseModuleCount(course) {
+  if (!course) {
+    return 0;
+  }
+
+  if (Array.isArray(course.modules)) {
+    return course.modules.length;
+  }
+
+  if (Array.isArray(course.moduleIds)) {
+    return course.moduleIds.length;
+  }
+
+  if (typeof course.moduleCount === "number") {
+    return course.moduleCount;
+  }
+
+  return 0;
+}
+
+function readCourseUpdatedAt(course) {
+  return course ? (course.updatedAt || course.modifiedAt || course.createdAt || null) : null;
+}
+
+function readStudentLocationId(student) {
+  if (!student) {
+    return "";
+  }
+
+  return readSafeString(student.locationId || student.primaryLocationId || student.schoolId || (readIdArray(student.locationIds)[0] || ""));
+}
+
 function readAssignmentTargetName(assignment) {
   if (!assignment) {
     return "";
@@ -5211,6 +5668,87 @@ function readAssignmentFormTargetSummary(form) {
   }
 
   return "Assign to " + (form.classId ? readClassName(form.classId) : "a class") + ".";
+}
+
+function readAssignmentPickerCourses() {
+  var picker = state.assignmentCoursePicker || {};
+  var query = readSafeString(picker.searchText).toLowerCase();
+  var statusFilter = readSafeString(picker.statusFilter);
+
+  return state.courses.filter(function (course) {
+    var status = readSafeString(course.status || "draft");
+    var text = [readCourseTitle(course), readCourseDescription(course), course.id].join(" ").toLowerCase();
+
+    return (!statusFilter || status === statusFilter)
+      && (!query || text.indexOf(query) !== -1);
+  }).sort(function (a, b) {
+    return readCourseTitle(a).localeCompare(readCourseTitle(b));
+  });
+}
+
+function readAssignmentPickerClasses() {
+  var picker = state.assignmentTargetPicker || {};
+  var query = readSafeString(picker.searchText).toLowerCase();
+
+  return state.classes.filter(function (classRecord) {
+    var locationId = readClassLocationId(classRecord);
+    var locationMatches = picker.includeAllLocations || !picker.locationId || locationId === picker.locationId;
+    var text = [readClassName(classRecord.id), classRecord.id, readLocationName(locationId)].join(" ").toLowerCase();
+
+    return locationMatches && (!query || text.indexOf(query) !== -1);
+  }).sort(function (a, b) {
+    return readClassName(a.id).localeCompare(readClassName(b.id));
+  });
+}
+
+function readAssignmentPickerClassesForFilter() {
+  var picker = state.assignmentTargetPicker || {};
+
+  return state.classes.filter(function (classRecord) {
+    var locationId = readClassLocationId(classRecord);
+    return picker.includeAllLocations || !picker.locationId || locationId === picker.locationId;
+  }).sort(function (a, b) {
+    return readClassName(a.id).localeCompare(readClassName(b.id));
+  });
+}
+
+function readAssignmentPickerStudents() {
+  var picker = state.assignmentTargetPicker || {};
+  var query = readSafeString(picker.searchText).toLowerCase();
+
+  return readAssignmentCandidateStudents().filter(function (student) {
+    var locationId = readStudentLocationId(student);
+    var locationMatches = picker.includeAllLocations || !picker.locationId || locationId === picker.locationId;
+    var classMatches = !picker.classId || readSafeString(student.classId) === picker.classId || readIdArray(student.classIds).indexOf(picker.classId) !== -1;
+    var text = [student.name, student.displayName, student.email, student.username, student.id, readClassName(student.classId), readLocationName(locationId)].join(" ").toLowerCase();
+
+    return locationMatches && classMatches && (!query || text.indexOf(query) !== -1);
+  }).sort(function (a, b) {
+    return (a.name || a.displayName || a.id).localeCompare(b.name || b.displayName || b.id);
+  });
+}
+
+function readAssignmentCandidateStudents() {
+  var students = state.students.slice();
+
+  state.users.forEach(function (user) {
+    var safeUser = getSafeUser(user);
+    var exists = findById(students, safeUser.id);
+
+    if (!exists && safeUser.roles.indexOf("student") !== -1) {
+      students.push(Object.assign({}, user, {
+        name: user.name || user.displayName || user.email || user.id,
+        locationId: user.locationId || user.primaryLocationId || (safeUser.locationIds.length > 0 ? safeUser.locationIds[0] : ""),
+        classId: user.classId || (safeUser.classIds.length > 0 ? safeUser.classIds[0] : "")
+      }));
+    }
+  });
+
+  return students;
+}
+
+function findAssignmentPickerStudent(studentId) {
+  return findById(readAssignmentCandidateStudents(), studentId);
 }
 
 function buildAssignmentPayload(form) {

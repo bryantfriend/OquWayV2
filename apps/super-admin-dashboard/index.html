@@ -1512,6 +1512,153 @@
             font-weight: 800;
         }
 
+        .sa-assignment-choice-card {
+            border: 1px solid rgba(191, 219, 254, 0.86);
+            border-radius: 18px;
+            background: linear-gradient(135deg, #eff6ff 0%, #ecfdf5 100%);
+            padding: 13px;
+            display: grid;
+            gap: 6px;
+        }
+
+        .sa-assignment-choice-card strong,
+        .sa-assignment-choice-card small {
+            display: block;
+            overflow-wrap: anywhere;
+        }
+
+        .sa-assignment-choice-card small {
+            color: var(--muted);
+            font-weight: 800;
+            line-height: 1.35;
+        }
+
+        .sa-assignment-choice-empty {
+            background: #f8fafc;
+            border-style: dashed;
+        }
+
+        .sa-assignment-picker-modal {
+            width: min(920px, 100%);
+            max-height: calc(100vh - 40px);
+            overflow: auto;
+        }
+
+        .sa-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .sa-picker-card {
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            background: #fff;
+            padding: 14px;
+            display: grid;
+            gap: 12px;
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+        }
+
+        .sa-picker-card-selected {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.22), 0 16px 34px rgba(15, 23, 42, 0.10);
+        }
+
+        .sa-picker-card h3,
+        .sa-picker-card p {
+            margin: 0;
+        }
+
+        .sa-picker-card p {
+            color: var(--muted);
+            font-weight: 750;
+            line-height: 1.4;
+        }
+
+        .sa-picker-meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .sa-picker-meta small {
+            color: var(--muted);
+            font-weight: 850;
+        }
+
+        .sa-picker-list {
+            display: grid;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .sa-picker-row {
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: white;
+            padding: 12px 14px;
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.8fr);
+            gap: 12px;
+            align-items: center;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .sa-picker-row:hover {
+            border-color: #93c5fd;
+            box-shadow: 0 12px 28px rgba(37, 99, 235, 0.12);
+            transform: translateY(-1px);
+        }
+
+        .sa-picker-row strong,
+        .sa-picker-row span,
+        .sa-picker-row small {
+            overflow-wrap: anywhere;
+        }
+
+        .sa-picker-row span,
+        .sa-picker-row small {
+            color: var(--muted);
+            font-weight: 800;
+        }
+
+        .sa-delete-animation {
+            border-radius: 20px;
+            margin: 14px 0;
+            padding: 16px;
+            background: #fef2f2;
+            color: var(--red);
+            display: grid;
+            justify-items: center;
+            gap: 8px;
+            font-weight: 950;
+        }
+
+        .sa-delete-animation span {
+            width: 48px;
+            height: 48px;
+            border-radius: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            animation: saDeletePulse 0.8s ease-in-out infinite alternate;
+        }
+
+        .sa-delete-animation-done {
+            background: #ecfdf5;
+            color: var(--green);
+        }
+
+        .sa-delete-animation-done span {
+            animation: none;
+            transform: scale(0.88);
+        }
+
         .sa-student-card {
             display: grid;
             gap: 12px;
@@ -1806,6 +1953,18 @@
             }
         }
 
+        @keyframes saDeletePulse {
+            from {
+                transform: scale(1) rotate(-4deg);
+                opacity: 1;
+            }
+
+            to {
+                transform: scale(0.82) rotate(4deg);
+                opacity: 0.7;
+            }
+        }
+
         @keyframes saShimmer {
             to {
                 background-position: -220% 0;
@@ -1834,6 +1993,8 @@
             .sa-user-filters,
             .sa-user-summary,
             .sa-user-fields,
+            .sa-picker-grid,
+            .sa-picker-row,
             .sa-role-card-grid,
             .sa-user-table-head {
                 grid-template-columns: 1fr;
