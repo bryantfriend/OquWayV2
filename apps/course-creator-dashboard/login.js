@@ -1,5 +1,5 @@
 import { auth } from "../../packages/core/src/infrastructure/firebase/auth.js";
-import { db, doc, getDoc } from "../../packages/core/src/infrastructure/firebase/firestore.js";
+import { verifyCourseCreatorAccess, normalizeRole } from "./src/auth/courseCreatorAuth.js";
 import {
     signInWithEmailAndPassword,
     onAuthStateChanged,
@@ -27,7 +27,7 @@ onAuthStateChanged(auth, async function (user) {
         return;
     }
 
-    const access = await verifyCourseCreatorAccess(user);
+    const access = await verifyCourseCreatorAccess(user, { source: "login-auth-state" });
 
     if (access.allowed) {
         redirectToReturnTo();
@@ -49,10 +49,11 @@ loginBtn.addEventListener("click", async function () {
     }
 
     try {
+        logCourseCreatorLogin("login started", { email: email });
         loginBtn.disabled = true;
         loginBtn.textContent = "Checking access...";
         const credential = await signInWithEmailAndPassword(auth, email, password);
-        const access = await verifyCourseCreatorAccess(credential.user);
+        const access = await verifyCourseCreatorAccess(credential.user, { source: "login-submit" });
 
         if (!access.allowed) {
             await rejectUnauthorizedUser(access.role);
@@ -230,34 +231,6 @@ function isSafeReturnTo(value) {
     }
 }
 
-async function verifyCourseCreatorAccess(user) {
-    try {
-        const tokenResult = await user.getIdTokenResult();
-        const claims = tokenResult && tokenResult.claims ? tokenResult.claims : {};
-        const profileSnap = await getDoc(doc(db, "users", user.uid));
-        const profile = profileSnap.exists() ? profileSnap.data() : {};
-        const role = normalizeRole(profile.role || claims.role || "");
-        const roles = normalizeRoles([])
-            .concat(normalizeRoles(profile.roles))
-            .concat(normalizeRoles(profile.userRoles))
-            .concat(normalizeRoles(claims.roles))
-            .concat(normalizeRoles(claims.userRoles));
-
-        if (isAllowedCourseCreatorRole(role) || roles.some(isAllowedCourseCreatorRole)) {
-            return { allowed: true, role: role || roles[0] || "" };
-        }
-
-        return { allowed: false, role: role || roles[0] || "" };
-    } catch (error) {
-        console.warn("[course-builder-login] Could not verify Course Creator access.", {
-            uid: user && user.uid ? user.uid : "",
-            errorCode: error && error.code ? error.code : "",
-            message: error && error.message ? error.message : String(error)
-        });
-        return { allowed: false, role: "" };
-    }
-}
-
 async function rejectUnauthorizedUser(role) {
     const normalizedRole = normalizeRole(role);
     const message = normalizedRole === "student"
@@ -313,34 +286,12 @@ function readFriendlyLoginError(error) {
     return error && error.message ? error.message : "Login failed. Please try again.";
 }
 
-function normalizeRoles(value) {
-    if (!Array.isArray(value)) {
-        return [];
+function logCourseCreatorLogin(eventName, payload) {
+    if (typeof window === "undefined" || !window.location) {
+        return;
     }
 
-    return value.map(normalizeRole).filter(Boolean);
-}
-
-function normalizeRole(value) {
-    if (typeof value !== "string") {
-        return "";
+    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.hostname === "") {
+        console.info("[course-creator-auth] " + eventName, payload);
     }
-
-    const normalized = value.replace(/^ROLE_/i, "").replace(/[^a-z0-9]/gi, "").toLowerCase();
-
-    if (normalized === "superadmin") return "superAdmin";
-    if (normalized === "platformadmin") return "platformAdmin";
-    if (normalized === "schooladmin") return "schoolAdmin";
-    if (normalized === "coursecreator") return "courseCreator";
-    if (normalized === "admin") return "admin";
-    if (normalized === "student") return "student";
-
-    return normalized;
-}
-
-function isAllowedCourseCreatorRole(role) {
-    return role === "superAdmin"
-        || role === "platformAdmin"
-        || role === "schoolAdmin"
-        || role === "courseCreator";
 }

@@ -1,4 +1,6 @@
-export var appVersion = "1.1.16";
+export var appVersion = "1.1.17";
+
+export var COURSE_CREATOR_URL = "../course-creator-dashboard/index.html";
 
 export var userRoles = [
   "student",

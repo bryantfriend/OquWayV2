@@ -4,10 +4,10 @@ import { storage } from "../../../../../packages/core/src/infrastructure/firebas
 import { collection, db, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../packages/core/src/infrastructure/firebase/firestore.js";
 import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js";
 import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js";
-import { roleFilterCards, userRoles, userStatuses } from "../shared/constants.js";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoles, userStatuses } from "../shared/constants.js";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.16";
+var appVersion = "1.1.17";
 var state = {
   isLoading: true,
   isRefreshing: false,
@@ -2506,7 +2506,7 @@ function handleOverviewAction(action, id) {
   }
 
   if (action === "overview-create-course" || action === "overview-open-course-creator") {
-    window.open("../course-creator-dashboard/index.html", "_blank");
+    openCourseCreatorApp();
     return;
   }
 
@@ -2538,6 +2538,23 @@ function handleOverviewAction(action, id) {
 
   if (action === "overview-coming-soon") {
     setState({ message: (id || "This section") + " is planned for the command center. Existing admin workflows are still available from the active tabs.", messageType: "info" });
+  }
+}
+
+function openCourseCreatorApp() {
+  var url = COURSE_CREATOR_URL || "";
+
+  console.info("[admin-nav] Course Creator clicked", { url: url });
+
+  if (!url) {
+    setState({ message: "Course Creator link is not configured.", messageType: "error" });
+    return;
+  }
+
+  var openedWindow = window.open(url, "_blank");
+
+  if (!openedWindow) {
+    setState({ message: "Course Creator link is not configured.", messageType: "error" });
   }
 }
 

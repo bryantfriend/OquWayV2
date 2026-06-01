@@ -1,16 +1,16 @@
 import { auth } from "../../../packages/core/src/infrastructure/firebase/auth.js";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { db, doc, getDoc } from "../../../packages/core/src/infrastructure/firebase/firestore.js";
-import { CourseEditorPage } from './ui/pages/CourseEditorPage.js';
-import { CatalogCoursePage } from './ui/pages/CatalogCoursePage.js';
-import { CourseOverviewPage } from './ui/pages/CourseOverviewPage.js';
-import { LocationLoginSettingsPage } from './ui/pages/LocationLoginSettingsPage.js';
+import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js";
+import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js";
+import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js";
+import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js";
+import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js";
 
 let appInitialized = false;
 let currentPage = null;
 
 function initApp() {
-    const appContainer = document.getElementById('app');
+    const appContainer = document.getElementById("app");
     if (!appContainer) return;
 
     if (currentPage && currentPage.unsubscribe) {
@@ -56,7 +56,7 @@ onAuthStateChanged(auth, async function (user) {
         return;
     }
 
-    var access = await verifyCourseBuilderAccess(user);
+    const access = await verifyCourseCreatorAccess(user, { source: "app-shell" });
     if (!access.allowed) {
         await routeUnauthorizedUser(access.role);
         return;
@@ -64,45 +64,17 @@ onAuthStateChanged(auth, async function (user) {
 
     if (!appInitialized) {
         appInitialized = true;
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initApp);
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", initApp);
         } else {
             initApp();
         }
     }
 });
 
-async function verifyCourseBuilderAccess(user) {
-    try {
-        var tokenResult = await user.getIdTokenResult();
-        var claims = tokenResult && tokenResult.claims ? tokenResult.claims : {};
-        var profileSnap = await getDoc(doc(db, "users", user.uid));
-        var profile = profileSnap.exists() ? profileSnap.data() : {};
-        var role = normalizeRole(profile.role || claims.role || "");
-        var roles = normalizeRoles([]
-            .concat(profile.roles || [])
-            .concat(profile.userRoles || [])
-            .concat(claims.roles || [])
-            .concat(claims.userRoles || []));
-
-        if (isAllowedStaffRole(role) || roles.some(isAllowedStaffRole)) {
-            return { allowed: true, role: role || roles[0] || "" };
-        }
-
-        return { allowed: false, role: role || roles[0] || "" };
-    } catch (error) {
-        console.warn("[course-builder-auth] Could not verify profile before loading UI.", {
-            uid: user.uid,
-            errorCode: error && error.code ? error.code : "",
-            message: error && error.message ? error.message : String(error)
-        });
-        return { allowed: false, role: "" };
-    }
-}
-
 async function routeUnauthorizedUser(role) {
-    var normalizedRole = normalizeRole(role);
-    var message = normalizedRole === "student"
+    const normalizedRole = normalizeRole(role);
+    const message = normalizedRole === "student"
         ? "Please log in with a Course Creator or Admin account."
         : "Course Creator access requires an admin or course creator account.";
 
@@ -122,34 +94,4 @@ async function routeUnauthorizedUser(role) {
     }
 
     window.location.href = "./login.html";
-}
-
-function normalizeRoles(value) {
-    if (!Array.isArray(value)) {
-        return [];
-    }
-
-    return value.map(normalizeRole).filter(Boolean);
-}
-
-function normalizeRole(value) {
-    if (typeof value !== "string") {
-        return "";
-    }
-
-    var normalized = value.replace(/^ROLE_/i, "").replace(/[^a-z0-9]/gi, "").toLowerCase();
-    if (normalized === "superadmin") return "superAdmin";
-    if (normalized === "platformadmin") return "platformAdmin";
-    if (normalized === "schooladmin") return "schoolAdmin";
-    if (normalized === "coursecreator") return "courseCreator";
-    if (normalized === "admin") return "admin";
-    if (normalized === "student") return "student";
-    return normalized;
-}
-
-function isAllowedStaffRole(role) {
-    return role === "superAdmin"
-        || role === "platformAdmin"
-        || role === "schoolAdmin"
-        || role === "courseCreator";
 }
