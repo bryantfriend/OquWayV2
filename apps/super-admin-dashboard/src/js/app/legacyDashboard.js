@@ -7,7 +7,7 @@ import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/r
 import { roleFilterCards, userRoles, userStatuses } from "../shared/constants.js";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.15";
+var appVersion = "1.1.16";
 var state = {
   isLoading: true,
   isRefreshing: false,
@@ -65,6 +65,8 @@ var state = {
   loginToolStudentId: "",
   resetStudentId: "",
   resetFruitPassword: [],
+  fruitResetSaveStatus: "",
+  fruitResetSaveMessage: "",
   classPicker: {
     isOpen: false,
     formId: "",
@@ -1916,8 +1918,28 @@ function buildResetModal() {
 
   var student = findStudent(state.resetStudentId);
   var name = student ? student.name : state.resetStudentId;
+  var isFruitResetLocked = state.fruitResetSaveStatus === "saving" || state.fruitResetSaveStatus === "saved";
 
-  return '<div class="sa-modal-backdrop"><section class="sa-modal"><h2>Reset Fruit Password</h2><p>' + escapeHtml(name) + '</p><p class="sa-summary">A random fruit password is ready locally. It will not be saved until you click Save Password.</p>' + buildFruitSelector("reset", state.resetFruitPassword) + '<div class="sa-modal-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="regenerate-reset-fruit">Regenerate</button><button type="button" class="sa-btn sa-btn-secondary" data-action="close-reset-fruit">Cancel</button><button type="button" class="sa-btn" data-action="confirm-reset-fruit"' + disabled(state.resetFruitPassword.length !== 4) + '>Save Password</button></div></section></div>';
+  return '<div class="sa-modal-backdrop"><section class="sa-modal sa-fruit-reset-modal"><h2>Reset Fruit Password</h2><p>' + escapeHtml(name) + '</p><p class="sa-summary">A random fruit password is ready locally. It will not be saved until you click Save Password.</p>' + buildFruitSelector("reset", state.resetFruitPassword) + buildFruitResetFeedback() + '<div class="sa-modal-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="regenerate-reset-fruit"' + disabled(isFruitResetLocked) + '>Regenerate</button><button type="button" class="sa-btn sa-btn-secondary" data-action="close-reset-fruit"' + disabled(isFruitResetLocked) + '>Cancel</button><button type="button" class="sa-btn" data-action="confirm-reset-fruit"' + disabled(state.resetFruitPassword.length !== 4 || isFruitResetLocked) + '>Save Password</button></div>' + buildFruitResetSavingOverlay() + '</section></div>';
+}
+
+function buildFruitResetFeedback() {
+  if (state.fruitResetSaveStatus !== "error" || !state.fruitResetSaveMessage) {
+    return "";
+  }
+
+  return '<div class="sa-message sa-message-error sa-fruit-reset-feedback">' + escapeHtml(state.fruitResetSaveMessage) + '</div>';
+}
+
+function buildFruitResetSavingOverlay() {
+  if (state.fruitResetSaveStatus !== "saving" && state.fruitResetSaveStatus !== "saved") {
+    return "";
+  }
+
+  var isSaved = state.fruitResetSaveStatus === "saved";
+  var message = state.fruitResetSaveMessage || (isSaved ? "Fruit password saved!" : "Saving fruit password...");
+
+  return '<div class="sa-fruit-save-overlay' + (isSaved ? ' sa-fruit-save-overlay-saved' : '') + '" aria-live="polite" aria-busy="' + (isSaved ? "false" : "true") + '"><div class="sa-fruit-save-orbit" aria-hidden="true"><span class="sa-fruit-save-core">' + (isSaved ? "✓" : "🛡") + '</span><span class="sa-orbit-fruit sa-orbit-fruit-1">🍎</span><span class="sa-orbit-fruit sa-orbit-fruit-2">🍌</span><span class="sa-orbit-fruit sa-orbit-fruit-3">🍇</span><span class="sa-orbit-fruit sa-orbit-fruit-4">🍉</span></div><strong>' + escapeHtml(message) + '</strong></div>';
 }
 
 function buildStaffPasswordResetModal() {
@@ -2414,9 +2436,9 @@ async function handleAction(action, id) {
       openFruitPasswordReset(id);
     }
   } else if (action === "close-reset-fruit") {
-    setState({ resetStudentId: "", resetFruitPassword: [] });
+    setState({ resetStudentId: "", resetFruitPassword: [], fruitResetSaveStatus: "", fruitResetSaveMessage: "" });
   } else if (action === "regenerate-reset-fruit") {
-    setState({ resetFruitPassword: createRandomFruitPassword(), message: "" });
+    setState({ resetFruitPassword: createRandomFruitPassword(), fruitResetSaveStatus: "", fruitResetSaveMessage: "", message: "" });
   } else if (action === "confirm-reset-fruit") {
     await resetFruitPassword();
   } else if (action === "open-student-login") {
@@ -2560,6 +2582,12 @@ async function exportOverviewReport() {
 function waitForNextFrame() {
   return new Promise(function (resolve) {
     window.requestAnimationFrame(resolve);
+  });
+}
+
+function waitForMilliseconds(milliseconds) {
+  return new Promise(function (resolve) {
+    window.setTimeout(resolve, milliseconds);
   });
 }
 
@@ -2855,7 +2883,7 @@ function openFruitPasswordReset(userId) {
     return;
   }
 
-  setState({ resetStudentId: userId, resetFruitPassword: fruitPassword, message: "" });
+  setState({ resetStudentId: userId, resetFruitPassword: fruitPassword, fruitResetSaveStatus: "", fruitResetSaveMessage: "", message: "" });
 }
 
 async function sendStaffPasswordReset(userId) {
@@ -2944,28 +2972,66 @@ async function saveIntent(intentType, payload, successMessage) {
 
 async function resetFruitPassword() {
   if (!state.resetStudentId || state.resetFruitPassword.length !== 4) {
-    setState({ message: "Choose a student and exactly four fruits.", messageType: "error" });
+    setState({ fruitResetSaveStatus: "error", fruitResetSaveMessage: "Choose a student and exactly four fruits.", message: "", messageType: "error" });
     return;
   }
 
   var fruitPassword = state.resetFruitPassword.slice();
-  var saved = await saveIntent("ResetStudentFruitPasswordIntent", {
+  var studentId = state.resetStudentId;
+  var result = null;
+
+  setState({
+    isSaving: true,
+    pendingAction: "confirm-reset-fruit",
+    fruitResetSaveStatus: "saving",
+    fruitResetSaveMessage: "Saving fruit password...",
+    message: ""
+  });
+
+  result = await runAdminIntent("ResetStudentFruitPasswordIntent", {
     studentId: state.resetStudentId,
     fruitPassword: fruitPassword
-  }, "Fruit password reset.");
+  });
 
-  if (saved) {
-    var student = findStudent(state.resetStudentId) || findUser(state.resetStudentId);
+  if (isSuccess(result)) {
+    var student = findStudent(studentId) || findUser(studentId);
     var label = fruitPassword.map(readFruitLabel).join(" ");
+
+    setState({
+      isSaving: false,
+      pendingAction: "",
+      fruitResetSaveStatus: "saved",
+      fruitResetSaveMessage: "Fruit password saved!"
+    });
+
+    await waitForMilliseconds(900);
+
+    if (state.resetStudentId !== studentId || state.fruitResetSaveStatus !== "saved") {
+      return;
+    }
+
     setState({
       resetStudentId: "",
       resetFruitPassword: [],
+      fruitResetSaveStatus: "",
+      fruitResetSaveMessage: "",
       message: "Fruit password reset for " + ((student && (student.name || student.displayName)) || "student") + ": " + label,
       messageType: "success"
     });
+
     await refreshAllData();
     setState({ message: "Fruit password reset for " + ((student && (student.name || student.displayName)) || "student") + ": " + label, messageType: "success" });
+    return;
   }
+
+  setState({
+    isSaving: false,
+    pendingAction: "",
+    fruitResetSaveStatus: "error",
+    fruitResetSaveMessage: readIntentError(result),
+    message: "",
+    messageType: "error"
+  });
 }
 
 function addFruit(mode, fruit) {
