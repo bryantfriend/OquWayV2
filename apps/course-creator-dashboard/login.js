@@ -1,13 +1,20 @@
 import { auth } from "../../packages/core/src/infrastructure/firebase/auth.js";
 import {
     signInWithEmailAndPassword,
-    onAuthStateChanged
+    onAuthStateChanged,
+    sendPasswordResetEmail
 } from "firebase/auth";
 
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const loginBtn = document.getElementById("loginBtn");
 const errorDiv = document.getElementById("error");
+const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
+const resetModal = document.getElementById("resetModal");
+const resetEmailInput = document.getElementById("resetEmail");
+const resetSubmitBtn = document.getElementById("resetSubmitBtn");
+const resetCancelBtn = document.getElementById("resetCancelBtn");
+const resetStatus = document.getElementById("resetStatus");
 const returnToUrl = captureReturnToUrl();
 let redirectStarted = false;
 
@@ -36,6 +43,89 @@ loginBtn.addEventListener("click", async function () {
         errorDiv.textContent = error.message;
     }
 });
+
+forgotPasswordBtn.addEventListener("click", function () {
+    openResetModal();
+});
+
+resetCancelBtn.addEventListener("click", function () {
+    closeResetModal();
+});
+
+resetModal.addEventListener("click", function (event) {
+    if (event.target === resetModal) {
+        closeResetModal();
+    }
+});
+
+resetSubmitBtn.addEventListener("click", async function () {
+    await sendStaffPasswordReset();
+});
+
+resetEmailInput.addEventListener("keydown", async function (event) {
+    if (event.key === "Enter") {
+        await sendStaffPasswordReset();
+    }
+});
+
+function openResetModal() {
+    resetEmailInput.value = emailInput.value.trim();
+    resetStatus.textContent = "";
+    resetStatus.className = "status";
+    resetModal.removeAttribute("hidden");
+    resetEmailInput.focus();
+}
+
+function closeResetModal() {
+    resetModal.setAttribute("hidden", "hidden");
+    setResetLoading(false);
+}
+
+async function sendStaffPasswordReset() {
+    const email = resetEmailInput.value.trim();
+
+    resetStatus.textContent = "";
+    resetStatus.className = "status";
+
+    if (!email) {
+        showResetStatus("Enter your email address.", "error");
+        return;
+    }
+
+    if (!isValidEmail(email)) {
+        showResetStatus("Enter a valid email address.", "error");
+        return;
+    }
+
+    try {
+        setResetLoading(true);
+        await sendPasswordResetEmail(auth, email);
+        showResetStatus("If an account exists for this email, a reset link has been sent.", "success");
+    } catch (error) {
+        if (error && error.code === "auth/invalid-email") {
+            showResetStatus("Enter a valid email address.", "error");
+        } else {
+            showResetStatus("If an account exists for this email, a reset link has been sent.", "success");
+        }
+    } finally {
+        setResetLoading(false);
+    }
+}
+
+function showResetStatus(message, type) {
+    resetStatus.textContent = message;
+    resetStatus.className = "status " + type;
+}
+
+function setResetLoading(isLoading) {
+    resetSubmitBtn.disabled = isLoading;
+    resetCancelBtn.disabled = isLoading;
+    resetSubmitBtn.textContent = isLoading ? "Sending..." : "Send Reset Link";
+}
+
+function isValidEmail(value) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
 
 function captureReturnToUrl() {
     const returnTo = readReturnToUrl();

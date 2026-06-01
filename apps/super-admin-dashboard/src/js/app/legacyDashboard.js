@@ -7,7 +7,7 @@ import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/r
 import { roleFilterCards, userRoles, userStatuses } from "../shared/constants.js";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.14";
+var appVersion = "1.1.15";
 var state = {
   isLoading: true,
   isRefreshing: false,
@@ -22,6 +22,10 @@ var state = {
   messageType: "info",
   loginEmail: "",
   loginPassword: "",
+  staffResetOpen: false,
+  staffResetEmail: "",
+  staffResetStatus: "",
+  staffResetStatusType: "info",
   overviewChartRange: "month",
   overviewRegionFilter: "",
   overviewSchoolTypeFilter: "",
@@ -461,7 +465,8 @@ function buildAccessDeniedView() {
 function buildLoginView() {
   return '<section class="sa-access-card sa-login-card"><p class="sa-eyebrow">Admin Login</p><h1>Sign in to Super Admin</h1><p>Use a super admin or platform admin account. We will bring you back here after login.</p>'
     + buildMessage()
-    + '<div class="sa-form"><label>Email<input type="email" data-login-field="email" value="' + escapeHtml(state.loginEmail) + '" placeholder="admin@example.com"></label><label>Password<input type="password" data-login-field="password" value="' + escapeHtml(state.loginPassword) + '" placeholder="Password"></label><button type="button" class="sa-btn" data-action="admin-login">Log in</button><button type="button" class="sa-btn sa-btn-secondary" data-action="go-admin-login">Go to Login</button></div></section>';
+    + '<div class="sa-form"><label>Email<input type="email" data-login-field="email" value="' + escapeHtml(state.loginEmail) + '" placeholder="admin@example.com"></label><label><span class="sa-password-label-row"><span>Password</span><button type="button" class="sa-text-link" data-action="open-staff-login-reset">Forgot password?</button></span><input type="password" data-login-field="password" value="' + escapeHtml(state.loginPassword) + '" placeholder="Password"></label><button type="button" class="sa-btn" data-action="admin-login">Log in</button><button type="button" class="sa-btn sa-btn-secondary" data-action="go-admin-login">Go to Login</button></div></section>'
+    + buildStaffPasswordResetModal();
 }
 
 function buildDashboardView() {
@@ -1915,6 +1920,22 @@ function buildResetModal() {
   return '<div class="sa-modal-backdrop"><section class="sa-modal"><h2>Reset Fruit Password</h2><p>' + escapeHtml(name) + '</p><p class="sa-summary">A random fruit password is ready locally. It will not be saved until you click Save Password.</p>' + buildFruitSelector("reset", state.resetFruitPassword) + '<div class="sa-modal-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="regenerate-reset-fruit">Regenerate</button><button type="button" class="sa-btn sa-btn-secondary" data-action="close-reset-fruit">Cancel</button><button type="button" class="sa-btn" data-action="confirm-reset-fruit"' + disabled(state.resetFruitPassword.length !== 4) + '>Save Password</button></div></section></div>';
 }
 
+function buildStaffPasswordResetModal() {
+  if (!state.staffResetOpen) {
+    return "";
+  }
+
+  return '<div class="sa-modal-backdrop"><section class="sa-modal sa-staff-reset-modal" role="dialog" aria-modal="true" aria-labelledby="staff-reset-title"><p class="sa-eyebrow">Staff Access</p><h2 id="staff-reset-title">Reset password</h2><p>Enter the email for your staff account. Firebase will send the reset link.</p><div class="sa-form"><label>Email<input type="email" data-staff-reset-field="email" value="' + escapeHtml(state.staffResetEmail) + '" placeholder="admin@example.com"></label></div>' + buildStaffResetStatus() + '<div class="sa-modal-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="close-staff-login-reset"' + disabled(state.isSaving) + '>Cancel</button><button type="button" class="sa-btn" data-action="send-staff-login-reset"' + disabled(state.isSaving) + '>' + buildButtonContent("Send Reset Link", "staff-login-reset") + '</button></div></section></div>';
+}
+
+function buildStaffResetStatus() {
+  if (!state.staffResetStatus) {
+    return "";
+  }
+
+  return '<div class="sa-message sa-message-' + escapeHtml(state.staffResetStatusType) + '">' + escapeHtml(state.staffResetStatus) + '</div>';
+}
+
 function buildClassPickerModal() {
   if (!state.classPicker || !state.classPicker.isOpen) {
     return "";
@@ -2023,6 +2044,11 @@ function handleInput(event) {
     return;
   }
 
+  if (target.getAttribute("data-staff-reset-field")) {
+    updateStaffResetField(target.getAttribute("data-staff-reset-field"), target.value);
+    return;
+  }
+
   if (target.getAttribute("data-assignment-filter")) {
     state.assignmentFilters[target.getAttribute("data-assignment-filter")] = target.value;
     render();
@@ -2085,6 +2111,13 @@ function updateLoginField(field, value) {
     state.loginEmail = value;
   } else if (field === "password") {
     state.loginPassword = value;
+  }
+}
+
+function updateStaffResetField(field, value) {
+  if (field === "email") {
+    state.staffResetEmail = value;
+    state.staffResetStatus = "";
   }
 }
 
@@ -2298,6 +2331,12 @@ async function handleAction(action, id) {
     setState({ pendingAction: "" });
   } else if (action === "admin-login") {
     await loginAdmin();
+  } else if (action === "open-staff-login-reset") {
+    openStaffLoginPasswordReset();
+  } else if (action === "close-staff-login-reset") {
+    closeStaffLoginPasswordReset();
+  } else if (action === "send-staff-login-reset") {
+    await sendStaffLoginPasswordReset();
   } else if (action === "go-admin-login") {
     await goAdminLogin();
   } else if (action === "toggle-create-location") {
@@ -2544,6 +2583,79 @@ async function loginAdmin() {
       message: "Login failed: " + error.message,
       messageType: "error"
     });
+  }
+}
+
+function openStaffLoginPasswordReset() {
+  setState({
+    staffResetOpen: true,
+    staffResetEmail: state.staffResetEmail || state.loginEmail,
+    staffResetStatus: "",
+    staffResetStatusType: "info",
+    message: ""
+  });
+}
+
+function closeStaffLoginPasswordReset() {
+  setState({
+    staffResetOpen: false,
+    staffResetStatus: "",
+    staffResetStatusType: "info"
+  });
+}
+
+async function sendStaffLoginPasswordReset() {
+  var email = state.staffResetEmail.trim();
+
+  if (!email) {
+    setState({
+      staffResetStatus: "Enter your email address.",
+      staffResetStatusType: "error"
+    });
+    return false;
+  }
+
+  if (!isValidEmail(email)) {
+    setState({
+      staffResetStatus: "Enter a valid email address.",
+      staffResetStatusType: "error"
+    });
+    return false;
+  }
+
+  try {
+    setState({
+      isSaving: true,
+      pendingAction: "staff-login-reset",
+      staffResetStatus: "Sending reset link...",
+      staffResetStatusType: "info"
+    });
+    await sendPasswordResetEmail(auth, email);
+    setState({
+      isSaving: false,
+      pendingAction: "",
+      staffResetStatus: "If an account exists for this email, a reset link has been sent.",
+      staffResetStatusType: "success"
+    });
+    return true;
+  } catch (error) {
+    if (error && error.code === "auth/invalid-email") {
+      setState({
+        isSaving: false,
+        pendingAction: "",
+        staffResetStatus: "Enter a valid email address.",
+        staffResetStatusType: "error"
+      });
+      return false;
+    }
+
+    setState({
+      isSaving: false,
+      pendingAction: "",
+      staffResetStatus: "If an account exists for this email, a reset link has been sent.",
+      staffResetStatusType: "success"
+    });
+    return true;
   }
 }
 
@@ -3113,6 +3225,10 @@ function readSafeString(value) {
   }
 
   return String(value);
+}
+
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(readSafeString(value).trim());
 }
 
 function createOverviewData() {
@@ -4708,6 +4824,10 @@ function readPendingLabel(label) {
 
   if (label.indexOf("Refresh") !== -1) {
     return "Loading...";
+  }
+
+  if (label.indexOf("Send") !== -1) {
+    return "Sending...";
   }
 
   return "Saving...";

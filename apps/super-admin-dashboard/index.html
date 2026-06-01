@@ -647,6 +647,31 @@
             letter-spacing: 0.06em;
         }
 
+        .sa-password-label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sa-text-link {
+            border: 0;
+            background: transparent;
+            color: var(--blue);
+            padding: 0;
+            font: inherit;
+            font-size: 0.78rem;
+            font-weight: 900;
+            text-transform: none;
+            letter-spacing: 0;
+            cursor: pointer;
+        }
+
+        .sa-text-link:hover {
+            color: #1d4ed8;
+            text-decoration: underline;
+        }
+
         input,
         select,
         textarea {
@@ -1628,6 +1653,14 @@
             border-radius: 30px;
             padding: 24px;
             box-shadow: 0 30px 90px rgba(0,0,0,0.24);
+        }
+
+        .sa-staff-reset-modal {
+            width: min(460px, 100%);
+        }
+
+        .sa-staff-reset-modal .sa-message {
+            margin: 14px 0 0;
         }
 
         .sa-modal-actions {
