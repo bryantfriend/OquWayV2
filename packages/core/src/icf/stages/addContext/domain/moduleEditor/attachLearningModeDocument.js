@@ -5,7 +5,12 @@ export async function attachLearningModeDocument(executionState) {
   const courseId = payload.courseId || "";
   const moduleId = payload.moduleId || "";
   const modeId = payload.modeId || "";
-  const modePath = readCourseCollectionName(executionState) + "/" + courseId + "/modules/" + moduleId + "/learningModes/" + modeId;
+  const modePath = "catalogCourses/" + courseId + "/modules/" + moduleId + "/learningModes/" + modeId;
+  const attemptedPaths = [
+    "catalogCourses/" + courseId,
+    "catalogCourses/" + courseId + "/modules/" + moduleId,
+    modePath
+  ];
 
   if (isDevelopmentLoggingEnabled()) {
     console.info("[step:add] context", {
@@ -34,7 +39,19 @@ export async function attachLearningModeDocument(executionState) {
   }
 
   try {
-    const modeSnap = await getDoc(doc(db, readCourseCollectionName(executionState), courseId, "modules", moduleId, "learningModes", modeId));
+    const courseSnap = await getDoc(doc(db, "catalogCourses", courseId));
+
+    if (!courseSnap.exists()) {
+      return createFailedContextResult("COURSE_NOT_FOUND", "Course not found: " + courseId, courseId, moduleId, modeId, payload, attemptedPaths);
+    }
+
+    const moduleSnap = await getDoc(doc(db, "catalogCourses", courseId, "modules", moduleId));
+
+    if (!moduleSnap.exists()) {
+      return createFailedContextResult("MODULE_NOT_FOUND", "Module not found: " + moduleId, courseId, moduleId, modeId, payload, attemptedPaths);
+    }
+
+    const modeSnap = await getDoc(doc(db, "catalogCourses", courseId, "modules", moduleId, "learningModes", modeId));
 
     if (modeSnap.exists()) {
       return {
@@ -46,7 +63,7 @@ export async function attachLearningModeDocument(executionState) {
       };
     }
 
-    const moduleMode = readModeFromModuleContext(executionState, modeId);
+    const moduleMode = readModeFromModuleDocument(moduleSnap.data(), modeId);
 
     if (moduleMode) {
       return {
@@ -58,44 +75,42 @@ export async function attachLearningModeDocument(executionState) {
       };
     }
 
-    return {
-      valid: false,
-      errors: [
-        {
-          code: "LEARNING_MODE_NOT_FOUND",
-          message: "Learning mode not found: " + modeId
-        }
-      ]
-    };
+    return createFailedContextResult("LEARNING_MODE_NOT_FOUND", "Learning mode not found: " + modeId, courseId, moduleId, modeId, payload, attemptedPaths);
   } catch (error) {
-    return {
-      valid: false,
-      errors: [
-        {
-          code: "LEARNING_MODE_READ_FAILED",
-          message: "Failed to attach learning mode: " + error.message
-        }
-      ]
-    };
+    return createFailedContextResult("LEARNING_MODE_READ_FAILED", "Failed to attach learning mode: " + error.message, courseId, moduleId, modeId, payload, attemptedPaths);
   }
 }
 
-function readModeFromModuleContext(executionState, modeId) {
-  const module = executionState.context && executionState.context.module ? executionState.context.module : null;
-
-  if (!module || !module.learningModes || typeof module.learningModes !== "object") {
+function readModeFromModuleDocument(moduleData, modeId) {
+  if (!moduleData || !moduleData.learningModes || typeof moduleData.learningModes !== "object") {
     return null;
   }
 
-  return module.learningModes[modeId] || null;
+  return moduleData.learningModes[modeId] || null;
 }
 
-function readCourseCollectionName(executionState) {
-  if (executionState.context && executionState.context.courseCollectionName) {
-    return executionState.context.courseCollectionName;
+function createFailedContextResult(code, message, courseId, moduleId, modeId, payload, attemptedPaths) {
+  if (isDevelopmentLoggingEnabled()) {
+    console.warn("[step:add] addContext failed", {
+      courseId: courseId,
+      moduleId: moduleId,
+      modeId: modeId,
+      stepTypeId: payload.stepTypeId || payload.stepType || "",
+      attemptedPaths: attemptedPaths,
+      errorMessage: message
+    });
   }
 
-  return "catalogCourses";
+  return {
+    valid: false,
+    errors: [
+      {
+        code: code,
+        message: message,
+        attemptedPaths: attemptedPaths
+      }
+    ]
+  };
 }
 
 function isDevelopmentLoggingEnabled() {

@@ -274,20 +274,24 @@ export const moduleEditorService = {
     moduleEditorStore.setState({ selectedPracticeModeKey: practiceModeKey });
   },
 
-  addStepToPracticeMode: async function (courseId, moduleId, modeId, sessionId, practiceModeKey, stepType) {
-    if (!modeId) {
-      throw new Error("Select a learning mode before adding a step.");
+  addStepToLearningMode: async function (courseId, moduleId, modeId, stepTypeId, options) {
+    var safeOptions = options || {};
+
+    if (!courseId || !moduleId || !modeId || !stepTypeId) {
+      throw new Error("Cannot add step because course, module, or learning mode is missing.");
     }
+
+    logStepAddPayload(courseId, moduleId, modeId, stepTypeId);
 
     var result = await runIntentPipeline(getIntentDefinition("AddStepToLearningModeIntent"), {
       payload: {
         courseId: courseId,
         moduleId: moduleId,
         modeId: modeId,
-        sessionId: sessionId,
-        practiceModeKey: practiceModeKey,
-        stepType: stepType,
-        stepTypeId: stepType
+        sessionId: safeOptions.sessionId || null,
+        practiceModeKey: safeOptions.practiceModeKey || "beforeClass",
+        stepType: stepTypeId,
+        stepTypeId: stepTypeId
       },
       actor: getActor()
     });
@@ -304,7 +308,15 @@ export const moduleEditorService = {
       return result;
     }
 
+    logStepAddContextFailure(courseId, moduleId, modeId, stepTypeId, result);
     throw new Error(readIntentErrorMessage(result));
+  },
+
+  addStepToPracticeMode: async function (courseId, moduleId, modeId, sessionId, practiceModeKey, stepType) {
+    return this.addStepToLearningMode(courseId, moduleId, modeId, stepType, {
+      sessionId: sessionId,
+      practiceModeKey: practiceModeKey
+    });
   },
 
   updatePracticeModeStep: async function (courseId, moduleId, sessionId, practiceModeKey, step) {
@@ -680,6 +692,58 @@ function logModeSelection(selectedModeId, selectedMode, learningModes, tab) {
     tab: tab || "steps",
     modeCount: modeIds.length
   });
+}
+
+function logStepAddPayload(courseId, moduleId, modeId, stepTypeId) {
+  if (!isDevelopmentLoggingEnabled()) {
+    return;
+  }
+
+  console.info("[step:add] payload", {
+    courseId: courseId,
+    moduleId: moduleId,
+    modeId: modeId,
+    stepTypeId: stepTypeId
+  });
+}
+
+function logStepAddContextFailure(courseId, moduleId, modeId, stepTypeId, result) {
+  if (!isDevelopmentLoggingEnabled()) {
+    return;
+  }
+
+  var errorInfo = readFirstIntentError(result);
+
+  console.warn("[step:add] addContext failed", {
+    courseId: courseId,
+    moduleId: moduleId,
+    modeId: modeId,
+    stepTypeId: stepTypeId,
+    attemptedPaths: errorInfo.attemptedPaths,
+    errorMessage: errorInfo.message
+  });
+}
+
+function readFirstIntentError(result) {
+  var error = null;
+
+  if (result && result.emitted && Array.isArray(result.emitted.errors) && result.emitted.errors.length > 0) {
+    error = result.emitted.errors[0];
+  } else if (result && Array.isArray(result.errors) && result.errors.length > 0) {
+    error = result.errors[0];
+  }
+
+  if (!error) {
+    return {
+      message: "Unknown ICF error",
+      attemptedPaths: []
+    };
+  }
+
+  return {
+    message: error.message || error.code || "Unknown ICF error",
+    attemptedPaths: error.attemptedPaths || []
+  };
 }
 
 function readModeTitle(mode, fallbackTitle) {

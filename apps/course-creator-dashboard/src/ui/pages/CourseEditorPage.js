@@ -488,9 +488,10 @@ export class CourseEditorPage {
       var stepType = stepOption.getAttribute("data-type");
       var practiceModeKey = state.selectedPracticeModeKey || "beforeClass";
       var selectedModeId = readSelectedModeId(state);
+      var originalStepOptionHtml = stepOption.innerHTML;
 
-      if (!selectedModeId) {
-        alert("Select a learning mode before adding a step.");
+      if (!self.courseId || !self.moduleId || !selectedModeId || !stepType) {
+        alert("Cannot add step because course, module, or learning mode is missing.");
         return;
       }
 
@@ -500,12 +501,18 @@ export class CourseEditorPage {
       this.resetPracticeModePlayer();
       stepOption.innerHTML = '<span class="oqu-spinner oqu-spinner-blue"></span> Adding...';
       stepOption.style.pointerEvents = "none";
-      moduleEditorService.addStepToPracticeMode(
-        self.courseId, self.moduleId, selectedModeId, session ? session.id : null, practiceModeKey, stepType
+      moduleEditorService.addStepToLearningMode(
+        self.courseId, self.moduleId, selectedModeId, stepType, {
+          sessionId: session ? session.id : null,
+          practiceModeKey: practiceModeKey
+        }
       ).then(function () {
         autoSelectNewestStep(practiceModeKey);
       }).catch(function (error) {
         alert("Failed to add step: " + error.message);
+      }).finally(function () {
+        stepOption.innerHTML = originalStepOptionHtml;
+        stepOption.style.pointerEvents = "";
       });
       return;
     }
