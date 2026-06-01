@@ -10,6 +10,23 @@ function getActor() {
 export const moduleEditorService = {
   openModuleEditor: async function (courseId, moduleId) {
     moduleEditorStore.setState({ isFetching: true, error: null });
+    logModuleEditorOpen(courseId, moduleId);
+
+    if (!courseId) {
+      moduleEditorStore.setState({
+        error: "Cannot open module editor because courseId is missing.",
+        isFetching: false
+      });
+      return;
+    }
+
+    if (!moduleId) {
+      moduleEditorStore.setState({
+        error: "Cannot open module editor because moduleId is missing.",
+        isFetching: false
+      });
+      return;
+    }
 
     try {
       const result = await runIntentPipeline(getIntentDefinition("OpenModuleEditorIntent"), {
@@ -511,4 +528,28 @@ function logIntentFailure(intentName, result) {
   if (result.errors) {
     console.warn("[ICF] " + intentName + " errors:", result.errors);
   }
+}
+
+function logModuleEditorOpen(courseId, moduleId) {
+  if (!isDevelopmentLoggingEnabled()) {
+    return;
+  }
+
+  console.info("[module-editor:open]", {
+    courseId: courseId || "",
+    moduleId: moduleId || "",
+    canonicalPath: "catalogCourses/" + (courseId || "") + "/modules/" + (moduleId || ""),
+    hasCourseId: Boolean(courseId),
+    hasModuleId: Boolean(moduleId)
+  });
+}
+
+function isDevelopmentLoggingEnabled() {
+  if (typeof window === "undefined" || !window.location) {
+    return false;
+  }
+
+  return window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1" ||
+    window.location.search.indexOf("debug") !== -1;
 }

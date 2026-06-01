@@ -1430,7 +1430,7 @@ export class CourseOverviewPage {
         + '</td>'
         + '<td class="py-4 px-6 border-b border-gray-100 text-right">'
         + '<button data-id="' + moduleId + '" class="open-module-btn border border-gray-200 bg-white hover:bg-gray-50 text-blue-600 hover:text-blue-700 px-3 py-1.5 rounded text-sm font-bold transition shadow-sm items-center gap-1 inline-flex">'
-        + 'Edit Sessions <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>'
+        + 'Edit Learning Modes <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>'
         + '</button>'
         + '</td>'
         + '</tr>';
