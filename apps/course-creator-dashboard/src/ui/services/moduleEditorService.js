@@ -45,6 +45,7 @@ export const moduleEditorService = {
 
         moduleEditorStore.setState({
           course: result.emitted.data.course,
+          courseContext: createCourseContext(courseId, moduleId, selectedModeId, result.emitted.data.courseCollectionName),
           module: result.emitted.data.module,
           learningContent: result.emitted.data.learningContent || {},
           learningModes: learningModes,
@@ -104,10 +105,12 @@ export const moduleEditorService = {
     var selectedModeId = resolveSelectedModeId(state.learningModes, modeId);
     var sessionId = resolveSelectedSessionId(state.sessions, state.learningModes, selectedModeId, state.selectedSessionId);
     var mode = readModeById(state.learningModes, selectedModeId);
+    var currentContext = state.courseContext || {};
 
     moduleEditorStore.setState({
       selectedModeId: selectedModeId,
       selectedLearningModeId: selectedModeId,
+      courseContext: createCourseContext(currentContext.courseId, currentContext.moduleId, selectedModeId, currentContext.courseCollectionName),
       selectedSessionId: sessionId,
       selectedPracticeModeKey: "beforeClass",
       selectedStepId: null
@@ -144,10 +147,13 @@ export const moduleEditorService = {
     });
 
     if (result && result.emitted && result.emitted.success) {
+      var state = moduleEditorStore.getState();
+      var currentContext = state.courseContext || {};
       moduleEditorStore.setState({
         learningModes: result.emitted.data.learningModes,
         selectedModeId: "primary",
         selectedLearningModeId: "primary",
+        courseContext: createCourseContext(currentContext.courseId, currentContext.moduleId, "primary", currentContext.courseCollectionName),
         lastSaved: Date.now()
       });
       return result;
@@ -276,23 +282,26 @@ export const moduleEditorService = {
 
   addStepToLearningMode: async function (courseId, moduleId, modeId, stepTypeId, options) {
     var safeOptions = options || {};
+    var courseContext = safeOptions.courseContext || createCourseContext(courseId, moduleId, modeId, safeOptions.courseCollectionName);
+    var payload = {
+      courseId: courseContext.courseId,
+      moduleId: courseContext.moduleId,
+      modeId: courseContext.modeId,
+      sessionId: safeOptions.sessionId || null,
+      practiceModeKey: safeOptions.practiceModeKey || "beforeClass",
+      stepType: stepTypeId,
+      stepTypeId: stepTypeId,
+      courseContext: courseContext
+    };
 
-    if (!courseId || !moduleId || !modeId || !stepTypeId) {
+    if (!payload.courseId || !payload.moduleId || !payload.modeId || !payload.stepTypeId) {
       throw new Error("Cannot add step because course, module, or learning mode is missing.");
     }
 
-    logStepAddPayload(courseId, moduleId, modeId, stepTypeId);
+    logStepAddPayload(payload);
 
     var result = await runIntentPipeline(getIntentDefinition("AddStepToLearningModeIntent"), {
-      payload: {
-        courseId: courseId,
-        moduleId: moduleId,
-        modeId: modeId,
-        sessionId: safeOptions.sessionId || null,
-        practiceModeKey: safeOptions.practiceModeKey || "beforeClass",
-        stepType: stepTypeId,
-        stepTypeId: stepTypeId
-      },
+      payload: payload,
       actor: getActor()
     });
 
@@ -308,7 +317,7 @@ export const moduleEditorService = {
       return result;
     }
 
-    logStepAddContextFailure(courseId, moduleId, modeId, stepTypeId, result);
+    logStepAddContextFailure(payload, result);
     throw new Error(readIntentErrorMessage(result));
   },
 
@@ -503,6 +512,7 @@ function mergeLearningModeResult(data) {
   var state = moduleEditorStore.getState();
   var sessions = state.sessions.slice();
   var selectedModeId = data.learningMode && data.learningMode.id ? data.learningMode.id : (state.selectedModeId || state.selectedLearningModeId);
+  var currentContext = state.courseContext || {};
 
   if (data.session) {
     var found = false;
@@ -522,6 +532,7 @@ function mergeLearningModeResult(data) {
     learningModes: data.learningModes || state.learningModes,
     selectedModeId: selectedModeId,
     selectedLearningModeId: selectedModeId,
+    courseContext: createCourseContext(currentContext.courseId, currentContext.moduleId, selectedModeId, currentContext.courseCollectionName),
     selectedSessionId: data.session && data.session.id ? data.session.id : state.selectedSessionId,
     sessions: sessions,
     lastSaved: Date.now()
@@ -541,7 +552,8 @@ function mergeLearningMode(learningMode) {
       [modeId]: learningMode
     }),
     selectedModeId: modeId,
-    selectedLearningModeId: modeId
+    selectedLearningModeId: modeId,
+    courseContext: createCourseContext(state.courseContext && state.courseContext.courseId, state.courseContext && state.courseContext.moduleId, modeId, state.courseContext && state.courseContext.courseCollectionName)
   });
 }
 
@@ -694,20 +706,21 @@ function logModeSelection(selectedModeId, selectedMode, learningModes, tab) {
   });
 }
 
-function logStepAddPayload(courseId, moduleId, modeId, stepTypeId) {
+function logStepAddPayload(payload) {
   if (!isDevelopmentLoggingEnabled()) {
     return;
   }
 
   console.info("[step:add] payload", {
-    courseId: courseId,
-    moduleId: moduleId,
-    modeId: modeId,
-    stepTypeId: stepTypeId
+    courseId: payload.courseId,
+    moduleId: payload.moduleId,
+    modeId: payload.modeId,
+    stepTypeId: payload.stepTypeId,
+    currentCourseContext: payload.courseContext || null
   });
 }
 
-function logStepAddContextFailure(courseId, moduleId, modeId, stepTypeId, result) {
+function logStepAddContextFailure(payload, result) {
   if (!isDevelopmentLoggingEnabled()) {
     return;
   }
@@ -715,13 +728,35 @@ function logStepAddContextFailure(courseId, moduleId, modeId, stepTypeId, result
   var errorInfo = readFirstIntentError(result);
 
   console.warn("[step:add] addContext failed", {
-    courseId: courseId,
-    moduleId: moduleId,
-    modeId: modeId,
-    stepTypeId: stepTypeId,
+    courseId: payload.courseId,
+    moduleId: payload.moduleId,
+    modeId: payload.modeId,
+    stepTypeId: payload.stepTypeId,
     attemptedPaths: errorInfo.attemptedPaths,
-    errorMessage: errorInfo.message
+    errorMessage: errorInfo.message,
+    currentRoute: readCurrentRoute(),
+    currentCourseContext: payload.courseContext || null
   });
+}
+
+function createCourseContext(courseId, moduleId, modeId, courseCollectionName) {
+  var collectionName = courseCollectionName || "catalogCourses";
+  var safeCourseId = courseId || "";
+  var safeModuleId = moduleId || "";
+  var safeModeId = modeId || "";
+  var coursePath = collectionName + "/" + safeCourseId;
+  var modulePath = coursePath + "/modules/" + safeModuleId;
+  var modePath = modulePath + "/learningModes/" + safeModeId;
+
+  return {
+    courseId: safeCourseId,
+    coursePath: coursePath,
+    moduleId: safeModuleId,
+    modulePath: modulePath,
+    modeId: safeModeId,
+    modePath: modePath,
+    courseCollectionName: collectionName
+  };
 }
 
 function readFirstIntentError(result) {
@@ -774,6 +809,14 @@ function logModuleEditorOpen(courseId, moduleId) {
     hasCourseId: Boolean(courseId),
     hasModuleId: Boolean(moduleId)
   });
+}
+
+function readCurrentRoute() {
+  if (typeof window === "undefined" || !window.location) {
+    return "";
+  }
+
+  return window.location.href;
 }
 
 function isDevelopmentLoggingEnabled() {

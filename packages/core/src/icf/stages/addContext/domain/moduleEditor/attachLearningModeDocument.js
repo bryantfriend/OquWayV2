@@ -167,6 +167,16 @@ function readOrder(value) {
 
 function createFailedContextResult(code, message, courseId, moduleId, modeId, payload, attemptedPaths) {
   if (isDevelopmentLoggingEnabled()) {
+    if (code === "COURSE_NOT_FOUND") {
+      console.warn("[step:add] course lookup failed", {
+        courseId: courseId,
+        attemptedPath: attemptedPaths.length > 0 ? attemptedPaths[attemptedPaths.length - 1] : "catalogCourses/" + courseId,
+        attemptedPaths: attemptedPaths,
+        currentRoute: readCurrentRoute(),
+        currentCourseContext: createCourseContextSnapshot(courseId, moduleId, modeId, payload)
+      });
+    }
+
     console.warn("[step:add] addContext failed", {
       courseId: courseId,
       moduleId: moduleId,
@@ -187,6 +197,33 @@ function createFailedContextResult(code, message, courseId, moduleId, modeId, pa
       }
     ]
   };
+}
+
+function createCourseContextSnapshot(courseId, moduleId, modeId, payload) {
+  if (payload && payload.courseContext && typeof payload.courseContext === "object") {
+    return payload.courseContext;
+  }
+
+  const coursePath = "catalogCourses/" + courseId;
+  const modulePath = coursePath + "/modules/" + moduleId;
+  const modePath = modulePath + "/learningModes/" + modeId;
+
+  return {
+    courseId: courseId,
+    coursePath: coursePath,
+    moduleId: moduleId,
+    modulePath: modulePath,
+    modeId: modeId,
+    modePath: modePath
+  };
+}
+
+function readCurrentRoute() {
+  if (typeof window === "undefined" || !window.location) {
+    return "";
+  }
+
+  return window.location.href;
 }
 
 function isDevelopmentLoggingEnabled() {

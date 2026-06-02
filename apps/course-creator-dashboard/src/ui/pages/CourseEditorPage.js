@@ -488,9 +488,10 @@ export class CourseEditorPage {
       var stepType = stepOption.getAttribute("data-type");
       var practiceModeKey = state.selectedPracticeModeKey || "beforeClass";
       var selectedModeId = readSelectedModeId(state);
+      var courseContext = readCourseContext(state, self.courseId, self.moduleId, selectedModeId);
       var originalStepOptionHtml = stepOption.innerHTML;
 
-      if (!self.courseId || !self.moduleId || !selectedModeId || !stepType) {
+      if (!courseContext.courseId || !courseContext.moduleId || !courseContext.modeId || !stepType) {
         alert("Cannot add step because course, module, or learning mode is missing.");
         return;
       }
@@ -502,7 +503,8 @@ export class CourseEditorPage {
       stepOption.innerHTML = '<span class="oqu-spinner oqu-spinner-blue"></span> Adding...';
       stepOption.style.pointerEvents = "none";
       moduleEditorService.addStepToLearningMode(
-        self.courseId, self.moduleId, selectedModeId, stepType, {
+        courseContext.courseId, courseContext.moduleId, courseContext.modeId, stepType, {
+          courseContext: courseContext,
           sessionId: session ? session.id : null,
           practiceModeKey: practiceModeKey
         }
@@ -2115,7 +2117,7 @@ function filterStepPicker(value) {
 
 function createStepTypeCards() {
   var definitions = listStepTypeDefinitions();
-  var cards = [];
+  var cards = [createPrimerStepTypeCard()];
   var definitionIndex = 0;
 
   while (definitionIndex < definitions.length) {
@@ -2124,6 +2126,17 @@ function createStepTypeCards() {
   }
 
   return cards;
+}
+
+function createPrimerStepTypeCard() {
+  return {
+    type: "textBriefing",
+    label: "Primer",
+    icon: "fa-solid fa-seedling",
+    description: "A short starter step that introduces the key idea before practice.",
+    category: "Basic",
+    complexity: "Easy"
+  };
 }
 
 function createStepTypeCard(StepTypeDefinition) {
@@ -3056,6 +3069,27 @@ function readSelectedModeId(state) {
   }
 
   return "primary";
+}
+
+function readCourseContext(state, courseId, moduleId, modeId) {
+  var existingContext = state && state.courseContext ? state.courseContext : {};
+  var collectionName = existingContext.courseCollectionName || "catalogCourses";
+  var safeCourseId = existingContext.courseId || courseId || "";
+  var safeModuleId = existingContext.moduleId || moduleId || "";
+  var safeModeId = modeId || existingContext.modeId || readSelectedModeId(state);
+  var coursePath = collectionName + "/" + safeCourseId;
+  var modulePath = coursePath + "/modules/" + safeModuleId;
+  var modePath = modulePath + "/learningModes/" + safeModeId;
+
+  return {
+    courseId: safeCourseId,
+    coursePath: coursePath,
+    moduleId: safeModuleId,
+    modulePath: modulePath,
+    modeId: safeModeId,
+    modePath: modePath,
+    courseCollectionName: collectionName
+  };
 }
 
 function logModeSelection(state, tab, selectedMode) {

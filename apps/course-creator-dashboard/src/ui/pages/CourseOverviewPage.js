@@ -1261,16 +1261,15 @@ export class CourseOverviewPage {
       reviewStatus: this.externalTaskStatusFilter
     }).then(function (submissions) {
       self.externalTaskSubmissions = submissions;
-      self.externalTaskLoading = false;
-      self.renderExternalTaskSubmissions();
       self.showExternalTaskStatus('success', 'Review queue loaded.');
       setTimeout(function () {
         self.hideExternalTaskStatus();
       }, 1400);
     }).catch(function (error) {
+      self.showExternalTaskStatus('error', error.message);
+    }).finally(function () {
       self.externalTaskLoading = false;
       self.renderExternalTaskSubmissions();
-      self.showExternalTaskStatus('error', error.message);
     });
   }
 
@@ -1320,7 +1319,7 @@ export class CourseOverviewPage {
     }
 
     if (!this.externalTaskSubmissions || this.externalTaskSubmissions.length === 0) {
-      list.innerHTML = '<div class="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-center text-xs text-gray-500 font-medium">No external task submissions in this queue.</div>';
+      list.innerHTML = '<div class="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-center text-xs text-gray-500 font-medium">No external task submissions yet.</div>';
       return;
     }
 

@@ -3,6 +3,7 @@ class ModuleEditorStore {
   constructor() {
     this.state = {
       course: null,
+      courseContext: null,
       module: null,
       learningContent: createEmptyLearningContent(),
       learningModes: {},
@@ -53,6 +54,7 @@ class ModuleEditorStore {
   resetState() {
     this.state = {
       course: null,
+      courseContext: null,
       module: null,
       learningContent: createEmptyLearningContent(),
       learningModes: {},

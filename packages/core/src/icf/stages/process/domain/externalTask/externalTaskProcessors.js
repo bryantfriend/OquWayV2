@@ -90,7 +90,7 @@ export async function processLoadExternalTaskSubmissions(executionState) {
     };
     return { valid: true, data: executionState.result };
   } catch (error) {
-    logExternalTaskProcessError("LoadExternalTaskSubmissionsIntent", executionState, error, "externalTaskSubmissions");
+    logExternalTaskSubmissionsFailure(executionState, error, "externalTaskSubmissions");
     return createProcessError("EXTERNAL_TASK_SUBMISSIONS_LOAD_FAILED", "Could not load external task submissions: " + readErrorMessage(error));
   }
 }
@@ -209,7 +209,10 @@ async function queryExternalTaskSubmissions(filters) {
       : await getDocs(submissionsRef);
   } catch (error) {
     if (isMissingIndexOrQueryShapeError(error)) {
-      logExternalTaskQueryFallback(error, filters);
+      logExternalTaskSubmissionsFailure({
+        actor: {},
+        payload: filters || {}
+      }, error, "externalTaskSubmissions");
       return [];
     }
 
@@ -240,15 +243,22 @@ function isMissingIndexOrQueryShapeError(error) {
     message.indexOf("requires an index") !== -1;
 }
 
-function logExternalTaskQueryFallback(error, filters) {
+function logExternalTaskSubmissionsFailure(executionState, error, queryPath) {
   if (!isDevelopmentHost()) {
     return;
   }
 
-  console.warn("[external-task-debug] Submission query returned empty fallback.", {
-    filters: filters || {},
-    firebaseErrorCode: error && error.code ? error.code : "",
-    message: readErrorMessage(error)
+  var payload = executionState && executionState.payload ? executionState.payload : {};
+  var actor = executionState && executionState.actor ? executionState.actor : {};
+
+  console.warn("[external-task-submissions] load failed", {
+    actorUid: actor.id || "unknown",
+    courseId: payload.courseId || "",
+    classId: payload.classId || "",
+    locationId: payload.locationId || "",
+    queryPath: queryPath || "externalTaskSubmissions",
+    errorCode: error && error.code ? error.code : "",
+    errorMessage: readErrorMessage(error)
   });
 }
 
