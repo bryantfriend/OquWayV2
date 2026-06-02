@@ -70,7 +70,7 @@ export async function processCreateModule(executionState) {
     await mirrorLearningContent(collectionName, payload.courseId, moduleId, learningContent);
     await mirrorLearningModes(collectionName, payload.courseId, moduleId, generationResult.learningModes);
     await writeGeneratedSessionsAndSteps(collectionName, payload.courseId, moduleId, generationResult.sessions, generationResult.stepsByMode);
-    await updateCourseModuleSummary(collectionName, payload.courseId, context.modules, moduleId, generationResult.generatedStepCount);
+    await updateCourseModuleSummary(collectionName, payload.courseId, readCanonicalContextModules(context), moduleId, generationResult.generatedStepCount);
     executionState.result = moduleRecord;
     return { valid: true };
   } catch (error) {
@@ -344,4 +344,14 @@ function readModuleTitleForLog(title) {
 
 function readCourseCollectionName() {
   return "catalogCourses";
+}
+
+function readCanonicalContextModules(context) {
+  const sourceCheck = context && context.moduleSourceCheck ? context.moduleSourceCheck : null;
+
+  if (sourceCheck && sourceCheck.moduleSource === "courses") {
+    return [];
+  }
+
+  return context && Array.isArray(context.modules) ? context.modules : [];
 }
