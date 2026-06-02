@@ -102,15 +102,15 @@ export { VerifySuperAdminAccessIntent } from "./superAdmin/VerifySuperAdminAcces
 // ----------------------
 // Course Editor (Phase 2 UI Intents)
 // ----------------------
-export { OpenCourseEditorIntent } from "./courseEditor/OpenCourseEditorIntent.js?v=1.1.26-buildcheck";
+export { OpenCourseEditorIntent } from "./courseEditor/OpenCourseEditorIntent.js?v=1.1.27-module-repair";
 export { LoadCourseIntent } from "./courseEditor/LoadCourseIntent.js";
 export { LoadModulesIntent } from "./courseEditor/LoadModulesIntent.js";
 export { LoadCourseModulesIntent } from "./courseEditor/LoadCourseModulesIntent.js";
 export { PreviewCourseIntent } from "./courseEditor/PreviewCourseIntent.js";
-export { CreateModuleIntent } from "./courseEditor/CreateModuleIntent.js?v=1.1.26-buildcheck";
+export { CreateModuleIntent } from "./courseEditor/CreateModuleIntent.js?v=1.1.27-module-repair";
 export { OpenCreateModuleWizardIntent } from "./courseEditor/OpenCreateModuleWizardIntent.js";
 export { ParseLearningContentIntent } from "./courseEditor/ParseLearningContentIntent.js";
-export { CreateModuleFromWizardIntent } from "./courseEditor/CreateModuleFromWizardIntent.js?v=1.1.26-buildcheck";
+export { CreateModuleFromWizardIntent } from "./courseEditor/CreateModuleFromWizardIntent.js?v=1.1.27-module-repair";
 export { GenerateModuleSkeletonIntent } from "./courseEditor/GenerateModuleSkeletonIntent.js";
 export { GenerateStarterStepsIntent } from "./courseEditor/GenerateStarterStepsIntent.js";
 export { ListModulesIntent } from "./courseEditor/ListModulesIntent.js";
@@ -124,6 +124,7 @@ export { SaveCourseDraftIntent } from "./courseEditor/SaveCourseDraftIntent.js";
 export { PublishCourseIntent } from "./courseEditor/PublishCourseIntent.js";
 export { ValidateCourseStructureIntent } from "./courseEditor/ValidateCourseStructureIntent.js";
 export { UpdateCourseFieldIntent } from "./courseEditor/UpdateCourseFieldIntent.js";
+export { MigrateLegacyModulesToCatalogCourseIntent } from "./courseEditor/MigrateLegacyModulesToCatalogCourseIntent.js?v=1.1.27-module-repair";
 
 // ----------------------
 // Module Editor
