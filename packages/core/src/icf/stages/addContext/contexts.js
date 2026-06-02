@@ -21,7 +21,7 @@ export { attachModuleDocument } from "./domain/moduleEditor/attachModuleDocument
 export { attachLearningModeDocument } from "./domain/moduleEditor/attachLearningModeDocument.js";
 export { attachSessionDocument } from "./domain/moduleEditor/attachSessionDocument.js";
 export { attachSessionsCollection } from "./domain/moduleEditor/attachSessionsCollection.js";
-export { attachStepPreviewContext } from "./domain/moduleEditor/attachStepPreviewContext.js";
+export { attachStepPreviewContext } from "./domain/moduleEditor/attachStepPreviewContext.js?v=1.1.26-buildcheck";
 export { attachStepRegistryDefinitionForStep } from "./domain/moduleEditor/attachStepRegistryDefinitionForStep.js";
 export { attachStepsCollection } from "./domain/moduleEditor/attachStepsCollection.js";
 export { attachStudentProfileContext } from "./domain/student/attachStudentProfileContext.js";
