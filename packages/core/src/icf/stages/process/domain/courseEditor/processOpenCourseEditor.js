@@ -3,6 +3,7 @@ import { db, writeBatch, doc } from "../../../../../infrastructure/firebase/fire
 export async function processOpenCourseEditor(executionState) {
     const { context } = executionState;
     const modules = Array.isArray(context.modules) ? context.modules : [];
+    const moduleSourceCheck = context.moduleSourceCheck || {};
 
     // The processor's job for this query intent is to format the final payload for the UI store
     const selectedModuleId = modules.length > 0
@@ -21,14 +22,19 @@ export async function processOpenCourseEditor(executionState) {
 
     console.info("[course-editor:modules-read]", {
         courseId: courseId,
-        path: "catalogCourses/" + courseId + "/modules",
+        path: moduleSourceCheck.moduleSource === "courses" ? "courses/" + courseId + "/modules" : "catalogCourses/" + courseId + "/modules",
+        canonicalPath: "catalogCourses/" + courseId + "/modules",
         loadedCount: modules.length,
+        moduleSource: moduleSourceCheck.moduleSource || "catalogCourses",
         moduleIds: modules.map(readModuleId)
     });
 
     console.info("[course:open:module-read-proof]", {
         courseId: courseId,
         readPath: "catalogCourses/" + courseId + "/modules",
+        fallbackReadPath: moduleSourceCheck.moduleSource === "courses" ? "courses/" + courseId + "/modules" : null,
+        moduleSource: moduleSourceCheck.moduleSource || "catalogCourses",
+        needsModuleMigration: Boolean(moduleSourceCheck.needsModuleMigration),
         loadedModuleCount: modules.length,
         loadedModuleIds: modules.map(readModuleId),
         loadedModuleTitles: modules.map(readModuleTitle)
@@ -37,6 +43,7 @@ export async function processOpenCourseEditor(executionState) {
     executionState.result = {
         course: context.course,
         modules: modules,
+        moduleSourceCheck: moduleSourceCheck,
         selectedModuleId: selectedModuleId,
         permissions: {
             role: context.actorRole,
