@@ -40,8 +40,8 @@ export { processResolveLocationBySlug } from "./domain/location/processResolveLo
 export { processUpdateLocationLoginMode } from "./domain/location/processUpdateLocationLoginMode.js";
 export { processUpdateLocationLoginSlug } from "./domain/location/processUpdateLocationLoginSlug.js";
 export { processAddModule } from "./domain/courseEditor/processAddModule.js";
-export { processCreateModule } from "./domain/courseEditor/processCreateModule.js";
-export { processCreateModuleFromWizard } from "./domain/courseEditor/processCreateModuleFromWizard.js";
+export { processCreateModule } from "./domain/courseEditor/processCreateModule.js?v=1.1.26-buildcheck";
+export { processCreateModuleFromWizard } from "./domain/courseEditor/processCreateModuleFromWizard.js?v=1.1.26-buildcheck";
 export { processOpenCreateModuleWizard } from "./domain/courseEditor/processOpenCreateModuleWizard.js";
 export { processParseLearningContent } from "./domain/courseEditor/processParseLearningContent.js";
 export { processGenerateModuleSkeleton } from "./domain/courseEditor/processGenerateModuleSkeleton.js";
@@ -52,7 +52,7 @@ export { processDeleteModule } from "./domain/courseEditor/processDeleteModule.j
 export { processDuplicateModule } from "./domain/courseEditor/processDuplicateModule.js";
 export { processLoadCourse } from "./domain/courseEditor/processLoadCourse.js";
 export { processLoadModules } from "./domain/courseEditor/processLoadModules.js";
-export { processOpenCourseEditor } from "./domain/courseEditor/processOpenCourseEditor.js";
+export { processOpenCourseEditor } from "./domain/courseEditor/processOpenCourseEditor.js?v=1.1.26-buildcheck";
 export { processPublishCourse } from "./domain/courseEditor/processPublishCourse.js";
 export { processReorderModules } from "./domain/courseEditor/processReorderModules.js";
 export { processSaveCourseDraft } from "./domain/courseEditor/processSaveCourseDraft.js";
@@ -79,7 +79,7 @@ export { processPullLearningContent } from "./domain/moduleEditor/processPullLea
 export { processListPracticeModeSteps } from "./domain/moduleEditor/processListPracticeModeSteps.js";
 export { processOpenModuleEditor } from "./domain/moduleEditor/processOpenModuleEditor.js";
 export { processPreviewStep } from "./domain/moduleEditor/processPreviewStep.js";
-export { processUpdateLearningModeStep } from "./domain/moduleEditor/processUpdateLearningModeStep.js";
+export { processUpdateLearningModeStep } from "./domain/moduleEditor/processUpdateLearningModeStep.js?v=1.1.26-buildcheck";
 export { processDeletePracticeModeStep } from "./domain/moduleEditor/processDeletePracticeModeStep.js";
 export { processReorderPracticeModeSteps } from "./domain/moduleEditor/processReorderPracticeModeSteps.js";
 export { processSaveModuleDraft } from "./domain/moduleEditor/processSaveModuleDraft.js";
@@ -87,7 +87,7 @@ export { processUpdateSession } from "./domain/moduleEditor/processUpdateSession
 export { processUpdatePracticeMode } from "./domain/moduleEditor/processUpdatePracticeMode.js";
 export { processUpdatePracticeModeStep } from "./domain/moduleEditor/processUpdatePracticeModeStep.js";
 export { processUpdateStepField } from "./domain/moduleEditor/processUpdateStepField.js";
-export { processUploadStepMedia } from "./domain/moduleEditor/processUploadStepMedia.js";
+export { processUploadStepMedia } from "./domain/moduleEditor/processUploadStepMedia.js?v=1.1.26-buildcheck";
 export { processLoadStudentCourse } from "./domain/student/processLoadStudentCourse.js";
 export { processLoadStudentDashboard } from "./domain/student/processLoadStudentDashboard.js";
 export { processContinueLearning } from "./domain/student/processContinueLearning.js";

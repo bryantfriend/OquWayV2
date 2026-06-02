@@ -1,9 +1,9 @@
 import { validateAuthenticated, validateCourseId } from "../../stages/validate/validators.js";
 import { normalizeCourseId, normalizeModuleShell } from "../../stages/normalize/normalizers.js";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js";
-import { attachCourseDocument, attachModulesCollection } from "../../stages/addContext/contexts.js";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.26-buildcheck";
+import { attachCourseDocument, attachModulesCollection } from "../../stages/addContext/contexts.js?v=1.1.26-buildcheck";
 import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js";
-import { processCreateModule } from "../../stages/process/processors.js";
+import { processCreateModule } from "../../stages/process/processors.js?v=1.1.26-buildcheck";
 import { emitIntentResult } from "../../stages/emit/emitters.js";
 
 export function CreateModuleIntent() {

@@ -1,5 +1,5 @@
 import { moduleEditorStore } from "../state/moduleEditorState.js";
-import { moduleEditorService } from "../services/moduleEditorService.js";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.26-buildcheck";
 import {
   getStepTypeDefinition,
   listStepTypeDefinitions

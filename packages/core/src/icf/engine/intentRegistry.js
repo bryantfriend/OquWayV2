@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js";
+import * as IntentExports from "../intents/intents.js?v=1.1.26-buildcheck";
 
 const registry = {
   // Demo Verification

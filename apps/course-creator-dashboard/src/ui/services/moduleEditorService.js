@@ -1,5 +1,5 @@
-import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js";
-import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js";
+import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.26-buildcheck";
+import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.26-buildcheck";
 import { moduleEditorStore } from "../state/moduleEditorState.js";
 import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js";
 

@@ -102,15 +102,15 @@ export { VerifySuperAdminAccessIntent } from "./superAdmin/VerifySuperAdminAcces
 // ----------------------
 // Course Editor (Phase 2 UI Intents)
 // ----------------------
-export { OpenCourseEditorIntent } from "./courseEditor/OpenCourseEditorIntent.js";
+export { OpenCourseEditorIntent } from "./courseEditor/OpenCourseEditorIntent.js?v=1.1.26-buildcheck";
 export { LoadCourseIntent } from "./courseEditor/LoadCourseIntent.js";
 export { LoadModulesIntent } from "./courseEditor/LoadModulesIntent.js";
 export { LoadCourseModulesIntent } from "./courseEditor/LoadCourseModulesIntent.js";
 export { PreviewCourseIntent } from "./courseEditor/PreviewCourseIntent.js";
-export { CreateModuleIntent } from "./courseEditor/CreateModuleIntent.js";
+export { CreateModuleIntent } from "./courseEditor/CreateModuleIntent.js?v=1.1.26-buildcheck";
 export { OpenCreateModuleWizardIntent } from "./courseEditor/OpenCreateModuleWizardIntent.js";
 export { ParseLearningContentIntent } from "./courseEditor/ParseLearningContentIntent.js";
-export { CreateModuleFromWizardIntent } from "./courseEditor/CreateModuleFromWizardIntent.js";
+export { CreateModuleFromWizardIntent } from "./courseEditor/CreateModuleFromWizardIntent.js?v=1.1.26-buildcheck";
 export { GenerateModuleSkeletonIntent } from "./courseEditor/GenerateModuleSkeletonIntent.js";
 export { GenerateStarterStepsIntent } from "./courseEditor/GenerateStarterStepsIntent.js";
 export { ListModulesIntent } from "./courseEditor/ListModulesIntent.js";
@@ -140,7 +140,7 @@ export { GenerateModeFromPrimaryIntent } from "./moduleEditor/GenerateModeFromPr
 export { PullLearningContentIntent } from "./moduleEditor/PullLearningContentIntent.js";
 export { PreviewStepIntent } from "./moduleEditor/PreviewStepIntent.js";
 export { AddStepToLearningModeIntent } from "./moduleEditor/AddStepToLearningModeIntent.js";
-export { UpdateLearningModeStepIntent } from "./moduleEditor/UpdateLearningModeStepIntent.js";
+export { UpdateLearningModeStepIntent } from "./moduleEditor/UpdateLearningModeStepIntent.js?v=1.1.26-buildcheck";
 export { AddStepToPracticeModeIntent } from "./moduleEditor/AddStepToPracticeModeIntent.js";
 export { CreatePracticeModeShellsIntent } from "./moduleEditor/CreatePracticeModeShellsIntent.js";
 export { CreateSessionIntent } from "./moduleEditor/CreateSessionIntent.js";
@@ -155,7 +155,7 @@ export { ListSessionsIntent } from "./moduleEditor/ListSessionsIntent.js";
 export { ReorderPracticeModeStepsIntent } from "./moduleEditor/ReorderPracticeModeStepsIntent.js";
 export { UpdatePracticeModeIntent } from "./moduleEditor/UpdatePracticeModeIntent.js";
 export { UpdatePracticeModeStepIntent } from "./moduleEditor/UpdatePracticeModeStepIntent.js";
-export { UploadStepMediaIntent } from "./moduleEditor/UploadStepMediaIntent.js";
+export { UploadStepMediaIntent } from "./moduleEditor/UploadStepMediaIntent.js?v=1.1.26-buildcheck";
 export { UpdateSessionIntent } from "./moduleEditor/UpdateSessionIntent.js";
 export { AddStepIntent } from "./moduleEditor/AddStepIntent.js";
 export { UpdateStepFieldIntent } from "./moduleEditor/UpdateStepFieldIntent.js";

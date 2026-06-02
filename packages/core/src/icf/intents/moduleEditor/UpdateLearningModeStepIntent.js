@@ -1,9 +1,9 @@
 import { validateAuthenticated, validateCourseId, validateLearningModeId, validateModuleId, validatePracticeModeStepId } from "../../stages/validate/validators.js";
 import { normalizeCourseId } from "../../stages/normalize/normalizers.js";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js";
-import { attachCourseDocumentForModule, attachLearningModeDocument, attachModuleDocument } from "../../stages/addContext/contexts.js";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.26-buildcheck";
+import { attachCourseDocumentForModule, attachLearningModeDocument, attachModuleDocument } from "../../stages/addContext/contexts.js?v=1.1.26-buildcheck";
 import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js";
-import { processUpdateLearningModeStep } from "../../stages/process/processors.js";
+import { processUpdateLearningModeStep } from "../../stages/process/processors.js?v=1.1.26-buildcheck";
 import { emitIntentResult } from "../../stages/emit/emitters.js";
 
 export function UpdateLearningModeStepIntent() {

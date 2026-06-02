@@ -1,4 +1,4 @@
-import { processCreateModule } from "./processCreateModule.js";
+import { processCreateModule } from "./processCreateModule.js?v=1.1.26-buildcheck";
 
 export async function processCreateModuleFromWizard(executionState) {
   var payload = executionState.payload || {};

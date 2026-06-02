@@ -468,6 +468,156 @@
       animation: oquSuccessScale 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards;
     }
 
+    @keyframes moduleWizardCardBuild {
+      0% { transform: translateY(22px) scale(0.92); opacity: 0; }
+      45% { transform: translateY(0) scale(1); opacity: 1; }
+      100% { transform: translateY(-4px) scale(1); opacity: 1; }
+    }
+
+    @keyframes moduleWizardDotConnect {
+      0%, 15% { transform: scale(0.55); opacity: 0.35; }
+      45%, 100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes moduleWizardProgressPulse {
+      0% { transform: scaleX(0.2); opacity: 0.35; }
+      55% { transform: scaleX(1); opacity: 1; }
+      100% { transform: scaleX(1); opacity: 0.55; }
+    }
+
+    .module-wizard-loading-card {
+      width: min(520px, 100%);
+      border: 1px solid #dbeafe;
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at 18% 12%, rgba(16,185,129,0.16), transparent 28%),
+        linear-gradient(135deg, #ffffff 0%, #eff6ff 55%, #ecfdf5 100%);
+      box-shadow: 0 26px 70px rgba(15,23,42,0.16);
+      padding: 32px;
+      text-align: center;
+    }
+
+    .module-wizard-stage {
+      position: relative;
+      width: 250px;
+      height: 150px;
+      margin: 0 auto 24px;
+    }
+
+    .module-wizard-stage::before {
+      content: "";
+      position: absolute;
+      left: 38px;
+      right: 38px;
+      top: 76px;
+      height: 3px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #60a5fa, #34d399);
+      transform-origin: left center;
+      animation: moduleWizardProgressPulse 1.8s ease-in-out infinite;
+    }
+
+    .module-wizard-path-dot {
+      position: absolute;
+      top: 66px;
+      width: 22px;
+      height: 22px;
+      border: 4px solid #ffffff;
+      border-radius: 999px;
+      background: #2563eb;
+      box-shadow: 0 10px 22px rgba(37,99,235,0.22);
+      animation: moduleWizardDotConnect 1.8s ease-in-out infinite;
+    }
+
+    .module-wizard-path-dot-one { left: 26px; animation-delay: 0s; }
+    .module-wizard-path-dot-two { left: 113px; background: #0ea5e9; animation-delay: 0.25s; }
+    .module-wizard-path-dot-three { right: 26px; background: #10b981; animation-delay: 0.5s; }
+
+    .module-wizard-card-stack {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .module-wizard-mini-card {
+      display: grid;
+      align-content: center;
+      gap: 9px;
+      width: 64px;
+      height: 86px;
+      border: 1px solid #dbeafe;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.94);
+      box-shadow: 0 16px 34px rgba(15,23,42,0.10);
+      color: #2563eb;
+      opacity: 0;
+      animation: moduleWizardCardBuild 1.8s ease-in-out infinite;
+    }
+
+    .module-wizard-mini-card i {
+      font-size: 20px;
+    }
+
+    .module-wizard-mini-card span {
+      width: 34px;
+      height: 5px;
+      margin: 0 auto;
+      border-radius: 999px;
+      background: #bfdbfe;
+    }
+
+    .module-wizard-mini-card-one { animation-delay: 0s; }
+    .module-wizard-mini-card-two { height: 104px; color: #0ea5e9; animation-delay: 0.25s; }
+    .module-wizard-mini-card-three { color: #10b981; animation-delay: 0.5s; }
+
+    .module-wizard-progress-step {
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #60a5fa, #34d399);
+      transform-origin: left center;
+      animation: moduleWizardProgressPulse 1.55s ease-in-out infinite;
+    }
+
+    .module-wizard-progress-step:nth-child(2) { animation-delay: 0.15s; }
+    .module-wizard-progress-step:nth-child(3) { animation-delay: 0.3s; }
+    .module-wizard-progress-step:nth-child(4) { animation-delay: 0.45s; }
+
+    .module-wizard-success-card {
+      border-color: #bbf7d0;
+      background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%);
+    }
+
+    .module-wizard-success-icon,
+    .module-wizard-error-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 74px;
+      height: 74px;
+      margin-bottom: 18px;
+      border-radius: 24px;
+      font-size: 30px;
+      animation: oquSuccessScale 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    }
+
+    .module-wizard-success-icon {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    .module-wizard-error-card {
+      border-color: #fecaca;
+      background: linear-gradient(135deg, #ffffff 0%, #fff7ed 100%);
+    }
+
+    .module-wizard-error-icon {
+      background: #fef2f2;
+      color: #dc2626;
+    }
+
     .oqu-status-banner {
       display: flex;
       align-items: center;
@@ -800,6 +950,26 @@
 
     .oqu-step-delete-btn:hover {
       background: #fee2e2;
+    }
+
+    .oqu-step-preview-btn {
+      border: 1px solid #bbf7d0;
+      background: #f0fdf4;
+      color: #047857;
+      border-radius: 7px;
+      padding: 4px 8px;
+      font-size: 9px;
+      font-weight: 900;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.12s ease, border-color 0.12s ease, transform 0.12s ease;
+    }
+
+    .oqu-step-preview-btn:hover {
+      background: #dcfce7;
+      border-color: #86efac;
+      transform: translateY(-1px);
     }
 
     /* ── Preview canvas ───────────────────────────────────────────── */
@@ -2069,6 +2239,240 @@
       font-weight: 800;
     }
 
+    /* ── Step Preview Page ───────────────────────────────────────── */
+
+    .step-preview-shell {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    }
+
+    .step-preview-topbar {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: 18px;
+      padding: 18px 24px;
+      background: rgba(255,255,255,0.92);
+      border-bottom: 1px solid #e5e7eb;
+      box-shadow: 0 8px 22px rgba(15,23,42,0.05);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(12px);
+    }
+
+    .step-preview-back-link,
+    .step-preview-primary-btn {
+      border: 1px solid #dbeafe;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-radius: 9999px;
+      padding: 9px 14px;
+      font-size: 12px;
+      font-weight: 900;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: background 0.12s ease, transform 0.12s ease;
+    }
+
+    .step-preview-back-link:hover,
+    .step-preview-primary-btn:hover {
+      background: #dbeafe;
+      transform: translateY(-1px);
+    }
+
+    .step-preview-title-block {
+      min-width: 0;
+    }
+
+    .step-preview-mode-badge {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      border: 1px solid #bbf7d0;
+      background: #ecfdf5;
+      color: #047857;
+      border-radius: 9999px;
+      padding: 4px 10px;
+      font-size: 10px;
+      font-weight: 1000;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+
+    .step-preview-title-block h1 {
+      margin: 0;
+      color: #0f172a;
+      font-size: 18px;
+      font-weight: 950;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .step-preview-title-block p {
+      margin: 4px 0 0;
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .step-preview-stage {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+      padding: 24px;
+      flex: 1;
+    }
+
+    .step-preview-context {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .step-preview-context div {
+      border: 1px solid #e2e8f0;
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px 14px;
+      min-width: 0;
+    }
+
+    .step-preview-context span {
+      display: block;
+      color: #94a3b8;
+      font-size: 10px;
+      font-weight: 1000;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .step-preview-context strong {
+      display: block;
+      color: #0f172a;
+      font-size: 13px;
+      font-weight: 900;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .step-preview-player-root {
+      min-height: 560px;
+    }
+
+    .step-preview-loading,
+    .step-preview-error-state {
+      min-height: 420px;
+      border: 1px solid #e2e8f0;
+      background: #fff;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 36px;
+      box-shadow: 0 18px 45px rgba(15,23,42,0.08);
+    }
+
+    .step-preview-spinner {
+      width: 38px;
+      height: 38px;
+      border: 4px solid #dbeafe;
+      border-top-color: #2563eb;
+      border-radius: 9999px;
+      animation: oqu-spin 0.9s linear infinite;
+      margin-bottom: 16px;
+    }
+
+    .step-preview-loading-title {
+      color: #0f172a;
+      font-size: 16px;
+      font-weight: 950;
+      margin-bottom: 6px;
+    }
+
+    .step-preview-loading p,
+    .step-preview-error-state p {
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 650;
+      margin: 0;
+      max-width: 440px;
+      line-height: 1.6;
+    }
+
+    .step-preview-error-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      font-size: 22px;
+      font-weight: 1000;
+      margin-bottom: 14px;
+    }
+
+    .step-preview-error-state h1 {
+      margin: 0 0 8px;
+      color: #111827;
+      font-size: 22px;
+      font-weight: 950;
+    }
+
+    .step-preview-error-state dl {
+      width: min(520px, 100%);
+      margin: 22px 0;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+      text-align: left;
+    }
+
+    .step-preview-error-state dl div {
+      display: grid;
+      grid-template-columns: 110px minmax(0, 1fr);
+      gap: 12px;
+      padding: 11px 13px;
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .step-preview-error-state dl div:last-child {
+      border-bottom: 0;
+    }
+
+    .step-preview-error-state dt {
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 950;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .step-preview-error-state dd {
+      margin: 0;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 750;
+      overflow-wrap: anywhere;
+    }
+
+    @keyframes oqu-spin {
+      to { transform: rotate(360deg); }
+    }
+
     .oqu-media-upload-row {
       display: flex;
       align-items: center;
@@ -2370,7 +2774,7 @@
       <p class="mt-2 text-slate-600">Loading catalog, module, and lesson tools...</p>
     </section>
   </div>
-  <script type="module" src="./src/main.js"></script>
+  <script type="module" src="./src/main.js?v=1.1.26-buildcheck"></script>
 </body>
 
 </html>

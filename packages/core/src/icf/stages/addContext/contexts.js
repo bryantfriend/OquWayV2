@@ -14,13 +14,14 @@ export { attachMinistryScopeContext } from "./domain/catalogCourse/attachMinistr
 export { attachUpdatedByContext } from "./domain/catalogCourse/attachUpdatedByContext.js";
 export { attachCourseDocument } from "./domain/courseEditor/attachCourseDocument.js";
 export { attachModule } from "./domain/courseEditor/attachModule.js";
-export { attachModulesCollection } from "./domain/courseEditor/attachModulesCollection.js";
+export { attachModulesCollection } from "./domain/courseEditor/attachModulesCollection.js?v=1.1.26-buildcheck";
 export { attachStepRegistryDefinition } from "./domain/courseEditor/attachStepRegistryDefinition.js";
 export { attachCourseDocumentForModule } from "./domain/moduleEditor/attachCourseDocumentForModule.js";
 export { attachModuleDocument } from "./domain/moduleEditor/attachModuleDocument.js";
 export { attachLearningModeDocument } from "./domain/moduleEditor/attachLearningModeDocument.js";
 export { attachSessionDocument } from "./domain/moduleEditor/attachSessionDocument.js";
 export { attachSessionsCollection } from "./domain/moduleEditor/attachSessionsCollection.js";
+export { attachStepPreviewContext } from "./domain/moduleEditor/attachStepPreviewContext.js";
 export { attachStepRegistryDefinitionForStep } from "./domain/moduleEditor/attachStepRegistryDefinitionForStep.js";
 export { attachStepsCollection } from "./domain/moduleEditor/attachStepsCollection.js";
 export { attachStudentProfileContext } from "./domain/student/attachStudentProfileContext.js";

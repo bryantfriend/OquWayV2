@@ -1,5 +1,5 @@
 import { courseEditorStore } from '../state/courseEditorState.js';
-import { courseEditorService } from '../services/courseEditorService.js';
+import { courseEditorService } from '../services/courseEditorService.js?v=1.1.26-buildcheck';
 import { courseAssignmentService } from '../services/courseAssignmentService.js';
 import { externalTaskReviewService } from '../services/externalTaskReviewService.js';
 
