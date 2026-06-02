@@ -14,7 +14,7 @@ export { attachMinistryScopeContext } from "./domain/catalogCourse/attachMinistr
 export { attachUpdatedByContext } from "./domain/catalogCourse/attachUpdatedByContext.js";
 export { attachCourseDocument } from "./domain/courseEditor/attachCourseDocument.js";
 export { attachModule } from "./domain/courseEditor/attachModule.js";
-export { attachModulesCollection } from "./domain/courseEditor/attachModulesCollection.js?v=1.1.26-buildcheck";
+export { attachModulesCollection } from "./domain/courseEditor/attachModulesCollection.js?v=1.1.27-module-repair";
 export { attachStepRegistryDefinition } from "./domain/courseEditor/attachStepRegistryDefinition.js";
 export { attachCourseDocumentForModule } from "./domain/moduleEditor/attachCourseDocumentForModule.js";
 export { attachModuleDocument } from "./domain/moduleEditor/attachModuleDocument.js";
