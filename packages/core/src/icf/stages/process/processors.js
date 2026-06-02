@@ -92,7 +92,7 @@ export { processUploadStepMedia } from "./domain/moduleEditor/processUploadStepM
 export { processLoadStudentCourse } from "./domain/student/processLoadStudentCourse.js?v=1.1.29-module-render-fix";
 export { processLoadStudentDashboard } from "./domain/student/processLoadStudentDashboard.js?v=1.1.29-module-render-fix";
 export { processContinueLearning } from "./domain/student/processContinueLearning.js?v=1.1.29-module-render-fix";
-export { processStudentOpenCourse } from "./domain/student/processStudentOpenCourse.js?v=1.1.30-student-open-course";
+export { processStudentOpenCourse } from "./domain/student/processStudentOpenCourse.js?v=1.1.31-student-open-context";
 export { processClaimDailyBonus } from "./domain/student/processClaimDailyBonus.js?v=1.1.29-module-render-fix";
 export { processStartPracticeMode } from "./domain/student/processStartPracticeMode.js?v=1.1.29-module-render-fix";
 export { processCompleteStep } from "./domain/student/processCompleteStep.js?v=1.1.29-module-render-fix";

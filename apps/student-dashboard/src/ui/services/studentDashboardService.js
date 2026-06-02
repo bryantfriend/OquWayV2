@@ -1,7 +1,7 @@
-import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.30-student-open-course";
-import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.30-student-open-course";
-import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.30-student-open-course";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.30-student-open-course";
+import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.31-student-open-context";
+import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.31-student-open-context";
+import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.31-student-open-context";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.31-student-open-context";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {

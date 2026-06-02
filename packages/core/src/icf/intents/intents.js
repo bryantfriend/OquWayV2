@@ -173,7 +173,7 @@ export { LoadStudentProgressIntent } from "./student/LoadStudentProgressIntent.j
 export { ClaimDailyBonusIntent } from "./student/ClaimDailyBonusIntent.js?v=1.1.29-module-render-fix";
 export { ContinueLearningIntent } from "./student/ContinueLearningIntent.js?v=1.1.29-module-render-fix";
 export { SelectContinueLearningIntent } from "./student/SelectContinueLearningIntent.js?v=1.1.29-module-render-fix";
-export { StudentOpenCourseIntent } from "./student/StudentOpenCourseIntent.js?v=1.1.30-student-open-course";
+export { StudentOpenCourseIntent } from "./student/StudentOpenCourseIntent.js?v=1.1.31-student-open-context";
 export { StartPracticeModeIntent } from "./student/StartPracticeModeIntent.js?v=1.1.29-module-render-fix";
 export { CompleteStepIntent } from "./student/CompleteStepIntent.js?v=1.1.29-module-render-fix";
 export { CompleteStudentStepIntent } from "./student/CompleteStudentStepIntent.js?v=1.1.29-module-render-fix";

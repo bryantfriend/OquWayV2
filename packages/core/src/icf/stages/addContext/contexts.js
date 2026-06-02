@@ -26,4 +26,4 @@ export { attachStepRegistryDefinitionForStep } from "./domain/moduleEditor/attac
 export { attachStepsCollection } from "./domain/moduleEditor/attachStepsCollection.js?v=1.1.29-module-render-fix";
 export { attachStudentProfileContext } from "./domain/student/attachStudentProfileContext.js?v=1.1.29-module-render-fix";
 export { attachStudentSessionContext } from "./domain/student/attachStudentSessionContext.js?v=1.1.29-module-render-fix";
-export { attachStudentOpenCourseContext } from "./domain/student/attachStudentOpenCourseContext.js?v=1.1.30-student-open-course";
+export { attachStudentOpenCourseContext } from "./domain/student/attachStudentOpenCourseContext.js?v=1.1.31-student-open-context";
