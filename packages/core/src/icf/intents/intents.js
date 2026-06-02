@@ -138,7 +138,7 @@ export { DeleteLearningModeIntent } from "./moduleEditor/DeleteLearningModeInten
 export { DuplicateLearningModeIntent } from "./moduleEditor/DuplicateLearningModeIntent.js";
 export { GenerateModeFromPrimaryIntent } from "./moduleEditor/GenerateModeFromPrimaryIntent.js";
 export { PullLearningContentIntent } from "./moduleEditor/PullLearningContentIntent.js";
-export { PreviewStepIntent } from "./moduleEditor/PreviewStepIntent.js";
+export { PreviewStepIntent } from "./moduleEditor/PreviewStepIntent.js?v=1.1.26-buildcheck";
 export { AddStepToLearningModeIntent } from "./moduleEditor/AddStepToLearningModeIntent.js";
 export { UpdateLearningModeStepIntent } from "./moduleEditor/UpdateLearningModeStepIntent.js?v=1.1.26-buildcheck";
 export { AddStepToPracticeModeIntent } from "./moduleEditor/AddStepToPracticeModeIntent.js";
