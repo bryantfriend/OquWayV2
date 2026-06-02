@@ -1,5 +1,5 @@
-import { courseEditorStore } from '../state/courseEditorState.js';
-import { courseEditorService } from '../services/courseEditorService.js?v=1.1.26-buildcheck';
+import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.27-module-repair';
+import { courseEditorService } from '../services/courseEditorService.js?v=1.1.27-module-repair';
 import { courseAssignmentService } from '../services/courseAssignmentService.js';
 import { externalTaskReviewService } from '../services/externalTaskReviewService.js';
 
@@ -70,6 +70,8 @@ export class CourseOverviewPage {
                 </button>
               </div>
             </div>
+
+            <div id="moduleRepairBanner" class="hidden mb-4"></div>
 
             <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
               <table class="w-full text-left border-collapse">
@@ -951,6 +953,13 @@ export class CourseOverviewPage {
       self.openCreateModuleWizard();
     });
 
+    document.getElementById('moduleRepairBanner').addEventListener('click', function (e) {
+      var repairBtn = e.target.closest('#repairCourseModulesBtn');
+      if (repairBtn) {
+        self.repairCourseModules();
+      }
+    });
+
     document.getElementById('moduleWizardCloseBtn').addEventListener('click', function () {
       self.closeCreateModuleWizard();
     });
@@ -1259,7 +1268,50 @@ export class CourseOverviewPage {
       saveIndicator.className = 'text-green-600 font-medium flex items-center gap-1 mr-2';
     }
 
-    this.renderModuleList(state.modules, state.course);
+    this.renderModuleRepairBanner(state);
+    this.renderModuleList(state.modules, state.course, state.moduleSourceCheck);
+  }
+
+  renderModuleRepairBanner(state) {
+    var banner = document.getElementById('moduleRepairBanner');
+    var sourceCheck = state && state.moduleSourceCheck ? state.moduleSourceCheck : null;
+
+    if (!banner) {
+      return;
+    }
+
+    if (!sourceCheck || !sourceCheck.needsModuleMigration) {
+      banner.classList.add('hidden');
+      banner.innerHTML = '';
+      return;
+    }
+
+    var legacyCount = typeof sourceCheck.legacyCoursesModulesCount === 'number' ? sourceCheck.legacyCoursesModulesCount : 0;
+    var isRepairing = Boolean(state.isRepairingModules);
+    banner.classList.remove('hidden');
+    banner.innerHTML = '<div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900 shadow-sm">'
+      + '<div class="flex items-center justify-between gap-4">'
+      + '<div>'
+      + '<p class="text-sm font-black">Legacy modules were found for this course.</p>'
+      + '<p class="mt-1 text-xs font-semibold text-amber-800">Showing ' + legacyCount + ' module' + (legacyCount === 1 ? '' : 's') + ' from courses/{courseId}/modules. Repair copies them to catalogCourses/{courseId}/modules without deleting legacy data.</p>'
+      + '</div>'
+      + '<button id="repairCourseModulesBtn" class="shrink-0 rounded-lg bg-amber-600 px-4 py-2 text-xs font-black text-white shadow-sm hover:bg-amber-700 disabled:cursor-not-allowed disabled:bg-amber-300" ' + (isRepairing ? 'disabled' : '') + '>'
+      + (isRepairing ? '<i class="fa-solid fa-circle-notch fa-spin"></i> Repairing...' : '<i class="fa-solid fa-screwdriver-wrench"></i> Repair Course Modules')
+      + '</button>'
+      + '</div>'
+      + '</div>';
+  }
+
+  repairCourseModules() {
+    var self = this;
+
+    courseEditorService.repairCourseModules(this.courseId).then(function (result) {
+      if (!result || !result.emitted || !result.emitted.success) {
+        alert('Repair failed: ' + self.readResultErrorMessage(result));
+      }
+    }).catch(function (error) {
+      alert('Repair failed: ' + error.message);
+    });
   }
 
   loadAssignments() {
@@ -1529,7 +1581,7 @@ export class CourseOverviewPage {
     }
   }
 
-  renderModuleList(modules, course) {
+  renderModuleList(modules, course, moduleSourceCheck) {
     var tbody = document.getElementById('moduleTableBody');
     var safeModules = Array.isArray(modules) ? modules : [];
 
@@ -1548,15 +1600,17 @@ export class CourseOverviewPage {
     if (safeModules.length === 0) {
       var courseModuleCount = course && typeof course.moduleCount === 'number' ? course.moduleCount : 0;
       var courseModuleOrder = course && Array.isArray(course.moduleOrder) ? course.moduleOrder : [];
+      var hasLegacyModules = moduleSourceCheck && moduleSourceCheck.legacyCoursesModulesCount > 0;
 
-      if (course && (courseModuleCount > 0 || courseModuleOrder.length > 0)) {
+      if (course && (courseModuleCount > 0 || courseModuleOrder.length > 0 || hasLegacyModules)) {
         console.warn("[course-editor:render-module-mismatch]", {
           courseId: course.id || this.courseId,
           moduleCount: courseModuleCount,
           loadedModuleDocCount: 0,
-          moduleOrder: courseModuleOrder
+          moduleOrder: courseModuleOrder,
+          moduleSourceCheck: moduleSourceCheck || null
         });
-        tbody.innerHTML = '<tr><td colspan="4" class="py-10 text-center text-amber-700 border-b bg-amber-50 font-bold">This course says it has modules, but no module documents were loaded.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="py-10 text-center text-amber-700 border-b bg-amber-50 font-bold">This course says it has modules, but no module documents were loaded. Use Repair Course Modules if legacy modules are detected.</td></tr>';
         return;
       }
 
