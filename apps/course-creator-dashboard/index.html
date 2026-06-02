@@ -2106,6 +2106,81 @@
       color: #64748b;
     }
 
+    .oqu-action-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 28px;
+      border-radius: 999px;
+      border: 1px solid #dbeafe;
+      background: linear-gradient(135deg, #eff6ff, #f0fdfa);
+      padding: 5px 9px;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.08);
+      color: #1e40af;
+      white-space: nowrap;
+    }
+
+    .oqu-action-status-media {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 18px;
+      color: #2563eb;
+    }
+
+    .oqu-action-status-media .fa-image {
+      position: absolute;
+      left: 0;
+      animation: oqu-image-fly 1.1s ease-in-out infinite;
+    }
+
+    .oqu-action-status-media .fa-cloud-arrow-up {
+      position: absolute;
+      right: 0;
+      color: #0f766e;
+    }
+
+    .oqu-action-status-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: #dbeafe;
+      color: #2563eb;
+    }
+
+    .oqu-action-status-success {
+      border-color: #bbf7d0;
+      background: linear-gradient(135deg, #f0fdf4, #ecfeff);
+      color: #166534;
+    }
+
+    .oqu-action-status-success .oqu-action-status-icon {
+      background: #bbf7d0;
+      color: #15803d;
+    }
+
+    .oqu-action-status-error {
+      border-color: #fecdd3;
+      background: linear-gradient(135deg, #fff1f2, #fff7ed);
+      color: #be123c;
+    }
+
+    .oqu-action-status-error .oqu-action-status-icon {
+      background: #fecdd3;
+      color: #be123c;
+    }
+
+    @keyframes oqu-image-fly {
+      0% { transform: translateX(0) translateY(4px) scale(0.88); opacity: 0.45; }
+      45% { transform: translateX(9px) translateY(-2px) scale(1); opacity: 1; }
+      100% { transform: translateX(15px) translateY(-5px) scale(0.82); opacity: 0.25; }
+    }
+
     .oqu-media-upload-uploading {
       color: #2563eb;
     }

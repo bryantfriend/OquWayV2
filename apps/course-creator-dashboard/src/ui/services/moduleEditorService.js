@@ -394,10 +394,13 @@ export const moduleEditorService = {
   },
 
   uploadStepMedia: async function (courseId, moduleId, sessionId, practiceModeKey, stepId, mediaField, file) {
+    var state = moduleEditorStore.getState();
+    var modeId = resolveSelectedModeId(state.learningModes, state.selectedModeId || state.selectedLearningModeId);
     var result = await runIntentPipeline(getIntentDefinition("UploadStepMediaIntent"), {
       payload: {
         courseId: courseId,
         moduleId: moduleId,
+        modeId: modeId,
         sessionId: sessionId,
         practiceModeKey: practiceModeKey,
         stepId: stepId,

@@ -652,7 +652,8 @@ export class CourseEditorPage {
       return;
     }
 
-    showMediaStatus(statusElement, "uploading", "Uploading...");
+    mediaInput.disabled = true;
+    showActionStatus(statusElement, "uploading", "Uploading picture...", "media");
 
     moduleEditorService.uploadStepMedia(
       this.courseId,
@@ -663,11 +664,13 @@ export class CourseEditorPage {
       mediaField,
       file
     ).then(function () {
-      showMediaStatus(statusElement, "success", "Uploaded and saved.");
+      showActionStatus(statusElement, "success", "Image saved!", "media");
       mediaInput.value = "";
     }).catch(function (error) {
-      showMediaStatus(statusElement, "error", error.message);
+      showActionStatus(statusElement, "error", error.message, "media");
       mediaInput.value = "";
+    }).finally(function () {
+      mediaInput.disabled = false;
     });
   }
 
@@ -2222,6 +2225,34 @@ function showMediaStatus(statusElement, statusType, message) {
 
   statusElement.textContent = message;
   statusElement.className = "oqu-media-upload-status oqu-media-upload-" + statusType;
+}
+
+function showActionStatus(statusElement, statusType, message, theme) {
+  if (!statusElement) {
+    return;
+  }
+
+  statusElement.className = "oqu-media-upload-status oqu-media-upload-" + statusType;
+  statusElement.innerHTML = buildActionStatusHtml(statusType, message, theme);
+}
+
+function buildActionStatusHtml(statusType, message, theme) {
+  var safeMessage = escapeHtml(message);
+  var iconHtml = '<span class="oqu-action-status-icon"><i class="fa-solid fa-circle-notch fa-spin"></i></span>';
+
+  if (theme === "media") {
+    iconHtml = '<span class="oqu-action-status-media"><i class="fa-regular fa-image"></i><i class="fa-solid fa-cloud-arrow-up"></i></span>';
+  }
+
+  if (statusType === "success") {
+    iconHtml = '<span class="oqu-action-status-icon oqu-action-status-success"><i class="fa-solid fa-check"></i></span>';
+  }
+
+  if (statusType === "error") {
+    iconHtml = '<span class="oqu-action-status-icon oqu-action-status-error"><i class="fa-solid fa-triangle-exclamation"></i></span>';
+  }
+
+  return '<span class="oqu-action-status oqu-action-status-' + statusType + '">' + iconHtml + '<span>' + safeMessage + '</span></span>';
 }
 
 function readStepEditorSchema(stepType) {

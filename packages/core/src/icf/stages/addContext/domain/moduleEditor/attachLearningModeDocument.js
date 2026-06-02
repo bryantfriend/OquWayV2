@@ -103,7 +103,9 @@ async function readLearningModeContext(courseId, moduleId, modeId, attemptedPath
       data: {
         course: Object.assign({ id: courseSnap.id }, courseSnap.data()),
         module: Object.assign({ id: moduleSnap.id }, moduleSnap.data()),
-        learningMode: Object.assign({ id: modeId }, learningMode),
+        learningMode: Object.assign({ id: modeId }, learningMode, {
+          steps: await readModeSteps(collectionName, courseId, moduleId, modeId)
+        }),
         learningModePath: modePath,
         courseCollectionName: collectionName,
         sessions: await readSessions(collectionName, courseId, moduleId)
@@ -132,6 +134,21 @@ async function readLearningModeContext(courseId, moduleId, modeId, attemptedPath
     code: "LEARNING_MODE_NOT_FOUND",
     message: "Learning mode not found: " + modeId
   };
+}
+
+async function readModeSteps(collectionName, courseId, moduleId, modeId) {
+  const stepsSnap = await getDocs(collection(db, collectionName, courseId, "modules", moduleId, "learningModes", modeId, "steps"));
+  const steps = [];
+
+  stepsSnap.forEach(function (stepSnap) {
+    steps.push(Object.assign({ id: stepSnap.id }, stepSnap.data() || {}));
+  });
+
+  steps.sort(function (firstStep, secondStep) {
+    return readOrder(firstStep) - readOrder(secondStep);
+  });
+
+  return steps;
 }
 
 async function readSessions(collectionName, courseId, moduleId) {

@@ -38,6 +38,26 @@ service firebase.storage {
         );
     }
 
+    function isAllowedStepMediaImage() {
+      return request.resource.size <= 10 * 1024 * 1024
+        && (
+          request.resource.contentType == 'image/png' ||
+          request.resource.contentType == 'image/jpeg' ||
+          request.resource.contentType == 'image/jpg' ||
+          request.resource.contentType == 'image/webp' ||
+          request.resource.contentType == 'image/gif'
+        );
+    }
+
+    function canWriteStepMedia() {
+      return request.auth != null && (
+        isCourseCreator() ||
+        isSchoolAdmin() ||
+        isPlatformAdmin() ||
+        isSuperAdmin()
+      );
+    }
+
     match /external-task-submissions/{courseId}/{moduleId}/{stepId}/{studentId}/{submissionId}/{fileName} {
       allow create: if request.auth != null
         && request.auth.uid == studentId
@@ -50,6 +70,22 @@ service firebase.storage {
       );
 
       allow update, delete: if false;
+    }
+
+    match /step-media/{courseId}/{moduleId}/{modeId}/{stepId}/{fileName} {
+      allow read: if request.auth != null && (
+        isStudent() ||
+        isTeacher() ||
+        isCourseCreator() ||
+        isSchoolAdmin() ||
+        isPlatformAdmin() ||
+        isSuperAdmin()
+      );
+
+      allow create, update: if canWriteStepMedia()
+        && isAllowedStepMediaImage();
+
+      allow delete: if canWriteStepMedia();
     }
 
     match /{allPaths=**} {

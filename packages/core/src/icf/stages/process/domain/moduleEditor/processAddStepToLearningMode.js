@@ -10,11 +10,18 @@ export async function processAddStepToLearningMode(executionState) {
   var step = createStep(payload);
   var practiceModes = addStepToPracticeMode(session ? session.practiceModes : createDefaultPracticeModes(), practiceModeKey, step);
   step.order = readAddedStepOrder(practiceModes, practiceModeKey, step.id);
+  var canonicalSteps = readCanonicalStepsForMode(learningMode);
+  var stepOrder = canonicalSteps.map(function (existingStep) {
+    return existingStep.id;
+  }).filter(Boolean);
+  stepOrder.push(step.id);
   var updatedSession = session || createSessionForMode(payload, learningMode, executionState.context.sessions);
   var updatedLearningMode = Object.assign({}, learningMode, {
     id: modeId,
     key: modeId,
     legacySessionId: updatedSession.id,
+    stepCount: stepOrder.length,
+    stepOrder: stepOrder,
     updatedAt: Date.now()
   });
 
@@ -59,14 +66,22 @@ function createStep(payload) {
     id: generateId("step"),
     type: payload.stepType,
     stepTypeId: payload.stepTypeId || payload.stepType,
-    title: payload.title,
-    instructions: payload.instructions,
-    config: payload.config,
+    title: payload.title || createDefaultStepTitle(payload.stepTypeId || payload.stepType),
+    instructions: payload.instructions || "",
+    config: payload.config && typeof payload.config === "object" && !Array.isArray(payload.config) ? payload.config : {},
     order: 1,
-    status: payload.status,
+    status: payload.status || "draft",
     createdAt: now,
     updatedAt: now
   };
+}
+
+function createDefaultStepTitle(stepType) {
+  if (stepType === "textBriefing") {
+    return { en: "Primer", ru: "", ky: "" };
+  }
+
+  return { en: "New Step", ru: "", ky: "" };
 }
 
 function findSessionForMode(executionState, learningMode) {
@@ -144,8 +159,33 @@ async function saveLearningModeSessionLink(executionState, payload, modeId, lear
     learningModes: {
       [modeId]: learningMode
     },
+    stepCount: readUpdatedModuleStepCount(executionState, modeId, learningMode.stepCount),
     updatedAt: serverTimestamp()
   }, { merge: true });
+}
+
+function readUpdatedModuleStepCount(executionState, updatedModeId, updatedModeStepCount) {
+  var module = executionState.context.module || {};
+  var modes = module.learningModes && typeof module.learningModes === "object" ? module.learningModes : {};
+  var modeIds = Object.keys(modes);
+  var total = 0;
+  var index = 0;
+
+  while (index < modeIds.length) {
+    if (modeIds[index] === updatedModeId) {
+      total = total + readNumber(updatedModeStepCount, 0);
+    } else {
+      total = total + readNumber(modes[modeIds[index]].stepCount, 0);
+    }
+
+    index = index + 1;
+  }
+
+  if (modeIds.indexOf(updatedModeId) === -1) {
+    total = total + readNumber(updatedModeStepCount, 0);
+  }
+
+  return total;
 }
 
 function readModeId(executionState) {
@@ -239,6 +279,14 @@ function readAddedStepOrder(practiceModes, practiceModeKey, stepId) {
   return steps.length + 1;
 }
 
+function readCanonicalStepsForMode(learningMode) {
+  if (!learningMode || !Array.isArray(learningMode.steps)) {
+    return [];
+  }
+
+  return learningMode.steps;
+}
+
 function readText(value, fallbackText) {
   if (typeof value === "string") {
     return value.trim() || fallbackText;
@@ -249,6 +297,10 @@ function readText(value, fallbackText) {
   }
 
   return fallbackText;
+}
+
+function readNumber(value, fallbackValue) {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallbackValue;
 }
 
 function readCourseCollectionName(executionState) {

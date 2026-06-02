@@ -1,7 +1,7 @@
-import { validateAuthenticated, validateCourseId, validateModuleId, validatePracticeModeKey, validatePracticeModeStepId, validateSessionId, validateStepMediaField, validateStepMediaFile } from "../../stages/validate/validators.js";
+import { validateAuthenticated, validateCourseId, validateLearningModeId, validateModuleId, validatePracticeModeKey, validatePracticeModeStepId, validateStepMediaField, validateStepMediaFile } from "../../stages/validate/validators.js";
 import { normalizeCourseId, normalizeStepMediaUpload } from "../../stages/normalize/normalizers.js";
 import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js";
-import { attachCourseDocumentForModule, attachModuleDocument, attachSessionDocument } from "../../stages/addContext/contexts.js";
+import { attachCourseDocumentForModule, attachLearningModeDocument, attachModuleDocument } from "../../stages/addContext/contexts.js";
 import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js";
 import { processUploadStepMedia } from "../../stages/process/processors.js";
 import { emitIntentResult } from "../../stages/emit/emitters.js";
@@ -13,7 +13,7 @@ export function UploadStepMediaIntent() {
       validateAuthenticated,
       validateCourseId,
       validateModuleId,
-      validateSessionId,
+      validateLearningModeId,
       validatePracticeModeKey,
       validatePracticeModeStepId,
       validateStepMediaField,
@@ -28,7 +28,7 @@ export function UploadStepMediaIntent() {
       attachActorRoleContext,
       attachCourseDocumentForModule,
       attachModuleDocument,
-      attachSessionDocument
+      attachLearningModeDocument
     ],
     authorize: [
       requireCourseCreatorAuthorization

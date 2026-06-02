@@ -1,7 +1,7 @@
 export function validateStepMediaFile(executionState) {
   var payload = executionState.payload;
   var file = payload.file;
-  var maxFileSize = 20 * 1024 * 1024;
+  var maxFileSize = 10 * 1024 * 1024;
 
   if (!file || typeof file !== "object") {
     return createInvalidFileResult("MEDIA_FILE_REQUIRED", "A media file is required.");
@@ -16,7 +16,7 @@ export function validateStepMediaFile(executionState) {
   }
 
   if (typeof file.size === "number" && file.size > maxFileSize) {
-    return createInvalidFileResult("MEDIA_FILE_TOO_LARGE", "Media uploads must be 20MB or smaller.");
+    return createInvalidFileResult("MEDIA_FILE_TOO_LARGE", "Media uploads must be 10MB or smaller.");
   }
 
   if (payload.mediaField === "imageUrl" && file.type.indexOf("image/") !== 0) {

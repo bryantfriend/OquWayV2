@@ -208,7 +208,7 @@ async function queryExternalTaskSubmissions(filters) {
       ? await getDocs(query(submissionsRef, ...constraints))
       : await getDocs(submissionsRef);
   } catch (error) {
-    if (isMissingIndexOrQueryShapeError(error)) {
+    if (isRecoverableEmptyQueryError(error)) {
       logExternalTaskSubmissionsFailure({
         actor: {},
         payload: filters || {}
@@ -230,7 +230,7 @@ async function queryExternalTaskSubmissions(filters) {
   return submissions;
 }
 
-function isMissingIndexOrQueryShapeError(error) {
+function isRecoverableEmptyQueryError(error) {
   if (!error) {
     return false;
   }
@@ -239,8 +239,10 @@ function isMissingIndexOrQueryShapeError(error) {
   var message = readErrorMessage(error).toLowerCase();
 
   return code === "failed-precondition" ||
+    code === "permission-denied" ||
     message.indexOf("index") !== -1 ||
-    message.indexOf("requires an index") !== -1;
+    message.indexOf("requires an index") !== -1 ||
+    message.indexOf("permission") !== -1;
 }
 
 function logExternalTaskSubmissionsFailure(executionState, error, queryPath) {

@@ -2,13 +2,14 @@ import { createDefaultLearningContent, createDefaultLearningModes } from "./lear
 
 export async function processOpenModuleEditor(executionState) {
   const context = executionState.context;
-  const learningModes = createDefaultLearningModes(context.module && context.module.learningModes, context.sessions);
+  const moduleRecord = createModuleWithCanonicalModes(context.module, context.canonicalLearningModes);
+  const learningModes = createDefaultLearningModes(moduleRecord && moduleRecord.learningModes, context.sessions);
   const selectedModeId = readSelectedLearningModeId(learningModes);
 
   executionState.result = {
     course: context.course,
-    module: context.module,
-    learningContent: createDefaultLearningContent(context.module && context.module.learningContent),
+    module: moduleRecord,
+    learningContent: createDefaultLearningContent(moduleRecord && moduleRecord.learningContent),
     learningModes: learningModes,
     selectedModeId: selectedModeId,
     selectedLearningModeId: selectedModeId,
@@ -23,6 +24,16 @@ export async function processOpenModuleEditor(executionState) {
   };
 
   return { valid: true };
+}
+
+function createModuleWithCanonicalModes(moduleRecord, canonicalLearningModes) {
+  const safeModule = moduleRecord && typeof moduleRecord === "object" ? moduleRecord : {};
+  const moduleModes = safeModule.learningModes && typeof safeModule.learningModes === "object" ? safeModule.learningModes : {};
+  const canonicalModes = canonicalLearningModes && typeof canonicalLearningModes === "object" ? canonicalLearningModes : {};
+
+  return Object.assign({}, safeModule, {
+    learningModes: Object.assign({}, moduleModes, canonicalModes)
+  });
 }
 
 function readSessions(sessions) {

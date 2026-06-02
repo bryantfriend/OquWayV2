@@ -25,6 +25,7 @@ export async function processCreateModule(executionState) {
     await mirrorLearningContent(readCourseCollectionName(executionState), payload.courseId, moduleId, learningContent);
     await mirrorLearningModes(readCourseCollectionName(executionState), payload.courseId, moduleId, generationResult.learningModes);
     await writeGeneratedSessionsAndSteps(readCourseCollectionName(executionState), payload.courseId, moduleId, generationResult.sessions, generationResult.stepsByMode);
+    await updateCourseModuleSummary(readCourseCollectionName(executionState), payload.courseId, context.modules, moduleId, generationResult.generatedStepCount);
     executionState.result = moduleRecord;
     return { valid: true };
   } catch (error) {
@@ -38,6 +39,25 @@ export async function processCreateModule(executionState) {
       ]
     };
   }
+}
+
+async function updateCourseModuleSummary(collectionName, courseId, existingModules, moduleId, generatedStepCount) {
+  const moduleOrder = Array.isArray(existingModules)
+    ? existingModules.map(function (module) {
+      return module.id || module.moduleId;
+    }).filter(Boolean)
+    : [];
+
+  if (moduleOrder.indexOf(moduleId) === -1) {
+    moduleOrder.push(moduleId);
+  }
+
+  await setDoc(doc(db, collectionName, courseId), {
+    moduleCount: moduleOrder.length,
+    moduleOrder: moduleOrder,
+    stepCount: readExistingStepCount(existingModules) + readNumber(generatedStepCount, 0),
+    updatedAt: serverTimestamp()
+  }, { merge: true });
 }
 
 async function mirrorLearningContent(collectionName, courseId, moduleId, learningContent) {
@@ -224,6 +244,27 @@ function readNumber(value, fallback) {
   }
 
   return fallback;
+}
+
+function readExistingStepCount(modules) {
+  let count = 0;
+  let index = 0;
+
+  if (!Array.isArray(modules)) {
+    return 0;
+  }
+
+  while (index < modules.length) {
+    if (typeof modules[index].generatedStarterStepCount === "number") {
+      count = count + modules[index].generatedStarterStepCount;
+    } else if (typeof modules[index].stepCount === "number") {
+      count = count + modules[index].stepCount;
+    }
+
+    index = index + 1;
+  }
+
+  return count;
 }
 
 function readCourseCollectionName(executionState) {
