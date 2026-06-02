@@ -1,10 +1,12 @@
 let state = {
     course: null,
     modules: [],
+    moduleSourceCheck: null,
     selectedModuleId: null,
     permissions: null,
     isDraftSaving: false,
     isPublishing: false,
+    isRepairingModules: false,
     isFetching: false,
     error: null,
     lastSaved: null
@@ -40,10 +42,12 @@ export const courseEditorStore = {
         state = {
             course: null,
             modules: [],
+            moduleSourceCheck: null,
             selectedModuleId: null,
             permissions: null,
             isDraftSaving: false,
             isPublishing: false,
+            isRepairingModules: false,
             isFetching: false,
             error: null,
             lastSaved: null
