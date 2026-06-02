@@ -1594,7 +1594,8 @@ export class CourseOverviewPage {
     console.info("[course:render:modules]", {
       renderedModuleCount: safeModules.length,
       renderedModuleIds: safeModules.map(readModuleId),
-      renderedModuleTitles: safeModules.map(readModuleTitle)
+      renderedModuleTitles: safeModules.map(readModuleTitle),
+      moduleSource: moduleSourceCheck && moduleSourceCheck.moduleSource ? moduleSourceCheck.moduleSource : 'catalogCourses'
     });
 
     if (safeModules.length === 0) {
@@ -1619,20 +1620,19 @@ export class CourseOverviewPage {
     }
 
     tbody.innerHTML = safeModules.map(function (m, idx) {
-      var titleObj = m.title || (m.config && m.config.title) || 'Untitled Module';
-      var displayTitle = 'Untitled Module';
+      var moduleDisplay = normalizeModuleDisplay(m, idx);
+      var moduleSource = moduleSourceCheck && moduleSourceCheck.moduleSource ? moduleSourceCheck.moduleSource : 'catalogCourses';
 
-      if (typeof titleObj === 'string') {
-        displayTitle = titleObj;
-      } else if (typeof titleObj === 'object' && titleObj !== null) {
-        displayTitle = titleObj.en || Object.values(titleObj)[0] || 'Untitled Module';
-      }
+      console.info("[course-render:module-card]", {
+        moduleId: moduleDisplay.id,
+        title: moduleDisplay.title,
+        status: moduleDisplay.status,
+        moduleSource: moduleSource
+      });
 
-      var dirtyDot = m.isDirty
+      var dirtyDot = moduleDisplay.isDirty
         ? '<span class="inline-flex items-center gap-1 text-orange-500 font-bold ml-2 text-[10px] uppercase tracking-wider"><div class="w-1.5 h-1.5 rounded-full bg-orange-500"></div>Unsaved</span>'
         : '';
-
-      var moduleId = m.id || m.moduleId;
 
       return '<tr class="hover:bg-gray-50 transition group module-row" draggable="true" data-index="' + idx + '">'
         + '<td class="py-4 px-6 border-b border-gray-100 text-center text-gray-400 font-medium text-xs module-drag-handle cursor-grab active:cursor-grabbing">'
@@ -1641,16 +1641,16 @@ export class CourseOverviewPage {
         + '</td>'
         + '<td class="py-4 px-6 border-b border-gray-100 font-semibold text-gray-900 pointer-events-none">'
         + '<div class="flex items-center gap-3">'
-        + '<span class="text-base">' + displayTitle + '</span>'
-        + '<button data-id="' + moduleId + '" class="edit-module-name-btn hidden group-hover:flex bg-white hover:bg-gray-100 border border-gray-200 text-gray-500 hover:text-blue-600 transition w-6 h-6 items-center justify-center rounded-md shadow-sm opacity-0 group-hover:opacity-100 pointer-events-auto"><i class="fa-solid fa-pen text-[10px]"></i></button>'
+        + '<span class="text-base">' + escapeHtml(moduleDisplay.title) + '</span>'
+        + '<button data-id="' + escapeHtml(moduleDisplay.id) + '" class="edit-module-name-btn hidden group-hover:flex bg-white hover:bg-gray-100 border border-gray-200 text-gray-500 hover:text-blue-600 transition w-6 h-6 items-center justify-center rounded-md shadow-sm opacity-0 group-hover:opacity-100 pointer-events-auto"><i class="fa-solid fa-pen text-[10px]"></i></button>'
         + dirtyDot
         + '</div>'
         + '</td>'
         + '<td class="py-4 px-6 border-b border-gray-100 text-center">'
-        + '<span class="' + (m.isDraft === false ? 'text-green-600' : 'text-yellow-600') + ' text-xs font-bold uppercase tracking-wider">' + (m.isDraft === false ? 'Published' : 'Draft') + '</span>'
+        + '<span class="' + moduleDisplay.statusClass + ' text-xs font-bold uppercase tracking-wider">' + escapeHtml(moduleDisplay.statusLabel) + '</span>'
         + '</td>'
         + '<td class="py-4 px-6 border-b border-gray-100 text-right">'
-        + '<button data-id="' + moduleId + '" class="open-module-btn border border-gray-200 bg-white hover:bg-gray-50 text-blue-600 hover:text-blue-700 px-3 py-1.5 rounded text-sm font-bold transition shadow-sm items-center gap-1 inline-flex">'
+        + '<button data-id="' + escapeHtml(moduleDisplay.id) + '" class="open-module-btn border border-gray-200 bg-white hover:bg-gray-50 text-blue-600 hover:text-blue-700 px-3 py-1.5 rounded text-sm font-bold transition shadow-sm items-center gap-1 inline-flex">'
         + 'Edit Learning Modes <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>'
         + '</button>'
         + '</td>'
@@ -2335,6 +2335,122 @@ function readModuleTitle(module) {
   }
 
   return '';
+}
+
+function normalizeModuleDisplay(module, index) {
+  var id = readModuleId(module);
+  var title = readModuleDisplayText([
+    module ? module.title : null,
+    module && module.config ? module.config.title : null,
+    module ? module.name : null,
+    module ? module.displayName : null
+  ], 'Untitled Module');
+  var description = readModuleDisplayText([
+    module ? module.description : null,
+    module && module.config ? module.config.description : null,
+    module ? module.summary : null
+  ], '');
+  var status = readModuleStatus(module);
+
+  return {
+    id: id,
+    title: title,
+    description: description,
+    status: status,
+    statusLabel: readModuleStatusLabel(status),
+    statusClass: readModuleStatusClass(status),
+    updatedAt: module ? module.updatedAt || module.modifiedAt || module.createdAt || null : null,
+    isDirty: Boolean(module && module.isDirty),
+    index: index
+  };
+}
+
+function readModuleDisplayText(values, fallback) {
+  for (var index = 0; index < values.length; index += 1) {
+    var value = values[index];
+    var text = readModuleTextValue(value);
+
+    if (text) {
+      return text;
+    }
+  }
+
+  return fallback;
+}
+
+function readModuleTextValue(value) {
+  if (typeof value === 'string') {
+    return value.trim();
+  }
+
+  if (!value || typeof value !== 'object') {
+    return '';
+  }
+
+  if (typeof value.en === 'string' && value.en.trim()) {
+    return value.en.trim();
+  }
+
+  if (typeof value.ru === 'string' && value.ru.trim()) {
+    return value.ru.trim();
+  }
+
+  if (typeof value.ky === 'string' && value.ky.trim()) {
+    return value.ky.trim();
+  }
+
+  var keys = Object.keys(value);
+  for (var index = 0; index < keys.length; index += 1) {
+    if (typeof value[keys[index]] === 'string' && value[keys[index]].trim()) {
+      return value[keys[index]].trim();
+    }
+  }
+
+  return '';
+}
+
+function readModuleStatus(module) {
+  if (!module) {
+    return 'draft';
+  }
+
+  if (typeof module.status === 'string' && module.status.trim()) {
+    return module.status.trim();
+  }
+
+  if (module.isDraft === false) {
+    return 'published';
+  }
+
+  return 'draft';
+}
+
+function readModuleStatusLabel(status) {
+  if (status === 'published') {
+    return 'Published';
+  }
+
+  if (status === 'archived') {
+    return 'Archived';
+  }
+
+  if (status === 'active') {
+    return 'Active';
+  }
+
+  return 'Draft';
+}
+
+function readModuleStatusClass(status) {
+  if (status === 'published' || status === 'active') {
+    return 'text-green-600';
+  }
+
+  if (status === 'archived') {
+    return 'text-gray-500';
+  }
+
+  return 'text-yellow-600';
 }
 
 function escapeHtml(value) {
