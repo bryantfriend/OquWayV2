@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.26-buildcheck";
+import * as IntentExports from "../intents/intents.js?v=1.1.27-module-repair";
 
 const registry = {
   // Demo Verification
@@ -112,6 +112,7 @@ const registry = {
   PublishCourseIntent: IntentExports.PublishCourseIntent,
   ValidateCourseStructureIntent: IntentExports.ValidateCourseStructureIntent,
   UpdateCourseFieldIntent: IntentExports.UpdateCourseFieldIntent,
+  MigrateLegacyModulesToCatalogCourseIntent: IntentExports.MigrateLegacyModulesToCatalogCourseIntent,
 
   // Module Editor
   OpenModuleEditorIntent: IntentExports.OpenModuleEditorIntent,
