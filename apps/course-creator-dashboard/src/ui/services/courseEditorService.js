@@ -14,12 +14,39 @@ export const courseEditorService = {
       var result = await runIntentPipeline(getIntentDefinition("OpenCourseEditorIntent"), { payload: { courseId: courseId }, actor: getActor() });
 
       if (result && result.emitted && result.emitted.success) {
+        var openData = result.emitted.data || {};
+        var openCourse = openData.course || null;
+        var openModules = Array.isArray(openData.modules) ? openData.modules : [];
+
+        console.info("[course-editor:open-result]", {
+          courseId: courseId,
+          hasCourse: Boolean(openCourse),
+          moduleCount: openCourse ? openCourse.moduleCount : undefined,
+          moduleOrderLength: openCourse && Array.isArray(openCourse.moduleOrder) ? openCourse.moduleOrder.length : undefined,
+          returnedModulesLength: openModules.length,
+          moduleIds: openModules.map(readModuleId)
+        });
+
         courseEditorStore.setState({
-          course: result.emitted.data.course,
-          modules: result.emitted.data.modules,
-          selectedModuleId: result.emitted.data.selectedModuleId,
-          permissions: result.emitted.data.permissions,
+          course: openCourse,
+          modules: openModules,
+          selectedModuleId: openData.selectedModuleId,
+          permissions: openData.permissions,
           isFetching: false
+        });
+
+        var stateAfterOpen = courseEditorStore.getState();
+        console.info("[course:state:modules-assigned]", {
+          resultModuleCount: openModules.length,
+          stateModuleCount: Array.isArray(stateAfterOpen.modules) ? stateAfterOpen.modules.length : 0,
+          stateKeys: Object.keys(stateAfterOpen)
+        });
+
+        console.info("[course-editor:state-modules]", {
+          courseId: courseId,
+          stateCourseId: stateAfterOpen.course ? stateAfterOpen.course.id : "",
+          storedModulesLength: Array.isArray(stateAfterOpen.modules) ? stateAfterOpen.modules.length : 0,
+          moduleIds: Array.isArray(stateAfterOpen.modules) ? stateAfterOpen.modules.map(readModuleId) : []
         });
       } else {
         var errMsg = (result && result.emitted && result.emitted.errors && result.emitted.errors[0]) ? result.emitted.errors[0].message : "Unknown error";
@@ -427,4 +454,12 @@ function readIntentErrorMessage(result) {
   }
 
   return "Unknown course metadata error";
+}
+
+function readModuleId(module) {
+  if (!module) {
+    return "";
+  }
+
+  return module.id || module.moduleId || "";
 }

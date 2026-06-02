@@ -294,7 +294,7 @@ export class CourseEditorPage {
             title: { en: stepDraft.title || readLocalizedText(currentStep.title, "Generated Activity"), ru: "", ky: "" },
             config: Object.assign({}, readStepConfig(currentStep), stepDraft.config || {})
           });
-          return moduleEditorService.updatePracticeModeStep(self.courseId, self.moduleId, currentSession.id, currentModeKey, updatedStep);
+          return moduleEditorService.updateLearningModeStep(self.courseId, self.moduleId, readSelectedModeId(currentState), currentStepId, createLearningModeStepUpdates(updatedStep));
         }
 
         alert("Draft ready from Learning Content: " + stepDraft.title + ". Add a step, then use Pull From Learning Content in the inspector.");
@@ -365,6 +365,30 @@ export class CourseEditorPage {
     var playerCompleteBtn = event.target.closest(".oqu-player-complete-btn");
     if (playerCompleteBtn && this.practiceModePlaytestMode) {
       this.completePlaytestStep();
+      return;
+    }
+
+    var previewStepBtn = event.target.closest(".preview-step-btn");
+    if (previewStepBtn) {
+      var previewStepId = previewStepBtn.getAttribute("data-step-id") || state.selectedStepId;
+      var previewModeId = readSelectedModeId(state);
+
+      if (!previewModeId || !previewStepId) {
+        alert("Select a saved step before opening preview.");
+        return;
+      }
+
+      console.info("[step-preview]", {
+        courseId: this.courseId,
+        moduleId: this.moduleId,
+        modeId: previewModeId,
+        stepId: previewStepId
+      });
+
+      window.location.hash = "#step-preview?courseId=" + encodeURIComponent(this.courseId)
+        + "&moduleId=" + encodeURIComponent(this.moduleId)
+        + "&modeId=" + encodeURIComponent(previewModeId)
+        + "&stepId=" + encodeURIComponent(previewStepId);
       return;
     }
 
@@ -589,12 +613,13 @@ export class CourseEditorPage {
     var saveStepBtn = event.target.closest(".save-practice-step-btn");
     if (saveStepBtn && session) {
       var practiceModeKey = state.selectedPracticeModeKey || "beforeClass";
+      var modeId = readSelectedModeId(state);
       var stepId = state.selectedStepId;
       var step = self.readStepFromInspector(propsPane, session, practiceModeKey, stepId);
       saveStepBtn.textContent = "Saving\u2026";
       saveStepBtn.disabled = true;
-      moduleEditorService.updatePracticeModeStep(
-        self.courseId, self.moduleId, session.id, practiceModeKey, step
+      moduleEditorService.updateLearningModeStep(
+        self.courseId, self.moduleId, modeId, stepId, createLearningModeStepUpdates(step)
       ).then(function () {
         saveStepBtn.textContent = "Saved \u2713";
         setTimeout(function () {
@@ -602,9 +627,12 @@ export class CourseEditorPage {
           saveStepBtn.disabled = false;
         }, 1400);
       }).catch(function (error) {
-        saveStepBtn.textContent = "Save Step";
-        saveStepBtn.disabled = false;
         alert("Failed to save step: " + error.message);
+      }).finally(function () {
+        if (saveStepBtn.textContent !== "Saved \u2713") {
+          saveStepBtn.textContent = "Save Step";
+          saveStepBtn.disabled = false;
+        }
       });
     }
   }
@@ -1060,6 +1088,7 @@ export class CourseEditorPage {
       html += '<div class="oqu-step-tile-actions">';
       html += '<button type="button" class="step-reorder-btn oqu-step-icon-btn" data-step-id="' + stepId + '" data-direction="up"' + upDisabled + ' title="Move up">↑</button>';
       html += '<button type="button" class="step-reorder-btn oqu-step-icon-btn" data-step-id="' + stepId + '" data-direction="down"' + downDisabled + ' title="Move down">↓</button>';
+      html += '<button type="button" class="preview-step-btn oqu-step-preview-btn" data-step-id="' + stepId + '" title="Preview step"><i class="fa-solid fa-play"></i> Preview</button>';
       html += '<button type="button" class="step-tile-delete-btn oqu-step-delete-btn" data-step-id="' + stepId + '" title="Delete step">Delete</button>';
       html += '</div>';
       html += '</div>';
@@ -1108,7 +1137,7 @@ export class CourseEditorPage {
     var canvasClass = previewMode === "full" ? "oqu-preview-canvas oqu-preview-canvas-full" : "oqu-preview-canvas";
     var html = '<div class="' + canvasClass + '" id="step-preview-canvas">';
     html += '<div class="oqu-preview-toolbar">';
-    html += '<button type="button" class="student-view-btn oqu-student-view-btn">▶ Student View</button>';
+    html += '<button type="button" class="preview-step-btn oqu-student-view-btn" data-step-id="' + readStepId(selectedStep, "") + '"><i class="fa-solid fa-play"></i> Preview</button>';
     html += '</div>';
     html += this.buildStepPreviewCard(selectedStep);
     html += '</div>';
@@ -2696,6 +2725,17 @@ function readStepConfig(step) {
     return {};
   }
   return step.config;
+}
+
+function createLearningModeStepUpdates(step) {
+  return {
+    type: step && step.type ? step.type : "",
+    stepTypeId: step && (step.stepTypeId || step.type) ? step.stepTypeId || step.type : "",
+    title: step ? step.title : { en: "", ru: "", ky: "" },
+    instructions: step ? step.instructions : { en: "", ru: "", ky: "" },
+    config: readStepConfig(step),
+    status: step && step.status ? step.status : "draft"
+  };
 }
 
 function readStepCount(mode) {

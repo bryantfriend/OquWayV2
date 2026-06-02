@@ -1,17 +1,11 @@
-import { db, doc, getDoc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js";
 import { getDownloadURL, ref, storage, uploadBytes } from "../../../../../infrastructure/firebase/storage.js";
 import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js";
-import { normalizePracticeModes, updatePracticeModeStep } from "./practiceModeShells.js";
 
 export async function processUploadStepMedia(executionState) {
-  var payload = executionState.payload;
-  var session = findSessionForMode(executionState);
-  var practiceModes = normalizePracticeModes(session ? session.practiceModes : {});
-  var step = await readCanonicalStep(executionState, payload);
-
-  if (!step) {
-    step = findStep(practiceModes, payload.practiceModeKey, payload.stepId);
-  }
+  var payload = executionState.payload || {};
+  var learningMode = executionState.context.learningMode || {};
+  var step = findStepById(learningMode.steps, payload.stepId);
 
   if (!step) {
     return createProcessError("STEP_NOT_FOUND", "Selected step was not found.");
@@ -22,7 +16,7 @@ export async function processUploadStepMedia(executionState) {
   }
 
   try {
-    var storagePath = buildStoragePath(payload, step);
+    var storagePath = buildStoragePath(payload);
     var storageRef = ref(storage, storagePath);
     var metadata = {
       contentType: payload.file.type
@@ -32,14 +26,39 @@ export async function processUploadStepMedia(executionState) {
 
     var downloadUrl = await getDownloadURL(storageRef);
     var config = createUpdatedConfig(step, payload.mediaField, downloadUrl, storagePath);
-    var updatedPracticeModes = upsertStepInPracticeMode(practiceModes, payload.practiceModeKey, step, {
-      config: config
+    var updatedStep = Object.assign({}, step, {
+      config: config,
+      updatedAt: Date.now()
     });
+    var updatedLearningMode = createUpdatedLearningMode(learningMode, updatedStep);
 
-    await savePracticeModes(executionState, payload, session, updatedPracticeModes, step, config);
+    await setDoc(doc(db, "catalogCourses", payload.courseId, "modules", payload.moduleId, "learningModes", payload.modeId, "steps", payload.stepId), {
+      id: payload.stepId,
+      type: updatedStep.type,
+      stepTypeId: updatedStep.stepTypeId || updatedStep.type,
+      title: updatedStep.title,
+      instructions: updatedStep.instructions,
+      config: config,
+      status: updatedStep.status,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+
+    await setDoc(doc(db, "catalogCourses", payload.courseId, "modules", payload.moduleId, "learningModes", payload.modeId), {
+      stepCount: updatedLearningMode.stepCount,
+      stepOrder: updatedLearningMode.stepOrder,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+
+    await setDoc(doc(db, "catalogCourses", payload.courseId, "modules", payload.moduleId), {
+      learningModes: {
+        [payload.modeId]: updatedLearningMode
+      },
+      updatedAt: serverTimestamp()
+    }, { merge: true });
 
     executionState.result = {
-      session: Object.assign({}, session || createSessionShellForMode(executionState), { practiceModes: updatedPracticeModes }),
+      learningMode: updatedLearningMode,
+      step: updatedStep,
       media: {
         mediaField: payload.mediaField,
         downloadUrl: downloadUrl,
@@ -54,61 +73,19 @@ export async function processUploadStepMedia(executionState) {
   }
 }
 
-async function readCanonicalStep(executionState, payload) {
-  if (!payload.courseId || !payload.moduleId || !payload.modeId || !payload.stepId) {
-    return null;
-  }
+function findStepById(steps, stepId) {
+  var safeSteps = Array.isArray(steps) ? steps : [];
+  var index = 0;
 
-  var stepRef = doc(db, readCourseCollectionName(executionState), payload.courseId, "modules", payload.moduleId, "learningModes", payload.modeId, "steps", payload.stepId);
-  var stepSnap = await getDoc(stepRef);
-
-  if (!stepSnap.exists()) {
-    return null;
-  }
-
-  return Object.assign({ id: stepSnap.id }, stepSnap.data() || {});
-}
-
-function findStep(practiceModes, practiceModeKey, stepId) {
-  var practiceMode = practiceModes[practiceModeKey];
-  var steps = [];
-  var stepIndex = 0;
-
-  if (!practiceMode || !Array.isArray(practiceMode.steps)) {
-    return null;
-  }
-
-  steps = practiceMode.steps;
-
-  while (stepIndex < steps.length) {
-    if (steps[stepIndex].id === stepId) {
-      return steps[stepIndex];
+  while (index < safeSteps.length) {
+    if (safeSteps[index] && safeSteps[index].id === stepId) {
+      return safeSteps[index];
     }
 
-    stepIndex = stepIndex + 1;
+    index = index + 1;
   }
 
   return null;
-}
-
-function upsertStepInPracticeMode(practiceModes, practiceModeKey, step, stepPatch) {
-  var updatedPracticeModes = updatePracticeModeStep(practiceModes, practiceModeKey, step.id, stepPatch);
-  var updatedStep = findStep(updatedPracticeModes, practiceModeKey, step.id);
-
-  if (updatedStep) {
-    return updatedPracticeModes;
-  }
-
-  var practiceMode = updatedPracticeModes[practiceModeKey];
-  var steps = practiceMode && Array.isArray(practiceMode.steps) ? practiceMode.steps.slice() : [];
-  steps.push(Object.assign({}, step, stepPatch, {
-    id: step.id,
-    updatedAt: Date.now(),
-    order: steps.length + 1
-  }));
-  practiceMode.steps = steps;
-  updatedPracticeModes[practiceModeKey] = practiceMode;
-  return updatedPracticeModes;
 }
 
 function stepSupportsMediaField(step, mediaField) {
@@ -141,15 +118,12 @@ function getStoragePathKey(mediaField) {
   return "audioStoragePath";
 }
 
-function buildStoragePath(payload, step) {
-  var safeFileName = createSafeFileName(payload.file.name);
-
+function buildStoragePath(payload) {
   return "step-media/" + createSafePathSegment(payload.courseId)
     + "/" + createSafePathSegment(payload.moduleId)
     + "/" + createSafePathSegment(payload.modeId)
-    + "/" + createSafePathSegment(step.id)
-    + "/" + Date.now()
-    + "-" + safeFileName;
+    + "/" + createSafePathSegment(payload.stepId)
+    + "/" + createSafeFileName(payload.file.name);
 }
 
 function createSafePathSegment(value) {
@@ -168,78 +142,43 @@ function createSafeFileName(fileName) {
   return fileName.replace(/[^a-zA-Z0-9._-]/g, "-");
 }
 
-async function savePracticeModes(executionState, payload, session, practiceModes, step, config) {
-  if (session && payload.sessionId) {
-    await setDoc(doc(db, readCourseCollectionName(executionState), payload.courseId, "modules", payload.moduleId, "sessions", payload.sessionId), {
-      practiceModes: practiceModes,
-      updatedAt: serverTimestamp()
-    }, { merge: true });
-  }
+function createUpdatedLearningMode(learningMode, updatedStep) {
+  var steps = Array.isArray(learningMode.steps) ? learningMode.steps.slice() : [];
+  var stepFound = false;
 
-  if (payload.modeId && step) {
-    await setDoc(doc(db, readCourseCollectionName(executionState), payload.courseId, "modules", payload.moduleId, "learningModes", payload.modeId, "steps", payload.stepId), {
-      id: payload.stepId,
-      type: step.type,
-      stepTypeId: step.stepTypeId || step.type,
-      title: step.title,
-      instructions: step.instructions,
-      config: config,
-      status: step.status,
-      updatedAt: serverTimestamp()
-    }, { merge: true });
-  }
-}
-
-function findSessionForMode(executionState) {
-  var payload = executionState.payload || {};
-  var sessions = Array.isArray(executionState.context.sessions) ? executionState.context.sessions : [];
-  var learningMode = executionState.context.learningMode || {};
-  var index = 0;
-
-  while (index < sessions.length) {
-    if ((payload.sessionId && sessions[index].id === payload.sessionId) ||
-      (learningMode.legacySessionId && sessions[index].id === learningMode.legacySessionId) ||
-      (payload.modeId && sessions[index].learningModeId === payload.modeId)) {
-      return sessions[index];
+  steps = steps.map(function (step) {
+    if (step && step.id === updatedStep.id) {
+      stepFound = true;
+      return updatedStep;
     }
 
-    index = index + 1;
+    return step;
+  });
+
+  if (!stepFound) {
+    steps.push(updatedStep);
   }
 
-  return null;
+  steps.sort(function (firstStep, secondStep) {
+    return readOrder(firstStep) - readOrder(secondStep);
+  });
+
+  return Object.assign({}, learningMode, {
+    steps: steps,
+    stepCount: steps.length,
+    stepOrder: steps.map(function (step) {
+      return step.id;
+    }).filter(Boolean),
+    updatedAt: Date.now()
+  });
 }
 
-function createSessionShellForMode(executionState) {
-  var payload = executionState.payload || {};
-  var learningMode = executionState.context.learningMode || {};
-
-  return {
-    id: payload.sessionId || learningMode.legacySessionId || "mode-" + (payload.modeId || "primary") + "-canonical",
-    title: { en: readText(learningMode.title, "Learning Mode"), ru: "", ky: "" },
-    description: learningMode.purpose || "",
-    learningModeId: payload.modeId || learningMode.id || "primary",
-    learningModeType: learningMode.modeType || "custom",
-    status: learningMode.status || "draft",
-    isLearningModeShell: true
-  };
-}
-
-function readText(value, fallbackText) {
-  if (typeof value === "string") {
-    return value.trim() || fallbackText;
+function readOrder(step) {
+  if (step && typeof step.order === "number" && Number.isFinite(step.order)) {
+    return step.order;
   }
 
-  if (value && typeof value === "object") {
-    return value.en || value.ru || value.ky || fallbackText;
-  }
-
-  return fallbackText;
-}
-
-function readCourseCollectionName(executionState) {
-  return executionState.context && executionState.context.courseCollectionName
-    ? executionState.context.courseCollectionName
-    : "catalogCourses";
+  return 0;
 }
 
 function createProcessError(code, message) {

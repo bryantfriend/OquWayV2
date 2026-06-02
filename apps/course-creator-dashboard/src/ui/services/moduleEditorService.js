@@ -328,26 +328,66 @@ export const moduleEditorService = {
     });
   },
 
-  updatePracticeModeStep: async function (courseId, moduleId, sessionId, practiceModeKey, step) {
-    var result = await runIntentPipeline(getIntentDefinition("UpdatePracticeModeStepIntent"), {
+  updateLearningModeStep: async function (courseId, moduleId, modeId, stepId, updates) {
+    var safeUpdates = updates || {};
+    var result = await runIntentPipeline(getIntentDefinition("UpdateLearningModeStepIntent"), {
       payload: {
         courseId: courseId,
         moduleId: moduleId,
-        sessionId: sessionId,
-        practiceModeKey: practiceModeKey,
-        stepId: step.id,
-        stepType: step.type,
-        title: step.title,
-        instructions: step.instructions,
-        config: step.config,
-        status: step.status
+        modeId: modeId,
+        stepId: stepId,
+        updates: safeUpdates
       },
       actor: getActor()
     });
 
     if (result && result.emitted && result.emitted.success) {
-      replaceSessionInState(result.emitted.data);
+      if (result.emitted.data && result.emitted.data.learningMode) {
+        mergeLearningMode(result.emitted.data.learningMode);
+      }
+      moduleEditorStore.setState({
+        selectedStepId: stepId,
+        lastSaved: Date.now()
+      });
       return result;
+    }
+
+    throw new Error(readIntentErrorMessage(result));
+  },
+
+  updatePracticeModeStep: async function (courseId, moduleId, sessionId, practiceModeKey, step) {
+    var state = moduleEditorStore.getState();
+    var modeId = resolveSelectedModeId(state.learningModes, state.selectedModeId || state.selectedLearningModeId);
+    return this.updateLearningModeStep(courseId, moduleId, modeId, step.id, {
+      type: step.type,
+      stepTypeId: step.stepTypeId || step.type,
+      title: step.title,
+      instructions: step.instructions,
+      config: step.config,
+      status: step.status
+    });
+  },
+
+  previewStep: async function (courseId, moduleId, modeId, stepId) {
+    console.info("[step-preview]", {
+      courseId: courseId,
+      moduleId: moduleId,
+      modeId: modeId,
+      stepId: stepId
+    });
+
+    var result = await runIntentPipeline(getIntentDefinition("PreviewStepIntent"), {
+      payload: {
+        courseId: courseId,
+        moduleId: moduleId,
+        modeId: modeId,
+        stepId: stepId
+      },
+      actor: getActor()
+    });
+
+    if (result && result.emitted && result.emitted.success) {
+      return result.emitted.data;
     }
 
     throw new Error(readIntentErrorMessage(result));
@@ -401,8 +441,6 @@ export const moduleEditorService = {
         courseId: courseId,
         moduleId: moduleId,
         modeId: modeId,
-        sessionId: sessionId,
-        practiceModeKey: practiceModeKey,
         stepId: stepId,
         mediaField: mediaField,
         file: file
@@ -411,7 +449,13 @@ export const moduleEditorService = {
     });
 
     if (result && result.emitted && result.emitted.success) {
-      replaceSessionInState(result.emitted.data.session, stepId);
+      if (result.emitted.data && result.emitted.data.learningMode) {
+        mergeLearningMode(result.emitted.data.learningMode);
+      }
+      moduleEditorStore.setState({
+        selectedStepId: stepId,
+        lastSaved: Date.now()
+      });
       return result;
     }
 

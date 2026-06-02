@@ -78,6 +78,8 @@ export { processGenerateModeFromPrimary } from "./domain/moduleEditor/processGen
 export { processPullLearningContent } from "./domain/moduleEditor/processPullLearningContent.js";
 export { processListPracticeModeSteps } from "./domain/moduleEditor/processListPracticeModeSteps.js";
 export { processOpenModuleEditor } from "./domain/moduleEditor/processOpenModuleEditor.js";
+export { processPreviewStep } from "./domain/moduleEditor/processPreviewStep.js";
+export { processUpdateLearningModeStep } from "./domain/moduleEditor/processUpdateLearningModeStep.js";
 export { processDeletePracticeModeStep } from "./domain/moduleEditor/processDeletePracticeModeStep.js";
 export { processReorderPracticeModeSteps } from "./domain/moduleEditor/processReorderPracticeModeSteps.js";
 export { processSaveModuleDraft } from "./domain/moduleEditor/processSaveModuleDraft.js";

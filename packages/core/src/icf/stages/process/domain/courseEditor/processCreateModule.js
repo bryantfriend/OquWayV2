@@ -1,4 +1,4 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js";
+import { db, collection, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js";
 import { createDefaultPracticeModes } from "../moduleEditor/practiceModeShells.js";
 import {
   createDefaultLearningContent,
@@ -16,16 +16,61 @@ export async function processCreateModule(executionState) {
   const learningContent = moduleRecord.learningContent;
   const generatedAt = Date.now();
   const generationResult = createModeSessionsAndSteps(learningModes, learningContent, payload, context, generatedAt);
+  const collectionName = readCourseCollectionName();
 
   try {
     moduleRecord.learningModes = generationResult.learningModes;
     moduleRecord.generatedStarterStepCount = generationResult.generatedStepCount;
     moduleRecord.sessionsGenerated = generationResult.sessions.length;
-    await setDoc(doc(db, readCourseCollectionName(executionState), payload.courseId, "modules", moduleId), moduleRecord);
-    await mirrorLearningContent(readCourseCollectionName(executionState), payload.courseId, moduleId, learningContent);
-    await mirrorLearningModes(readCourseCollectionName(executionState), payload.courseId, moduleId, generationResult.learningModes);
-    await writeGeneratedSessionsAndSteps(readCourseCollectionName(executionState), payload.courseId, moduleId, generationResult.sessions, generationResult.stepsByMode);
-    await updateCourseModuleSummary(readCourseCollectionName(executionState), payload.courseId, context.modules, moduleId, generationResult.generatedStepCount);
+    console.info("[module-wizard:generate]", {
+      courseId: payload.courseId,
+      moduleId: moduleId,
+      template: payload.templateKey || "custom",
+      willGenerateStarterSteps: payload.generateStarterSteps !== false
+    });
+    await setDoc(doc(db, collectionName, payload.courseId, "modules", moduleId), moduleRecord);
+    console.info("[module:create:proof]", {
+      courseId: payload.courseId,
+      moduleId: moduleId,
+      writePath: "catalogCourses/" + payload.courseId + "/modules/" + moduleId,
+      moduleTitle: readModuleTitleForLog(moduleRecord.title),
+      writeCompleted: true
+    });
+
+    const moduleSnapshot = await getDoc(doc(db, collectionName, payload.courseId, "modules", moduleId));
+    console.info("[module:create:verify-readback]", {
+      courseId: payload.courseId,
+      moduleId: moduleId,
+      exists: moduleSnapshot.exists(),
+      data: moduleSnapshot.exists() ? {
+        title: moduleSnapshot.data().title,
+        status: moduleSnapshot.data().status,
+        createdAt: Boolean(moduleSnapshot.data().createdAt)
+      } : null
+    });
+
+    if (!moduleSnapshot.exists()) {
+      return {
+        valid: false,
+        errors: [
+          {
+            code: "MODULE_CREATE_READBACK_FAILED",
+            message: "Module write could not be verified after creation."
+          }
+        ]
+      };
+    }
+
+    console.info("[module:create] wrote module", {
+      courseId: payload.courseId,
+      moduleId: moduleId,
+      path: "catalogCourses/" + payload.courseId + "/modules/" + moduleId,
+      moduleTitle: readModuleTitleForLog(moduleRecord.title)
+    });
+    await mirrorLearningContent(collectionName, payload.courseId, moduleId, learningContent);
+    await mirrorLearningModes(collectionName, payload.courseId, moduleId, generationResult.learningModes);
+    await writeGeneratedSessionsAndSteps(collectionName, payload.courseId, moduleId, generationResult.sessions, generationResult.stepsByMode);
+    await updateCourseModuleSummary(collectionName, payload.courseId, context.modules, moduleId, generationResult.generatedStepCount);
     executionState.result = moduleRecord;
     return { valid: true };
   } catch (error) {
@@ -52,12 +97,30 @@ async function updateCourseModuleSummary(collectionName, courseId, existingModul
     moduleOrder.push(moduleId);
   }
 
+  const persistedModuleIds = await readPersistedModuleIds(collectionName, courseId);
+  persistedModuleIds.forEach(function (persistedModuleId) {
+    if (moduleOrder.indexOf(persistedModuleId) === -1) {
+      moduleOrder.push(persistedModuleId);
+    }
+  });
+
   await setDoc(doc(db, collectionName, courseId), {
-    moduleCount: moduleOrder.length,
+    moduleCount: persistedModuleIds.length,
     moduleOrder: moduleOrder,
     stepCount: readExistingStepCount(existingModules) + readNumber(generatedStepCount, 0),
     updatedAt: serverTimestamp()
   }, { merge: true });
+}
+
+async function readPersistedModuleIds(collectionName, courseId) {
+  const snapshot = await getDocs(collection(db, collectionName, courseId, "modules"));
+  const moduleIds = [];
+
+  snapshot.forEach(function (moduleDoc) {
+    moduleIds.push(moduleDoc.id);
+  });
+
+  return moduleIds;
 }
 
 async function mirrorLearningContent(collectionName, courseId, moduleId, learningContent) {
@@ -267,8 +330,18 @@ function readExistingStepCount(modules) {
   return count;
 }
 
-function readCourseCollectionName(executionState) {
-  return executionState.context && executionState.context.courseCollectionName
-    ? executionState.context.courseCollectionName
-    : "catalogCourses";
+function readModuleTitleForLog(title) {
+  if (typeof title === "string") {
+    return title;
+  }
+
+  if (title && typeof title === "object") {
+    return title.en || title.ru || title.ky || "";
+  }
+
+  return "";
+}
+
+function readCourseCollectionName() {
+  return "catalogCourses";
 }

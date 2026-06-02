@@ -13,6 +13,8 @@ export class CourseOverviewPage {
     this.editingModuleId = null;
     this.moduleWizardStep = 1;
     this.moduleWizardTemplateKey = 'school';
+    this.moduleWizardLoadingTimer = null;
+    this.lastLoggedCourseContext = "";
     this.assignments = [];
     this.assignmentsLoading = false;
     this.assignmentPendingId = "";
@@ -487,9 +489,11 @@ export class CourseOverviewPage {
     setCheckedValue('wizardGenerateStepsToggle', true);
     setElementHtml('moduleWizardWarnings', '');
     setElementHtml('moduleWizardPreview', buildWizardEmptyPreview());
+    this.setModuleWizardLoadingState(false);
   }
 
   closeCreateModuleWizard() {
+    this.setModuleWizardLoadingState(false);
     var modal = document.getElementById('createModuleWizardModal');
     if (modal) {
       modal.classList.add('hidden');
@@ -648,12 +652,13 @@ export class CourseOverviewPage {
     });
   }
 
-  createModuleFromWizard() {
-    var self = this;
+  async createModuleFromWizard() {
     var payload = this.buildWizardPayload();
     var title = payload.title.trim();
     var status = document.getElementById('moduleWizardStatus');
     var btn = document.getElementById('moduleWizardCreateBtn');
+    var createdModuleId = '';
+    var didCreate = false;
 
     if (!title) {
       status.textContent = 'Module title is required.';
@@ -662,29 +667,24 @@ export class CourseOverviewPage {
       return;
     }
 
-    if (readLearningContentItemCount(payload.learningContent) === 0) {
-      status.textContent = 'No learning content yet. Creating an editable empty skeleton.';
-      status.className = 'text-xs font-bold text-amber-700';
-    } else {
-      status.textContent = 'Creating module skeleton...';
-      status.className = 'text-xs font-bold text-blue-700';
-    }
+    this.showModuleWizardStep(4);
+    this.setModuleWizardLoadingState(true, 'Creating module...');
 
-    if (btn) {
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Creating';
-    }
-
-    courseEditorService.createModuleFromWizard(this.courseId, payload).then(function (result) {
+    try {
+      var result = await courseEditorService.createModuleFromWizard(this.courseId, payload);
       if (!result || !result.emitted || !result.emitted.success) {
-        throw new Error(self.readResultErrorMessage(result));
+        throw new Error(this.readResultErrorMessage(result));
       }
 
-      self.closeCreateModuleWizard();
+      didCreate = true;
+      createdModuleId = result.emitted.data && (result.emitted.data.id || result.emitted.data.moduleId)
+        ? result.emitted.data.id || result.emitted.data.moduleId
+        : '';
+      this.setModuleWizardSuccessState();
       showModuleStatusMsg(
         document.getElementById('moduleCreateStatusMsg'),
         'success',
-        '<span class="oqu-success-icon">&#10003;</span> Module skeleton generated.'
+        '<span class="oqu-success-icon">&#10003;</span> Module created.'
       );
       setTimeout(function () {
         var statusMsg = document.getElementById('moduleCreateStatusMsg');
@@ -692,14 +692,147 @@ export class CourseOverviewPage {
           statusMsg.style.display = 'none';
         }
       }, 2200);
-    }).catch(function (error) {
+
+      await waitForMilliseconds(850);
+      this.closeCreateModuleWizard();
+
+      if (createdModuleId) {
+        window.location.hash = '#module-editor?courseId=' + encodeURIComponent(this.courseId) + '&moduleId=' + encodeURIComponent(createdModuleId);
+      }
+    } catch (error) {
       status.textContent = error.message;
       status.className = 'text-xs font-bold text-red-700';
-    }).finally(function () {
+      this.setModuleWizardLoadingState(false);
+      this.setModuleWizardErrorState(error.message);
+    } finally {
+      if (didCreate) {
+        this.stopModuleWizardMessageRotation();
+      }
+
       if (btn) {
         btn.disabled = false;
         btn.innerHTML = '<i class="fa-solid fa-sparkles"></i> Create Module';
       }
+    }
+  }
+
+  setModuleWizardLoadingState(isLoading, message) {
+    var overlay = document.getElementById('moduleWizardLoadingOverlay');
+    var status = document.getElementById('moduleWizardStatus');
+    var createBtn = document.getElementById('moduleWizardCreateBtn');
+
+    this.stopModuleWizardMessageRotation();
+
+    setModuleWizardControlsDisabled(isLoading);
+
+    if (createBtn) {
+      createBtn.disabled = isLoading;
+      if (isLoading) {
+        createBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Generating';
+      } else {
+        createBtn.innerHTML = '<i class="fa-solid fa-sparkles"></i> Create Module';
+      }
+    }
+
+    if (!overlay) {
+      return;
+    }
+
+    if (!isLoading) {
+      overlay.classList.add('hidden');
+      overlay.innerHTML = '';
+      return;
+    }
+
+    overlay.classList.remove('hidden');
+    overlay.innerHTML = buildWizardLoadingState(message || 'Creating module...');
+    this.startModuleWizardMessageRotation();
+
+    if (status) {
+      status.textContent = 'Building your module...';
+      status.className = 'text-xs font-bold text-blue-700';
+    }
+  }
+
+  startModuleWizardMessageRotation() {
+    var messageEl = document.getElementById('moduleWizardLoadingMessage');
+    var messages = [
+      'Creating module...',
+      'Building Learning Content...',
+      'Creating Primary Mode...',
+      'Preparing starter steps...',
+      'Almost ready...'
+    ];
+    var index = 0;
+
+    if (!messageEl) {
+      return;
+    }
+
+    messageEl.textContent = messages[index];
+    this.moduleWizardLoadingTimer = setInterval(function () {
+      index = (index + 1) % messages.length;
+      messageEl.textContent = messages[index];
+    }, 1100);
+  }
+
+  stopModuleWizardMessageRotation() {
+    if (this.moduleWizardLoadingTimer) {
+      clearInterval(this.moduleWizardLoadingTimer);
+      this.moduleWizardLoadingTimer = null;
+    }
+  }
+
+  setModuleWizardSuccessState() {
+    var overlay = document.getElementById('moduleWizardLoadingOverlay');
+    var status = document.getElementById('moduleWizardStatus');
+
+    this.stopModuleWizardMessageRotation();
+
+    if (overlay) {
+      overlay.classList.remove('hidden');
+      overlay.innerHTML = buildWizardSuccessState();
+    }
+
+    if (status) {
+      status.textContent = 'Module created!';
+      status.className = 'text-xs font-bold text-emerald-700';
+    }
+  }
+
+  setModuleWizardErrorState(message) {
+    var overlay = document.getElementById('moduleWizardLoadingOverlay');
+
+    this.stopModuleWizardMessageRotation();
+    setModuleWizardControlsDisabled(false);
+
+    if (overlay) {
+      overlay.classList.remove('hidden');
+      overlay.innerHTML = buildWizardErrorState(message || 'Module generation failed. Try again.');
+      var dismissBtn = document.getElementById('moduleWizardDismissErrorBtn');
+      if (dismissBtn) {
+        dismissBtn.addEventListener('click', function () {
+          overlay.classList.add('hidden');
+          overlay.innerHTML = '';
+        });
+      }
+    }
+  }
+
+  logCourseEditorContext(course) {
+    var stateCourseId = course && course.id ? course.id : "";
+    var signature = (this.courseId || "") + "|" + stateCourseId;
+
+    if (this.lastLoggedCourseContext === signature) {
+      return;
+    }
+
+    this.lastLoggedCourseContext = signature;
+    console.info("[course-editor:context]", {
+      routeCourseId: this.courseId,
+      stateCourseId: stateCourseId,
+      openedCourseId: stateCourseId,
+      catalogPath: "catalogCourses/" + (this.courseId || "") + "/modules"
     });
   }
 
@@ -709,6 +842,13 @@ export class CourseOverviewPage {
 
     this.unsubscribe = courseEditorStore.subscribe(function (newState) {
       self.updateUI(newState);
+    });
+
+    console.info("[course-editor:context]", {
+      routeCourseId: this.courseId,
+      stateCourseId: "",
+      openedCourseId: "",
+      catalogPath: "catalogCourses/" + (this.courseId || "") + "/modules"
     });
 
     courseEditorService.openCourseEditor(this.courseId);
@@ -1077,6 +1217,7 @@ export class CourseOverviewPage {
     if (course) {
       var defaultLanguage = course.defaultLanguage || 'en';
       var courseTitle = this.getLocalizedText(course.title, defaultLanguage) || 'Untitled';
+      this.logCourseEditorContext(course);
       document.getElementById('headerContextualTitle').innerHTML = courseTitle + ' <span class="text-gray-400 mx-1">&rarr;</span> Config &amp; Modules Overview';
 
       if (!this.userHasEditedMetadata) {
@@ -1118,7 +1259,7 @@ export class CourseOverviewPage {
       saveIndicator.className = 'text-green-600 font-medium flex items-center gap-1 mr-2';
     }
 
-    this.renderModuleList(state.modules);
+    this.renderModuleList(state.modules, state.course);
   }
 
   loadAssignments() {
@@ -1388,15 +1529,42 @@ export class CourseOverviewPage {
     }
   }
 
-  renderModuleList(modules) {
+  renderModuleList(modules, course) {
     var tbody = document.getElementById('moduleTableBody');
+    var safeModules = Array.isArray(modules) ? modules : [];
 
-    if (!modules || modules.length === 0) {
+    console.info("[course-editor:render-modules]", {
+      renderedModuleCount: safeModules.length,
+      moduleIds: safeModules.map(readModuleId),
+      moduleTitles: safeModules.map(readModuleTitle)
+    });
+
+    console.info("[course:render:modules]", {
+      renderedModuleCount: safeModules.length,
+      renderedModuleIds: safeModules.map(readModuleId),
+      renderedModuleTitles: safeModules.map(readModuleTitle)
+    });
+
+    if (safeModules.length === 0) {
+      var courseModuleCount = course && typeof course.moduleCount === 'number' ? course.moduleCount : 0;
+      var courseModuleOrder = course && Array.isArray(course.moduleOrder) ? course.moduleOrder : [];
+
+      if (course && (courseModuleCount > 0 || courseModuleOrder.length > 0)) {
+        console.warn("[course-editor:render-module-mismatch]", {
+          courseId: course.id || this.courseId,
+          moduleCount: courseModuleCount,
+          loadedModuleDocCount: 0,
+          moduleOrder: courseModuleOrder
+        });
+        tbody.innerHTML = '<tr><td colspan="4" class="py-10 text-center text-amber-700 border-b bg-amber-50 font-bold">This course says it has modules, but no module documents were loaded.</td></tr>';
+        return;
+      }
+
       tbody.innerHTML = '<tr><td colspan="4" class="py-10 text-center text-gray-500 border-b">No modules added yet. Create one above to get started.</td></tr>';
       return;
     }
 
-    tbody.innerHTML = modules.map(function (m, idx) {
+    tbody.innerHTML = safeModules.map(function (m, idx) {
       var titleObj = m.title || (m.config && m.config.title) || 'Untitled Module';
       var displayTitle = 'Untitled Module';
 
@@ -1446,7 +1614,7 @@ export class CourseOverviewPage {
 function buildCreateModuleWizardModal() {
   return `
     <div id="createModuleWizardModal" class="fixed inset-0 hidden bg-slate-950/70 z-50 p-4 lg:p-8 overflow-y-auto">
-      <div class="mx-auto w-full max-w-6xl overflow-hidden rounded-[28px] bg-white shadow-2xl">
+      <div class="relative mx-auto w-full max-w-6xl overflow-hidden rounded-[28px] bg-white shadow-2xl">
         <div class="bg-gradient-to-r from-blue-50 via-white to-emerald-50 px-6 py-5 border-b border-slate-100">
           <div class="flex items-start justify-between gap-5">
             <div class="flex items-center gap-4 min-w-0">
@@ -1572,6 +1740,7 @@ function buildCreateModuleWizardModal() {
             </button>
           </div>
         </div>
+        <div id="moduleWizardLoadingOverlay" class="hidden absolute inset-0 z-20 flex items-center justify-center bg-white/90 px-5 py-8 backdrop-blur-sm"></div>
       </div>
     </div>
   `;
@@ -1611,6 +1780,49 @@ function buildWizardEmptyPreview() {
     + '</div>';
 }
 
+function buildWizardLoadingState(message) {
+  return '<div class="module-wizard-loading-card">'
+    + '<div class="module-wizard-stage">'
+    + '<div class="module-wizard-path-dot module-wizard-path-dot-one"></div>'
+    + '<div class="module-wizard-path-dot module-wizard-path-dot-two"></div>'
+    + '<div class="module-wizard-path-dot module-wizard-path-dot-three"></div>'
+    + '<div class="module-wizard-card-stack" aria-hidden="true">'
+    + '<div class="module-wizard-mini-card module-wizard-mini-card-one"><i class="fa-solid fa-book-open"></i><span></span></div>'
+    + '<div class="module-wizard-mini-card module-wizard-mini-card-two"><i class="fa-solid fa-puzzle-piece"></i><span></span></div>'
+    + '<div class="module-wizard-mini-card module-wizard-mini-card-three"><i class="fa-solid fa-route"></i><span></span></div>'
+    + '</div>'
+    + '</div>'
+    + '<p class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600">Building your module...</p>'
+    + '<h3 id="moduleWizardLoadingMessage" class="mt-2 text-2xl font-black text-slate-950">' + escapeHtml(message || 'Creating module...') + '</h3>'
+    + '<p class="mt-2 text-sm font-semibold leading-6 text-slate-500">OquWay is connecting content, modes, and starter steps.</p>'
+    + '<div class="mt-5 grid grid-cols-4 gap-2" aria-hidden="true">'
+    + '<span class="module-wizard-progress-step"></span>'
+    + '<span class="module-wizard-progress-step"></span>'
+    + '<span class="module-wizard-progress-step"></span>'
+    + '<span class="module-wizard-progress-step"></span>'
+    + '</div>'
+    + '</div>';
+}
+
+function buildWizardSuccessState() {
+  return '<div class="module-wizard-loading-card module-wizard-success-card">'
+    + '<div class="module-wizard-success-icon"><i class="fa-solid fa-check"></i></div>'
+    + '<p class="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600">Module created!</p>'
+    + '<h3 class="mt-2 text-2xl font-black text-slate-950">Opening the editor...</h3>'
+    + '<p class="mt-2 text-sm font-semibold leading-6 text-slate-500">Your module document and summary fields are saved.</p>'
+    + '</div>';
+}
+
+function buildWizardErrorState(message) {
+  return '<div class="module-wizard-loading-card module-wizard-error-card">'
+    + '<div class="module-wizard-error-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>'
+    + '<p class="text-[10px] font-black uppercase tracking-[0.2em] text-red-600">Generation stopped</p>'
+    + '<h3 class="mt-2 text-2xl font-black text-slate-950">Try again when ready.</h3>'
+    + '<p class="mt-2 text-sm font-semibold leading-6 text-slate-500">' + escapeHtml(message || 'Something went wrong while creating the module.') + '</p>'
+    + '<button type="button" id="moduleWizardDismissErrorBtn" class="mt-5 rounded-xl bg-slate-950 px-4 py-2 text-sm font-black text-white hover:bg-black">Back to Step 4</button>'
+    + '</div>';
+}
+
 function buildWizardSkeletonPreview(data) {
   var module = data && data.module ? data.module : {};
   var modes = module.learningModes || {};
@@ -1643,6 +1855,30 @@ function restoreModuleBtn(btn, html) {
   btn.innerHTML = html;
   btn.disabled = false;
   btn.classList.remove('oqu-btn-pending');
+}
+
+function setModuleWizardControlsDisabled(isDisabled) {
+  [
+    'moduleWizardCloseBtn',
+    'moduleWizardCancelBtn',
+    'moduleWizardBackBtn',
+    'moduleWizardNextBtn',
+    'moduleWizardPreviewBtn',
+    'moduleWizardParseBtn'
+  ].forEach(function (id) {
+    var element = document.getElementById(id);
+    if (element) {
+      element.disabled = Boolean(isDisabled);
+      element.classList.toggle('opacity-50', Boolean(isDisabled));
+      element.classList.toggle('cursor-not-allowed', Boolean(isDisabled));
+    }
+  });
+}
+
+function waitForMilliseconds(duration) {
+  return new Promise(function (resolve) {
+    setTimeout(resolve, duration);
+  });
 }
 
 function showModuleStatusMsg(msgEl, type, html) {
@@ -2023,6 +2259,28 @@ function readPreviewText(value, fallback) {
   }
 
   return fallback;
+}
+
+function readModuleId(module) {
+  if (!module) {
+    return '';
+  }
+
+  return module.id || module.moduleId || '';
+}
+
+function readModuleTitle(module) {
+  var title = module ? module.title || (module.config && module.config.title) : '';
+
+  if (typeof title === 'string') {
+    return title;
+  }
+
+  if (title && typeof title === 'object') {
+    return title.en || title.ru || title.ky || '';
+  }
+
+  return '';
 }
 
 function escapeHtml(value) {
