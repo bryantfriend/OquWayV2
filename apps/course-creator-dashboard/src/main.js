@@ -2,9 +2,12 @@ import { auth } from "../../../packages/core/src/infrastructure/firebase/auth.js
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js";
 import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js";
+import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js";
 import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js";
 import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js";
 import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js";
+
+console.warn("[course-creator-build-check] latest build active");
 
 let appInitialized = false;
 let currentPage = null;
@@ -13,7 +16,9 @@ function initApp() {
     const appContainer = document.getElementById("app");
     if (!appContainer) return;
 
-    if (currentPage && currentPage.unsubscribe) {
+    if (currentPage && typeof currentPage.destroy === "function") {
+        currentPage.destroy();
+    } else if (currentPage && currentPage.unsubscribe) {
         currentPage.unsubscribe();
     }
 
@@ -34,6 +39,13 @@ function initApp() {
         const courseId = params.get("courseId");
         const moduleId = params.get("moduleId");
         currentPage = new CourseEditorPage(courseId, moduleId);
+    } else if (hash.startsWith("#step-preview")) {
+        const params = new URLSearchParams(hash.replace("#step-preview?", ""));
+        const courseId = params.get("courseId");
+        const moduleId = params.get("moduleId");
+        const modeId = params.get("modeId");
+        const stepId = params.get("stepId");
+        currentPage = new StepPreviewPage(courseId, moduleId, modeId, stepId);
     } else {
         currentPage = new CatalogCoursePage();
     }
