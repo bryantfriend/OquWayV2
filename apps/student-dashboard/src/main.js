@@ -1,8 +1,8 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../packages/core/src/infrastructure/firebase/auth.js";
-import { PracticeModePlayer } from "../../../packages/core/src/shared/player/PracticeModePlayer.js";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js";
+import { auth } from "../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.30-student-open-course";
+import { PracticeModePlayer } from "../../../packages/core/src/shared/player/PracticeModePlayer.js?v=1.1.30-student-open-course";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.30-student-open-course";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.30-student-open-course";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -140,6 +140,11 @@ function render(state) {
     return;
   }
 
+  if (state.isCourseOpening) {
+    appElement.innerHTML = buildCourseOpeningView();
+    return;
+  }
+
   if (state.playerMode) {
     appElement.innerHTML = buildPlayerView(state);
     mountPracticeModePlayer(state);
@@ -187,12 +192,12 @@ function handleAppClick(event) {
   }
 
   if (courseActionButton) {
-    selectCourse(courseActionButton.getAttribute("data-course-id"));
+    openStudentCourse(courseActionButton.getAttribute("data-course-id"));
     return;
   }
 
   if (courseButton) {
-    selectCourse(courseButton.getAttribute("data-course-id"));
+    openStudentCourse(courseButton.getAttribute("data-course-id"));
     return;
   }
 
@@ -247,6 +252,62 @@ function selectCourse(courseId) {
     selectedModuleId: null,
     selectedSessionId: null,
     selectedPracticeModeKey: "beforeClass",
+    statusMessage: ""
+  });
+}
+
+async function openStudentCourse(courseId) {
+  var openResult = null;
+  var target = null;
+
+  if (!courseId) {
+    studentDashboardStore.setState({
+      error: "We could not identify that course. Please refresh and try again."
+    });
+    return;
+  }
+
+  openResult = await studentDashboardService.openCourse(courseId);
+
+  if (!openResult || !openResult.course) {
+    return;
+  }
+
+  target = openResult.openTarget || {};
+  applyOpenedCourseResult(openResult);
+
+  if (openResult.hasActivity === true && target.moduleId && target.sessionId) {
+    await openPracticeMode(
+      openResult.course.id,
+      target.moduleId,
+      target.sessionId,
+      target.practiceModeKey || "beforeClass"
+    );
+    return;
+  }
+
+  studentDashboardStore.setState({
+    isCourseOpening: false,
+    playerMode: false,
+    statusMessage: openResult.emptyCourseState && openResult.emptyCourseState.message
+      ? openResult.emptyCourseState.message
+      : "Course opened. Choose an available module to begin."
+  });
+}
+
+function applyOpenedCourseResult(openResult) {
+  var target = openResult.openTarget || {};
+
+  studentDashboardStore.setState({
+    isCourseOpening: false,
+    courses: mergeOpenedCourse(studentDashboardStore.getState().courses || [], openResult.course),
+    selectedCourseId: openResult.course.id,
+    selectedModuleId: target.moduleId || null,
+    selectedSessionId: target.sessionId || null,
+    selectedPracticeModeKey: target.practiceModeKey || "beforeClass",
+    currentStepIndex: 0,
+    practiceModeFinished: false,
+    error: null,
     statusMessage: ""
   });
 }
@@ -383,11 +444,43 @@ function applyProgressResult(progressResult) {
   });
 }
 
+function mergeOpenedCourse(courses, openedCourse) {
+  var safeCourses = Array.isArray(courses) ? courses : [];
+  var mergedCourses = [];
+  var courseIndex = 0;
+  var replaced = false;
+
+  while (courseIndex < safeCourses.length) {
+    if (safeCourses[courseIndex] && safeCourses[courseIndex].id === openedCourse.id) {
+      mergedCourses.push(openedCourse);
+      replaced = true;
+    } else {
+      mergedCourses.push(safeCourses[courseIndex]);
+    }
+
+    courseIndex = courseIndex + 1;
+  }
+
+  if (!replaced) {
+    mergedCourses.push(openedCourse);
+  }
+
+  return mergedCourses;
+}
+
 function buildLoadingView() {
   return '<section class="student-loading-card">'
     + '<div class="student-spinner"></div>'
     + '<h1>Loading your courses</h1>'
     + '<p>Preparing your practice path.</p>'
+    + '</section>';
+}
+
+function buildCourseOpeningView() {
+  return '<section class="student-loading-card">'
+    + '<div class="student-spinner"></div>'
+    + '<h1>Opening your course...</h1>'
+    + '<p>Finding your next activity.</p>'
     + '</section>';
 }
 
@@ -699,7 +792,7 @@ function buildModules(course, state) {
   var moduleIndex = 0;
 
   if (modules.length === 0) {
-    return '<div class="student-empty"><h2>No modules yet</h2><p>This course does not have student sessions yet.</p></div>';
+    return '<div class="student-empty"><h2>No modules ready yet</h2><p>Your course is assigned, but no modules are ready yet.</p></div>';
   }
 
   while (moduleIndex < modules.length) {

@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.29-module-render-fix";
+import * as IntentExports from "../intents/intents.js?v=1.1.30-student-open-course";
 
 const registry = {
   // Demo Verification
@@ -157,6 +157,7 @@ const registry = {
   ClaimDailyBonusIntent: IntentExports.ClaimDailyBonusIntent,
   ContinueLearningIntent: IntentExports.ContinueLearningIntent,
   SelectContinueLearningIntent: IntentExports.SelectContinueLearningIntent,
+  StudentOpenCourseIntent: IntentExports.StudentOpenCourseIntent,
   StartPracticeModeIntent: IntentExports.StartPracticeModeIntent,
   CompleteStepIntent: IntentExports.CompleteStepIntent,
   CompleteStudentStepIntent: IntentExports.CompleteStudentStepIntent,

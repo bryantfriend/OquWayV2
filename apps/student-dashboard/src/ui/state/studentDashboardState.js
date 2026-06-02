@@ -42,6 +42,7 @@ class StudentDashboardStore {
 function createInitialState() {
   return {
     isLoading: true,
+    isCourseOpening: false,
     isPlayerLoading: false,
     isSavingProgress: false,
     error: null,

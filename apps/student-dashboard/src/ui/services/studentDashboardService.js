@@ -1,7 +1,7 @@
-import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js";
-import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js";
-import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js";
-import { studentDashboardStore } from "../state/studentDashboardState.js";
+import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.30-student-open-course";
+import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.30-student-open-course";
+import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.30-student-open-course";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.30-student-open-course";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
@@ -108,6 +108,46 @@ export const studentDashboardService = {
     } catch (error) {
       studentDashboardStore.setState({
         error: error.message
+      });
+      return null;
+    }
+  },
+
+  openCourse: async function (courseId) {
+    studentDashboardStore.setState({
+      isCourseOpening: true,
+      error: null,
+      statusMessage: "Opening your course..."
+    });
+
+    console.info("[student-course-card:click]", {
+      studentId: auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : "preview-student",
+      courseId: courseId
+    });
+
+    try {
+      var result = await runStudentIntent("StudentOpenCourseIntent", {
+        studentId: auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : "preview-student",
+        courseId: courseId
+      });
+
+      if (result && result.emitted && result.emitted.success) {
+        console.info("[student-course:open-result]", {
+          courseId: courseId,
+          hasCourse: Boolean(result.emitted.data.course),
+          moduleCount: result.emitted.data.modules ? result.emitted.data.modules.length : 0,
+          hasActivity: result.emitted.data.hasActivity === true,
+          openTarget: result.emitted.data.openTarget || null
+        });
+        return result.emitted.data;
+      }
+
+      throw new Error(readIntentErrorMessage(result));
+    } catch (error) {
+      studentDashboardStore.setState({
+        isCourseOpening: false,
+        error: error.message,
+        statusMessage: ""
       });
       return null;
     }
