@@ -40,8 +40,8 @@ export { processResolveLocationBySlug } from "./domain/location/processResolveLo
 export { processUpdateLocationLoginMode } from "./domain/location/processUpdateLocationLoginMode.js";
 export { processUpdateLocationLoginSlug } from "./domain/location/processUpdateLocationLoginSlug.js";
 export { processAddModule } from "./domain/courseEditor/processAddModule.js";
-export { processCreateModule } from "./domain/courseEditor/processCreateModule.js?v=1.1.26-buildcheck";
-export { processCreateModuleFromWizard } from "./domain/courseEditor/processCreateModuleFromWizard.js?v=1.1.26-buildcheck";
+export { processCreateModule } from "./domain/courseEditor/processCreateModule.js?v=1.1.27-module-repair";
+export { processCreateModuleFromWizard } from "./domain/courseEditor/processCreateModuleFromWizard.js?v=1.1.27-module-repair";
 export { processOpenCreateModuleWizard } from "./domain/courseEditor/processOpenCreateModuleWizard.js";
 export { processParseLearningContent } from "./domain/courseEditor/processParseLearningContent.js";
 export { processGenerateModuleSkeleton } from "./domain/courseEditor/processGenerateModuleSkeleton.js";
@@ -52,7 +52,8 @@ export { processDeleteModule } from "./domain/courseEditor/processDeleteModule.j
 export { processDuplicateModule } from "./domain/courseEditor/processDuplicateModule.js";
 export { processLoadCourse } from "./domain/courseEditor/processLoadCourse.js";
 export { processLoadModules } from "./domain/courseEditor/processLoadModules.js";
-export { processOpenCourseEditor } from "./domain/courseEditor/processOpenCourseEditor.js?v=1.1.26-buildcheck";
+export { processOpenCourseEditor } from "./domain/courseEditor/processOpenCourseEditor.js?v=1.1.27-module-repair";
+export { processMigrateLegacyModulesToCatalogCourse } from "./domain/courseEditor/migrateLegacyModulesToCatalogCourse.js?v=1.1.27-module-repair";
 export { processPublishCourse } from "./domain/courseEditor/processPublishCourse.js";
 export { processReorderModules } from "./domain/courseEditor/processReorderModules.js";
 export { processSaveCourseDraft } from "./domain/courseEditor/processSaveCourseDraft.js";
