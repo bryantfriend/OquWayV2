@@ -1,16 +1,12 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js";
+import { collection, db, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js";
 
 export async function attachLearningModeDocument(executionState) {
   const payload = executionState.payload || {};
   const courseId = payload.courseId || "";
   const moduleId = payload.moduleId || "";
   const modeId = payload.modeId || "";
-  const modePath = "catalogCourses/" + courseId + "/modules/" + moduleId + "/learningModes/" + modeId;
-  const attemptedPaths = [
-    "catalogCourses/" + courseId,
-    "catalogCourses/" + courseId + "/modules/" + moduleId,
-    modePath
-  ];
+  const stepTypeId = payload.stepTypeId || payload.stepType || "";
+  const attemptedPaths = [];
 
   if (isDevelopmentLoggingEnabled()) {
     console.info("[step:add] context", {
@@ -18,18 +14,18 @@ export async function attachLearningModeDocument(executionState) {
       courseId: courseId,
       moduleId: moduleId,
       modeId: modeId,
-      stepTypeId: payload.stepTypeId || payload.stepType || "",
-      modePath: modePath
+      stepTypeId: stepTypeId,
+      modePath: "catalogCourses/" + courseId + "/modules/" + moduleId + "/learningModes/" + modeId
     });
   }
 
-  if (!courseId || !moduleId || !modeId || !(payload.stepTypeId || payload.stepType)) {
+  if (!courseId || !moduleId || !modeId || !stepTypeId) {
     if (isDevelopmentLoggingEnabled()) {
       console.warn("[step:add] missing context", {
         courseId: courseId,
         moduleId: moduleId,
         modeId: modeId,
-        stepTypeId: payload.stepTypeId || payload.stepType || ""
+        stepTypeId: stepTypeId
       });
     }
   }
@@ -39,46 +35,118 @@ export async function attachLearningModeDocument(executionState) {
   }
 
   try {
-    const courseSnap = await getDoc(doc(db, "catalogCourses", courseId));
+    const contextResult = await readLearningModeContext(courseId, moduleId, modeId, attemptedPaths);
 
-    if (!courseSnap.exists()) {
-      return createFailedContextResult("COURSE_NOT_FOUND", "Course not found: " + courseId, courseId, moduleId, modeId, payload, attemptedPaths);
+    if (!contextResult.valid) {
+      return createFailedContextResult(contextResult.code, contextResult.message, courseId, moduleId, modeId, payload, attemptedPaths);
     }
 
-    const moduleSnap = await getDoc(doc(db, "catalogCourses", courseId, "modules", moduleId));
-
-    if (!moduleSnap.exists()) {
-      return createFailedContextResult("MODULE_NOT_FOUND", "Module not found: " + moduleId, courseId, moduleId, modeId, payload, attemptedPaths);
-    }
-
-    const modeSnap = await getDoc(doc(db, "catalogCourses", courseId, "modules", moduleId, "learningModes", modeId));
-
-    if (modeSnap.exists()) {
-      return {
-        valid: true,
-        data: {
-          learningMode: Object.assign({ id: modeSnap.id }, modeSnap.data()),
-          learningModePath: modePath
-        }
-      };
-    }
-
-    const moduleMode = readModeFromModuleDocument(moduleSnap.data(), modeId);
-
-    if (moduleMode) {
-      return {
-        valid: true,
-        data: {
-          learningMode: Object.assign({ id: modeId }, moduleMode),
-          learningModePath: modePath
-        }
-      };
-    }
-
-    return createFailedContextResult("LEARNING_MODE_NOT_FOUND", "Learning mode not found: " + modeId, courseId, moduleId, modeId, payload, attemptedPaths);
+    return {
+      valid: true,
+      data: contextResult.data
+    };
   } catch (error) {
     return createFailedContextResult("LEARNING_MODE_READ_FAILED", "Failed to attach learning mode: " + error.message, courseId, moduleId, modeId, payload, attemptedPaths);
   }
+}
+
+async function readLearningModeContext(courseId, moduleId, modeId, attemptedPaths) {
+  const collectionNames = ["catalogCourses", "courses"];
+  let courseFound = false;
+  let moduleFound = false;
+  let collectionIndex = 0;
+
+  while (collectionIndex < collectionNames.length) {
+    const collectionName = collectionNames[collectionIndex];
+    const coursePath = collectionName + "/" + courseId;
+    attemptedPaths.push(coursePath);
+
+    const courseSnap = await getDoc(doc(db, collectionName, courseId));
+
+    if (courseSnap.exists()) {
+      courseFound = true;
+    } else {
+      collectionIndex = collectionIndex + 1;
+      continue;
+    }
+
+    const modulePath = collectionName + "/" + courseId + "/modules/" + moduleId;
+    attemptedPaths.push(modulePath);
+
+    const moduleSnap = await getDoc(doc(db, collectionName, courseId, "modules", moduleId));
+
+    if (!moduleSnap.exists()) {
+      collectionIndex = collectionIndex + 1;
+      continue;
+    }
+
+    moduleFound = true;
+
+    const modePath = collectionName + "/" + courseId + "/modules/" + moduleId + "/learningModes/" + modeId;
+    attemptedPaths.push(modePath);
+
+    const modeSnap = await getDoc(doc(db, collectionName, courseId, "modules", moduleId, "learningModes", modeId));
+    const learningMode = modeSnap.exists()
+      ? Object.assign({ id: modeSnap.id }, modeSnap.data())
+      : readModeFromModuleDocument(moduleSnap.data(), modeId);
+
+    if (!learningMode) {
+      return {
+        valid: false,
+        code: "LEARNING_MODE_NOT_FOUND",
+        message: "Learning mode not found: " + modeId
+      };
+    }
+
+    return {
+      valid: true,
+      data: {
+        course: Object.assign({ id: courseSnap.id }, courseSnap.data()),
+        module: Object.assign({ id: moduleSnap.id }, moduleSnap.data()),
+        learningMode: Object.assign({ id: modeId }, learningMode),
+        learningModePath: modePath,
+        courseCollectionName: collectionName,
+        sessions: await readSessions(collectionName, courseId, moduleId)
+      }
+    };
+  }
+
+  if (!courseFound) {
+    return {
+      valid: false,
+      code: "COURSE_NOT_FOUND",
+      message: "Course not found: " + courseId
+    };
+  }
+
+  if (!moduleFound) {
+    return {
+      valid: false,
+      code: "MODULE_NOT_FOUND",
+      message: "Module not found: " + moduleId
+    };
+  }
+
+  return {
+    valid: false,
+    code: "LEARNING_MODE_NOT_FOUND",
+    message: "Learning mode not found: " + modeId
+  };
+}
+
+async function readSessions(collectionName, courseId, moduleId) {
+  const sessionsSnap = await getDocs(collection(db, collectionName, courseId, "modules", moduleId, "sessions"));
+  const sessions = [];
+
+  sessionsSnap.forEach(function (sessionSnap) {
+    sessions.push(Object.assign({ id: sessionSnap.id }, sessionSnap.data() || {}));
+  });
+
+  sessions.sort(function (firstSession, secondSession) {
+    return readOrder(firstSession) - readOrder(secondSession);
+  });
+
+  return sessions;
 }
 
 function readModeFromModuleDocument(moduleData, modeId) {
@@ -87,6 +155,14 @@ function readModeFromModuleDocument(moduleData, modeId) {
   }
 
   return moduleData.learningModes[modeId] || null;
+}
+
+function readOrder(value) {
+  if (value && typeof value.order === "number") {
+    return value.order;
+  }
+
+  return 0;
 }
 
 function createFailedContextResult(code, message, courseId, moduleId, modeId, payload, attemptedPaths) {

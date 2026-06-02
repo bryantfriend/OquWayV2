@@ -203,9 +203,18 @@ async function queryExternalTaskSubmissions(filters) {
   appendWhere(constraints, "status", filters.status);
   appendWhere(constraints, "reviewStatus", filters.reviewStatus);
 
-  snapshot = constraints.length > 0
-    ? await getDocs(query(submissionsRef, ...constraints))
-    : await getDocs(submissionsRef);
+  try {
+    snapshot = constraints.length > 0
+      ? await getDocs(query(submissionsRef, ...constraints))
+      : await getDocs(submissionsRef);
+  } catch (error) {
+    if (isMissingIndexOrQueryShapeError(error)) {
+      logExternalTaskQueryFallback(error, filters);
+      return [];
+    }
+
+    throw error;
+  }
 
   snapshot.forEach(function (submissionSnap) {
     submissions.push(Object.assign({ id: submissionSnap.id }, submissionSnap.data() || {}));
@@ -216,6 +225,31 @@ async function queryExternalTaskSubmissions(filters) {
   });
 
   return submissions;
+}
+
+function isMissingIndexOrQueryShapeError(error) {
+  if (!error) {
+    return false;
+  }
+
+  var code = error.code || "";
+  var message = readErrorMessage(error).toLowerCase();
+
+  return code === "failed-precondition" ||
+    message.indexOf("index") !== -1 ||
+    message.indexOf("requires an index") !== -1;
+}
+
+function logExternalTaskQueryFallback(error, filters) {
+  if (!isDevelopmentHost()) {
+    return;
+  }
+
+  console.warn("[external-task-debug] Submission query returned empty fallback.", {
+    filters: filters || {},
+    firebaseErrorCode: error && error.code ? error.code : "",
+    message: readErrorMessage(error)
+  });
 }
 
 function appendWhere(constraints, fieldName, value) {
