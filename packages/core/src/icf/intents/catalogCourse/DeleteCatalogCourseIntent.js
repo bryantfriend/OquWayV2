@@ -1,10 +1,10 @@
-import { attachActorContext } from "../../stages/addContext/contexts.js";
-import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js";
-import { attachExistingCourseContext } from "../../stages/addContext/contexts.js";
-import { requireSuperAdminAuthorization } from "../../stages/authorize/authorizers.js";
-import { preventDeleteIfInUseAuthorization } from "../../stages/authorize/authorizers.js";
-import { catalogCourseDeleteProcessing } from "../../stages/process/processors.js";
-import { emitIntentResult } from "../../stages/emit/emitters.js";
+import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.29-module-render-fix";
+import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.29-module-render-fix";
+import { attachExistingCourseContext } from "../../stages/addContext/contexts.js?v=1.1.29-module-render-fix";
+import { requireSuperAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.29-module-render-fix";
+import { preventDeleteIfInUseAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.29-module-render-fix";
+import { catalogCourseDeleteProcessing } from "../../stages/process/processors.js?v=1.1.29-module-render-fix";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.29-module-render-fix";
 
 export function DeleteCatalogCourseIntent() {
     return {

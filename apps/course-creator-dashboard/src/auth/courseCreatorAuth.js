@@ -1,4 +1,4 @@
-import { db, doc, getDoc } from "../../../../packages/core/src/infrastructure/firebase/firestore.js";
+import { db, doc, getDoc } from "../../../../packages/core/src/infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
 
 export const ALLOWED_COURSE_CREATOR_ROLES = [
     "superAdmin",

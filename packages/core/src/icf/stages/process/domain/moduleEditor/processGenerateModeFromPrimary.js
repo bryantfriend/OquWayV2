@@ -1,4 +1,4 @@
-import { processDuplicateLearningMode } from "./processDuplicateLearningMode.js";
+import { processDuplicateLearningMode } from "./processDuplicateLearningMode.js?v=1.1.29-module-render-fix";
 
 export async function processGenerateModeFromPrimary(executionState) {
   executionState.payload = Object.assign({}, executionState.payload, {

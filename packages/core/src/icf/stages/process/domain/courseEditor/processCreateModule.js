@@ -1,11 +1,11 @@
-import { db, collection, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js";
-import { createDefaultPracticeModes } from "../moduleEditor/practiceModeShells.js";
+import { db, collection, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
+import { createDefaultPracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.29-module-render-fix";
 import {
   createDefaultLearningContent,
   createLearningModesForTemplate,
   createStarterStepsForMode,
   normalizeLearningContentPayload
-} from "../moduleEditor/learningArchitecture.js";
+} from "../moduleEditor/learningArchitecture.js?v=1.1.29-module-render-fix";
 
 export async function processCreateModule(executionState) {
   const payload = executionState.payload;

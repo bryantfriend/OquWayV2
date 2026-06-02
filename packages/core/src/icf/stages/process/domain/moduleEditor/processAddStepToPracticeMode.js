@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js";
-import { addStepToPracticeMode } from "./practiceModeShells.js";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
+import { addStepToPracticeMode } from "./practiceModeShells.js?v=1.1.29-module-render-fix";
 
 export async function processAddStepToPracticeMode(executionState) {
   var payload = executionState.payload;

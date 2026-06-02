@@ -1,11 +1,11 @@
-import { validateAuthenticated, validateCourseId, validateModuleId } from "../../stages/validate/validators.js";
-import { normalizeCourseId, normalizeModuleShell } from "../../stages/normalize/normalizers.js";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js";
-import { attachCourseDocument } from "../../stages/addContext/contexts.js";
-import { attachModuleDocument } from "../../stages/addContext/contexts.js";
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js";
-import { processUpdateModule } from "../../stages/process/processors.js";
-import { emitIntentResult } from "../../stages/emit/emitters.js";
+import { validateAuthenticated, validateCourseId, validateModuleId } from "../../stages/validate/validators.js?v=1.1.29-module-render-fix";
+import { normalizeCourseId, normalizeModuleShell } from "../../stages/normalize/normalizers.js?v=1.1.29-module-render-fix";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.29-module-render-fix";
+import { attachCourseDocument } from "../../stages/addContext/contexts.js?v=1.1.29-module-render-fix";
+import { attachModuleDocument } from "../../stages/addContext/contexts.js?v=1.1.29-module-render-fix";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.29-module-render-fix";
+import { processUpdateModule } from "../../stages/process/processors.js?v=1.1.29-module-render-fix";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.29-module-render-fix";
 
 export function UpdateModuleIntent() {
   return {

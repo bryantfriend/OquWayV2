@@ -1,4 +1,4 @@
-import { BaseStep } from "./BaseStep.js";
+import { BaseStep } from "./BaseStep.js?v=1.1.29-module-render-fix";
 
 export class DragMatchIslandStep extends BaseStep {
   static get type() {

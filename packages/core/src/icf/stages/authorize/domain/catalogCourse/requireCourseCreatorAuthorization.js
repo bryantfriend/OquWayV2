@@ -1,4 +1,4 @@
-import { requireRoleValidation } from "../../../validate/validators.js";
+import { requireRoleValidation } from "../../../validate/validators.js?v=1.1.29-module-render-fix";
 
 export function requireCourseCreatorAuthorization(executionState) {
     // If SuperAdmin, they can bypass course creator restriction usually,

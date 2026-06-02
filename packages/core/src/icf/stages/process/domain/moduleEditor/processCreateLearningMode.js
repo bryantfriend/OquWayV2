@@ -1,6 +1,6 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js";
-import { createDefaultPracticeModes } from "./practiceModeShells.js";
-import { createDefaultLearningModes, createLearningModeRecord, createModeFromPayload } from "./learningArchitecture.js";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
+import { createDefaultPracticeModes } from "./practiceModeShells.js?v=1.1.29-module-render-fix";
+import { createDefaultLearningModes, createLearningModeRecord, createModeFromPayload } from "./learningArchitecture.js?v=1.1.29-module-render-fix";
 
 export async function processCreateLearningMode(executionState) {
   var payload = executionState.payload;

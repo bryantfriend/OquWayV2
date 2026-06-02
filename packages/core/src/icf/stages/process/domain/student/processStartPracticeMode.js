@@ -1,4 +1,4 @@
-import { readPracticeModeProgress } from "./studentProgressHelpers.js";
+import { readPracticeModeProgress } from "./studentProgressHelpers.js?v=1.1.29-module-render-fix";
 
 export function processStartPracticeMode(executionState) {
   var payload = executionState.payload;

@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js";
+import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
 
 export async function processResolveLocationBySlug(executionState) {
   var payload = executionState.payload || {};

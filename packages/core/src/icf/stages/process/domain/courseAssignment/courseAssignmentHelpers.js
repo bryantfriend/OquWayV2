@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js";
+import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
 
 export function createCourseAssignmentId() {
   var randomText = Math.random().toString(36).slice(2, 10);

@@ -1,4 +1,4 @@
-import { createDefaultLearningContent } from "./learningArchitecture.js";
+import { createDefaultLearningContent } from "./learningArchitecture.js?v=1.1.29-module-render-fix";
 
 export function processLoadLearningContent(executionState) {
   executionState.result = {

@@ -1,5 +1,5 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js";
-import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
+import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.29-module-render-fix";
 
 export async function processLoadStudentProfile(executionState) {
   var actor = executionState.actor;

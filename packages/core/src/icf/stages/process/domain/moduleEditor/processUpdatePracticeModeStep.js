@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js";
-import { updatePracticeModeStep } from "./practiceModeShells.js";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
+import { updatePracticeModeStep } from "./practiceModeShells.js?v=1.1.29-module-render-fix";
 
 export async function processUpdatePracticeModeStep(executionState) {
   var payload = executionState.payload;
@@ -38,6 +38,19 @@ async function savePracticeModes(executionState, payload, practiceModes) {
     practiceModes: practiceModes,
     updatedAt: serverTimestamp()
   }, { merge: true });
+
+  if (payload.modeId) {
+    await setDoc(doc(db, "catalogCourses", payload.courseId, "modules", payload.moduleId, "learningModes", payload.modeId, "steps", payload.stepId), {
+      id: payload.stepId,
+      type: payload.stepType,
+      stepTypeId: payload.stepType,
+      title: payload.title,
+      instructions: payload.instructions,
+      config: payload.config,
+      status: payload.status,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  }
 }
 
 function readCourseCollectionName(executionState) {

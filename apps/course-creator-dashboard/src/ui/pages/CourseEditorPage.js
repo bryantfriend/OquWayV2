@@ -1,10 +1,10 @@
-import { moduleEditorStore } from "../state/moduleEditorState.js";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.26-buildcheck";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.29-module-render-fix";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.29-module-render-fix";
 import {
   getStepTypeDefinition,
   listStepTypeDefinitions
-} from "../../../../../packages/core/src/shared/stepTypes/stepTypeRegistry.js";
-import { PracticeModePlayer } from "../../../../../packages/core/src/shared/player/PracticeModePlayer.js";
+} from "../../../../../packages/core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.29-module-render-fix";
+import { PracticeModePlayer } from "../../../../../packages/core/src/shared/player/PracticeModePlayer.js?v=1.1.29-module-render-fix";
 
 export class CourseEditorPage {
   constructor(courseId, moduleId) {

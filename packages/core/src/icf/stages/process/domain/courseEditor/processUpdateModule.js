@@ -1,4 +1,4 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
 
 export async function processUpdateModule(executionState) {
   const payload = executionState.payload;
@@ -32,8 +32,6 @@ function createModuleUpdate(payload) {
   };
 }
 
-function readCourseCollectionName(executionState) {
-  return executionState.context && executionState.context.courseCollectionName
-    ? executionState.context.courseCollectionName
-    : "catalogCourses";
+function readCourseCollectionName() {
+  return "catalogCourses";
 }

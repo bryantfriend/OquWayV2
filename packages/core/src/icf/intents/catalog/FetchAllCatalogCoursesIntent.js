@@ -1,7 +1,7 @@
-import { catalogAttachSystemContext } from "../../stages/addContext/contexts.js";
-import { catalogRequireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js";
-import { catalogCourseFetchAllProcessing } from "../../stages/process/processors.js";
-import { emitIntentResult } from "../../stages/emit/emitters.js";
+import { catalogAttachSystemContext } from "../../stages/addContext/contexts.js?v=1.1.29-module-render-fix";
+import { catalogRequireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.29-module-render-fix";
+import { catalogCourseFetchAllProcessing } from "../../stages/process/processors.js?v=1.1.29-module-render-fix";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.29-module-render-fix";
 
 export function FetchAllCatalogCoursesIntent() {
     return {

@@ -1,5 +1,5 @@
-import { collection, db, doc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js";
-import { getDownloadURL, ref, storage, uploadBytes } from "../../../../../infrastructure/firebase/storage.js";
+import { collection, db, doc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
+import { getDownloadURL, ref, storage, uploadBytes } from "../../../../../infrastructure/firebase/storage.js?v=1.1.29-module-render-fix";
 
 export async function processLoadExternalTaskStep(executionState) {
   var payload = executionState.payload || {};

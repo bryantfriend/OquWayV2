@@ -1,8 +1,8 @@
-import { validateAuthenticated } from "../../stages/validate/validators.js";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js";
-import { requireSuperAdminAccess } from "../../stages/authorize/authorizers.js";
-import { processListClasses } from "../../stages/process/processors.js";
-import { emitIntentResult } from "../../stages/emit/emitters.js";
+import { validateAuthenticated } from "../../stages/validate/validators.js?v=1.1.29-module-render-fix";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.29-module-render-fix";
+import { requireCourseAssignmentAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.29-module-render-fix";
+import { processListClasses } from "../../stages/process/processors.js?v=1.1.29-module-render-fix";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.29-module-render-fix";
 
 export function ListClassesIntent() {
   return {
@@ -10,7 +10,7 @@ export function ListClassesIntent() {
     validate: [validateAuthenticated],
     normalize: [],
     addContext: [attachActorContext, attachActorRoleContext],
-    authorize: [requireSuperAdminAccess],
+    authorize: [requireCourseAssignmentAdminAuthorization],
     process: [processListClasses],
     emit: [emitIntentResult]
   };

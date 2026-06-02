@@ -1,4 +1,4 @@
-import { createPulledStepDraft } from "./learningArchitecture.js";
+import { createPulledStepDraft } from "./learningArchitecture.js?v=1.1.29-module-render-fix";
 
 export function processPullLearningContent(executionState) {
   var learningContent = executionState.context.module && executionState.context.module.learningContent;

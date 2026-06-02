@@ -1,9 +1,9 @@
-import { validateDemoPayload } from "../../stages/validate/validators.js";
-import { normalizeDemoPayload } from "../../stages/normalize/normalizers.js";
-import { attachDemoContext } from "../../stages/addContext/contexts.js";
-import { authorizeDemoActor } from "../../stages/authorize/authorizers.js";
-import { processDemoAction } from "../../stages/process/processors.js";
-import { emitDemoResult } from "../../stages/emit/emitters.js";
+import { validateDemoPayload } from "../../stages/validate/validators.js?v=1.1.29-module-render-fix";
+import { normalizeDemoPayload } from "../../stages/normalize/normalizers.js?v=1.1.29-module-render-fix";
+import { attachDemoContext } from "../../stages/addContext/contexts.js?v=1.1.29-module-render-fix";
+import { authorizeDemoActor } from "../../stages/authorize/authorizers.js?v=1.1.29-module-render-fix";
+import { processDemoAction } from "../../stages/process/processors.js?v=1.1.29-module-render-fix";
+import { emitDemoResult } from "../../stages/emit/emitters.js?v=1.1.29-module-render-fix";
 
 export function DemoIntent() {
   return {

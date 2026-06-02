@@ -1,4 +1,4 @@
-import { processCreateModule } from "./processCreateModule.js?v=1.1.27-module-repair";
+import { processCreateModule } from "./processCreateModule.js?v=1.1.29-module-render-fix";
 
 export async function processCreateModuleFromWizard(executionState) {
   var payload = executionState.payload || {};

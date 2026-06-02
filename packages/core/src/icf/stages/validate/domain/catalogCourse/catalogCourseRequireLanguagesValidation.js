@@ -1,7 +1,7 @@
-import { requireStringValidation } from "../../validators.js";
-import { requireNonEmptyArrayValidation } from "../../validators.js";
-import { requireEnumValidation } from "../../validators.js";
-import { requireUUIDValidation } from "../../validators.js";
+import { requireStringValidation } from "../../validators.js?v=1.1.29-module-render-fix";
+import { requireNonEmptyArrayValidation } from "../../validators.js?v=1.1.29-module-render-fix";
+import { requireEnumValidation } from "../../validators.js?v=1.1.29-module-render-fix";
+import { requireUUIDValidation } from "../../validators.js?v=1.1.29-module-render-fix";
 
 export function catalogCourseRequireLanguagesValidation(executionState) {
     const { payload } = executionState;

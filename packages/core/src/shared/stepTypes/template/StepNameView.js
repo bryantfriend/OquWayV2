@@ -1,5 +1,5 @@
-import { StepNameEngine } from "./StepNameEngine.js";
-import { StepNameIntent } from "./StepNameIntent.js";
+import { StepNameEngine } from "./StepNameEngine.js?v=1.1.29-module-render-fix";
+import { StepNameIntent } from "./StepNameIntent.js?v=1.1.29-module-render-fix";
 
 export default class StepName {
 

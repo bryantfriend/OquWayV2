@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateCourseAssignmentPayload } from "../../stages/validate/validators.js";
-import { normalizeCourseAssignmentPayload } from "../../stages/normalize/normalizers.js";
-import { attachActorContext, attachActorRoleContext, attachCourseAssignmentCourseContext } from "../../stages/addContext/contexts.js";
-import { requireCourseAssignmentAdminAuthorization } from "../../stages/authorize/authorizers.js";
-import { processCreateCourseAssignment } from "../../stages/process/processors.js";
-import { emitIntentResult } from "../../stages/emit/emitters.js";
+import { validateAuthenticated, validateCourseAssignmentPayload } from "../../stages/validate/validators.js?v=1.1.29-module-render-fix";
+import { normalizeCourseAssignmentPayload } from "../../stages/normalize/normalizers.js?v=1.1.29-module-render-fix";
+import { attachActorContext, attachActorRoleContext, attachCourseAssignmentCourseContext } from "../../stages/addContext/contexts.js?v=1.1.29-module-render-fix";
+import { requireCourseAssignmentAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.29-module-render-fix";
+import { processCreateCourseAssignment } from "../../stages/process/processors.js?v=1.1.29-module-render-fix";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.29-module-render-fix";
 
 export function CreateCourseAssignmentIntent() {
   return {

@@ -1,7 +1,7 @@
-import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.27-module-repair';
-import { courseEditorService } from '../services/courseEditorService.js?v=1.1.27-module-repair';
-import { courseAssignmentService } from '../services/courseAssignmentService.js';
-import { externalTaskReviewService } from '../services/externalTaskReviewService.js';
+import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.29-module-render-fix';
+import { courseEditorService } from '../services/courseEditorService.js?v=1.1.29-module-render-fix';
+import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.29-module-render-fix';
+import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.29-module-render-fix';
 
 export class CourseOverviewPage {
   constructor(courseId, options) {

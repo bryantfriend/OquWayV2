@@ -1,13 +1,13 @@
-import { TextBriefingStep } from "./TextBriefingStep.js";
-import { VocabularyStep } from "./VocabularyStep.js";
-import { PhraseStep } from "./PhraseStep.js";
-import { ListeningStep } from "./ListeningStep.js";
-import { SpeakingPromptStep } from "./SpeakingPromptStep.js";
-import { ReflectionStep } from "./ReflectionStep.js";
-import { CustomExperienceStep } from "./CustomExperienceStep.js";
-import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js";
-import { DragMatchIslandStep } from "./DragMatchIslandStep.js";
-import { ExternalTaskStep } from "./ExternalTaskStep.js";
+import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.29-module-render-fix";
+import { VocabularyStep } from "./VocabularyStep.js?v=1.1.29-module-render-fix";
+import { PhraseStep } from "./PhraseStep.js?v=1.1.29-module-render-fix";
+import { ListeningStep } from "./ListeningStep.js?v=1.1.29-module-render-fix";
+import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.29-module-render-fix";
+import { ReflectionStep } from "./ReflectionStep.js?v=1.1.29-module-render-fix";
+import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.29-module-render-fix";
+import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.29-module-render-fix";
+import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.29-module-render-fix";
+import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.29-module-render-fix";
 
 var stepTypes = {
   textBriefing: TextBriefingStep,

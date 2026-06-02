@@ -1,6 +1,6 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js";
-import { getDownloadURL, ref, storage, uploadBytes } from "../../../../../infrastructure/firebase/storage.js";
-import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
+import { getDownloadURL, ref, storage, uploadBytes } from "../../../../../infrastructure/firebase/storage.js?v=1.1.29-module-render-fix";
+import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.29-module-render-fix";
 
 export async function processUploadStepMedia(executionState) {
   var payload = executionState.payload || {};

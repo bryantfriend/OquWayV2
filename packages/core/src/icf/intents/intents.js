@@ -4,178 +4,178 @@
 // ----------------------
 // Demo Verification
 // ----------------------
-export { DemoIntent } from "./demo/DemoIntent.js";
+export { DemoIntent } from "./demo/DemoIntent.js?v=1.1.29-module-render-fix";
 
 // ----------------------
 // Catalog Course (Full Production Specs)
 // ----------------------
-export { CreateCatalogCourseIntent } from "./catalogCourse/CreateCatalogCourseIntent.js";
-export { UpdateCatalogCourseMetadataIntent } from "./catalogCourse/UpdateCatalogCourseMetadataIntent.js";
-export { ArchiveCatalogCourseIntent } from "./catalogCourse/ArchiveCatalogCourseIntent.js";
-export { RestoreCatalogCourseIntent } from "./catalogCourse/RestoreCatalogCourseIntent.js";
-export { DeleteCatalogCourseIntent } from "./catalogCourse/DeleteCatalogCourseIntent.js";
+export { CreateCatalogCourseIntent } from "./catalogCourse/CreateCatalogCourseIntent.js?v=1.1.29-module-render-fix";
+export { UpdateCatalogCourseMetadataIntent } from "./catalogCourse/UpdateCatalogCourseMetadataIntent.js?v=1.1.29-module-render-fix";
+export { ArchiveCatalogCourseIntent } from "./catalogCourse/ArchiveCatalogCourseIntent.js?v=1.1.29-module-render-fix";
+export { RestoreCatalogCourseIntent } from "./catalogCourse/RestoreCatalogCourseIntent.js?v=1.1.29-module-render-fix";
+export { DeleteCatalogCourseIntent } from "./catalogCourse/DeleteCatalogCourseIntent.js?v=1.1.29-module-render-fix";
 
-export { CreateCatalogCourseVersionIntent } from "./catalogCourse/CreateCatalogCourseVersionIntent.js";
-export { PublishCatalogCourseVersionIntent } from "./catalogCourse/PublishCatalogCourseVersionIntent.js";
-export { RevertCatalogCourseVersionIntent } from "./catalogCourse/RevertCatalogCourseVersionIntent.js";
+export { CreateCatalogCourseVersionIntent } from "./catalogCourse/CreateCatalogCourseVersionIntent.js?v=1.1.29-module-render-fix";
+export { PublishCatalogCourseVersionIntent } from "./catalogCourse/PublishCatalogCourseVersionIntent.js?v=1.1.29-module-render-fix";
+export { RevertCatalogCourseVersionIntent } from "./catalogCourse/RevertCatalogCourseVersionIntent.js?v=1.1.29-module-render-fix";
 
-export { CreateCatalogModuleIntent } from "./catalogCourse/CreateCatalogModuleIntent.js";
-export { UpdateCatalogModuleIntent } from "./catalogCourse/UpdateCatalogModuleIntent.js";
-export { ReorderCatalogModulesIntent } from "./catalogCourse/ReorderCatalogModulesIntent.js";
-export { DeleteCatalogModuleIntent } from "./catalogCourse/DeleteCatalogModuleIntent.js";
+export { CreateCatalogModuleIntent } from "./catalogCourse/CreateCatalogModuleIntent.js?v=1.1.29-module-render-fix";
+export { UpdateCatalogModuleIntent } from "./catalogCourse/UpdateCatalogModuleIntent.js?v=1.1.29-module-render-fix";
+export { ReorderCatalogModulesIntent } from "./catalogCourse/ReorderCatalogModulesIntent.js?v=1.1.29-module-render-fix";
+export { DeleteCatalogModuleIntent } from "./catalogCourse/DeleteCatalogModuleIntent.js?v=1.1.29-module-render-fix";
 
-export { CreateCatalogStepIntent } from "./catalogCourse/CreateCatalogStepIntent.js";
-export { UpdateCatalogStepIntent } from "./catalogCourse/UpdateCatalogStepIntent.js";
-export { DeleteCatalogStepIntent } from "./catalogCourse/DeleteCatalogStepIntent.js";
-export { ReorderCatalogStepsIntent } from "./catalogCourse/ReorderCatalogStepsIntent.js";
+export { CreateCatalogStepIntent } from "./catalogCourse/CreateCatalogStepIntent.js?v=1.1.29-module-render-fix";
+export { UpdateCatalogStepIntent } from "./catalogCourse/UpdateCatalogStepIntent.js?v=1.1.29-module-render-fix";
+export { DeleteCatalogStepIntent } from "./catalogCourse/DeleteCatalogStepIntent.js?v=1.1.29-module-render-fix";
+export { ReorderCatalogStepsIntent } from "./catalogCourse/ReorderCatalogStepsIntent.js?v=1.1.29-module-render-fix";
 
-export { AddTagToCatalogCourseIntent } from "./catalogCourse/AddTagToCatalogCourseIntent.js";
-export { RemoveTagFromCatalogCourseIntent } from "./catalogCourse/RemoveTagFromCatalogCourseIntent.js";
+export { AddTagToCatalogCourseIntent } from "./catalogCourse/AddTagToCatalogCourseIntent.js?v=1.1.29-module-render-fix";
+export { RemoveTagFromCatalogCourseIntent } from "./catalogCourse/RemoveTagFromCatalogCourseIntent.js?v=1.1.29-module-render-fix";
 
-export { FetchAllCatalogCoursesIntent } from "./catalogCourse/FetchAllCatalogCoursesIntent.js";
-export { FetchCatalogCourseByIdIntent } from "./catalogCourse/FetchCatalogCourseByIdIntent.js";
-export { FetchCatalogCourseVersionsIntent } from "./catalogCourse/FetchCatalogCourseVersionsIntent.js";
+export { FetchAllCatalogCoursesIntent } from "./catalogCourse/FetchAllCatalogCoursesIntent.js?v=1.1.29-module-render-fix";
+export { FetchCatalogCourseByIdIntent } from "./catalogCourse/FetchCatalogCourseByIdIntent.js?v=1.1.29-module-render-fix";
+export { FetchCatalogCourseVersionsIntent } from "./catalogCourse/FetchCatalogCourseVersionsIntent.js?v=1.1.29-module-render-fix";
 
 // ----------------------
 // Course Sandbox
 // ----------------------
-export { CreateCourseIntent } from "./course/CreateCourseIntent.js";
-export { LoadCoursesIntent } from "./course/LoadCoursesIntent.js";
-export { ListCoursesIntent } from "./course/ListCoursesIntent.js";
-export { UpdateCourseIntent } from "./course/UpdateCourseIntent.js";
-export { UpdateCourseMetadataIntent } from "./course/UpdateCourseMetadataIntent.js";
-export { DeleteCourseIntent } from "./course/DeleteCourseIntent.js";
-export { ArchiveCourseIntent } from "./course/ArchiveCourseIntent.js";
+export { CreateCourseIntent } from "./course/CreateCourseIntent.js?v=1.1.29-module-render-fix";
+export { LoadCoursesIntent } from "./course/LoadCoursesIntent.js?v=1.1.29-module-render-fix";
+export { ListCoursesIntent } from "./course/ListCoursesIntent.js?v=1.1.29-module-render-fix";
+export { UpdateCourseIntent } from "./course/UpdateCourseIntent.js?v=1.1.29-module-render-fix";
+export { UpdateCourseMetadataIntent } from "./course/UpdateCourseMetadataIntent.js?v=1.1.29-module-render-fix";
+export { DeleteCourseIntent } from "./course/DeleteCourseIntent.js?v=1.1.29-module-render-fix";
+export { ArchiveCourseIntent } from "./course/ArchiveCourseIntent.js?v=1.1.29-module-render-fix";
 
 // ----------------------
 // Course Assignments
 // ----------------------
-export { CreateCourseAssignmentIntent } from "./courseAssignment/CreateCourseAssignmentIntent.js";
-export { ListCourseAssignmentsIntent } from "./courseAssignment/ListCourseAssignmentsIntent.js";
-export { LoadCourseAssignmentsIntent } from "./courseAssignment/LoadCourseAssignmentsIntent.js";
-export { UpdateCourseAssignmentIntent } from "./courseAssignment/UpdateCourseAssignmentIntent.js";
-export { ArchiveCourseAssignmentIntent } from "./courseAssignment/ArchiveCourseAssignmentIntent.js";
-export { DisableCourseAssignmentIntent } from "./courseAssignment/DisableCourseAssignmentIntent.js";
-export { DeleteCourseAssignmentIntent } from "./courseAssignment/DeleteCourseAssignmentIntent.js";
+export { CreateCourseAssignmentIntent } from "./courseAssignment/CreateCourseAssignmentIntent.js?v=1.1.29-module-render-fix";
+export { ListCourseAssignmentsIntent } from "./courseAssignment/ListCourseAssignmentsIntent.js?v=1.1.29-module-render-fix";
+export { LoadCourseAssignmentsIntent } from "./courseAssignment/LoadCourseAssignmentsIntent.js?v=1.1.29-module-render-fix";
+export { UpdateCourseAssignmentIntent } from "./courseAssignment/UpdateCourseAssignmentIntent.js?v=1.1.29-module-render-fix";
+export { ArchiveCourseAssignmentIntent } from "./courseAssignment/ArchiveCourseAssignmentIntent.js?v=1.1.29-module-render-fix";
+export { DisableCourseAssignmentIntent } from "./courseAssignment/DisableCourseAssignmentIntent.js?v=1.1.29-module-render-fix";
+export { DeleteCourseAssignmentIntent } from "./courseAssignment/DeleteCourseAssignmentIntent.js?v=1.1.29-module-render-fix";
 
 // ----------------------
 // External Tasks
 // ----------------------
-export { LoadExternalTaskStepIntent } from "./externalTask/LoadExternalTaskStepIntent.js";
-export { SubmitExternalTaskIntent } from "./externalTask/SubmitExternalTaskIntent.js";
-export { UploadExternalTaskFileIntent } from "./externalTask/UploadExternalTaskFileIntent.js";
-export { LoadExternalTaskSubmissionsIntent } from "./externalTask/LoadExternalTaskSubmissionsIntent.js";
-export { ReviewExternalTaskSubmissionIntent } from "./externalTask/ReviewExternalTaskSubmissionIntent.js";
-export { ResubmitExternalTaskIntent } from "./externalTask/ResubmitExternalTaskIntent.js";
+export { LoadExternalTaskStepIntent } from "./externalTask/LoadExternalTaskStepIntent.js?v=1.1.29-module-render-fix";
+export { SubmitExternalTaskIntent } from "./externalTask/SubmitExternalTaskIntent.js?v=1.1.29-module-render-fix";
+export { UploadExternalTaskFileIntent } from "./externalTask/UploadExternalTaskFileIntent.js?v=1.1.29-module-render-fix";
+export { LoadExternalTaskSubmissionsIntent } from "./externalTask/LoadExternalTaskSubmissionsIntent.js?v=1.1.29-module-render-fix";
+export { ReviewExternalTaskSubmissionIntent } from "./externalTask/ReviewExternalTaskSubmissionIntent.js?v=1.1.29-module-render-fix";
+export { ResubmitExternalTaskIntent } from "./externalTask/ResubmitExternalTaskIntent.js?v=1.1.29-module-render-fix";
 
 // ----------------------
 // Locations / Login Settings
 // ----------------------
-export { ListLocationsIntent } from "./location/ListLocationsIntent.js";
-export { LoadLocationsIntent } from "./location/LoadLocationsIntent.js";
-export { ResolveLocationBySlugIntent } from "./location/ResolveLocationBySlugIntent.js";
-export { UpdateLocationLoginModeIntent } from "./location/UpdateLocationLoginModeIntent.js";
-export { UpdateLocationLoginSlugIntent } from "./location/UpdateLocationLoginSlugIntent.js";
+export { ListLocationsIntent } from "./location/ListLocationsIntent.js?v=1.1.29-module-render-fix";
+export { LoadLocationsIntent } from "./location/LoadLocationsIntent.js?v=1.1.29-module-render-fix";
+export { ResolveLocationBySlugIntent } from "./location/ResolveLocationBySlugIntent.js?v=1.1.29-module-render-fix";
+export { UpdateLocationLoginModeIntent } from "./location/UpdateLocationLoginModeIntent.js?v=1.1.29-module-render-fix";
+export { UpdateLocationLoginSlugIntent } from "./location/UpdateLocationLoginSlugIntent.js?v=1.1.29-module-render-fix";
 
 // ----------------------
 // Student Login
 // ----------------------
-export { LoadClassesForLocationIntent } from "./studentLogin/LoadClassesForLocationIntent.js";
-export { LoadStudentsForClassIntent } from "./studentLogin/LoadStudentsForClassIntent.js";
-export { StudentFruitLoginIntent } from "./studentLogin/StudentFruitLoginIntent.js";
-export { StudentStandardLoginIntent } from "./studentLogin/StudentStandardLoginIntent.js";
-export { LoadStudentProfileIntent } from "./studentLogin/LoadStudentProfileIntent.js";
-export { StartStudentSessionIntent } from "./studentLogin/StartStudentSessionIntent.js";
-export { CreateClassIntent } from "./superAdmin/CreateClassIntent.js";
-export { CreateLocationIntent } from "./superAdmin/CreateLocationIntent.js";
-export { CreateStudentIntent } from "./superAdmin/CreateStudentIntent.js";
-export { ListClassesIntent } from "./superAdmin/ListClassesIntent.js";
-export { ListStudentsIntent } from "./superAdmin/ListStudentsIntent.js";
-export { LoadAdminProfileIntent } from "./superAdmin/LoadAdminProfileIntent.js";
-export { ResetStudentFruitPasswordIntent } from "./superAdmin/ResetStudentFruitPasswordIntent.js";
-export { SetStudentStatusIntent } from "./superAdmin/SetStudentStatusIntent.js";
-export { UpdateClassIntent } from "./superAdmin/UpdateClassIntent.js";
-export { UpdateLocationIntent } from "./superAdmin/UpdateLocationIntent.js";
-export { UpdateStudentIntent } from "./superAdmin/UpdateStudentIntent.js";
-export { VerifySuperAdminAccessIntent } from "./superAdmin/VerifySuperAdminAccessIntent.js";
+export { LoadClassesForLocationIntent } from "./studentLogin/LoadClassesForLocationIntent.js?v=1.1.29-module-render-fix";
+export { LoadStudentsForClassIntent } from "./studentLogin/LoadStudentsForClassIntent.js?v=1.1.29-module-render-fix";
+export { StudentFruitLoginIntent } from "./studentLogin/StudentFruitLoginIntent.js?v=1.1.29-module-render-fix";
+export { StudentStandardLoginIntent } from "./studentLogin/StudentStandardLoginIntent.js?v=1.1.29-module-render-fix";
+export { LoadStudentProfileIntent } from "./studentLogin/LoadStudentProfileIntent.js?v=1.1.29-module-render-fix";
+export { StartStudentSessionIntent } from "./studentLogin/StartStudentSessionIntent.js?v=1.1.29-module-render-fix";
+export { CreateClassIntent } from "./superAdmin/CreateClassIntent.js?v=1.1.29-module-render-fix";
+export { CreateLocationIntent } from "./superAdmin/CreateLocationIntent.js?v=1.1.29-module-render-fix";
+export { CreateStudentIntent } from "./superAdmin/CreateStudentIntent.js?v=1.1.29-module-render-fix";
+export { ListClassesIntent } from "./superAdmin/ListClassesIntent.js?v=1.1.29-module-render-fix";
+export { ListStudentsIntent } from "./superAdmin/ListStudentsIntent.js?v=1.1.29-module-render-fix";
+export { LoadAdminProfileIntent } from "./superAdmin/LoadAdminProfileIntent.js?v=1.1.29-module-render-fix";
+export { ResetStudentFruitPasswordIntent } from "./superAdmin/ResetStudentFruitPasswordIntent.js?v=1.1.29-module-render-fix";
+export { SetStudentStatusIntent } from "./superAdmin/SetStudentStatusIntent.js?v=1.1.29-module-render-fix";
+export { UpdateClassIntent } from "./superAdmin/UpdateClassIntent.js?v=1.1.29-module-render-fix";
+export { UpdateLocationIntent } from "./superAdmin/UpdateLocationIntent.js?v=1.1.29-module-render-fix";
+export { UpdateStudentIntent } from "./superAdmin/UpdateStudentIntent.js?v=1.1.29-module-render-fix";
+export { VerifySuperAdminAccessIntent } from "./superAdmin/VerifySuperAdminAccessIntent.js?v=1.1.29-module-render-fix";
 
 // ----------------------
 // Course Editor (Phase 2 UI Intents)
 // ----------------------
-export { OpenCourseEditorIntent } from "./courseEditor/OpenCourseEditorIntent.js?v=1.1.27-module-repair";
-export { LoadCourseIntent } from "./courseEditor/LoadCourseIntent.js";
-export { LoadModulesIntent } from "./courseEditor/LoadModulesIntent.js";
-export { LoadCourseModulesIntent } from "./courseEditor/LoadCourseModulesIntent.js";
-export { PreviewCourseIntent } from "./courseEditor/PreviewCourseIntent.js";
-export { CreateModuleIntent } from "./courseEditor/CreateModuleIntent.js?v=1.1.27-module-repair";
-export { OpenCreateModuleWizardIntent } from "./courseEditor/OpenCreateModuleWizardIntent.js";
-export { ParseLearningContentIntent } from "./courseEditor/ParseLearningContentIntent.js";
-export { CreateModuleFromWizardIntent } from "./courseEditor/CreateModuleFromWizardIntent.js?v=1.1.27-module-repair";
-export { GenerateModuleSkeletonIntent } from "./courseEditor/GenerateModuleSkeletonIntent.js";
-export { GenerateStarterStepsIntent } from "./courseEditor/GenerateStarterStepsIntent.js";
-export { ListModulesIntent } from "./courseEditor/ListModulesIntent.js";
-export { UpdateModuleIntent } from "./courseEditor/UpdateModuleIntent.js";
-export { AddModuleIntent } from "./courseEditor/AddModuleIntent.js";
-export { UpdateModuleFieldIntent } from "./courseEditor/UpdateModuleFieldIntent.js";
-export { ReorderModulesIntent } from "./courseEditor/ReorderModulesIntent.js";
-export { DeleteModuleIntent } from "./courseEditor/DeleteModuleIntent.js";
-export { DuplicateModuleIntent } from "./courseEditor/DuplicateModuleIntent.js";
-export { SaveCourseDraftIntent } from "./courseEditor/SaveCourseDraftIntent.js";
-export { PublishCourseIntent } from "./courseEditor/PublishCourseIntent.js";
-export { ValidateCourseStructureIntent } from "./courseEditor/ValidateCourseStructureIntent.js";
-export { UpdateCourseFieldIntent } from "./courseEditor/UpdateCourseFieldIntent.js";
-export { MigrateLegacyModulesToCatalogCourseIntent } from "./courseEditor/MigrateLegacyModulesToCatalogCourseIntent.js?v=1.1.27-module-repair";
+export { OpenCourseEditorIntent } from "./courseEditor/OpenCourseEditorIntent.js?v=1.1.29-module-render-fix";
+export { LoadCourseIntent } from "./courseEditor/LoadCourseIntent.js?v=1.1.29-module-render-fix";
+export { LoadModulesIntent } from "./courseEditor/LoadModulesIntent.js?v=1.1.29-module-render-fix";
+export { LoadCourseModulesIntent } from "./courseEditor/LoadCourseModulesIntent.js?v=1.1.29-module-render-fix";
+export { PreviewCourseIntent } from "./courseEditor/PreviewCourseIntent.js?v=1.1.29-module-render-fix";
+export { CreateModuleIntent } from "./courseEditor/CreateModuleIntent.js?v=1.1.29-module-render-fix";
+export { OpenCreateModuleWizardIntent } from "./courseEditor/OpenCreateModuleWizardIntent.js?v=1.1.29-module-render-fix";
+export { ParseLearningContentIntent } from "./courseEditor/ParseLearningContentIntent.js?v=1.1.29-module-render-fix";
+export { CreateModuleFromWizardIntent } from "./courseEditor/CreateModuleFromWizardIntent.js?v=1.1.29-module-render-fix";
+export { GenerateModuleSkeletonIntent } from "./courseEditor/GenerateModuleSkeletonIntent.js?v=1.1.29-module-render-fix";
+export { GenerateStarterStepsIntent } from "./courseEditor/GenerateStarterStepsIntent.js?v=1.1.29-module-render-fix";
+export { ListModulesIntent } from "./courseEditor/ListModulesIntent.js?v=1.1.29-module-render-fix";
+export { UpdateModuleIntent } from "./courseEditor/UpdateModuleIntent.js?v=1.1.29-module-render-fix";
+export { AddModuleIntent } from "./courseEditor/AddModuleIntent.js?v=1.1.29-module-render-fix";
+export { UpdateModuleFieldIntent } from "./courseEditor/UpdateModuleFieldIntent.js?v=1.1.29-module-render-fix";
+export { ReorderModulesIntent } from "./courseEditor/ReorderModulesIntent.js?v=1.1.29-module-render-fix";
+export { DeleteModuleIntent } from "./courseEditor/DeleteModuleIntent.js?v=1.1.29-module-render-fix";
+export { DuplicateModuleIntent } from "./courseEditor/DuplicateModuleIntent.js?v=1.1.29-module-render-fix";
+export { SaveCourseDraftIntent } from "./courseEditor/SaveCourseDraftIntent.js?v=1.1.29-module-render-fix";
+export { PublishCourseIntent } from "./courseEditor/PublishCourseIntent.js?v=1.1.29-module-render-fix";
+export { ValidateCourseStructureIntent } from "./courseEditor/ValidateCourseStructureIntent.js?v=1.1.29-module-render-fix";
+export { UpdateCourseFieldIntent } from "./courseEditor/UpdateCourseFieldIntent.js?v=1.1.29-module-render-fix";
+export { MigrateLegacyModulesToCatalogCourseIntent } from "./courseEditor/MigrateLegacyModulesToCatalogCourseIntent.js?v=1.1.29-module-render-fix";
 
 // ----------------------
 // Module Editor
 // ----------------------
-export { OpenModuleEditorIntent } from "./moduleEditor/OpenModuleEditorIntent.js";
-export { LoadLearningContentIntent } from "./moduleEditor/LoadLearningContentIntent.js";
-export { SaveLearningContentIntent } from "./moduleEditor/SaveLearningContentIntent.js";
-export { LoadLearningModesIntent } from "./moduleEditor/LoadLearningModesIntent.js";
-export { CreateLearningModeIntent } from "./moduleEditor/CreateLearningModeIntent.js";
-export { RenameLearningModeIntent } from "./moduleEditor/RenameLearningModeIntent.js";
-export { DeleteLearningModeIntent } from "./moduleEditor/DeleteLearningModeIntent.js";
-export { DuplicateLearningModeIntent } from "./moduleEditor/DuplicateLearningModeIntent.js";
-export { GenerateModeFromPrimaryIntent } from "./moduleEditor/GenerateModeFromPrimaryIntent.js";
-export { PullLearningContentIntent } from "./moduleEditor/PullLearningContentIntent.js";
-export { PreviewStepIntent } from "./moduleEditor/PreviewStepIntent.js?v=1.1.26-buildcheck";
-export { AddStepToLearningModeIntent } from "./moduleEditor/AddStepToLearningModeIntent.js";
-export { UpdateLearningModeStepIntent } from "./moduleEditor/UpdateLearningModeStepIntent.js?v=1.1.26-buildcheck";
-export { AddStepToPracticeModeIntent } from "./moduleEditor/AddStepToPracticeModeIntent.js";
-export { CreatePracticeModeShellsIntent } from "./moduleEditor/CreatePracticeModeShellsIntent.js";
-export { CreateSessionIntent } from "./moduleEditor/CreateSessionIntent.js";
-export { LoadStepsIntent } from "./moduleEditor/LoadStepsIntent.js";
-export { CreateStepIntent } from "./moduleEditor/CreateStepIntent.js";
-export { UpdateStepIntent } from "./moduleEditor/UpdateStepIntent.js";
-export { DeleteStepIntent } from "./moduleEditor/DeleteStepIntent.js";
-export { ReorderStepsIntent } from "./moduleEditor/ReorderStepsIntent.js";
-export { DeletePracticeModeStepIntent } from "./moduleEditor/DeletePracticeModeStepIntent.js";
-export { ListPracticeModeStepsIntent } from "./moduleEditor/ListPracticeModeStepsIntent.js";
-export { ListSessionsIntent } from "./moduleEditor/ListSessionsIntent.js";
-export { ReorderPracticeModeStepsIntent } from "./moduleEditor/ReorderPracticeModeStepsIntent.js";
-export { UpdatePracticeModeIntent } from "./moduleEditor/UpdatePracticeModeIntent.js";
-export { UpdatePracticeModeStepIntent } from "./moduleEditor/UpdatePracticeModeStepIntent.js";
-export { UploadStepMediaIntent } from "./moduleEditor/UploadStepMediaIntent.js?v=1.1.26-buildcheck";
-export { UpdateSessionIntent } from "./moduleEditor/UpdateSessionIntent.js";
-export { AddStepIntent } from "./moduleEditor/AddStepIntent.js";
-export { UpdateStepFieldIntent } from "./moduleEditor/UpdateStepFieldIntent.js";
-export { SaveModuleDraftIntent } from "./moduleEditor/SaveModuleDraftIntent.js";
+export { OpenModuleEditorIntent } from "./moduleEditor/OpenModuleEditorIntent.js?v=1.1.29-module-render-fix";
+export { LoadLearningContentIntent } from "./moduleEditor/LoadLearningContentIntent.js?v=1.1.29-module-render-fix";
+export { SaveLearningContentIntent } from "./moduleEditor/SaveLearningContentIntent.js?v=1.1.29-module-render-fix";
+export { LoadLearningModesIntent } from "./moduleEditor/LoadLearningModesIntent.js?v=1.1.29-module-render-fix";
+export { CreateLearningModeIntent } from "./moduleEditor/CreateLearningModeIntent.js?v=1.1.29-module-render-fix";
+export { RenameLearningModeIntent } from "./moduleEditor/RenameLearningModeIntent.js?v=1.1.29-module-render-fix";
+export { DeleteLearningModeIntent } from "./moduleEditor/DeleteLearningModeIntent.js?v=1.1.29-module-render-fix";
+export { DuplicateLearningModeIntent } from "./moduleEditor/DuplicateLearningModeIntent.js?v=1.1.29-module-render-fix";
+export { GenerateModeFromPrimaryIntent } from "./moduleEditor/GenerateModeFromPrimaryIntent.js?v=1.1.29-module-render-fix";
+export { PullLearningContentIntent } from "./moduleEditor/PullLearningContentIntent.js?v=1.1.29-module-render-fix";
+export { PreviewStepIntent } from "./moduleEditor/PreviewStepIntent.js?v=1.1.29-module-render-fix";
+export { AddStepToLearningModeIntent } from "./moduleEditor/AddStepToLearningModeIntent.js?v=1.1.29-module-render-fix";
+export { UpdateLearningModeStepIntent } from "./moduleEditor/UpdateLearningModeStepIntent.js?v=1.1.29-module-render-fix";
+export { AddStepToPracticeModeIntent } from "./moduleEditor/AddStepToPracticeModeIntent.js?v=1.1.29-module-render-fix";
+export { CreatePracticeModeShellsIntent } from "./moduleEditor/CreatePracticeModeShellsIntent.js?v=1.1.29-module-render-fix";
+export { CreateSessionIntent } from "./moduleEditor/CreateSessionIntent.js?v=1.1.29-module-render-fix";
+export { LoadStepsIntent } from "./moduleEditor/LoadStepsIntent.js?v=1.1.29-module-render-fix";
+export { CreateStepIntent } from "./moduleEditor/CreateStepIntent.js?v=1.1.29-module-render-fix";
+export { UpdateStepIntent } from "./moduleEditor/UpdateStepIntent.js?v=1.1.29-module-render-fix";
+export { DeleteStepIntent } from "./moduleEditor/DeleteStepIntent.js?v=1.1.29-module-render-fix";
+export { ReorderStepsIntent } from "./moduleEditor/ReorderStepsIntent.js?v=1.1.29-module-render-fix";
+export { DeletePracticeModeStepIntent } from "./moduleEditor/DeletePracticeModeStepIntent.js?v=1.1.29-module-render-fix";
+export { ListPracticeModeStepsIntent } from "./moduleEditor/ListPracticeModeStepsIntent.js?v=1.1.29-module-render-fix";
+export { ListSessionsIntent } from "./moduleEditor/ListSessionsIntent.js?v=1.1.29-module-render-fix";
+export { ReorderPracticeModeStepsIntent } from "./moduleEditor/ReorderPracticeModeStepsIntent.js?v=1.1.29-module-render-fix";
+export { UpdatePracticeModeIntent } from "./moduleEditor/UpdatePracticeModeIntent.js?v=1.1.29-module-render-fix";
+export { UpdatePracticeModeStepIntent } from "./moduleEditor/UpdatePracticeModeStepIntent.js?v=1.1.29-module-render-fix";
+export { UploadStepMediaIntent } from "./moduleEditor/UploadStepMediaIntent.js?v=1.1.29-module-render-fix";
+export { UpdateSessionIntent } from "./moduleEditor/UpdateSessionIntent.js?v=1.1.29-module-render-fix";
+export { AddStepIntent } from "./moduleEditor/AddStepIntent.js?v=1.1.29-module-render-fix";
+export { UpdateStepFieldIntent } from "./moduleEditor/UpdateStepFieldIntent.js?v=1.1.29-module-render-fix";
+export { SaveModuleDraftIntent } from "./moduleEditor/SaveModuleDraftIntent.js?v=1.1.29-module-render-fix";
 
 // ----------------------
 // Student Dashboard / Player
 // ----------------------
-export { LoadStudentCourseIntent } from "./student/LoadStudentCourseIntent.js";
-export { LoadStudentDashboardIntent } from "./student/LoadStudentDashboardIntent.js";
-export { LoadStudentCoursesIntent } from "./student/LoadStudentCoursesIntent.js";
-export { LoadStudentCourseStructureIntent } from "./student/LoadStudentCourseStructureIntent.js";
-export { LoadStudentProgressIntent } from "./student/LoadStudentProgressIntent.js";
-export { ClaimDailyBonusIntent } from "./student/ClaimDailyBonusIntent.js";
-export { ContinueLearningIntent } from "./student/ContinueLearningIntent.js";
-export { SelectContinueLearningIntent } from "./student/SelectContinueLearningIntent.js";
-export { StartPracticeModeIntent } from "./student/StartPracticeModeIntent.js";
-export { CompleteStepIntent } from "./student/CompleteStepIntent.js";
-export { CompleteStudentStepIntent } from "./student/CompleteStudentStepIntent.js";
-export { CompletePracticeModeIntent } from "./student/CompletePracticeModeIntent.js";
-export { CompleteStudentPracticeModeIntent } from "./student/CompleteStudentPracticeModeIntent.js";
-export { SaveStudentProgressIntent } from "./student/SaveStudentProgressIntent.js";
+export { LoadStudentCourseIntent } from "./student/LoadStudentCourseIntent.js?v=1.1.29-module-render-fix";
+export { LoadStudentDashboardIntent } from "./student/LoadStudentDashboardIntent.js?v=1.1.29-module-render-fix";
+export { LoadStudentCoursesIntent } from "./student/LoadStudentCoursesIntent.js?v=1.1.29-module-render-fix";
+export { LoadStudentCourseStructureIntent } from "./student/LoadStudentCourseStructureIntent.js?v=1.1.29-module-render-fix";
+export { LoadStudentProgressIntent } from "./student/LoadStudentProgressIntent.js?v=1.1.29-module-render-fix";
+export { ClaimDailyBonusIntent } from "./student/ClaimDailyBonusIntent.js?v=1.1.29-module-render-fix";
+export { ContinueLearningIntent } from "./student/ContinueLearningIntent.js?v=1.1.29-module-render-fix";
+export { SelectContinueLearningIntent } from "./student/SelectContinueLearningIntent.js?v=1.1.29-module-render-fix";
+export { StartPracticeModeIntent } from "./student/StartPracticeModeIntent.js?v=1.1.29-module-render-fix";
+export { CompleteStepIntent } from "./student/CompleteStepIntent.js?v=1.1.29-module-render-fix";
+export { CompleteStudentStepIntent } from "./student/CompleteStudentStepIntent.js?v=1.1.29-module-render-fix";
+export { CompletePracticeModeIntent } from "./student/CompletePracticeModeIntent.js?v=1.1.29-module-render-fix";
+export { CompleteStudentPracticeModeIntent } from "./student/CompleteStudentPracticeModeIntent.js?v=1.1.29-module-render-fix";
+export { SaveStudentProgressIntent } from "./student/SaveStudentProgressIntent.js?v=1.1.29-module-render-fix";

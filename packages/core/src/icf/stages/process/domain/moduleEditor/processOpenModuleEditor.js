@@ -1,4 +1,4 @@
-import { createDefaultLearningContent, createDefaultLearningModes } from "./learningArchitecture.js";
+import { createDefaultLearningContent, createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.29-module-render-fix";
 
 export async function processOpenModuleEditor(executionState) {
   const context = executionState.context;

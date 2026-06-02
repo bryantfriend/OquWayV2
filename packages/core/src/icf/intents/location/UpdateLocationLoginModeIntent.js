@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateLocationId, validateLocationLoginModePayload } from "../../stages/validate/validators.js";
-import { normalizeLocationLoginModePayload } from "../../stages/normalize/normalizers.js";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js";
-import { requireLocationAdminAuthorization } from "../../stages/authorize/authorizers.js";
-import { processUpdateLocationLoginMode } from "../../stages/process/processors.js";
-import { emitIntentResult } from "../../stages/emit/emitters.js";
+import { validateAuthenticated, validateLocationId, validateLocationLoginModePayload } from "../../stages/validate/validators.js?v=1.1.29-module-render-fix";
+import { normalizeLocationLoginModePayload } from "../../stages/normalize/normalizers.js?v=1.1.29-module-render-fix";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.29-module-render-fix";
+import { requireLocationAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.29-module-render-fix";
+import { processUpdateLocationLoginMode } from "../../stages/process/processors.js?v=1.1.29-module-render-fix";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.29-module-render-fix";
 
 export function UpdateLocationLoginModeIntent() {
   return {

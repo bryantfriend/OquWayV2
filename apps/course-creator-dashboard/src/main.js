@@ -1,11 +1,11 @@
-import { auth } from "../../../packages/core/src/infrastructure/firebase/auth.js";
+import { auth } from "../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.29-module-render-fix";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js";
-import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.26-buildcheck";
-import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.26-buildcheck";
-import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js";
-import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.28-module-render";
-import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js";
+import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.29-module-render-fix";
+import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.29-module-render-fix";
+import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.29-module-render-fix";
+import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.29-module-render-fix";
+import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.29-module-render-fix";
+import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.29-module-render-fix";
 
 console.warn("[course-creator-build-check] latest build active");
 

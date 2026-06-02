@@ -2,7 +2,7 @@ import {
   createLearningModesForTemplate,
   createStarterStepsForMode,
   normalizeLearningContentPayload
-} from "../moduleEditor/learningArchitecture.js";
+} from "../moduleEditor/learningArchitecture.js?v=1.1.29-module-render-fix";
 
 export function processGenerateStarterSteps(executionState) {
   var payload = executionState.payload || {};

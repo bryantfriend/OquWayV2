@@ -1,4 +1,4 @@
-import { db, doc, getDoc, collection, getDocs } from "../../../../../infrastructure/firebase/firestore.js";
+import { db, doc, getDoc, collection, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
 
 export async function attachModulesCollection(executionState) {
     const { payload } = executionState;

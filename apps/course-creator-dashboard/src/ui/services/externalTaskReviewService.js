@@ -1,6 +1,6 @@
-import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js";
-import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js";
-import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js";
+import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.29-module-render-fix";
+import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.29-module-render-fix";
+import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.29-module-render-fix";
 
 export const externalTaskReviewService = {
   loadSubmissions: async function (filters) {

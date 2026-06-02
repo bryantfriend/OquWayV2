@@ -1,4 +1,4 @@
-import { collection, db, doc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js";
+import { collection, db, doc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
 
 export async function processUpdateLocationLoginSlug(executionState) {
   var payload = executionState.payload || {};

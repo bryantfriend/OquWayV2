@@ -1,4 +1,4 @@
-import { db, collection, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js";
+import { db, collection, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
 
 function generateId() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {

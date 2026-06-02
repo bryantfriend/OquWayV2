@@ -1,4 +1,4 @@
-import { db, collection, doc, getDoc, getDocs, serverTimestamp, writeBatch } from "../../../../../infrastructure/firebase/firestore.js";
+import { db, collection, doc, getDoc, getDocs, serverTimestamp, writeBatch } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
 
 export async function migrateLegacyModulesToCatalogCourse(courseId) {
     const legacyModulesSnapshot = await getDocs(collection(db, "courses", courseId, "modules"));

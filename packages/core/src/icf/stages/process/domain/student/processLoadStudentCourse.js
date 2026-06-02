@@ -1,7 +1,7 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js";
-import { loadCourseAssignments } from "../courseAssignment/courseAssignmentHelpers.js";
-import { createDefaultProgressDocument } from "./studentProgressHelpers.js";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.29-module-render-fix";
+import { loadCourseAssignments } from "../courseAssignment/courseAssignmentHelpers.js?v=1.1.29-module-render-fix";
+import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.29-module-render-fix";
 
 export async function processLoadStudentCourse(executionState) {
   var actor = executionState.actor;

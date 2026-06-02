@@ -1,5 +1,5 @@
-import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js";
-import { collection, db, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js";
+import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.29-module-render-fix";
+import { collection, db, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
 
 export async function processLoadAdminProfile(executionState) {
   var actor = executionState.actor;

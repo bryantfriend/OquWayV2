@@ -1,4 +1,4 @@
-import { db, doc, setDoc } from "../../../../../infrastructure/firebase/firestore.js";
+import { db, doc, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
 
 export async function catalogCourseArchiveProcessing(executionState) {
     const { payload, context } = executionState;

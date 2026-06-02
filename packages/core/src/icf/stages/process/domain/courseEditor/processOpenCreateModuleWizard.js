@@ -1,4 +1,4 @@
-import { createDefaultLearningContent, readTemplateSpecs } from "../moduleEditor/learningArchitecture.js";
+import { createDefaultLearningContent, readTemplateSpecs } from "../moduleEditor/learningArchitecture.js?v=1.1.29-module-render-fix";
 
 export function processOpenCreateModuleWizard(executionState) {
   var payload = executionState.payload || {};

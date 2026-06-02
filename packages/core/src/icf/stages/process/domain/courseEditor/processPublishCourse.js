@@ -1,4 +1,4 @@
-import { db, writeBatch, doc, serverTimestamp } from "../../../../../infrastructure/firebase/firestore.js";
+import { db, writeBatch, doc, serverTimestamp } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
 
 export async function processPublishCourse(executionState) {
     const { payload, context } = executionState;

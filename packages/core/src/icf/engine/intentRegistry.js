@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.27-module-repair";
+import * as IntentExports from "../intents/intents.js?v=1.1.29-module-render-fix";
 
 const registry = {
   // Demo Verification

@@ -1,9 +1,9 @@
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.26-buildcheck";
-import { PracticeModePlayer } from "../../../../../packages/core/src/shared/player/PracticeModePlayer.js?v=1.1.26-buildcheck";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.29-module-render-fix";
+import { PracticeModePlayer } from "../../../../../packages/core/src/shared/player/PracticeModePlayer.js?v=1.1.29-module-render-fix";
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../../../../../packages/core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.26-buildcheck";
+} from "../../../../../packages/core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.29-module-render-fix";
 
 export class StepPreviewPage {
   constructor(courseId, moduleId, modeId, stepId) {

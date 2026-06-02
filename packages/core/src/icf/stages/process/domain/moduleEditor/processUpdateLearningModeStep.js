@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js";
-import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
+import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.29-module-render-fix";
 
 export async function processUpdateLearningModeStep(executionState) {
   var payload = executionState.payload || {};

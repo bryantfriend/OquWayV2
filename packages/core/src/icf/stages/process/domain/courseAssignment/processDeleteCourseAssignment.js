@@ -1,4 +1,4 @@
-import { db, deleteDoc, doc } from "../../../../../infrastructure/firebase/firestore.js";
+import { db, deleteDoc, doc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
 
 export async function processDeleteCourseAssignment(executionState) {
   var payload = executionState.payload;

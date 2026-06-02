@@ -1,7 +1,7 @@
-import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.26-buildcheck";
-import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.26-buildcheck";
-import { moduleEditorStore } from "../state/moduleEditorState.js";
-import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js";
+import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.29-module-render-fix";
+import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.29-module-render-fix";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.29-module-render-fix";
+import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.29-module-render-fix";
 
 function getActor() {
   return auth.currentUser ? { id: auth.currentUser.uid, role: "ROLE_COURSE_CREATOR" } : null;

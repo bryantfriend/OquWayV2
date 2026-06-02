@@ -1,5 +1,5 @@
-import { db, collection, getDocs } from "../../../../../infrastructure/firebase/firestore.js";
-import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js";
+import { db, collection, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
+import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.29-module-render-fix";
 
 export async function attachSessionsCollection(executionState) {
   const payload = executionState.payload;

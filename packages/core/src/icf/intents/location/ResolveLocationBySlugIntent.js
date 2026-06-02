@@ -1,8 +1,8 @@
-import { validateResolveLocationSlugPayload } from "../../stages/validate/validators.js";
-import { normalizeResolveLocationSlugPayload } from "../../stages/normalize/normalizers.js";
-import { allowPublicLocationRead } from "../../stages/authorize/authorizers.js";
-import { processResolveLocationBySlug } from "../../stages/process/processors.js";
-import { emitIntentResult } from "../../stages/emit/emitters.js";
+import { validateResolveLocationSlugPayload } from "../../stages/validate/validators.js?v=1.1.29-module-render-fix";
+import { normalizeResolveLocationSlugPayload } from "../../stages/normalize/normalizers.js?v=1.1.29-module-render-fix";
+import { allowPublicLocationRead } from "../../stages/authorize/authorizers.js?v=1.1.29-module-render-fix";
+import { processResolveLocationBySlug } from "../../stages/process/processors.js?v=1.1.29-module-render-fix";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.29-module-render-fix";
 
 export function ResolveLocationBySlugIntent() {
   return {

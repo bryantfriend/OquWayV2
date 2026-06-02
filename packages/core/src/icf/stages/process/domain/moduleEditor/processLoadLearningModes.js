@@ -1,4 +1,4 @@
-import { createDefaultLearningModes } from "./learningArchitecture.js";
+import { createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.29-module-render-fix";
 
 export function processLoadLearningModes(executionState) {
   executionState.result = {

@@ -1,4 +1,4 @@
-import { db, writeBatch, doc } from "../../../../../infrastructure/firebase/firestore.js";
+import { db, writeBatch, doc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
 
 export async function processLoadModules(executionState) {
     const { context } = executionState;

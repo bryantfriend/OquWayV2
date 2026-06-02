@@ -1,5 +1,5 @@
-import { collection, db, getDocs } from "../../../../../infrastructure/firebase/firestore.js";
-import { sortAssignments } from "./courseAssignmentHelpers.js";
+import { collection, db, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
+import { sortAssignments } from "./courseAssignmentHelpers.js?v=1.1.29-module-render-fix";
 
 export async function processLoadCourseAssignments(executionState) {
   var payload = executionState.payload || {};

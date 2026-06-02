@@ -1,4 +1,4 @@
-import { db, doc, getDoc, collection, getDocs, query, orderBy } from "../../../../../infrastructure/firebase/firestore.js";
+import { db, doc, getDoc, collection, getDocs, query, orderBy } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
 
 export async function attachModule(executionState) {
     const { payload, context } = executionState;
@@ -38,10 +38,6 @@ export async function attachModule(executionState) {
     }
 }
 
-function readCourseCollectionName(executionState) {
-    if (executionState.context && executionState.context.courseCollectionName) {
-        return executionState.context.courseCollectionName;
-    }
-
+function readCourseCollectionName() {
     return "catalogCourses";
 }

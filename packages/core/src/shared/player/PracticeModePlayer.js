@@ -1,7 +1,7 @@
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../stepTypes/stepTypeRegistry.js";
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.29-module-render-fix";
 
 export class PracticeModePlayer {
   constructor(options) {
@@ -30,6 +30,7 @@ export class PracticeModePlayer {
     this.onStepComplete = typeof safeOptions.onStepComplete === "function" ? safeOptions.onStepComplete : null;
     this.onExternalTaskSubmit = typeof safeOptions.onExternalTaskSubmit === "function" ? safeOptions.onExternalTaskSubmit : null;
     this.onExternalTaskLoad = typeof safeOptions.onExternalTaskLoad === "function" ? safeOptions.onExternalTaskLoad : null;
+    this.backLabel = readString(safeOptions.backLabel, "");
     this.handleClick = this.handleClick.bind(this);
     this.applyInitialProgress(safeOptions);
     this.currentStepIndex = clampNumber(readNumber(safeOptions.initialStepIndex, this.currentStepIndex), 0, Math.max(this.steps.length - 1, 0));
@@ -452,6 +453,10 @@ export class PracticeModePlayer {
   }
 
   readBackLabel() {
+    if (this.backLabel) {
+      return this.backLabel;
+    }
+
     if (this.mode === "student") {
       return "Session";
     }

@@ -1,4 +1,4 @@
-import { db, collection, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js";
+import { db, collection, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
 
 export async function catalogCourseFetchAllProcessing(executionState) {
 
@@ -35,19 +35,8 @@ async function readCourseCounts(course) {
         modules.push(moduleDoc.id);
     });
 
-    if (moduleCount === 0 && Array.isArray(course.modules)) {
-        moduleCount = course.modules.length;
-        course.modules.forEach(function (module) {
-            stepCount = stepCount + countModuleRecordSteps(module);
-        });
-        return {
-            moduleCount: moduleCount,
-            stepCount: stepCount
-        };
-    }
-
-    if (moduleCount === 0 && Array.isArray(course.moduleOrder)) {
-        moduleCount = course.moduleOrder.length;
+    if (moduleCount === 0) {
+        logCatalogModuleMismatch(course);
     }
 
     for (let index = 0; index < modules.length; index++) {
@@ -58,6 +47,21 @@ async function readCourseCounts(course) {
         moduleCount: moduleCount,
         stepCount: stepCount
     };
+}
+
+function logCatalogModuleMismatch(course) {
+    const summaryModuleCount = typeof course.moduleCount === "number" ? course.moduleCount : 0;
+    const moduleOrder = Array.isArray(course.moduleOrder) ? course.moduleOrder : [];
+
+    if (summaryModuleCount > 0 || moduleOrder.length > 0) {
+        console.warn("[course-modules:mismatch]", {
+            courseId: course.id,
+            moduleCount: summaryModuleCount,
+            loadedModuleDocCount: 0,
+            moduleOrder: moduleOrder
+        });
+        console.warn("moduleCount mismatch: course says modules exist but no module docs were found");
+    }
 }
 
 async function countModuleSteps(courseId, moduleId) {
@@ -91,31 +95,6 @@ async function countLearningModeSteps(courseId, moduleId, modeId) {
     stepsSnapshot.forEach(function () {
         count = count + 1;
     });
-
-    return count;
-}
-
-function countModuleRecordSteps(moduleRecord) {
-    let count = 0;
-
-    if (!moduleRecord || typeof moduleRecord !== "object") {
-        return count;
-    }
-
-    if (Array.isArray(moduleRecord.sessions)) {
-        moduleRecord.sessions.forEach(function (session) {
-            count = count + countPracticeModeSteps(session.practiceModes);
-        });
-    }
-
-    if (moduleRecord.learningModes && typeof moduleRecord.learningModes === "object") {
-        Object.keys(moduleRecord.learningModes).forEach(function (modeId) {
-            var mode = moduleRecord.learningModes[modeId];
-            if (mode && Array.isArray(mode.steps)) {
-                count = count + mode.steps.length;
-            }
-        });
-    }
 
     return count;
 }
