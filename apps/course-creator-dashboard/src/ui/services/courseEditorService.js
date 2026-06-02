@@ -1,5 +1,5 @@
 import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.26-buildcheck";
-import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.26-buildcheck";
+import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.27-module-repair";
 import { courseEditorStore } from "../state/courseEditorState.js";
 import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js";
 
@@ -17,6 +17,7 @@ export const courseEditorService = {
         var openData = result.emitted.data || {};
         var openCourse = openData.course || null;
         var openModules = Array.isArray(openData.modules) ? openData.modules : [];
+        var moduleSourceCheck = openData.moduleSourceCheck || null;
 
         console.info("[course-editor:open-result]", {
           courseId: courseId,
@@ -30,6 +31,7 @@ export const courseEditorService = {
         courseEditorStore.setState({
           course: openCourse,
           modules: openModules,
+          moduleSourceCheck: moduleSourceCheck,
           selectedModuleId: openData.selectedModuleId,
           permissions: openData.permissions,
           isFetching: false
@@ -39,6 +41,7 @@ export const courseEditorService = {
         console.info("[course:state:modules-assigned]", {
           resultModuleCount: openModules.length,
           stateModuleCount: Array.isArray(stateAfterOpen.modules) ? stateAfterOpen.modules.length : 0,
+          moduleSourceCheck: stateAfterOpen.moduleSourceCheck || null,
           stateKeys: Object.keys(stateAfterOpen)
         });
 
@@ -75,6 +78,41 @@ export const courseEditorService = {
       throw new Error(errMsg);
     } catch (error) {
       throw error;
+    }
+  },
+
+  repairCourseModules: async function (courseId) {
+    courseEditorStore.setState({ isRepairingModules: true, error: null });
+
+    try {
+      var result = await runIntentPipeline(getIntentDefinition("MigrateLegacyModulesToCatalogCourseIntent"), {
+        payload: { courseId: courseId },
+        actor: getActor()
+      });
+
+      if (result && result.emitted && result.emitted.success) {
+        console.info("[course-modules:repair-complete]", result.emitted.data || {});
+        await this.openCourseEditor(courseId);
+        courseEditorStore.setState({ isRepairingModules: false });
+        return result;
+      }
+
+      var message = readIntentErrorMessage(result);
+      courseEditorStore.setState({ isRepairingModules: false, error: message });
+      return result;
+    } catch (error) {
+      courseEditorStore.setState({ isRepairingModules: false, error: error.message });
+      return {
+        emitted: {
+          success: false,
+          errors: [
+            {
+              code: "REPAIR_COURSE_MODULES_FAILED",
+              message: error.message
+            }
+          ]
+        }
+      };
     }
   },
 
