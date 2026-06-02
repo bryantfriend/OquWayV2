@@ -4,7 +4,7 @@ import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAu
 import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.26-buildcheck";
 import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.26-buildcheck";
 import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js";
-import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.26-buildcheck";
+import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.27-module-repair";
 import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js";
 
 console.warn("[course-creator-build-check] latest build active");
