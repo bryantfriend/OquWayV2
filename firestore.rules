@@ -248,6 +248,7 @@ service cloud.firestore {
             "reviewedBy",
             "reviewedAt",
             "teacherFeedback",
+            "status",
             "updatedAt"
           ])
         )

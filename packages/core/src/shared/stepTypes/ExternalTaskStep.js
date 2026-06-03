@@ -153,6 +153,7 @@ function attachExternalTaskHandlers(container, config, callbacks) {
   var status = container.querySelector(".oqu-external-task-status");
   var filesInput = container.querySelector(".oqu-external-task-files");
   var noteInput = container.querySelector(".oqu-external-task-note");
+  var latestSubmission = null;
 
   if (!button) {
     return;
@@ -160,7 +161,8 @@ function attachExternalTaskHandlers(container, config, callbacks) {
 
   if (callbacks && typeof callbacks.onExternalTaskLoad === "function") {
     callbacks.onExternalTaskLoad().then(function (result) {
-      applySubmissionState(container, result && result.submission ? result.submission : null);
+      latestSubmission = result && result.submission ? result.submission : null;
+      applySubmissionState(container, latestSubmission, callbacks);
     }).catch(function () {
       writeStatus(status, "");
     });
@@ -191,11 +193,14 @@ function attachExternalTaskHandlers(container, config, callbacks) {
         await callbacks.onExternalTaskSubmit({
           config: config,
           files: files,
-          studentNote: noteInput ? noteInput.value : ""
+          studentNote: noteInput ? noteInput.value : "",
+          previousSubmission: latestSubmission,
+          isResubmission: shouldAllowResubmission(latestSubmission)
         });
       }
       writeStatus(status, "Submitted for teacher review");
       button.disabled = true;
+      button.textContent = "Submitted";
     } catch (error) {
       button.disabled = false;
       writeStatus(status, error && error.message ? error.message : "Could not submit this task yet.");
@@ -203,38 +208,80 @@ function attachExternalTaskHandlers(container, config, callbacks) {
   });
 }
 
-function applySubmissionState(container, submission) {
+function applySubmissionState(container, submission, callbacks) {
   var status = container.querySelector(".oqu-external-task-status");
   var button = container.querySelector(".oqu-external-task-submit");
 
   if (!submission) {
+    writeStatus(status, "Status: not submitted yet.");
     return;
   }
 
   if (submission.reviewStatus === "complete") {
-    writeStatus(status, "Teacher marked this task complete.");
+    writeStatus(status, "Status: complete. " + readFeedbackMessage(submission, "Teacher marked this task complete."));
     if (button) {
       button.textContent = "Completed";
       button.classList.add("oqu-player-complete-btn");
       button.disabled = false;
     }
+    emitExternalTaskCompleteOnce(container, submission, callbacks);
     return;
   }
 
   if (submission.reviewStatus === "needsWork") {
-    writeStatus(status, "Needs work: " + (submission.teacherFeedback || "Review your task and resubmit."));
+    writeStatus(status, "Status: needs work. " + readFeedbackMessage(submission, "Review your task and resubmit."));
+    if (button) {
+      button.textContent = "Resubmit for review";
+      button.disabled = false;
+      button.classList.remove("oqu-player-complete-btn");
+    }
     return;
   }
 
   if (submission.reviewStatus === "incomplete") {
-    writeStatus(status, "Incomplete: " + (submission.teacherFeedback || "Please resubmit your proof."));
+    writeStatus(status, "Status: incomplete. " + readFeedbackMessage(submission, "Please resubmit your proof."));
+    if (button) {
+      button.textContent = "Resubmit for review";
+      button.disabled = false;
+      button.classList.remove("oqu-player-complete-btn");
+    }
     return;
   }
 
-  writeStatus(status, "Submitted for teacher review");
+  writeStatus(status, "Status: pending teacher review.");
   if (button) {
+    button.textContent = "Submitted";
     button.disabled = true;
   }
+}
+
+function emitExternalTaskCompleteOnce(container, submission, callbacks) {
+  if (!callbacks || typeof callbacks.onComplete !== "function") {
+    return;
+  }
+
+  if (container.getAttribute("data-external-task-complete-emitted") === "true") {
+    return;
+  }
+
+  container.setAttribute("data-external-task-complete-emitted", "true");
+  callbacks.onComplete({
+    success: true,
+    score: 100,
+    data: {
+      submissionId: submission.id || "",
+      reviewStatus: submission.reviewStatus || "complete",
+      teacherFeedback: submission.teacherFeedback || ""
+    }
+  });
+}
+
+function shouldAllowResubmission(submission) {
+  return Boolean(submission && (submission.reviewStatus === "needsWork" || submission.reviewStatus === "incomplete"));
+}
+
+function readFeedbackMessage(submission, fallbackText) {
+  return submission && submission.teacherFeedback ? submission.teacherFeedback : fallbackText;
 }
 
 function writeStatus(statusElement, message) {
@@ -274,7 +321,7 @@ function readAcceptAttribute(config) {
     values.push(".png", ".jpg", ".jpeg", ".webp", "image/png", "image/jpeg", "image/webp");
   }
   if (types.indexOf("document") !== -1) {
-    values.push(".pdf", ".doc", ".docx", ".ppt", ".pptx", ".xls", ".xlsx", "application/pdf");
+    values.push(".pdf", ".doc", ".docx", ".ppt", ".pptx", ".xls", ".xlsx", ".txt", ".csv", "application/pdf", "text/plain", "text/csv");
   }
   return values.join(",");
 }

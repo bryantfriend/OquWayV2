@@ -7,7 +7,7 @@ import { ReflectionStep } from "./ReflectionStep.js?v=1.1.29-module-render-fix";
 import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.29-module-render-fix";
 import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.29-module-render-fix";
 import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.29-module-render-fix";
-import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.29-module-render-fix";
+import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.34-external-task-mvp";
 
 var stepTypes = {
   textBriefing: TextBriefingStep,

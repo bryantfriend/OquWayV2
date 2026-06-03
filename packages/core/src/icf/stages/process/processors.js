@@ -34,7 +34,7 @@ export {
   processReviewExternalTaskSubmission,
   processSubmitExternalTask,
   processUploadExternalTaskFile
-} from "./domain/externalTask/externalTaskProcessors.js?v=1.1.29-module-render-fix";
+} from "./domain/externalTask/externalTaskProcessors.js?v=1.1.34-external-task-mvp";
 export { processListLocations } from "./domain/location/processListLocations.js?v=1.1.29-module-render-fix";
 export { processResolveLocationBySlug } from "./domain/location/processResolveLocationBySlug.js?v=1.1.29-module-render-fix";
 export { processUpdateLocationLoginMode } from "./domain/location/processUpdateLocationLoginMode.js?v=1.1.29-module-render-fix";

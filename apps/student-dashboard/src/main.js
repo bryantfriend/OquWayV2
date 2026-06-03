@@ -1,8 +1,8 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.31-student-open-context";
-import { PracticeModePlayer } from "../../../packages/core/src/shared/player/PracticeModePlayer.js?v=1.1.31-student-open-context";
+import { PracticeModePlayer } from "../../../packages/core/src/shared/player/PracticeModePlayer.js?v=1.1.34-external-task-mvp";
 import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.31-student-open-context";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.31-student-open-context";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.34-external-task-mvp";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -1011,6 +1011,7 @@ async function submitExternalTaskStep(step, submissionRequest, snapshot) {
     checklistSnapshot: readExternalTaskChecklist(config),
     studentNote: submissionRequest ? submissionRequest.studentNote : "",
     files: submissionRequest ? submissionRequest.files : [],
+    isResubmission: Boolean(submissionRequest && submissionRequest.isResubmission),
     maxFileSizeMb: config.maxFileSizeMb || 10,
     classId: state.student ? state.student.classId : "",
     locationId: state.student ? (state.student.locationId || state.student.primaryLocationId) : ""

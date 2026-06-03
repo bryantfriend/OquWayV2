@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.33-course-counts";
+import * as IntentExports from "../intents/intents.js?v=1.1.34-external-task-mvp";
 
 const registry = {
   // Demo Verification

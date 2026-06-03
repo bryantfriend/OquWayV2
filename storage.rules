@@ -34,7 +34,9 @@ service firebase.storage {
           request.resource.contentType == 'application/vnd.ms-powerpoint' ||
           request.resource.contentType == 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
           request.resource.contentType == 'application/vnd.ms-excel' ||
-          request.resource.contentType == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          request.resource.contentType == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+          request.resource.contentType == 'text/plain' ||
+          request.resource.contentType == 'text/csv'
         );
     }
 

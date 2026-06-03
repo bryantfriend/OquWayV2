@@ -1,5 +1,5 @@
 import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.29-module-render-fix";
-import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.29-module-render-fix";
+import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.34-external-task-mvp";
 import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.29-module-render-fix";
 
 export const externalTaskReviewService = {

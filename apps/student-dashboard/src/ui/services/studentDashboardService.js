@@ -1,5 +1,5 @@
 import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.31-student-open-context";
-import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.31-student-open-context";
+import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.34-external-task-mvp";
 import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.31-student-open-context";
 import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.31-student-open-context";
 
@@ -279,7 +279,9 @@ export const studentDashboardService = {
     });
 
     try {
-      var result = await runStudentIntent("SubmitExternalTaskIntent", payload || {});
+      var safePayload = payload || {};
+      var intentType = safePayload.isResubmission ? "ResubmitExternalTaskIntent" : "SubmitExternalTaskIntent";
+      var result = await runStudentIntent(intentType, safePayload);
 
       if (result && result.emitted && result.emitted.success) {
         studentDashboardStore.setState({

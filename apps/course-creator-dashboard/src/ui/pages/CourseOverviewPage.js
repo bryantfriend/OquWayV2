@@ -1,7 +1,7 @@
 import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.29-module-render-fix';
 import { courseEditorService } from '../services/courseEditorService.js?v=1.1.29-module-render-fix';
 import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.29-module-render-fix';
-import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.29-module-render-fix';
+import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.34-external-task-mvp';
 
 export class CourseOverviewPage {
   constructor(courseId, options) {
@@ -1508,7 +1508,8 @@ export class CourseOverviewPage {
 
   reviewExternalTaskSubmission(submissionId, reviewStatus) {
     var self = this;
-    var feedback = window.prompt('Optional teacher feedback', '') || '';
+    var feedbackInput = document.querySelector('.external-task-feedback-input[data-id="' + cssEscape(submissionId) + '"]');
+    var feedback = feedbackInput ? feedbackInput.value : '';
 
     this.externalTaskPendingId = submissionId;
     this.renderExternalTaskSubmissions();
@@ -2063,7 +2064,8 @@ function buildExternalTaskSubmissionCard(submission, isPending) {
   html += '<div class="flex items-start justify-between gap-2">';
   html += '<div class="min-w-0"><div class="text-[10px] font-black uppercase tracking-wide text-purple-500">External Task</div>';
   html += '<div class="text-xs font-bold text-gray-900 truncate">' + escapeHtml(submission.taskTitle || 'Untitled task') + '</div>';
-  html += '<div class="text-[11px] text-gray-500">' + escapeHtml(submission.studentName || submission.studentId || 'Student') + '</div></div>';
+  html += '<div class="text-[11px] text-gray-500">' + escapeHtml(submission.studentName || submission.studentId || 'Student') + '</div>';
+  html += '<div class="mt-1 text-[10px] font-semibold text-gray-400">' + escapeHtml(readExternalTaskContextLabel(submission)) + '</div></div>';
   html += '<span class="' + buildExternalTaskStatusClass(submission.reviewStatus || 'pending') + '">' + escapeHtml(readExternalTaskStatusLabel(submission.reviewStatus || 'pending')) + '</span>';
   html += '</div>';
 
@@ -2073,12 +2075,22 @@ function buildExternalTaskSubmissionCard(submission, isPending) {
 
   html += '<div class="mt-3 flex flex-wrap gap-2">';
   files.forEach(function (file) {
+    if (isImageProof(file)) {
+      html += '<a class="block overflow-hidden rounded-lg border border-slate-200 bg-slate-50" href="' + escapeHtml(file.downloadUrl || '#') + '" target="_blank" rel="noopener">';
+      html += '<img class="h-20 w-28 object-cover" src="' + escapeHtml(file.downloadUrl || '') + '" alt="' + escapeHtml(file.name || 'proof image') + '">';
+      html += '</a>';
+      return;
+    }
+
     html += '<a class="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100" href="' + escapeHtml(file.downloadUrl || '#') + '" target="_blank" rel="noopener">' + escapeHtml(file.name || 'proof file') + '</a>';
   });
   if (files.length === 0) {
     html += '<span class="text-[11px] font-semibold text-slate-400">No file proof attached</span>';
   }
   html += '</div>';
+
+  html += '<label class="mt-3 block text-[10px] font-black uppercase tracking-wide text-slate-400">Teacher feedback</label>';
+  html += '<textarea class="external-task-feedback-input mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-[11px] font-semibold text-slate-700 outline-none focus:border-blue-300" data-id="' + escapeHtml(submission.id || '') + '" rows="2" placeholder="Feedback for the student">' + escapeHtml(submission.teacherFeedback || '') + '</textarea>';
 
   html += '<div class="mt-3 grid grid-cols-3 gap-2">';
   html += '<button class="external-task-review-btn rounded-lg border border-green-100 bg-green-50 px-2 py-1.5 text-[10px] font-black text-green-700 hover:bg-green-100 disabled:opacity-60" data-id="' + escapeHtml(submission.id || '') + '" data-review-status="complete"' + disabled + '>' + (isPending ? 'Saving...' : 'Complete') + '</button>';
@@ -2088,6 +2100,20 @@ function buildExternalTaskSubmissionCard(submission, isPending) {
   html += '</div>';
 
   return html;
+}
+
+function readExternalTaskContextLabel(submission) {
+  var parts = [];
+
+  if (submission.courseId) { parts.push("Course " + submission.courseId); }
+  if (submission.moduleId) { parts.push("Module " + submission.moduleId); }
+  if (submission.stepId) { parts.push("Step " + submission.stepId); }
+
+  return parts.length > 0 ? parts.join(" / ") : "Course/module/step context pending";
+}
+
+function isImageProof(file) {
+  return Boolean(file && typeof file.contentType === "string" && file.contentType.indexOf("image/") === 0 && file.downloadUrl);
 }
 
 function buildExternalTaskStatusClass(status) {
@@ -2504,4 +2530,12 @@ function escapeHtml(value) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+function cssEscape(value) {
+  if (typeof CSS !== 'undefined' && CSS && typeof CSS.escape === 'function') {
+    return CSS.escape(String(value || ''));
+  }
+
+  return String(value || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }

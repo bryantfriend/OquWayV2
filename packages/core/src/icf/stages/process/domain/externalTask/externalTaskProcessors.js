@@ -101,6 +101,7 @@ export async function processReviewExternalTaskSubmission(executionState) {
 
   try {
     var update = {
+      status: payload.reviewStatus === "complete" ? "complete" : "submitted",
       reviewStatus: payload.reviewStatus,
       reviewedBy: actor.id || "",
       reviewedAt: serverTimestamp(),
@@ -208,19 +209,22 @@ async function queryExternalTaskSubmissions(filters) {
       ? await getDocs(query(submissionsRef, ...constraints))
       : await getDocs(submissionsRef);
   } catch (error) {
-    if (isRecoverableEmptyQueryError(error)) {
-      logExternalTaskSubmissionsFailure({
-        actor: {},
-        payload: filters || {}
-      }, error, "externalTaskSubmissions");
-      return [];
+    if (!isRecoverableEmptyQueryError(error)) {
+      throw error;
     }
 
-    throw error;
+    logExternalTaskSubmissionsFailure({
+      actor: {},
+      payload: filters || {}
+    }, error, "externalTaskSubmissions");
+    snapshot = await queryExternalTaskSubmissionsFallback(submissionsRef, filters || {});
   }
 
   snapshot.forEach(function (submissionSnap) {
-    submissions.push(Object.assign({ id: submissionSnap.id }, submissionSnap.data() || {}));
+    var submission = Object.assign({ id: submissionSnap.id }, submissionSnap.data() || {});
+    if (matchesExternalTaskFilters(submission, filters || {})) {
+      submissions.push(submission);
+    }
   });
 
   submissions.sort(function (a, b) {
@@ -228,6 +232,45 @@ async function queryExternalTaskSubmissions(filters) {
   });
 
   return submissions;
+}
+
+async function queryExternalTaskSubmissionsFallback(submissionsRef, filters) {
+  if (filters.studentId) {
+    return await getDocs(query(submissionsRef, where("studentId", "==", filters.studentId)));
+  }
+
+  if (filters.courseId) {
+    return await getDocs(query(submissionsRef, where("courseId", "==", filters.courseId)));
+  }
+
+  if (filters.classId) {
+    return await getDocs(query(submissionsRef, where("classId", "==", filters.classId)));
+  }
+
+  if (filters.locationId) {
+    return await getDocs(query(submissionsRef, where("locationId", "==", filters.locationId)));
+  }
+
+  if (filters.reviewStatus) {
+    return await getDocs(query(submissionsRef, where("reviewStatus", "==", filters.reviewStatus)));
+  }
+
+  return await getDocs(submissionsRef);
+}
+
+function matchesExternalTaskFilters(submission, filters) {
+  return matchesFilterValue(submission.courseId, filters.courseId)
+    && matchesFilterValue(submission.moduleId, filters.moduleId)
+    && matchesFilterValue(submission.stepId, filters.stepId)
+    && matchesFilterValue(submission.studentId, filters.studentId)
+    && matchesFilterValue(submission.classId, filters.classId)
+    && matchesFilterValue(submission.locationId, filters.locationId)
+    && matchesFilterValue(submission.status, filters.status)
+    && matchesFilterValue(submission.reviewStatus, filters.reviewStatus);
+}
+
+function matchesFilterValue(actualValue, expectedValue) {
+  return !expectedValue || actualValue === expectedValue;
 }
 
 function isRecoverableEmptyQueryError(error) {
@@ -319,7 +362,9 @@ function isAllowedContentType(contentType) {
     || contentType === "application/vnd.ms-powerpoint"
     || contentType === "application/vnd.openxmlformats-officedocument.presentationml.presentation"
     || contentType === "application/vnd.ms-excel"
-    || contentType === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+    || contentType === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    || contentType === "text/plain"
+    || contentType === "text/csv";
 }
 
 function readNumber(value, fallback) {
