@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.35-teacher-dashboard";
-import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.35-teacher-dashboard";
-import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.35-teacher-dashboard";
+import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.36-teacher-auth";
+import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.36-teacher-auth";
+import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.36-teacher-auth";
 
 export const teacherDashboardService = {
   onAuthStateChanged: function (callback) {
@@ -89,7 +89,7 @@ function getCurrentTeacherActor() {
 
   return {
     id: user.uid,
-    role: "ROLE_TEACHER"
+    role: "ROLE_AUTHENTICATED"
   };
 }
 

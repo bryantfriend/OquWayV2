@@ -4,21 +4,42 @@ export function allowTeacherLoginAuthorization() {
 
 export function requireTeacherDashboardAuthorization(executionState) {
   var profile = executionState.context ? executionState.context.teacherProfile : null;
-  var roles = readRoles(profile, executionState.actor);
+  var roles = readProfileRoles(profile);
+  var uid = executionState.actor && executionState.actor.id ? executionState.actor.id : "";
+
+  console.info("[teacher-auth] normalized roles", {
+    roles: roles
+  });
 
   if (!executionState.actor || !executionState.actor.id) {
+    console.warn("[teacher-auth] unauthorized", {
+      uid: uid,
+      roles: roles
+    });
     return createError("TEACHER_AUTH_REQUIRED", "Please sign in with a teacher account.");
   }
 
   if (!profile) {
+    console.warn("[teacher-auth] unauthorized", {
+      uid: uid,
+      roles: roles
+    });
     return createError("TEACHER_PROFILE_REQUIRED", "No teacher profile was found for this account.");
   }
 
   if (!isActiveProfile(profile)) {
+    console.warn("[teacher-auth] unauthorized", {
+      uid: uid,
+      roles: roles
+    });
     return createError("TEACHER_ACCOUNT_INACTIVE", "This teacher account is not active.");
   }
 
   if (!roles.some(isAllowedTeacherDashboardRole)) {
+    console.warn("[teacher-auth] unauthorized", {
+      uid: uid,
+      roles: roles
+    });
     return createError("TEACHER_ROLE_REQUIRED", "This account is not authorized for the Teacher Dashboard.");
   }
 
@@ -27,24 +48,25 @@ export function requireTeacherDashboardAuthorization(executionState) {
 
 export function requireTeacherReviewScopeAuthorization(executionState) {
   var actor = executionState.actor || {};
-  var role = readPrimaryRole(actor);
+  var actorRole = readPrimaryActorRole(actor);
+  var profile = executionState.context ? executionState.context.teacherProfile : null;
+  var profileRoles = readProfileRoles(profile);
 
   if (!actor.id) {
     return createError("EXTERNAL_TASK_REVIEWER_REQUIRED", "A signed-in reviewer is required.");
   }
 
-  if (isAdminRole(role) || role === "courseCreator") {
+  if (isAdminRole(actorRole) || actorRole === "courseCreator") {
     return { valid: true };
   }
 
-  if (role !== "teacher") {
-    return createError("EXTERNAL_TASK_REVIEWER_ROLE_REQUIRED", "Only teachers and admins can review external task submissions.");
+  if (profileRoles.some(isAdminRole)) {
+    return { valid: true };
   }
 
-  var profile = executionState.context ? executionState.context.teacherProfile : null;
   var submission = executionState.context ? executionState.context.externalTaskSubmission : null;
 
-  if (!profile || !isActiveProfile(profile) || !readRoles(profile, actor).some(isAllowedTeacherDashboardRole)) {
+  if (!profile || !isActiveProfile(profile) || profileRoles.indexOf("teacher") === -1) {
     return createError("TEACHER_ROLE_REQUIRED", "This account is not authorized to review submissions.");
   }
 
@@ -96,6 +118,10 @@ export function readRoles(profile, actor) {
   return roles;
 }
 
+function readProfileRoles(profile) {
+  return readRoles(profile, null);
+}
+
 function isSubmissionInTeacherScope(submission, classIds, locationIds) {
   if (submission.classId && classIds.indexOf(submission.classId) !== -1) {
     return true;
@@ -112,7 +138,7 @@ function isAdminRole(role) {
   return role === "schoolAdmin" || role === "platformAdmin" || role === "superAdmin" || role === "admin";
 }
 
-function readPrimaryRole(actor) {
+function readPrimaryActorRole(actor) {
   return normalizeRole(actor && actor.role ? actor.role : "");
 }
 

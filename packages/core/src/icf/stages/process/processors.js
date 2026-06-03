@@ -125,4 +125,4 @@ export {
   processLoadTeacherStudents,
   processSendTeacherPasswordReset,
   processTeacherLogin
-} from "./domain/teacher/teacherDashboardProcessors.js?v=1.1.35-teacher-dashboard";
+} from "./domain/teacher/teacherDashboardProcessors.js?v=1.1.36-teacher-auth";

@@ -70,4 +70,4 @@ export {
   validateTeacherLoginPayload,
   validateTeacherPasswordResetPayload,
   validateTeacherReviewQueuePayload
-} from "./domain/teacher/validateTeacherPayloads.js?v=1.1.35-teacher-dashboard";
+} from "./domain/teacher/validateTeacherPayloads.js?v=1.1.36-teacher-auth";

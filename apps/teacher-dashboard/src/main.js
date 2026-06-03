@@ -1,4 +1,4 @@
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.35-teacher-dashboard";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.36-teacher-auth";
 
 var app = document.getElementById("app");
 var state = {
@@ -30,6 +30,10 @@ teacherDashboardService.onAuthStateChanged(function (user) {
 });
 
 async function handleAuthState(user) {
+  console.info("[teacher-auth] auth state", {
+    uid: user && user.uid ? user.uid : ""
+  });
+
   if (!user) {
     setState({
       authReady: true,

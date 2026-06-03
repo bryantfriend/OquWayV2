@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.35-teacher-dashboard";
+import * as IntentExports from "../intents/intents.js?v=1.1.36-teacher-auth";
 
 const registry = {
   // Demo Verification
