@@ -370,7 +370,7 @@ async function loadScopedSubmissions(filters) {
     return readMillis(b.createdAt) - readMillis(a.createdAt);
   });
 
-  return submissions;
+  return await enrichSubmissionsWithCourseMetadata(submissions);
 }
 
 function buildSubmissionQuery(scopeField, scopeValue, filters) {
@@ -393,6 +393,102 @@ async function appendSubmissionQuery(submissions, submissionsQuery) {
 async function loadUserProfile(uid) {
   var profileSnap = await getDoc(doc(db, "users", uid));
   return profileSnap.exists() ? Object.assign({ id: profileSnap.id }, profileSnap.data() || {}) : null;
+}
+
+async function enrichSubmissionsWithCourseMetadata(submissions) {
+  var courseCache = {};
+  var moduleCache = {};
+  var index = 0;
+
+  while (index < submissions.length) {
+    var submission = submissions[index];
+    var course = await loadCourseSummary(submission.courseId, courseCache);
+    var module = await loadModuleSummary(submission.courseId, submission.moduleId, moduleCache, course ? course.source : "");
+
+    submissions[index] = Object.assign({}, submission, {
+      courseTitle: submission.courseTitle || (course ? course.title : ""),
+      moduleTitle: submission.moduleTitle || (module ? module.title : "")
+    });
+
+    index = index + 1;
+  }
+
+  return submissions;
+}
+
+async function loadCourseSummary(courseId, cache) {
+  if (!courseId) {
+    return null;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(cache, courseId)) {
+    return cache[courseId];
+  }
+
+  cache[courseId] = await readCourseSummaryFromSource(courseId, "catalogCourses")
+    || await readCourseSummaryFromSource(courseId, "courses");
+
+  return cache[courseId];
+}
+
+async function readCourseSummaryFromSource(courseId, source) {
+  try {
+    var courseSnap = await getDoc(doc(db, source, courseId));
+
+    if (!courseSnap.exists()) {
+      return null;
+    }
+
+    var data = courseSnap.data() || {};
+    return {
+      id: courseSnap.id,
+      source: source,
+      title: readTitle(data.title || data.name || data.displayName, "Untitled Course")
+    };
+  } catch (error) {
+    return null;
+  }
+}
+
+async function loadModuleSummary(courseId, moduleId, cache, preferredSource) {
+  var cacheKey = courseId + "/" + moduleId;
+
+  if (!courseId || !moduleId) {
+    return null;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(cache, cacheKey)) {
+    return cache[cacheKey];
+  }
+
+  cache[cacheKey] = await readModuleSummaryFromSource(courseId, moduleId, preferredSource || "catalogCourses")
+    || await readModuleSummaryFromSource(courseId, moduleId, "catalogCourses")
+    || await readModuleSummaryFromSource(courseId, moduleId, "courses");
+
+  return cache[cacheKey];
+}
+
+async function readModuleSummaryFromSource(courseId, moduleId, source) {
+  if (!source) {
+    return null;
+  }
+
+  try {
+    var moduleSnap = await getDoc(doc(db, source, courseId, "modules", moduleId));
+
+    if (!moduleSnap.exists()) {
+      return null;
+    }
+
+    var data = moduleSnap.data() || {};
+    return {
+      id: moduleSnap.id,
+      source: source,
+      title: readTitle(data.title || data.name || data.displayName, "Untitled Module")
+    };
+  } catch (error) {
+    return null;
+  }
 }
 
 function normalizeTeacherProfile(profile) {
@@ -517,6 +613,18 @@ function readName(source, fallback) {
   }
 
   return source.displayName || source.name || source.title || source.fullName || fallback;
+}
+
+function readTitle(value, fallback) {
+  if (typeof value === "string" && value.length > 0) {
+    return value;
+  }
+
+  if (value && typeof value.en === "string" && value.en.length > 0) {
+    return value.en;
+  }
+
+  return fallback;
 }
 
 function readPrimaryRole(profile) {
