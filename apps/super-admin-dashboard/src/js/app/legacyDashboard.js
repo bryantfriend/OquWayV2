@@ -1,6 +1,6 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js";
-import { functions, httpsCallable } from "../../../../../packages/core/src/infrastructure/firebase/functions.js?v=1.1.37-teacher-login-auth";
+import { functions, httpsCallable } from "../../../../../packages/core/src/infrastructure/firebase/functions.js?v=1.1.38-user-edit-modal";
 import { storage } from "../../../../../packages/core/src/infrastructure/firebase/storage.js";
 import { collection, db, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../packages/core/src/infrastructure/firebase/firestore.js";
 import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js";
@@ -8,7 +8,7 @@ import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/r
 import { COURSE_CREATOR_URL, roleFilterCards, userRoles, userStatuses } from "../shared/constants.js";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.37";
+var appVersion = "1.1.38";
 var state = {
   isLoading: true,
   isRefreshing: false,
@@ -60,6 +60,7 @@ var state = {
   userForm: createUserForm(),
   activeUserId: "",
   userCreateOpen: false,
+  userEditModal: createUserEditModalState(),
   classForm: createClassForm(),
   studentForm: createStudentForm(),
   assignmentForm: createAssignmentForm(),
@@ -508,6 +509,7 @@ function buildDashboardView() {
   html += buildActiveTab();
   html += '</main>';
   html += buildResetModal();
+  html += buildUserEditModal();
   html += buildClassPickerModal();
   html += buildAssignmentCoursePickerModal();
   html += buildAssignmentTargetPickerModal();
@@ -1300,7 +1302,6 @@ function buildUserSkeleton() {
 }
 
 function buildUserCard(user) {
-  var isOpen = state.activeUserId === user.id;
   var html = '<article class="sa-user-card">';
 
   html += '<div class="sa-user-summary">';
@@ -1310,19 +1311,15 @@ function buildUserCard(user) {
   html += '<div class="sa-user-meta"><span>' + escapeHtml(readUserClassSummary(user)) + '</span></div>';
   html += '<div>' + buildStatusBadge(user.status) + '</div>';
   html += '<div class="sa-user-meta"><span>' + escapeHtml(formatDateTime(readUserLastActive(user))) + '</span></div>';
-  html += '<div class="sa-row-actions">' + buildUserActionButtons(user, isOpen) + '</div>';
+  html += '<div class="sa-row-actions">' + buildUserActionButtons(user) + '</div>';
   html += '</div>';
-
-  if (isOpen) {
-    html += '<div class="sa-location-detail">' + buildUserForm(user.id, normalizeUserForm(user), false) + '</div>';
-  }
 
   html += '</article>';
   return html;
 }
 
-function buildUserActionButtons(user, isOpen) {
-  var html = '<button type="button" class="sa-btn sa-btn-secondary" data-action="edit-user" data-id="' + escapeHtml(user.id) + '">' + (isOpen ? "Close" : "Edit") + '</button>';
+function buildUserActionButtons(user) {
+  var html = '<button type="button" class="sa-btn sa-btn-secondary" data-action="edit-user" data-id="' + escapeHtml(user.id) + '">Edit</button>';
 
   if (isTeacherUser(user)) {
     html += buildTeacherLoginActionButton(user);
@@ -1350,6 +1347,36 @@ function buildTeacherLoginActionButton(user) {
   return '<button type="button" class="sa-btn" data-action="authorize-teacher-login" data-id="' + escapeHtml(user.id) + '"' + disabled(isBusy()) + '>' + buildButtonContent("Authorize Teacher Login", "authorize-teacher-login:" + user.id) + '</button>';
 }
 
+function buildUserEditModal() {
+  var modal = state.userEditModal || createUserEditModalState();
+
+  if (!modal.isOpen || !modal.draft) {
+    return "";
+  }
+
+  var form = modal.draft;
+  var user = findUser(modal.userId) || form;
+  var title = form.displayName || form.email || form.userId || "User profile";
+  var subtitle = (form.roles || []).map(readRoleLabel).join(" / ") || "No role";
+  var actionKey = "update-user:" + modal.userId;
+  var html = '<div class="sa-modal-backdrop sa-user-edit-backdrop"><section class="sa-modal sa-user-edit-modal" role="dialog" aria-modal="true" aria-label="Edit user">';
+
+  html += '<div class="sa-user-edit-hero">';
+  html += '<div class="sa-user-edit-identity">' + buildAvatar(Object.assign({}, user, form)) + '<div><p class="sa-eyebrow">Edit User</p><h2>' + escapeHtml(title || "Untitled User") + '</h2><div class="sa-user-edit-meta"><span>' + escapeHtml(subtitle) + '</span>' + buildStatusBadge(form.status) + '</div><div class="sa-role-badges">' + buildRoleBadges(form.roles) + '</div></div></div>';
+  html += '<button type="button" class="sa-modal-close" data-action="close-user-edit-modal" aria-label="Close user editor">&times;</button>';
+  html += '</div>';
+
+  if (modal.error) {
+    html += '<div class="sa-message sa-message-error">' + escapeHtml(modal.error) + '</div>';
+  }
+
+  html += '<div class="sa-user-edit-body">' + buildUserForm(modal.userId, form, false) + '</div>';
+  html += '<div class="sa-modal-actions sa-user-edit-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="close-user-edit-modal"' + disabled(isBusy()) + '>Cancel</button><button type="button" class="sa-btn" data-action="update-user" data-id="' + escapeHtml(modal.userId) + '"' + disabled(isBusy()) + '>' + buildButtonContent("Save User", actionKey) + '</button></div>';
+  html += '</section></div>';
+
+  return html;
+}
+
 function buildUserForm(formId, form, isCreate) {
   var html = '<div class="sa-user-form">';
 
@@ -1361,7 +1388,11 @@ function buildUserForm(formId, form, isCreate) {
 
   html += '<section class="sa-location-form-section"><h3>Roles & Access</h3><div class="sa-user-fields">' + buildRoleMultiSelect(formId, form.roles) + buildLocationMultiSelect(formId, form.locationIds) + buildPrimaryLocationSelect(formId, form.primaryLocationId) + buildSelect("user", formId, "status", form.status, userStatuses) + '</div></section>';
   html += buildRelationshipHints(formId, form);
-  html += '<div class="sa-location-actions"><button type="button" class="sa-btn" data-action="' + (isCreate ? "create-user" : "update-user") + '" data-id="' + escapeHtml(formId) + '"' + disabled(isBusy()) + '>' + buildButtonContent(isCreate ? "Create Profile" : "Save User", (isCreate ? "create-user:new" : "update-user:" + formId)) + '</button></div>';
+
+  if (isCreate) {
+    html += '<div class="sa-location-actions"><button type="button" class="sa-btn" data-action="create-user" data-id="' + escapeHtml(formId) + '"' + disabled(isBusy()) + '>' + buildButtonContent("Create Profile", "create-user:new") + '</button></div>';
+  }
+
   html += '</div>';
   return html;
 }
@@ -2328,11 +2359,28 @@ function updateFormValue(target) {
     if (shouldRerenderUserFormField(field)) {
       render();
     }
+  } else if (kind === "user") {
+    updateUserEditDraft(id, field, value);
   } else if (kind === "assignment" && id === "new") {
     updateAssignmentFormValue(field, value);
     render();
   } else {
     updateExistingRecord(kind, id, field, value);
+  }
+}
+
+function updateUserEditDraft(userId, field, value) {
+  var draft = readMutableUserFormDraft(userId);
+
+  if (!draft) {
+    return;
+  }
+
+  setUserFormValue(draft, field, value);
+  state.userEditModal.error = "";
+
+  if (shouldRerenderUserFormField(field)) {
+    render();
   }
 }
 
@@ -2444,7 +2492,7 @@ function shouldRerenderUserFormField(field) {
 }
 
 function openClassPicker(formId, mode) {
-  var form = formId === "new" ? state.userForm : normalizeUserForm(findUser(formId) || { id: formId });
+  var form = readUserFormDraft(formId);
   var selectedIds = mode === "primary"
     ? (form.classId ? [form.classId] : [])
     : splitCommaList(form.classIdsText);
@@ -2472,6 +2520,63 @@ function closeClassPicker() {
   render();
 }
 
+function openUserEditModal(userId) {
+  var user = findUser(userId);
+
+  if (!user) {
+    setState({ message: "Choose a user first.", messageType: "error" });
+    return;
+  }
+
+  setState({
+    activeUserId: userId,
+    userCreateOpen: false,
+    userEditModal: {
+      isOpen: true,
+      userId: userId,
+      draft: normalizeUserForm(user),
+      error: ""
+    },
+    message: ""
+  });
+}
+
+function closeUserEditModal() {
+  if (state.isSaving) {
+    return;
+  }
+
+  setState({
+    activeUserId: "",
+    userEditModal: createUserEditModalState(),
+    message: ""
+  });
+}
+
+function readUserFormDraft(formId) {
+  if (formId === "new") {
+    return state.userForm;
+  }
+
+  if (state.userEditModal && state.userEditModal.isOpen && state.userEditModal.userId === formId && state.userEditModal.draft) {
+    return state.userEditModal.draft;
+  }
+
+  return normalizeUserForm(findUser(formId) || { id: formId });
+}
+
+function readMutableUserFormDraft(formId) {
+  if (formId === "new") {
+    return state.userForm;
+  }
+
+  if (state.userEditModal && state.userEditModal.isOpen && state.userEditModal.userId === formId && state.userEditModal.draft) {
+    return state.userEditModal.draft;
+  }
+
+  return null;
+}
+
 function toggleClassPickerSelection(classId) {
   var picker = state.classPicker;
   var selectedIds = picker.selectedIds.slice();
@@ -2491,7 +2596,7 @@ function toggleClassPickerSelection(classId) {
 
 function saveClassPicker() {
   var picker = state.classPicker;
-  var form = picker.formId === "new" ? state.userForm : findUser(picker.formId);
+  var form = readMutableUserFormDraft(picker.formId);
 
   if (!form) {
     closeClassPicker();
@@ -2511,7 +2616,7 @@ function saveClassPicker() {
 }
 
 function readClassPickerClasses(picker) {
-  var form = picker.formId === "new" ? state.userForm : normalizeUserForm(findUser(picker.formId) || { id: picker.formId });
+  var form = readUserFormDraft(picker.formId);
   var primaryLocationId = form.primaryLocationId || form.locationId || "";
   var query = readSafeString(picker.searchText).toLowerCase();
 
@@ -2560,9 +2665,11 @@ async function handleAction(action, id) {
   } else if (action === "toggle-create-user") {
     setState({ userCreateOpen: !state.userCreateOpen, activeUserId: "", message: "" });
   } else if (action === "edit-user") {
-    setState({ activeUserId: state.activeUserId === id ? "" : id, userCreateOpen: false, message: "" });
+    openUserEditModal(id);
+  } else if (action === "close-user-edit-modal") {
+    closeUserEditModal();
   } else if (action === "filter-users-role") {
-    setState({ userFilters: Object.assign({}, state.userFilters, { role: id || "" }), activeUserId: "", message: "" });
+    setState({ userFilters: Object.assign({}, state.userFilters, { role: id || "" }), activeUserId: "", userEditModal: createUserEditModalState(), message: "" });
   } else if (action === "create-user") {
     await saveUserProfile("create", "new");
   } else if (action === "update-user") {
@@ -3225,23 +3332,23 @@ async function archiveLocation(locationId, shouldArchive) {
 }
 
 async function saveUserProfile(mode, userId) {
-  var source = mode === "create" ? state.userForm : normalizeUserForm(findUser(userId) || { id: userId });
+  var source = mode === "create" ? state.userForm : readUserFormDraft(userId);
   var payload = normalizeUserProfilePayload(source, mode === "create" ? "" : userId);
   var validationError = validateUserProfile(payload, mode);
   var actionKey = mode === "create" ? "create-user:new" : "update-user:" + userId;
 
   if (validationError) {
-    setState({ message: validationError, messageType: "error" });
+    setUserSaveError(validationError, mode);
     return false;
   }
 
   if (mode === "update" && isCurrentUserSelfDemotion(userId, payload.roles)) {
-    setState({ message: "For safety, this dashboard will not remove your own superAdmin/platformAdmin role. Ask another platform admin to make that change.", messageType: "error" });
+    setUserSaveError("For safety, this dashboard will not remove your own superAdmin/platformAdmin role. Ask another platform admin to make that change.", mode);
     return false;
   }
 
   try {
-    setState({ isSaving: true, pendingAction: actionKey, message: mode === "create" ? "Creating profile..." : "Saving user...", messageType: "info" });
+    setState({ isSaving: true, pendingAction: actionKey, userEditModal: clearUserEditModalError(), message: mode === "create" ? "Creating profile..." : "Saving user...", messageType: "info" });
     var profileRef = mode === "create" && !payload.userId ? doc(collection(db, "users")) : doc(db, "users", payload.userId || userId);
     var record = buildUserProfileRecord(payload, mode === "create");
 
@@ -3253,14 +3360,36 @@ async function saveUserProfile(mode, userId) {
     }
 
     state.activeUserId = "";
-    setState({ isSaving: false, pendingAction: "", message: mode === "create" ? "User profile created." : "User saved.", messageType: "success" });
+    setState({ isSaving: false, pendingAction: "", userEditModal: createUserEditModalState(), message: mode === "create" ? "User profile created." : "User saved.", messageType: "success" });
     await refreshAllData();
     setState({ message: mode === "create" ? "User profile created." : "User saved.", messageType: "success" });
     return true;
   } catch (error) {
-    setState({ isSaving: false, pendingAction: "", message: "Could not save user profile: " + (error.message || "Unknown error"), messageType: "error" });
+    setUserSaveError("Could not save user profile: " + (error.message || "Unknown error"), mode);
+    setState({ isSaving: false, pendingAction: "" });
     return false;
   }
+}
+
+function setUserSaveError(message, mode) {
+  if (mode === "update" && state.userEditModal && state.userEditModal.isOpen) {
+    setState({
+      userEditModal: Object.assign({}, state.userEditModal, { error: message }),
+      message: "",
+      messageType: "error"
+    });
+    return;
+  }
+
+  setState({ message: message, messageType: "error" });
+}
+
+function clearUserEditModalError() {
+  if (!state.userEditModal || !state.userEditModal.isOpen) {
+    return state.userEditModal;
+  }
+
+  return Object.assign({}, state.userEditModal, { error: "" });
 }
 
 async function updateUserStatus(userId, status) {
@@ -3688,6 +3817,15 @@ function createUserForm() {
     classId: "",
     childStudentIdsText: "",
     classIdsText: ""
+  };
+}
+
+function createUserEditModalState() {
+  return {
+    isOpen: false,
+    userId: "",
+    draft: null,
+    error: ""
   };
 }
 
