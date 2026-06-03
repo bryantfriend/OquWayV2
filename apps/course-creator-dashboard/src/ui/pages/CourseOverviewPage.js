@@ -334,6 +334,41 @@ export class CourseOverviewPage {
     return '';
   }
 
+  resolveCourseTitle(course, defaultLanguage, fallbackTitle) {
+    var fallback = fallbackTitle || 'Untitled Course';
+    var title = '';
+
+    if (!course || typeof course !== 'object') {
+      return fallback;
+    }
+
+    title = this.getLocalizedText(course.title, defaultLanguage);
+    if (title) {
+      return title;
+    }
+
+    title = this.getLocalizedText(course.name, defaultLanguage);
+    if (title) {
+      return title;
+    }
+
+    title = this.getLocalizedText(course.displayName, defaultLanguage);
+    if (title) {
+      return title;
+    }
+
+    return fallback;
+  }
+
+  logCourseHeaderRender(state, course, resolvedTitle) {
+    console.info("[course-header:render]", {
+      isFetching: Boolean(state && state.isFetching),
+      courseId: course && course.id ? course.id : this.courseId,
+      rawTitle: course ? course.title : undefined,
+      resolvedTitle: resolvedTitle
+    });
+  }
+
   buildLocalizedText(existingValue, defaultLanguage, inputValue) {
     var localizedText = {
       en: '',
@@ -1217,6 +1252,7 @@ export class CourseOverviewPage {
     }
 
     if (!state.course && state.isFetching) {
+      this.logCourseHeaderRender(state, null, 'Loading your learning path\u2026');
       document.getElementById('headerContextualTitle').textContent = 'Loading your learning path\u2026';
       document.getElementById('moduleTableBody').innerHTML = buildModuleSkeletonRows(3);
       return;
@@ -1225,13 +1261,14 @@ export class CourseOverviewPage {
     var course = state.course;
     if (course) {
       var defaultLanguage = course.defaultLanguage || 'en';
-      var courseTitle = this.getLocalizedText(course.title, defaultLanguage) || 'Untitled';
+      var courseTitle = this.resolveCourseTitle(course, defaultLanguage, 'Untitled Course');
+      this.logCourseHeaderRender(state, course, courseTitle);
       this.logCourseEditorContext(course);
-      document.getElementById('headerContextualTitle').innerHTML = courseTitle + ' <span class="text-gray-400 mx-1">&rarr;</span> Config &amp; Modules Overview';
+      document.getElementById('headerContextualTitle').innerHTML = escapeHtml(courseTitle) + ' <span class="text-gray-400 mx-1">&rarr;</span> Config &amp; Modules Overview';
 
       if (!this.userHasEditedMetadata) {
         var titleInput = document.getElementById('courseTitleInput');
-        titleInput.value = this.getLocalizedText(course.title, defaultLanguage);
+        titleInput.value = this.resolveCourseTitle(course, defaultLanguage, 'Untitled Course');
 
         var descriptionInput = document.getElementById('courseDescriptionInput');
         descriptionInput.value = this.getLocalizedText(course.description, defaultLanguage);
@@ -1255,6 +1292,9 @@ export class CourseOverviewPage {
 
       document.getElementById('courseVersionText').textContent = course.version || 1;
       document.getElementById('courseStatusText').textContent = course.status || 'draft';
+    } else {
+      this.logCourseHeaderRender(state, null, 'Untitled Course');
+      document.getElementById('headerContextualTitle').textContent = 'Untitled Course';
     }
 
     var saveIndicator = document.getElementById('saveStatusIndicator');
