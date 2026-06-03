@@ -4,7 +4,7 @@ export { catalogCourseAddTagProcessing } from "./domain/catalogCourse/catalogCou
 export { catalogCourseCreateRecordProcessing } from "./domain/catalogCourse/catalogCourseCreateRecordProcessing.js?v=1.1.29-module-render-fix";
 export { catalogCourseCreateVersionProcessing } from "./domain/catalogCourse/catalogCourseCreateVersionProcessing.js?v=1.1.29-module-render-fix";
 export { catalogCourseDeleteProcessing } from "./domain/catalogCourse/catalogCourseDeleteProcessing.js?v=1.1.29-module-render-fix";
-export { catalogCourseFetchAllProcessing } from "./domain/catalogCourse/catalogCourseFetchAllProcessing.js?v=1.1.29-module-render-fix";
+export { catalogCourseFetchAllProcessing } from "./domain/catalogCourse/catalogCourseFetchAllProcessing.js?v=1.1.33-course-counts";
 export { catalogCourseFetchByIdProcessing } from "./domain/catalogCourse/catalogCourseFetchByIdProcessing.js?v=1.1.29-module-render-fix";
 export { catalogCourseFetchVersionsProcessing } from "./domain/catalogCourse/catalogCourseFetchVersionsProcessing.js?v=1.1.29-module-render-fix";
 export { catalogCoursePublishVersionProcessing } from "./domain/catalogCourse/catalogCoursePublishVersionProcessing.js?v=1.1.29-module-render-fix";

@@ -1,4 +1,4 @@
-import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.29-module-render-fix";
+import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.33-course-counts";
 import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.29-module-render-fix";
 
 export class CatalogCoursePage {
@@ -311,8 +311,12 @@ function buildCourseCard(course) {
   var title = readLocalizedText(course.title, course.defaultLanguage) || "Untitled Course";
   var description = readLocalizedText(course.description, course.defaultLanguage) || "Add a description before publishing.";
   var status = readCourseStatus(course);
-  var moduleCount = readModuleCount(course);
-  var stepCount = readStepCount(course);
+  var moduleCount = readVerifiedCount(course, "moduleCount");
+  var stepCount = readVerifiedCount(course, "stepCount");
+  var countSource = course.countSource || course.moduleCountSource || "catalogCourses";
+  var moduleLabel = buildCountLabel(moduleCount, "module");
+  var stepLabel = buildCountLabel(stepCount, "step");
+  var legacySourceLabel = countSource === "courses" ? '<span class="builder-count-source">Legacy source</span>' : "";
 
   return `
     <article class="builder-course-card">
@@ -323,8 +327,9 @@ function buildCourseCard(course) {
       <h2>${escapeHtml(title)}</h2>
       <p>${escapeHtml(description)}</p>
       <div class="builder-course-meta">
-        <span>${moduleCount} module${moduleCount === 1 ? "" : "s"}</span>
-        <span>${stepCount} step${stepCount === 1 ? "" : "s"}</span>
+        <span>${escapeHtml(moduleLabel)}</span>
+        <span>${escapeHtml(stepLabel)}</span>
+        ${legacySourceLabel}
         <span>${escapeHtml(readUpdatedLabel(course.updatedAt || course.createdAt))}</span>
       </div>
       <div class="builder-card-actions">
@@ -494,24 +499,20 @@ function readCourseStatus(course) {
   return "draft";
 }
 
-function readModuleCount(course) {
-  if (typeof course.moduleCount === "number") {
-    return course.moduleCount;
+function readVerifiedCount(course, key) {
+  if (!course || course.countsVerified !== true) {
+    return null;
   }
 
-  if (Array.isArray(course.moduleOrder)) {
-    return course.moduleOrder.length;
-  }
-
-  return 0;
+  return typeof course[key] === "number" ? course[key] : 0;
 }
 
-function readStepCount(course) {
-  if (typeof course.stepCount === "number") {
-    return course.stepCount;
+function buildCountLabel(count, label) {
+  if (count === null) {
+    return "Counting...";
   }
 
-  return 0;
+  return count + " " + label + (count === 1 ? "" : "s");
 }
 
 function readUpdatedLabel(value) {

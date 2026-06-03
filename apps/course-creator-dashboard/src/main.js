@@ -3,7 +3,7 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.29-module-render-fix";
 import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.29-module-render-fix";
 import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.29-module-render-fix";
-import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.29-module-render-fix";
+import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.33-course-counts";
 import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.32-course-header";
 import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.29-module-render-fix";
 

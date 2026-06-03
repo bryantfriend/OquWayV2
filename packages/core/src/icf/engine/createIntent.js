@@ -1,6 +1,6 @@
 // createIntent.js
 
-import { getIntentDefinition } from "./intentRegistry.js?v=1.1.29-module-render-fix";
+import { getIntentDefinition } from "./intentRegistry.js?v=1.1.33-course-counts";
 
 export function createIntent(intentInput) {
   const intentType = readIntentType(intentInput);

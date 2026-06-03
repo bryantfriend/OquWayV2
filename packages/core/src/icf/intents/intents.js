@@ -40,7 +40,7 @@ export { FetchCatalogCourseVersionsIntent } from "./catalogCourse/FetchCatalogCo
 // Course Sandbox
 // ----------------------
 export { CreateCourseIntent } from "./course/CreateCourseIntent.js?v=1.1.29-module-render-fix";
-export { LoadCoursesIntent } from "./course/LoadCoursesIntent.js?v=1.1.29-module-render-fix";
+export { LoadCoursesIntent } from "./course/LoadCoursesIntent.js?v=1.1.33-course-counts";
 export { ListCoursesIntent } from "./course/ListCoursesIntent.js?v=1.1.29-module-render-fix";
 export { UpdateCourseIntent } from "./course/UpdateCourseIntent.js?v=1.1.29-module-render-fix";
 export { UpdateCourseMetadataIntent } from "./course/UpdateCourseMetadataIntent.js?v=1.1.29-module-render-fix";
