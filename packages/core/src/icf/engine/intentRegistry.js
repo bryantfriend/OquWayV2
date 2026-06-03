@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.34-external-task-mvp";
+import * as IntentExports from "../intents/intents.js?v=1.1.35-teacher-dashboard";
 
 const registry = {
   // Demo Verification
@@ -31,6 +31,14 @@ const registry = {
   LoadExternalTaskSubmissionsIntent: IntentExports.LoadExternalTaskSubmissionsIntent,
   ReviewExternalTaskSubmissionIntent: IntentExports.ReviewExternalTaskSubmissionIntent,
   ResubmitExternalTaskIntent: IntentExports.ResubmitExternalTaskIntent,
+
+  // Teacher Dashboard
+  TeacherLoginIntent: IntentExports.TeacherLoginIntent,
+  LoadTeacherDashboardIntent: IntentExports.LoadTeacherDashboardIntent,
+  LoadTeacherClassesIntent: IntentExports.LoadTeacherClassesIntent,
+  LoadTeacherStudentsIntent: IntentExports.LoadTeacherStudentsIntent,
+  LoadTeacherReviewQueueIntent: IntentExports.LoadTeacherReviewQueueIntent,
+  SendTeacherPasswordResetIntent: IntentExports.SendTeacherPasswordResetIntent,
 
   // Locations / Login Settings
   ListLocationsIntent: IntentExports.ListLocationsIntent,

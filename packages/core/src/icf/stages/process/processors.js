@@ -118,3 +118,11 @@ export {
   processUpdateStudent,
   processVerifySuperAdminAccess
 } from "./domain/superAdmin/superAdminProcessors.js?v=1.1.29-module-render-fix";
+export {
+  processLoadTeacherClasses,
+  processLoadTeacherDashboard,
+  processLoadTeacherReviewQueue,
+  processLoadTeacherStudents,
+  processSendTeacherPasswordReset,
+  processTeacherLogin
+} from "./domain/teacher/teacherDashboardProcessors.js?v=1.1.35-teacher-dashboard";

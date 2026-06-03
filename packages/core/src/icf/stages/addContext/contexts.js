@@ -27,3 +27,7 @@ export { attachStepsCollection } from "./domain/moduleEditor/attachStepsCollecti
 export { attachStudentProfileContext } from "./domain/student/attachStudentProfileContext.js?v=1.1.29-module-render-fix";
 export { attachStudentSessionContext } from "./domain/student/attachStudentSessionContext.js?v=1.1.29-module-render-fix";
 export { attachStudentOpenCourseContext } from "./domain/student/attachStudentOpenCourseContext.js?v=1.1.31-student-open-context";
+export {
+  attachExternalTaskSubmissionReviewContext,
+  attachTeacherProfileContext
+} from "./domain/teacher/attachTeacherContext.js?v=1.1.35-teacher-dashboard";

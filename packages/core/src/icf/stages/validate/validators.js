@@ -65,3 +65,9 @@ export {
   validateStudentStatusPayload,
   validateStudentUpdatePayload
 } from "./domain/superAdmin/superAdminValidators.js?v=1.1.29-module-render-fix";
+export {
+  validateTeacherClassPayload,
+  validateTeacherLoginPayload,
+  validateTeacherPasswordResetPayload,
+  validateTeacherReviewQueuePayload
+} from "./domain/teacher/validateTeacherPayloads.js?v=1.1.35-teacher-dashboard";

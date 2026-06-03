@@ -5,6 +5,507 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Teacher Dashboard</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #eef2f7;
+      color: #152033;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(20, 184, 166, 0.06)),
+        #eef2f7;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.65;
+    }
+
+    .teacher-center,
+    .teacher-login-shell,
+    .teacher-dashboard-shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .teacher-center {
+      min-height: 100vh;
+      display: grid;
+      place-content: center;
+      text-align: center;
+      gap: 12px;
+    }
+
+    .teacher-loader {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .teacher-loader span {
+      width: 14px;
+      height: 40px;
+      border-radius: 4px;
+      background: #2563eb;
+      animation: teacher-stack 1s infinite ease-in-out;
+    }
+
+    .teacher-loader span:nth-child(2) {
+      background: #14b8a6;
+      animation-delay: 0.12s;
+    }
+
+    .teacher-loader span:nth-child(3) {
+      background: #f59e0b;
+      animation-delay: 0.24s;
+    }
+
+    @keyframes teacher-stack {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .teacher-login-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      gap: 24px;
+      align-items: center;
+      padding: 32px 0;
+    }
+
+    .teacher-login-panel,
+    .teacher-login-aside,
+    .teacher-metric,
+    .teacher-card-section,
+    .teacher-review-section,
+    .teacher-submission-card {
+      border: 1px solid rgba(148, 163, 184, 0.34);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+    }
+
+    .teacher-login-panel {
+      padding: 32px;
+    }
+
+    .teacher-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      color: #2563eb;
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .teacher-brand span {
+      border-radius: 6px;
+      background: #2563eb;
+      color: white;
+      padding: 7px 9px;
+    }
+
+    .teacher-login-panel h1,
+    .teacher-header h1 {
+      margin: 0;
+      font-size: 34px;
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .teacher-login-panel p,
+    .teacher-section-title p,
+    .teacher-header p {
+      color: #64748b;
+      margin: 8px 0 0;
+    }
+
+    .teacher-form,
+    .teacher-reset-form {
+      display: grid;
+      gap: 14px;
+      margin-top: 22px;
+    }
+
+    .teacher-form label,
+    .teacher-reset-form label,
+    .teacher-filters label,
+    .teacher-feedback-label {
+      display: grid;
+      gap: 6px;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .teacher-form input,
+    .teacher-reset-form input,
+    .teacher-filters select,
+    .teacher-feedback-label textarea {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: white;
+      color: #152033;
+      padding: 11px 12px;
+      outline: none;
+    }
+
+    .teacher-form input:focus,
+    .teacher-reset-form input:focus,
+    .teacher-filters select:focus,
+    .teacher-feedback-label textarea:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+    }
+
+    .teacher-form button,
+    .teacher-reset-form button,
+    .teacher-secondary-btn,
+    .teacher-review-btn {
+      border: 0;
+      border-radius: 8px;
+      padding: 11px 14px;
+      font-weight: 900;
+    }
+
+    .teacher-form button {
+      background: #2563eb;
+      color: white;
+    }
+
+    .teacher-reset-form {
+      grid-template-columns: 1fr auto;
+      align-items: end;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 18px;
+    }
+
+    .teacher-reset-form button,
+    .teacher-secondary-btn {
+      background: #e2e8f0;
+      color: #334155;
+    }
+
+    .teacher-login-aside {
+      display: grid;
+      gap: 14px;
+      padding: 24px;
+    }
+
+    .teacher-login-aside div {
+      display: grid;
+      gap: 6px;
+      border-left: 4px solid #14b8a6;
+      padding-left: 14px;
+    }
+
+    .teacher-login-aside span,
+    .teacher-class-card span,
+    .teacher-student-row span,
+    .teacher-submission-meta,
+    .teacher-submission-head span {
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    .teacher-message,
+    .teacher-error {
+      margin: 12px 0;
+      border-radius: 8px;
+      padding: 11px 13px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .teacher-message {
+      background: #ecfdf5;
+      color: #047857;
+    }
+
+    .teacher-error {
+      background: #fef2f2;
+      color: #b91c1c;
+    }
+
+    .teacher-dashboard-shell {
+      padding: 28px 0 48px;
+    }
+
+    .teacher-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .teacher-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .teacher-role-badge,
+    .teacher-status-pill {
+      border-radius: 999px;
+      background: #dbeafe;
+      color: #1d4ed8;
+      font-size: 12px;
+      font-weight: 900;
+      padding: 8px 10px;
+    }
+
+    .teacher-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .teacher-metric {
+      padding: 18px;
+    }
+
+    .teacher-metric strong {
+      display: block;
+      font-size: 28px;
+    }
+
+    .teacher-metric span {
+      color: #64748b;
+      font-weight: 800;
+    }
+
+    .teacher-grid {
+      display: grid;
+      grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.1fr);
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .teacher-card-section,
+    .teacher-review-section {
+      padding: 18px;
+    }
+
+    .teacher-section-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .teacher-section-title h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .teacher-class-list,
+    .teacher-student-list,
+    .teacher-review-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .teacher-class-card {
+      display: grid;
+      gap: 5px;
+      width: 100%;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: white;
+      color: #152033;
+      padding: 13px;
+      text-align: left;
+    }
+
+    .teacher-class-card.active {
+      border-color: #2563eb;
+      background: #eff6ff;
+    }
+
+    .teacher-class-card small {
+      color: #0f766e;
+      font-weight: 800;
+    }
+
+    .teacher-student-row {
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr) auto auto;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: white;
+      padding: 11px;
+    }
+
+    .teacher-avatar {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      background: #ccfbf1;
+      color: #0f766e;
+      font-weight: 900;
+      overflow: hidden;
+    }
+
+    .teacher-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .teacher-student-row b {
+      border-radius: 999px;
+      padding: 7px 9px;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .teacher-student-row b.needs-review {
+      background: #fff7ed;
+      color: #c2410c;
+    }
+
+    .teacher-student-row b.steady {
+      background: #ecfdf5;
+      color: #047857;
+    }
+
+    .teacher-filters {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 190px;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .teacher-submission-card {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .teacher-submission-head,
+    .teacher-submission-meta,
+    .teacher-review-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .teacher-proof {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: #f8fafc;
+      padding: 10px;
+      color: #1d4ed8;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .teacher-proof img {
+      width: 92px;
+      height: 70px;
+      border-radius: 6px;
+      object-fit: cover;
+    }
+
+    .teacher-proof.empty {
+      color: #64748b;
+    }
+
+    .teacher-note {
+      margin: 0;
+      border-left: 4px solid #f59e0b;
+      padding-left: 10px;
+      color: #334155;
+    }
+
+    .teacher-review-btn.complete {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .teacher-review-btn.needsWork {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .teacher-review-btn.incomplete {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .teacher-empty {
+      border: 1px dashed #cbd5e1;
+      border-radius: 8px;
+      background: #f8fafc;
+      color: #64748b;
+      padding: 18px;
+    }
+
+    .teacher-empty strong {
+      display: block;
+      color: #334155;
+      margin-bottom: 4px;
+    }
+
+    @media (max-width: 860px) {
+      .teacher-login-shell,
+      .teacher-grid,
+      .teacher-metrics,
+      .teacher-filters {
+        grid-template-columns: 1fr;
+      }
+
+      .teacher-header,
+      .teacher-submission-head,
+      .teacher-submission-meta {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .teacher-reset-form,
+      .teacher-student-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
   <!-- Import map for Firebase -->
   <script type="importmap">
     {
@@ -21,11 +522,14 @@
 
 <body>
   <div id="app">
-    <h1>Teacher Dashboard</h1>
-    <p>Loading teacher classroom tools...</p>
+    <main class="teacher-shell teacher-center">
+      <div class="teacher-loader" aria-hidden="true"><span></span><span></span><span></span></div>
+      <h1>Opening your classroom...</h1>
+      <p>Loading teacher classroom tools...</p>
+    </main>
   </div>
 
-  <script type="module" src="./src/main.js"></script>
+  <script type="module" src="./src/main.js?v=1.1.35-teacher-dashboard"></script>
 </body>
 
 </html>

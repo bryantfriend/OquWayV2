@@ -90,15 +90,55 @@ service cloud.firestore {
       );
     }
 
+    function teacherClassIds() {
+      return user() != null
+        ? ((user().data.classIds is list ? user().data.classIds : [])
+          + (user().data.assignedClassIds is list ? user().data.assignedClassIds : [])
+          + (user().data.classId is string ? [user().data.classId] : []))
+        : [];
+    }
+
+    function teacherLocationIds() {
+      return user() != null
+        ? ((user().data.locationIds is list ? user().data.locationIds : [])
+          + (user().data.schoolIds is list ? user().data.schoolIds : [])
+          + (user().data.locationId is string ? [user().data.locationId] : [])
+          + (user().data.primaryLocationId is string ? [user().data.primaryLocationId] : [])
+          + (user().data.schoolId is string ? [user().data.schoolId] : []))
+        : [];
+    }
+
+    function isStudentInTeacherClass() {
+      return isTeacher()
+        && user() != null
+        && (
+          (resource.data.classId is string && resource.data.classId in teacherClassIds()) ||
+          (resource.data.classIds is list && resource.data.classIds.hasAny(teacherClassIds())) ||
+          (resource.data.assignedClassIds is list && resource.data.assignedClassIds.hasAny(teacherClassIds()))
+        );
+    }
+
+    function isUserInTeacherClass(uid) {
+      return isTeacher()
+        && user() != null
+        && exists(/databases/$(db)/documents/users/$(uid))
+        && (
+          (get(/databases/$(db)/documents/users/$(uid)).data.classId is string
+            && get(/databases/$(db)/documents/users/$(uid)).data.classId in teacherClassIds()) ||
+          (get(/databases/$(db)/documents/users/$(uid)).data.classIds is list
+            && get(/databases/$(db)/documents/users/$(uid)).data.classIds.hasAny(teacherClassIds())) ||
+          (get(/databases/$(db)/documents/users/$(uid)).data.assignedClassIds is list
+            && get(/databases/$(db)/documents/users/$(uid)).data.assignedClassIds.hasAny(teacherClassIds()))
+        );
+    }
+
     function isTeacherInExternalTaskScope() {
       return request.auth != null
         && isTeacher()
         && user() != null
         && (
-          (user().data.classIds is list && resource.data.classId in user().data.classIds) ||
-          (user().data.locationIds is list && resource.data.locationId in user().data.locationIds) ||
-          resource.data.locationId == user().data.locationId ||
-          resource.data.locationId == user().data.primaryLocationId
+          (resource.data.classId is string && resource.data.classId in teacherClassIds()) ||
+          (resource.data.locationId is string && resource.data.locationId in teacherLocationIds())
         );
     }
 
@@ -110,7 +150,7 @@ service cloud.firestore {
         // 2. Allow any Accounting Admin to read ANY user document
         isAccountingAdmin() ||
         // 3. Allow Teachers to read students in their classes (existing logic)
-        (isTeacher() && resource.data.classId in user().data.classIds); 
+        isStudentInTeacherClass(); 
 
       // Allow admins to create new users and allow both admins and user to update profile
       allow update, create: if isAccountingAdmin() || request.auth.uid == uid;
@@ -144,7 +184,9 @@ service cloud.firestore {
       // --- ADD THIS BLOCK ---
       match /classes/{classId} {
           // Allow accountants/admins to read and write classes
-          allow read, list, create, update, delete: if isAccountingAdmin();
+          allow read, list: if isAccountingAdmin()
+            || (isTeacher() && (classId in teacherClassIds() || locId in teacherLocationIds()));
+          allow create, update, delete: if isAccountingAdmin();
       }
     }
 
@@ -292,7 +334,7 @@ service cloud.firestore {
     match /studentProgress/{studentId} {
       allow read: if request.auth != null && (
         request.auth.uid == studentId ||
-        isTeacher() ||
+        isUserInTeacherClass(studentId) ||
         isSuperAdmin() ||
         isPlatformAdmin() ||
         isSchoolAdmin()
@@ -303,7 +345,7 @@ service cloud.firestore {
       match /courses/{courseId} {
         allow read: if request.auth != null && (
           request.auth.uid == studentId ||
-          isTeacher() ||
+          isUserInTeacherClass(studentId) ||
           isSuperAdmin() ||
           isPlatformAdmin() ||
           isSchoolAdmin()
@@ -314,7 +356,7 @@ service cloud.firestore {
         match /sessions/{sessionId} {
           allow read: if request.auth != null && (
             request.auth.uid == studentId ||
-            isTeacher() ||
+            isUserInTeacherClass(studentId) ||
             isSuperAdmin() ||
             isPlatformAdmin() ||
             isSchoolAdmin()

@@ -1,0 +1,122 @@
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.35-teacher-dashboard";
+import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.35-teacher-dashboard";
+import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.35-teacher-dashboard";
+
+export const teacherDashboardService = {
+  onAuthStateChanged: function (callback) {
+    return onAuthStateChanged(auth, callback);
+  },
+
+  login: async function (email, password) {
+    var result = await runTeacherIntent("TeacherLoginIntent", {
+      email: email,
+      password: password
+    }, {
+      id: "teacher-login",
+      role: "ROLE_GUEST"
+    });
+
+    return readIntentData(result);
+  },
+
+  sendPasswordReset: async function (email) {
+    var result = await runTeacherIntent("SendTeacherPasswordResetIntent", {
+      email: email
+    }, {
+      id: "teacher-password-reset",
+      role: "ROLE_GUEST"
+    });
+
+    return readIntentData(result);
+  },
+
+  loadDashboard: async function (filters) {
+    var result = await runTeacherIntent("LoadTeacherDashboardIntent", filters || {}, getCurrentTeacherActor());
+    return readIntentData(result);
+  },
+
+  loadReviewQueue: async function (filters) {
+    var result = await runTeacherIntent("LoadTeacherReviewQueueIntent", filters || {}, getCurrentTeacherActor());
+    return readIntentData(result);
+  },
+
+  reviewSubmission: async function (submissionId, reviewStatus, teacherFeedback) {
+    var result = await runTeacherIntent("ReviewExternalTaskSubmissionIntent", {
+      submissionId: submissionId,
+      reviewStatus: reviewStatus,
+      teacherFeedback: teacherFeedback || ""
+    }, getCurrentTeacherActor());
+
+    return readIntentData(result);
+  },
+
+  logout: async function () {
+    await signOut(auth);
+  },
+
+  getCurrentUser: function () {
+    return auth.currentUser;
+  }
+};
+
+async function runTeacherIntent(intentType, payload, actor) {
+  console.info("[teacher-intent:run]", {
+    intentType: intentType,
+    teacherId: actor && actor.id ? actor.id : "",
+    payloadKeys: Object.keys(payload || {})
+  });
+
+  return runIntentPipeline(getIntentDefinition(intentType), {
+    payload: payload || {},
+    actor: actor || getCurrentTeacherActor(),
+    meta: {
+      createdAt: Date.now(),
+      source: "teacher-dashboard"
+    }
+  });
+}
+
+function getCurrentTeacherActor() {
+  var user = auth.currentUser;
+
+  if (!user) {
+    return {
+      id: "",
+      role: "ROLE_GUEST"
+    };
+  }
+
+  return {
+    id: user.uid,
+    role: "ROLE_TEACHER"
+  };
+}
+
+function readIntentData(result) {
+  if (result && result.emitted && result.emitted.success) {
+    return result.emitted.data || {};
+  }
+
+  throw new Error(readIntentErrorMessage(result));
+}
+
+function readIntentErrorMessage(result) {
+  if (result && result.emitted && result.emitted.errors && result.emitted.errors.length > 0) {
+    return readFirstErrorText(result.emitted.errors[0]);
+  }
+
+  if (result && result.errors && result.errors.length > 0) {
+    return readFirstErrorText(result.errors[0]);
+  }
+
+  return "Unknown ICF error";
+}
+
+function readFirstErrorText(error) {
+  if (!error) {
+    return "Unknown ICF error";
+  }
+
+  return error.message || error.code || String(error);
+}

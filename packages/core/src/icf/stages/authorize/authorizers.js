@@ -15,3 +15,8 @@ export { requireSuperAdminAuthorization } from "./domain/catalogCourse/requireSu
 export { requireStudentAuthorization } from "./domain/student/requireStudentAuthorization.js?v=1.1.29-module-render-fix";
 export { allowStudentLoginAuthorization } from "./domain/studentLogin/allowStudentLoginAuthorization.js?v=1.1.29-module-render-fix";
 export { requireSuperAdminAccess } from "./domain/superAdmin/requireSuperAdminAccess.js?v=1.1.29-module-render-fix";
+export {
+  allowTeacherLoginAuthorization,
+  requireTeacherDashboardAuthorization,
+  requireTeacherReviewScopeAuthorization
+} from "./domain/teacher/requireTeacherAuthorization.js?v=1.1.35-teacher-dashboard";
