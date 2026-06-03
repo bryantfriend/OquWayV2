@@ -65,18 +65,18 @@ export { LoadExternalTaskStepIntent } from "./externalTask/LoadExternalTaskStepI
 export { SubmitExternalTaskIntent } from "./externalTask/SubmitExternalTaskIntent.js?v=1.1.34-external-task-mvp";
 export { UploadExternalTaskFileIntent } from "./externalTask/UploadExternalTaskFileIntent.js?v=1.1.34-external-task-mvp";
 export { LoadExternalTaskSubmissionsIntent } from "./externalTask/LoadExternalTaskSubmissionsIntent.js?v=1.1.34-external-task-mvp";
-export { ReviewExternalTaskSubmissionIntent } from "./externalTask/ReviewExternalTaskSubmissionIntent.js?v=1.1.36-teacher-auth";
+export { ReviewExternalTaskSubmissionIntent } from "./externalTask/ReviewExternalTaskSubmissionIntent.js?v=1.1.40-teacher-profile-admin-fix";
 export { ResubmitExternalTaskIntent } from "./externalTask/ResubmitExternalTaskIntent.js?v=1.1.34-external-task-mvp";
 
 // ----------------------
 // Teacher Dashboard
 // ----------------------
-export { TeacherLoginIntent } from "./teacher/TeacherLoginIntent.js?v=1.1.36-teacher-auth";
-export { LoadTeacherDashboardIntent } from "./teacher/LoadTeacherDashboardIntent.js?v=1.1.36-teacher-auth";
-export { LoadTeacherClassesIntent } from "./teacher/LoadTeacherClassesIntent.js?v=1.1.36-teacher-auth";
-export { LoadTeacherStudentsIntent } from "./teacher/LoadTeacherStudentsIntent.js?v=1.1.36-teacher-auth";
-export { LoadTeacherReviewQueueIntent } from "./teacher/LoadTeacherReviewQueueIntent.js?v=1.1.36-teacher-auth";
-export { SendTeacherPasswordResetIntent } from "./teacher/SendTeacherPasswordResetIntent.js?v=1.1.36-teacher-auth";
+export { TeacherLoginIntent } from "./teacher/TeacherLoginIntent.js?v=1.1.40-teacher-profile-admin-fix";
+export { LoadTeacherDashboardIntent } from "./teacher/LoadTeacherDashboardIntent.js?v=1.1.40-teacher-profile-admin-fix";
+export { LoadTeacherClassesIntent } from "./teacher/LoadTeacherClassesIntent.js?v=1.1.40-teacher-profile-admin-fix";
+export { LoadTeacherStudentsIntent } from "./teacher/LoadTeacherStudentsIntent.js?v=1.1.40-teacher-profile-admin-fix";
+export { LoadTeacherReviewQueueIntent } from "./teacher/LoadTeacherReviewQueueIntent.js?v=1.1.40-teacher-profile-admin-fix";
+export { SendTeacherPasswordResetIntent } from "./teacher/SendTeacherPasswordResetIntent.js?v=1.1.40-teacher-profile-admin-fix";
 
 // ----------------------
 // Locations / Login Settings
@@ -190,3 +190,4 @@ export { CompleteStudentStepIntent } from "./student/CompleteStudentStepIntent.j
 export { CompletePracticeModeIntent } from "./student/CompletePracticeModeIntent.js?v=1.1.29-module-render-fix";
 export { CompleteStudentPracticeModeIntent } from "./student/CompleteStudentPracticeModeIntent.js?v=1.1.29-module-render-fix";
 export { SaveStudentProgressIntent } from "./student/SaveStudentProgressIntent.js?v=1.1.29-module-render-fix";
+

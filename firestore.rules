@@ -147,13 +147,15 @@ service cloud.firestore {
       allow read, get, list: if
         // 1. Allow the user to read their own profile (essential for claims)
         request.auth.uid == uid ||
+        (resource.data.authUid is string && resource.data.authUid == request.auth.uid) ||
         // 2. Allow any Accounting Admin to read ANY user document
         isAccountingAdmin() ||
         // 3. Allow Teachers to read students in their classes (existing logic)
         isStudentInTeacherClass(); 
 
       // Allow admins to create new users and allow both admins and user to update profile
-      allow update, create: if isAccountingAdmin() || request.auth.uid == uid;
+      allow create: if isAccountingAdmin() || request.auth.uid == uid;
+      allow update: if isAccountingAdmin() || request.auth.uid == uid || (resource.data.authUid is string && resource.data.authUid == request.auth.uid);
       
       allow delete: if isSuperAdmin() || isPlatformAdmin(); 
       

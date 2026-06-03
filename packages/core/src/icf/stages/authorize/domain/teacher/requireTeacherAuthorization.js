@@ -4,11 +4,15 @@ export function allowTeacherLoginAuthorization() {
 
 export function requireTeacherDashboardAuthorization(executionState) {
   var profile = executionState.context ? executionState.context.teacherProfile : null;
-  var roles = readProfileRoles(profile);
+  var profileRoles = readProfileRoles(profile);
+  var claimsRoles = readActorClaimRoles(executionState.actor || {});
+  var roles = mergeRoles(claimsRoles, profileRoles);
   var uid = executionState.actor && executionState.actor.id ? executionState.actor.id : "";
 
   console.info("[teacher-auth] normalized roles", {
-    roles: roles
+    claimsRoles: claimsRoles,
+    profileRoles: profileRoles,
+    combinedRoles: roles
   });
 
   if (!executionState.actor || !executionState.actor.id) {
@@ -105,6 +109,41 @@ export function readRoles(profile, actor) {
     source.push(actor.role);
   }
 
+  if (profile && profile.ROLE_TEACHER === true) {
+    source.push("ROLE_TEACHER");
+  }
+
+  if (profile && profile.ROLE_SCHOOL_ADMIN === true) {
+    source.push("ROLE_SCHOOL_ADMIN");
+  }
+
+  if (profile && profile.ROLE_PLATFORM_ADMIN === true) {
+    source.push("ROLE_PLATFORM_ADMIN");
+  }
+
+  if (profile && profile.ROLE_SUPER_ADMIN === true) {
+    source.push("ROLE_SUPER_ADMIN");
+  }
+
+  if (actor && actor.claims) {
+    if (actor.claims.role) {
+      source.push(actor.claims.role);
+    }
+
+    if (Array.isArray(actor.claims.roles)) {
+      source = source.concat(actor.claims.roles);
+    }
+
+    if (Array.isArray(actor.claims.userRoles)) {
+      source = source.concat(actor.claims.userRoles);
+    }
+
+    if (actor.claims.ROLE_TEACHER === true) source.push("ROLE_TEACHER");
+    if (actor.claims.ROLE_SCHOOL_ADMIN === true) source.push("ROLE_SCHOOL_ADMIN");
+    if (actor.claims.ROLE_PLATFORM_ADMIN === true) source.push("ROLE_PLATFORM_ADMIN");
+    if (actor.claims.ROLE_SUPER_ADMIN === true) source.push("ROLE_SUPER_ADMIN");
+  }
+
   while (index < source.length) {
     var normalized = normalizeRole(source[index]);
 
@@ -120,6 +159,22 @@ export function readRoles(profile, actor) {
 
 function readProfileRoles(profile) {
   return readRoles(profile, null);
+}
+
+function readActorClaimRoles(actor) {
+  return readRoles(null, actor);
+}
+
+function mergeRoles(claimsRoles, profileRoles) {
+  var roles = [];
+
+  claimsRoles.concat(profileRoles).forEach(function (role) {
+    if (role && roles.indexOf(role) === -1) {
+      roles.push(role);
+    }
+  });
+
+  return roles;
 }
 
 function isSubmissionInTeacherScope(submission, classIds, locationIds) {
@@ -155,6 +210,7 @@ function normalizeRole(role) {
   if (normalized === "admin") return "admin";
   if (normalized === "student") return "student";
   if (normalized === "parent") return "parent";
+  if (normalized === "authenticated" || normalized === "guest") return "";
   return normalized;
 }
 
@@ -185,3 +241,4 @@ function createError(code, message) {
     ]
   };
 }
+

@@ -1,8 +1,8 @@
-import { appState, updateAppState } from "./appState.js?v=1.1.38-user-edit-modal";
-import { registerIntentDefinitions, runAdminIntent } from "../icf/intentRegistry.js?v=1.1.38-user-edit-modal";
-import { registerUsersIntents } from "../icf/intents/usersIntents.js?v=1.1.38-user-edit-modal";
-import { registerDashboardIntents } from "../icf/intents/dashboardIntents.js?v=1.1.38-user-edit-modal";
-import { registerClassesIntents } from "../icf/intents/classesIntents.js?v=1.1.38-user-edit-modal";
+import { appState, updateAppState } from "./appState.js?v=1.1.40-teacher-profile-admin-fix";
+import { registerIntentDefinitions, runAdminIntent } from "../icf/intentRegistry.js?v=1.1.40-teacher-profile-admin-fix";
+import { registerUsersIntents } from "../icf/intents/usersIntents.js?v=1.1.40-teacher-profile-admin-fix";
+import { registerDashboardIntents } from "../icf/intents/dashboardIntents.js?v=1.1.40-teacher-profile-admin-fix";
+import { registerClassesIntents } from "../icf/intents/classesIntents.js?v=1.1.40-teacher-profile-admin-fix";
 
 export async function initApp() {
   registerIntentDefinitions([
@@ -16,6 +16,7 @@ export async function initApp() {
     runIntent: runAdminIntent
   };
 
-  await import("./legacyDashboard.js?v=1.1.38-user-edit-modal");
+  await import("./legacyDashboard.js?v=1.1.40-teacher-profile-admin-fix");
   updateAppState({ legacyDashboardLoaded: true });
 }
+

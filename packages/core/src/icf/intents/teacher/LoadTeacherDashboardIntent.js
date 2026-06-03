@@ -1,8 +1,8 @@
-import { validateAuthenticated, validateTeacherReviewQueuePayload } from "../../stages/validate/validators.js?v=1.1.36-teacher-auth";
-import { normalizeTeacherDashboardPayload } from "../../stages/normalize/normalizers.js?v=1.1.36-teacher-auth";
-import { attachActorContext, attachActorRoleContext, attachTeacherProfileContext } from "../../stages/addContext/contexts.js?v=1.1.36-teacher-auth";
-import { requireTeacherDashboardAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.36-teacher-auth";
-import { processLoadTeacherDashboard } from "../../stages/process/processors.js?v=1.1.36-teacher-auth";
+import { validateAuthenticated, validateTeacherReviewQueuePayload } from "../../stages/validate/validators.js?v=1.1.40-teacher-profile-admin-fix";
+import { normalizeTeacherDashboardPayload } from "../../stages/normalize/normalizers.js?v=1.1.40-teacher-profile-admin-fix";
+import { attachActorContext, attachActorRoleContext, attachTeacherProfileContext } from "../../stages/addContext/contexts.js?v=1.1.40-teacher-profile-admin-fix";
+import { requireTeacherDashboardAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.40-teacher-profile-admin-fix";
+import { processLoadTeacherDashboard } from "../../stages/process/processors.js?v=1.1.40-teacher-profile-admin-fix";
 import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.29-module-render-fix";
 
 export function LoadTeacherDashboardIntent() {
@@ -16,3 +16,4 @@ export function LoadTeacherDashboardIntent() {
     emit: [emitIntentResult]
   };
 }
+

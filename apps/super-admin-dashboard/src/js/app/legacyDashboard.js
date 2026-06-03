@@ -1,6 +1,6 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js";
-import { functions, httpsCallable } from "../../../../../packages/core/src/infrastructure/firebase/functions.js?v=1.1.38-user-edit-modal";
+import { functions, httpsCallable } from "../../../../../packages/core/src/infrastructure/firebase/functions.js?v=1.1.40-teacher-profile-admin-fix";
 import { storage } from "../../../../../packages/core/src/infrastructure/firebase/storage.js";
 import { collection, db, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../packages/core/src/infrastructure/firebase/firestore.js";
 import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js";
@@ -8,7 +8,7 @@ import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/r
 import { COURSE_CREATOR_URL, roleFilterCards, userRoles, userStatuses } from "../shared/constants.js";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.38";
+var appVersion = "1.1.40";
 var state = {
   isLoading: true,
   isRefreshing: false,
@@ -1319,7 +1319,7 @@ function buildUserCard(user) {
 }
 
 function buildUserActionButtons(user) {
-  var html = '<button type="button" class="sa-btn sa-btn-secondary" data-action="edit-user" data-id="' + escapeHtml(user.id) + '">Edit</button>';
+  var html = '<button type="button" class="sa-btn sa-btn-secondary" data-action="edit-user" data-id="' + escapeHtml(user.id) + '"' + disabled(state.isSaving && state.pendingAction.indexOf("update-user:") === 0) + '>Edit</button>';
 
   if (isTeacherUser(user)) {
     html += buildTeacherLoginActionButton(user);
@@ -2213,12 +2213,24 @@ function handleClick(event) {
   }
 
   if (actionButton) {
-    if (isBusy() && actionButton.getAttribute("data-action") !== "copy-login-link") {
+    if (isBusy() && !canRunActionWhileBusy(actionButton.getAttribute("data-action"))) {
       return;
     }
 
     handleAction(actionButton.getAttribute("data-action"), actionButton.getAttribute("data-id"));
   }
+}
+
+function canRunActionWhileBusy(action) {
+  if (action === "copy-login-link") {
+    return true;
+  }
+
+  if (!state.isSaving && state.isRefreshing && (action === "edit-user" || action === "close-user-edit-modal")) {
+    return true;
+  }
+
+  return false;
 }
 
 function handleInput(event) {
@@ -5550,7 +5562,7 @@ function normalizeClassForm(classRecord) {
 
 function getSafeUser(user) {
   var safeUser = user || {};
-  var roles = normalizeRoles(safeUser.roles, safeUser.role);
+  var roles = applyBooleanUserRoles(normalizeRoles(safeUser.roles, safeUser.role), safeUser);
   var locationIds = normalizeIdList(safeUser.locationIds || safeUser.locations || safeUser.locationId);
   var primaryLocationId = readSafeString(safeUser.primaryLocationId || safeUser.locationId);
 
@@ -5578,6 +5590,23 @@ function getSafeUser(user) {
     classId: readSafeString(safeUser.classId),
     classIds: normalizeIdList([safeUser.classId, safeUser.classIds, safeUser.assignedClassIds, safeUser.assignedClasses, safeUser.classes])
   });
+}
+
+function applyBooleanUserRoles(roles, user) {
+  var nextRoles = Array.isArray(roles) ? roles.slice() : [];
+
+  addUserRoleIfClaimed(nextRoles, user, "ROLE_TEACHER", "teacher");
+  addUserRoleIfClaimed(nextRoles, user, "ROLE_SCHOOL_ADMIN", "schoolAdmin");
+  addUserRoleIfClaimed(nextRoles, user, "ROLE_PLATFORM_ADMIN", "platformAdmin");
+  addUserRoleIfClaimed(nextRoles, user, "ROLE_SUPER_ADMIN", "superAdmin");
+
+  return nextRoles;
+}
+
+function addUserRoleIfClaimed(roles, user, claimKey, role) {
+  if (user && user[claimKey] === true && roles.indexOf(role) === -1) {
+    roles.push(role);
+  }
 }
 
 function isTeacherUser(user) {
@@ -6369,3 +6398,4 @@ window.goSuperAdmin = function () {
   state.activeTab = "overview";
   render();
 };
+

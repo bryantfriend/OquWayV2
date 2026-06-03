@@ -1,4 +1,4 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.40-teacher-profile-admin-fix";
 
 export async function attachTeacherProfileContext(executionState) {
   var actor = executionState.actor || {};
@@ -15,13 +15,15 @@ export async function attachTeacherProfileContext(executionState) {
   }
 
   try {
-    var profileSnap = await getDoc(doc(db, "users", actor.id));
-    var profile = profileSnap.exists() ? Object.assign({ id: profileSnap.id }, profileSnap.data() || {}) : null;
+    var lookup = await loadTeacherProfileByAuthUid(actor.id);
+    var profile = lookup.profile;
 
     return {
       valid: true,
       data: {
         teacherProfile: profile,
+        authUid: actor.id,
+        profileUserId: profile && profile.profileUserId ? profile.profileUserId : "",
         teacherClassIds: readTeacherClassIds(profile),
         teacherLocationIds: readTeacherLocationIds(profile)
       }
@@ -30,6 +32,7 @@ export async function attachTeacherProfileContext(executionState) {
     console.warn("[teacher-dashboard:add-context-failed]", {
       teacherId: actor.id || "",
       attemptedProfilePath: actor.id ? "users/" + actor.id : "",
+      attemptedAuthUidQuery: actor.id ? "users where authUid == " + actor.id : "",
       errorMessage: readErrorMessage(error)
     });
 
@@ -37,11 +40,118 @@ export async function attachTeacherProfileContext(executionState) {
       valid: true,
       data: {
         teacherProfile: null,
+        authUid: actor.id || "",
+        profileUserId: "",
         teacherClassIds: [],
         teacherLocationIds: []
       }
     };
   }
+}
+
+async function loadTeacherProfileByAuthUid(authUid) {
+  var directProfileFound = false;
+  var authUidQueryFound = false;
+  var directProfile = null;
+  var profile = null;
+
+  if (!authUid) {
+    return { profile: null };
+  }
+
+  var directSnap = await getDoc(doc(db, "users", authUid));
+
+  if (directSnap.exists()) {
+    directProfileFound = true;
+    directProfile = normalizeTeacherProfileDocument(directSnap, authUid);
+  }
+
+  if (directProfile && readProfileRoles(directProfile).length > 0) {
+    profile = directProfile;
+  } else {
+    var authUidSnapshot = await getDocs(query(collection(db, "users"), where("authUid", "==", authUid)));
+
+    authUidSnapshot.forEach(function (profileSnap) {
+      if (!profile) {
+        authUidQueryFound = true;
+        profile = normalizeTeacherProfileDocument(profileSnap, authUid);
+      }
+    });
+  }
+
+  console.info("[teacher-profile:lookup]", {
+    authUid: authUid,
+    triedDirectProfile: true,
+    directProfileFound: directProfileFound,
+    authUidQueryFound: authUidQueryFound,
+    profileUserId: profile && profile.profileUserId ? profile.profileUserId : "",
+    role: profile && profile.role ? profile.role : "",
+    roles: readProfileRoles(profile)
+  });
+
+  return {
+    profile: profile
+  };
+}
+
+function normalizeTeacherProfileDocument(profileSnap, authUid) {
+  var data = profileSnap.data() || {};
+  var profileAuthUid = readText(data.authUid) || authUid;
+
+  return Object.assign({
+    id: profileSnap.id,
+    profileUserId: profileSnap.id,
+    authUid: profileAuthUid
+  }, data, {
+    id: profileSnap.id,
+    profileUserId: profileSnap.id,
+    authUid: profileAuthUid
+  });
+}
+
+function readProfileRoles(profile) {
+  var roles = [];
+
+  addRole(roles, profile && profile.role ? profile.role : "");
+  addRoleList(roles, profile && Array.isArray(profile.roles) ? profile.roles : []);
+
+  if (profile && profile.ROLE_TEACHER === true) addRole(roles, "ROLE_TEACHER");
+  if (profile && profile.ROLE_SCHOOL_ADMIN === true) addRole(roles, "ROLE_SCHOOL_ADMIN");
+  if (profile && profile.ROLE_PLATFORM_ADMIN === true) addRole(roles, "ROLE_PLATFORM_ADMIN");
+  if (profile && profile.ROLE_SUPER_ADMIN === true) addRole(roles, "ROLE_SUPER_ADMIN");
+
+  return roles;
+}
+
+function addRoleList(roles, values) {
+  var index = 0;
+
+  while (index < values.length) {
+    addRole(roles, values[index]);
+    index = index + 1;
+  }
+}
+
+function addRole(roles, role) {
+  var normalized = normalizeRole(role);
+
+  if (normalized && roles.indexOf(normalized) === -1) {
+    roles.push(normalized);
+  }
+}
+
+function normalizeRole(role) {
+  var normalized = readText(role).replace(/^ROLE_/i, "").replace(/[^a-z0-9]/gi, "").toLowerCase();
+
+  if (normalized === "teacher") return "teacher";
+  if (normalized === "schooladmin") return "schoolAdmin";
+  if (normalized === "platformadmin") return "platformAdmin";
+  if (normalized === "superadmin") return "superAdmin";
+  if (normalized === "coursecreator") return "courseCreator";
+  if (normalized === "admin") return "admin";
+  if (normalized === "student") return "student";
+  if (normalized === "parent") return "parent";
+  return normalized;
 }
 
 export async function attachExternalTaskSubmissionReviewContext(executionState) {
@@ -165,3 +275,4 @@ function readErrorMessage(error) {
 
   return error.code ? error.code + " " + error.message : error.message || String(error);
 }
+

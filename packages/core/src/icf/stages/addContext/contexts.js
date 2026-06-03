@@ -30,4 +30,5 @@ export { attachStudentOpenCourseContext } from "./domain/student/attachStudentOp
 export {
   attachExternalTaskSubmissionReviewContext,
   attachTeacherProfileContext
-} from "./domain/teacher/attachTeacherContext.js?v=1.1.36-teacher-auth";
+} from "./domain/teacher/attachTeacherContext.js?v=1.1.40-teacher-profile-admin-fix";
+

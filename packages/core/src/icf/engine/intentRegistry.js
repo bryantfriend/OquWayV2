@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.36-teacher-auth";
+import * as IntentExports from "../intents/intents.js?v=1.1.40-teacher-profile-admin-fix";
 
 const registry = {
   // Demo Verification
@@ -230,3 +230,4 @@ export function hasIntent(intentType) {
 export function listIntents() {
   return Object.keys(registry);
 }
+

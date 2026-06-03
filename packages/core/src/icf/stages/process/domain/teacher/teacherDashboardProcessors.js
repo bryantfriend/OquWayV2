@@ -1,6 +1,6 @@
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.29-module-render-fix";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.40-teacher-profile-admin-fix";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.40-teacher-profile-admin-fix";
 
 export async function processTeacherLogin(executionState) {
   var payload = executionState.payload || {};
@@ -8,6 +8,9 @@ export async function processTeacherLogin(executionState) {
   try {
     var credential = await signInWithEmailAndPassword(auth, payload.email, payload.password);
     var user = credential.user;
+    if (user && user.getIdToken) {
+      await user.getIdToken(true);
+    }
     var profile = await loadUserProfile(user.uid);
 
     executionState.result = {
@@ -392,7 +395,36 @@ async function appendSubmissionQuery(submissions, submissionsQuery) {
 
 async function loadUserProfile(uid) {
   var profileSnap = await getDoc(doc(db, "users", uid));
-  return profileSnap.exists() ? Object.assign({ id: profileSnap.id }, profileSnap.data() || {}) : null;
+
+  if (profileSnap.exists()) {
+    return normalizeTeacherProfileDocument(profileSnap, uid);
+  }
+
+  var authUidSnapshot = await getDocs(query(collection(db, "users"), where("authUid", "==", uid)));
+  var profile = null;
+
+  authUidSnapshot.forEach(function (snap) {
+    if (!profile) {
+      profile = normalizeTeacherProfileDocument(snap, uid);
+    }
+  });
+
+  return profile;
+}
+
+function normalizeTeacherProfileDocument(profileSnap, authUid) {
+  var data = profileSnap.data() || {};
+  var profileAuthUid = readText(data.authUid) || authUid;
+
+  return Object.assign({
+    id: profileSnap.id,
+    profileUserId: profileSnap.id,
+    authUid: profileAuthUid
+  }, data, {
+    id: profileSnap.id,
+    profileUserId: profileSnap.id,
+    authUid: profileAuthUid
+  });
 }
 
 async function enrichSubmissionsWithCourseMetadata(submissions) {
@@ -745,3 +777,4 @@ function readErrorMessage(error) {
 
   return error.code ? error.code + " " + error.message : error.message || String(error);
 }
+

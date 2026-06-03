@@ -1,4 +1,4 @@
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.36-teacher-auth";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.40-teacher-profile-admin-fix";
 
 var app = document.getElementById("app");
 var state = {
@@ -609,3 +609,4 @@ function escapeHtml(value) {
 }
 
 render();
+

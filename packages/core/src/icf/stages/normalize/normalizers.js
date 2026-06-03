@@ -39,10 +39,11 @@ export {
   normalizeTeacherDashboardPayload,
   normalizeTeacherLoginPayload,
   normalizeTeacherPasswordResetPayload
-} from "./domain/teacher/normalizeTeacherPayloads.js?v=1.1.36-teacher-auth";
+} from "./domain/teacher/normalizeTeacherPayloads.js?v=1.1.40-teacher-profile-admin-fix";
 export { normalizeBoolean } from "./domain/courseEditor/normalizeBoolean.js?v=1.1.29-module-render-fix";
 export { normalizeLanguagesArray } from "./domain/courseEditor/normalizeLanguagesArray.js?v=1.1.29-module-render-fix";
 export { normalizeModuleOrder } from "./domain/courseEditor/normalizeModuleOrder.js?v=1.1.29-module-render-fix";
 export { normalizeNumber } from "./domain/courseEditor/normalizeNumber.js?v=1.1.29-module-render-fix";
 export { normalizeStepType } from "./domain/courseEditor/normalizeStepType.js?v=1.1.29-module-render-fix";
 export { normalizeStringTrim } from "./domain/courseEditor/normalizeStringTrim.js?v=1.1.29-module-render-fix";
+

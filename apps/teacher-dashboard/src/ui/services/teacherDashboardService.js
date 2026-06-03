@@ -1,7 +1,9 @@
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.36-teacher-auth";
-import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.36-teacher-auth";
-import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.36-teacher-auth";
+import { getIdTokenResult, onAuthStateChanged, signOut } from "firebase/auth";
+import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.40-teacher-profile-admin-fix";
+import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.40-teacher-profile-admin-fix";
+import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.40-teacher-profile-admin-fix";
+
+var currentTeacherClaims = {};
 
 export const teacherDashboardService = {
   onAuthStateChanged: function (callback) {
@@ -17,6 +19,7 @@ export const teacherDashboardService = {
       role: "ROLE_GUEST"
     });
 
+    await refreshCurrentTeacherClaims(true);
     return readIntentData(result);
   },
 
@@ -32,16 +35,19 @@ export const teacherDashboardService = {
   },
 
   loadDashboard: async function (filters) {
+    await refreshCurrentTeacherClaims(false);
     var result = await runTeacherIntent("LoadTeacherDashboardIntent", filters || {}, getCurrentTeacherActor());
     return readIntentData(result);
   },
 
   loadReviewQueue: async function (filters) {
+    await refreshCurrentTeacherClaims(false);
     var result = await runTeacherIntent("LoadTeacherReviewQueueIntent", filters || {}, getCurrentTeacherActor());
     return readIntentData(result);
   },
 
   reviewSubmission: async function (submissionId, reviewStatus, teacherFeedback) {
+    await refreshCurrentTeacherClaims(false);
     var result = await runTeacherIntent("ReviewExternalTaskSubmissionIntent", {
       submissionId: submissionId,
       reviewStatus: reviewStatus,
@@ -83,14 +89,39 @@ function getCurrentTeacherActor() {
   if (!user) {
     return {
       id: "",
-      role: "ROLE_GUEST"
+      role: "ROLE_GUEST",
+      claims: {}
     };
   }
 
   return {
     id: user.uid,
-    role: "ROLE_AUTHENTICATED"
+    authUid: user.uid,
+    role: "ROLE_AUTHENTICATED",
+    claims: currentTeacherClaims || {}
   };
+}
+
+async function refreshCurrentTeacherClaims(forceRefresh) {
+  var user = auth.currentUser;
+
+  if (!user) {
+    currentTeacherClaims = {};
+    return currentTeacherClaims;
+  }
+
+  if (forceRefresh && user.getIdToken) {
+    await user.getIdToken(true);
+  }
+
+  try {
+    var tokenResult = await getIdTokenResult(user, forceRefresh === true);
+    currentTeacherClaims = tokenResult && tokenResult.claims ? tokenResult.claims : {};
+  } catch (error) {
+    currentTeacherClaims = {};
+  }
+
+  return currentTeacherClaims;
 }
 
 function readIntentData(result) {
@@ -120,3 +151,4 @@ function readFirstErrorText(error) {
 
   return error.message || error.code || String(error);
 }
+
