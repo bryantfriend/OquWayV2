@@ -1,5 +1,6 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js";
+import { functions, httpsCallable } from "../../../../../packages/core/src/infrastructure/firebase/functions.js?v=1.1.37-teacher-login-auth";
 import { storage } from "../../../../../packages/core/src/infrastructure/firebase/storage.js";
 import { collection, db, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../packages/core/src/infrastructure/firebase/firestore.js";
 import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js";
@@ -7,7 +8,7 @@ import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/r
 import { COURSE_CREATOR_URL, roleFilterCards, userRoles, userStatuses } from "../shared/constants.js";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.18";
+var appVersion = "1.1.37";
 var state = {
   isLoading: true,
   isRefreshing: false,
@@ -1323,6 +1324,10 @@ function buildUserCard(user) {
 function buildUserActionButtons(user, isOpen) {
   var html = '<button type="button" class="sa-btn sa-btn-secondary" data-action="edit-user" data-id="' + escapeHtml(user.id) + '">' + (isOpen ? "Close" : "Edit") + '</button>';
 
+  if (isTeacherUser(user)) {
+    html += buildTeacherLoginActionButton(user);
+  }
+
   if (user.roles.indexOf("student") !== -1) {
     html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="reset-fruit-user" data-id="' + escapeHtml(user.id) + '"' + disabled(isBusy()) + '>Reset Fruit</button>';
   } else {
@@ -1335,6 +1340,14 @@ function buildUserActionButtons(user, isOpen) {
 
   html += '<button type="button" class="sa-btn sa-danger-btn" data-action="delete-user" data-id="' + escapeHtml(user.id) + '"' + disabled(isBusy()) + '>Delete</button>';
   return html;
+}
+
+function buildTeacherLoginActionButton(user) {
+  if (hasTeacherLoginAuthorization(user)) {
+    return '<button type="button" class="sa-btn sa-btn-secondary" disabled>Login Authorized</button>';
+  }
+
+  return '<button type="button" class="sa-btn" data-action="authorize-teacher-login" data-id="' + escapeHtml(user.id) + '"' + disabled(isBusy()) + '>' + buildButtonContent("Authorize Teacher Login", "authorize-teacher-login:" + user.id) + '</button>';
 }
 
 function buildUserForm(formId, form, isCreate) {
@@ -2568,6 +2581,8 @@ async function handleAction(action, id) {
     saveClassPicker();
   } else if (action === "reset-fruit-user") {
     openFruitPasswordReset(id);
+  } else if (action === "authorize-teacher-login") {
+    await authorizeTeacherLogin(id);
   } else if (action === "send-password-reset") {
     await sendStaffPasswordReset(id);
   } else if (action === "create-class") {
@@ -3306,6 +3321,69 @@ function openFruitPasswordReset(userId) {
   }
 
   setState({ resetStudentId: userId, resetFruitPassword: fruitPassword, fruitResetSaveStatus: "", fruitResetSaveMessage: "", message: "" });
+}
+
+async function authorizeTeacherLogin(userId) {
+  var user = getSafeUser(findUser(userId));
+  var missingFields = readTeacherLoginMissingFields(user);
+  var displayName = readTeacherDisplayName(user);
+
+  if (!user.id || !isTeacherUser(user)) {
+    setState({ message: "Authorize Teacher Login is only available for teacher users.", messageType: "error" });
+    return false;
+  }
+
+  if (missingFields.length > 0) {
+    setState({
+      message: "Before authorizing this teacher, complete: " + missingFields.join(", ") + ".",
+      messageType: "error"
+    });
+    return false;
+  }
+
+  if (!window.confirm("Authorize Teacher Login for " + displayName + "? This creates or reuses a Firebase Auth account, enables teacher claims, and sends a password setup email.")) {
+    return false;
+  }
+
+  try {
+    setState({
+      isSaving: true,
+      pendingAction: "authorize-teacher-login:" + userId,
+      message: "Authorizing teacher login...",
+      messageType: "info"
+    });
+
+    var authorizeLogin = httpsCallable(functions, "adminAuthorizeTeacherLogin");
+    var result = await authorizeLogin({
+      userId: user.id,
+      email: user.email,
+      displayName: displayName
+    });
+    var data = result && result.data ? result.data : {};
+    var shouldSendResetEmail = data.frontendShouldSendResetEmail !== false;
+
+    if (shouldSendResetEmail) {
+      await sendPasswordResetEmail(auth, user.email);
+    }
+
+    await refreshAllData();
+    setState({
+      isSaving: false,
+      pendingAction: "",
+      activeUserId: user.id,
+      message: "Teacher login authorized. Password setup email sent to " + user.email + ".",
+      messageType: "success"
+    });
+    return true;
+  } catch (error) {
+    setState({
+      isSaving: false,
+      pendingAction: "",
+      message: "Could not authorize teacher login: " + readCallableErrorMessage(error),
+      messageType: "error"
+    });
+    return false;
+  }
 }
 
 async function sendStaffPasswordReset(userId) {
@@ -5354,10 +5432,75 @@ function getSafeUser(user) {
     locationIds: locationIds,
     primaryLocationId: primaryLocationId,
     status: readSafeString(safeUser.status || "active"),
+    authUid: readSafeString(safeUser.authUid),
+    loginEnabled: safeUser.loginEnabled === true,
+    loginAuthorizedAt: safeUser.loginAuthorizedAt || null,
+    loginAuthorizedBy: readSafeString(safeUser.loginAuthorizedBy),
     childStudentIds: normalizeIdList(safeUser.childStudentIds),
     classId: readSafeString(safeUser.classId),
-    classIds: normalizeIdList(safeUser.classIds)
+    classIds: normalizeIdList([safeUser.classId, safeUser.classIds, safeUser.assignedClassIds, safeUser.assignedClasses, safeUser.classes])
   });
+}
+
+function isTeacherUser(user) {
+  return getSafeUser(user).roles.indexOf("teacher") !== -1;
+}
+
+function hasTeacherLoginAuthorization(user) {
+  var safeUser = getSafeUser(user);
+  return Boolean(safeUser.authUid && safeUser.email && safeUser.loginEnabled);
+}
+
+function readTeacherLoginMissingFields(user) {
+  var safeUser = getSafeUser(user);
+  var missing = [];
+
+  if (!readTeacherDisplayName(safeUser)) {
+    missing.push("Display name");
+  }
+
+  if (!isValidEmail(safeUser.email)) {
+    missing.push("Email address");
+  }
+
+  if (!isTeacherUser(safeUser)) {
+    missing.push("Teacher role");
+  }
+
+  if (!safeUser.primaryLocationId) {
+    missing.push("Primary location");
+  }
+
+  if (safeUser.classIds.length === 0) {
+    missing.push("Assigned class");
+  }
+
+  if (!isActiveUserStatus(safeUser.status)) {
+    missing.push("Active status");
+  }
+
+  return missing;
+}
+
+function readTeacherDisplayName(user) {
+  var safeUser = user || {};
+  return readSafeString(safeUser.displayName || safeUser.name || safeUser.email).trim();
+}
+
+function isActiveUserStatus(status) {
+  var normalizedStatus = readSafeString(status || "active").trim().toLowerCase();
+  return normalizedStatus === "active" || normalizedStatus === "approved";
+}
+
+function readCallableErrorMessage(error) {
+  var details = error && (error.details || error.customData) ? (error.details || error.customData) : {};
+  var missingFields = Array.isArray(details.missingFields) ? details.missingFields : [];
+
+  if (missingFields.length > 0) {
+    return "Before authorizing this teacher, complete: " + missingFields.join(", ") + ".";
+  }
+
+  return error && error.message ? error.message : "Unknown error";
 }
 
 function normalizeUserForm(user) {

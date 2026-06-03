@@ -35,6 +35,14 @@ exports.resetStudentFruitPassword = onCall(async function (request) {
   return resetStudentFruitPassword(data, auth);
 });
 
+exports.adminAuthorizeTeacherLogin = onCall(async function (request) {
+  const auth = request.auth;
+  const data = request.data || {};
+
+  verifyTeacherAuthorizationCaller(auth);
+  return authorizeTeacherLogin(data, auth);
+});
+
 const FRUIT_ALIASES = {
   apple: "apple",
   "\uD83C\uDF4E": "apple",
@@ -350,6 +358,188 @@ async function resetStudentFruitPassword(data, auth) {
   };
 }
 
+async function authorizeTeacherLogin(data, auth) {
+  const userId = readRequiredText(data.userId, "userId");
+  const email = readRequiredText(data.email, "email").toLowerCase();
+  const displayName = readRequiredText(data.displayName, "displayName");
+  const db = admin.firestore();
+  const userRef = db.collection("users").doc(userId);
+  const userDoc = await userRef.get();
+
+  if (!userDoc.exists) {
+    throw new HttpsError("not-found", "Teacher profile was not found.");
+  }
+
+  const teacher = Object.assign({ id: userDoc.id }, userDoc.data() || {});
+  const missingFields = validateTeacherLoginRequirements(Object.assign({}, teacher, {
+    email: email,
+    displayName: displayName
+  }));
+
+  if (!hasTeacherRole(teacher)) {
+    throw new HttpsError("permission-denied", "Only teacher profiles can be authorized for Teacher Dashboard login.");
+  }
+
+  if (missingFields.length > 0) {
+    throw new HttpsError("failed-precondition", "Before authorizing this teacher, complete: " + missingFields.join(", ") + ".", {
+      missingFields: missingFields
+    });
+  }
+
+  const authUser = await findOrCreateTeacherAuthUser(teacher, email, displayName);
+  await assertAuthUserNotLinkedToAnotherProfile(db, authUser.uid, userId);
+  await admin.auth().setCustomUserClaims(authUser.uid, {
+    role: "teacher",
+    roles: ["teacher"],
+    ROLE_TEACHER: true
+  });
+
+  await admin.auth().updateUser(authUser.uid, {
+    email: email,
+    displayName: displayName,
+    disabled: false
+  });
+
+  await userRef.set({
+    email: email,
+    authUid: authUser.uid,
+    loginEnabled: true,
+    loginAuthorizedAt: admin.firestore.FieldValue.serverTimestamp(),
+    loginAuthorizedBy: auth && auth.uid ? auth.uid : "",
+    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
+
+  let resetLinkGenerated = false;
+  try {
+    await admin.auth().generatePasswordResetLink(email);
+    resetLinkGenerated = true;
+  } catch (error) {
+    resetLinkGenerated = false;
+  }
+
+  return {
+    success: true,
+    userId: userId,
+    email: email,
+    authUid: authUser.uid,
+    loginEnabled: true,
+    resetLinkGenerated: resetLinkGenerated,
+    frontendShouldSendResetEmail: true
+  };
+}
+
+async function findOrCreateTeacherAuthUser(teacher, email, displayName) {
+  const existingAuthUid = readText(teacher.authUid || teacher.firebaseAuthUid).trim();
+
+  if (existingAuthUid) {
+    try {
+      return await admin.auth().getUser(existingAuthUid);
+    } catch (error) {
+      throw new HttpsError("failed-precondition", "Teacher profile has an authUid, but the Firebase Auth user was not found.");
+    }
+  }
+
+  try {
+    return await admin.auth().getUserByEmail(email);
+  } catch (error) {
+    if (error && error.code !== "auth/user-not-found") {
+      throw error;
+    }
+  }
+
+  return admin.auth().createUser({
+    email: email,
+    displayName: displayName,
+    emailVerified: false,
+    disabled: false
+  });
+}
+
+async function assertAuthUserNotLinkedToAnotherProfile(db, authUid, userId) {
+  const snapshot = await db.collection("users").where("authUid", "==", authUid).get();
+  let conflictingUserId = "";
+
+  snapshot.forEach(function (doc) {
+    if (doc.id !== userId) {
+      conflictingUserId = doc.id;
+    }
+  });
+
+  if (conflictingUserId) {
+    throw new HttpsError("already-exists", "This Firebase Auth account is already linked to another user profile.");
+  }
+}
+
+function validateTeacherLoginRequirements(teacher) {
+  const missing = [];
+
+  if (!readText(teacher.displayName || teacher.name).trim()) {
+    missing.push("Display name");
+  }
+
+  if (!isValidEmail(readText(teacher.email))) {
+    missing.push("Email address");
+  }
+
+  if (!hasTeacherRole(teacher)) {
+    missing.push("Teacher role");
+  }
+
+  if (!readFirstTeacherLocationId(teacher)) {
+    missing.push("Primary location");
+  }
+
+  if (readTeacherClassIds(teacher).length === 0) {
+    missing.push("Assigned class");
+  }
+
+  if (!isActiveTeacher(teacher)) {
+    missing.push("Active status");
+  }
+
+  return missing;
+}
+
+function hasTeacherRole(user) {
+  return readRoles(user).indexOf("teacher") !== -1;
+}
+
+function readFirstTeacherLocationId(teacher) {
+  return readText(teacher.primaryLocationId || teacher.locationId || teacher.schoolId || teacher.locId).trim()
+    || readIdList([teacher.locationIds, teacher.schoolIds, teacher.locations, teacher.schools])[0]
+    || "";
+}
+
+function readTeacherClassIds(teacher) {
+  return readIdList([
+    teacher.classId,
+    teacher.classIds,
+    teacher.assignedClassIds,
+    teacher.assignedClasses,
+    teacher.classRefs,
+    teacher.classes
+  ]);
+}
+
+function isActiveTeacher(teacher) {
+  const status = readText(teacher.status).toLowerCase();
+
+  if (status) {
+    return status === "active" || status === "approved";
+  }
+
+  if (typeof teacher.isActive === "boolean") {
+    return teacher.isActive === true;
+  }
+
+  return true;
+}
+
+function isValidEmail(value) {
+  const email = readText(value).trim();
+  return email.indexOf("@") > 0 && email.indexOf(".") > email.indexOf("@") + 1;
+}
+
 function readStoredFruitFormat(student) {
   if (student.fruitPasswordHash && typeof student.fruitPasswordHash === "string") {
     return "hash";
@@ -400,6 +590,58 @@ function verifyAdminCaller(auth) {
   }
 
   throw new HttpsError("permission-denied", "Only super admins or platform admins can reset fruit passwords.");
+}
+
+function verifyTeacherAuthorizationCaller(auth) {
+  const roles = readCallerRoles(auth);
+
+  if (roles.indexOf("superAdmin") !== -1
+      || roles.indexOf("platformAdmin") !== -1
+      || roles.indexOf("schoolAdmin") !== -1) {
+    return;
+  }
+
+  throw new HttpsError("permission-denied", "Only school admins, platform admins, or super admins can authorize teacher login.");
+}
+
+function readCallerRoles(auth) {
+  const token = auth && auth.token ? auth.token : {};
+  const source = [];
+  const roles = [];
+
+  if (token.role) {
+    source.push(token.role);
+  }
+
+  if (Array.isArray(token.roles)) {
+    source.push(...token.roles);
+  }
+
+  if (Array.isArray(token.userRoles)) {
+    source.push(...token.userRoles);
+  }
+
+  if (token.ROLE_SUPER_ADMIN === true) {
+    source.push("ROLE_SUPER_ADMIN");
+  }
+
+  if (token.ROLE_PLATFORM_ADMIN === true) {
+    source.push("ROLE_PLATFORM_ADMIN");
+  }
+
+  if (token.ROLE_SCHOOL_ADMIN === true) {
+    source.push("ROLE_SCHOOL_ADMIN");
+  }
+
+  source.forEach(function (role) {
+    const normalizedRole = normalizeRole(role);
+
+    if (normalizedRole && roles.indexOf(normalizedRole) === -1) {
+      roles.push(normalizedRole);
+    }
+  });
+
+  return roles;
 }
 
 function hasStudentRole(user) {
