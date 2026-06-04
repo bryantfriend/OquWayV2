@@ -1,11 +1,9 @@
+import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.54-multi-role-assistant";
+
 export function requireSuperAdminAccess(executionState) {
   var actor = executionState.actor;
-  var role = actor && actor.role ? actor.role : "";
 
-  if (role === "superAdmin"
-      || role === "platformAdmin"
-      || role === "ROLE_SUPER_ADMIN"
-      || role === "ROLE_PLATFORM_ADMIN") {
+  if (hasAnyRole(actor, ["superAdmin", "platformAdmin"])) {
     return { valid: true };
   }
 

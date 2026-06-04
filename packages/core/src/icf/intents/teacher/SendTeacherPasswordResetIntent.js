@@ -1,8 +1,8 @@
-import { validateTeacherPasswordResetPayload } from "../../stages/validate/validators.js?v=1.1.53-teacher-profile-auth";
-import { normalizeTeacherPasswordResetPayload } from "../../stages/normalize/normalizers.js?v=1.1.53-teacher-profile-auth";
-import { allowTeacherLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.53-teacher-profile-auth";
-import { processSendTeacherPasswordReset } from "../../stages/process/processors.js?v=1.1.53-teacher-profile-auth";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.29-module-render-fix";
+import { validateTeacherPasswordResetPayload } from "../../stages/validate/validators.js?v=1.1.54-multi-role-assistant";
+import { normalizeTeacherPasswordResetPayload } from "../../stages/normalize/normalizers.js?v=1.1.54-multi-role-assistant";
+import { allowTeacherLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.54-multi-role-assistant";
+import { processSendTeacherPasswordReset } from "../../stages/process/processors.js?v=1.1.54-multi-role-assistant";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.54-multi-role-assistant";
 
 export function SendTeacherPasswordResetIntent() {
   return {

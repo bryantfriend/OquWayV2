@@ -1,5 +1,5 @@
-import { auth } from "../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.29-module-render-fix";
-import { verifyCourseCreatorAccess, normalizeRole } from "./src/auth/courseCreatorAuth.js?v=1.1.29-module-render-fix";
+import { auth } from "../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.54-multi-role-assistant";
+import { verifyCourseCreatorAccess, normalizeRole } from "./src/auth/courseCreatorAuth.js?v=1.1.54-multi-role-assistant";
 import {
     signInWithEmailAndPassword,
     onAuthStateChanged,

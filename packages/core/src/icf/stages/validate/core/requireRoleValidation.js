@@ -1,3 +1,5 @@
+import { hasAnyRole } from "../../authorize/core/roleAuthorization.js?v=1.1.54-multi-role-assistant";
+
 export function requireRoleValidation(actor, requiredRole) {
     if (!actor) {
         return {
@@ -6,7 +8,7 @@ export function requireRoleValidation(actor, requiredRole) {
         };
     }
 
-    if (actor.role !== requiredRole) {
+    if (!hasAnyRole(actor, [requiredRole])) {
         return {
             valid: false,
             errors: [{ field: "actor.role", message: "Actor must have role: " + requiredRole }]

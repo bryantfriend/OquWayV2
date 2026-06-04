@@ -1,7 +1,7 @@
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.29-module-render-fix";
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
-import { isActiveStudentStatus, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.29-module-render-fix";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.54-multi-role-assistant";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.54-multi-role-assistant";
+import { hasStudentRole, isActiveStudentStatus, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.54-multi-role-assistant";
 
 export async function processStudentStandardLogin(executionState) {
   var payload = executionState.payload;
@@ -42,7 +42,7 @@ async function loadAndVerifyStudentProfile(studentId, locationId) {
 
   var profile = Object.assign({ id: userSnap.id }, userSnap.data());
 
-  if (profile.role !== "student" && profile.role !== "ROLE_STUDENT") {
+  if (!hasStudentRole(profile)) {
     throw new Error("This account is not a student account.");
   }
 

@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
-import { createDefaultPracticeModes } from "./practiceModeShells.js?v=1.1.29-module-render-fix";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.54-multi-role-assistant";
+import { createDefaultPracticeModes } from "./practiceModeShells.js?v=1.1.54-multi-role-assistant";
 
 export async function processCreateSession(executionState) {
   const payload = executionState.payload;

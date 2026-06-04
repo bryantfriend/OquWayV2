@@ -1,6 +1,6 @@
-import { updateAppState } from "../app/appState.js?v=1.1.52-teacher-resolve";
-import { runAdminIntent } from "../icf/intentRegistry.js?v=1.1.52-teacher-resolve";
-import { renderUsersRoleCards, renderUsersTableRows } from "./usersRenderer.js?v=1.1.52-teacher-resolve";
+import { updateAppState } from "../app/appState.js?v=1.1.54-multi-role-assistant";
+import { runAdminIntent } from "../icf/intentRegistry.js?v=1.1.54-multi-role-assistant";
+import { renderUsersRoleCards, renderUsersTableRows } from "./usersRenderer.js?v=1.1.54-multi-role-assistant";
 
 export async function loadUsersPage(context) {
   var result = await runAdminIntent("LoadUsersIntent", {}, context || {});
@@ -51,6 +51,7 @@ function normalizeUserRoles(user) {
   }
 
   if (user && user.ROLE_TEACHER === true && roles.indexOf("teacher") === -1) roles.push("teacher");
+  if (user && user.ROLE_ASSISTANT === true && roles.indexOf("assistant") === -1) roles.push("assistant");
   if (user && user.ROLE_SCHOOL_ADMIN === true && roles.indexOf("schoolAdmin") === -1) roles.push("schoolAdmin");
   if (user && user.ROLE_PLATFORM_ADMIN === true && roles.indexOf("platformAdmin") === -1) roles.push("platformAdmin");
   if (user && user.ROLE_SUPER_ADMIN === true && roles.indexOf("superAdmin") === -1) roles.push("superAdmin");

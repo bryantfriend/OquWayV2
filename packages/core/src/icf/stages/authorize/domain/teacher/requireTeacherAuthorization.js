@@ -64,7 +64,7 @@ export function requireTeacherDashboardAuthorization(executionState) {
 
 export function requireTeacherReviewScopeAuthorization(executionState) {
   var actor = executionState.actor || {};
-  var actorRole = readPrimaryActorRole(actor);
+  var actorRoles = readActorClaimRoles(actor);
   var profile = executionState.context ? executionState.context.teacherProfile : null;
   var profileRoles = readProfileRoles(profile);
 
@@ -72,7 +72,7 @@ export function requireTeacherReviewScopeAuthorization(executionState) {
     return createError("EXTERNAL_TASK_REVIEWER_REQUIRED", "A signed-in reviewer is required.");
   }
 
-  if (isAdminRole(actorRole) || actorRole === "courseCreator") {
+  if (actorRoles.some(isAdminRole) || actorRoles.indexOf("courseCreator") !== -1 || actorRoles.indexOf("assistant") !== -1) {
     return { valid: true };
   }
 
@@ -119,6 +119,14 @@ export function readRoles(profile, actor) {
 
   if (actor && actor.role) {
     source.push(actor.role);
+  }
+
+  if (actor && Array.isArray(actor.roles)) {
+    source = source.concat(actor.roles);
+  }
+
+  if (actor && Array.isArray(actor.userRoles)) {
+    source = source.concat(actor.userRoles);
   }
 
   if (profile && profile.ROLE_TEACHER === true) {
@@ -222,16 +230,13 @@ function isAdminRole(role) {
   return role === "schoolAdmin" || role === "platformAdmin" || role === "superAdmin" || role === "admin";
 }
 
-function readPrimaryActorRole(actor) {
-  return normalizeRole(actor && actor.role ? actor.role : "");
-}
-
 function normalizeRole(role) {
   var normalized = typeof role === "string"
     ? role.replace(/^ROLE_/i, "").replace(/[^a-z0-9]/gi, "").toLowerCase()
     : "";
 
   if (normalized === "teacher") return "teacher";
+  if (normalized === "assistant") return "assistant";
   if (normalized === "schooladmin") return "schoolAdmin";
   if (normalized === "platformadmin") return "platformAdmin";
   if (normalized === "superadmin") return "superAdmin";

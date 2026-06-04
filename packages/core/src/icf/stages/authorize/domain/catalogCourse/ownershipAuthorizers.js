@@ -1,7 +1,9 @@
+import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.54-multi-role-assistant";
+
 export function requireCourseCreatorOwnershipAuthorization(executionState) {
     const { context, actor } = executionState;
 
-    if (actor && actor.role === "ROLE_SUPER_ADMIN") {
+    if (hasAnyRole(actor, ["superAdmin", "platformAdmin"])) {
         return { valid: true }; // Super admin bypass
     }
 

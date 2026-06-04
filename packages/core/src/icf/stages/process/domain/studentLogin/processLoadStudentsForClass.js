@@ -1,4 +1,4 @@
-import { callGetStudentsForClassFunction } from "./studentLoginHelpers.js?v=1.1.29-module-render-fix";
+import { callGetStudentsForClassFunction } from "./studentLoginHelpers.js?v=1.1.54-multi-role-assistant";
 
 export async function processLoadStudentsForClass(executionState) {
   var payload = executionState.payload;

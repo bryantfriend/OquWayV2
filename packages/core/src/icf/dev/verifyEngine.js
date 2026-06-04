@@ -3,12 +3,12 @@
 // ICF Engine Verification Runner
 //
 // Usage from browser console:
-//   import("./packages/core/src/icf/dev/verifyEngine.js?v=1.1.29-module-render-fix").then(function (m) { m.verifyEngine(); });
+//   import("./packages/core/src/icf/dev/verifyEngine.js?v=1.1.54-multi-role-assistant").then(function (m) { m.verifyEngine(); });
 //
 // Or call verifyEngine() after importing this module in your app entry point.
 
-import { createIntent } from "../engine/createIntent.js?v=1.1.29-module-render-fix";
-import { runIntentPipeline } from "../engine/runIntentPipeline.js?v=1.1.29-module-render-fix";
+import { createIntent } from "../engine/createIntent.js?v=1.1.54-multi-role-assistant";
+import { runIntentPipeline } from "../engine/runIntentPipeline.js?v=1.1.54-multi-role-assistant";
 
 export async function verifyEngine() {
   console.info("");

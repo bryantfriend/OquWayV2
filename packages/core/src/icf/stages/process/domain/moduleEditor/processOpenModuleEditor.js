@@ -1,4 +1,4 @@
-import { createDefaultLearningContent, createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.29-module-render-fix";
+import { createDefaultLearningContent, createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.54-multi-role-assistant";
 
 export async function processOpenModuleEditor(executionState) {
   const context = executionState.context;

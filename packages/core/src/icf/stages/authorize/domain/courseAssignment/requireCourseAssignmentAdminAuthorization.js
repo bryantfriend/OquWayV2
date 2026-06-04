@@ -1,3 +1,5 @@
+import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.54-multi-role-assistant";
+
 export function requireCourseAssignmentAdminAuthorization(executionState) {
   var actor = executionState.actor;
 
@@ -13,14 +15,15 @@ export function requireCourseAssignmentAdminAuthorization(executionState) {
     };
   }
 
-  var role = normalizeCourseAssignmentAdminRole(actor.role);
-
-  if (role === "superAdmin"
-      || role === "platformAdmin"
-      || role === "admin"
-      || role === "schoolAdmin"
-      || role === "courseCreator"
-      || role === "editor") {
+  if (hasAnyRole(actor, [
+      "superAdmin",
+      "platformAdmin",
+      "admin",
+      "schoolAdmin",
+      "courseCreator",
+      "assistant",
+      "editor"
+  ])) {
     return { valid: true };
   }
 
@@ -33,34 +36,4 @@ export function requireCourseAssignmentAdminAuthorization(executionState) {
       }
     ]
   };
-}
-
-function normalizeCourseAssignmentAdminRole(role) {
-  var normalizedRole = typeof role === "string" ? role.replace(/[^a-z0-9]/gi, "").toLowerCase() : "";
-
-  if (normalizedRole === "rolesuperadmin" || normalizedRole === "superadmin") {
-    return "superAdmin";
-  }
-
-  if (normalizedRole === "roleplatformadmin" || normalizedRole === "platformadmin") {
-    return "platformAdmin";
-  }
-
-  if (normalizedRole === "roleadmin" || normalizedRole === "admin") {
-    return "admin";
-  }
-
-  if (normalizedRole === "roleschooladmin" || normalizedRole === "schooladmin") {
-    return "schoolAdmin";
-  }
-
-  if (normalizedRole === "rolecoursecreator" || normalizedRole === "coursecreator") {
-    return "courseCreator";
-  }
-
-  if (normalizedRole === "editor") {
-    return "editor";
-  }
-
-  return "";
 }

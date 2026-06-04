@@ -1,6 +1,6 @@
-import { allowPublicLocationRead } from "../../stages/authorize/authorizers.js?v=1.1.29-module-render-fix";
-import { processListLocations } from "../../stages/process/processors.js?v=1.1.29-module-render-fix";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.29-module-render-fix";
+import { allowPublicLocationRead } from "../../stages/authorize/authorizers.js?v=1.1.54-multi-role-assistant";
+import { processListLocations } from "../../stages/process/processors.js?v=1.1.54-multi-role-assistant";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.54-multi-role-assistant";
 
 export function ListLocationsIntent() {
   return {

@@ -1,6 +1,6 @@
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.53-teacher-profile-auth";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.53-teacher-profile-auth";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.54-multi-role-assistant";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.54-multi-role-assistant";
 
 export async function processTeacherLogin(executionState) {
   var payload = executionState.payload || {};

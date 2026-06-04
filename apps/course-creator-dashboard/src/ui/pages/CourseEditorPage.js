@@ -1,5 +1,5 @@
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.29-module-render-fix";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.29-module-render-fix";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.54-multi-role-assistant";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.54-multi-role-assistant";
 import {
   getStepTypeDefinition,
   listStepTypeDefinitions

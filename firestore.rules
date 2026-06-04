@@ -32,6 +32,9 @@ service cloud.firestore {
         user().data.role == legacyRole ||
         (user().data.roles is list && (role in user().data.roles || legacyRole in user().data.roles)) ||
         (legacyRole == "ROLE_TEACHER" && user().data.ROLE_TEACHER == true) ||
+        (legacyRole == "ROLE_ASSISTANT" && user().data.ROLE_ASSISTANT == true) ||
+        (legacyRole == "ROLE_COURSE_CREATOR" && user().data.ROLE_COURSE_CREATOR == true) ||
+        (legacyRole == "ROLE_ACCOUNTANT" && user().data.ROLE_ACCOUNTANT == true) ||
         (legacyRole == "ROLE_SCHOOL_ADMIN" && user().data.ROLE_SCHOOL_ADMIN == true) ||
         (legacyRole == "ROLE_PLATFORM_ADMIN" && user().data.ROLE_PLATFORM_ADMIN == true) ||
         (legacyRole == "ROLE_SUPER_ADMIN" && user().data.ROLE_SUPER_ADMIN == true)
@@ -42,6 +45,8 @@ service cloud.firestore {
     function isPlatformAdmin() { return hasAnyRole('platformAdmin', 'ROLE_PLATFORM_ADMIN'); }
     function isSchoolAdmin() { return hasAnyRole('schoolAdmin', 'ROLE_SCHOOL_ADMIN'); }
     function isCourseCreator() { return hasAnyRole('courseCreator', 'ROLE_COURSE_CREATOR'); }
+    function isAssistant() { return hasAnyRole('assistant', 'ROLE_ASSISTANT') || profileHasAnyRole('assistant', 'ROLE_ASSISTANT'); }
+    function isCourseEditor() { return isCourseCreator() || isAssistant(); }
     function isAccountant() { return hasAnyRole('accountant', 'ROLE_ACCOUNTANT'); }
     function isTeacher() { return hasAnyRole('teacher', 'ROLE_TEACHER') || profileHasAnyRole('teacher', 'ROLE_TEACHER'); }
     function isStudent() { return hasAnyRole('student', 'ROLE_STUDENT'); }
@@ -102,7 +107,7 @@ service cloud.firestore {
 
     function isExternalTaskReviewer() {
       return request.auth != null && (
-        isCourseCreator() ||
+        isCourseEditor() ||
         isSchoolAdmin() ||
         isPlatformAdmin() ||
         isSuperAdmin()
@@ -194,7 +199,7 @@ service cloud.firestore {
       allow update: if isSuperAdmin()
         || isPlatformAdmin()
         || isSchoolAdmin()
-        || isCourseCreator();
+        || isCourseEditor();
 
       // 🧾 EXPENSE CATEGORIES (subcollection)
       match /expense_categories/{categoryId} {
@@ -229,29 +234,29 @@ service cloud.firestore {
     // 📘 COURSES
     match /courses/{courseId} {
       allow read: if true;
-      allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+      allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseEditor();
 
       match /modules/{moduleId} {
         allow read: if true;
-        allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+        allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseEditor();
 
         match /sessions/{sessionId} {
           allow read: if true;
-          allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+          allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseEditor();
         }
 
         match /learningContent/{contentId} {
           allow read: if true;
-          allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+          allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseEditor();
         }
 
         match /learningModes/{modeId} {
           allow read: if true;
-          allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+          allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseEditor();
 
           match /steps/{stepId} {
             allow read: if true;
-            allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+            allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseEditor();
           }
         }
       }
@@ -263,7 +268,7 @@ service cloud.firestore {
         isSuperAdmin() ||
         isPlatformAdmin() ||
         isSchoolAdmin() ||
-        isCourseCreator() ||
+        isCourseEditor() ||
         isTeacher() ||
         isRelevantCourseAssignment()
       );
@@ -272,7 +277,7 @@ service cloud.firestore {
         isSuperAdmin() ||
         isPlatformAdmin() ||
         isSchoolAdmin() ||
-        isCourseCreator()
+        isCourseEditor()
       );
 
       allow delete: if isSuperAdmin() || isPlatformAdmin();
@@ -323,29 +328,29 @@ service cloud.firestore {
     // 📚 CATALOG COURSES (New V2 Core Database)
     match /catalogCourses/{courseId} {
       allow read: if true;
-      allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+      allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseEditor();
 
       match /modules/{moduleId} {
         allow read: if true;
-        allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+        allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseEditor();
 
         match /sessions/{sessionId} {
           allow read: if true;
-          allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+          allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseEditor();
         }
 
         match /learningContent/{contentId} {
           allow read: if true;
-          allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+          allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseEditor();
         }
 
         match /learningModes/{modeId} {
           allow read: if true;
-          allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+          allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseEditor();
 
           match /steps/{stepId} {
             allow read: if true;
-            allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+            allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseEditor();
           }
         }
       }
@@ -399,13 +404,13 @@ service cloud.firestore {
     // 🧩 STEP DEFINITIONS (RUNTIME STEPS)
     match /courses/{courseId}/modules/{moduleId}/steps/{stepId} {
       allow read: if true; // students must read steps to run engines
-      allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+      allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseEditor();
     }
     
     // 🧩 STEP DEFINITIONS FOR CATALOG COURSES (RUNTIME STEPS)
     match /catalogCourses/{courseId}/modules/{moduleId}/steps/{stepId} {
       allow read: if true; // students must read steps to run engines
-      allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+      allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseEditor();
     }
 
 
@@ -470,7 +475,7 @@ service cloud.firestore {
     // 🏷 STEP METADATA (Tags)
     match /step_metadata/{stepId} {
       allow read: if true;
-      allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+      allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseEditor();
     }
 
     // 🛒 STORE PURCHASES
@@ -510,18 +515,18 @@ service cloud.firestore {
     // 🧩 STEP COLLECTION GROUP (for editors, registry, runtime)
     match /{path=**}/steps/{stepId} {
       allow read: if true;
-      allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+      allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseEditor();
     }
     
     match /stepTypes/{stepTypeId} {
       allow read: if true;
-      allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+      allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseEditor();
     }
     
     // 🧩 SYSTEM STEP TYPES (Cloud Code)
     match /system_step_types/{stepId} {
       allow read: if true;
-      allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseCreator();
+      allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseEditor();
     }
   }
 }

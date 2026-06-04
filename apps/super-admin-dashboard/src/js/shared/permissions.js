@@ -2,7 +2,7 @@ import { userRoles } from "./constants.js";
 import { readSafeString } from "./helpers.js";
 
 export function normalizeUserRole(role) {
-  var normalizedRole = readSafeString(role).replace(/[^a-z0-9]/gi, "").toLowerCase();
+  var normalizedRole = readSafeString(role).replace(/[^a-z0-9]/gi, "").toLowerCase().replace(/^role/, "");
 
   if (normalizedRole === "schooladmin") {
     return "schoolAdmin";
@@ -24,7 +24,7 @@ export function normalizeUserRole(role) {
     return "superAdmin";
   }
 
-  if (normalizedRole === "student" || normalizedRole === "teacher" || normalizedRole === "parent") {
+  if (normalizedRole === "student" || normalizedRole === "teacher" || normalizedRole === "assistant" || normalizedRole === "parent") {
     return normalizedRole;
   }
 
@@ -47,4 +47,13 @@ export function isSuperAdminRole(role) {
   var normalizedRole = normalizeUserRole(role);
 
   return normalizedRole === "superAdmin" || normalizedRole === "platformAdmin";
+}
+
+export function userHasAnyRole(user, allowedRoles) {
+  var roles = normalizeRoles(user && user.roles, user && user.role);
+  var allowed = normalizeRoles(allowedRoles, "");
+
+  return roles.some(function (role) {
+    return allowed.indexOf(role) !== -1;
+  });
 }

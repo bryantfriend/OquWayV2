@@ -1,5 +1,5 @@
 import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.33-course-counts";
-import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.29-module-render-fix";
+import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.54-multi-role-assistant";
 
 export class CatalogCoursePage {
   constructor() {

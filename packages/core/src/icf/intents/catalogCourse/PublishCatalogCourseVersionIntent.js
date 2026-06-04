@@ -1,9 +1,9 @@
-import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.29-module-render-fix";
-import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.29-module-render-fix";
-import { attachExistingVersionContext } from "../../stages/addContext/contexts.js?v=1.1.29-module-render-fix";
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.29-module-render-fix";
-import { catalogCoursePublishVersionProcessing } from "../../stages/process/processors.js?v=1.1.29-module-render-fix";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.29-module-render-fix";
+import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.54-multi-role-assistant";
+import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.54-multi-role-assistant";
+import { attachExistingVersionContext } from "../../stages/addContext/contexts.js?v=1.1.54-multi-role-assistant";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.54-multi-role-assistant";
+import { catalogCoursePublishVersionProcessing } from "../../stages/process/processors.js?v=1.1.54-multi-role-assistant";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.54-multi-role-assistant";
 
 export function PublishCatalogCourseVersionIntent() {
     return {

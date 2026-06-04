@@ -1,6 +1,6 @@
-import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.29-module-render-fix';
-import { courseEditorService } from '../services/courseEditorService.js?v=1.1.29-module-render-fix';
-import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.29-module-render-fix';
+import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.54-multi-role-assistant';
+import { courseEditorService } from '../services/courseEditorService.js?v=1.1.54-multi-role-assistant';
+import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.54-multi-role-assistant';
 import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.34-external-task-mvp';
 
 export class CourseOverviewPage {

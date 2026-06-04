@@ -97,6 +97,18 @@ function readLegacyRole(roles) {
     return "platformAdmin";
   }
 
+  if (safeRoles.indexOf("schoolAdmin") !== -1) {
+    return "schoolAdmin";
+  }
+
+  if (safeRoles.indexOf("courseCreator") !== -1) {
+    return "courseCreator";
+  }
+
+  if (safeRoles.indexOf("assistant") !== -1) {
+    return "assistant";
+  }
+
   if (safeRoles.indexOf("student") !== -1) {
     return "student";
   }

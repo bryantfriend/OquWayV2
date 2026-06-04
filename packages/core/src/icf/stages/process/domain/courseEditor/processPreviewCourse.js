@@ -1,5 +1,5 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.29-module-render-fix";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.54-multi-role-assistant";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.54-multi-role-assistant";
 
 export async function processPreviewCourse(executionState) {
   var payload = executionState.payload || {};

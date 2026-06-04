@@ -1,3 +1,5 @@
+import { readActorRoles, readPrimaryRole } from "../../../authorize/core/roleAuthorization.js?v=1.1.54-multi-role-assistant";
+
 export function attachActorContext(executionState) {
     if (executionState.actor && executionState.actor.id) {
         return { valid: true, data: { actorId: executionState.actor.id } };
@@ -7,10 +9,16 @@ export function attachActorContext(executionState) {
 }
 
 export function attachActorRoleContext(executionState) {
-    if (executionState.actor && executionState.actor.role) {
-        return { valid: true, data: { actorRole: executionState.actor.role } };
+    if (executionState.actor) {
+        return {
+            valid: true,
+            data: {
+                actorRole: readPrimaryRole(executionState.actor, "GUEST") || "GUEST",
+                actorRoles: readActorRoles(executionState.actor)
+            }
+        };
     } else {
-        return { valid: true, data: { actorRole: "GUEST" } };
+        return { valid: true, data: { actorRole: "GUEST", actorRoles: [] } };
     }
 }
 

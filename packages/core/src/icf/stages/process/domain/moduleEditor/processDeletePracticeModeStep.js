@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
-import { deletePracticeModeStep } from "./practiceModeShells.js?v=1.1.29-module-render-fix";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.54-multi-role-assistant";
+import { deletePracticeModeStep } from "./practiceModeShells.js?v=1.1.54-multi-role-assistant";
 
 export async function processDeletePracticeModeStep(executionState) {
   var payload = executionState.payload;

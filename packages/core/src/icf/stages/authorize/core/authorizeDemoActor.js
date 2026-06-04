@@ -1,17 +1,17 @@
+import { hasAnyRole } from "./roleAuthorization.js?v=1.1.54-multi-role-assistant";
+
 export function authorizeDemoActor(executionState) {
-  if (!executionState.actor || !executionState.actor.role) {
+  if (!executionState.actor || !executionState.actor.id) {
     return {
       ok: false,
       errors: [{ code: "UNAUTHORIZED", message: "Actor role is required." }]
     };
   }
 
-  const role = executionState.actor.role;
-
-  if (role !== "ROLE_ADMIN" && role !== "ROLE_SUPER_ADMIN" && role !== "ROLE_COURSE_CREATOR") {
+  if (!hasAnyRole(executionState.actor, ["admin", "superAdmin", "courseCreator", "assistant"])) {
     return {
       ok: false,
-      errors: [{ code: "UNAUTHORIZED", message: "Actor role not permitted: " + role }]
+      errors: [{ code: "UNAUTHORIZED", message: "Actor role not permitted." }]
     };
   }
 

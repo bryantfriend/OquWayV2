@@ -1,3 +1,5 @@
+import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.54-multi-role-assistant";
+
 export function requireStudentAuthorization(executionState) {
   var actor = executionState.actor;
 
@@ -13,11 +15,13 @@ export function requireStudentAuthorization(executionState) {
     };
   }
 
-  if (actor.role === "ROLE_STUDENT"
-      || actor.role === "ROLE_SUPER_ADMIN"
-      || actor.role === "ROLE_PLATFORM_ADMIN"
-      || actor.role === "ROLE_ADMIN"
-      || actor.role === "ROLE_COURSE_CREATOR") {
+  if (hasAnyRole(actor, [
+      "student",
+      "superAdmin",
+      "platformAdmin",
+      "admin",
+      "courseCreator"
+  ])) {
     return { valid: true };
   }
 

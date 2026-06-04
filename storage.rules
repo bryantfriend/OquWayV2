@@ -20,9 +20,10 @@ service firebase.storage {
     function isPlatformAdmin() { return hasAnyRole('platformAdmin', 'ROLE_PLATFORM_ADMIN'); }
     function isSchoolAdmin() { return hasAnyRole('schoolAdmin', 'ROLE_SCHOOL_ADMIN'); }
     function isCourseCreator() { return hasAnyRole('courseCreator', 'ROLE_COURSE_CREATOR'); }
+    function isAssistant() { return hasAnyRole('assistant', 'ROLE_ASSISTANT'); }
     function isTeacher() { return hasAnyRole('teacher', 'ROLE_TEACHER'); }
     function isStudent() { return hasAnyRole('student', 'ROLE_STUDENT'); }
-    function isReviewer() { return isTeacher() || isCourseCreator() || isSchoolAdmin() || isPlatformAdmin() || isSuperAdmin(); }
+    function isReviewer() { return isTeacher() || isCourseCreator() || isAssistant() || isSchoolAdmin() || isPlatformAdmin() || isSuperAdmin(); }
 
     function isAllowedExternalTaskFile() {
       return request.resource.size <= 10 * 1024 * 1024
@@ -54,6 +55,7 @@ service firebase.storage {
     function canWriteStepMedia() {
       return request.auth != null && (
         isCourseCreator() ||
+        isAssistant() ||
         isSchoolAdmin() ||
         isPlatformAdmin() ||
         isSuperAdmin()
@@ -79,6 +81,7 @@ service firebase.storage {
         isStudent() ||
         isTeacher() ||
         isCourseCreator() ||
+        isAssistant() ||
         isSchoolAdmin() ||
         isPlatformAdmin() ||
         isSuperAdmin()

@@ -1,8 +1,8 @@
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.29-module-render-fix";
-import { attachStepsCollection } from "../../stages/addContext/contexts.js?v=1.1.29-module-render-fix";
-import { processUpdateStepField } from "../../stages/process/processors.js?v=1.1.29-module-render-fix";
-import { validateCourseId, validateModuleId, validateStepFieldKey, validateStepId } from "../../stages/validate/validators.js?v=1.1.29-module-render-fix";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.29-module-render-fix";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.54-multi-role-assistant";
+import { attachStepsCollection } from "../../stages/addContext/contexts.js?v=1.1.54-multi-role-assistant";
+import { processUpdateStepField } from "../../stages/process/processors.js?v=1.1.54-multi-role-assistant";
+import { validateCourseId, validateModuleId, validateStepFieldKey, validateStepId } from "../../stages/validate/validators.js?v=1.1.54-multi-role-assistant";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.54-multi-role-assistant";
 
 export function UpdateStepFieldIntent() {
     return {

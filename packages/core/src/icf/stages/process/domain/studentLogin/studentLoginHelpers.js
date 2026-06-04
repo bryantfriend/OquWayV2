@@ -1,4 +1,4 @@
-import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.29-module-render-fix";
+import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.54-multi-role-assistant";
 
 export async function callStudentLoginFunction(payload) {
   return callCallableFunction("studentLogin", payload);
@@ -134,6 +134,10 @@ function normalizeRole(role) {
 
   if (normalizedRole === "parent" || normalizedRole === "roleparent") {
     return "parent";
+  }
+
+  if (normalizedRole === "assistant" || normalizedRole === "roleassistant") {
+    return "assistant";
   }
 
   if (normalizedRole === "schooladmin" || normalizedRole === "roleschooladmin") {

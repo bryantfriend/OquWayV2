@@ -980,12 +980,10 @@ function createFruitPasswordHash(fruits) {
 }
 
 function verifyAdminCaller(auth) {
-  const role = auth && auth.token && auth.token.role ? auth.token.role : "";
+  const roles = readCallerRoles(auth);
 
-  if (role === "superAdmin"
-      || role === "platformAdmin"
-      || role === "ROLE_SUPER_ADMIN"
-      || role === "ROLE_PLATFORM_ADMIN") {
+  if (roles.indexOf("superAdmin") !== -1
+      || roles.indexOf("platformAdmin") !== -1) {
     return;
   }
 
@@ -1031,6 +1029,10 @@ function readCallerRoles(auth) {
 
   if (token.ROLE_SCHOOL_ADMIN === true) {
     source.push("ROLE_SCHOOL_ADMIN");
+  }
+
+  if (token.ROLE_ASSISTANT === true) {
+    source.push("ROLE_ASSISTANT");
   }
 
   source.forEach(function (role) {
@@ -1161,6 +1163,10 @@ function normalizeRole(role) {
 
   if (normalizedRole === "parent" || normalizedRole === "roleparent") {
     return "parent";
+  }
+
+  if (normalizedRole === "assistant" || normalizedRole === "roleassistant") {
+    return "assistant";
   }
 
   if (normalizedRole === "schooladmin" || normalizedRole === "roleschooladmin") {

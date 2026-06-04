@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.53-teacher-profile-auth";
+import * as IntentExports from "../intents/intents.js?v=1.1.54-multi-role-assistant";
 
 const registry = {
   // Demo Verification

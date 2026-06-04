@@ -1,4 +1,4 @@
-import { requireNonEmptyArrayValidation } from "../../validators.js?v=1.1.29-module-render-fix";
+import { requireNonEmptyArrayValidation } from "../../validators.js?v=1.1.54-multi-role-assistant";
 
 export function validateModuleStepsPayload(executionState) {
     const payload = executionState.payload;

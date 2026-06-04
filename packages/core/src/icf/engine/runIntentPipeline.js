@@ -1,7 +1,7 @@
 // runIntentPipeline.js
 
-import { runStageArray } from "./runStageArray.js?v=1.1.29-module-render-fix";
-import { buildResult } from "./buildResult.js?v=1.1.29-module-render-fix";
+import { runStageArray } from "./runStageArray.js?v=1.1.54-multi-role-assistant";
+import { buildResult } from "./buildResult.js?v=1.1.54-multi-role-assistant";
 
 export async function runIntentPipeline(intentDefinition, executionInput) {
   const executionState = createExecutionState(intentDefinition, executionInput);

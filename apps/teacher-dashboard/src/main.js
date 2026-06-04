@@ -1,4 +1,4 @@
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.53-teacher-profile-auth";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.54-multi-role-assistant";
 
 var app = document.getElementById("app");
 var state = {

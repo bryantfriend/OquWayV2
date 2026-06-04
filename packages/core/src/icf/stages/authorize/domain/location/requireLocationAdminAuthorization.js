@@ -1,3 +1,5 @@
+import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.54-multi-role-assistant";
+
 export function requireLocationAdminAuthorization(executionState) {
   var actor = executionState.actor;
 
@@ -13,11 +15,14 @@ export function requireLocationAdminAuthorization(executionState) {
     };
   }
 
-  if (actor.role === "ROLE_SUPER_ADMIN"
-      || actor.role === "ROLE_PLATFORM_ADMIN"
-      || actor.role === "ROLE_ADMIN"
-      || actor.role === "ROLE_SCHOOL_ADMIN"
-      || actor.role === "ROLE_COURSE_CREATOR") {
+  if (hasAnyRole(actor, [
+      "superAdmin",
+      "platformAdmin",
+      "admin",
+      "schoolAdmin",
+      "courseCreator",
+      "assistant"
+  ])) {
     return { valid: true };
   }
 

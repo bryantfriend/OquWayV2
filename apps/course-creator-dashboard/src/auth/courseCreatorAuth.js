@@ -1,10 +1,11 @@
-import { db, doc, getDoc } from "../../../../packages/core/src/infrastructure/firebase/firestore.js?v=1.1.29-module-render-fix";
+import { db, doc, getDoc } from "../../../../packages/core/src/infrastructure/firebase/firestore.js?v=1.1.54-multi-role-assistant";
 
 export const ALLOWED_COURSE_CREATOR_ROLES = [
     "superAdmin",
     "platformAdmin",
     "schoolAdmin",
-    "courseCreator"
+    "courseCreator",
+    "assistant"
 ];
 
 export async function verifyCourseCreatorAccess(user, options) {
@@ -76,6 +77,7 @@ export function normalizeRole(value) {
     if (normalized === "platformadmin") return "platformAdmin";
     if (normalized === "schooladmin") return "schoolAdmin";
     if (normalized === "coursecreator") return "courseCreator";
+    if (normalized === "assistant") return "assistant";
     if (normalized === "admin") return "admin";
     if (normalized === "student") return "student";
 

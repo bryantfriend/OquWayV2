@@ -1,7 +1,7 @@
-import { requireStringValidation } from "../../validators.js?v=1.1.29-module-render-fix";
-import { requireNonEmptyArrayValidation } from "../../validators.js?v=1.1.29-module-render-fix";
-import { requireEnumValidation } from "../../validators.js?v=1.1.29-module-render-fix";
-import { requireUUIDValidation } from "../../validators.js?v=1.1.29-module-render-fix";
+import { requireStringValidation } from "../../validators.js?v=1.1.54-multi-role-assistant";
+import { requireNonEmptyArrayValidation } from "../../validators.js?v=1.1.54-multi-role-assistant";
+import { requireEnumValidation } from "../../validators.js?v=1.1.54-multi-role-assistant";
+import { requireUUIDValidation } from "../../validators.js?v=1.1.54-multi-role-assistant";
 
 export function catalogCourseValidateStepConfigValidation(executionState) {
     const { payload } = executionState;

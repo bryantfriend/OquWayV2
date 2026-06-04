@@ -1,4 +1,4 @@
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.29-module-render-fix";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.54-multi-role-assistant";
 import { PracticeModePlayer } from "../../../../../packages/core/src/shared/player/PracticeModePlayer.js?v=1.1.34-external-task-mvp";
 import {
   createDefaultStepConfig,

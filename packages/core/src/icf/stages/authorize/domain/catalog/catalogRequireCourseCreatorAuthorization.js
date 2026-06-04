@@ -2,12 +2,15 @@ export function catalogRequireCourseCreatorAuthorization(executionState) {
     const { context } = executionState;
 
     const allowedRoles = [
-        'ROLE_SUPER_ADMIN',
-        'ROLE_PLATFORM_ADMIN',
-        'ROLE_COURSE_CREATOR'
+        'superAdmin',
+        'platformAdmin',
+        'courseCreator',
+        'assistant'
     ];
 
-    if (!allowedRoles.includes(context.actorRole)) {
+    const actorRoles = context.actorRoles || [context.actorRole];
+
+    if (!actorRoles.some(function (role) { return allowedRoles.indexOf(role) !== -1; })) {
         throw new Error(`Authorization failed: actorRole ${context.actorRole} is not permitted to modify global catalog courses.`);
     }
 

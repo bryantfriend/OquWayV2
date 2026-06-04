@@ -1,5 +1,5 @@
-import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.29-module-render-fix";
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.29-module-render-fix";
+import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.54-multi-role-assistant";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.54-multi-role-assistant";
 
 export async function processLoadStudentDashboard(executionState) {
   var courseResult = await processLoadStudentCourse(executionState);

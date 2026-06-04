@@ -2,7 +2,7 @@ import {
   createLearningModesForTemplate,
   createStarterStepsForMode,
   normalizeLearningContentPayload
-} from "../moduleEditor/learningArchitecture.js?v=1.1.29-module-render-fix";
+} from "../moduleEditor/learningArchitecture.js?v=1.1.54-multi-role-assistant";
 
 export function processGenerateModuleSkeleton(executionState) {
   var payload = executionState.payload || {};

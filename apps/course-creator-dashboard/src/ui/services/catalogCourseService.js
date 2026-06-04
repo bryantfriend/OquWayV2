@@ -1,6 +1,6 @@
 import { createIntent } from "../../../../../packages/core/src/icf/engine/createIntent.js?v=1.1.33-course-counts";
 import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.33-course-counts";
-import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.29-module-render-fix";
+import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.54-multi-role-assistant";
 
 function getActor() {
     const user = auth.currentUser;

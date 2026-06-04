@@ -1,4 +1,4 @@
-import { normalizePracticeModes } from "./practiceModeShells.js?v=1.1.29-module-render-fix";
+import { normalizePracticeModes } from "./practiceModeShells.js?v=1.1.54-multi-role-assistant";
 
 export function processListPracticeModeSteps(executionState) {
   var payload = executionState.payload;
