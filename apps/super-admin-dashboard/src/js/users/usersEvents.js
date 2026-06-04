@@ -1,4 +1,4 @@
-import { runAdminIntent } from "../icf/intentRegistry.js?v=1.1.46-admin-motion";
+import { runAdminIntent } from "../icf/intentRegistry.js?v=1.1.48-admin-callable-sdk";
 
 export function bindUsersEvents(rootElement, handlers) {
   rootElement.addEventListener("click", function (event) {

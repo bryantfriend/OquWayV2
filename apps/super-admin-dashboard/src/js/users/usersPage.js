@@ -1,6 +1,6 @@
-import { updateAppState } from "../app/appState.js?v=1.1.46-admin-motion";
-import { runAdminIntent } from "../icf/intentRegistry.js?v=1.1.46-admin-motion";
-import { renderUsersRoleCards, renderUsersTableRows } from "./usersRenderer.js?v=1.1.46-admin-motion";
+import { updateAppState } from "../app/appState.js?v=1.1.48-admin-callable-sdk";
+import { runAdminIntent } from "../icf/intentRegistry.js?v=1.1.48-admin-callable-sdk";
+import { renderUsersRoleCards, renderUsersTableRows } from "./usersRenderer.js?v=1.1.48-admin-callable-sdk";
 
 export async function loadUsersPage(context) {
   var result = await runAdminIntent("LoadUsersIntent", {}, context || {});

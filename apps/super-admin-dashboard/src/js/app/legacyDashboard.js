@@ -1,14 +1,16 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js";
-import { functions, httpsCallable } from "../../../../../packages/core/src/infrastructure/firebase/functions.js?v=1.1.46-admin-motion";
+import { firebaseApp } from "../../../../../packages/core/src/infrastructure/firebase/firebaseApp.js?v=1.1.48-admin-callable-sdk";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 import { storage } from "../../../../../packages/core/src/infrastructure/firebase/storage.js";
 import { collection, db, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../packages/core/src/infrastructure/firebase/firestore.js";
 import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js";
 import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userRoles, userStatuses } from "../shared/constants.js?v=1.1.46-admin-motion";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userRoles, userStatuses } from "../shared/constants.js?v=1.1.48-admin-callable-sdk";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.46";
+var appVersion = "1.1.48";
+var adminCallableFunctions = getFunctions(firebaseApp, "us-central1");
 var state = {
   isLoading: true,
   isRefreshing: false,
@@ -3680,7 +3682,7 @@ async function authorizeTeacherLogin(userId) {
       email: user.email,
       displayName: displayName
     });
-    var data = result && result.data ? result.data : {};
+    var data = result || {};
     var shouldSendResetEmail = data.frontendShouldSendResetEmail !== false;
 
     if (shouldSendResetEmail) {
@@ -3758,8 +3760,9 @@ async function callAdminCallable(functionName, payload) {
     payloadKeys: Object.keys(payload || {})
   });
 
-  var callable = httpsCallable(functions, functionName);
-  return await callable(payload || {});
+  var callable = httpsCallable(adminCallableFunctions, functionName);
+  var response = await callable(payload || {});
+  return response ? response.data : null;
 }
 
 async function sendStaffPasswordReset(userId) {
