@@ -1255,17 +1255,51 @@
         }
 
         .sa-btn-spinner {
-            width: 14px;
-            height: 14px;
-            border: 2px solid rgba(255,255,255,0.55);
-            border-top-color: white;
+            position: relative;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
+            background: conic-gradient(from 90deg, rgba(255,255,255,0.2), #ffffff);
             animation: saSpin 0.8s linear infinite;
         }
 
+        .sa-btn-spinner::after {
+            content: "";
+            position: absolute;
+            inset: 4px;
+            border-radius: inherit;
+            background: #2563eb;
+        }
+
         .sa-btn-secondary .sa-btn-spinner {
-            border-color: rgba(29,78,216,0.25);
-            border-top-color: var(--blue);
+            background: conic-gradient(from 90deg, rgba(37,99,235,0.12), #2563eb);
+        }
+
+        .sa-btn-secondary .sa-btn-spinner::after {
+            background: #eff6ff;
+        }
+
+        .sa-btn-dots {
+            display: inline-flex;
+            gap: 3px;
+            align-items: center;
+        }
+
+        .sa-btn-dots i {
+            width: 4px;
+            height: 4px;
+            border-radius: 999px;
+            background: currentColor;
+            opacity: 0.45;
+            animation: saDotPulse 1s ease-in-out infinite;
+        }
+
+        .sa-btn-dots i:nth-child(2) {
+            animation-delay: 0.15s;
+        }
+
+        .sa-btn-dots i:nth-child(3) {
+            animation-delay: 0.3s;
         }
 
         .sa-skeleton-stack,
@@ -1279,9 +1313,9 @@
         .sa-location-skeleton i {
             display: block;
             border-radius: 14px;
-            background: linear-gradient(90deg, #e2e8f0 0%, #f8fafc 50%, #e2e8f0 100%);
+            background: linear-gradient(100deg, #e2e8f0 0%, #f8fafc 38%, #dbeafe 52%, #f8fafc 68%, #e2e8f0 100%);
             background-size: 220% 100%;
-            animation: saShimmer 1.2s ease-in-out infinite;
+            animation: saShimmer 1.15s ease-in-out infinite;
         }
 
         .sa-skeleton-stack span {
@@ -2088,19 +2122,278 @@
             text-align: center;
         }
 
-        .sa-spinner {
-            width: 42px;
-            height: 42px;
-            border: 4px solid #dbeafe;
-            border-top-color: var(--blue);
-            border-radius: 50%;
-            margin: 0 auto 16px;
-            animation: saSpin 0.9s linear infinite;
+        .sa-loading-polished {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sa-loading-polished::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(120deg, transparent 0%, rgba(37,99,235,0.08) 45%, transparent 72%);
+            animation: saPanelSweep 2.4s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .sa-motion-loader {
+            position: relative;
+            width: 86px;
+            height: 86px;
+            margin: 0 auto 18px;
+            display: grid;
+            place-items: center;
+        }
+
+        .sa-motion-orbit {
+            position: absolute;
+            inset: 2px;
+            border-radius: 999px;
+            border: 1px solid rgba(37,99,235,0.16);
+            animation: saSpin 2.4s linear infinite;
+        }
+
+        .sa-motion-orbit span {
+            position: absolute;
+            width: 11px;
+            height: 11px;
+            border-radius: 999px;
+            background: #2563eb;
+            box-shadow: 0 8px 18px rgba(37,99,235,0.25);
+        }
+
+        .sa-motion-orbit span:nth-child(1) {
+            top: -5px;
+            left: 38px;
+        }
+
+        .sa-motion-orbit span:nth-child(2) {
+            right: 3px;
+            bottom: 12px;
+            background: #14b8a6;
+        }
+
+        .sa-motion-orbit span:nth-child(3) {
+            left: 5px;
+            bottom: 13px;
+            background: #f59e0b;
+        }
+
+        .sa-motion-stack {
+            width: 48px;
+            height: 48px;
+            display: grid;
+            gap: 5px;
+            transform: rotate(-7deg);
+        }
+
+        .sa-motion-stack i {
+            display: block;
+            height: 12px;
+            border-radius: 5px;
+            background: linear-gradient(135deg, #2563eb, #14b8a6);
+            box-shadow: 0 9px 20px rgba(15,23,42,0.13);
+            animation: saStackBuild 1.15s ease-in-out infinite;
+        }
+
+        .sa-motion-stack i:nth-child(2) {
+            width: 88%;
+            justify-self: center;
+            animation-delay: 0.12s;
+        }
+
+        .sa-motion-stack i:nth-child(3) {
+            width: 72%;
+            justify-self: end;
+            animation-delay: 0.24s;
+        }
+
+        .sa-loading-steps {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 18px 0;
+        }
+
+        .sa-loading-steps span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 10px;
+            border-radius: 999px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            font-size: 0.76rem;
+            font-weight: 900;
+            animation: saStepPulse 1.8s ease-in-out infinite;
+        }
+
+        .sa-loading-steps span:nth-child(2) { animation-delay: 0.16s; }
+        .sa-loading-steps span:nth-child(3) { animation-delay: 0.32s; }
+        .sa-loading-steps span:nth-child(4) { animation-delay: 0.48s; }
+
+        .sa-inline-loading {
+            min-height: 138px;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: linear-gradient(135deg, #ffffff, #f8fafc);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 18px;
+            color: var(--muted);
+            font-weight: 800;
+            box-shadow: 0 14px 30px rgba(15,23,42,0.06);
+        }
+
+        .sa-inline-loading .sa-motion-loader {
+            width: 58px;
+            height: 58px;
+            margin: 0;
+            flex: 0 0 auto;
+        }
+
+        .sa-inline-loading .sa-motion-stack {
+            width: 34px;
+            height: 34px;
+            gap: 4px;
+        }
+
+        .sa-inline-loading .sa-motion-stack i {
+            height: 9px;
+        }
+
+        .sa-inline-loading strong,
+        .sa-inline-loading span {
+            display: block;
+        }
+
+        .sa-inline-loading strong {
+            color: var(--ink);
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .sa-operation-toast {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            z-index: 70;
+            width: min(360px, calc(100vw - 32px));
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px;
+            border: 1px solid rgba(191,219,254,0.9);
+            border-radius: 18px;
+            background: rgba(255,255,255,0.95);
+            box-shadow: 0 26px 70px rgba(15,23,42,0.18);
+            backdrop-filter: blur(16px);
+            animation: saToastIn 0.22s ease-out both;
+        }
+
+        .sa-operation-toast .sa-motion-loader {
+            width: 52px;
+            height: 52px;
+            margin: 0;
+            flex: 0 0 auto;
+        }
+
+        .sa-operation-toast .sa-motion-stack {
+            width: 31px;
+            height: 31px;
+            gap: 3px;
+        }
+
+        .sa-operation-toast .sa-motion-stack i {
+            height: 8px;
+        }
+
+        .sa-operation-toast strong,
+        .sa-operation-toast span {
+            display: block;
+        }
+
+        .sa-operation-toast strong {
+            color: var(--ink);
+            font-size: 0.94rem;
+        }
+
+        .sa-operation-toast span {
+            color: var(--muted);
+            font-size: 0.78rem;
+            font-weight: 800;
         }
 
         @keyframes saSpin {
             to {
                 transform: rotate(360deg);
+            }
+        }
+
+        @keyframes saStackBuild {
+            0%, 100% {
+                transform: translateY(0);
+                opacity: 0.82;
+            }
+
+            50% {
+                transform: translateY(-4px);
+                opacity: 1;
+            }
+        }
+
+        @keyframes saStepPulse {
+            0%, 100% {
+                transform: translateY(0);
+                background: #eff6ff;
+            }
+
+            50% {
+                transform: translateY(-2px);
+                background: #dbeafe;
+            }
+        }
+
+        @keyframes saDotPulse {
+            0%, 100% {
+                transform: translateY(0);
+                opacity: 0.38;
+            }
+
+            50% {
+                transform: translateY(-2px);
+                opacity: 1;
+            }
+        }
+
+        @keyframes saPanelSweep {
+            0%, 100% {
+                transform: translateX(-45%);
+                opacity: 0;
+            }
+
+            45%, 65% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateX(45%);
+            }
+        }
+
+        @keyframes saToastIn {
+            from {
+                transform: translateY(12px) scale(0.98);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
             }
         }
 
@@ -2170,6 +2463,7 @@
             .sa-page-head,
             .sa-section-title,
             .sa-class-filter-toolbar,
+            .sa-inline-loading,
             .sa-overview-head {
                 flex-direction: column;
             }
@@ -2193,6 +2487,15 @@
 
             .sa-health-row strong {
                 text-align: left;
+            }
+
+            .sa-inline-loading {
+                align-items: flex-start;
+            }
+
+            .sa-operation-toast {
+                right: 16px;
+                bottom: 16px;
             }
 
             .sa-sidebar {
@@ -3065,7 +3368,7 @@
         <h1>Core System Configuration</h1>
         <p>Managing the heart of the national educational engine...</p>
     </main>
-    <script type="module" src="./src/main.js?v=1.1.45-repair-callable"></script>
+    <script type="module" src="./src/main.js?v=1.1.46-admin-motion"></script>
 </body>
 
 </html>

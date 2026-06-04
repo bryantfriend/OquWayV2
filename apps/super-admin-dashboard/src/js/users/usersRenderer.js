@@ -1,5 +1,5 @@
-import { roleFilterCards } from "../shared/constants.js?v=1.1.45-repair-callable";
-import { escapeHtml, formatDateTime } from "../shared/formatters.js?v=1.1.45-repair-callable";
+import { roleFilterCards } from "../shared/constants.js?v=1.1.46-admin-motion";
+import { escapeHtml, formatDateTime } from "../shared/formatters.js?v=1.1.46-admin-motion";
 
 export function renderUsersRoleCards(users, selectedRoleFilter) {
   var html = '<section class="sa-role-card-grid" aria-label="Role filters">';

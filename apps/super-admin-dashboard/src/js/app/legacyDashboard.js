@@ -1,14 +1,14 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js";
-import { functions, httpsCallable } from "../../../../../packages/core/src/infrastructure/firebase/functions.js?v=1.1.45-repair-callable";
+import { functions, httpsCallable } from "../../../../../packages/core/src/infrastructure/firebase/functions.js?v=1.1.46-admin-motion";
 import { storage } from "../../../../../packages/core/src/infrastructure/firebase/storage.js";
 import { collection, db, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../packages/core/src/infrastructure/firebase/firestore.js";
 import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js";
 import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userRoles, userStatuses } from "../shared/constants.js?v=1.1.45-repair-callable";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userRoles, userStatuses } from "../shared/constants.js?v=1.1.46-admin-motion";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.45";
+var appVersion = "1.1.46";
 var state = {
   isLoading: true,
   isRefreshing: false,
@@ -474,7 +474,11 @@ function buildLoadingView() {
   var title = state.authPhase === "profileLoading" ? "Checking admin access..." : "Loading Super Admin Dashboard";
   var note = state.authPhase === "profileLoading" ? "Verifying your profile and permissions." : "Checking access and loading school data.";
 
-  return '<section class="sa-loading" aria-busy="true"><div class="sa-spinner"></div><h1>' + escapeHtml(title) + '</h1><p>' + escapeHtml(note) + '</p><div class="sa-skeleton-stack"><span></span><span></span><span></span></div></section>';
+  return '<section class="sa-loading sa-loading-polished" aria-busy="true">'
+    + buildMotionLoader("dashboard")
+    + '<h1>' + escapeHtml(title) + '</h1><p>' + escapeHtml(note) + '</p>'
+    + '<div class="sa-loading-steps" aria-hidden="true"><span>Auth</span><span>Profiles</span><span>Classes</span><span>Reports</span></div>'
+    + '<div class="sa-skeleton-stack"><span></span><span></span><span></span></div></section>';
 }
 
 function buildAccessDeniedView() {
@@ -484,7 +488,7 @@ function buildAccessDeniedView() {
 function buildLoginView() {
   return '<section class="sa-access-card sa-login-card"><p class="sa-eyebrow">Admin Login</p><h1>Sign in to Super Admin</h1><p>Use a super admin or platform admin account. We will bring you back here after login.</p>'
     + buildMessage()
-    + '<div class="sa-form"><label>Email<input type="email" data-login-field="email" value="' + escapeHtml(state.loginEmail) + '" placeholder="admin@example.com"></label><label><span class="sa-password-label-row"><span>Password</span><button type="button" class="sa-text-link" data-action="open-staff-login-reset">Forgot password?</button></span><input type="password" data-login-field="password" value="' + escapeHtml(state.loginPassword) + '" placeholder="Password"></label><button type="button" class="sa-btn" data-action="admin-login">Log in</button><button type="button" class="sa-btn sa-btn-secondary" data-action="go-admin-login">Go to Login</button></div></section>'
+    + '<div class="sa-form"><label>Email<input type="email" data-login-field="email" value="' + escapeHtml(state.loginEmail) + '" placeholder="admin@example.com"></label><label><span class="sa-password-label-row"><span>Password</span><button type="button" class="sa-text-link" data-action="open-staff-login-reset">Forgot password?</button></span><input type="password" data-login-field="password" value="' + escapeHtml(state.loginPassword) + '" placeholder="Password"></label><button type="button" class="sa-btn" data-action="admin-login"' + disabled(state.isSaving) + '>' + buildButtonContent("Log in", "admin-login") + '</button><button type="button" class="sa-btn sa-btn-secondary" data-action="go-admin-login">Go to Login</button></div></section>'
     + buildStaffPasswordResetModal();
 }
 
@@ -509,9 +513,97 @@ function buildDashboardView() {
   html += buildAssignmentCoursePickerModal();
   html += buildAssignmentTargetPickerModal();
   html += buildAssignmentDeleteModal();
+  html += buildOperationToast();
   html += '</section>';
 
   return html;
+}
+
+function buildMotionLoader(tone) {
+  var safeTone = tone || "default";
+
+  return '<div class="sa-motion-loader sa-motion-loader-' + escapeHtml(safeTone) + '" aria-hidden="true">'
+    + '<div class="sa-motion-orbit"><span></span><span></span><span></span></div>'
+    + '<div class="sa-motion-stack"><i></i><i></i><i></i></div>'
+    + '</div>';
+}
+
+function buildInlineLoadingState(title, note, tone) {
+  return '<div class="sa-inline-loading" aria-busy="true">'
+    + buildMotionLoader(tone || "inline")
+    + '<div><strong>' + escapeHtml(title) + '</strong><span>' + escapeHtml(note || "One moment while OquWay prepares this view.") + '</span></div>'
+    + '</div>';
+}
+
+function buildOperationToast() {
+  if (!state.pendingAction || (!state.isSaving && !state.isRefreshing)) {
+    return "";
+  }
+
+  var details = readOperationDetails();
+
+  return '<aside class="sa-operation-toast" role="status" aria-live="polite" aria-busy="true">'
+    + buildMotionLoader("toast")
+    + '<div><strong>' + escapeHtml(details.title) + '</strong><span>' + escapeHtml(details.note) + '</span></div>'
+    + '</aside>';
+}
+
+function readOperationDetails() {
+  var action = state.pendingAction || "";
+
+  if (action === "refresh-data") {
+    return { title: "Refreshing dashboard", note: "Syncing locations, users, classes, courses, and assignments." };
+  }
+
+  if (action === "admin-login") {
+    return { title: "Signing in", note: "Checking Firebase Auth and admin access." };
+  }
+
+  if (action.indexOf("authorize-teacher-login") === 0) {
+    return { title: "Authorizing teacher", note: "Creating claims, profile links, and setup email state." };
+  }
+
+  if (action.indexOf("repair-teacher-auth-profile") === 0) {
+    return { title: "Repairing login profile", note: "Updating the linked Firebase Auth mirror profile." };
+  }
+
+  if (action.indexOf("update-user") === 0 || action.indexOf("create-user") === 0) {
+    return { title: "Saving user profile", note: "Writing identity, role, class, and location updates." };
+  }
+
+  if (action.indexOf("create-class") === 0 || action.indexOf("update-class") === 0) {
+    return { title: "Saving class", note: "Updating class details and location scope." };
+  }
+
+  if (action.indexOf("create-student") === 0 || action.indexOf("update-student") === 0) {
+    return { title: "Saving student", note: "Updating classroom identity and login readiness." };
+  }
+
+  if (action.indexOf("create-location") === 0 || action.indexOf("update-location") === 0) {
+    return { title: "Saving location", note: "Checking details and updating the location record." };
+  }
+
+  if (action.indexOf("create-assignment") === 0) {
+    return { title: "Creating assignment", note: "Connecting the selected course to its learning target." };
+  }
+
+  if (action.indexOf("delete-assignment") === 0 || action.indexOf("delete-user") === 0) {
+    return { title: "Removing record", note: "Finishing the requested cleanup." };
+  }
+
+  if (action.indexOf("send-password-reset") === 0 || action === "staff-login-reset") {
+    return { title: "Sending reset email", note: "Asking Firebase Auth to deliver the password reset link." };
+  }
+
+  if (action === "confirm-reset-fruit") {
+    return { title: "Saving fruit login", note: "Locking in the new classroom password." };
+  }
+
+  if (action.indexOf("save-intent") === 0) {
+    return { title: "Saving admin update", note: "Running the admin workflow and refreshing state." };
+  }
+
+  return { title: "Saving changes", note: "Updating OquWay admin data." };
 }
 
 function buildTabs() {
@@ -1647,7 +1739,7 @@ function buildClassRows() {
   var index = 0;
 
   if (state.isRefreshing && state.classes.length === 0) {
-    return '<div class="sa-empty"><strong>Loading classes...</strong><span>Class records are being refreshed.</span></div>';
+    return buildInlineLoadingState("Loading classes...", "Class records are being refreshed.", "classes");
   }
 
   if (state.classes.length === 0) {
@@ -1669,13 +1761,16 @@ function buildClassRows() {
 }
 
 function buildClassForm(formId, form) {
+  var actionName = formId === "new" ? "create-class" : "update-class";
+  var buttonLabel = formId === "new" ? "Create" : "Save";
+
   return '<div class="sa-form sa-form-6">'
     + buildInput("class", formId, "name", "Name", form.name)
     + buildLocationSelect("class", formId, form.locationId)
     + buildSelect("class", formId, "status", form.status, ["active", "inactive", "archived"])
     + buildSelect("class", formId, "isVisible", form.isVisible ? "true" : "false", ["true", "false"])
     + buildInput("class", formId, "photoDataUrl", "Photo URL", form.photoDataUrl)
-    + '<button type="button" class="sa-btn" data-action="' + (formId === "new" ? "create-class" : "update-class") + '" data-id="' + escapeHtml(formId) + '">' + (formId === "new" ? "Create" : "Save") + '</button>'
+    + '<button type="button" class="sa-btn" data-action="' + actionName + '" data-id="' + escapeHtml(formId) + '"' + disabled(isBusy()) + '>' + buildButtonContent(buttonLabel, actionName + ":" + formId) + '</button>'
     + '</div>';
 }
 
@@ -1760,7 +1855,10 @@ function buildStudentRows() {
 }
 
 function buildStudentForm(formId, form, includeFruitSelector) {
+  var actionName = formId === "new" ? "create-student" : "update-student";
+  var buttonLabel = formId === "new" ? "Create Student" : "Save Student";
   var html = '<div class="sa-form sa-form-student">';
+
   html += buildInput("student", formId, "name", "Name", form.name);
   html += buildLocationSelect("student", formId, form.locationId);
   html += buildClassSelect("student", formId, form.classId);
@@ -1768,7 +1866,7 @@ function buildStudentForm(formId, form, includeFruitSelector) {
   html += buildInput("student", formId, "photoUrl", "Photo URL", form.photoUrl);
   html += buildInput("student", formId, "email", "Email", form.email);
   html += buildInput("student", formId, "username", "Username", form.username);
-  html += '<button type="button" class="sa-btn" data-action="' + (formId === "new" ? "create-student" : "update-student") + '" data-id="' + escapeHtml(formId) + '">' + (formId === "new" ? "Create Student" : "Save Student") + '</button>';
+  html += '<button type="button" class="sa-btn" data-action="' + actionName + '" data-id="' + escapeHtml(formId) + '"' + disabled(isBusy()) + '>' + buildButtonContent(buttonLabel, actionName + ":" + formId) + '</button>';
   html += '</div>';
 
   if (includeFruitSelector) {
@@ -2154,7 +2252,7 @@ function buildAssignmentCoursePickerModal() {
   html += '<div class="sa-picker-grid">';
 
   if (picker.isLoading) {
-    html += '<div class="sa-empty"><strong>Loading courses...</strong><span>Preparing the course picker.</span></div>';
+    html += buildInlineLoadingState("Loading courses...", "Preparing the course picker.", "courses");
   } else if (courses.length === 0) {
     html += '<div class="sa-empty"><strong>No courses found.</strong><span>Try a different search or status filter.</span></div>';
   } else {
@@ -2186,7 +2284,7 @@ function buildAssignmentTargetPickerModal() {
   html += '<div class="sa-picker-list">';
 
   if (picker.isLoading) {
-    html += '<div class="sa-empty"><strong>Loading targets...</strong><span>Preparing classes and students.</span></div>';
+    html += buildInlineLoadingState("Loading targets...", "Preparing classes and students.", "targets");
   } else if (items.length === 0) {
     html += '<div class="sa-empty"><strong>No targets found.</strong><span>Try changing the location, search, or all-locations option.</span></div>';
   } else {
@@ -3027,11 +3125,12 @@ async function loginAdmin() {
 
   try {
     rememberReturnDestination();
-    setState({ isSaving: true, message: "Signing in...", messageType: "info" });
+    setState({ isSaving: true, pendingAction: "admin-login", message: "Signing in...", messageType: "info" });
     await signInWithEmailAndPassword(auth, email, password);
   } catch (error) {
     setState({
       isSaving: false,
+      pendingAction: "",
       needsLogin: true,
       message: "Login failed: " + error.message,
       messageType: "error"
@@ -3735,16 +3834,26 @@ function copyTextWithFallback(text) {
 }
 
 async function saveIntent(intentType, payload, successMessage) {
-  setState({ isSaving: true, message: "Saving...", messageType: "info" });
+  var actionKey = readSaveIntentActionKey(intentType, payload || {});
+
+  setState({ isSaving: true, pendingAction: actionKey, message: "Saving...", messageType: "info" });
   var result = await runAdminIntent(intentType, payload || {});
 
   if (isSuccess(result)) {
-    setState({ isSaving: false, message: successMessage, messageType: "success" });
+    setState({ isSaving: false, pendingAction: "", message: successMessage, messageType: "success" });
     return true;
   }
 
-  setState({ isSaving: false, message: readIntentError(result), messageType: "error" });
+  setState({ isSaving: false, pendingAction: "", message: readIntentError(result), messageType: "error" });
   return false;
+}
+
+function readSaveIntentActionKey(intentType, payload) {
+  if (intentType === "CreateClassIntent") return "create-class:new";
+  if (intentType === "UpdateClassIntent") return "update-class:" + readSafeString(payload.classId || payload.id);
+  if (intentType === "CreateStudentIntent") return "create-student:new";
+  if (intentType === "UpdateStudentIntent") return "update-student:" + readSafeString(payload.studentId || payload.id);
+  return "save-intent:" + readSafeString(intentType || "admin");
 }
 
 async function resetFruitPassword() {
@@ -5726,13 +5835,17 @@ function isBusy() {
 
 function buildButtonContent(label, actionKey) {
   if (state.pendingAction === actionKey) {
-    return '<span class="sa-btn-spinner"></span>' + escapeHtml(readPendingLabel(label));
+    return '<span class="sa-btn-spinner" aria-hidden="true"></span><span>' + escapeHtml(readPendingLabel(label)) + '</span><span class="sa-btn-dots" aria-hidden="true"><i></i><i></i><i></i></span>';
   }
 
   return escapeHtml(label);
 }
 
 function readPendingLabel(label) {
+  if (label.indexOf("Log in") !== -1) {
+    return "Signing in...";
+  }
+
   if (label.indexOf("Archive") !== -1) {
     return "Archiving...";
   }
