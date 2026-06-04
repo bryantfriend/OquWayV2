@@ -423,6 +423,10 @@ async function authorizeTeacherLogin(data, auth) {
     authUid: authUser.uid,
     profileUserId: userId,
     loginEnabled: true,
+    mergedIntoAuthUid: authUser.uid,
+    isLegacyProfile: true,
+    status: "merged",
+    visibleInUserLists: false,
     loginAuthorizedAt: admin.firestore.FieldValue.serverTimestamp(),
     loginAuthorizedBy: auth && auth.uid ? auth.uid : "",
     updatedAt: admin.firestore.FieldValue.serverTimestamp()
@@ -504,6 +508,10 @@ async function repairTeacherAuthProfile(data, auth) {
     authUid: authUid,
     profileUserId: userId,
     loginEnabled: true,
+    mergedIntoAuthUid: authUid,
+    isLegacyProfile: true,
+    status: "merged",
+    visibleInUserLists: false,
     updatedAt: admin.firestore.FieldValue.serverTimestamp()
   }, { merge: true });
 
@@ -570,6 +578,9 @@ function buildTeacherAuthMirrorProfile(teacher, userId, authUid, auth) {
     displayName: displayName,
     name: displayName,
     email: email,
+    photoUrl: readText(teacher.photoUrl || teacher.imageUrl || teacher.avatarUrl).trim(),
+    imageUrl: readText(teacher.imageUrl || teacher.photoUrl || teacher.avatarUrl).trim(),
+    avatarUrl: readText(teacher.avatarUrl || teacher.photoUrl || teacher.imageUrl).trim(),
     role: "teacher",
     roles: ["teacher"],
     ROLE_TEACHER: true,
@@ -583,6 +594,9 @@ function buildTeacherAuthMirrorProfile(teacher, userId, authUid, auth) {
     classIds: classIds,
     assignedClassIds: classIds,
     status: "active",
+    visibleInUserLists: true,
+    isLegacyProfile: false,
+    mergedIntoAuthUid: "",
     loginEnabled: true,
     loginAuthorizedBy: auth && auth.uid ? auth.uid : readText(teacher.loginAuthorizedBy),
     updatedAt: admin.firestore.FieldValue.serverTimestamp()

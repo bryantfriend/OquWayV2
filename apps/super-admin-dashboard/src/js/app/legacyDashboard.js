@@ -1,15 +1,15 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js";
-import { firebaseApp } from "../../../../../packages/core/src/infrastructure/firebase/firebaseApp.js?v=1.1.49-admin-users-fix";
+import { firebaseApp } from "../../../../../packages/core/src/infrastructure/firebase/firebaseApp.js?v=1.1.50-teacher-profile-merge";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 import { storage } from "../../../../../packages/core/src/infrastructure/firebase/storage.js";
 import { collection, db, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../packages/core/src/infrastructure/firebase/firestore.js";
 import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js";
 import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userRoles, userStatuses } from "../shared/constants.js?v=1.1.49-admin-users-fix";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userRoles, userStatuses } from "../shared/constants.js?v=1.1.50-teacher-profile-merge";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.49";
+var appVersion = "1.1.50";
 var adminCallableFunctions = getFunctions(firebaseApp, "us-central1");
 var state = {
   isLoading: true,
@@ -349,7 +349,7 @@ async function refreshAllData() {
     isLoading: false,
     isRefreshing: false,
     locations: readDataList(locationsResult, "locations"),
-    users: overviewData.users.map(getSafeUser),
+    users: overviewData.users.map(getSafeUser).filter(isVisibleUserProfile),
     classes: readDataList(classesResult, "classes"),
     students: readDataList(studentsResult, "students"),
     courses: readDataList(coursesResult, "courses"),
@@ -5759,6 +5759,12 @@ function readFilteredUsersForFilters(filters) {
 
   while (index < state.users.length) {
     var user = getSafeUser(state.users[index]);
+
+    if (!isVisibleUserProfile(user)) {
+      index = index + 1;
+      continue;
+    }
+
     var searchable = [user.displayName, user.email, user.phone, user.id].join(" ").toLowerCase();
     var matchesSearch = !query || searchable.indexOf(query) !== -1;
     var matchesRole = userMatchesRoleFilter(user, safeFilters.role);
@@ -5963,6 +5969,9 @@ function getSafeUser(user) {
     locationIds: locationIds,
     primaryLocationId: primaryLocationId,
     status: readSafeString(safeUser.status || "active"),
+    visibleInUserLists: safeUser.visibleInUserLists === false ? false : true,
+    isLegacyProfile: safeUser.isLegacyProfile === true,
+    mergedIntoAuthUid: readSafeString(safeUser.mergedIntoAuthUid),
     authUid: readSafeString(safeUser.authUid),
     loginEnabled: safeUser.loginEnabled === true,
     loginAuthorizedAt: safeUser.loginAuthorizedAt || null,
@@ -5971,6 +5980,14 @@ function getSafeUser(user) {
     classId: readSafeString(safeUser.classId),
     classIds: normalizeIdList([safeUser.classId, safeUser.classIds, safeUser.assignedClassIds, safeUser.assignedClasses, safeUser.classes])
   });
+}
+
+function isVisibleUserProfile(user) {
+  var safeUser = user || {};
+
+  return safeUser.visibleInUserLists !== false
+    && safeUser.isLegacyProfile !== true
+    && readSafeString(safeUser.status) !== "merged";
 }
 
 function applyBooleanUserRoles(roles, user) {

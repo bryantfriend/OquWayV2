@@ -1,4 +1,4 @@
-import { runAdminIntent } from "../icf/intentRegistry.js?v=1.1.49-admin-users-fix";
+import { runAdminIntent } from "../icf/intentRegistry.js?v=1.1.50-teacher-profile-merge";
 
 export function bindUsersEvents(rootElement, handlers) {
   rootElement.addEventListener("click", function (event) {
