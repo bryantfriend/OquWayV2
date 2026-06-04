@@ -16,7 +16,7 @@ export { catalogCourseRequireVersionValidation } from "./domain/catalogCourse/ca
 export { catalogCourseValidateStatusValidation } from "./domain/catalogCourse/catalogCourseValidateStatusValidation.js?v=1.1.54-multi-role-assistant";
 export { catalogCourseValidateStepConfigValidation } from "./domain/catalogCourse/catalogCourseValidateStepConfigValidation.js?v=1.1.54-multi-role-assistant";
 export { catalogCourseValidateTagsValidation } from "./domain/catalogCourse/catalogCourseValidateTagsValidation.js?v=1.1.54-multi-role-assistant";
-export { validateCourseAssignmentPayload, validateCourseAssignmentId, validateCourseAssignmentUpdatePayload } from "./domain/courseAssignment/validateCourseAssignmentPayload.js?v=1.1.54-multi-role-assistant";
+export { validateCourseAssignmentOwnershipPayload, validateCourseAssignmentPayload, validateCourseAssignmentId, validateCourseAssignmentUpdatePayload } from "./domain/courseAssignment/validateCourseAssignmentPayload.js?v=1.1.56-assignment-ownership";
 export {
   validateExternalTaskReviewPayload,
   validateExternalTaskStepPayload,

@@ -1,5 +1,6 @@
 import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.54-multi-role-assistant";
-import { createCourseAssignmentId, loadCourseAssignments } from "./courseAssignmentHelpers.js?v=1.1.54-multi-role-assistant";
+import { createCourseAssignmentId, loadCourseAssignments } from "./courseAssignmentHelpers.js?v=1.1.56-assignment-ownership";
+import { buildCourseAssignmentOwnershipFields } from "./courseAssignmentOwnershipHelpers.js?v=1.1.56-assignment-ownership";
 
 export async function processCreateCourseAssignment(executionState) {
   var payload = executionState.payload;
@@ -21,6 +22,7 @@ export async function processCreateCourseAssignment(executionState) {
     }
 
     var assignmentId = createCourseAssignmentId();
+    var ownershipFields = await buildCourseAssignmentOwnershipFields(payload);
     var assignmentRecord = cleanAssignmentRecord({
       id: assignmentId,
       assignmentType: payload.assignmentType || "course",
@@ -37,6 +39,10 @@ export async function processCreateCourseAssignment(executionState) {
       assignedAt: serverTimestamp(),
       startsAt: payload.startsAt || null,
       dueAt: payload.dueAt || null,
+      responsibleTeacherId: ownershipFields.responsibleTeacherId,
+      assistantIds: ownershipFields.assistantIds,
+      responsibleTeacherName: ownershipFields.responsibleTeacherName,
+      assistantNames: ownershipFields.assistantNames,
       updatedAt: serverTimestamp()
     });
 

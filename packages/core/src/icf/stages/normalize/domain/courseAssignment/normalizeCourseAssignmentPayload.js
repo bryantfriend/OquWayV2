@@ -4,6 +4,7 @@ export function normalizeCourseAssignmentPayload(executionState) {
   var locationId = normalizeText(payload.locationId);
   var classId = normalizeText(payload.classId);
   var studentId = normalizeText(payload.studentId);
+  var responsibleTeacherId = normalizeText(payload.responsibleTeacherId || payload.teacherId || payload.teacherUid);
 
   return {
     assignmentType: normalizeAssignmentType(payload.assignmentType),
@@ -17,7 +18,11 @@ export function normalizeCourseAssignmentPayload(executionState) {
     status: normalizeStatus(payload.status),
     startsAt: normalizeNullableText(payload.startsAt),
     dueAt: normalizeNullableText(payload.dueAt),
-    visibility: normalizeVisibility(payload.visibility)
+    visibility: normalizeVisibility(payload.visibility),
+    responsibleTeacherId: responsibleTeacherId,
+    assistantIds: normalizeIdArray([payload.assistantIds, payload.teacherIds], responsibleTeacherId),
+    responsibleTeacherName: normalizeText(payload.responsibleTeacherName),
+    assistantNames: normalizeTextArray(payload.assistantNames, [])
   };
 }
 
@@ -26,7 +31,24 @@ export function normalizeCourseAssignmentUpdatePayload(executionState) {
 
   return {
     assignmentId: normalizeText(payload.assignmentId),
-    status: normalizeStatus(payload.status)
+    status: normalizeStatus(payload.status),
+    responsibleTeacherId: normalizeText(payload.responsibleTeacherId || payload.teacherId || payload.teacherUid),
+    assistantIds: normalizeIdArray([payload.assistantIds, payload.teacherIds], normalizeText(payload.responsibleTeacherId || payload.teacherId || payload.teacherUid)),
+    responsibleTeacherName: normalizeText(payload.responsibleTeacherName),
+    assistantNames: normalizeTextArray(payload.assistantNames, [])
+  };
+}
+
+export function normalizeCourseAssignmentOwnershipPayload(executionState) {
+  var payload = executionState.payload || {};
+  var responsibleTeacherId = normalizeText(payload.responsibleTeacherId || payload.teacherId || payload.teacherUid);
+
+  return {
+    assignmentId: normalizeText(payload.assignmentId || payload.id),
+    responsibleTeacherId: responsibleTeacherId,
+    assistantIds: normalizeIdArray([payload.assistantIds, payload.teacherIds], responsibleTeacherId),
+    responsibleTeacherName: normalizeText(payload.responsibleTeacherName),
+    assistantNames: normalizeTextArray(payload.assistantNames, [])
   };
 }
 
@@ -56,6 +78,61 @@ function normalizeText(value) {
   }
 
   return value.trim();
+}
+
+function normalizeTextArray(value, fallback) {
+  var result = [];
+  var index = 0;
+  var source = value;
+
+  if (typeof source === "string") {
+    source = source.split(",");
+  }
+
+  if (!Array.isArray(source)) {
+    return fallback.slice();
+  }
+
+  while (index < source.length) {
+    var item = normalizeText(source[index]);
+
+    if (item && result.indexOf(item) === -1) {
+      result.push(item);
+    }
+
+    index = index + 1;
+  }
+
+  return result;
+}
+
+function normalizeIdArray(value, excludedId) {
+  var ids = [];
+  var excluded = normalizeText(excludedId);
+
+  appendIdValue(ids, value);
+
+  return ids.filter(function (id) {
+    return id && id !== excluded;
+  });
+}
+
+function appendIdValue(ids, value) {
+  var index = 0;
+
+  if (Array.isArray(value)) {
+    while (index < value.length) {
+      appendIdValue(ids, value[index]);
+      index = index + 1;
+    }
+    return;
+  }
+
+  normalizeTextArray(value, []).forEach(function (id) {
+    if (ids.indexOf(id) === -1) {
+      ids.push(id);
+    }
+  });
 }
 
 function normalizeNullableText(value) {

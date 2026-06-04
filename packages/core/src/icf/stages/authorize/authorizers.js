@@ -4,6 +4,8 @@ export { requireCourseCreatorOwnershipAuthorization } from "./domain/catalogCour
 export { preventModificationIfPublishedAuthorization } from "./domain/catalogCourse/preventDeleteIfInUseAuthorization.js?v=1.1.54-multi-role-assistant";
 export { preventDeleteIfInUseAuthorization } from "./domain/catalogCourse/preventDeleteIfInUseAuthorization.js?v=1.1.54-multi-role-assistant";
 export { requireCourseAssignmentAdminAuthorization } from "./domain/courseAssignment/requireCourseAssignmentAdminAuthorization.js?v=1.1.54-multi-role-assistant";
+export { requireCourseAssignmentOwnershipAuthorization } from "./domain/courseAssignment/requireCourseAssignmentOwnershipAuthorization.js?v=1.1.56-assignment-ownership";
+export { requireCourseAssignmentOwnershipReadAuthorization } from "./domain/courseAssignment/requireCourseAssignmentOwnershipReadAuthorization.js?v=1.1.56-assignment-ownership";
 export {
   requireExternalTaskReviewerAuthorization,
   requireExternalTaskStudentAuthorization

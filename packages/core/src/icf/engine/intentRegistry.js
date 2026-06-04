@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.55-class-ownership";
+import * as IntentExports from "../intents/intents.js?v=1.1.56-assignment-ownership";
 
 const registry = {
   // Demo Verification
@@ -16,8 +16,11 @@ const registry = {
   ArchiveCourseIntent: IntentExports.ArchiveCourseIntent,
 
   // Course Assignments
+  AssignCourseAssistantsIntent: IntentExports.AssignCourseAssistantsIntent,
+  AssignCourseTeacherIntent: IntentExports.AssignCourseTeacherIntent,
   CreateCourseAssignmentIntent: IntentExports.CreateCourseAssignmentIntent,
   ListCourseAssignmentsIntent: IntentExports.ListCourseAssignmentsIntent,
+  LoadCourseAssignmentOwnershipIntent: IntentExports.LoadCourseAssignmentOwnershipIntent,
   LoadCourseAssignmentsIntent: IntentExports.LoadCourseAssignmentsIntent,
   UpdateCourseAssignmentIntent: IntentExports.UpdateCourseAssignmentIntent,
   ArchiveCourseAssignmentIntent: IntentExports.ArchiveCourseAssignmentIntent,

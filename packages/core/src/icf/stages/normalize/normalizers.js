@@ -10,7 +10,7 @@ export { catalogCourseNormalizeTagNormalization } from "./domain/catalogCourse/c
 export { catalogCourseNormalizeLanguagesNormalization } from "./domain/catalogCourse/catalogCourseNormalizeLanguagesNormalization.js?v=1.1.54-multi-role-assistant";
 export { catalogCourseNormalizeModuleOrderNormalization } from "./domain/catalogCourse/catalogCourseNormalizeModuleOrderNormalization.js?v=1.1.54-multi-role-assistant";
 export { catalogCourseNormalizeStepOrderNormalization } from "./domain/catalogCourse/catalogCourseNormalizeStepOrderNormalization.js?v=1.1.54-multi-role-assistant";
-export { normalizeCourseAssignmentPayload, normalizeCourseAssignmentUpdatePayload, normalizeCourseAssignmentDisablePayload, normalizeCourseAssignmentListPayload } from "./domain/courseAssignment/normalizeCourseAssignmentPayload.js?v=1.1.54-multi-role-assistant";
+export { normalizeCourseAssignmentOwnershipPayload, normalizeCourseAssignmentPayload, normalizeCourseAssignmentUpdatePayload, normalizeCourseAssignmentDisablePayload, normalizeCourseAssignmentListPayload } from "./domain/courseAssignment/normalizeCourseAssignmentPayload.js?v=1.1.56-assignment-ownership";
 export {
   normalizeExternalTaskListPayload,
   normalizeExternalTaskPayload,

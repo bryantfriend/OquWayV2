@@ -85,6 +85,36 @@ export function validateCourseAssignmentUpdatePayload(executionState) {
   return { valid: true };
 }
 
+export function validateCourseAssignmentOwnershipPayload(executionState) {
+  var payload = executionState.payload || {};
+
+  if (!isNonEmptyText(payload.assignmentId || payload.id)) {
+    return {
+      valid: false,
+      errors: [
+        {
+          code: "COURSE_ASSIGNMENT_ID_REQUIRED",
+          message: "Course assignment ownership requires an assignmentId."
+        }
+      ]
+    };
+  }
+
+  if (payload.assistantIds !== undefined && payload.assistantIds !== null && payload.assistantIds !== "" && !Array.isArray(payload.assistantIds) && typeof payload.assistantIds !== "string") {
+    return {
+      valid: false,
+      errors: [
+        {
+          code: "COURSE_ASSIGNMENT_ASSISTANTS_INVALID",
+          message: "assistantIds must be a list of user IDs."
+        }
+      ]
+    };
+  }
+
+  return { valid: true };
+}
+
 function isNonEmptyText(value) {
   return typeof value === "string" && value.trim().length > 0;
 }

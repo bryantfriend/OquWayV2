@@ -151,6 +151,29 @@ service cloud.firestore {
         );
     }
 
+    function isCourseAssignmentOwnershipAdmin() {
+      return isSuperAdmin() || isPlatformAdmin() || isSchoolAdmin();
+    }
+
+    function courseAssignmentOwnershipKeys() {
+      return ["responsibleTeacherId", "assistantIds", "responsibleTeacherName", "assistantNames"];
+    }
+
+    function courseAssignmentCreateOwnershipAllowed() {
+      return isCourseAssignmentOwnershipAdmin()
+        || (
+          (!(request.resource.data.responsibleTeacherId is string) || request.resource.data.responsibleTeacherId == "")
+          && (!(request.resource.data.assistantIds is list) || request.resource.data.assistantIds.size() == 0)
+          && (!(request.resource.data.responsibleTeacherName is string) || request.resource.data.responsibleTeacherName == "")
+          && (!(request.resource.data.assistantNames is list) || request.resource.data.assistantNames.size() == 0)
+        );
+    }
+
+    function courseAssignmentUpdateOwnershipAllowed() {
+      return isCourseAssignmentOwnershipAdmin()
+        || !request.resource.data.diff(resource.data).affectedKeys().hasAny(courseAssignmentOwnershipKeys());
+    }
+
     function isStudentInTeacherClass() {
       return isTeacher()
         && user() != null
@@ -293,12 +316,19 @@ service cloud.firestore {
         isRelevantCourseAssignment()
       );
 
-      allow create, update: if request.auth != null && (
+      allow create: if request.auth != null && (
         isSuperAdmin() ||
         isPlatformAdmin() ||
         isSchoolAdmin() ||
         isCourseEditor()
-      );
+      ) && courseAssignmentCreateOwnershipAllowed();
+
+      allow update: if request.auth != null && (
+        isSuperAdmin() ||
+        isPlatformAdmin() ||
+        isSchoolAdmin() ||
+        isCourseEditor()
+      ) && courseAssignmentUpdateOwnershipAllowed();
 
       allow delete: if isSuperAdmin() || isPlatformAdmin();
     }

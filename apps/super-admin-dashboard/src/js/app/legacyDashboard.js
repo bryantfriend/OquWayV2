@@ -4,12 +4,12 @@ import { firebaseApp } from "../../../../../packages/core/src/infrastructure/fir
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 import { storage } from "../../../../../packages/core/src/infrastructure/firebase/storage.js";
 import { collection, db, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../packages/core/src/infrastructure/firebase/firestore.js";
-import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.55-class-ownership";
+import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.56-assignment-ownership";
 import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js";
 import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userRoles, userStatuses } from "../shared/constants.js?v=1.1.54-multi-role-assistant";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.55";
+var appVersion = "1.1.56";
 var adminCallableFunctions = getFunctions(firebaseApp, "us-central1");
 var state = {
   isLoading: true,
@@ -85,6 +85,13 @@ var state = {
     assignmentId: "",
     status: "",
     message: ""
+  },
+  assignmentStaffPicker: {
+    isOpen: false,
+    assignmentId: "",
+    mode: "responsible",
+    searchText: "",
+    selectedIds: []
   },
   classPicker: {
     isOpen: false,
@@ -522,6 +529,7 @@ function buildDashboardView() {
   html += buildClassStaffPickerModal();
   html += buildAssignmentCoursePickerModal();
   html += buildAssignmentTargetPickerModal();
+  html += buildAssignmentStaffPickerModal();
   html += buildAssignmentDeleteModal();
   html += buildOperationToast();
   html += '</section>';
@@ -587,6 +595,10 @@ function readOperationDetails() {
 
   if (action.indexOf("class-staff") === 0) {
     return { title: "Saving class staff", note: "Updating the class teacher and assistant assignments." };
+  }
+
+  if (action.indexOf("assignment-staff") === 0) {
+    return { title: "Saving course staff", note: "Updating the responsible teacher and assistant assignments." };
   }
 
   if (action.indexOf("create-student") === 0 || action.indexOf("update-student") === 0) {
@@ -2025,6 +2037,10 @@ function buildAssignmentForm() {
     + buildSelect("assignment", "new", "status", form.status, ["active", "paused", "archived"])
     + '<button type="button" class="sa-btn" data-action="create-assignment"' + disabled(!canCreateAssignment()) + '>' + buildButtonContent("Assign Course", "create-assignment") + '</button>'
     + '</section>';
+  html += '<section class="sa-assignment-step sa-assignment-staff-step"><span>4</span><h3>Course Staff</h3><p>Choose the course teacher and assistants for this assignment.</p>'
+    + buildAssignmentStaffSummary(form)
+    + '<div class="sa-class-staff-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="open-new-assignment-teacher-picker"' + disabled(isBusy()) + '>Assign Teacher</button><button type="button" class="sa-btn sa-btn-secondary" data-action="open-new-assignment-assistant-picker"' + disabled(isBusy()) + '>Manage Assistants</button></div>'
+    + '</section>';
 
   html += '</div>';
   return html;
@@ -2052,6 +2068,37 @@ function buildSelectedAssignmentTarget() {
   }
 
   return '<div class="sa-assignment-choice-card sa-assignment-choice-empty"><strong>No target selected</strong><small>Choose a class or an individual student in the target picker.</small></div>';
+}
+
+function buildAssignmentStaffSummary(record) {
+  var safeRecord = normalizeAssignmentOwnership(record || {});
+  var responsibleTeacher = findUser(safeRecord.responsibleTeacherId);
+  var assistants = readUsersByIds(safeRecord.assistantIds);
+  var assistantIndex = 0;
+
+  if (!responsibleTeacher && safeRecord.responsibleTeacherId && safeRecord.responsibleTeacherName) {
+    responsibleTeacher = {
+      id: safeRecord.responsibleTeacherId,
+      displayName: safeRecord.responsibleTeacherName,
+      roles: ["teacher"]
+    };
+  }
+
+  while (assistantIndex < safeRecord.assistantIds.length) {
+    if (!assistants.some(function (assistant) { return assistant.id === safeRecord.assistantIds[assistantIndex]; }) && safeRecord.assistantNames[assistantIndex]) {
+      assistants.push({
+        id: safeRecord.assistantIds[assistantIndex],
+        displayName: safeRecord.assistantNames[assistantIndex],
+        roles: ["assistant"]
+      });
+    }
+    assistantIndex = assistantIndex + 1;
+  }
+
+  return '<div class="sa-assignment-staff-summary">'
+    + buildClassStaffPanel("Teacher", responsibleTeacher ? [responsibleTeacher] : [], "No teacher assigned")
+    + buildClassStaffPanel("Assistants", assistants, "None")
+    + '</div>';
 }
 
 function buildAssignmentSummaryCards() {
@@ -2094,8 +2141,11 @@ function buildAssignmentRows() {
     html += '<article class="sa-assignment-row">';
     html += '<div><strong>' + escapeHtml(readCourseName(assignment.courseId)) + '</strong><small>Course ID: ' + escapeHtml(assignment.courseId) + '</small></div>';
     html += '<div><span class="sa-pill">' + escapeHtml(assignment.targetType || "class") + '</span><strong>' + escapeHtml(targetLabel) + '</strong><small>' + escapeHtml(readAssignmentScopeLine(assignment)) + '</small></div>';
+    html += '<div class="sa-assignment-staff-cell">' + buildAssignmentStaffSummary(assignment) + '</div>';
     html += '<div><span class="sa-status sa-status-' + escapeHtml(assignment.status || "active") + '">' + escapeHtml(assignment.status || "active") + '</span><small>Assigned: ' + escapeHtml(assignedDate || "unknown") + '</small></div>';
     html += '<div class="sa-row-actions">';
+    html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="open-assignment-teacher-picker" data-id="' + escapeHtml(assignment.id) + '"' + disabled(isBusy()) + '>Assign Teacher</button>';
+    html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="open-assignment-assistant-picker" data-id="' + escapeHtml(assignment.id) + '"' + disabled(isBusy()) + '>Manage Assistants</button>';
     html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="view-assignment" data-id="' + escapeHtml(assignment.id) + '"' + disabled(isBusy()) + '>' + buildButtonContent("View", "view-assignment:" + assignment.id) + '</button>';
     html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="pause-assignment" data-id="' + escapeHtml(assignment.id) + '"' + disabled(isBusy() || assignment.status === "disabled") + '>' + buildButtonContent("Disable", "pause-assignment:" + assignment.id) + '</button>';
     html += '<button type="button" class="sa-btn sa-danger-btn" data-action="open-delete-assignment" data-id="' + escapeHtml(assignment.id) + '"' + disabled(isBusy()) + '>Delete</button>';
@@ -2462,6 +2512,43 @@ function buildAssignmentTargetPickerModal() {
   return html;
 }
 
+function buildAssignmentStaffPickerModal() {
+  var picker = state.assignmentStaffPicker;
+
+  if (!picker || !picker.isOpen) {
+    return "";
+  }
+
+  var assignment = picker.assignmentId === "new" ? state.assignmentForm : findAssignment(picker.assignmentId);
+  var users = readAssignmentStaffPickerUsers(picker, assignment || {});
+  var isResponsible = picker.mode === "responsible";
+  var title = isResponsible ? "Assign Teacher" : "Manage Assistants";
+  var assignmentLabel = assignment && assignment.courseId ? readCourseName(assignment.courseId) : "New assignment";
+  var html = '<div class="sa-modal-backdrop sa-assignment-staff-backdrop"><section class="sa-modal sa-class-staff-modal" role="dialog" aria-modal="true">';
+
+  html += '<div class="sa-section-title"><div><p class="sa-eyebrow">Course Staff</p><h2>' + escapeHtml(title) + '</h2><p>' + escapeHtml(assignmentLabel) + '</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="close-assignment-staff-picker">Close</button></div>';
+  html += '<div class="sa-form"><label>Search<input type="search" data-assignment-staff-picker-search="true" value="' + escapeHtml(picker.searchText) + '" placeholder="Search name, role, location, or email"></label></div>';
+  html += '<div class="sa-staff-picker-list">';
+
+  if (users.length === 0) {
+    html += '<div class="sa-empty"><strong>No staff found.</strong><span>Try a different search or confirm the user has teacher or assistant role.</span></div>';
+  } else {
+    users.forEach(function (user) {
+      var selectedUser = getSafeUser(user);
+      var isSelected = picker.selectedIds.indexOf(selectedUser.id) !== -1;
+      html += '<button type="button" class="sa-staff-picker-row' + (isSelected ? ' is-selected' : '') + '" data-assignment-staff-picker-id="' + escapeHtml(selectedUser.id) + '">'
+        + buildStaffChip(selectedUser)
+        + '<span class="sa-staff-picker-meta">' + escapeHtml(readUserLocationSummary(selectedUser)) + '</span>'
+        + '<small>' + escapeHtml(selectedUser.email || "No email") + '</small>'
+        + '<em>' + (isSelected ? "Selected" : (isResponsible ? "Assign" : "Add")) + '</em>'
+        + '</button>';
+    });
+  }
+
+  html += '</div><div class="sa-modal-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="close-assignment-staff-picker">Cancel</button><button type="button" class="sa-btn" data-action="save-assignment-staff-picker" data-id="' + escapeHtml(picker.assignmentId) + '"' + disabled(isResponsible && picker.selectedIds.length > 1) + '>' + buildButtonContent(isResponsible ? "Save Teacher" : "Save Assistants", "assignment-staff:" + picker.assignmentId) + '</button></div></section></div>';
+  return html;
+}
+
 function buildAssignmentDeleteModal() {
   var modal = state.assignmentDelete;
 
@@ -2512,6 +2599,7 @@ function handleClick(event) {
   var fruitActionButton = event.target.closest("[data-fruit-action]");
   var classPickerButton = event.target.closest("[data-class-picker-id]");
   var classStaffPickerButton = event.target.closest("[data-class-staff-picker-id]");
+  var assignmentStaffPickerButton = event.target.closest("[data-assignment-staff-picker-id]");
 
   if (tabButton) {
     var requestedTab = tabButton.getAttribute("data-tab");
@@ -2539,6 +2627,11 @@ function handleClick(event) {
 
   if (classStaffPickerButton) {
     toggleClassStaffSelection(classStaffPickerButton.getAttribute("data-class-staff-picker-id"));
+    return;
+  }
+
+  if (assignmentStaffPickerButton) {
+    toggleAssignmentStaffSelection(assignmentStaffPickerButton.getAttribute("data-assignment-staff-picker-id"));
     return;
   }
 
@@ -2613,6 +2706,12 @@ function handleInput(event) {
 
   if (target.getAttribute("data-assignment-target-picker-check")) {
     updateAssignmentTargetPicker(target.getAttribute("data-assignment-target-picker-check"), target.checked);
+    return;
+  }
+
+  if (target.getAttribute("data-assignment-staff-picker-search")) {
+    state.assignmentStaffPicker.searchText = target.value;
+    render();
     return;
   }
 
@@ -3213,6 +3312,18 @@ async function handleAction(action, id) {
     selectAssignmentClass(id);
   } else if (action === "select-assignment-student") {
     selectAssignmentStudent(id);
+  } else if (action === "open-new-assignment-teacher-picker") {
+    openAssignmentStaffPicker("new", "responsible");
+  } else if (action === "open-new-assignment-assistant-picker") {
+    openAssignmentStaffPicker("new", "assistants");
+  } else if (action === "open-assignment-teacher-picker") {
+    openAssignmentStaffPicker(id, "responsible");
+  } else if (action === "open-assignment-assistant-picker") {
+    openAssignmentStaffPicker(id, "assistants");
+  } else if (action === "close-assignment-staff-picker") {
+    closeAssignmentStaffPicker();
+  } else if (action === "save-assignment-staff-picker") {
+    await saveAssignmentStaffPicker();
   } else if (action === "open-reset-fruit") {
     if (id) {
       openFruitPasswordReset(id);
@@ -3688,6 +3799,108 @@ function selectAssignmentStudent(studentId) {
   setState({ message: "Student target selected.", messageType: "success" });
 }
 
+function openAssignmentStaffPicker(assignmentId, mode) {
+  var record = assignmentId === "new" ? state.assignmentForm : findAssignment(assignmentId);
+  var ownership = normalizeAssignmentOwnership(record || {});
+  var selectedIds = mode === "assistants"
+    ? ownership.assistantIds.slice()
+    : (ownership.responsibleTeacherId ? [ownership.responsibleTeacherId] : []);
+
+  state.assignmentStaffPicker = {
+    isOpen: true,
+    assignmentId: assignmentId || "new",
+    mode: mode === "assistants" ? "assistants" : "responsible",
+    searchText: "",
+    selectedIds: selectedIds
+  };
+  render();
+}
+
+function closeAssignmentStaffPicker() {
+  state.assignmentStaffPicker = {
+    isOpen: false,
+    assignmentId: "",
+    mode: "responsible",
+    searchText: "",
+    selectedIds: []
+  };
+  render();
+}
+
+function toggleAssignmentStaffSelection(userId) {
+  var picker = state.assignmentStaffPicker;
+  var selectedIds = picker.selectedIds.slice();
+  var index = selectedIds.indexOf(userId);
+
+  if (picker.mode === "responsible") {
+    selectedIds = index === -1 ? [userId] : [];
+  } else if (index === -1) {
+    selectedIds.push(userId);
+  } else {
+    selectedIds.splice(index, 1);
+  }
+
+  state.assignmentStaffPicker = Object.assign({}, picker, { selectedIds: selectedIds });
+  render();
+}
+
+async function saveAssignmentStaffPicker() {
+  var picker = state.assignmentStaffPicker;
+  var record = picker.assignmentId === "new" ? state.assignmentForm : findAssignment(picker.assignmentId);
+  var ownership = normalizeAssignmentOwnership(record || {});
+  var payload = {};
+  var saved = false;
+
+  if (!picker.assignmentId) {
+    closeAssignmentStaffPicker();
+    return;
+  }
+
+  if (picker.mode === "responsible") {
+    ownership.responsibleTeacherId = picker.selectedIds[0] || "";
+    ownership.assistantIds = normalizeAssignmentAssistantIds(ownership.assistantIds, ownership.responsibleTeacherId);
+  } else {
+    ownership.assistantIds = normalizeAssignmentAssistantIds(picker.selectedIds, ownership.responsibleTeacherId);
+  }
+
+  ownership = applyAssignmentStaffDisplayFields(ownership);
+
+  if (picker.assignmentId === "new") {
+    Object.assign(state.assignmentForm, ownership);
+    closeAssignmentStaffPicker();
+    setState({ message: "Course staff selected. Review and assign when ready.", messageType: "success" });
+    return;
+  }
+
+  payload = Object.assign({ assignmentId: picker.assignmentId }, ownership);
+  saved = await saveIntent(picker.mode === "responsible" ? "AssignCourseTeacherIntent" : "AssignCourseAssistantsIntent", payload, "Course assignment staff saved.");
+
+  if (saved) {
+    closeAssignmentStaffPicker();
+    await refreshAllData();
+  }
+}
+
+function readAssignmentStaffPickerUsers(picker, assignment) {
+  var query = readSafeString(picker.searchText).toLowerCase();
+  var assignmentLocationId = readSafeString(assignment.locationId);
+
+  return state.users.map(getSafeUser).filter(function (user) {
+    var eligible = picker.mode === "responsible"
+      ? user.roles.indexOf("teacher") !== -1
+      : user.roles.indexOf("teacher") !== -1 || user.roles.indexOf("assistant") !== -1;
+    var text = [user.displayName, user.email, user.id, user.roles.join(" "), readUserLocationSummary(user), readUserClassSummary(user)].join(" ").toLowerCase();
+
+    return eligible
+      && user.status === "active"
+      && isVisibleUserProfile(user)
+      && (!assignmentLocationId || user.locationIds.length === 0 || user.locationIds.indexOf(assignmentLocationId) !== -1 || user.roles.indexOf("platformAdmin") !== -1 || user.roles.indexOf("superAdmin") !== -1)
+      && (!query || text.indexOf(query) !== -1);
+  }).sort(function (a, b) {
+    return (a.displayName || a.email || a.id).localeCompare(b.displayName || b.email || b.id);
+  });
+}
+
 function openDeleteAssignmentModal(assignmentId) {
   setState({
     assignmentDelete: {
@@ -4149,6 +4362,7 @@ function readSaveIntentActionKey(intentType, payload) {
   if (intentType === "CreateClassIntent") return "create-class:new";
   if (intentType === "UpdateClassIntent") return "update-class:" + readSafeString(payload.classId || payload.id);
   if (intentType === "AssignClassTeacherIntent" || intentType === "AssignClassAssistantsIntent") return "class-staff:" + readSafeString(payload.classId || payload.id);
+  if (intentType === "AssignCourseTeacherIntent" || intentType === "AssignCourseAssistantsIntent") return "assignment-staff:" + readSafeString(payload.assignmentId || payload.id);
   if (intentType === "CreateStudentIntent") return "create-student:new";
   if (intentType === "UpdateStudentIntent") return "update-student:" + readSafeString(payload.studentId || payload.id);
   return "save-intent:" + readSafeString(intentType || "admin");
@@ -4414,7 +4628,11 @@ function createAssignmentForm() {
     status: "active",
     startsAt: null,
     dueAt: null,
-    visibility: "visible"
+    visibility: "visible",
+    responsibleTeacherId: "",
+    assistantIds: [],
+    responsibleTeacherName: "",
+    assistantNames: []
   };
 }
 
@@ -6904,8 +7122,51 @@ function buildAssignmentPayload(form) {
   payload.targetId = form.targetType === "student" ? form.studentId : form.classId;
   payload.assignmentType = payload.assignmentType || "course";
   payload.visibility = payload.visibility || "visible";
+  payload = Object.assign(payload, applyAssignmentStaffDisplayFields(payload));
 
   return payload;
+}
+
+function normalizeAssignmentOwnership(record) {
+  var responsibleTeacherId = readSafeString(record.responsibleTeacherId || record.teacherId || record.teacherUid);
+  var assistantIds = normalizeAssignmentAssistantIds([
+    record.assistantIds,
+    record.teacherIds
+  ], responsibleTeacherId);
+
+  return {
+    responsibleTeacherId: responsibleTeacherId,
+    assistantIds: assistantIds,
+    responsibleTeacherName: readSafeString(record.responsibleTeacherName || readUserDisplayName(responsibleTeacherId)),
+    assistantNames: Array.isArray(record.assistantNames) ? record.assistantNames : assistantIds.map(readUserDisplayName)
+  };
+}
+
+function normalizeAssignmentAssistantIds(value, responsibleTeacherId) {
+  var ids = [];
+  var responsibleId = readSafeString(responsibleTeacherId);
+
+  addAssistantIdSources(ids, value);
+
+  return ids.filter(function (assistantId) {
+    return assistantId && assistantId !== responsibleId;
+  });
+}
+
+function applyAssignmentStaffDisplayFields(record) {
+  var safeRecord = Object.assign({}, record || {});
+
+  safeRecord.responsibleTeacherId = readSafeString(safeRecord.responsibleTeacherId);
+  safeRecord.assistantIds = normalizeAssignmentAssistantIds(safeRecord.assistantIds, safeRecord.responsibleTeacherId);
+  safeRecord.responsibleTeacherName = readUserDisplayName(safeRecord.responsibleTeacherId);
+  safeRecord.assistantNames = safeRecord.assistantIds.map(readUserDisplayName);
+
+  return {
+    responsibleTeacherId: safeRecord.responsibleTeacherId,
+    assistantIds: safeRecord.assistantIds,
+    responsibleTeacherName: safeRecord.responsibleTeacherName,
+    assistantNames: safeRecord.assistantNames
+  };
 }
 
 function readAssignmentStudentName(studentId) {

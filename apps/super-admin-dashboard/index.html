@@ -1513,9 +1513,25 @@
 
         .sa-assignment-row {
             display: grid;
-            grid-template-columns: 1.3fr 1.2fr 0.8fr auto;
+            grid-template-columns: 1.2fr 1.05fr 1.25fr 0.75fr auto;
             gap: 14px;
             align-items: center;
+        }
+
+        .sa-assignment-staff-summary {
+            display: grid;
+            gap: 8px;
+        }
+
+        .sa-assignment-staff-cell .sa-class-staff-panel,
+        .sa-assignment-staff-step .sa-class-staff-panel {
+            min-height: 0;
+            padding: 10px;
+        }
+
+        .sa-assignment-staff-cell .sa-staff-chip,
+        .sa-assignment-staff-step .sa-staff-chip {
+            min-width: 0;
         }
 
         .sa-assignment-row small,
@@ -2634,6 +2650,7 @@
             }
 
             .sa-action-item,
+            .sa-assignment-row,
             .sa-health-row,
             .sa-feed-row,
             .sa-roadmap-row,
@@ -3524,7 +3541,7 @@
         <h1>Core System Configuration</h1>
         <p>Managing the heart of the national educational engine...</p>
     </main>
-    <script type="module" src="./src/main.js?v=1.1.55-class-ownership"></script>
+    <script type="module" src="./src/main.js?v=1.1.56-assignment-ownership"></script>
 </body>
 
 </html>

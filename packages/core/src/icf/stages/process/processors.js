@@ -21,11 +21,12 @@ export { catalogStepDeleteProcessing } from "./domain/catalogCourse/catalogStepD
 export { catalogStepReorderProcessing } from "./domain/catalogCourse/catalogStepReorderProcessing.js?v=1.1.54-multi-role-assistant";
 export { catalogStepUpdateProcessing } from "./domain/catalogCourse/catalogStepUpdateProcessing.js?v=1.1.54-multi-role-assistant";
 export { processArchiveCourseAssignment } from "./domain/courseAssignment/processArchiveCourseAssignment.js?v=1.1.54-multi-role-assistant";
-export { processCreateCourseAssignment } from "./domain/courseAssignment/processCreateCourseAssignment.js?v=1.1.54-multi-role-assistant";
+export { processAssignCourseAssistants, processAssignCourseTeacher, processLoadCourseAssignmentOwnership } from "./domain/courseAssignment/processCourseAssignmentOwnership.js?v=1.1.56-assignment-ownership";
+export { processCreateCourseAssignment } from "./domain/courseAssignment/processCreateCourseAssignment.js?v=1.1.56-assignment-ownership";
 export { processDeleteCourseAssignment } from "./domain/courseAssignment/processDeleteCourseAssignment.js?v=1.1.54-multi-role-assistant";
 export { processDisableCourseAssignment } from "./domain/courseAssignment/processDisableCourseAssignment.js?v=1.1.54-multi-role-assistant";
-export { processLoadCourseAssignments } from "./domain/courseAssignment/processLoadCourseAssignments.js?v=1.1.54-multi-role-assistant";
-export { processListCourseAssignments } from "./domain/courseAssignment/processListCourseAssignments.js?v=1.1.54-multi-role-assistant";
+export { processLoadCourseAssignments } from "./domain/courseAssignment/processLoadCourseAssignments.js?v=1.1.56-assignment-ownership";
+export { processListCourseAssignments } from "./domain/courseAssignment/processListCourseAssignments.js?v=1.1.56-assignment-ownership";
 export { processUpdateCourseAssignment } from "./domain/courseAssignment/processUpdateCourseAssignment.js?v=1.1.54-multi-role-assistant";
 export {
   processLoadExternalTaskStep,
