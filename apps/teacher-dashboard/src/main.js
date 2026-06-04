@@ -1,4 +1,4 @@
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.42-teacher-scoped-queries";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.47-teacher-svg-motion";
 
 var app = document.getElementById("app");
 var state = {
@@ -282,9 +282,181 @@ function render() {
   app.innerHTML = buildDashboardView();
 }
 
+function buildTeacherLoadingSvg() {
+  return '<svg class="teacher-svg teacher-loading-svg" viewBox="0 0 240 170" role="img" aria-label="Opening your classroom">'
+    + '<path class="teacher-svg-track" d="M28 122 C58 72 95 145 128 94 C154 56 184 65 214 36"></path>'
+    + '<g class="teacher-svg-card card-a"><rect x="46" y="92" width="52" height="42" rx="8"></rect><path d="M58 108h28M58 119h20"></path></g>'
+    + '<g class="teacher-svg-card card-b"><rect x="104" y="64" width="52" height="42" rx="8"></rect><path d="M116 80h28M116 91h18"></path></g>'
+    + '<g class="teacher-svg-card card-c"><rect x="160" y="38" width="52" height="42" rx="8"></rect><path d="M172 54h28M172 65h16"></path></g>'
+    + '<circle class="teacher-svg-dot dot-a" cx="51" cy="122" r="6"></circle>'
+    + '<circle class="teacher-svg-dot dot-b" cx="128" cy="94" r="6"></circle>'
+    + '<circle class="teacher-svg-dot dot-c" cx="214" cy="36" r="6"></circle>'
+    + '<path class="teacher-svg-spark spark-a" d="M72 38v14M65 45h14"></path>'
+    + '<path class="teacher-svg-spark spark-b" d="M194 105v14M187 112h14"></path>'
+    + '</svg>';
+}
+
+function buildMiniLogoSvg() {
+  return '<svg class="teacher-mini-logo teacher-svg" viewBox="0 0 44 44" aria-hidden="true">'
+    + '<rect x="5" y="5" width="34" height="34" rx="8"></rect>'
+    + '<path class="teacher-svg-draw" d="M14 25c6-12 16-12 22 0"></path>'
+    + '<circle class="teacher-svg-pulse" cx="22" cy="20" r="4"></circle>'
+    + '</svg>';
+}
+
+function buildLoginHeroSvg() {
+  return '<svg class="teacher-login-hero-svg teacher-svg" viewBox="0 0 360 210" aria-hidden="true">'
+    + '<path class="teacher-hero-path" d="M32 155 C88 82 140 186 202 96 C238 44 278 62 328 34"></path>'
+    + '<g class="teacher-hero-board"><rect x="46" y="52" width="132" height="86" rx="8"></rect><path d="M66 78h72M66 98h46M66 118h86"></path></g>'
+    + '<g class="teacher-hero-card hero-card-one"><rect x="208" y="82" width="82" height="58" rx="8"></rect><path d="M224 104h38M224 120h28"></path></g>'
+    + '<g class="teacher-hero-card hero-card-two"><rect x="242" y="28" width="70" height="48" rx="8"></rect><path d="M258 48h28M258 61h18"></path></g>'
+    + '<circle class="teacher-hero-orbit" cx="94" cy="162" r="10"></circle>'
+    + '<circle class="teacher-hero-orbit orbit-delay" cx="306" cy="96" r="7"></circle>'
+    + '<path class="teacher-svg-spark spark-a" d="M198 40v18M189 49h18"></path>'
+    + '<path class="teacher-svg-spark spark-b" d="M64 28v14M57 35h14"></path>'
+    + '</svg>';
+}
+
+function buildTeacherBackdropSvg() {
+  return '<svg class="teacher-backdrop-svg teacher-svg" viewBox="0 0 1180 260" aria-hidden="true">'
+    + '<path class="teacher-backdrop-line line-one" d="M12 206 C210 42 350 254 514 104 C700 -66 806 198 1170 46"></path>'
+    + '<path class="teacher-backdrop-line line-two" d="M18 86 C232 206 348 10 530 154 C708 295 888 68 1168 170"></path>'
+    + '<circle class="teacher-backdrop-dot dot-a" cx="174" cy="92" r="10"></circle>'
+    + '<circle class="teacher-backdrop-dot dot-b" cx="628" cy="86" r="8"></circle>'
+    + '<circle class="teacher-backdrop-dot dot-c" cx="1018" cy="146" r="12"></circle>'
+    + '</svg>';
+}
+
+function buildHeaderSceneSvg() {
+  return '<svg class="teacher-header-scene-svg teacher-svg" viewBox="0 0 220 90" aria-hidden="true">'
+    + '<path class="teacher-header-path" d="M12 64 C58 16 92 80 128 38 C150 14 178 22 210 12"></path>'
+    + '<g class="teacher-header-book book-one"><rect x="26" y="42" width="38" height="36" rx="5"></rect><path d="M36 53h16M36 64h12"></path></g>'
+    + '<g class="teacher-header-book book-two"><rect x="82" y="25" width="38" height="36" rx="5"></rect><path d="M92 36h16M92 47h12"></path></g>'
+    + '<g class="teacher-header-book book-three"><rect x="142" y="18" width="42" height="38" rx="5"></rect><path d="M153 31h18M153 42h14"></path></g>'
+    + '<circle class="teacher-svg-pulse" cx="203" cy="13" r="6"></circle>'
+    + '</svg>';
+}
+
+function buildMetricSvg(tone) {
+  var safeTone = tone === "students" || tone === "reviews" ? tone : "classes";
+
+  return '<svg class="teacher-metric-svg teacher-svg teacher-metric-svg-' + safeTone + '" viewBox="0 0 82 82" aria-hidden="true">'
+    + '<circle class="teacher-metric-ring" cx="41" cy="41" r="31"></circle>'
+    + '<path class="teacher-metric-path" d="' + readMetricPath(safeTone) + '"></path>'
+    + '<circle class="teacher-metric-satellite" cx="62" cy="23" r="5"></circle>'
+    + '</svg>';
+}
+
+function readMetricPath(tone) {
+  if (tone === "students") {
+    return 'M24 55c4-11 11-16 17-16s13 5 17 16M31 29a10 10 0 1 0 20 0a10 10 0 1 0-20 0';
+  }
+
+  if (tone === "reviews") {
+    return 'M25 42l10 10l22-26M22 59h36';
+  }
+
+  return 'M25 25h32v36H25zM33 35h16M33 45h22M33 55h12';
+}
+
+function buildSectionGlyphSvg(kind) {
+  var safeKind = kind === "students" || kind === "reviews" ? kind : "classes";
+
+  return '<svg class="teacher-section-glyph teacher-svg teacher-section-glyph-' + safeKind + '" viewBox="0 0 58 58" aria-hidden="true">'
+    + '<rect x="8" y="8" width="42" height="42" rx="8"></rect>'
+    + '<path class="teacher-svg-draw" d="' + readSectionGlyphPath(safeKind) + '"></path>'
+    + '<circle class="teacher-svg-pulse" cx="44" cy="14" r="4"></circle>'
+    + '</svg>';
+}
+
+function readSectionGlyphPath(kind) {
+  if (kind === "students") {
+    return 'M18 40c3-8 8-12 11-12s8 4 11 12M21 21a8 8 0 1 0 16 0a8 8 0 1 0-16 0';
+  }
+
+  if (kind === "reviews") {
+    return 'M17 30l8 8l18-20M18 44h25';
+  }
+
+  return 'M18 18h24v24H18zM24 27h16M24 35h10';
+}
+
+function buildEmptyState(kind, title, note) {
+  return '<div class="teacher-empty teacher-empty-visual">'
+    + buildEmptyStateSvg(kind)
+    + '<div><strong>' + escapeHtml(title) + '</strong><span>' + escapeHtml(note) + '</span></div>'
+    + '</div>';
+}
+
+function buildEmptyStateSvg(kind) {
+  var safeKind = kind === "students" || kind === "reviews" ? kind : "classes";
+
+  return '<svg class="teacher-empty-illustration teacher-svg teacher-empty-illustration-' + safeKind + '" viewBox="0 0 120 92" aria-hidden="true">'
+    + '<path class="teacher-empty-path" d="M18 66 C34 28 50 82 68 44 C80 18 96 35 108 24"></path>'
+    + '<rect class="teacher-empty-card card-a" x="20" y="38" width="34" height="28" rx="6"></rect>'
+    + '<rect class="teacher-empty-card card-b" x="60" y="22" width="34" height="28" rx="6"></rect>'
+    + '<circle class="teacher-svg-pulse" cx="101" cy="25" r="5"></circle>'
+    + '</svg>';
+}
+
+function buildClassRouteSvg(seed) {
+  var label = String(seed || "class").slice(0, 2).toUpperCase();
+
+  return '<svg class="teacher-class-route-svg teacher-svg" viewBox="0 0 76 44" aria-hidden="true">'
+    + '<path class="teacher-class-route" d="M8 31 C22 8 38 42 52 20 C58 10 64 8 70 7"></path>'
+    + '<circle class="teacher-class-node node-a" cx="10" cy="31" r="5"></circle>'
+    + '<circle class="teacher-class-node node-b" cx="52" cy="20" r="5"></circle>'
+    + '<rect x="24" y="12" width="22" height="18" rx="5"></rect>'
+    + '<text x="35" y="25" text-anchor="middle">' + escapeHtml(label) + '</text>'
+    + '</svg>';
+}
+
+function buildStudentPulseSvg(needsReview) {
+  return '<svg class="teacher-student-pulse-svg teacher-svg' + (needsReview ? " needs-review" : "") + '" viewBox="0 0 64 34" aria-hidden="true">'
+    + '<path class="teacher-student-wave" d="M4 18h10l5-10l8 20l7-14h10l5-8l7 12h6"></path>'
+    + '<circle class="teacher-student-pulse-dot" cx="' + (needsReview ? "50" : "42") + '" cy="' + (needsReview ? "12" : "18") + '" r="4"></circle>'
+    + '</svg>';
+}
+
+function buildSubmissionRibbonSvg() {
+  return '<svg class="teacher-submission-ribbon teacher-svg" viewBox="0 0 124 38" aria-hidden="true">'
+    + '<path class="teacher-ribbon-path" d="M6 26 C26 2 54 38 78 16 C92 4 106 8 118 14"></path>'
+    + '<rect x="14" y="9" width="28" height="20" rx="5"></rect>'
+    + '<rect x="50" y="12" width="28" height="20" rx="5"></rect>'
+    + '<circle class="teacher-svg-pulse" cx="108" cy="14" r="5"></circle>'
+    + '</svg>';
+}
+
+function buildReviewButtonSvg(status) {
+  var path = 'M13 17l5 5l11-13';
+
+  if (status === "needsWork") {
+    path = 'M18 25v-2c0-4 8-4 8-10c0-4-3-7-8-7c-4 0-7 2-8 5M18 31h.1';
+  }
+
+  if (status === "incomplete") {
+    path = 'M11 11l18 18M29 11L11 29';
+  }
+
+  return '<svg class="teacher-review-icon teacher-svg" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16"></circle><path d="' + path + '"></path></svg>';
+}
+
+function buildSavingSvg() {
+  return '<svg class="teacher-saving-icon teacher-svg" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="14"></circle><path d="M20 6a14 14 0 0 1 14 14"></path></svg>';
+}
+
+function buildFileSvg(kind) {
+  var safeKind = kind === "empty" ? "empty" : "file";
+
+  return '<svg class="teacher-file-icon teacher-svg teacher-file-icon-' + safeKind + '" viewBox="0 0 48 48" aria-hidden="true">'
+    + '<path d="M14 6h16l8 8v28H14z"></path>'
+    + '<path class="teacher-svg-draw" d="M30 6v10h10M20 25h16M20 32h10"></path>'
+    + '</svg>';
+}
+
 function buildLoadingView() {
   return '<main class="teacher-shell teacher-center">'
-    + '<div class="teacher-loader" aria-hidden="true"><span></span><span></span><span></span></div>'
+    + buildTeacherLoadingSvg()
     + '<h1>Opening your classroom...</h1>'
     + '<p>' + escapeHtml(state.message || "Loading Teacher Dashboard.") + '</p>'
     + '</main>';
@@ -293,7 +465,7 @@ function buildLoadingView() {
 function buildLoginView() {
   return '<main class="teacher-login-shell">'
     + '<section class="teacher-login-panel">'
-    + '<div class="teacher-brand"><span>OquWay</span><strong>Teacher Dashboard</strong></div>'
+    + '<div class="teacher-brand">' + buildMiniLogoSvg() + '<strong>Teacher Dashboard</strong></div>'
     + '<h1>Classroom command center</h1>'
     + '<p>Sign in with your teacher email to review student work and manage assigned classes.</p>'
     + buildStatusMessages()
@@ -308,6 +480,7 @@ function buildLoginView() {
     + '</form>'
     + '</section>'
     + '<aside class="teacher-login-aside">'
+    + buildLoginHeroSvg()
     + '<div><strong>Review-ready MVP</strong><span>Classes, students, and External Task submissions in one focused view.</span></div>'
     + '<div><strong>Teacher scoped</strong><span>Teachers see assigned classes only. Admin roles keep broader access.</span></div>'
     + '</aside>'
@@ -316,6 +489,7 @@ function buildLoginView() {
 
 function buildDashboardView() {
   return '<main class="teacher-dashboard-shell">'
+    + buildTeacherBackdropSvg()
     + buildHeader()
     + buildStatusMessages()
     + buildMetrics()
@@ -333,6 +507,7 @@ function buildHeader() {
   return '<header class="teacher-header">'
     + '<div><p>Teacher Dashboard</p><h1>' + escapeHtml(teacher.name || "Teacher") + '</h1>'
     + '<span>' + escapeHtml(teacher.locationName || "Assigned school") + '</span></div>'
+    + buildHeaderSceneSvg()
     + '<div class="teacher-header-actions"><span class="teacher-role-badge">' + escapeHtml(teacher.roleLabel || "Teacher") + '</span>'
     + '<button type="button" class="teacher-secondary-btn" data-action="refresh">Refresh</button>'
     + '<button type="button" class="teacher-secondary-btn" data-action="logout">Sign Out</button></div>'
@@ -343,29 +518,32 @@ function buildMetrics() {
   var summary = state.summary || {};
 
   return '<section class="teacher-metrics">'
-    + buildMetricCard(summary.classCount || state.classes.length, "Classes")
-    + buildMetricCard(summary.studentCount || state.students.length, "Students")
-    + buildMetricCard(summary.pendingSubmissionsCount || countPending(state.submissions), "Pending Reviews")
+    + buildMetricCard(summary.classCount || state.classes.length, "Classes", "classes")
+    + buildMetricCard(summary.studentCount || state.students.length, "Students", "students")
+    + buildMetricCard(summary.pendingSubmissionsCount || countPending(state.submissions), "Pending Reviews", "reviews")
     + '</section>';
 }
 
-function buildMetricCard(value, label) {
-  return '<article class="teacher-metric"><strong>' + escapeHtml(String(value)) + '</strong><span>' + escapeHtml(label) + '</span></article>';
+function buildMetricCard(value, label, tone) {
+  return '<article class="teacher-metric teacher-metric-' + escapeHtml(tone) + '">'
+    + buildMetricSvg(tone)
+    + '<strong>' + escapeHtml(String(value)) + '</strong><span>' + escapeHtml(label) + '</span></article>';
 }
 
 function buildClassCards() {
   var classes = state.classes || [];
-  var html = '<section class="teacher-card-section"><div class="teacher-section-title"><h2>Classes</h2><p>Assigned classroom groups</p></div>';
+  var html = '<section class="teacher-card-section"><div class="teacher-section-title"><div><h2>Classes</h2><p>Assigned classroom groups</p></div>' + buildSectionGlyphSvg("classes") + '</div>';
 
   if (classes.length === 0) {
-    return html + '<div class="teacher-empty"><strong>No classes assigned to this teacher.</strong><span>Ask an admin to add class IDs to this teacher profile.</span></div></section>';
+    return html + buildEmptyState("classes", "No classes assigned to this teacher.", "Ask an admin to add class IDs to this teacher profile.") + '</section>';
   }
 
   html += '<div class="teacher-class-list"><button type="button" class="teacher-class-card' + (!state.selectedClassId ? " active" : "") + '" data-class-id="">'
-    + '<strong>All assigned classes</strong><span>' + classes.length + ' classes</span></button>';
+    + buildClassRouteSvg("all") + '<strong>All assigned classes</strong><span>' + classes.length + ' classes</span></button>';
 
   classes.forEach(function (classRecord) {
     html += '<button type="button" class="teacher-class-card' + (state.selectedClassId === classRecord.id ? " active" : "") + '" data-class-id="' + escapeHtml(classRecord.id) + '">'
+      + buildClassRouteSvg(classRecord.id || classRecord.name || "class")
       + '<strong>' + escapeHtml(classRecord.name) + '</strong>'
       + '<span>' + escapeHtml(classRecord.locationName || "Assigned location") + '</span>'
       + '<small>' + classRecord.studentCount + ' students | ' + classRecord.assignedCoursesCount + ' courses | ' + classRecord.pendingSubmissionsCount + ' pending</small>'
@@ -377,10 +555,10 @@ function buildClassCards() {
 
 function buildStudentsView() {
   var students = filterStudentsForSelectedClass(state.students || []);
-  var html = '<section class="teacher-card-section"><div class="teacher-section-title"><h2>Students</h2><p>Progress and review signals</p></div>';
+  var html = '<section class="teacher-card-section"><div class="teacher-section-title"><div><h2>Students</h2><p>Progress and review signals</p></div>' + buildSectionGlyphSvg("students") + '</div>';
 
   if (students.length === 0) {
-    return html + '<div class="teacher-empty"><strong>No students found.</strong><span>Students assigned to this class will appear here.</span></div></section>';
+    return html + buildEmptyState("students", "No students found.", "Students assigned to this class will appear here.") + '</section>';
   }
 
   html += '<div class="teacher-student-list">';
@@ -388,6 +566,7 @@ function buildStudentsView() {
     html += '<article class="teacher-student-row">'
       + '<div class="teacher-avatar">' + buildStudentAvatar(student) + '</div>'
       + '<div><strong>' + escapeHtml(student.name) + '</strong><span>' + escapeHtml(student.currentCourseProgress || "No progress yet") + '</span></div>'
+      + buildStudentPulseSvg(student.pendingSubmissionsCount > 0)
       + '<div><span>' + escapeHtml(formatDate(student.lastActiveAt) || "No recent activity") + '</span><small>' + student.pendingSubmissionsCount + ' pending</small></div>'
       + '<b class="' + (student.pendingSubmissionsCount > 0 ? "needs-review" : "steady") + '">' + (student.pendingSubmissionsCount > 0 ? "Needs review" : "Steady") + '</b>'
       + '</article>';
@@ -399,7 +578,7 @@ function buildStudentsView() {
 function buildReviewQueue() {
   var submissions = state.submissions || [];
   var html = '<section class="teacher-review-section">'
-    + '<div class="teacher-section-title"><h2>Review Queue</h2><p>External Task submissions from assigned classes</p></div>'
+    + '<div class="teacher-section-title"><div><h2>Review Queue</h2><p>External Task submissions from assigned classes</p></div>' + buildSectionGlyphSvg("reviews") + '</div>'
     + '<div class="teacher-filters">'
     + '<label>Class<select id="reviewClassFilter"><option value="">All assigned classes</option>' + buildClassOptions() + '</select></label>'
     + '<label>Status<select id="reviewStatusFilter">'
@@ -411,7 +590,7 @@ function buildReviewQueue() {
     + '</div>';
 
   if (submissions.length === 0) {
-    return html + '<div class="teacher-empty"><strong>No pending submissions yet.</strong><span>External Task uploads for this filter will appear here.</span></div></section>';
+    return html + buildEmptyState("reviews", "No pending submissions yet.", "External Task uploads for this filter will appear here.") + '</section>';
   }
 
   html += '<div class="teacher-review-list">';
@@ -427,6 +606,7 @@ function buildSubmissionCard(submission) {
   var isPending = state.isReviewing === submission.id;
 
   return '<article class="teacher-submission-card">'
+    + buildSubmissionRibbonSvg()
     + '<div class="teacher-submission-head"><div><strong>' + escapeHtml(submission.studentName || submission.studentId || "Student") + '</strong>'
     + '<span>' + escapeHtml(readSubmissionContext(submission)) + '</span></div>'
     + '<b class="teacher-status-pill">' + escapeHtml(formatReviewStatus(submission.reviewStatus)) + '</b></div>'
@@ -446,12 +626,12 @@ function buildSubmissionCard(submission) {
 }
 
 function buildReviewButton(submissionId, status, label, isPending) {
-  return '<button type="button" class="teacher-review-btn ' + escapeHtml(status) + '" data-submission-id="' + escapeHtml(submissionId) + '" data-review-status="' + escapeHtml(status) + '"' + disabled(isPending) + '>' + (isPending ? "Saving..." : label) + '</button>';
+  return '<button type="button" class="teacher-review-btn ' + escapeHtml(status) + '" data-submission-id="' + escapeHtml(submissionId) + '" data-review-status="' + escapeHtml(status) + '"' + disabled(isPending) + '>' + (isPending ? buildSavingSvg() + "Saving..." : buildReviewButtonSvg(status) + label) + '</button>';
 }
 
 function buildProofPreview(file) {
   if (!file) {
-    return '<div class="teacher-proof empty">No uploaded file found.</div>';
+    return '<div class="teacher-proof empty">' + buildFileSvg("empty") + '<span>No uploaded file found.</span></div>';
   }
 
   if (file.contentType && file.contentType.indexOf("image/") === 0) {
@@ -460,7 +640,7 @@ function buildProofPreview(file) {
       + '<span>' + escapeHtml(file.name || "Open uploaded proof") + '</span></a>';
   }
 
-  return '<a class="teacher-proof file" href="' + escapeHtml(file.downloadUrl || "#") + '" target="_blank" rel="noopener">Open uploaded file: ' + escapeHtml(file.name || "proof") + '</a>';
+  return '<a class="teacher-proof file" href="' + escapeHtml(file.downloadUrl || "#") + '" target="_blank" rel="noopener">' + buildFileSvg("file") + '<span>Open uploaded file: ' + escapeHtml(file.name || "proof") + '</span></a>';
 }
 
 function buildClassOptions() {

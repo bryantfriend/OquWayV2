@@ -1,7 +1,7 @@
 import { getIdTokenResult, onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.42-teacher-scoped-queries";
-import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.42-teacher-scoped-queries";
-import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.42-teacher-scoped-queries";
+import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.47-teacher-svg-motion";
+import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.47-teacher-svg-motion";
+import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.47-teacher-svg-motion";
 
 var currentTeacherClaims = {};
 
