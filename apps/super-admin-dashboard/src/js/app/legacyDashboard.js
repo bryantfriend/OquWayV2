@@ -1,14 +1,14 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js";
-import { functions, httpsCallable } from "../../../../../packages/core/src/infrastructure/firebase/functions.js?v=1.1.44-classes-filter";
+import { functions, httpsCallable } from "../../../../../packages/core/src/infrastructure/firebase/functions.js?v=1.1.45-repair-callable";
 import { storage } from "../../../../../packages/core/src/infrastructure/firebase/storage.js";
 import { collection, db, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../packages/core/src/infrastructure/firebase/firestore.js";
 import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js";
 import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userRoles, userStatuses } from "../shared/constants.js?v=1.1.44-classes-filter";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userRoles, userStatuses } from "../shared/constants.js?v=1.1.45-repair-callable";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.44";
+var appVersion = "1.1.45";
 var state = {
   isLoading: true,
   isRefreshing: false,
@@ -3576,8 +3576,7 @@ async function authorizeTeacherLogin(userId) {
       messageType: "info"
     });
 
-    var authorizeLogin = httpsCallable(functions, "adminAuthorizeTeacherLogin");
-    var result = await authorizeLogin({
+    var result = await callAdminCallable("adminAuthorizeTeacherLogin", {
       userId: user.id,
       email: user.email,
       displayName: displayName
@@ -3630,8 +3629,7 @@ async function repairTeacherAuthProfile(userId) {
       messageType: "info"
     });
 
-    var repairLoginProfile = httpsCallable(functions, "repairTeacherAuthProfile");
-    await repairLoginProfile({
+    await callAdminCallable("repairTeacherAuthProfile", {
       userId: user.id
     });
 
@@ -3653,6 +3651,16 @@ async function repairTeacherAuthProfile(userId) {
     });
     return false;
   }
+}
+
+async function callAdminCallable(functionName, payload) {
+  console.info("[admin-callable]", {
+    functionName: functionName,
+    payloadKeys: Object.keys(payload || {})
+  });
+
+  var callable = httpsCallable(functions, functionName);
+  return await callable(payload || {});
 }
 
 async function sendStaffPasswordReset(userId) {

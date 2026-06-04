@@ -1,4 +1,4 @@
-import { runAdminIntent } from "../icf/intentRegistry.js?v=1.1.44-classes-filter";
+import { runAdminIntent } from "../icf/intentRegistry.js?v=1.1.45-repair-callable";
 
 export function bindUsersEvents(rootElement, handlers) {
   rootElement.addEventListener("click", function (event) {
