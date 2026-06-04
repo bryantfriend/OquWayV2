@@ -1,5 +1,5 @@
-import { roleFilterCards } from "../shared/constants.js?v=1.1.51-teacher-dedupe";
-import { escapeHtml, formatDateTime } from "../shared/formatters.js?v=1.1.51-teacher-dedupe";
+import { roleFilterCards } from "../shared/constants.js?v=1.1.52-teacher-resolve";
+import { escapeHtml, formatDateTime } from "../shared/formatters.js?v=1.1.52-teacher-resolve";
 
 export function renderUsersRoleCards(users, selectedRoleFilter) {
   var html = '<section class="sa-role-card-grid" aria-label="Role filters">';

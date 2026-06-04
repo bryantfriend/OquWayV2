@@ -1,15 +1,15 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js";
-import { firebaseApp } from "../../../../../packages/core/src/infrastructure/firebase/firebaseApp.js?v=1.1.51-teacher-dedupe";
+import { firebaseApp } from "../../../../../packages/core/src/infrastructure/firebase/firebaseApp.js?v=1.1.52-teacher-resolve";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 import { storage } from "../../../../../packages/core/src/infrastructure/firebase/storage.js";
 import { collection, db, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../packages/core/src/infrastructure/firebase/firestore.js";
 import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js";
 import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userRoles, userStatuses } from "../shared/constants.js?v=1.1.51-teacher-dedupe";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userRoles, userStatuses } from "../shared/constants.js?v=1.1.52-teacher-resolve";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.51";
+var appVersion = "1.1.52";
 var adminCallableFunctions = getFunctions(firebaseApp, "us-central1");
 var state = {
   isLoading: true,
@@ -1439,6 +1439,10 @@ function buildUserActionButtons(user) {
 }
 
 function buildTeacherLoginActionButton(user, capabilities) {
+  if (isHealthyTeacherAuthProfile(user)) {
+    return '<button type="button" class="sa-btn sa-btn-secondary sa-status-btn" disabled>Login Authorized</button>';
+  }
+
   if (hasTeacherLoginAuthorization(user)) {
     return '<button type="button" class="sa-btn sa-btn-secondary sa-status-btn" disabled>Login Authorized</button><button type="button" class="sa-btn sa-btn-secondary" data-action="repair-teacher-auth-profile" data-id="' + escapeHtml(user.id) + '"' + disabled(!capabilities.canRepair) + '>' + buildButtonContent("Repair Login Profile", "repair-teacher-auth-profile:" + user.id) + '</button>';
   }
@@ -1458,11 +1462,28 @@ function readUserActionCapabilities(user) {
   return {
     canEdit: true,
     canAuthorize: !busy && isTeacher && !hasTeacherLoginAuthorization(safeUser) && hasTeacherRequiredFields,
-    canRepair: !busy && isTeacher && hasAuthUid,
+    canRepair: !busy && isTeacher && hasAuthUid && !isHealthyTeacherAuthProfile(safeUser),
     canResetPassword: !busy && hasEmail,
     canDisable: !busy && safeUser.status === "active",
     canDelete: !busy && canDeleteByRole
   };
+}
+
+function isHealthyTeacherAuthProfile(user) {
+  var safeUser = getSafeUser(user);
+  var hasClassScope = Boolean(safeUser.classId || safeUser.classIds.length > 0);
+  var hasLocationScope = Boolean(safeUser.primaryLocationId || safeUser.locationIds.length > 0);
+  var isActiveAuthProfile = safeUser.id === safeUser.authUid || safeUser.isAuthProfile === true;
+
+  return Boolean(
+    safeUser.email
+    && safeUser.authUid
+    && safeUser.loginEnabled
+    && safeUser.roles.indexOf("teacher") !== -1
+    && hasClassScope
+    && hasLocationScope
+    && isActiveAuthProfile
+  );
 }
 
 function logTeacherActionRender(user, capabilities) {

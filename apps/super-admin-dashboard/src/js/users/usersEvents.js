@@ -1,4 +1,4 @@
-import { runAdminIntent } from "../icf/intentRegistry.js?v=1.1.51-teacher-dedupe";
+import { runAdminIntent } from "../icf/intentRegistry.js?v=1.1.52-teacher-resolve";
 
 export function bindUsersEvents(rootElement, handlers) {
   rootElement.addEventListener("click", function (event) {

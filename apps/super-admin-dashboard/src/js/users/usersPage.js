@@ -1,6 +1,6 @@
-import { updateAppState } from "../app/appState.js?v=1.1.51-teacher-dedupe";
-import { runAdminIntent } from "../icf/intentRegistry.js?v=1.1.51-teacher-dedupe";
-import { renderUsersRoleCards, renderUsersTableRows } from "./usersRenderer.js?v=1.1.51-teacher-dedupe";
+import { updateAppState } from "../app/appState.js?v=1.1.52-teacher-resolve";
+import { runAdminIntent } from "../icf/intentRegistry.js?v=1.1.52-teacher-resolve";
+import { renderUsersRoleCards, renderUsersTableRows } from "./usersRenderer.js?v=1.1.52-teacher-resolve";
 
 export async function loadUsersPage(context) {
   var result = await runAdminIntent("LoadUsersIntent", {}, context || {});

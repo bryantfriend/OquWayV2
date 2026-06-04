@@ -61,6 +61,14 @@ exports.repairTeacherAuthProfile = onCall(callableOptions, async function (reque
   return repairTeacherAuthProfile(data, auth);
 });
 
+exports.resolveDuplicateTeacherProfile = onCall(callableOptions, async function (request) {
+  const auth = request.auth;
+  const data = request.data || {};
+
+  verifyAdminCaller(auth);
+  return resolveDuplicateTeacherProfile(data, auth);
+});
+
 const FRUIT_ALIASES = {
   apple: "apple",
   "\uD83C\uDF4E": "apple",
@@ -499,26 +507,22 @@ async function repairTeacherAuthProfile(data, auth) {
     throw new HttpsError("failed-precondition", "Teacher profile has an authUid, but the Firebase Auth user was not found.");
   }
 
-  await assertAuthUserNotLinkedToAnotherProfile(db, authUid, originalProfileUserId);
   await admin.auth().setCustomUserClaims(authUid, {
     role: "teacher",
     roles: ["teacher"],
     ROLE_TEACHER: true
   });
-  await writeTeacherAuthMirrorProfile(db, teacher, originalProfileUserId, authUid, auth);
 
-  if (originalProfileUserId !== authUid) {
-    await originalProfileRef.set({
-      authUid: authUid,
-      profileUserId: originalProfileUserId,
-      loginEnabled: true,
-      mergedIntoAuthUid: authUid,
-      isLegacyProfile: true,
-      status: "merged",
-      visibleInUserLists: false,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp()
-    }, { merge: true });
+  const conflicts = await findTeacherAuthProfileConflicts(db, authUid, originalProfileUserId);
+  if (conflicts.length > 0) {
+    const activeProfileId = chooseActiveTeacherProfileId([teacher].concat(conflicts), authUid);
+    const duplicateProfileId = activeProfileId === originalProfileUserId ? conflicts[0].id : originalProfileUserId;
+
+    return resolveDuplicateTeacherProfilesById(db, activeProfileId, duplicateProfileId, authUid, auth);
   }
+
+  await writeTeacherAuthMirrorProfile(db, teacher, originalProfileUserId, authUid, auth);
+  await markTeacherProfileMerged(originalProfileRef, authUid, originalProfileUserId);
 
   return {
     success: true,
@@ -527,6 +531,204 @@ async function repairTeacherAuthProfile(data, auth) {
     hiddenLegacyProfilePath: originalProfileUserId !== authUid ? "users/" + originalProfileUserId : "",
     mirrorPath: "users/" + authUid
   };
+}
+
+async function resolveDuplicateTeacherProfile(data, auth) {
+  const primaryUserId = readRequiredText(data.primaryUserId, "primaryUserId");
+  const duplicateUserId = readRequiredText(data.duplicateUserId, "duplicateUserId");
+  const db = admin.firestore();
+
+  return resolveDuplicateTeacherProfilesById(db, primaryUserId, duplicateUserId, "", auth);
+}
+
+async function resolveDuplicateTeacherProfilesById(db, primaryUserId, duplicateUserId, requestedAuthUid, auth) {
+  const primaryRef = db.collection("users").doc(primaryUserId);
+  const duplicateRef = db.collection("users").doc(duplicateUserId);
+  const primaryDoc = await primaryRef.get();
+  const duplicateDoc = await duplicateRef.get();
+
+  if (!primaryDoc.exists || !duplicateDoc.exists) {
+    throw new HttpsError("not-found", "Both teacher profiles must exist before merging.");
+  }
+
+  const primary = Object.assign({ id: primaryDoc.id }, primaryDoc.data() || {});
+  const duplicate = Object.assign({ id: duplicateDoc.id }, duplicateDoc.data() || {});
+
+  if (!isTeacherCompatibleProfile(primary) || !isTeacherCompatibleProfile(duplicate)) {
+    throw new HttpsError("failed-precondition", "Both profiles must be teacher-compatible before merging.");
+  }
+
+  if (!profilesShareTeacherIdentity(primary, duplicate)) {
+    throw new HttpsError("failed-precondition", "Teacher profiles do not share email, authUid, or profile links.");
+  }
+
+  const authUid = requestedAuthUid || readText(primary.authUid || duplicate.authUid || primary.firebaseAuthUid || duplicate.firebaseAuthUid).trim();
+
+  if (!authUid) {
+    throw new HttpsError("failed-precondition", "At least one profile must have an authUid before merging.");
+  }
+
+  const activeProfileId = chooseActiveTeacherProfileId([primary, duplicate], authUid);
+  const mergedProfileId = activeProfileId === primary.id ? duplicate.id : primary.id;
+  const activeSource = activeProfileId === primary.id ? primary : duplicate;
+  const mergedProfileRef = db.collection("users").doc(mergedProfileId);
+  const mergedTeacher = mergeTeacherProfiles(primary, duplicate, activeSource, authUid);
+
+  await admin.auth().setCustomUserClaims(authUid, {
+    role: "teacher",
+    roles: ["teacher"],
+    ROLE_TEACHER: true
+  });
+  await writeTeacherAuthMirrorProfile(db, mergedTeacher, mergedTeacher.profileUserId || mergedProfileId, authUid, auth);
+
+  if (mergedProfileId !== authUid) {
+    await markTeacherProfileMerged(mergedProfileRef, authUid, mergedProfileId);
+  }
+
+  return {
+    success: true,
+    activeProfileId: authUid,
+    mergedProfileId: mergedProfileId,
+    authUid: authUid,
+    mirrorPath: "users/" + authUid,
+    hiddenLegacyProfilePath: mergedProfileId !== authUid ? "users/" + mergedProfileId : ""
+  };
+}
+
+async function findTeacherAuthProfileConflicts(db, authUid, allowedProfileUserId) {
+  const snapshot = await db.collection("users").where("authUid", "==", authUid).get();
+  const conflicts = [];
+
+  snapshot.forEach(function (doc) {
+    const data = Object.assign({ id: doc.id }, doc.data() || {});
+
+    if (doc.id === allowedProfileUserId) {
+      return;
+    }
+
+    if (doc.id === authUid && (!data.profileUserId || data.profileUserId === allowedProfileUserId)) {
+      conflicts.push(data);
+      return;
+    }
+
+    conflicts.push(data);
+  });
+
+  return conflicts;
+}
+
+function chooseActiveTeacherProfileId(profiles, authUid) {
+  let active = profiles[0];
+
+  profiles.forEach(function (profile) {
+    if (scoreTeacherProfileForMerge(profile, authUid) > scoreTeacherProfileForMerge(active, authUid)) {
+      active = profile;
+    }
+  });
+
+  return active && active.id === authUid ? active.id : authUid;
+}
+
+function scoreTeacherProfileForMerge(profile, authUid) {
+  let score = 0;
+
+  if (profile.id === authUid && profile.loginEnabled === true) score += 1000;
+  if (profile.isAuthProfile === true) score += 850;
+  if (profile.id === authUid) score += 700;
+  if (profile.loginEnabled === true && readText(profile.authUid).trim()) score += 300;
+  if (readText(profile.photoUrl || profile.imageUrl || profile.avatarUrl).trim()) score += 50;
+  if (readText(profile.phone).trim()) score += 20;
+  if (readText(profile.status) === "active") score += 10;
+
+  return score;
+}
+
+function mergeTeacherProfiles(primary, duplicate, activeSource, authUid) {
+  const classIds = readIdList([
+    primary.classId,
+    primary.classIds,
+    primary.assignedClassIds,
+    duplicate.classId,
+    duplicate.classIds,
+    duplicate.assignedClassIds
+  ]);
+  const locationIds = readIdList([
+    primary.locationId,
+    primary.primaryLocationId,
+    primary.locationIds,
+    duplicate.locationId,
+    duplicate.primaryLocationId,
+    duplicate.locationIds
+  ]);
+  const email = readText(activeSource.email || primary.email || duplicate.email).trim().toLowerCase();
+  const displayName = readText(activeSource.displayName || activeSource.name || primary.displayName || primary.name || duplicate.displayName || duplicate.name || email).trim();
+  const photoUrl = readText(activeSource.photoUrl || activeSource.imageUrl || activeSource.avatarUrl || primary.photoUrl || primary.imageUrl || primary.avatarUrl || duplicate.photoUrl || duplicate.imageUrl || duplicate.avatarUrl).trim();
+
+  return Object.assign({}, primary, duplicate, activeSource, {
+    id: authUid,
+    authUid: authUid,
+    profileUserId: readText(primary.id === authUid ? primary.profileUserId : primary.id).trim() || readText(duplicate.id === authUid ? duplicate.profileUserId : duplicate.id).trim(),
+    displayName: displayName,
+    name: displayName,
+    email: email,
+    phone: readText(activeSource.phone || primary.phone || duplicate.phone).trim(),
+    photoUrl: photoUrl,
+    imageUrl: photoUrl,
+    avatarUrl: photoUrl,
+    role: "teacher",
+    roles: ["teacher"],
+    ROLE_TEACHER: true,
+    locationId: readText(activeSource.locationId || activeSource.primaryLocationId || locationIds[0]).trim(),
+    primaryLocationId: readText(activeSource.primaryLocationId || activeSource.locationId || locationIds[0]).trim(),
+    locationIds: locationIds,
+    classId: readText(activeSource.classId || classIds[0]).trim(),
+    classIds: classIds,
+    assignedClassIds: classIds,
+    status: "active",
+    visibleInUserLists: true,
+    isLegacyProfile: false,
+    isAuthProfile: true,
+    mergedIntoAuthUid: "",
+    loginEnabled: true
+  });
+}
+
+function profilesShareTeacherIdentity(primary, duplicate) {
+  const primaryEmail = readText(primary.email).trim().toLowerCase();
+  const duplicateEmail = readText(duplicate.email).trim().toLowerCase();
+  const primaryAuthUid = readText(primary.authUid || primary.firebaseAuthUid).trim();
+  const duplicateAuthUid = readText(duplicate.authUid || duplicate.firebaseAuthUid).trim();
+
+  return Boolean(
+    (primaryEmail && duplicateEmail && primaryEmail === duplicateEmail)
+    || (primaryAuthUid && duplicateAuthUid && primaryAuthUid === duplicateAuthUid)
+    || (duplicate.profileUserId && duplicate.profileUserId === primary.id)
+    || (primary.profileUserId && primary.profileUserId === duplicate.id)
+  );
+}
+
+function isTeacherCompatibleProfile(profile) {
+  return hasTeacherRole(profile)
+    || readText(profile.role) === "teacher"
+    || profile.ROLE_TEACHER === true
+    || readText(profile.authUid || profile.firebaseAuthUid).trim();
+}
+
+async function markTeacherProfileMerged(profileRef, authUid, profileUserId) {
+  if (profileRef.id === authUid) {
+    return;
+  }
+
+  await profileRef.set({
+    authUid: authUid,
+    profileUserId: profileUserId,
+    loginEnabled: true,
+    mergedIntoAuthUid: authUid,
+    isLegacyProfile: true,
+    status: "merged",
+    visibleInUserLists: false,
+    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
 }
 
 function readOriginalTeacherProfileId(teacher, userId, authUid) {
