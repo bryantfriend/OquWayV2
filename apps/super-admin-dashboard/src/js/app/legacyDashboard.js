@@ -1,15 +1,15 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js";
-import { firebaseApp } from "../../../../../packages/core/src/infrastructure/firebase/firebaseApp.js?v=1.1.50-teacher-profile-merge";
+import { firebaseApp } from "../../../../../packages/core/src/infrastructure/firebase/firebaseApp.js?v=1.1.51-teacher-dedupe";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 import { storage } from "../../../../../packages/core/src/infrastructure/firebase/storage.js";
 import { collection, db, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../packages/core/src/infrastructure/firebase/firestore.js";
 import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js";
 import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userRoles, userStatuses } from "../shared/constants.js?v=1.1.50-teacher-profile-merge";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userRoles, userStatuses } from "../shared/constants.js?v=1.1.51-teacher-dedupe";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.50";
+var appVersion = "1.1.51";
 var adminCallableFunctions = getFunctions(firebaseApp, "us-central1");
 var state = {
   isLoading: true,
@@ -349,7 +349,7 @@ async function refreshAllData() {
     isLoading: false,
     isRefreshing: false,
     locations: readDataList(locationsResult, "locations"),
-    users: overviewData.users.map(getSafeUser).filter(isVisibleUserProfile),
+    users: dedupeVisibleUserProfiles(overviewData.users.map(getSafeUser)),
     classes: readDataList(classesResult, "classes"),
     students: readDataList(studentsResult, "students"),
     courses: readDataList(coursesResult, "courses"),
@@ -5971,8 +5971,10 @@ function getSafeUser(user) {
     status: readSafeString(safeUser.status || "active"),
     visibleInUserLists: safeUser.visibleInUserLists === false ? false : true,
     isLegacyProfile: safeUser.isLegacyProfile === true,
+    isAuthProfile: safeUser.isAuthProfile === true,
     mergedIntoAuthUid: readSafeString(safeUser.mergedIntoAuthUid),
     authUid: readSafeString(safeUser.authUid),
+    profileUserId: readSafeString(safeUser.profileUserId),
     loginEnabled: safeUser.loginEnabled === true,
     loginAuthorizedAt: safeUser.loginAuthorizedAt || null,
     loginAuthorizedBy: readSafeString(safeUser.loginAuthorizedBy),
@@ -5988,6 +5990,121 @@ function isVisibleUserProfile(user) {
   return safeUser.visibleInUserLists !== false
     && safeUser.isLegacyProfile !== true
     && readSafeString(safeUser.status) !== "merged";
+}
+
+function dedupeVisibleUserProfiles(users) {
+  var visibleUsers = [];
+  var groupedUsers = {};
+  var groupOrder = [];
+  var index = 0;
+
+  while (index < users.length) {
+    var user = getSafeUser(users[index]);
+
+    if (isVisibleUserProfile(user)) {
+      var key = readUserDedupeKey(user);
+
+      if (!groupedUsers[key]) {
+        groupedUsers[key] = [];
+        groupOrder.push(key);
+      }
+
+      groupedUsers[key].push(user);
+    }
+
+    index = index + 1;
+  }
+
+  index = 0;
+  while (index < groupOrder.length) {
+    var group = groupedUsers[groupOrder[index]];
+    visibleUsers.push(selectActiveUserProfile(group));
+    index = index + 1;
+  }
+
+  return visibleUsers;
+}
+
+function readUserDedupeKey(user) {
+  var safeUser = getSafeUser(user);
+  var email = safeUser.email.toLowerCase();
+
+  if (safeUser.roles.indexOf("teacher") !== -1) {
+    if (email) {
+      return "teacher-email:" + email;
+    }
+
+    if (safeUser.authUid) {
+      return "teacher-auth:" + safeUser.authUid;
+    }
+
+    if (safeUser.profileUserId) {
+      return "teacher-profile:" + safeUser.profileUserId;
+    }
+  }
+
+  return "user:" + safeUser.id;
+}
+
+function selectActiveUserProfile(users) {
+  var selected = users[0];
+  var index = 1;
+
+  while (index < users.length) {
+    selected = compareUserProfilePriority(users[index], selected) > 0 ? users[index] : selected;
+    index = index + 1;
+  }
+
+  index = 0;
+  while (index < users.length) {
+    selected = mergeUserDisplayFields(selected, users[index]);
+    index = index + 1;
+  }
+
+  if (users.length > 1) {
+    console.info("[users:dedupe-teacher-profile]", {
+      selectedUserId: selected.id,
+      selectedAuthUid: selected.authUid,
+      duplicateUserIds: users.map(function (user) { return user.id; })
+    });
+  }
+
+  return selected;
+}
+
+function compareUserProfilePriority(candidate, current) {
+  return scoreUserProfile(candidate) - scoreUserProfile(current);
+}
+
+function scoreUserProfile(user) {
+  var safeUser = getSafeUser(user);
+  var score = 0;
+
+  if (safeUser.authUid && safeUser.id === safeUser.authUid && safeUser.loginEnabled) score += 1000;
+  if (safeUser.isAuthProfile) score += 850;
+  if (safeUser.authUid && safeUser.id === safeUser.authUid) score += 700;
+  if (safeUser.loginEnabled) score += 300;
+  if (!safeUser.isLegacyProfile) score += 100;
+  if (safeUser.photoUrl) score += 50;
+  if (safeUser.phone) score += 20;
+  if (safeUser.status === "active") score += 10;
+
+  return score;
+}
+
+function mergeUserDisplayFields(primaryUser, fallbackUser) {
+  var merged = Object.assign({}, primaryUser);
+  var fallback = getSafeUser(fallbackUser);
+
+  if (!merged.photoUrl && fallback.photoUrl) merged.photoUrl = fallback.photoUrl;
+  if (!merged.phone && fallback.phone) merged.phone = fallback.phone;
+  if (!merged.displayName && fallback.displayName) merged.displayName = fallback.displayName;
+  if ((!merged.locationIds || merged.locationIds.length === 0) && fallback.locationIds && fallback.locationIds.length > 0) merged.locationIds = fallback.locationIds.slice();
+  if (!merged.primaryLocationId && fallback.primaryLocationId) merged.primaryLocationId = fallback.primaryLocationId;
+  if ((!merged.classIds || merged.classIds.length === 0) && fallback.classIds && fallback.classIds.length > 0) merged.classIds = fallback.classIds.slice();
+  if (!merged.classId && fallback.classId) merged.classId = fallback.classId;
+
+  return merged;
 }
 
 function applyBooleanUserRoles(roles, user) {

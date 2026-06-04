@@ -1,6 +1,6 @@
 export { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js";
 export { storage } from "../../../../../packages/core/src/infrastructure/firebase/storage.js";
-export { functions, httpsCallable } from "../../../../../packages/core/src/infrastructure/firebase/functions.js?v=1.1.50-teacher-profile-merge";
+export { functions, httpsCallable } from "../../../../../packages/core/src/infrastructure/firebase/functions.js?v=1.1.51-teacher-dedupe";
 export {
   collection,
   db,

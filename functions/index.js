@@ -478,6 +478,8 @@ async function repairTeacherAuthProfile(data, auth) {
     throw new HttpsError("failed-precondition", "Teacher profile does not have an authUid. Use Authorize Teacher Login first.");
   }
 
+  const originalProfileUserId = readOriginalTeacherProfileId(teacher, userId, authUid);
+  const originalProfileRef = db.collection("users").doc(originalProfileUserId);
   const email = readText(teacher.email).trim().toLowerCase();
   const displayName = readText(teacher.displayName || teacher.name).trim();
   const missingFields = validateTeacherLoginRequirements(Object.assign({}, teacher, {
@@ -497,30 +499,48 @@ async function repairTeacherAuthProfile(data, auth) {
     throw new HttpsError("failed-precondition", "Teacher profile has an authUid, but the Firebase Auth user was not found.");
   }
 
-  await assertAuthUserNotLinkedToAnotherProfile(db, authUid, userId);
+  await assertAuthUserNotLinkedToAnotherProfile(db, authUid, originalProfileUserId);
   await admin.auth().setCustomUserClaims(authUid, {
     role: "teacher",
     roles: ["teacher"],
     ROLE_TEACHER: true
   });
-  await writeTeacherAuthMirrorProfile(db, teacher, userId, authUid, auth);
-  await userRef.set({
-    authUid: authUid,
-    profileUserId: userId,
-    loginEnabled: true,
-    mergedIntoAuthUid: authUid,
-    isLegacyProfile: true,
-    status: "merged",
-    visibleInUserLists: false,
-    updatedAt: admin.firestore.FieldValue.serverTimestamp()
-  }, { merge: true });
+  await writeTeacherAuthMirrorProfile(db, teacher, originalProfileUserId, authUid, auth);
+
+  if (originalProfileUserId !== authUid) {
+    await originalProfileRef.set({
+      authUid: authUid,
+      profileUserId: originalProfileUserId,
+      loginEnabled: true,
+      mergedIntoAuthUid: authUid,
+      isLegacyProfile: true,
+      status: "merged",
+      visibleInUserLists: false,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  }
 
   return {
     success: true,
-    userId: userId,
+    userId: originalProfileUserId,
     authUid: authUid,
+    hiddenLegacyProfilePath: originalProfileUserId !== authUid ? "users/" + originalProfileUserId : "",
     mirrorPath: "users/" + authUid
   };
+}
+
+function readOriginalTeacherProfileId(teacher, userId, authUid) {
+  const linkedProfileUserId = readText(teacher.profileUserId).trim();
+
+  if (linkedProfileUserId && linkedProfileUserId !== authUid) {
+    return linkedProfileUserId;
+  }
+
+  if (userId && userId !== authUid) {
+    return userId;
+  }
+
+  return authUid;
 }
 
 async function findOrCreateTeacherAuthUser(teacher, email, displayName) {
@@ -596,6 +616,7 @@ function buildTeacherAuthMirrorProfile(teacher, userId, authUid, auth) {
     status: "active",
     visibleInUserLists: true,
     isLegacyProfile: false,
+    isAuthProfile: true,
     mergedIntoAuthUid: "",
     loginEnabled: true,
     loginAuthorizedBy: auth && auth.uid ? auth.uid : readText(teacher.loginAuthorizedBy),
