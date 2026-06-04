@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../../../../packages/core/src/infrastructure/firebase/firestore.js?v=1.1.55-class-ownership";
+import { collection, db, getDocs, query, where } from "../../../../../packages/firebase/index.js?v=1.1.58-shared-phase1";
 
 export async function loadClasses() {
   return [];

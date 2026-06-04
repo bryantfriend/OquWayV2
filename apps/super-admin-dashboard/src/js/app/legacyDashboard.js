@@ -1,16 +1,11 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js";
-import { firebaseApp } from "../../../../../packages/core/src/infrastructure/firebase/firebaseApp.js?v=1.1.54-multi-role-assistant";
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
-import { storage } from "../../../../../packages/core/src/infrastructure/firebase/storage.js";
-import { collection, db, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../packages/core/src/infrastructure/firebase/firestore.js";
-import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.56-assignment-ownership";
-import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userRoles, userStatuses } from "../shared/constants.js?v=1.1.54-multi-role-assistant";
+import { auth, collection, db, deleteDoc, doc, functions, getDoc, getDocs, httpsCallable, serverTimestamp, setDoc, storage } from "../../../../../packages/firebase/index.js?v=1.1.58-shared-phase1";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.58-shared-phase1";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userRoles, userStatuses } from "../shared/constants.js?v=1.1.58-shared-phase1";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.56";
-var adminCallableFunctions = getFunctions(firebaseApp, "us-central1");
+var appVersion = "1.1.58";
+var adminCallableFunctions = functions;
 var state = {
   isLoading: true,
   isRefreshing: false,

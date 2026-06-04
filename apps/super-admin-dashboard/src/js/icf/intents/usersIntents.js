@@ -1,9 +1,9 @@
-import { addAdminContext } from "../stages/addContext.js";
-import { allowAuthorizedLegacyFlow, requireAdminAccess } from "../stages/authorize.js";
-import { emitResult } from "../stages/emit.js";
-import { normalizeUserId, normalizeUserPayload } from "../stages/normalize.js";
-import { callService } from "../stages/process.js";
-import { allowAnyPayload, requireEmail, requireUserId } from "../stages/validate.js";
+import { addAdminContext } from "../../../../../../packages/icf/admin/stages/addContext.js";
+import { allowAuthorizedLegacyFlow, requireAdminAccess } from "../../../../../../packages/icf/admin/stages/authorize.js";
+import { emitResult } from "../../../../../../packages/icf/admin/stages/emit.js";
+import { normalizeUserId, normalizeUserPayload } from "../../../../../../packages/icf/admin/stages/normalize.js";
+import { callService } from "../../../../../../packages/icf/admin/stages/process.js";
+import { allowAnyPayload, requireEmail, requireUserId } from "../../../../../../packages/icf/admin/stages/validate.js";
 import { createUser, deleteUser, disableUser, getUser, getUsers, sendPasswordReset, updateUser } from "../../users/usersService.js";
 import { resetFruitPassword } from "../../users/fruitPasswordService.js";
 

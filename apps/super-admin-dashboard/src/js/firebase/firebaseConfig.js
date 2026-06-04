@@ -1,15 +1,15 @@
-export { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js";
-export { storage } from "../../../../../packages/core/src/infrastructure/firebase/storage.js";
-export { functions, httpsCallable } from "../../../../../packages/core/src/infrastructure/firebase/functions.js?v=1.1.54-multi-role-assistant";
+// Deprecated Phase 1 shim: Firebase shared layer lives in packages/firebase.
 export {
+  auth,
   collection,
   db,
   deleteDoc,
   doc,
+  functions,
   getDoc,
   getDocs,
+  httpsCallable,
   serverTimestamp,
-  setDoc
-} from "../../../../../packages/core/src/infrastructure/firebase/firestore.js";
-
-
+  setDoc,
+  storage
+} from "../../../../../packages/firebase/index.js";

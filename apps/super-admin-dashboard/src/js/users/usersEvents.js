@@ -1,4 +1,4 @@
-import { runAdminIntent } from "../icf/intentRegistry.js?v=1.1.54-multi-role-assistant";
+import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.58-shared-phase1";
 
 export function bindUsersEvents(rootElement, handlers) {
   rootElement.addEventListener("click", function (event) {

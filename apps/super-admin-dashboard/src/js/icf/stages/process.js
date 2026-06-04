@@ -1,6 +1,2 @@
-export function callService(method) {
-  return async function processServiceCall(executionState) {
-    executionState.result = await method(executionState.payload, executionState.context);
-    return { valid: true };
-  };
-}
+// Deprecated Phase 1 shim: shared implementation lives in packages/icf/admin.
+export { callService } from "../../../../../../packages/icf/admin/stages/process.js";

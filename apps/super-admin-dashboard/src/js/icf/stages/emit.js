@@ -1,8 +1,2 @@
-export function emitResult(executionState) {
-  executionState.result = {
-    success: true,
-    data: executionState.result
-  };
-
-  return { valid: true };
-}
+// Deprecated Phase 1 shim: shared implementation lives in packages/icf/admin.
+export { emitResult } from "../../../../../../packages/icf/admin/stages/emit.js";
