@@ -1,4 +1,4 @@
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.41-teacher-auth-mirror";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.42-teacher-scoped-queries";
 
 var app = document.getElementById("app");
 var state = {

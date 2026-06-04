@@ -1,7 +1,7 @@
-import { validateTeacherLoginPayload } from "../../stages/validate/validators.js?v=1.1.41-teacher-auth-mirror";
-import { normalizeTeacherLoginPayload } from "../../stages/normalize/normalizers.js?v=1.1.41-teacher-auth-mirror";
-import { allowTeacherLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.41-teacher-auth-mirror";
-import { processTeacherLogin } from "../../stages/process/processors.js?v=1.1.41-teacher-auth-mirror";
+import { validateTeacherLoginPayload } from "../../stages/validate/validators.js?v=1.1.42-teacher-scoped-queries";
+import { normalizeTeacherLoginPayload } from "../../stages/normalize/normalizers.js?v=1.1.42-teacher-scoped-queries";
+import { allowTeacherLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.42-teacher-scoped-queries";
+import { processTeacherLogin } from "../../stages/process/processors.js?v=1.1.42-teacher-scoped-queries";
 import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.29-module-render-fix";
 
 export function TeacherLoginIntent() {

@@ -1,6 +1,6 @@
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.41-teacher-auth-mirror";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.41-teacher-auth-mirror";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.42-teacher-scoped-queries";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.42-teacher-scoped-queries";
 
 export async function processTeacherLogin(executionState) {
   var payload = executionState.payload || {};
@@ -224,16 +224,30 @@ async function loadStudentsForClasses(classIds) {
   var classIndex = 0;
 
   while (classIndex < classIds.length) {
-    await appendStudentQuery(students, query(collection(db, "users"), where("classId", "==", classIds[classIndex])));
-    await appendStudentQuery(students, query(collection(db, "users"), where("classIds", "array-contains", classIds[classIndex])));
-    await appendStudentQuery(students, query(collection(db, "users"), where("assignedClassIds", "array-contains", classIds[classIndex])));
+    await appendStudentQuery(students, query(collection(db, "users"), where("classId", "==", classIds[classIndex])), {
+      classId: classIds[classIndex],
+      queryShape: "users where classId == classId"
+    });
+    await appendStudentQuery(students, query(collection(db, "users"), where("classIds", "array-contains", classIds[classIndex])), {
+      classId: classIds[classIndex],
+      queryShape: "users where classIds array-contains classId"
+    });
+    await appendStudentQuery(students, query(collection(db, "users"), where("assignedClassIds", "array-contains", classIds[classIndex])), {
+      classId: classIds[classIndex],
+      queryShape: "users where assignedClassIds array-contains classId"
+    });
     classIndex = classIndex + 1;
   }
 
   return students.filter(isStudentProfile).sort(compareByName);
 }
 
-async function appendStudentQuery(students, studentsQuery) {
+async function appendStudentQuery(students, studentsQuery, details) {
+  console.info("[teacher-dashboard:students-query]", {
+    classId: details && details.classId ? details.classId : "",
+    queryShape: details && details.queryShape ? details.queryShape : "users scoped query"
+  });
+
   try {
     var snapshot = await getDocs(studentsQuery);
     snapshot.forEach(function (studentSnap) {
@@ -241,6 +255,8 @@ async function appendStudentQuery(students, studentsQuery) {
     });
   } catch (error) {
     console.warn("[teacher-dashboard:students-query-failed]", {
+      classId: details && details.classId ? details.classId : "",
+      queryShape: details && details.queryShape ? details.queryShape : "users scoped query",
       errorMessage: readErrorMessage(error)
     });
   }
@@ -351,14 +367,22 @@ async function loadScopedSubmissions(filters) {
   var index = 0;
 
   while (index < classIds.length) {
-    await appendSubmissionQuery(submissions, buildSubmissionQuery("classId", classIds[index], filters));
+    await appendSubmissionQuery(submissions, buildSubmissionQuery("classId", classIds[index], filters), {
+      classId: classIds[index],
+      locationId: "",
+      queryShape: readSubmissionQueryShape("classId", filters)
+    });
     index = index + 1;
   }
 
   if (classIds.length === 0) {
     index = 0;
     while (index < locationIds.length) {
-      await appendSubmissionQuery(submissions, buildSubmissionQuery("locationId", locationIds[index], filters));
+      await appendSubmissionQuery(submissions, buildSubmissionQuery("locationId", locationIds[index], filters), {
+        classId: "",
+        locationId: locationIds[index],
+        queryShape: readSubmissionQueryShape("locationId", filters)
+      });
       index = index + 1;
     }
   }
@@ -377,10 +401,26 @@ async function loadScopedSubmissions(filters) {
 }
 
 function buildSubmissionQuery(scopeField, scopeValue, filters) {
+  if (filters && filters.reviewStatus) {
+    return query(collection(db, "externalTaskSubmissions"), where(scopeField, "==", scopeValue), where("reviewStatus", "==", filters.reviewStatus));
+  }
+
   return query(collection(db, "externalTaskSubmissions"), where(scopeField, "==", scopeValue));
 }
 
-async function appendSubmissionQuery(submissions, submissionsQuery) {
+function readSubmissionQueryShape(scopeField, filters) {
+  return filters && filters.reviewStatus
+    ? "externalTaskSubmissions where " + scopeField + " == scopeValue and reviewStatus == " + filters.reviewStatus
+    : "externalTaskSubmissions where " + scopeField + " == scopeValue";
+}
+
+async function appendSubmissionQuery(submissions, submissionsQuery, details) {
+  console.info("[teacher-dashboard:submissions-query]", {
+    classId: details && details.classId ? details.classId : "",
+    locationId: details && details.locationId ? details.locationId : "",
+    queryShape: details && details.queryShape ? details.queryShape : "externalTaskSubmissions scoped query"
+  });
+
   try {
     var snapshot = await getDocs(submissionsQuery);
     snapshot.forEach(function (submissionSnap) {
@@ -388,6 +428,9 @@ async function appendSubmissionQuery(submissions, submissionsQuery) {
     });
   } catch (error) {
     console.warn("[teacher-dashboard:submissions-query-failed]", {
+      classId: details && details.classId ? details.classId : "",
+      locationId: details && details.locationId ? details.locationId : "",
+      queryShape: details && details.queryShape ? details.queryShape : "externalTaskSubmissions scoped query",
       errorMessage: readErrorMessage(error)
     });
   }

@@ -18,13 +18,32 @@ service cloud.firestore {
         || (request.auth != null && request.auth.token.roles is list && legacyRole in request.auth.token.roles)
         || (request.auth != null && request.auth.token.userRoles is list && legacyRole in request.auth.token.userRoles);
     }
+
+    function profileIsActive() {
+      return user() != null
+        && (!(user().data.status is string)
+          || user().data.status == "active"
+          || user().data.status == "approved");
+    }
+
+    function profileHasAnyRole(role, legacyRole) {
+      return profileIsActive() && (
+        user().data.role == role ||
+        user().data.role == legacyRole ||
+        (user().data.roles is list && (role in user().data.roles || legacyRole in user().data.roles)) ||
+        (legacyRole == "ROLE_TEACHER" && user().data.ROLE_TEACHER == true) ||
+        (legacyRole == "ROLE_SCHOOL_ADMIN" && user().data.ROLE_SCHOOL_ADMIN == true) ||
+        (legacyRole == "ROLE_PLATFORM_ADMIN" && user().data.ROLE_PLATFORM_ADMIN == true) ||
+        (legacyRole == "ROLE_SUPER_ADMIN" && user().data.ROLE_SUPER_ADMIN == true)
+      );
+    }
     
     function isSuperAdmin() { return hasAnyRole('superAdmin', 'ROLE_SUPER_ADMIN'); }
     function isPlatformAdmin() { return hasAnyRole('platformAdmin', 'ROLE_PLATFORM_ADMIN'); }
     function isSchoolAdmin() { return hasAnyRole('schoolAdmin', 'ROLE_SCHOOL_ADMIN'); }
     function isCourseCreator() { return hasAnyRole('courseCreator', 'ROLE_COURSE_CREATOR'); }
     function isAccountant() { return hasAnyRole('accountant', 'ROLE_ACCOUNTANT'); }
-    function isTeacher() { return hasAnyRole('teacher', 'ROLE_TEACHER'); }
+    function isTeacher() { return hasAnyRole('teacher', 'ROLE_TEACHER') || profileHasAnyRole('teacher', 'ROLE_TEACHER'); }
     function isStudent() { return hasAnyRole('student', 'ROLE_STUDENT'); }
 
 

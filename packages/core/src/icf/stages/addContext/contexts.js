@@ -30,6 +30,6 @@ export { attachStudentOpenCourseContext } from "./domain/student/attachStudentOp
 export {
   attachExternalTaskSubmissionReviewContext,
   attachTeacherProfileContext
-} from "./domain/teacher/attachTeacherContext.js?v=1.1.41-teacher-auth-mirror";
+} from "./domain/teacher/attachTeacherContext.js?v=1.1.42-teacher-scoped-queries";
 
 

@@ -70,6 +70,6 @@ export {
   validateTeacherLoginPayload,
   validateTeacherPasswordResetPayload,
   validateTeacherReviewQueuePayload
-} from "./domain/teacher/validateTeacherPayloads.js?v=1.1.41-teacher-auth-mirror";
+} from "./domain/teacher/validateTeacherPayloads.js?v=1.1.42-teacher-scoped-queries";
 
 

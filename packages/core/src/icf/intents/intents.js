@@ -65,18 +65,18 @@ export { LoadExternalTaskStepIntent } from "./externalTask/LoadExternalTaskStepI
 export { SubmitExternalTaskIntent } from "./externalTask/SubmitExternalTaskIntent.js?v=1.1.34-external-task-mvp";
 export { UploadExternalTaskFileIntent } from "./externalTask/UploadExternalTaskFileIntent.js?v=1.1.34-external-task-mvp";
 export { LoadExternalTaskSubmissionsIntent } from "./externalTask/LoadExternalTaskSubmissionsIntent.js?v=1.1.34-external-task-mvp";
-export { ReviewExternalTaskSubmissionIntent } from "./externalTask/ReviewExternalTaskSubmissionIntent.js?v=1.1.41-teacher-auth-mirror";
+export { ReviewExternalTaskSubmissionIntent } from "./externalTask/ReviewExternalTaskSubmissionIntent.js?v=1.1.42-teacher-scoped-queries";
 export { ResubmitExternalTaskIntent } from "./externalTask/ResubmitExternalTaskIntent.js?v=1.1.34-external-task-mvp";
 
 // ----------------------
 // Teacher Dashboard
 // ----------------------
-export { TeacherLoginIntent } from "./teacher/TeacherLoginIntent.js?v=1.1.41-teacher-auth-mirror";
-export { LoadTeacherDashboardIntent } from "./teacher/LoadTeacherDashboardIntent.js?v=1.1.41-teacher-auth-mirror";
-export { LoadTeacherClassesIntent } from "./teacher/LoadTeacherClassesIntent.js?v=1.1.41-teacher-auth-mirror";
-export { LoadTeacherStudentsIntent } from "./teacher/LoadTeacherStudentsIntent.js?v=1.1.41-teacher-auth-mirror";
-export { LoadTeacherReviewQueueIntent } from "./teacher/LoadTeacherReviewQueueIntent.js?v=1.1.41-teacher-auth-mirror";
-export { SendTeacherPasswordResetIntent } from "./teacher/SendTeacherPasswordResetIntent.js?v=1.1.41-teacher-auth-mirror";
+export { TeacherLoginIntent } from "./teacher/TeacherLoginIntent.js?v=1.1.42-teacher-scoped-queries";
+export { LoadTeacherDashboardIntent } from "./teacher/LoadTeacherDashboardIntent.js?v=1.1.42-teacher-scoped-queries";
+export { LoadTeacherClassesIntent } from "./teacher/LoadTeacherClassesIntent.js?v=1.1.42-teacher-scoped-queries";
+export { LoadTeacherStudentsIntent } from "./teacher/LoadTeacherStudentsIntent.js?v=1.1.42-teacher-scoped-queries";
+export { LoadTeacherReviewQueueIntent } from "./teacher/LoadTeacherReviewQueueIntent.js?v=1.1.42-teacher-scoped-queries";
+export { SendTeacherPasswordResetIntent } from "./teacher/SendTeacherPasswordResetIntent.js?v=1.1.42-teacher-scoped-queries";
 
 // ----------------------
 // Locations / Login Settings

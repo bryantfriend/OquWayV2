@@ -125,6 +125,6 @@ export {
   processLoadTeacherStudents,
   processSendTeacherPasswordReset,
   processTeacherLogin
-} from "./domain/teacher/teacherDashboardProcessors.js?v=1.1.41-teacher-auth-mirror";
+} from "./domain/teacher/teacherDashboardProcessors.js?v=1.1.42-teacher-scoped-queries";
 
 
