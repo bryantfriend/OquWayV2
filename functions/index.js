@@ -4,7 +4,17 @@ const { onCall, HttpsError } = require("firebase-functions/v2/https");
 
 admin.initializeApp();
 
-exports.studentLogin = onCall(async function (request) {
+const callableOptions = {
+  cors: [
+    /^https:\/\/bryantfriend\.github\.io$/,
+    /^https:\/\/oquway-c1160\.web\.app$/,
+    /^https:\/\/oquway-c1160\.firebaseapp\.com$/,
+    /^http:\/\/localhost(:\d+)?$/,
+    /^http:\/\/127\.0\.0\.1(:\d+)?$/
+  ]
+};
+
+exports.studentLogin = onCall(callableOptions, async function (request) {
   const data = request.data || {};
   const action = data.action || "";
 
@@ -27,7 +37,7 @@ exports.studentLogin = onCall(async function (request) {
   throw new HttpsError("invalid-argument", "Unknown student login action.");
 });
 
-exports.resetStudentFruitPassword = onCall(async function (request) {
+exports.resetStudentFruitPassword = onCall(callableOptions, async function (request) {
   const auth = request.auth;
   const data = request.data || {};
 
@@ -35,7 +45,7 @@ exports.resetStudentFruitPassword = onCall(async function (request) {
   return resetStudentFruitPassword(data, auth);
 });
 
-exports.adminAuthorizeTeacherLogin = onCall(async function (request) {
+exports.adminAuthorizeTeacherLogin = onCall(callableOptions, async function (request) {
   const auth = request.auth;
   const data = request.data || {};
 
@@ -43,7 +53,7 @@ exports.adminAuthorizeTeacherLogin = onCall(async function (request) {
   return authorizeTeacherLogin(data, auth);
 });
 
-exports.repairTeacherAuthProfile = onCall(async function (request) {
+exports.repairTeacherAuthProfile = onCall(callableOptions, async function (request) {
   const auth = request.auth;
   const data = request.data || {};
 
