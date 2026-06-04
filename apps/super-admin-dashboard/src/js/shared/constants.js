@@ -1,4 +1,4 @@
-export var appVersion = "1.1.41";
+export var appVersion = "1.1.43";
 
 export var COURSE_CREATOR_URL = "../course-creator-dashboard/index.html";
 
@@ -12,6 +12,8 @@ export var userRoles = [
   "platformAdmin",
   "superAdmin"
 ];
+
+export var userRoleFilterOptions = ["student", "teacher", "parent", "admin", "superAdmin"];
 
 export var userStatuses = ["active", "inactive", "suspended", "archived"];
 

@@ -1,14 +1,14 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js";
-import { functions, httpsCallable } from "../../../../../packages/core/src/infrastructure/firebase/functions.js?v=1.1.41-teacher-auth-mirror";
+import { functions, httpsCallable } from "../../../../../packages/core/src/infrastructure/firebase/functions.js?v=1.1.43-users-filter-cards";
 import { storage } from "../../../../../packages/core/src/infrastructure/firebase/storage.js";
 import { collection, db, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../packages/core/src/infrastructure/firebase/firestore.js";
 import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js";
 import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoles, userStatuses } from "../shared/constants.js";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userRoles, userStatuses } from "../shared/constants.js?v=1.1.43-users-filter-cards";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.41";
+var appVersion = "1.1.43";
 var state = {
   isLoading: true,
   isRefreshing: false,
@@ -45,12 +45,7 @@ var state = {
     classId: "",
     searchText: ""
   },
-  userFilters: {
-    searchText: "",
-    role: "",
-    locationId: "",
-    status: ""
-  },
+  userFilters: createUserFilters(),
   assignmentFilters: {
     courseId: "",
     targetType: "",
@@ -1268,7 +1263,7 @@ function buildUserCreatePanel() {
 function buildUserFilters() {
   var html = '<div class="sa-user-filters">';
   html += '<label>Search<input data-user-filter="searchText" value="' + escapeHtml(state.userFilters.searchText) + '" placeholder="Name, email, or phone"></label>';
-  html += '<label>Role' + buildBasicOptionsSelect('data-user-filter="role"', state.userFilters.role, userRoles, "All roles") + '</label>';
+  html += '<label>Role' + buildBasicOptionsSelect('data-user-filter="role"', state.userFilters.role, userRoleFilterOptions, "All roles") + '</label>';
   html += '<label>Location' + buildOptionsSelect('data-user-filter="locationId"', state.userFilters.locationId, state.locations, "All locations") + '</label>';
   html += '<label>Status' + buildBasicOptionsSelect('data-user-filter="status"', state.userFilters.status, userStatuses, "All statuses") + '</label>';
   html += '</div>';
@@ -2278,8 +2273,18 @@ function handleInput(event) {
   }
 
   if (target.getAttribute("data-user-filter")) {
-    state.userFilters[target.getAttribute("data-user-filter")] = target.value;
-    render();
+    if (target.getAttribute("data-user-filter") === "role") {
+      applyUserRoleFilter(target.value, false);
+      return;
+    }
+
+    setState({
+      userFilters: Object.assign({}, state.userFilters, {
+        [target.getAttribute("data-user-filter")]: target.value
+      }),
+      activeUserId: "",
+      userEditModal: createUserEditModalState()
+    });
     return;
   }
 
@@ -2681,7 +2686,7 @@ async function handleAction(action, id) {
   } else if (action === "close-user-edit-modal") {
     closeUserEditModal();
   } else if (action === "filter-users-role") {
-    setState({ userFilters: Object.assign({}, state.userFilters, { role: id || "" }), activeUserId: "", userEditModal: createUserEditModalState(), message: "" });
+    applyUserRoleFilter(id || "", !id);
   } else if (action === "create-user") {
     await saveUserProfile("create", "new");
   } else if (action === "update-user") {
@@ -3877,6 +3882,15 @@ function createUserForm() {
     classId: "",
     childStudentIdsText: "",
     classIdsText: ""
+  };
+}
+
+function createUserFilters() {
+  return {
+    searchText: "",
+    role: "",
+    locationId: "",
+    status: ""
   };
 }
 
@@ -5481,17 +5495,22 @@ function readUserStats() {
 }
 
 function readFilteredUsers() {
+  return readFilteredUsersForFilters(state.userFilters);
+}
+
+function readFilteredUsersForFilters(filters) {
   var users = [];
-  var query = state.userFilters.searchText.trim().toLowerCase();
+  var safeFilters = filters || {};
+  var query = readSafeString(safeFilters.searchText).trim().toLowerCase();
   var index = 0;
 
   while (index < state.users.length) {
     var user = getSafeUser(state.users[index]);
     var searchable = [user.displayName, user.email, user.phone, user.id].join(" ").toLowerCase();
     var matchesSearch = !query || searchable.indexOf(query) !== -1;
-    var matchesRole = userMatchesRoleFilter(user, state.userFilters.role);
-    var matchesLocation = !state.userFilters.locationId || user.locationIds.indexOf(state.userFilters.locationId) !== -1 || user.primaryLocationId === state.userFilters.locationId;
-    var matchesStatus = !state.userFilters.status || user.status === state.userFilters.status;
+    var matchesRole = userMatchesRoleFilter(user, safeFilters.role);
+    var matchesLocation = !safeFilters.locationId || user.locationIds.indexOf(safeFilters.locationId) !== -1 || user.primaryLocationId === safeFilters.locationId;
+    var matchesStatus = !safeFilters.status || user.status === safeFilters.status;
 
     if (matchesSearch && matchesRole && matchesLocation && matchesStatus) {
       users.push(user);
@@ -5502,6 +5521,26 @@ function readFilteredUsers() {
 
   return users.sort(function (a, b) {
     return (a.displayName || a.email || a.id).localeCompare(b.displayName || b.email || b.id);
+  });
+}
+
+function applyUserRoleFilter(selectedRole, shouldClearFilters) {
+  var normalizedRole = readSafeString(selectedRole);
+  var nextFilters = shouldClearFilters
+    ? createUserFilters()
+    : Object.assign({}, state.userFilters, { role: normalizedRole });
+  var userCount = readFilteredUsersForFilters(nextFilters).length;
+
+  console.info("[users-filter-card]", {
+    selectedRole: normalizedRole,
+    userCount: userCount
+  });
+
+  setState({
+    userFilters: nextFilters,
+    activeUserId: "",
+    userEditModal: createUserEditModalState(),
+    message: ""
   });
 }
 

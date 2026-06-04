@@ -1,4 +1,4 @@
-import { runAdminIntent } from "../icf/intentRegistry.js";
+import { runAdminIntent } from "../icf/intentRegistry.js?v=1.1.43-users-filter-cards";
 
 export function bindUsersEvents(rootElement, handlers) {
   rootElement.addEventListener("click", function (event) {
@@ -17,6 +17,10 @@ export async function routeUsersAction(action, id, handlers) {
     if (typeof handlers.onFilterRole === "function") {
       handlers.onFilterRole(id);
     }
+    console.info("[users-filter-card]", {
+      selectedRole: id || "",
+      userCount: handlers && typeof handlers.readFilteredUserCount === "function" ? handlers.readFilteredUserCount(id || "") : 0
+    });
     return runAdminIntent("FilterUsersIntent", { role: id });
   }
 

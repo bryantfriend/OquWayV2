@@ -1,5 +1,5 @@
-import { roleFilterCards } from "../shared/constants.js";
-import { escapeHtml, formatDateTime } from "../shared/formatters.js";
+import { roleFilterCards } from "../shared/constants.js?v=1.1.43-users-filter-cards";
+import { escapeHtml, formatDateTime } from "../shared/formatters.js?v=1.1.43-users-filter-cards";
 
 export function renderUsersRoleCards(users, selectedRoleFilter) {
   var html = '<section class="sa-role-card-grid" aria-label="Role filters">';
@@ -54,9 +54,7 @@ function countUsersForCard(users, card) {
   }
 
   while (index < users.length) {
-    var roles = users[index].roles || [];
-
-    if (card.roles.some(function (role) { return roles.indexOf(role) !== -1; })) {
+    if (card.roles.some(function (role) { return normalizeUserRoles(users[index]).indexOf(role) !== -1; })) {
       count = count + 1;
     }
 
@@ -64,6 +62,21 @@ function countUsersForCard(users, card) {
   }
 
   return count;
+}
+
+function normalizeUserRoles(user) {
+  var roles = Array.isArray(user && user.roles) ? user.roles.slice() : [];
+
+  if (user && user.role && roles.indexOf(user.role) === -1) {
+    roles.push(user.role);
+  }
+
+  if (user && user.ROLE_TEACHER === true && roles.indexOf("teacher") === -1) roles.push("teacher");
+  if (user && user.ROLE_SCHOOL_ADMIN === true && roles.indexOf("schoolAdmin") === -1) roles.push("schoolAdmin");
+  if (user && user.ROLE_PLATFORM_ADMIN === true && roles.indexOf("platformAdmin") === -1) roles.push("platformAdmin");
+  if (user && user.ROLE_SUPER_ADMIN === true && roles.indexOf("superAdmin") === -1) roles.push("superAdmin");
+
+  return roles;
 }
 
 function readInitials(value) {
