@@ -1,5 +1,5 @@
-import { roleFilterCards } from "../shared/constants.js?v=1.1.48-admin-callable-sdk";
-import { escapeHtml, formatDateTime } from "../shared/formatters.js?v=1.1.48-admin-callable-sdk";
+import { roleFilterCards } from "../shared/constants.js?v=1.1.49-admin-users-fix";
+import { escapeHtml, formatDateTime } from "../shared/formatters.js?v=1.1.49-admin-users-fix";
 
 export function renderUsersRoleCards(users, selectedRoleFilter) {
   var html = '<section class="sa-role-card-grid" aria-label="Role filters">';

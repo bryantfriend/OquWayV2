@@ -1,15 +1,15 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js";
-import { firebaseApp } from "../../../../../packages/core/src/infrastructure/firebase/firebaseApp.js?v=1.1.48-admin-callable-sdk";
+import { firebaseApp } from "../../../../../packages/core/src/infrastructure/firebase/firebaseApp.js?v=1.1.49-admin-users-fix";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 import { storage } from "../../../../../packages/core/src/infrastructure/firebase/storage.js";
 import { collection, db, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../packages/core/src/infrastructure/firebase/firestore.js";
 import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js";
 import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userRoles, userStatuses } from "../shared/constants.js?v=1.1.48-admin-callable-sdk";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userRoles, userStatuses } from "../shared/constants.js?v=1.1.49-admin-users-fix";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.48";
+var appVersion = "1.1.49";
 var adminCallableFunctions = getFunctions(firebaseApp, "us-central1");
 var state = {
   isLoading: true,
@@ -124,6 +124,8 @@ async function initializeDashboard(user) {
   if (!user) {
     setState({
       isLoading: false,
+      isSaving: false,
+      pendingAction: "",
       authPhase: "loginRequired",
       needsLogin: true,
       admin: null,
@@ -136,6 +138,8 @@ async function initializeDashboard(user) {
 
   setState({
     isLoading: true,
+    isSaving: false,
+    pendingAction: "",
     authPhase: "profileLoading",
     needsLogin: false,
     admin: null,
@@ -174,11 +178,15 @@ async function initializeDashboard(user) {
     state.actor = actor;
     state.authPhase = "authorized";
     state.needsLogin = false;
+    state.isSaving = false;
+    state.pendingAction = "";
     await loadAdminProfile();
     await refreshAllData();
   } catch (error) {
     setState({
       isLoading: false,
+      isSaving: false,
+      pendingAction: "",
       authPhase: "unauthorized",
       needsLogin: false,
       actor: {
@@ -1408,32 +1416,70 @@ function buildUserCard(user) {
 }
 
 function buildUserActionButtons(user) {
-  var html = '<button type="button" class="sa-btn sa-btn-secondary" data-action="edit-user" data-id="' + escapeHtml(user.id) + '"' + disabled(state.isSaving && state.pendingAction.indexOf("update-user:") === 0) + '>Edit</button>';
+  var capabilities = readUserActionCapabilities(user);
+  var html = '<button type="button" class="sa-btn sa-btn-secondary" data-action="edit-user" data-id="' + escapeHtml(user.id) + '"' + disabled(!capabilities.canEdit) + '>Edit</button>';
 
   if (isTeacherUser(user)) {
-    html += buildTeacherLoginActionButton(user);
+    logTeacherActionRender(user, capabilities);
+    html += buildTeacherLoginActionButton(user, capabilities);
   }
 
   if (user.roles.indexOf("student") !== -1) {
     html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="reset-fruit-user" data-id="' + escapeHtml(user.id) + '"' + disabled(isBusy()) + '>Reset Fruit</button>';
   } else {
-    html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="send-password-reset" data-id="' + escapeHtml(user.id) + '"' + disabled(isBusy() || !user.email) + '>Reset Password</button>';
+    html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="send-password-reset" data-id="' + escapeHtml(user.id) + '"' + disabled(!capabilities.canResetPassword) + '>Reset Password</button>';
   }
 
   if (user.status === "active") {
-    html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="disable-user" data-id="' + escapeHtml(user.id) + '"' + disabled(isBusy()) + '>Disable</button>';
+    html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="disable-user" data-id="' + escapeHtml(user.id) + '"' + disabled(!capabilities.canDisable) + '>Disable</button>';
   }
 
-  html += '<button type="button" class="sa-btn sa-danger-btn" data-action="delete-user" data-id="' + escapeHtml(user.id) + '"' + disabled(isBusy()) + '>Delete</button>';
+  html += '<button type="button" class="sa-btn sa-danger-btn" data-action="delete-user" data-id="' + escapeHtml(user.id) + '"' + disabled(!capabilities.canDelete) + '>Delete</button>';
   return html;
 }
 
-function buildTeacherLoginActionButton(user) {
+function buildTeacherLoginActionButton(user, capabilities) {
   if (hasTeacherLoginAuthorization(user)) {
-    return '<button type="button" class="sa-btn sa-btn-secondary" disabled>Login Authorized</button><button type="button" class="sa-btn sa-btn-secondary" data-action="repair-teacher-auth-profile" data-id="' + escapeHtml(user.id) + '"' + disabled(isBusy()) + '>' + buildButtonContent("Repair Login Profile", "repair-teacher-auth-profile:" + user.id) + '</button>';
+    return '<button type="button" class="sa-btn sa-btn-secondary sa-status-btn" disabled>Login Authorized</button><button type="button" class="sa-btn sa-btn-secondary" data-action="repair-teacher-auth-profile" data-id="' + escapeHtml(user.id) + '"' + disabled(!capabilities.canRepair) + '>' + buildButtonContent("Repair Login Profile", "repair-teacher-auth-profile:" + user.id) + '</button>';
   }
 
-  return '<button type="button" class="sa-btn" data-action="authorize-teacher-login" data-id="' + escapeHtml(user.id) + '"' + disabled(isBusy()) + '>' + buildButtonContent("Authorize Teacher Login", "authorize-teacher-login:" + user.id) + '</button>';
+  return '<button type="button" class="sa-btn" data-action="authorize-teacher-login" data-id="' + escapeHtml(user.id) + '"' + disabled(!capabilities.canAuthorize) + '>' + buildButtonContent("Authorize Teacher Login", "authorize-teacher-login:" + user.id) + '</button>';
+}
+
+function readUserActionCapabilities(user) {
+  var safeUser = getSafeUser(user);
+  var busy = isBusy();
+  var isTeacher = safeUser.roles.indexOf("teacher") !== -1;
+  var hasEmail = Boolean(safeUser.email);
+  var hasAuthUid = Boolean(safeUser.authUid);
+  var hasTeacherRequiredFields = readTeacherLoginMissingFields(safeUser).length === 0;
+  var canDeleteByRole = state.actor && (state.actor.role === "superAdmin" || state.actor.role === "platformAdmin");
+
+  return {
+    canEdit: true,
+    canAuthorize: !busy && isTeacher && !hasTeacherLoginAuthorization(safeUser) && hasTeacherRequiredFields,
+    canRepair: !busy && isTeacher && hasAuthUid,
+    canResetPassword: !busy && hasEmail,
+    canDisable: !busy && safeUser.status === "active",
+    canDelete: !busy && canDeleteByRole
+  };
+}
+
+function logTeacherActionRender(user, capabilities) {
+  var safeUser = getSafeUser(user);
+
+  console.info("[teacher-actions:render]", {
+    userId: safeUser.id,
+    email: Boolean(safeUser.email),
+    authUid: Boolean(safeUser.authUid),
+    loginEnabled: safeUser.loginEnabled,
+    canEdit: capabilities.canEdit,
+    canAuthorize: capabilities.canAuthorize,
+    canRepair: capabilities.canRepair,
+    canResetPassword: capabilities.canResetPassword,
+    canDisable: capabilities.canDisable,
+    canDelete: capabilities.canDelete
+  });
 }
 
 function buildUserEditModal() {
@@ -2391,6 +2437,10 @@ function canRunActionWhileBusy(action) {
     return true;
   }
 
+  if (action === "edit-user" || action === "close-user-edit-modal") {
+    return true;
+  }
+
   if (!state.isSaving && state.isRefreshing && (action === "edit-user" || action === "close-user-edit-modal")) {
     return true;
   }
@@ -3129,6 +3179,12 @@ async function loginAdmin() {
     rememberReturnDestination();
     setState({ isSaving: true, pendingAction: "admin-login", message: "Signing in...", messageType: "info" });
     await signInWithEmailAndPassword(auth, email, password);
+    setState({
+      isSaving: false,
+      pendingAction: "",
+      message: "Checking admin access...",
+      messageType: "info"
+    });
   } catch (error) {
     setState({
       isSaving: false,
@@ -5730,7 +5786,8 @@ function applyUserRoleFilter(selectedRole, shouldClearFilters) {
 
   console.info("[users-filter-card]", {
     selectedRole: normalizedRole,
-    userCount: userCount
+    visibleUserCount: userCount,
+    totalUserCount: state.users.length
   });
 
   setState({
@@ -5779,7 +5836,8 @@ function readVisibleClassesForLocation(selectedLocationId) {
 function userMatchesRoleFilter(user, roleFilter) {
   var safeFilter = readSafeString(roleFilter);
   var card = findRoleFilterCard(safeFilter);
-  var roles = user && Array.isArray(user.roles) ? user.roles : [];
+  var safeUser = getSafeUser(user);
+  var roles = safeUser.roles;
   var index = 0;
 
   if (!safeFilter) {
@@ -5787,7 +5845,7 @@ function userMatchesRoleFilter(user, roleFilter) {
   }
 
   if (!card || card.roles.length === 0) {
-    return roles.indexOf(safeFilter) !== -1;
+    return roles.indexOf(normalizeUserRole(safeFilter)) !== -1;
   }
 
   while (index < card.roles.length) {

@@ -1,4 +1,4 @@
-import { runAdminIntent } from "../icf/intentRegistry.js?v=1.1.48-admin-callable-sdk";
+import { runAdminIntent } from "../icf/intentRegistry.js?v=1.1.49-admin-users-fix";
 
 export function bindUsersEvents(rootElement, handlers) {
   rootElement.addEventListener("click", function (event) {
@@ -19,7 +19,8 @@ export async function routeUsersAction(action, id, handlers) {
     }
     console.info("[users-filter-card]", {
       selectedRole: id || "",
-      userCount: handlers && typeof handlers.readFilteredUserCount === "function" ? handlers.readFilteredUserCount(id || "") : 0
+      visibleUserCount: handlers && typeof handlers.readFilteredUserCount === "function" ? handlers.readFilteredUserCount(id || "") : 0,
+      totalUserCount: handlers && typeof handlers.readTotalUserCount === "function" ? handlers.readTotalUserCount() : 0
     });
     return runAdminIntent("FilterUsersIntent", { role: id });
   }
