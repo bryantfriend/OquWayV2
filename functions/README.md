@@ -53,6 +53,7 @@ It creates or carefully reuses a Firebase Auth user, sets teacher custom claims,
 ```txt
 email
 authUid
+profileUserId
 loginEnabled: true
 loginAuthorizedAt
 loginAuthorizedBy
@@ -70,3 +71,11 @@ Custom claims set:
 ```
 
 The backend checks that a password reset link can be generated. The Admin Dashboard sends the Firebase password reset/setup email from the frontend after the callable succeeds.
+
+The callable also creates or merges a mirror profile at `users/{authUid}` so Teacher Dashboard and Firestore rule helpers can load the signed-in teacher directly. The mirror keeps the original document through `profileUserId` and includes teacher role claims, class scope, location scope, and `loginEnabled`.
+
+## `repairTeacherAuthProfile`
+
+Callable function used by the Admin Dashboard to repair existing authorized teacher profiles that already have `authUid` but are missing the `users/{authUid}` mirror document.
+
+It verifies the same admin caller roles, confirms the original profile is an active teacher with required class/location/email fields, refreshes teacher custom claims, and writes the mirror profile without deleting the original teacher document.

@@ -1,6 +1,6 @@
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.40-teacher-profile-admin-fix";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.40-teacher-profile-admin-fix";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.41-teacher-auth-mirror";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.41-teacher-auth-mirror";
 
 export async function processTeacherLogin(executionState) {
   var payload = executionState.payload || {};
@@ -777,4 +777,5 @@ function readErrorMessage(error) {
 
   return error.code ? error.code + " " + error.message : error.message || String(error);
 }
+
 

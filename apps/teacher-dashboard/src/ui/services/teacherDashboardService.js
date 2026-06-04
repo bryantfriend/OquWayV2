@@ -1,7 +1,7 @@
 import { getIdTokenResult, onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.40-teacher-profile-admin-fix";
-import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.40-teacher-profile-admin-fix";
-import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.40-teacher-profile-admin-fix";
+import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.41-teacher-auth-mirror";
+import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.41-teacher-auth-mirror";
+import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.41-teacher-auth-mirror";
 
 var currentTeacherClaims = {};
 
@@ -151,4 +151,5 @@ function readFirstErrorText(error) {
 
   return error.message || error.code || String(error);
 }
+
 

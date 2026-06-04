@@ -1,6 +1,6 @@
 export { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js";
 export { storage } from "../../../../../packages/core/src/infrastructure/firebase/storage.js";
-export { functions, httpsCallable } from "../../../../../packages/core/src/infrastructure/firebase/functions.js?v=1.1.40-teacher-profile-admin-fix";
+export { functions, httpsCallable } from "../../../../../packages/core/src/infrastructure/firebase/functions.js?v=1.1.41-teacher-auth-mirror";
 export {
   collection,
   db,
@@ -11,4 +11,5 @@ export {
   serverTimestamp,
   setDoc
 } from "../../../../../packages/core/src/infrastructure/firebase/firestore.js";
+
 

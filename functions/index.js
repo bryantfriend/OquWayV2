@@ -43,6 +43,14 @@ exports.adminAuthorizeTeacherLogin = onCall(async function (request) {
   return authorizeTeacherLogin(data, auth);
 });
 
+exports.repairTeacherAuthProfile = onCall(async function (request) {
+  const auth = request.auth;
+  const data = request.data || {};
+
+  verifyTeacherAuthorizationCaller(auth);
+  return repairTeacherAuthProfile(data, auth);
+});
+
 const FRUIT_ALIASES = {
   apple: "apple",
   "\uD83C\uDF4E": "apple",
@@ -403,11 +411,17 @@ async function authorizeTeacherLogin(data, auth) {
   await userRef.set({
     email: email,
     authUid: authUser.uid,
+    profileUserId: userId,
     loginEnabled: true,
     loginAuthorizedAt: admin.firestore.FieldValue.serverTimestamp(),
     loginAuthorizedBy: auth && auth.uid ? auth.uid : "",
     updatedAt: admin.firestore.FieldValue.serverTimestamp()
   }, { merge: true });
+  await writeTeacherAuthMirrorProfile(db, Object.assign({}, teacher, {
+    email: email,
+    displayName: displayName,
+    authUid: authUser.uid
+  }), userId, authUser.uid, auth);
 
   let resetLinkGenerated = false;
   try {
@@ -425,6 +439,69 @@ async function authorizeTeacherLogin(data, auth) {
     loginEnabled: true,
     resetLinkGenerated: resetLinkGenerated,
     frontendShouldSendResetEmail: true
+  };
+}
+
+async function repairTeacherAuthProfile(data, auth) {
+  const userId = readRequiredText(data.userId, "userId");
+  const db = admin.firestore();
+  const userRef = db.collection("users").doc(userId);
+  const userDoc = await userRef.get();
+
+  if (!userDoc.exists) {
+    throw new HttpsError("not-found", "Teacher profile was not found.");
+  }
+
+  const teacher = Object.assign({ id: userDoc.id }, userDoc.data() || {});
+
+  if (!hasTeacherRole(teacher)) {
+    throw new HttpsError("permission-denied", "Only teacher profiles can be repaired for Teacher Dashboard login.");
+  }
+
+  const authUid = readText(teacher.authUid || teacher.firebaseAuthUid).trim();
+
+  if (!authUid) {
+    throw new HttpsError("failed-precondition", "Teacher profile does not have an authUid. Use Authorize Teacher Login first.");
+  }
+
+  const email = readText(teacher.email).trim().toLowerCase();
+  const displayName = readText(teacher.displayName || teacher.name).trim();
+  const missingFields = validateTeacherLoginRequirements(Object.assign({}, teacher, {
+    email: email,
+    displayName: displayName
+  }));
+
+  if (missingFields.length > 0) {
+    throw new HttpsError("failed-precondition", "Before repairing this teacher login profile, complete: " + missingFields.join(", ") + ".", {
+      missingFields: missingFields
+    });
+  }
+
+  try {
+    await admin.auth().getUser(authUid);
+  } catch (error) {
+    throw new HttpsError("failed-precondition", "Teacher profile has an authUid, but the Firebase Auth user was not found.");
+  }
+
+  await assertAuthUserNotLinkedToAnotherProfile(db, authUid, userId);
+  await admin.auth().setCustomUserClaims(authUid, {
+    role: "teacher",
+    roles: ["teacher"],
+    ROLE_TEACHER: true
+  });
+  await writeTeacherAuthMirrorProfile(db, teacher, userId, authUid, auth);
+  await userRef.set({
+    authUid: authUid,
+    profileUserId: userId,
+    loginEnabled: true,
+    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
+
+  return {
+    success: true,
+    userId: userId,
+    authUid: authUid,
+    mirrorPath: "users/" + authUid
   };
 }
 
@@ -455,11 +532,65 @@ async function findOrCreateTeacherAuthUser(teacher, email, displayName) {
   });
 }
 
+async function writeTeacherAuthMirrorProfile(db, teacher, userId, authUid, auth) {
+  const mirrorRef = db.collection("users").doc(authUid);
+  const mirrorRecord = buildTeacherAuthMirrorProfile(teacher, userId, authUid, auth);
+
+  await mirrorRef.set(mirrorRecord, { merge: true });
+
+  console.info("[teacher-auth:mirror-profile]", {
+    userId: userId,
+    authUid: authUid,
+    path: "users/" + authUid,
+    profileUserId: userId
+  });
+}
+
+function buildTeacherAuthMirrorProfile(teacher, userId, authUid, auth) {
+  const email = readText(teacher.email).trim().toLowerCase();
+  const displayName = readText(teacher.displayName || teacher.name || email).trim();
+  const locationId = readFirstTeacherLocationId(teacher);
+  const locationIds = readTeacherLocationIds(teacher, locationId);
+  const classIds = readTeacherClassIds(teacher);
+  const classId = readText(teacher.classId).trim() || classIds[0] || "";
+
+  return {
+    authUid: authUid,
+    profileUserId: userId,
+    displayName: displayName,
+    name: displayName,
+    email: email,
+    role: "teacher",
+    roles: ["teacher"],
+    ROLE_TEACHER: true,
+    locationId: locationId,
+    primaryLocationId: locationId,
+    locationIds: locationIds,
+    classId: classId,
+    classIds: classIds,
+    assignedClassIds: classIds,
+    status: "active",
+    loginEnabled: true,
+    loginAuthorizedBy: auth && auth.uid ? auth.uid : readText(teacher.loginAuthorizedBy),
+    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+  };
+}
+
 async function assertAuthUserNotLinkedToAnotherProfile(db, authUid, userId) {
   const snapshot = await db.collection("users").where("authUid", "==", authUid).get();
   let conflictingUserId = "";
 
   snapshot.forEach(function (doc) {
+    const data = doc.data() || {};
+
+    if (doc.id === userId) {
+      return;
+    }
+
+    if (doc.id === authUid && (!data.profileUserId || data.profileUserId === userId)) {
+      return;
+    }
+
     if (doc.id !== userId) {
       conflictingUserId = doc.id;
     }
@@ -519,6 +650,25 @@ function readTeacherClassIds(teacher) {
     teacher.classRefs,
     teacher.classes
   ]);
+}
+
+function readTeacherLocationIds(teacher, fallbackLocationId) {
+  const ids = readIdList([
+    teacher.locationId,
+    teacher.primaryLocationId,
+    teacher.schoolId,
+    teacher.locId,
+    teacher.locationIds,
+    teacher.schoolIds,
+    teacher.locations,
+    teacher.schools
+  ]);
+
+  if (fallbackLocationId && ids.indexOf(fallbackLocationId) === -1) {
+    ids.unshift(fallbackLocationId);
+  }
+
+  return ids;
 }
 
 function isActiveTeacher(teacher) {

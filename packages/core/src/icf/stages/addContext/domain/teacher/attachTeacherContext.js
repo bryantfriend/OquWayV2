@@ -1,4 +1,4 @@
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.40-teacher-profile-admin-fix";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.41-teacher-auth-mirror";
 
 export async function attachTeacherProfileContext(executionState) {
   var actor = executionState.actor || {};
@@ -66,6 +66,14 @@ async function loadTeacherProfileByAuthUid(authUid) {
     directProfile = normalizeTeacherProfileDocument(directSnap, authUid);
   }
 
+  console.info("[teacher-profile:direct]", {
+    authUid: authUid,
+    path: "users/" + authUid,
+    found: directProfileFound,
+    profileUserId: directProfile && directProfile.profileUserId ? directProfile.profileUserId : "",
+    roles: readProfileRoles(directProfile)
+  });
+
   if (directProfile && readProfileRoles(directProfile).length > 0) {
     profile = directProfile;
   } else {
@@ -78,6 +86,8 @@ async function loadTeacherProfileByAuthUid(authUid) {
       }
     });
   }
+
+  profile = await attachLinkedTeacherProfile(profile, authUid);
 
   console.info("[teacher-profile:lookup]", {
     authUid: authUid,
@@ -92,6 +102,36 @@ async function loadTeacherProfileByAuthUid(authUid) {
   return {
     profile: profile
   };
+}
+
+async function attachLinkedTeacherProfile(profile, authUid) {
+  var profileUserId = profile && profile.profileUserId ? profile.profileUserId : "";
+  var linkedFound = false;
+  var linkedProfile = null;
+
+  if (profileUserId && profileUserId !== authUid) {
+    var linkedSnap = await getDoc(doc(db, "users", profileUserId));
+
+    if (linkedSnap.exists()) {
+      linkedFound = true;
+      linkedProfile = normalizeTeacherProfileDocument(linkedSnap, authUid);
+      profile = Object.assign({}, linkedProfile, profile, {
+        id: profile.id,
+        authUid: authUid,
+        profileUserId: profileUserId,
+        linkedProfile: linkedProfile
+      });
+    }
+  }
+
+  console.info("[teacher-profile:linked]", {
+    authUid: authUid,
+    profileUserId: profileUserId,
+    found: linkedFound,
+    roles: readProfileRoles(profile)
+  });
+
+  return profile;
 }
 
 function normalizeTeacherProfileDocument(profileSnap, authUid) {
@@ -275,4 +315,5 @@ function readErrorMessage(error) {
 
   return error.code ? error.code + " " + error.message : error.message || String(error);
 }
+
 

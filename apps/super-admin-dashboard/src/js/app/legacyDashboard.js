@@ -1,6 +1,6 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js";
-import { functions, httpsCallable } from "../../../../../packages/core/src/infrastructure/firebase/functions.js?v=1.1.40-teacher-profile-admin-fix";
+import { functions, httpsCallable } from "../../../../../packages/core/src/infrastructure/firebase/functions.js?v=1.1.41-teacher-auth-mirror";
 import { storage } from "../../../../../packages/core/src/infrastructure/firebase/storage.js";
 import { collection, db, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../packages/core/src/infrastructure/firebase/firestore.js";
 import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js";
@@ -8,7 +8,7 @@ import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/r
 import { COURSE_CREATOR_URL, roleFilterCards, userRoles, userStatuses } from "../shared/constants.js";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.40";
+var appVersion = "1.1.41";
 var state = {
   isLoading: true,
   isRefreshing: false,
@@ -1341,7 +1341,7 @@ function buildUserActionButtons(user) {
 
 function buildTeacherLoginActionButton(user) {
   if (hasTeacherLoginAuthorization(user)) {
-    return '<button type="button" class="sa-btn sa-btn-secondary" disabled>Login Authorized</button>';
+    return '<button type="button" class="sa-btn sa-btn-secondary" disabled>Login Authorized</button><button type="button" class="sa-btn sa-btn-secondary" data-action="repair-teacher-auth-profile" data-id="' + escapeHtml(user.id) + '"' + disabled(isBusy()) + '>' + buildButtonContent("Repair Login Profile", "repair-teacher-auth-profile:" + user.id) + '</button>';
   }
 
   return '<button type="button" class="sa-btn" data-action="authorize-teacher-login" data-id="' + escapeHtml(user.id) + '"' + disabled(isBusy()) + '>' + buildButtonContent("Authorize Teacher Login", "authorize-teacher-login:" + user.id) + '</button>';
@@ -2702,6 +2702,8 @@ async function handleAction(action, id) {
     openFruitPasswordReset(id);
   } else if (action === "authorize-teacher-login") {
     await authorizeTeacherLogin(id);
+  } else if (action === "repair-teacher-auth-profile") {
+    await repairTeacherAuthProfile(id);
   } else if (action === "send-password-reset") {
     await sendStaffPasswordReset(id);
   } else if (action === "create-class") {
@@ -3521,6 +3523,52 @@ async function authorizeTeacherLogin(userId) {
       isSaving: false,
       pendingAction: "",
       message: "Could not authorize teacher login: " + readCallableErrorMessage(error),
+      messageType: "error"
+    });
+    return false;
+  }
+}
+
+async function repairTeacherAuthProfile(userId) {
+  var user = getSafeUser(findUser(userId));
+
+  if (!user.id || !isTeacherUser(user)) {
+    setState({ message: "Repair Login Profile is only available for teacher users.", messageType: "error" });
+    return false;
+  }
+
+  if (!user.authUid) {
+    setState({ message: "This teacher does not have an authUid yet. Use Authorize Teacher Login first.", messageType: "error" });
+    return false;
+  }
+
+  try {
+    setState({
+      isSaving: true,
+      pendingAction: "repair-teacher-auth-profile:" + userId,
+      message: "Repairing teacher login profile...",
+      messageType: "info"
+    });
+
+    var repairLoginProfile = httpsCallable(functions, "repairTeacherAuthProfile");
+    await repairLoginProfile({
+      userId: user.id
+    });
+
+    await refreshAllData();
+    setState({
+      isSaving: false,
+      pendingAction: "",
+      activeUserId: user.id,
+      message: "Teacher login profile repaired. Teacher Dashboard can now load users/" + user.authUid + ".",
+      messageType: "success"
+    });
+    return true;
+  } catch (error) {
+    setState({
+      isSaving: false,
+      pendingAction: "",
+      message: "Could not repair teacher login profile: " + readCallableErrorMessage(error),
       messageType: "error"
     });
     return false;
@@ -6398,4 +6446,5 @@ window.goSuperAdmin = function () {
   state.activeTab = "overview";
   render();
 };
+
 
