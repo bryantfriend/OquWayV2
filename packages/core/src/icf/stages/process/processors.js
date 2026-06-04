@@ -124,11 +124,14 @@ export {
 } from "./domain/superAdmin/superAdminProcessors.js?v=1.1.55-class-ownership";
 export {
   processLoadTeacherClasses,
+  processLoadTeacherClassDetail,
+  processLoadTeacherCourseDetail,
+  processLoadTeacherCourses,
   processLoadTeacherDashboard,
   processLoadTeacherReviewQueue,
   processLoadTeacherStudents,
   processSendTeacherPasswordReset,
   processTeacherLogin
-} from "./domain/teacher/teacherDashboardProcessors.js?v=1.1.54-multi-role-assistant";
+} from "./domain/teacher/teacherDashboardProcessors.js?v=1.1.57-teacher-ownership";
 
 

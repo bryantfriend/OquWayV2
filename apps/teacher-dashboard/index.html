@@ -123,6 +123,7 @@
     .teacher-hero-card rect,
     .teacher-header-book rect,
     .teacher-class-route-svg rect,
+    .teacher-course-book-svg rect,
     .teacher-empty-card,
     .teacher-submission-ribbon rect {
       fill: white;
@@ -429,6 +430,7 @@
 
     .teacher-login-aside span,
     .teacher-class-card span,
+    .teacher-course-card span,
     .teacher-student-row span,
     .teacher-submission-meta,
     .teacher-submission-head span {
@@ -492,7 +494,7 @@
       position: relative;
       z-index: 1;
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 14px;
       margin-bottom: 18px;
     }
@@ -553,6 +555,16 @@
       stroke: #0f766e;
     }
 
+    .teacher-metric-courses .teacher-metric-ring,
+    .teacher-metric-svg-courses .teacher-metric-ring {
+      fill: rgba(59, 130, 246, 0.1);
+      stroke: rgba(59, 130, 246, 0.38);
+    }
+
+    .teacher-metric-svg-courses .teacher-metric-path {
+      stroke: #1d4ed8;
+    }
+
     .teacher-metric-reviews .teacher-metric-ring,
     .teacher-metric-svg-reviews .teacher-metric-ring {
       fill: rgba(245, 158, 11, 0.12);
@@ -572,11 +584,62 @@
       margin-bottom: 18px;
     }
 
+    .teacher-tabs {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .teacher-tab {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border: 1px solid #dbe3ef;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.88);
+      color: #334155;
+      padding: 12px 14px;
+      font-weight: 900;
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.05);
+      transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+    }
+
+    .teacher-tab:hover,
+    .teacher-tab.active {
+      transform: translateY(-1px);
+      border-color: #2563eb;
+      box-shadow: 0 16px 34px rgba(37, 99, 235, 0.12);
+    }
+
+    .teacher-tab.active {
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .teacher-tab span {
+      display: grid;
+      place-items: center;
+      min-width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: #dbeafe;
+      color: #1d4ed8;
+      font-size: 12px;
+    }
+
     .teacher-card-section,
     .teacher-review-section {
       position: relative;
       z-index: 1;
       padding: 18px;
+    }
+
+    .teacher-wide-section {
+      margin-bottom: 18px;
     }
 
     .teacher-section-title {
@@ -616,13 +679,15 @@
     }
 
     .teacher-class-list,
+    .teacher-course-list,
     .teacher-student-list,
     .teacher-review-list {
       display: grid;
       gap: 10px;
     }
 
-    .teacher-class-card {
+    .teacher-class-card,
+    .teacher-course-card {
       display: grid;
       grid-template-columns: 76px minmax(0, 1fr);
       gap: 5px 12px;
@@ -636,13 +701,20 @@
       transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
     }
 
-    .teacher-class-card:hover {
+    .teacher-course-card {
+      grid-template-columns: 82px minmax(0, 1fr) auto;
+      align-items: center;
+    }
+
+    .teacher-class-card:hover,
+    .teacher-course-card:hover {
       transform: translateY(-1px);
       border-color: rgba(37, 99, 235, 0.42);
       box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
     }
 
-    .teacher-class-card.active {
+    .teacher-class-card.active,
+    .teacher-course-card.active {
       border-color: #2563eb;
       background: #eff6ff;
     }
@@ -666,7 +738,44 @@
       font-weight: 900;
     }
 
-    .teacher-class-card small {
+    .teacher-course-book-svg {
+      grid-row: span 3;
+      width: 78px;
+      height: 56px;
+      align-self: center;
+    }
+
+    .teacher-course-book-svg rect {
+      fill: #ffffff;
+      stroke: #cbd5e1;
+      stroke-width: 2;
+      filter: drop-shadow(0 10px 16px rgba(15, 23, 42, 0.1));
+    }
+
+    .teacher-course-book-svg path.teacher-svg-draw {
+      stroke: #0f766e;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .teacher-course-book-svg text {
+      fill: #0f766e;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .teacher-course-card b {
+      border-radius: 999px;
+      background: #ecfdf5;
+      color: #047857;
+      font-size: 11px;
+      padding: 7px 9px;
+      white-space: nowrap;
+    }
+
+    .teacher-class-card small,
+    .teacher-course-card small {
       color: #0f766e;
       font-weight: 800;
     }
@@ -917,6 +1026,7 @@
       .teacher-login-shell,
       .teacher-grid,
       .teacher-metrics,
+      .teacher-tabs,
       .teacher-filters {
         grid-template-columns: 1fr;
       }
@@ -938,11 +1048,13 @@
       }
 
       .teacher-class-card,
+      .teacher-course-card,
       .teacher-empty-visual {
         grid-template-columns: 1fr;
       }
 
       .teacher-class-route-svg,
+      .teacher-course-book-svg,
       .teacher-student-pulse-svg {
         width: 100%;
         max-width: 120px;
@@ -972,7 +1084,7 @@
     </main>
   </div>
 
-  <script type="module" src="./src/main.js?v=1.1.54-multi-role-assistant"></script>
+  <script type="module" src="./src/main.js?v=1.1.57-teacher-ownership"></script>
 </body>
 
 </html>

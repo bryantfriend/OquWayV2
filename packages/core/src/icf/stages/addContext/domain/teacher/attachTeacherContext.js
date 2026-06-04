@@ -1,4 +1,4 @@
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.54-multi-role-assistant";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.57-teacher-ownership";
 
 export async function attachTeacherProfileContext(executionState) {
   var actor = executionState.actor || {};
@@ -24,6 +24,7 @@ export async function attachTeacherProfileContext(executionState) {
         teacherProfile: profile,
         authUid: actor.id,
         profileUserId: profile && profile.profileUserId ? profile.profileUserId : "",
+        teacherOwnershipIds: readTeacherOwnershipIds(profile, actor.id),
         teacherClassIds: readTeacherClassIds(profile),
         teacherLocationIds: readTeacherLocationIds(profile)
       }
@@ -42,6 +43,7 @@ export async function attachTeacherProfileContext(executionState) {
         teacherProfile: null,
         authUid: actor.id || "",
         profileUserId: "",
+        teacherOwnershipIds: actor.id ? [actor.id] : [],
         teacherClassIds: [],
         teacherLocationIds: []
       }
@@ -260,6 +262,20 @@ export function readTeacherLocationIds(profile) {
   addTextList(ids, profile ? profile.schoolIds : null);
   addRecordList(ids, profile ? profile.locations : null, "location");
   addRecordList(ids, profile ? profile.schools : null, "location");
+
+  return ids;
+}
+
+function readTeacherOwnershipIds(profile, authUid) {
+  var ids = [];
+
+  addText(ids, authUid || "");
+  addText(ids, profile ? profile.id : "");
+  addText(ids, profile ? profile.profileUserId : "");
+  addText(ids, profile ? profile.authUid : "");
+  addText(ids, profile && profile.linkedProfile ? profile.linkedProfile.id : "");
+  addText(ids, profile && profile.linkedProfile ? profile.linkedProfile.profileUserId : "");
+  addText(ids, profile && profile.linkedProfile ? profile.linkedProfile.authUid : "");
 
   return ids;
 }

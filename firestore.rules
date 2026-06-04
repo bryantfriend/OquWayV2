@@ -151,6 +151,31 @@ service cloud.firestore {
         );
     }
 
+    function isTeacherAssignedToClassId(classId) {
+      return isTeacher()
+        && user() != null
+        && classId is string
+        && exists(/databases/$(db)/documents/classes/$(classId))
+        && isTeacherAssignedToClass(get(/databases/$(db)/documents/classes/$(classId)).data, classId);
+    }
+
+    function isTeacherAssignedToCourseAssignment(assignmentData) {
+      return isTeacher()
+        && user() != null
+        && (
+          (assignmentData.responsibleTeacherId is string && assignmentData.responsibleTeacherId in teacherProfileIds()) ||
+          (assignmentData.assistantIds is list && assignmentData.assistantIds.hasAny(teacherProfileIds()))
+        );
+    }
+
+    function isTeacherAssignedToCourseAssignmentId(assignmentId) {
+      return isTeacher()
+        && user() != null
+        && assignmentId is string
+        && exists(/databases/$(db)/documents/courseAssignments/$(assignmentId))
+        && isTeacherAssignedToCourseAssignment(get(/databases/$(db)/documents/courseAssignments/$(assignmentId)).data);
+    }
+
     function isCourseAssignmentOwnershipAdmin() {
       return isSuperAdmin() || isPlatformAdmin() || isSchoolAdmin();
     }
@@ -178,6 +203,7 @@ service cloud.firestore {
       return isTeacher()
         && user() != null
         && (
+          (resource.data.classId is string && isTeacherAssignedToClassId(resource.data.classId)) ||
           (resource.data.classId is string && resource.data.classId in teacherClassIds()) ||
           (resource.data.classIds is list && resource.data.classIds.hasAny(teacherClassIds())) ||
           (resource.data.assignedClassIds is list && resource.data.assignedClassIds.hasAny(teacherClassIds()))
@@ -203,6 +229,9 @@ service cloud.firestore {
         && isTeacher()
         && user() != null
         && (
+          (resource.data.assignmentId is string && isTeacherAssignedToCourseAssignmentId(resource.data.assignmentId)) ||
+          (resource.data.courseAssignmentId is string && isTeacherAssignedToCourseAssignmentId(resource.data.courseAssignmentId)) ||
+          (resource.data.classId is string && isTeacherAssignedToClassId(resource.data.classId)) ||
           (resource.data.classId is string && resource.data.classId in teacherClassIds()) ||
           (resource.data.locationId is string && resource.data.locationId in teacherLocationIds())
         );
@@ -312,7 +341,7 @@ service cloud.firestore {
         isPlatformAdmin() ||
         isSchoolAdmin() ||
         isCourseEditor() ||
-        isTeacher() ||
+        isTeacherAssignedToCourseAssignment(resource.data) ||
         isRelevantCourseAssignment()
       );
 

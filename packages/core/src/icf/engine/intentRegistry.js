@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.56-assignment-ownership";
+import * as IntentExports from "../intents/intents.js?v=1.1.57-teacher-ownership";
 
 const registry = {
   // Demo Verification
@@ -37,6 +37,9 @@ const registry = {
 
   // Teacher Dashboard
   TeacherLoginIntent: IntentExports.TeacherLoginIntent,
+  LoadTeacherClassDetailIntent: IntentExports.LoadTeacherClassDetailIntent,
+  LoadTeacherCourseDetailIntent: IntentExports.LoadTeacherCourseDetailIntent,
+  LoadTeacherCoursesIntent: IntentExports.LoadTeacherCoursesIntent,
   LoadTeacherDashboardIntent: IntentExports.LoadTeacherDashboardIntent,
   LoadTeacherClassesIntent: IntentExports.LoadTeacherClassesIntent,
   LoadTeacherStudentsIntent: IntentExports.LoadTeacherStudentsIntent,

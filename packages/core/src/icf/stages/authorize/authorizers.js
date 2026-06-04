@@ -22,6 +22,6 @@ export {
   allowTeacherLoginAuthorization,
   requireTeacherDashboardAuthorization,
   requireTeacherReviewScopeAuthorization
-} from "./domain/teacher/requireTeacherAuthorization.js?v=1.1.54-multi-role-assistant";
+} from "./domain/teacher/requireTeacherAuthorization.js?v=1.1.57-teacher-ownership";
 
 

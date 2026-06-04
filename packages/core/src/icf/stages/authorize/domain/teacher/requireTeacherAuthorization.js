@@ -1,3 +1,5 @@
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.57-teacher-ownership";
+
 export function allowTeacherLoginAuthorization() {
   return { valid: true };
 }
@@ -62,7 +64,7 @@ export function requireTeacherDashboardAuthorization(executionState) {
   return { valid: true };
 }
 
-export function requireTeacherReviewScopeAuthorization(executionState) {
+export async function requireTeacherReviewScopeAuthorization(executionState) {
   var actor = executionState.actor || {};
   var actorRoles = readActorClaimRoles(actor);
   var profile = executionState.context ? executionState.context.teacherProfile : null;
@@ -90,11 +92,11 @@ export function requireTeacherReviewScopeAuthorization(executionState) {
     return createError("EXTERNAL_TASK_SUBMISSION_REQUIRED", "The submission could not be found.");
   }
 
-  if (isSubmissionInTeacherScope(submission, executionState.context.teacherClassIds || [], executionState.context.teacherLocationIds || [])) {
+  if (await isSubmissionInTeacherOwnershipScope(submission, executionState.context || {}, actor)) {
     return { valid: true };
   }
 
-  return createError("EXTERNAL_TASK_REVIEW_SCOPE_DENIED", "This submission is outside this teacher's assigned classes.");
+  return createError("EXTERNAL_TASK_REVIEW_SCOPE_DENIED", "This submission is outside this teacher's owned classes or course assignments.");
 }
 
 export function isAllowedTeacherDashboardRole(role) {
@@ -214,16 +216,91 @@ function isExplicitStudentOrParentProfile(profileRoles) {
     && (profileRoles.indexOf("student") !== -1 || profileRoles.indexOf("parent") !== -1);
 }
 
-function isSubmissionInTeacherScope(submission, classIds, locationIds) {
-  if (submission.classId && classIds.indexOf(submission.classId) !== -1) {
+async function isSubmissionInTeacherOwnershipScope(submission, context, actor) {
+  var profile = context.teacherProfile || null;
+  var teacherIds = readTeacherOwnershipIds(context, profile, actor);
+  var assignmentId = submission.courseAssignmentId || submission.assignmentId || "";
+
+  if (assignmentId && await isOwnedCourseAssignment(assignmentId, teacherIds)) {
     return true;
   }
 
-  if (submission.locationId && locationIds.indexOf(submission.locationId) !== -1) {
+  if (submission.classId && await isOwnedClass(submission.classId, teacherIds)) {
     return true;
   }
 
   return false;
+}
+
+async function isOwnedClass(classId, teacherIds) {
+  if (!classId || teacherIds.length === 0) {
+    return false;
+  }
+
+  try {
+    var classSnap = await getDoc(doc(db, "classes", classId));
+    return classSnap.exists() && recordHasTeacherOwnership(classSnap.data() || {}, teacherIds, "primaryTeacherId");
+  } catch (error) {
+    return false;
+  }
+}
+
+async function isOwnedCourseAssignment(assignmentId, teacherIds) {
+  if (!assignmentId || teacherIds.length === 0) {
+    return false;
+  }
+
+  try {
+    var assignmentSnap = await getDoc(doc(db, "courseAssignments", assignmentId));
+    return assignmentSnap.exists() && recordHasTeacherOwnership(assignmentSnap.data() || {}, teacherIds, "responsibleTeacherId");
+  } catch (error) {
+    return false;
+  }
+}
+
+function recordHasTeacherOwnership(data, teacherIds, primaryFieldName) {
+  return data && (
+    (typeof data[primaryFieldName] === "string" && teacherIds.indexOf(data[primaryFieldName]) !== -1)
+    || (Array.isArray(data.assistantIds) && data.assistantIds.some(function (teacherId) {
+      return teacherIds.indexOf(teacherId) !== -1;
+    }))
+  );
+}
+
+function readTeacherOwnershipIds(context, profile, actor) {
+  var ids = [];
+
+  addText(ids, context ? context.profileUserId : "");
+  addText(ids, context ? context.authUid : "");
+  addTextList(ids, context ? context.teacherOwnershipIds : []);
+  addText(ids, actor ? actor.id : "");
+  addText(ids, actor ? actor.authUid : "");
+  addText(ids, profile ? profile.profileUserId : "");
+  addText(ids, profile ? profile.id : "");
+  addText(ids, profile ? profile.authUid : "");
+  addText(ids, profile && profile.linkedProfile ? profile.linkedProfile.id : "");
+  addText(ids, profile && profile.linkedProfile ? profile.linkedProfile.profileUserId : "");
+  addText(ids, profile && profile.linkedProfile ? profile.linkedProfile.authUid : "");
+
+  return ids;
+}
+
+function addText(ids, value) {
+  var text = typeof value === "string" ? value.trim() : "";
+
+  if (text && ids.indexOf(text) === -1) {
+    ids.push(text);
+  }
+}
+
+function addTextList(ids, values) {
+  var safeValues = Array.isArray(values) ? values : [];
+  var index = 0;
+
+  while (index < safeValues.length) {
+    addText(ids, safeValues[index]);
+    index = index + 1;
+  }
 }
 
 function isAdminRole(role) {

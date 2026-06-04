@@ -1,7 +1,7 @@
 import { getIdTokenResult, onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.54-multi-role-assistant";
-import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.54-multi-role-assistant";
-import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.54-multi-role-assistant";
+import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.57-teacher-ownership";
+import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.57-teacher-ownership";
+import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.57-teacher-ownership";
 
 var currentTeacherClaims = {};
 
@@ -43,6 +43,29 @@ export const teacherDashboardService = {
   loadReviewQueue: async function (filters) {
     await refreshCurrentTeacherClaims(false);
     var result = await runTeacherIntent("LoadTeacherReviewQueueIntent", filters || {}, getCurrentTeacherActor());
+    return readIntentData(result);
+  },
+
+  loadCourses: async function (filters) {
+    await refreshCurrentTeacherClaims(false);
+    var result = await runTeacherIntent("LoadTeacherCoursesIntent", filters || {}, getCurrentTeacherActor());
+    return readIntentData(result);
+  },
+
+  loadClassDetail: async function (classId) {
+    await refreshCurrentTeacherClaims(false);
+    var result = await runTeacherIntent("LoadTeacherClassDetailIntent", {
+      classId: classId
+    }, getCurrentTeacherActor());
+    return readIntentData(result);
+  },
+
+  loadCourseDetail: async function (assignmentId, courseId) {
+    await refreshCurrentTeacherClaims(false);
+    var result = await runTeacherIntent("LoadTeacherCourseDetailIntent", {
+      assignmentId: assignmentId,
+      courseId: courseId || ""
+    }, getCurrentTeacherActor());
     return readIntentData(result);
   },
 

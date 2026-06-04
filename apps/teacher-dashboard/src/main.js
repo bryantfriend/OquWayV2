@@ -1,4 +1,4 @@
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.54-multi-role-assistant";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.57-teacher-ownership";
 
 var app = document.getElementById("app");
 var state = {
@@ -9,10 +9,13 @@ var state = {
   isReviewing: "",
   teacher: null,
   classes: [],
+  courses: [],
   students: [],
   submissions: [],
   summary: null,
   selectedClassId: "",
+  selectedCourseId: "",
+  activeTab: "classes",
   statusFilter: "pending",
   message: "",
   error: "",
@@ -71,6 +74,7 @@ async function loadDashboard() {
       isLoggingIn: false,
       teacher: data.teacher,
       classes: data.classes || [],
+      courses: data.courses || [],
       students: data.students || [],
       submissions: data.submissions || [],
       summary: data.summary || null,
@@ -84,6 +88,7 @@ async function loadDashboard() {
       unauthorized: isUnauthorizedError(error),
       teacher: null,
       classes: [],
+      courses: [],
       students: [],
       submissions: [],
       summary: null,
@@ -187,6 +192,8 @@ async function handleClick(event) {
   var logoutButton = event.target.closest("[data-action=logout]");
   var refreshButton = event.target.closest("[data-action=refresh]");
   var classButton = event.target.closest("[data-class-id]");
+  var courseButton = event.target.closest("[data-course-assignment-id]");
+  var tabButton = event.target.closest("[data-teacher-tab]");
   var reviewButton = event.target.closest("[data-review-status]");
 
   if (logoutButton) {
@@ -199,11 +206,27 @@ async function handleClick(event) {
     return;
   }
 
+  if (tabButton) {
+    setState({
+      activeTab: tabButton.getAttribute("data-teacher-tab") || "classes"
+    });
+    return;
+  }
+
   if (classButton) {
     setState({
-      selectedClassId: classButton.getAttribute("data-class-id") || ""
+      selectedClassId: classButton.getAttribute("data-class-id") || "",
+      activeTab: "classes"
     });
     await loadDashboard();
+    return;
+  }
+
+  if (courseButton) {
+    setState({
+      selectedCourseId: courseButton.getAttribute("data-course-assignment-id") || "",
+      activeTab: "courses"
+    });
     return;
   }
 
@@ -338,7 +361,7 @@ function buildHeaderSceneSvg() {
 }
 
 function buildMetricSvg(tone) {
-  var safeTone = tone === "students" || tone === "reviews" ? tone : "classes";
+  var safeTone = tone === "students" || tone === "reviews" || tone === "courses" ? tone : "classes";
 
   return '<svg class="teacher-metric-svg teacher-svg teacher-metric-svg-' + safeTone + '" viewBox="0 0 82 82" aria-hidden="true">'
     + '<circle class="teacher-metric-ring" cx="41" cy="41" r="31"></circle>'
@@ -356,11 +379,15 @@ function readMetricPath(tone) {
     return 'M25 42l10 10l22-26M22 59h36';
   }
 
+  if (tone === "courses") {
+    return 'M23 24h26c5 0 8 3 8 8v22H31c-5 0-8-3-8-8zM31 24v30M38 35h12M38 45h16';
+  }
+
   return 'M25 25h32v36H25zM33 35h16M33 45h22M33 55h12';
 }
 
 function buildSectionGlyphSvg(kind) {
-  var safeKind = kind === "students" || kind === "reviews" ? kind : "classes";
+  var safeKind = kind === "students" || kind === "reviews" || kind === "courses" ? kind : "classes";
 
   return '<svg class="teacher-section-glyph teacher-svg teacher-section-glyph-' + safeKind + '" viewBox="0 0 58 58" aria-hidden="true">'
     + '<rect x="8" y="8" width="42" height="42" rx="8"></rect>'
@@ -378,6 +405,10 @@ function readSectionGlyphPath(kind) {
     return 'M17 30l8 8l18-20M18 44h25';
   }
 
+  if (kind === "courses") {
+    return 'M18 19h18c4 0 6 2 6 6v17H24c-4 0-6-2-6-6zM24 19v23M29 29h9M29 36h7';
+  }
+
   return 'M18 18h24v24H18zM24 27h16M24 35h10';
 }
 
@@ -389,7 +420,7 @@ function buildEmptyState(kind, title, note) {
 }
 
 function buildEmptyStateSvg(kind) {
-  var safeKind = kind === "students" || kind === "reviews" ? kind : "classes";
+  var safeKind = kind === "students" || kind === "reviews" || kind === "courses" ? kind : "classes";
 
   return '<svg class="teacher-empty-illustration teacher-svg teacher-empty-illustration-' + safeKind + '" viewBox="0 0 120 92" aria-hidden="true">'
     + '<path class="teacher-empty-path" d="M18 66 C34 28 50 82 68 44 C80 18 96 35 108 24"></path>'
@@ -408,6 +439,18 @@ function buildClassRouteSvg(seed) {
     + '<circle class="teacher-class-node node-b" cx="52" cy="20" r="5"></circle>'
     + '<rect x="24" y="12" width="22" height="18" rx="5"></rect>'
     + '<text x="35" y="25" text-anchor="middle">' + escapeHtml(label) + '</text>'
+    + '</svg>';
+}
+
+function buildCourseBookSvg(seed) {
+  var label = String(seed || "course").slice(0, 2).toUpperCase();
+
+  return '<svg class="teacher-course-book-svg teacher-svg" viewBox="0 0 78 56" aria-hidden="true">'
+    + '<path class="teacher-class-route" d="M8 42 C22 15 40 50 58 20 C64 10 70 9 74 8"></path>'
+    + '<rect x="18" y="14" width="40" height="34" rx="6"></rect>'
+    + '<path class="teacher-svg-draw" d="M30 14v34M36 27h14M36 36h10"></path>'
+    + '<circle class="teacher-class-node node-b" cx="66" cy="16" r="5"></circle>'
+    + '<text x="39" y="44" text-anchor="middle">' + escapeHtml(label) + '</text>'
     + '</svg>';
 }
 
@@ -493,11 +536,8 @@ function buildDashboardView() {
     + buildHeader()
     + buildStatusMessages()
     + buildMetrics()
-    + '<section class="teacher-grid">'
-    + buildClassCards()
-    + buildStudentsView()
-    + '</section>'
-    + buildReviewQueue()
+    + buildTeacherTabs()
+    + buildActiveTeacherTab()
     + '</main>';
 }
 
@@ -518,9 +558,10 @@ function buildMetrics() {
   var summary = state.summary || {};
 
   return '<section class="teacher-metrics">'
-    + buildMetricCard(summary.classCount || state.classes.length, "Classes", "classes")
-    + buildMetricCard(summary.studentCount || state.students.length, "Students", "students")
+    + buildMetricCard(summary.classCount || state.classes.length, "My Classes", "classes")
+    + buildMetricCard(summary.courseCount || state.courses.length, "My Courses", "courses")
     + buildMetricCard(summary.pendingSubmissionsCount || countPending(state.submissions), "Pending Reviews", "reviews")
+    + buildMetricCard(summary.studentCount || state.students.length, "Students", "students")
     + '</section>';
 }
 
@@ -530,12 +571,40 @@ function buildMetricCard(value, label, tone) {
     + '<strong>' + escapeHtml(String(value)) + '</strong><span>' + escapeHtml(label) + '</span></article>';
 }
 
+function buildTeacherTabs() {
+  return '<nav class="teacher-tabs" aria-label="Teacher dashboard sections">'
+    + buildTeacherTabButton("classes", "Classes", state.classes.length)
+    + buildTeacherTabButton("courses", "Courses", state.courses.length)
+    + buildTeacherTabButton("reviews", "Reviews", countPending(state.submissions))
+    + '</nav>';
+}
+
+function buildTeacherTabButton(tabName, label, count) {
+  return '<button type="button" class="teacher-tab' + (state.activeTab === tabName ? " active" : "") + '" data-teacher-tab="' + escapeHtml(tabName) + '">'
+    + '<strong>' + escapeHtml(label) + '</strong><span>' + escapeHtml(String(count)) + '</span></button>';
+}
+
+function buildActiveTeacherTab() {
+  if (state.activeTab === "courses") {
+    return buildCourseCards();
+  }
+
+  if (state.activeTab === "reviews") {
+    return buildReviewQueue();
+  }
+
+  return '<section class="teacher-grid">'
+    + buildClassCards()
+    + buildStudentsView()
+    + '</section>';
+}
+
 function buildClassCards() {
   var classes = state.classes || [];
-  var html = '<section class="teacher-card-section"><div class="teacher-section-title"><div><h2>Classes</h2><p>Assigned classroom groups</p></div>' + buildSectionGlyphSvg("classes") + '</div>';
+  var html = '<section class="teacher-card-section"><div class="teacher-section-title"><div><h2>My Classes</h2><p>Owned classroom groups</p></div>' + buildSectionGlyphSvg("classes") + '</div>';
 
   if (classes.length === 0) {
-    return html + buildEmptyState("classes", "No classes assigned to this teacher.", "Ask an admin to add class IDs to this teacher profile.") + '</section>';
+    return html + buildEmptyState("classes", "No classes assigned yet.", "Ask an admin to assign this teacher as a primary teacher or assistant.") + '</section>';
   }
 
   html += '<div class="teacher-class-list"><button type="button" class="teacher-class-card' + (!state.selectedClassId ? " active" : "") + '" data-class-id="">'
@@ -546,7 +615,29 @@ function buildClassCards() {
       + buildClassRouteSvg(classRecord.id || classRecord.name || "class")
       + '<strong>' + escapeHtml(classRecord.name) + '</strong>'
       + '<span>' + escapeHtml(classRecord.locationName || "Assigned location") + '</span>'
-      + '<small>' + classRecord.studentCount + ' students | ' + classRecord.assignedCoursesCount + ' courses | ' + classRecord.pendingSubmissionsCount + ' pending</small>'
+      + '<small>' + escapeHtml(classRecord.ownershipRole || "Assigned") + ' | ' + classRecord.studentCount + ' students | ' + classRecord.assignedCoursesCount + ' courses | ' + classRecord.pendingSubmissionsCount + ' pending</small>'
+      + '</button>';
+  });
+
+  return html + '</div></section>';
+}
+
+function buildCourseCards() {
+  var courses = state.courses || [];
+  var html = '<section class="teacher-card-section teacher-wide-section"><div class="teacher-section-title"><div><h2>My Courses</h2><p>Course assignments owned by this teacher</p></div>' + buildSectionGlyphSvg("courses") + '</div>';
+
+  if (courses.length === 0) {
+    return html + buildEmptyState("courses", "No course assignments assigned yet.", "Responsible teacher and assistant course assignments will appear here.") + '</section>';
+  }
+
+  html += '<div class="teacher-course-list">';
+  courses.forEach(function (course) {
+    html += '<button type="button" class="teacher-course-card' + (state.selectedCourseId === course.id ? " active" : "") + '" data-course-assignment-id="' + escapeHtml(course.id) + '">'
+      + buildCourseBookSvg(course.courseTitle || course.courseId || "course")
+      + '<div><strong>' + escapeHtml(course.courseTitle || "Untitled Course") + '</strong>'
+      + '<span>' + escapeHtml(course.targetName || "Assigned target") + '</span></div>'
+      + '<b>' + escapeHtml(course.ownershipRole || "Assigned") + '</b>'
+      + '<small>' + course.studentCount + ' students | ' + course.pendingSubmissionsCount + ' pending reviews</small>'
       + '</button>';
   });
 
