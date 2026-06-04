@@ -19,6 +19,6 @@ export {
   allowTeacherLoginAuthorization,
   requireTeacherDashboardAuthorization,
   requireTeacherReviewScopeAuthorization
-} from "./domain/teacher/requireTeacherAuthorization.js?v=1.1.42-teacher-scoped-queries";
+} from "./domain/teacher/requireTeacherAuthorization.js?v=1.1.53-teacher-profile-auth";
 
 

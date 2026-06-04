@@ -1,4 +1,4 @@
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.47-teacher-svg-motion";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.53-teacher-profile-auth";
 
 var app = document.getElementById("app");
 var state = {

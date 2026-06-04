@@ -6,13 +6,15 @@ export function requireTeacherDashboardAuthorization(executionState) {
   var profile = executionState.context ? executionState.context.teacherProfile : null;
   var profileRoles = readProfileRoles(profile);
   var claimsRoles = readActorClaimRoles(executionState.actor || {});
-  var roles = mergeRoles(claimsRoles, profileRoles);
+  var roles = mergeTrustedRoles(claimsRoles, profileRoles);
   var uid = executionState.actor && executionState.actor.id ? executionState.actor.id : "";
 
   console.info("[teacher-auth] normalized roles", {
     claimsRoles: claimsRoles,
     profileRoles: profileRoles,
-    combinedRoles: roles
+    combinedRoles: roles,
+    resolvedProfileId: profile && profile.id ? profile.id : "",
+    resolvedProfileRole: profile && profile.role ? profile.role : ""
   });
 
   if (!executionState.actor || !executionState.actor.id) {
@@ -37,6 +39,16 @@ export function requireTeacherDashboardAuthorization(executionState) {
       roles: roles
     });
     return createError("TEACHER_ACCOUNT_INACTIVE", "This teacher account is not active.");
+  }
+
+  if (isExplicitStudentOrParentProfile(profileRoles)) {
+    console.warn("[teacher-auth] unauthorized", {
+      uid: uid,
+      roles: roles,
+      profileRoles: profileRoles,
+      reason: "resolved-profile-is-student-or-parent"
+    });
+    return createError("TEACHER_ROLE_REQUIRED", "This account is not authorized for the Teacher Dashboard.");
   }
 
   if (!roles.some(isAllowedTeacherDashboardRole)) {
@@ -165,16 +177,33 @@ function readActorClaimRoles(actor) {
   return readRoles(null, actor);
 }
 
-function mergeRoles(claimsRoles, profileRoles) {
+function mergeTrustedRoles(claimsRoles, profileRoles) {
   var roles = [];
+  var profileIsExplicitStudentOrParent = isExplicitStudentOrParentProfile(profileRoles);
+  var source = profileRoles.slice();
 
-  claimsRoles.concat(profileRoles).forEach(function (role) {
+  if (!profileIsExplicitStudentOrParent) {
+    claimsRoles.forEach(function (role) {
+      if (isAdminRole(role)) {
+        source.push(role);
+      }
+    });
+  }
+
+  source.forEach(function (role) {
     if (role && roles.indexOf(role) === -1) {
       roles.push(role);
     }
   });
 
   return roles;
+}
+
+function isExplicitStudentOrParentProfile(profileRoles) {
+  var hasTeacherOrAdmin = profileRoles.some(isAllowedTeacherDashboardRole);
+
+  return !hasTeacherOrAdmin
+    && (profileRoles.indexOf("student") !== -1 || profileRoles.indexOf("parent") !== -1);
 }
 
 function isSubmissionInTeacherScope(submission, classIds, locationIds) {

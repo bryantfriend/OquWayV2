@@ -1,7 +1,7 @@
-import { validateTeacherPasswordResetPayload } from "../../stages/validate/validators.js?v=1.1.42-teacher-scoped-queries";
-import { normalizeTeacherPasswordResetPayload } from "../../stages/normalize/normalizers.js?v=1.1.42-teacher-scoped-queries";
-import { allowTeacherLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.42-teacher-scoped-queries";
-import { processSendTeacherPasswordReset } from "../../stages/process/processors.js?v=1.1.42-teacher-scoped-queries";
+import { validateTeacherPasswordResetPayload } from "../../stages/validate/validators.js?v=1.1.53-teacher-profile-auth";
+import { normalizeTeacherPasswordResetPayload } from "../../stages/normalize/normalizers.js?v=1.1.53-teacher-profile-auth";
+import { allowTeacherLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.53-teacher-profile-auth";
+import { processSendTeacherPasswordReset } from "../../stages/process/processors.js?v=1.1.53-teacher-profile-auth";
 import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.29-module-render-fix";
 
 export function SendTeacherPasswordResetIntent() {

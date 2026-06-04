@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.42-teacher-scoped-queries";
+import * as IntentExports from "../intents/intents.js?v=1.1.53-teacher-profile-auth";
 
 const registry = {
   // Demo Verification

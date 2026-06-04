@@ -1,4 +1,4 @@
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.42-teacher-scoped-queries";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.53-teacher-profile-auth";
 
 export async function attachTeacherProfileContext(executionState) {
   var actor = executionState.actor || {};
