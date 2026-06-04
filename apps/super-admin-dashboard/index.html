@@ -637,6 +637,43 @@
             margin-bottom: 16px;
         }
 
+        .sa-class-filter-toolbar {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 14px;
+            margin: 16px 0;
+            padding: 14px;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: linear-gradient(135deg, #ffffff, #f8fafc);
+            box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
+        }
+
+        .sa-class-filter-toolbar label {
+            min-width: min(360px, 100%);
+            flex: 1;
+        }
+
+        .sa-class-filter-summary {
+            min-width: 180px;
+            display: grid;
+            gap: 4px;
+            justify-items: end;
+            text-align: right;
+        }
+
+        .sa-class-filter-summary strong {
+            color: var(--ink);
+            font-size: 0.98rem;
+        }
+
+        .sa-class-filter-summary span {
+            color: var(--muted);
+            font-size: 0.82rem;
+            font-weight: 800;
+        }
+
         label {
             display: grid;
             gap: 5px;
@@ -2132,8 +2169,14 @@
 
             .sa-page-head,
             .sa-section-title,
+            .sa-class-filter-toolbar,
             .sa-overview-head {
                 flex-direction: column;
+            }
+
+            .sa-class-filter-summary {
+                justify-items: start;
+                text-align: left;
             }
 
             .sa-field-wide {
@@ -3022,7 +3065,7 @@
         <h1>Core System Configuration</h1>
         <p>Managing the heart of the national educational engine...</p>
     </main>
-    <script type="module" src="./src/main.js?v=1.1.43-users-filter-cards"></script>
+    <script type="module" src="./src/main.js?v=1.1.44-classes-filter"></script>
 </body>
 
 </html>

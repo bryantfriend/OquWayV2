@@ -1,4 +1,4 @@
-import { runAdminIntent } from "../icf/intentRegistry.js?v=1.1.43-users-filter-cards";
+import { runAdminIntent } from "../icf/intentRegistry.js?v=1.1.44-classes-filter";
 
 export function bindUsersEvents(rootElement, handlers) {
   rootElement.addEventListener("click", function (event) {

@@ -1,14 +1,14 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js";
-import { functions, httpsCallable } from "../../../../../packages/core/src/infrastructure/firebase/functions.js?v=1.1.43-users-filter-cards";
+import { functions, httpsCallable } from "../../../../../packages/core/src/infrastructure/firebase/functions.js?v=1.1.44-classes-filter";
 import { storage } from "../../../../../packages/core/src/infrastructure/firebase/storage.js";
 import { collection, db, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../packages/core/src/infrastructure/firebase/firestore.js";
 import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js";
 import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userRoles, userStatuses } from "../shared/constants.js?v=1.1.43-users-filter-cards";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userRoles, userStatuses } from "../shared/constants.js?v=1.1.44-classes-filter";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.43";
+var appVersion = "1.1.44";
 var state = {
   isLoading: true,
   isRefreshing: false,
@@ -1626,20 +1626,40 @@ function buildLoginLinkPreview(formId, loginSlug) {
 function buildClassesTab() {
   return '<section class="sa-stack">'
     + '<article class="sa-card"><h2>Create Class / Group</h2>' + buildClassForm("new", state.classForm) + '</article>'
-    + '<article class="sa-card"><h2>Classes</h2>' + buildAdminFilters(false) + buildClassRows() + '</article>'
+    + '<article class="sa-card"><h2>Classes</h2>' + buildClassFilterToolbar() + buildClassRows() + '</article>'
     + '</section>';
 }
 
+function buildClassFilterToolbar() {
+  var visibleClasses = readVisibleClasses();
+  var selectedLocationName = state.filters.locationId ? readLocationName(state.filters.locationId) : "All Locations";
+  var loadingText = state.isRefreshing && state.classes.length === 0 ? "Loading classes..." : "Showing " + visibleClasses.length + " " + (visibleClasses.length === 1 ? "class" : "classes");
+
+  return '<div class="sa-class-filter-toolbar">'
+    + '<label>Location' + buildOptionsSelect('data-class-location-filter="true"', state.filters.locationId, state.locations, "All Locations") + '</label>'
+    + '<div class="sa-class-filter-summary"><strong>' + escapeHtml(loadingText) + '</strong><span>' + escapeHtml(selectedLocationName) + '</span></div>'
+    + '</div>';
+}
+
 function buildClassRows() {
+  var classes = readVisibleClasses();
   var html = '<div class="sa-table">';
   var index = 0;
+
+  if (state.isRefreshing && state.classes.length === 0) {
+    return '<div class="sa-empty"><strong>Loading classes...</strong><span>Class records are being refreshed.</span></div>';
+  }
 
   if (state.classes.length === 0) {
     return '<div class="sa-empty">No classes found.</div>';
   }
 
-  while (index < state.classes.length) {
-    var classRecord = state.classes[index];
+  if (classes.length === 0) {
+    return '<div class="sa-empty"><strong>No classes found for this location.</strong><span>Select All Locations to see every class.</span></div>';
+  }
+
+  while (index < classes.length) {
+    var classRecord = classes[index];
     html += '<div class="sa-row">' + buildClassForm(classRecord.id, normalizeClassForm(classRecord)) + '</div>';
     index = index + 1;
   }
@@ -1657,6 +1677,56 @@ function buildClassForm(formId, form) {
     + buildInput("class", formId, "photoDataUrl", "Photo URL", form.photoDataUrl)
     + '<button type="button" class="sa-btn" data-action="' + (formId === "new" ? "create-class" : "update-class") + '" data-id="' + escapeHtml(formId) + '">' + (formId === "new" ? "Create" : "Save") + '</button>'
     + '</div>';
+}
+
+function readVisibleClasses() {
+  var classes = readVisibleClassesForLocation(state.filters.locationId);
+
+  return classes.sort(function (a, b) {
+    return readSafeString(a.name || a.title || a.id).localeCompare(readSafeString(b.name || b.title || b.id));
+  });
+}
+
+function classMatchesLocationFilter(classRecord, selectedLocationId) {
+  if (!selectedLocationId) {
+    return true;
+  }
+
+  var location = findLocation(selectedLocationId);
+  var locationNames = [
+    readSafeString(location.name),
+    readSafeString(location.displayName),
+    readSafeString(location.title)
+  ].filter(Boolean).map(function (value) {
+    return value.toLowerCase();
+  });
+  var classLocationIds = readClassLocationIds(classRecord);
+  var classLocationNames = [
+    classRecord && classRecord.locationName,
+    classRecord && classRecord.schoolName,
+    classRecord && classRecord.locName
+  ].map(readSafeString).filter(Boolean).map(function (value) {
+    return value.toLowerCase();
+  });
+
+  if (classLocationIds.indexOf(selectedLocationId) !== -1) {
+    return true;
+  }
+
+  return classLocationNames.some(function (name) {
+    return locationNames.indexOf(name) !== -1;
+  });
+}
+
+function readClassLocationIds(classRecord) {
+  return normalizeIdList([
+    classRecord && classRecord.locationId,
+    classRecord && classRecord.locId,
+    classRecord && classRecord.schoolId,
+    classRecord && classRecord.primaryLocationId,
+    classRecord && classRecord.locationIds,
+    classRecord && classRecord.schoolIds
+  ]);
 }
 
 function buildStudentsTab() {
@@ -2241,6 +2311,11 @@ function handleInput(event) {
     return;
   }
 
+  if (target.getAttribute("data-class-location-filter")) {
+    applyClassLocationFilter(target.value);
+    return;
+  }
+
   if (target.getAttribute("data-login-field")) {
     updateLoginField(target.getAttribute("data-login-field"), target.value);
     return;
@@ -2647,7 +2722,7 @@ function readClassPickerClasses(picker) {
 }
 
 function readClassLocationId(classRecord) {
-  return readSafeString(classRecord.locationId || classRecord.schoolId || classRecord.locId);
+  return readClassLocationIds(classRecord)[0] || "";
 }
 
 async function handleAction(action, id) {
@@ -4891,7 +4966,9 @@ function countClassesByLocation() {
   var index = 0;
 
   while (index < state.classes.length) {
-    addCount(counts, state.classes[index].locationId);
+    readClassLocationIds(state.classes[index]).forEach(function (locationId) {
+      addCount(counts, locationId);
+    });
     index = index + 1;
   }
 
@@ -5544,6 +5621,41 @@ function applyUserRoleFilter(selectedRole, shouldClearFilters) {
   });
 }
 
+function applyClassLocationFilter(selectedLocationId) {
+  var normalizedLocationId = readSafeString(selectedLocationId);
+  var nextFilters = Object.assign({}, state.filters, {
+    locationId: normalizedLocationId,
+    classId: ""
+  });
+  var visibleClassCount = readVisibleClassesForLocation(normalizedLocationId).length;
+
+  console.info("[classes-filter]", {
+    selectedLocationId: normalizedLocationId,
+    visibleClassCount: visibleClassCount,
+    totalClassCount: state.classes.length
+  });
+
+  setState({
+    filters: nextFilters,
+    message: ""
+  });
+}
+
+function readVisibleClassesForLocation(selectedLocationId) {
+  var safeLocationId = readSafeString(selectedLocationId);
+  var classes = [];
+  var index = 0;
+
+  while (index < state.classes.length) {
+    if (classMatchesLocationFilter(state.classes[index], safeLocationId)) {
+      classes.push(state.classes[index]);
+    }
+    index = index + 1;
+  }
+
+  return classes;
+}
+
 function userMatchesRoleFilter(user, roleFilter) {
   var safeFilter = readSafeString(roleFilter);
   var card = findRoleFilterCard(safeFilter);
@@ -5640,7 +5752,7 @@ function normalizeClassForm(classRecord) {
   return {
     classId: classRecord.id,
     name: classRecord.name || "",
-    locationId: classRecord.locationId || "",
+    locationId: readClassLocationId(classRecord),
     status: classRecord.status || "active",
     isVisible: classRecord.isVisible === false ? false : true,
     photoDataUrl: classRecord.photoDataUrl || ""

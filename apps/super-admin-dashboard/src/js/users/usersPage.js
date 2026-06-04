@@ -1,6 +1,6 @@
-import { updateAppState } from "../app/appState.js?v=1.1.43-users-filter-cards";
-import { runAdminIntent } from "../icf/intentRegistry.js?v=1.1.43-users-filter-cards";
-import { renderUsersRoleCards, renderUsersTableRows } from "./usersRenderer.js?v=1.1.43-users-filter-cards";
+import { updateAppState } from "../app/appState.js?v=1.1.44-classes-filter";
+import { runAdminIntent } from "../icf/intentRegistry.js?v=1.1.44-classes-filter";
+import { renderUsersRoleCards, renderUsersTableRows } from "./usersRenderer.js?v=1.1.44-classes-filter";
 
 export async function loadUsersPage(context) {
   var result = await runAdminIntent("LoadUsersIntent", {}, context || {});
