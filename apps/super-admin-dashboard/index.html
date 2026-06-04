@@ -674,6 +674,157 @@
             font-weight: 800;
         }
 
+        .sa-class-row {
+            display: grid;
+            gap: 14px;
+        }
+
+        .sa-class-row-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .sa-class-row-head strong,
+        .sa-class-row-head small {
+            display: block;
+        }
+
+        .sa-class-row-head strong {
+            color: var(--ink);
+            font-size: 1.04rem;
+        }
+
+        .sa-class-row-head small {
+            color: var(--muted);
+            font-weight: 800;
+        }
+
+        .sa-class-staff-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+            gap: 12px;
+        }
+
+        .sa-class-staff-panel {
+            display: grid;
+            gap: 8px;
+            min-height: 86px;
+            padding: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.28);
+            border-radius: 16px;
+            background: linear-gradient(135deg, #ffffff, #f8fafc);
+        }
+
+        .sa-class-staff-panel > span,
+        .sa-staff-empty {
+            color: var(--muted);
+            font-size: 0.75rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .sa-staff-chip-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .sa-staff-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-width: min(220px, 100%);
+            padding: 8px 10px;
+            border: 1px solid rgba(20, 184, 166, 0.22);
+            border-radius: 999px;
+            background: #f0fdfa;
+            color: var(--ink);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+        }
+
+        .sa-staff-chip strong,
+        .sa-staff-chip small {
+            display: block;
+            line-height: 1.1;
+        }
+
+        .sa-staff-chip strong {
+            font-size: 0.86rem;
+        }
+
+        .sa-staff-chip small {
+            color: var(--muted);
+            font-size: 0.7rem;
+            font-weight: 800;
+        }
+
+        .sa-staff-avatar {
+            flex: 0 0 34px;
+            width: 34px;
+            height: 34px;
+            display: grid;
+            place-items: center;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #0f766e, #2563eb);
+            color: white;
+            font-size: 0.78rem;
+            font-weight: 1000;
+        }
+
+        .sa-class-staff-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .sa-class-staff-modal {
+            width: min(760px, 100%);
+        }
+
+        .sa-staff-picker-list {
+            display: grid;
+            gap: 10px;
+            max-height: min(54vh, 520px);
+            overflow: auto;
+            margin: 14px 0;
+            padding-right: 4px;
+        }
+
+        .sa-staff-picker-row {
+            width: 100%;
+            display: grid;
+            grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.9fr) minmax(0, 0.9fr) auto;
+            gap: 10px;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: #ffffff;
+            color: var(--ink);
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .sa-staff-picker-row.is-selected {
+            border-color: #14b8a6;
+            box-shadow: 0 14px 32px rgba(20, 184, 166, 0.16);
+            transform: translateY(-1px);
+        }
+
+        .sa-staff-picker-row small,
+        .sa-staff-picker-meta,
+        .sa-staff-picker-row em {
+            color: var(--muted);
+            font-size: 0.78rem;
+            font-weight: 850;
+            font-style: normal;
+        }
+
         label {
             display: grid;
             gap: 5px;
@@ -2473,6 +2624,11 @@
                 text-align: left;
             }
 
+            .sa-class-staff-grid,
+            .sa-staff-picker-row {
+                grid-template-columns: 1fr;
+            }
+
             .sa-field-wide {
                 grid-column: auto;
             }
@@ -3368,7 +3524,7 @@
         <h1>Core System Configuration</h1>
         <p>Managing the heart of the national educational engine...</p>
     </main>
-    <script type="module" src="./src/main.js?v=1.1.54-multi-role-assistant"></script>
+    <script type="module" src="./src/main.js?v=1.1.55-class-ownership"></script>
 </body>
 
 </html>

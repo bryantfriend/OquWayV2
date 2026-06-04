@@ -14,6 +14,7 @@ export { requirePlatformAdminAuthorization } from "./domain/catalogCourse/requir
 export { requireSuperAdminAuthorization } from "./domain/catalogCourse/requireSuperAdminAuthorization.js?v=1.1.54-multi-role-assistant";
 export { requireStudentAuthorization } from "./domain/student/requireStudentAuthorization.js?v=1.1.54-multi-role-assistant";
 export { allowStudentLoginAuthorization } from "./domain/studentLogin/allowStudentLoginAuthorization.js?v=1.1.54-multi-role-assistant";
+export { requireClassOwnershipAdminAuthorization } from "./domain/superAdmin/requireClassOwnershipAdminAuthorization.js?v=1.1.55-class-ownership";
 export { requireSuperAdminAccess } from "./domain/superAdmin/requireSuperAdminAccess.js?v=1.1.54-multi-role-assistant";
 export {
   allowTeacherLoginAuthorization,

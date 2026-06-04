@@ -132,6 +132,25 @@ service cloud.firestore {
         : [];
     }
 
+    function teacherProfileIds() {
+      return user() != null
+        ? ([request.auth.uid]
+          + (user().data.profileUserId is string ? [user().data.profileUserId] : [])
+          + (user().data.userId is string ? [user().data.userId] : [])
+          + (user().data.authUid is string ? [user().data.authUid] : []))
+        : [];
+    }
+
+    function isTeacherAssignedToClass(classData, classId) {
+      return isTeacher()
+        && user() != null
+        && (
+          classId in teacherClassIds() ||
+          (classData.primaryTeacherId is string && classData.primaryTeacherId in teacherProfileIds()) ||
+          (classData.assistantIds is list && classData.assistantIds.hasAny(teacherProfileIds()))
+        );
+    }
+
     function isStudentInTeacherClass() {
       return isTeacher()
         && user() != null
@@ -211,7 +230,8 @@ service cloud.firestore {
       match /classes/{classId} {
           // Allow accountants/admins to read and write classes
           allow read, list: if isAccountingAdmin()
-            || (isTeacher() && (classId in teacherClassIds() || locId in teacherLocationIds()));
+            || (isTeacher() && (classId in teacherClassIds() || locId in teacherLocationIds()))
+            || isTeacherAssignedToClass(resource.data, classId);
           allow create, update, delete: if isAccountingAdmin();
       }
     }

@@ -56,6 +56,7 @@ export { validateStudentProgressPayload } from "./domain/student/validateStudent
 export { validateCompletedStepIds } from "./domain/student/validateCompletedStepIds.js?v=1.1.54-multi-role-assistant";
 export { validateClassLocationPayload, validateStudentsForClassPayload, validateStudentFruitLoginPayload, validateStudentStandardLoginPayload } from "./domain/studentLogin/validateStudentLoginPayloads.js?v=1.1.54-multi-role-assistant";
 export {
+  validateClassOwnershipPayload,
   validateClassPayload,
   validateClassUpdatePayload,
   validateFruitPasswordResetPayload,
@@ -64,7 +65,7 @@ export {
   validateStudentPayload,
   validateStudentStatusPayload,
   validateStudentUpdatePayload
-} from "./domain/superAdmin/superAdminValidators.js?v=1.1.54-multi-role-assistant";
+} from "./domain/superAdmin/superAdminValidators.js?v=1.1.55-class-ownership";
 export {
   validateTeacherClassPayload,
   validateTeacherLoginPayload,

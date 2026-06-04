@@ -30,11 +30,12 @@ export { normalizeStepMediaUpload } from "./domain/moduleEditor/normalizeStepMed
 export { normalizeStudentProgressPayload } from "./domain/student/normalizeStudentProgressPayload.js?v=1.1.54-multi-role-assistant";
 export { normalizeClassLocationPayload, normalizeStudentsForClassPayload, normalizeStudentFruitLoginPayload, normalizeStudentStandardLoginPayload } from "./domain/studentLogin/normalizeStudentLoginPayloads.js?v=1.1.54-multi-role-assistant";
 export {
+  normalizeClassOwnershipPayload,
   normalizeClassPayload,
   normalizeFruitPasswordResetPayload,
   normalizeLocationPayload,
   normalizeStudentPayload
-} from "./domain/superAdmin/superAdminNormalizers.js?v=1.1.54-multi-role-assistant";
+} from "./domain/superAdmin/superAdminNormalizers.js?v=1.1.55-class-ownership";
 export {
   normalizeTeacherDashboardPayload,
   normalizeTeacherLoginPayload,

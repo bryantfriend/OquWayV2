@@ -42,6 +42,8 @@ export function normalizeLocationPayload(executionState) {
 
 export function normalizeClassPayload(executionState) {
   var payload = executionState.payload || {};
+  var primaryTeacherId = normalizeText(payload.primaryTeacherId || payload.teacherId || payload.teacherUid);
+  var assistantIds = normalizeIdArray([payload.assistantIds, payload.teacherIds], primaryTeacherId);
 
   return {
     classId: normalizeText(payload.classId),
@@ -49,7 +51,24 @@ export function normalizeClassPayload(executionState) {
     locationId: normalizeText(payload.locationId),
     status: normalizeStatus(payload.status),
     isVisible: payload.isVisible === false ? false : true,
-    photoDataUrl: normalizeText(payload.photoDataUrl)
+    photoDataUrl: normalizeText(payload.photoDataUrl),
+    primaryTeacherId: primaryTeacherId,
+    assistantIds: assistantIds,
+    primaryTeacherName: normalizeText(payload.primaryTeacherName),
+    assistantNames: normalizeTextArray(payload.assistantNames, [])
+  };
+}
+
+export function normalizeClassOwnershipPayload(executionState) {
+  var payload = executionState.payload || {};
+  var primaryTeacherId = normalizeText(payload.primaryTeacherId || payload.teacherId || payload.teacherUid);
+
+  return {
+    classId: normalizeText(payload.classId || payload.id),
+    primaryTeacherId: primaryTeacherId,
+    assistantIds: normalizeIdArray([payload.assistantIds, payload.teacherIds], primaryTeacherId),
+    primaryTeacherName: normalizeText(payload.primaryTeacherName),
+    assistantNames: normalizeTextArray(payload.assistantNames, [])
   };
 }
 
@@ -174,6 +193,35 @@ function normalizeTextArray(value, fallback) {
   }
 
   return result;
+}
+
+function normalizeIdArray(value, excludedId) {
+  var ids = [];
+  var excluded = normalizeText(excludedId);
+
+  appendIdValue(ids, value);
+
+  return ids.filter(function (id) {
+    return id && id !== excluded;
+  });
+}
+
+function appendIdValue(ids, value) {
+  var index = 0;
+
+  if (Array.isArray(value)) {
+    while (index < value.length) {
+      appendIdValue(ids, value[index]);
+      index = index + 1;
+    }
+    return;
+  }
+
+  normalizeTextArray(value, []).forEach(function (id) {
+    if (ids.indexOf(id) === -1) {
+      ids.push(id);
+    }
+  });
 }
 
 function normalizeSocialLinks(value) {

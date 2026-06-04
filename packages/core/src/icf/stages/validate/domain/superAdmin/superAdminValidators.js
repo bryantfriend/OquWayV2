@@ -94,6 +94,19 @@ export function validateClassUpdatePayload(executionState) {
   return buildValidationResult(errors);
 }
 
+export function validateClassOwnershipPayload(executionState) {
+  var payload = executionState.payload || {};
+  var errors = [];
+
+  if (!isNonEmptyText(payload.classId || payload.id)) {
+    errors.push({ code: "CLASS_ID_REQUIRED", message: "Class ID is required." });
+  }
+
+  validateOptionalIdList(errors, "assistantIds", payload.assistantIds);
+
+  return buildValidationResult(errors);
+}
+
 export function validateStudentPayload(executionState) {
   var payload = executionState.payload || {};
   var errors = [];
@@ -268,6 +281,23 @@ function validateOptionalNumber(errors, fieldName, value) {
     errors.push({
       code: "INVALID_NUMBER",
       message: fieldName + " must be a number."
+    });
+  }
+}
+
+function validateOptionalIdList(errors, fieldName, value) {
+  if (value === undefined || value === null || value === "") {
+    return;
+  }
+
+  if (typeof value === "string") {
+    return;
+  }
+
+  if (!Array.isArray(value)) {
+    errors.push({
+      code: "INVALID_" + fieldName.toUpperCase(),
+      message: fieldName + " must be a list of IDs."
     });
   }
 }

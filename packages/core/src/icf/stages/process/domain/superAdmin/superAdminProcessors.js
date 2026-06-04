@@ -223,12 +223,17 @@ export async function processCreateClass(executionState) {
 
   try {
     var classRef = doc(collection(db, "classes"));
+    var ownershipFields = await buildClassOwnershipFields(payload);
     var classRecord = {
       name: payload.name,
       locationId: payload.locationId,
       status: payload.status,
       isVisible: payload.isVisible,
       photoDataUrl: payload.photoDataUrl,
+      primaryTeacherId: ownershipFields.primaryTeacherId,
+      assistantIds: ownershipFields.assistantIds,
+      primaryTeacherName: ownershipFields.primaryTeacherName,
+      assistantNames: ownershipFields.assistantNames,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     };
@@ -248,12 +253,17 @@ export async function processUpdateClass(executionState) {
   var payload = executionState.payload;
 
   try {
+    var ownershipFields = await buildClassOwnershipFields(payload);
     await setDoc(doc(db, "classes", payload.classId), {
       name: payload.name,
       locationId: payload.locationId,
       status: payload.status,
       isVisible: payload.isVisible,
       photoDataUrl: payload.photoDataUrl,
+      primaryTeacherId: ownershipFields.primaryTeacherId,
+      assistantIds: ownershipFields.assistantIds,
+      primaryTeacherName: ownershipFields.primaryTeacherName,
+      assistantNames: ownershipFields.assistantNames,
       updatedAt: serverTimestamp()
     }, { merge: true });
 
@@ -264,6 +274,75 @@ export async function processUpdateClass(executionState) {
     return { valid: true };
   } catch (error) {
     return createProcessError("CLASS_UPDATE_FAILED", error.message);
+  }
+}
+
+export async function processLoadClassOwnership(executionState) {
+  var payload = executionState.payload || {};
+
+  try {
+    var classSnap = await getDoc(doc(db, "classes", payload.classId));
+
+    if (!classSnap.exists()) {
+      return createProcessError("CLASS_NOT_FOUND", "Class was not found.");
+    }
+
+    executionState.result = {
+      classId: classSnap.id,
+      ownership: readClassOwnership(classSnap.data() || {})
+    };
+
+    return { valid: true };
+  } catch (error) {
+    return createProcessError("CLASS_OWNERSHIP_LOAD_FAILED", error.message);
+  }
+}
+
+export async function processAssignClassTeacher(executionState) {
+  var payload = executionState.payload;
+
+  try {
+    var ownershipFields = await buildClassOwnershipFields(payload);
+
+    await setDoc(doc(db, "classes", payload.classId), {
+      primaryTeacherId: ownershipFields.primaryTeacherId,
+      assistantIds: ownershipFields.assistantIds,
+      primaryTeacherName: ownershipFields.primaryTeacherName,
+      assistantNames: ownershipFields.assistantNames,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+
+    executionState.result = {
+      classId: payload.classId,
+      ownership: ownershipFields
+    };
+
+    return { valid: true };
+  } catch (error) {
+    return createProcessError("CLASS_TEACHER_ASSIGN_FAILED", error.message);
+  }
+}
+
+export async function processAssignClassAssistants(executionState) {
+  var payload = executionState.payload;
+
+  try {
+    var ownershipFields = await buildClassOwnershipFields(payload);
+
+    await setDoc(doc(db, "classes", payload.classId), {
+      assistantIds: ownershipFields.assistantIds,
+      assistantNames: ownershipFields.assistantNames,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+
+    executionState.result = {
+      classId: payload.classId,
+      ownership: ownershipFields
+    };
+
+    return { valid: true };
+  } catch (error) {
+    return createProcessError("CLASS_ASSISTANTS_ASSIGN_FAILED", error.message);
   }
 }
 
@@ -462,14 +541,92 @@ function sanitizeAdminProfile(profile, actor) {
 }
 
 function sanitizeClass(classId, data) {
+  var ownership = readClassOwnership(data || {});
+
   return {
     id: classId,
     name: readText(data.name),
     locationId: readText(data.locationId),
     status: readText(data.status || "active"),
     isVisible: data.isVisible === false ? false : true,
-    photoDataUrl: readText(data.photoDataUrl)
+    photoDataUrl: readText(data.photoDataUrl),
+    primaryTeacherId: ownership.primaryTeacherId,
+    assistantIds: ownership.assistantIds,
+    primaryTeacherName: ownership.primaryTeacherName,
+    assistantNames: ownership.assistantNames
   };
+}
+
+function readClassOwnership(data) {
+  var primaryTeacherId = readText(data.primaryTeacherId || data.teacherId || data.teacherUid);
+  var assistantIds = readIdList([data.assistantIds, data.teacherIds]).filter(function (assistantId) {
+    return assistantId !== primaryTeacherId;
+  });
+
+  return {
+    primaryTeacherId: primaryTeacherId,
+    assistantIds: assistantIds,
+    primaryTeacherName: readText(data.primaryTeacherName),
+    assistantNames: Array.isArray(data.assistantNames) ? data.assistantNames.map(readText).filter(Boolean) : []
+  };
+}
+
+async function buildClassOwnershipFields(payload) {
+  var primaryTeacherId = readText(payload.primaryTeacherId);
+  var assistantIds = readIdList(payload.assistantIds).filter(function (assistantId) {
+    return assistantId !== primaryTeacherId;
+  });
+  var assistantNames = [];
+  var index = 0;
+
+  if (primaryTeacherId) {
+    await requireStaffRole(primaryTeacherId, ["teacher"], "Primary class teacher must have the teacher role.");
+  }
+
+  while (index < assistantIds.length) {
+    await requireStaffRole(assistantIds[index], ["teacher", "assistant"], "Class assistants must have teacher or assistant role.");
+    assistantNames.push(await readUserDisplayName(assistantIds[index]));
+    index = index + 1;
+  }
+
+  return {
+    primaryTeacherId: primaryTeacherId,
+    assistantIds: assistantIds,
+    primaryTeacherName: primaryTeacherId ? await readUserDisplayName(primaryTeacherId) : "",
+    assistantNames: assistantNames.filter(Boolean)
+  };
+}
+
+async function requireStaffRole(userId, allowedRoles, message) {
+  var userSnap = await getDoc(doc(db, "users", userId));
+  var roles = userSnap.exists() ? readRoles(userSnap.data() || {}) : [];
+  var index = 0;
+
+  while (index < allowedRoles.length) {
+    if (roles.indexOf(allowedRoles[index]) !== -1) {
+      return;
+    }
+    index = index + 1;
+  }
+
+  throw new Error(message);
+}
+
+async function readUserDisplayName(userId) {
+  var safeId = readText(userId);
+
+  if (!safeId) {
+    return "";
+  }
+
+  try {
+    var userSnap = await getDoc(doc(db, "users", safeId));
+    var data = userSnap.exists() ? userSnap.data() || {} : {};
+
+    return readText(data.displayName || data.name || data.email || safeId);
+  } catch (error) {
+    return safeId;
+  }
 }
 
 function sanitizeStudent(studentId, data) {
@@ -530,6 +687,18 @@ function readRoles(data) {
     index = index + 1;
   }
 
+  if (data.ROLE_STUDENT === true && roles.indexOf("student") === -1) {
+    roles.push("student");
+  }
+
+  if (data.ROLE_TEACHER === true && roles.indexOf("teacher") === -1) {
+    roles.push("teacher");
+  }
+
+  if (data.ROLE_ASSISTANT === true && roles.indexOf("assistant") === -1) {
+    roles.push("assistant");
+  }
+
   return roles;
 }
 
@@ -576,8 +745,15 @@ function normalizeRole(role) {
 }
 
 function readIdList(value) {
-  var source = value;
   var ids = [];
+
+  appendIdValue(ids, value);
+
+  return ids;
+}
+
+function appendIdValue(ids, value) {
+  var source = value;
   var index = 0;
 
   if (typeof source === "string") {
@@ -585,20 +761,22 @@ function readIdList(value) {
   }
 
   if (!Array.isArray(source)) {
-    return ids;
+    return;
   }
 
   while (index < source.length) {
-    var id = readText(source[index]).trim();
+    if (Array.isArray(source[index])) {
+      appendIdValue(ids, source[index]);
+    } else {
+      var id = readText(source[index]).trim();
 
-    if (id && ids.indexOf(id) === -1) {
-      ids.push(id);
+      if (id && ids.indexOf(id) === -1) {
+        ids.push(id);
+      }
     }
 
     index = index + 1;
   }
-
-  return ids;
 }
 
 function matchesSearch(student, searchText) {

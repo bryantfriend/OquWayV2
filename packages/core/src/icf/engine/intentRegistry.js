@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.54-multi-role-assistant";
+import * as IntentExports from "../intents/intents.js?v=1.1.55-class-ownership";
 
 const registry = {
   // Demo Verification
@@ -48,11 +48,14 @@ const registry = {
   UpdateLocationLoginSlugIntent: IntentExports.UpdateLocationLoginSlugIntent,
 
   // Super Admin
+  AssignClassAssistantsIntent: IntentExports.AssignClassAssistantsIntent,
+  AssignClassTeacherIntent: IntentExports.AssignClassTeacherIntent,
   CreateClassIntent: IntentExports.CreateClassIntent,
   CreateLocationIntent: IntentExports.CreateLocationIntent,
   CreateStudentIntent: IntentExports.CreateStudentIntent,
   ListClassesIntent: IntentExports.ListClassesIntent,
   ListStudentsIntent: IntentExports.ListStudentsIntent,
+  LoadClassOwnershipIntent: IntentExports.LoadClassOwnershipIntent,
   LoadAdminProfileIntent: IntentExports.LoadAdminProfileIntent,
   ResetStudentFruitPasswordIntent: IntentExports.ResetStudentFruitPasswordIntent,
   SetStudentStatusIntent: IntentExports.SetStudentStatusIntent,

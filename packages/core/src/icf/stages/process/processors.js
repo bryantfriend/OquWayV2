@@ -105,11 +105,14 @@ export { processStudentFruitLogin } from "./domain/studentLogin/processStudentFr
 export { processStudentStandardLogin } from "./domain/studentLogin/processStudentStandardLogin.js?v=1.1.54-multi-role-assistant";
 export { processStartStudentSession } from "./domain/studentLogin/processStartStudentSession.js?v=1.1.54-multi-role-assistant";
 export {
+  processAssignClassAssistants,
+  processAssignClassTeacher,
   processCreateClass,
   processCreateLocation,
   processCreateStudent,
   processListClasses,
   processListStudents,
+  processLoadClassOwnership,
   processLoadAdminProfile,
   processResetStudentFruitPassword,
   processSetStudentStatus,
@@ -117,7 +120,7 @@ export {
   processUpdateLocation,
   processUpdateStudent,
   processVerifySuperAdminAccess
-} from "./domain/superAdmin/superAdminProcessors.js?v=1.1.54-multi-role-assistant";
+} from "./domain/superAdmin/superAdminProcessors.js?v=1.1.55-class-ownership";
 export {
   processLoadTeacherClasses,
   processLoadTeacherDashboard,
