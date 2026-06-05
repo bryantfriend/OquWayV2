@@ -1,6 +1,6 @@
-import { collection, db, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.62-external-task-review-loop";
-import { getDownloadURL, ref, storage, uploadBytes } from "../../../../../infrastructure/firebase/storage.js?v=1.1.62-external-task-review-loop";
-import { loadCourseAssignments } from "../courseAssignment/courseAssignmentHelpers.js?v=1.1.62-external-task-review-loop";
+import { collection, db, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
+import { getDownloadURL, ref, storage, uploadBytes } from "../../../../../infrastructure/firebase/storage.js?v=1.1.63-external-task-student-feedback";
+import { loadCourseAssignments } from "../courseAssignment/courseAssignmentHelpers.js?v=1.1.63-external-task-student-feedback";
 
 export async function processLoadExternalTaskStep(executionState) {
   var payload = executionState.payload || {};
@@ -9,6 +9,7 @@ export async function processLoadExternalTaskStep(executionState) {
   try {
     var submissions = await queryExternalTaskSubmissions({
       courseId: payload.courseId,
+      assignmentId: payload.assignmentId || payload.courseAssignmentId,
       moduleId: payload.moduleId,
       stepId: payload.stepId,
       studentId: payload.studentId || actor.id
@@ -53,6 +54,7 @@ export async function processSubmitExternalTask(executionState) {
     var fileIndex = 0;
     var previousSubmissions = await queryExternalTaskSubmissions({
       courseId: payload.courseId,
+      assignmentId: payload.assignmentId || payload.courseAssignmentId,
       moduleId: payload.moduleId,
       stepId: payload.stepId,
       studentId: actor.id || ""
@@ -278,6 +280,7 @@ function createSubmissionRecord(payload, actor, profile, submissionId, files, at
     files: files,
     status: "submitted",
     reviewStatus: "pending",
+    previousSubmissionId: payload.previousSubmissionId || "",
     reviewedBy: null,
     reviewedAt: null,
     teacherFeedback: "",

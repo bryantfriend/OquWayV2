@@ -1,11 +1,11 @@
-import { catalogCourseRequireModuleIdValidation } from "../../stages/validate/validators.js?v=1.1.62-external-task-review-loop";
-import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.62-external-task-review-loop";
-import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.62-external-task-review-loop";
-import { attachExistingModuleContext } from "../../stages/addContext/contexts.js?v=1.1.62-external-task-review-loop";
-import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.62-external-task-review-loop";
-import { preventModificationIfPublishedAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.62-external-task-review-loop";
-import { catalogModuleDeleteProcessing } from "../../stages/process/processors.js?v=1.1.62-external-task-review-loop";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.62-external-task-review-loop";
+import { catalogCourseRequireModuleIdValidation } from "../../stages/validate/validators.js?v=1.1.63-external-task-student-feedback";
+import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.63-external-task-student-feedback";
+import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.63-external-task-student-feedback";
+import { attachExistingModuleContext } from "../../stages/addContext/contexts.js?v=1.1.63-external-task-student-feedback";
+import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.63-external-task-student-feedback";
+import { preventModificationIfPublishedAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.63-external-task-student-feedback";
+import { catalogModuleDeleteProcessing } from "../../stages/process/processors.js?v=1.1.63-external-task-student-feedback";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.63-external-task-student-feedback";
 
 export function DeleteCatalogModuleIntent() {
     return {

@@ -1,4 +1,4 @@
-import { db, collection, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.62-external-task-review-loop";
+import { db, collection, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
 
 const COURSE_COUNT_CONCURRENCY = 4;
 const MODULE_COUNT_CONCURRENCY = 4;

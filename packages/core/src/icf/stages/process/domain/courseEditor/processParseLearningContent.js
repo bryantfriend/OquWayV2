@@ -1,4 +1,4 @@
-import { parseLearningContentText } from "../moduleEditor/learningArchitecture.js?v=1.1.62-external-task-review-loop";
+import { parseLearningContentText } from "../moduleEditor/learningArchitecture.js?v=1.1.63-external-task-student-feedback";
 
 export function processParseLearningContent(executionState) {
   var payload = executionState.payload || {};

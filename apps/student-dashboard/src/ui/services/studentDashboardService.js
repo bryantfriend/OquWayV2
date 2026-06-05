@@ -1,7 +1,7 @@
-import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.62-external-task-review-loop";
-import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.62-external-task-review-loop";
-import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.62-external-task-review-loop";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.62-external-task-review-loop";
+import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.63-external-task-student-feedback";
+import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.63-external-task-student-feedback";
+import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.63-external-task-student-feedback";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.63-external-task-student-feedback";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
@@ -304,7 +304,7 @@ export const studentDashboardService = {
 
   loadExternalTaskStep: async function (payload) {
     try {
-      var result = await runStudentIntent("LoadExternalTaskStepIntent", payload || {});
+      var result = await runStudentIntent("LoadStudentExternalTaskSubmissionIntent", payload || {});
 
       if (result && result.emitted && result.emitted.success) {
         return result.emitted.data;

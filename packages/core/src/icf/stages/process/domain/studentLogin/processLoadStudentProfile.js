@@ -1,5 +1,5 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.62-external-task-review-loop";
-import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.62-external-task-review-loop";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
+import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.63-external-task-student-feedback";
 
 export async function processLoadStudentProfile(executionState) {
   var actor = executionState.actor;

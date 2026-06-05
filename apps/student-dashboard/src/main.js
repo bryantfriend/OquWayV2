@@ -1,8 +1,8 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.62-external-task-review-loop";
-import { PracticeModePlayer } from "../../../packages/core/src/shared/player/PracticeModePlayer.js?v=1.1.62-external-task-review-loop";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.62-external-task-review-loop";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.62-external-task-review-loop";
+import { auth } from "../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.63-external-task-student-feedback";
+import { PracticeModePlayer } from "../../../packages/core/src/shared/player/PracticeModePlayer.js?v=1.1.63-external-task-student-feedback";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.63-external-task-student-feedback";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.63-external-task-student-feedback";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -1004,6 +1004,8 @@ async function submitExternalTaskStep(step, submissionRequest, snapshot) {
 
   return studentDashboardService.submitExternalTask({
     courseId: course ? course.id : snapshot.courseId,
+    assignmentId: course ? (course.assignmentId || course.courseAssignmentId || "") : "",
+    courseAssignmentId: course ? (course.courseAssignmentId || course.assignmentId || "") : "",
     moduleId: module ? module.id : snapshot.moduleId,
     sessionId: session ? session.id : snapshot.sessionId,
     practiceModeKey: snapshot.practiceModeKey,
@@ -1013,6 +1015,7 @@ async function submitExternalTaskStep(step, submissionRequest, snapshot) {
     checklistSnapshot: readExternalTaskChecklist(config),
     studentNote: submissionRequest ? submissionRequest.studentNote : "",
     files: submissionRequest ? submissionRequest.files : [],
+    previousSubmissionId: submissionRequest && submissionRequest.previousSubmissionId ? submissionRequest.previousSubmissionId : "",
     isResubmission: Boolean(submissionRequest && submissionRequest.isResubmission),
     maxFileSizeMb: config.maxFileSizeMb || 10,
     classId: state.student ? state.student.classId : "",

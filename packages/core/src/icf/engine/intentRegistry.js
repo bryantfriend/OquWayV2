@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.62-external-task-review-loop";
+import * as IntentExports from "../intents/intents.js?v=1.1.63-external-task-student-feedback";
 
 const registry = {
   // Demo Verification
@@ -29,6 +29,7 @@ const registry = {
 
   // External Tasks
   LoadExternalTaskStepIntent: IntentExports.LoadExternalTaskStepIntent,
+  LoadStudentExternalTaskSubmissionIntent: IntentExports.LoadStudentExternalTaskSubmissionIntent,
   SubmitExternalTaskIntent: IntentExports.SubmitExternalTaskIntent,
   UploadExternalTaskFileIntent: IntentExports.UploadExternalTaskFileIntent,
   LoadExternalTaskSubmissionsIntent: IntentExports.LoadExternalTaskSubmissionsIntent,

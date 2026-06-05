@@ -3,12 +3,12 @@
 // ICF Engine Verification Runner
 //
 // Usage from browser console:
-//   import("./packages/core/src/icf/dev/verifyEngine.js?v=1.1.62-external-task-review-loop").then(function (m) { m.verifyEngine(); });
+//   import("./packages/core/src/icf/dev/verifyEngine.js?v=1.1.63-external-task-student-feedback").then(function (m) { m.verifyEngine(); });
 //
 // Or call verifyEngine() after importing this module in your app entry point.
 
-import { createIntent } from "../engine/createIntent.js?v=1.1.62-external-task-review-loop";
-import { runIntentPipeline } from "../engine/runIntentPipeline.js?v=1.1.62-external-task-review-loop";
+import { createIntent } from "../engine/createIntent.js?v=1.1.63-external-task-student-feedback";
+import { runIntentPipeline } from "../engine/runIntentPipeline.js?v=1.1.63-external-task-student-feedback";
 
 export async function verifyEngine() {
   console.info("");

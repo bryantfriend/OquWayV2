@@ -1,6 +1,6 @@
 // createIntent.js
 
-import { getIntentDefinition } from "./intentRegistry.js?v=1.1.62-external-task-review-loop";
+import { getIntentDefinition } from "./intentRegistry.js?v=1.1.63-external-task-student-feedback";
 
 export function createIntent(intentInput) {
   const intentType = readIntentType(intentInput);

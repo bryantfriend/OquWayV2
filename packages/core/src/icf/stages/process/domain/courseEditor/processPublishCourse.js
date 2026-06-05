@@ -1,4 +1,4 @@
-import { db, writeBatch, doc, serverTimestamp } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.62-external-task-review-loop";
+import { db, writeBatch, doc, serverTimestamp } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
 
 export async function processPublishCourse(executionState) {
     const { payload, context } = executionState;

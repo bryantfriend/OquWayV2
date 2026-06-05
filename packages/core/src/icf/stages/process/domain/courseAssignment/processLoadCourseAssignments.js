@@ -1,5 +1,5 @@
-import { collection, db, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.62-external-task-review-loop";
-import { sortAssignments } from "./courseAssignmentHelpers.js?v=1.1.62-external-task-review-loop";
+import { collection, db, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
+import { sortAssignments } from "./courseAssignmentHelpers.js?v=1.1.63-external-task-student-feedback";
 
 export async function processLoadCourseAssignments(executionState) {
   var payload = executionState.payload || {};

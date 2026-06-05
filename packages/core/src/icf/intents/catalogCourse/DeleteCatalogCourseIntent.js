@@ -1,10 +1,10 @@
-import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.62-external-task-review-loop";
-import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.62-external-task-review-loop";
-import { attachExistingCourseContext } from "../../stages/addContext/contexts.js?v=1.1.62-external-task-review-loop";
-import { requireSuperAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.62-external-task-review-loop";
-import { preventDeleteIfInUseAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.62-external-task-review-loop";
-import { catalogCourseDeleteProcessing } from "../../stages/process/processors.js?v=1.1.62-external-task-review-loop";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.62-external-task-review-loop";
+import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.63-external-task-student-feedback";
+import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.63-external-task-student-feedback";
+import { attachExistingCourseContext } from "../../stages/addContext/contexts.js?v=1.1.63-external-task-student-feedback";
+import { requireSuperAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.63-external-task-student-feedback";
+import { preventDeleteIfInUseAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.63-external-task-student-feedback";
+import { catalogCourseDeleteProcessing } from "../../stages/process/processors.js?v=1.1.63-external-task-student-feedback";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.63-external-task-student-feedback";
 
 export function DeleteCatalogCourseIntent() {
     return {

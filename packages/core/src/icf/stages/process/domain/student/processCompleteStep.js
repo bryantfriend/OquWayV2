@@ -3,7 +3,7 @@ import {
   readPracticeModeProgress,
   readPracticeModeStepIds,
   saveStudentPracticeModeProgress
-} from "./studentProgressHelpers.js?v=1.1.62-external-task-review-loop";
+} from "./studentProgressHelpers.js?v=1.1.63-external-task-student-feedback";
 
 export async function processCompleteStep(executionState) {
   var payload = executionState.payload;

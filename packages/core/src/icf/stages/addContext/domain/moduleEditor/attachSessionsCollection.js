@@ -1,5 +1,5 @@
-import { db, collection, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.62-external-task-review-loop";
-import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.62-external-task-review-loop";
+import { db, collection, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
+import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.63-external-task-student-feedback";
 
 export async function attachSessionsCollection(executionState) {
   const payload = executionState.payload;

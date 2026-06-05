@@ -1,4 +1,4 @@
-import { readActorRoles, readPrimaryRole } from "../../../authorize/core/roleAuthorization.js?v=1.1.62-external-task-review-loop";
+import { readActorRoles, readPrimaryRole } from "../../../authorize/core/roleAuthorization.js?v=1.1.63-external-task-student-feedback";
 
 export function attachActorContext(executionState) {
     if (executionState.actor && executionState.actor.id) {

@@ -1,4 +1,4 @@
-import { db, collection, doc, getDoc, getDocs, serverTimestamp, writeBatch } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.62-external-task-review-loop";
+import { db, collection, doc, getDoc, getDocs, serverTimestamp, writeBatch } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
 
 export async function migrateLegacyModulesToCatalogCourse(courseId) {
     const legacyModulesSnapshot = await getDocs(collection(db, "courses", courseId, "modules"));

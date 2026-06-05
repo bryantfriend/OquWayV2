@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateClassOwnershipPayload } from "../../stages/validate/validators.js?v=1.1.62-external-task-review-loop";
-import { normalizeClassOwnershipPayload } from "../../stages/normalize/normalizers.js?v=1.1.62-external-task-review-loop";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.62-external-task-review-loop";
-import { requireCourseAssignmentAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.62-external-task-review-loop";
-import { processLoadClassOwnership } from "../../stages/process/processors.js?v=1.1.62-external-task-review-loop";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.62-external-task-review-loop";
+import { validateAuthenticated, validateClassOwnershipPayload } from "../../stages/validate/validators.js?v=1.1.63-external-task-student-feedback";
+import { normalizeClassOwnershipPayload } from "../../stages/normalize/normalizers.js?v=1.1.63-external-task-student-feedback";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.63-external-task-student-feedback";
+import { requireCourseAssignmentAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.63-external-task-student-feedback";
+import { processLoadClassOwnership } from "../../stages/process/processors.js?v=1.1.63-external-task-student-feedback";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.63-external-task-student-feedback";
 
 export function LoadClassOwnershipIntent() {
   return {

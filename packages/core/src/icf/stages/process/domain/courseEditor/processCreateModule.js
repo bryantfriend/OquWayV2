@@ -1,11 +1,11 @@
-import { db, collection, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.62-external-task-review-loop";
-import { createDefaultPracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.62-external-task-review-loop";
+import { db, collection, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
+import { createDefaultPracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.63-external-task-student-feedback";
 import {
   createDefaultLearningContent,
   createLearningModesForTemplate,
   createStarterStepsForMode,
   normalizeLearningContentPayload
-} from "../moduleEditor/learningArchitecture.js?v=1.1.62-external-task-review-loop";
+} from "../moduleEditor/learningArchitecture.js?v=1.1.63-external-task-student-feedback";
 
 export async function processCreateModule(executionState) {
   const payload = executionState.payload;

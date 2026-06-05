@@ -1,4 +1,4 @@
-import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.62-external-task-review-loop";
+import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.63-external-task-student-feedback";
 
 export function requireLocationAdminAuthorization(executionState) {
   var actor = executionState.actor;

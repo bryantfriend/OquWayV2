@@ -1216,6 +1216,95 @@
             color: #64748b;
         }
 
+        .oqu-external-task-status-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            background: #f8fafc;
+            padding: 0.85rem;
+            display: grid;
+            gap: 0.45rem;
+        }
+
+        .oqu-external-task-status-card strong {
+            font-size: 0.95rem;
+            color: #0f172a;
+        }
+
+        .oqu-external-task-status-card span,
+        .oqu-external-task-status-card p {
+            margin: 0;
+            color: #475569;
+            line-height: 1.5;
+        }
+
+        .oqu-external-task-status-card dl {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.45rem;
+            margin: 0.2rem 0 0;
+        }
+
+        .oqu-external-task-status-card dl div {
+            border-radius: 12px;
+            background: rgba(255,255,255,0.72);
+            padding: 0.45rem;
+        }
+
+        .oqu-external-task-status-card dt {
+            font-size: 0.62rem;
+            text-transform: uppercase;
+            color: #64748b;
+        }
+
+        .oqu-external-task-status-card dd {
+            margin: 0.1rem 0 0;
+            color: #0f172a;
+        }
+
+        .oqu-external-task-status-pending {
+            background: #fef9c3;
+            border-color: #fde68a;
+        }
+
+        .oqu-external-task-status-needsWork {
+            background: #ffedd5;
+            border-color: #fdba74;
+        }
+
+        .oqu-external-task-status-incomplete {
+            background: #fee2e2;
+            border-color: #fca5a5;
+        }
+
+        .oqu-external-task-status-complete {
+            background: #dcfce7;
+            border-color: #86efac;
+        }
+
+        .oqu-external-task-files-list {
+            display: grid;
+            gap: 0.35rem;
+        }
+
+        .oqu-external-task-files-list ul {
+            display: grid;
+            gap: 0.25rem;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .oqu-external-task-files-list li {
+            display: flex;
+            gap: 0.3rem;
+            flex-wrap: wrap;
+        }
+
+        .oqu-external-task-files-list a {
+            color: #2563eb;
+            font-weight: 900;
+        }
+
         .oqu-external-task-note {
             width: 100%;
             min-height: 84px;
@@ -1577,7 +1666,7 @@
         <h1>Welcome to your Studies</h1>
         <p>Your educational journey continues here...</p>
     </main>
-    <script type="module" src="./src/main.js?v=1.1.62-external-task-review-loop"></script>
+    <script type="module" src="./src/main.js?v=1.1.63-external-task-student-feedback"></script>
 </body>
 
 </html>

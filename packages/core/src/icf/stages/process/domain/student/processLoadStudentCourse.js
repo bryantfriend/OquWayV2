@@ -1,7 +1,7 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.62-external-task-review-loop";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.62-external-task-review-loop";
-import { loadCourseAssignments } from "../courseAssignment/courseAssignmentHelpers.js?v=1.1.62-external-task-review-loop";
-import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.62-external-task-review-loop";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.63-external-task-student-feedback";
+import { loadCourseAssignments } from "../courseAssignment/courseAssignmentHelpers.js?v=1.1.63-external-task-student-feedback";
+import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.63-external-task-student-feedback";
 
 export async function processLoadStudentCourse(executionState) {
   var actor = executionState.actor;

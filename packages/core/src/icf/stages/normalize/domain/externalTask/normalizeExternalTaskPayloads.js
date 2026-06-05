@@ -10,7 +10,9 @@ export function normalizeExternalTaskPayload(executionState) {
       sessionId: readText(payload.sessionId),
       stepId: readText(payload.stepId),
       assignmentId: readText(payload.assignmentId),
+      courseAssignmentId: readText(payload.courseAssignmentId || payload.assignmentId),
       submissionId: readText(payload.submissionId),
+      previousSubmissionId: readText(payload.previousSubmissionId),
       classId: readText(payload.classId),
       locationId: readText(payload.locationId),
       taskTitle: readText(payload.taskTitle),
@@ -50,6 +52,9 @@ export function normalizeExternalTaskListPayload(executionState) {
       studentId: readText(payload.studentId),
       classId: readText(payload.classId),
       locationId: readText(payload.locationId),
+      assignmentId: readText(payload.assignmentId),
+      courseAssignmentId: readText(payload.courseAssignmentId || payload.assignmentId),
+      teacherOwnershipId: readText(payload.teacherOwnershipId),
       status: readText(payload.status),
       reviewStatus: readText(payload.reviewStatus)
     }

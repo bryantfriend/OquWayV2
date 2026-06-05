@@ -1,4 +1,4 @@
-import { isSupportedStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.62-external-task-review-loop";
+import { isSupportedStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.63-external-task-student-feedback";
 
 export function validatePracticeModeStepType(executionState) {
   var payload = executionState.payload;

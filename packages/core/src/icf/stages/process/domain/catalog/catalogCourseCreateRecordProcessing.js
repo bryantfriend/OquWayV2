@@ -1,4 +1,4 @@
-import { db, collection, doc, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.62-external-task-review-loop";
+import { db, collection, doc, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
 
 export async function catalogCourseCreateRecordProcessing(executionState) {
     const { payload, context, actor } = executionState;

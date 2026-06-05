@@ -1,5 +1,5 @@
-import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.62-external-task-review-loop";
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.62-external-task-review-loop";
+import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.63-external-task-student-feedback";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.63-external-task-student-feedback";
 
 export async function processLoadStudentDashboard(executionState) {
   var courseResult = await processLoadStudentCourse(executionState);

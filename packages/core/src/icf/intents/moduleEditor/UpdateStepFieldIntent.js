@@ -1,8 +1,8 @@
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.62-external-task-review-loop";
-import { attachStepsCollection } from "../../stages/addContext/contexts.js?v=1.1.62-external-task-review-loop";
-import { processUpdateStepField } from "../../stages/process/processors.js?v=1.1.62-external-task-review-loop";
-import { validateCourseId, validateModuleId, validateStepFieldKey, validateStepId } from "../../stages/validate/validators.js?v=1.1.62-external-task-review-loop";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.62-external-task-review-loop";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.63-external-task-student-feedback";
+import { attachStepsCollection } from "../../stages/addContext/contexts.js?v=1.1.63-external-task-student-feedback";
+import { processUpdateStepField } from "../../stages/process/processors.js?v=1.1.63-external-task-student-feedback";
+import { validateCourseId, validateModuleId, validateStepFieldKey, validateStepId } from "../../stages/validate/validators.js?v=1.1.63-external-task-student-feedback";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.63-external-task-student-feedback";
 
 export function UpdateStepFieldIntent() {
     return {

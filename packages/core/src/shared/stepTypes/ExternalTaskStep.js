@@ -1,4 +1,4 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.62-external-task-review-loop";
+import { BaseStep } from "./BaseStep.js?v=1.1.63-external-task-student-feedback";
 
 export class ExternalTaskStep extends BaseStep {
   static get type() {
@@ -195,10 +195,20 @@ function attachExternalTaskHandlers(container, config, callbacks) {
           files: files,
           studentNote: noteInput ? noteInput.value : "",
           previousSubmission: latestSubmission,
+          previousSubmissionId: latestSubmission ? (latestSubmission.id || latestSubmission.submissionId || "") : "",
           isResubmission: shouldAllowResubmission(latestSubmission)
         });
       }
-      writeStatus(status, "Submitted for teacher review");
+      writeStatusCard(status, {
+        reviewStatus: "pending",
+        status: "submitted",
+        files: files.map(function (file) {
+          return {
+            name: file.name || "upload",
+            size: file.size || 0
+          };
+        })
+      });
       button.disabled = true;
       button.textContent = "Submitted";
     } catch (error) {
@@ -213,12 +223,12 @@ function applySubmissionState(container, submission, callbacks) {
   var button = container.querySelector(".oqu-external-task-submit");
 
   if (!submission) {
-    writeStatus(status, "Status: not submitted yet.");
+    writeStatusCard(status, null);
     return;
   }
 
   if (submission.reviewStatus === "complete") {
-    writeStatus(status, readFeedbackMessage(submission, "Great work! Your teacher marked this complete."));
+    writeStatusCard(status, submission);
     if (button) {
       button.textContent = "Completed";
       button.classList.add("oqu-player-complete-btn");
@@ -229,7 +239,7 @@ function applySubmissionState(container, submission, callbacks) {
   }
 
   if (submission.reviewStatus === "needsWork") {
-    writeStatus(status, readFeedbackMessage(submission, "Your teacher wants you to improve this."));
+    writeStatusCard(status, submission);
     if (button) {
       button.textContent = "Resubmit for review";
       button.disabled = false;
@@ -239,7 +249,7 @@ function applySubmissionState(container, submission, callbacks) {
   }
 
   if (submission.reviewStatus === "incomplete") {
-    writeStatus(status, readFeedbackMessage(submission, "This was marked incomplete."));
+    writeStatusCard(status, submission);
     if (button) {
       button.textContent = "Resubmit for review";
       button.disabled = false;
@@ -248,7 +258,7 @@ function applySubmissionState(container, submission, callbacks) {
     return;
   }
 
-  writeStatus(status, "Status: pending teacher review.");
+  writeStatusCard(status, submission);
   if (button) {
     button.textContent = "Submitted";
     button.disabled = true;
@@ -280,12 +290,154 @@ function shouldAllowResubmission(submission) {
   return Boolean(submission && (submission.reviewStatus === "needsWork" || submission.reviewStatus === "incomplete"));
 }
 
-function readFeedbackMessage(submission, fallbackText) {
-  if (submission && submission.teacherFeedback) {
-    return fallbackText + " Feedback: " + submission.teacherFeedback;
+function writeStatusCard(statusElement, submission) {
+  if (!statusElement) {
+    return;
   }
 
-  return fallbackText;
+  if (!submission) {
+    statusElement.innerHTML = '<div class="oqu-external-task-status-card oqu-external-task-status-empty">'
+      + '<strong>No submission yet</strong>'
+      + '<span>Upload proof when your task is ready.</span>'
+      + '</div>';
+    return;
+  }
+
+  var reviewStatus = submission.reviewStatus || "pending";
+  var statusCopy = readStatusCopy(reviewStatus);
+  var html = "";
+
+  html += '<div class="oqu-external-task-status-card oqu-external-task-status-' + escapeClassName(reviewStatus) + '">';
+  html += '<strong>' + BaseStep.escapeHtml(statusCopy.title) + '</strong>';
+  html += '<span>' + BaseStep.escapeHtml(statusCopy.message) + '</span>';
+
+  if (submission.teacherFeedback) {
+    html += '<p><b>Teacher feedback:</b> ' + BaseStep.escapeHtml(submission.teacherFeedback) + '</p>';
+  }
+
+  html += '<dl>';
+  html += '<div><dt>Attempt</dt><dd>' + BaseStep.escapeHtml(String(submission.attemptNumber || 1)) + '</dd></div>';
+  html += '<div><dt>Submitted</dt><dd>' + BaseStep.escapeHtml(formatDateTime(submission.createdAt || submission.updatedAt)) + '</dd></div>';
+  if (submission.reviewedAt) {
+    html += '<div><dt>Reviewed</dt><dd>' + BaseStep.escapeHtml(formatDateTime(submission.reviewedAt)) + '</dd></div>';
+  }
+  html += '</dl>';
+
+  html += buildSubmittedFileList(submission.files);
+  html += '</div>';
+
+  statusElement.innerHTML = html;
+}
+
+function readStatusCopy(reviewStatus) {
+  if (reviewStatus === "complete") {
+    return {
+      title: "Complete",
+      message: "Great work! Your teacher marked this complete."
+    };
+  }
+
+  if (reviewStatus === "needsWork") {
+    return {
+      title: "Needs Work",
+      message: "Your teacher wants you to improve this."
+    };
+  }
+
+  if (reviewStatus === "incomplete") {
+    return {
+      title: "Incomplete",
+      message: "This was marked incomplete."
+    };
+  }
+
+  return {
+    title: "Pending",
+    message: "Submitted for teacher review."
+  };
+}
+
+function buildSubmittedFileList(files) {
+  var safeFiles = Array.isArray(files) ? files : [];
+  var html = "";
+  var index = 0;
+
+  if (safeFiles.length === 0) {
+    return "";
+  }
+
+  html += '<div class="oqu-external-task-files-list"><b>Submitted files</b><ul>';
+
+  while (index < safeFiles.length) {
+    html += '<li>' + buildSubmittedFileLink(safeFiles[index]) + '</li>';
+    index = index + 1;
+  }
+
+  html += '</ul></div>';
+  return html;
+}
+
+function buildSubmittedFileLink(file) {
+  var name = file && file.name ? file.name : "Uploaded file";
+  var size = file && file.size ? " · " + formatFileSize(file.size) : "";
+
+  if (file && file.downloadUrl) {
+    return '<a href="' + BaseStep.escapeHtml(file.downloadUrl) + '" target="_blank" rel="noopener">' + BaseStep.escapeHtml(name) + '</a><span>' + BaseStep.escapeHtml(size) + '</span>';
+  }
+
+  return '<span>' + BaseStep.escapeHtml(name + size) + '</span>';
+}
+
+function formatDateTime(value) {
+  var millis = readMillis(value);
+
+  if (!millis) {
+    return "Just now";
+  }
+
+  try {
+    return new Date(millis).toLocaleString();
+  } catch (error) {
+    return "";
+  }
+}
+
+function readMillis(value) {
+  if (!value) {
+    return 0;
+  }
+
+  if (typeof value === "number") {
+    return value;
+  }
+
+  if (typeof value.toMillis === "function") {
+    return value.toMillis();
+  }
+
+  if (value.seconds) {
+    return value.seconds * 1000;
+  }
+
+  return 0;
+}
+
+function formatFileSize(size) {
+  var safeSize = Number(size) || 0;
+
+  if (safeSize >= 1024 * 1024) {
+    return Math.round((safeSize / (1024 * 1024)) * 10) / 10 + " MB";
+  }
+
+  if (safeSize >= 1024) {
+    return Math.round(safeSize / 1024) + " KB";
+  }
+
+  return safeSize + " B";
+}
+
+function escapeClassName(value) {
+  return String(value || "pending").replace(/[^a-zA-Z0-9_-]/g, "-");
 }
 
 function writeStatus(statusElement, message) {

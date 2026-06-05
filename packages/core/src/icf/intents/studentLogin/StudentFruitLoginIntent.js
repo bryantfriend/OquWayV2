@@ -1,8 +1,8 @@
-import { validateStudentFruitLoginPayload } from "../../stages/validate/validators.js?v=1.1.62-external-task-review-loop";
-import { normalizeStudentFruitLoginPayload } from "../../stages/normalize/normalizers.js?v=1.1.62-external-task-review-loop";
-import { allowStudentLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.62-external-task-review-loop";
-import { processStudentFruitLogin } from "../../stages/process/processors.js?v=1.1.62-external-task-review-loop";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.62-external-task-review-loop";
+import { validateStudentFruitLoginPayload } from "../../stages/validate/validators.js?v=1.1.63-external-task-student-feedback";
+import { normalizeStudentFruitLoginPayload } from "../../stages/normalize/normalizers.js?v=1.1.63-external-task-student-feedback";
+import { allowStudentLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.63-external-task-student-feedback";
+import { processStudentFruitLogin } from "../../stages/process/processors.js?v=1.1.63-external-task-student-feedback";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.63-external-task-student-feedback";
 
 export function StudentFruitLoginIntent() {
   return {

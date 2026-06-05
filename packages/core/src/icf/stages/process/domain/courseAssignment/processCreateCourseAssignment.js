@@ -1,6 +1,6 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.62-external-task-review-loop";
-import { createCourseAssignmentId, loadCourseAssignments } from "./courseAssignmentHelpers.js?v=1.1.62-external-task-review-loop";
-import { buildCourseAssignmentOwnershipFields } from "./courseAssignmentOwnershipHelpers.js?v=1.1.62-external-task-review-loop";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
+import { createCourseAssignmentId, loadCourseAssignments } from "./courseAssignmentHelpers.js?v=1.1.63-external-task-student-feedback";
+import { buildCourseAssignmentOwnershipFields } from "./courseAssignmentOwnershipHelpers.js?v=1.1.63-external-task-student-feedback";
 
 export async function processCreateCourseAssignment(executionState) {
   var payload = executionState.payload;

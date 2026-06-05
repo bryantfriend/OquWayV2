@@ -5,9 +5,9 @@ import { requireExternalTaskStudentAuthorization } from "../../stages/authorize/
 import { processLoadExternalTaskStep } from "../../stages/process/processors.js?v=1.1.63-external-task-student-feedback";
 import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.63-external-task-student-feedback";
 
-export function LoadExternalTaskStepIntent() {
+export function LoadStudentExternalTaskSubmissionIntent() {
   return {
-    type: "LoadExternalTaskStepIntent",
+    type: "LoadStudentExternalTaskSubmissionIntent",
     validate: [validateAuthenticated, validateExternalTaskStepPayload],
     normalize: [normalizeExternalTaskListPayload],
     addContext: [attachActorContext, attachActorRoleContext, attachStudentProfileContext],

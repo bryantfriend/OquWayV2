@@ -1,4 +1,4 @@
-import { db, doc, getDoc, collection, getDocs, query, orderBy } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.62-external-task-review-loop";
+import { db, doc, getDoc, collection, getDocs, query, orderBy } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
 
 export async function attachCourseDocument(executionState) {
     const { payload } = executionState;
