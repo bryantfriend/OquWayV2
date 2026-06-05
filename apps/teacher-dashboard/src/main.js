@@ -1,4 +1,4 @@
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.62-external-task-review-loop";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.64-review-queue-filters";
 
 var app = document.getElementById("app");
 var state = {
@@ -16,7 +16,10 @@ var state = {
   selectedClassId: "",
   selectedCourseId: "",
   activeTab: "classes",
+  reviewClassId: "",
+  reviewCourseId: "",
   statusFilter: "pending",
+  reviewStudentSearch: "",
   message: "",
   error: "",
   unauthorized: false
@@ -26,6 +29,7 @@ if (app) {
   app.addEventListener("submit", handleSubmit);
   app.addEventListener("click", handleClick);
   app.addEventListener("change", handleChange);
+  app.addEventListener("input", handleInput);
 }
 
 teacherDashboardService.onAuthStateChanged(function (user) {
@@ -65,7 +69,7 @@ async function loadDashboard() {
 
   try {
     var data = await teacherDashboardService.loadDashboard({
-      reviewStatus: state.statusFilter,
+      reviewStatus: readReviewStatusForQuery() || "pending",
       classId: state.selectedClassId
     });
 
@@ -100,14 +104,14 @@ async function loadDashboard() {
 
 async function refreshReviewQueue() {
   setState({
-    message: "Refreshing review queue...",
+    message: "Loading submissions...",
     error: ""
   });
 
   try {
     var data = await teacherDashboardService.loadReviewQueue({
-      reviewStatus: state.statusFilter,
-      classId: state.selectedClassId
+      reviewStatus: readReviewStatusForQuery(),
+      classId: ""
     });
 
     setState({
@@ -202,6 +206,7 @@ async function sendPasswordReset(form) {
 async function handleClick(event) {
   var logoutButton = event.target.closest("[data-action=logout]");
   var refreshButton = event.target.closest("[data-action=refresh]");
+  var studentHistoryButton = event.target.closest("[data-action=view-student-history]");
   var classButton = event.target.closest("[data-class-id]");
   var courseButton = event.target.closest("[data-course-assignment-id]");
   var tabButton = event.target.closest("[data-teacher-tab]");
@@ -214,6 +219,16 @@ async function handleClick(event) {
 
   if (refreshButton) {
     await loadDashboard();
+    return;
+  }
+
+  if (studentHistoryButton) {
+    setState({
+      activeTab: "reviews",
+      statusFilter: "all",
+      reviewStudentSearch: studentHistoryButton.getAttribute("data-student-name") || studentHistoryButton.getAttribute("data-student-id") || ""
+    });
+    await refreshReviewQueue();
     return;
   }
 
@@ -249,20 +264,44 @@ async function handleClick(event) {
 async function handleChange(event) {
   var statusSelect = event.target.closest("#reviewStatusFilter");
   var classSelect = event.target.closest("#reviewClassFilter");
+  var courseSelect = event.target.closest("#reviewCourseFilter");
 
-  if (!statusSelect && !classSelect) {
+  if (!statusSelect && !classSelect && !courseSelect) {
     return;
   }
 
   if (statusSelect) {
-    state.statusFilter = statusSelect.value;
+    setState({
+      statusFilter: statusSelect.value || "pending"
+    });
+    await refreshReviewQueue();
+    return;
   }
 
   if (classSelect) {
-    state.selectedClassId = classSelect.value;
+    setState({
+      reviewClassId: classSelect.value
+    });
+    return;
   }
 
-  await loadDashboard();
+  if (courseSelect) {
+    setState({
+      reviewCourseId: courseSelect.value
+    });
+  }
+}
+
+function handleInput(event) {
+  var studentSearch = event.target.closest("#reviewStudentSearch");
+
+  if (!studentSearch) {
+    return;
+  }
+
+  setState({
+    reviewStudentSearch: studentSearch.value
+  });
 }
 
 async function reviewSubmission(button) {
@@ -279,10 +318,10 @@ async function reviewSubmission(button) {
 
   try {
     await teacherDashboardService.reviewSubmission(submissionId, reviewStatus, feedback);
-    await loadDashboard();
+    await refreshReviewQueue();
     setState({
       isReviewing: "",
-      message: "Review saved."
+      message: "Review saved!"
     });
   } catch (error) {
     setState({
@@ -678,21 +717,24 @@ function buildStudentsView() {
 }
 
 function buildReviewQueue() {
-  var submissions = state.submissions || [];
+  var submissions = getFilteredReviewSubmissions();
   var html = '<section class="teacher-review-section">'
     + '<div class="teacher-section-title"><div><h2>Review Queue</h2><p>External Task submissions from assigned classes</p></div>' + buildSectionGlyphSvg("reviews") + '</div>'
     + '<div class="teacher-filters">'
-    + '<label>Class<select id="reviewClassFilter"><option value="">All assigned classes</option>' + buildClassOptions() + '</select></label>'
+    + '<label>Class<select id="reviewClassFilter"><option value="">All classes</option>' + buildClassOptions() + '</select></label>'
+    + '<label>Course<select id="reviewCourseFilter"><option value="">All courses</option>' + buildReviewCourseOptions() + '</select></label>'
     + '<label>Status<select id="reviewStatusFilter">'
+    + buildStatusOption("all", "All")
     + buildStatusOption("pending", "Pending")
-    + buildStatusOption("complete", "Complete")
     + buildStatusOption("needsWork", "Needs Work")
+    + buildStatusOption("complete", "Complete")
     + buildStatusOption("incomplete", "Incomplete")
     + '</select></label>'
+    + '<label>Student<input id="reviewStudentSearch" type="search" value="' + escapeHtml(state.reviewStudentSearch || "") + '" placeholder="Search student name"></label>'
     + '</div>';
 
   if (submissions.length === 0) {
-    return html + buildEmptyState("reviews", "No pending submissions yet.", "External Task uploads for this filter will appear here.") + '</section>';
+    return html + buildReviewEmptyState() + '</section>';
   }
 
   html += '<div class="teacher-review-list">';
@@ -706,19 +748,35 @@ function buildReviewQueue() {
 function buildSubmissionCard(submission) {
   var file = readFirstFile(submission);
   var isPending = state.isReviewing === submission.id;
+  var className = resolveSubmissionClassName(submission);
+  var courseTitle = submission.courseTitle || submission.courseName || submission.courseId || "Course";
+  var moduleTitle = submission.moduleTitle || submission.moduleName || submission.moduleId || "Module";
+  var taskTitle = submission.taskTitle || submission.stepTitle || submission.stepId || "External Task";
+  var currentStatus = submission.reviewStatus || "pending";
 
   return '<article class="teacher-submission-card">'
     + buildSubmissionRibbonSvg()
     + '<div class="teacher-submission-head"><div><strong>' + escapeHtml(submission.studentName || submission.studentId || "Student") + '</strong>'
     + '<span>' + escapeHtml(readSubmissionContext(submission)) + '</span></div>'
-    + '<b class="teacher-status-pill">' + escapeHtml(formatReviewStatus(submission.reviewStatus)) + '</b></div>'
+    + '<b class="teacher-status-pill ' + escapeHtml(currentStatus) + '">' + escapeHtml(formatReviewStatus(currentStatus)) + '</b></div>'
     + '<div class="teacher-submission-meta">'
-    + '<span>Task: ' + escapeHtml(submission.taskTitle || submission.stepId || "External Task") + '</span>'
+    + '<span>Class: ' + escapeHtml(className || "Class") + '</span>'
+    + '<span>Course: ' + escapeHtml(courseTitle) + '</span>'
+    + '<span>Module: ' + escapeHtml(moduleTitle) + '</span>'
+    + '<span>Task: ' + escapeHtml(taskTitle) + '</span>'
     + '<span>Submitted: ' + escapeHtml(formatDate(submission.createdAt) || "Recently") + '</span>'
+    + '<span>Attempt: ' + escapeHtml(String(submission.attemptNumber || 1)) + '</span>'
     + '</div>'
     + buildProofPreview(file)
-    + '<p class="teacher-note">' + escapeHtml(submission.studentNote || "No student note.") + '</p>'
+    + '<div class="teacher-submission-notes"><p class="teacher-note"><strong>Student note</strong><span>' + escapeHtml(submission.studentNote || "No student note.") + '</span></p>'
+    + '<p class="teacher-note teacher-feedback-note"><strong>Teacher feedback</strong><span>' + escapeHtml(submission.teacherFeedback || "No feedback saved yet.") + '</span></p></div>'
     + '<label class="teacher-feedback-label">Teacher feedback<textarea data-feedback-id="' + escapeHtml(submission.id) + '" rows="3" placeholder="Feedback for the student">' + escapeHtml(submission.teacherFeedback || "") + '</textarea></label>'
+    + '<div class="teacher-quick-actions">'
+    + buildReviewButton(submission.id, "complete", "Mark Complete", isPending)
+    + buildOpenFileAction(file)
+    + '<button type="button" class="teacher-secondary-btn" data-action="view-student-history" data-student-id="' + escapeHtml(submission.studentId || "") + '" data-student-name="' + escapeHtml(submission.studentName || "") + '">View student history</button>'
+    + '<button type="button" class="teacher-secondary-btn" data-submission-id="' + escapeHtml(submission.id) + '" data-review-status="' + escapeHtml(readFeedbackSaveStatus(submission)) + '"' + disabled(isPending) + '>' + (isPending ? buildSavingSvg() + "Saving..." : "Save Feedback") + '</button>'
+    + '</div>'
     + '<div class="teacher-review-actions">'
     + buildReviewButton(submission.id, "complete", "Complete", isPending)
     + buildReviewButton(submission.id, "needsWork", "Needs Work", isPending)
@@ -747,12 +805,124 @@ function buildProofPreview(file) {
 
 function buildClassOptions() {
   return (state.classes || []).map(function (classRecord) {
-    return '<option value="' + escapeHtml(classRecord.id) + '"' + selected(state.selectedClassId, classRecord.id) + '>' + escapeHtml(classRecord.name) + '</option>';
+    return '<option value="' + escapeHtml(classRecord.id) + '"' + selected(state.reviewClassId, classRecord.id) + '>' + escapeHtml(classRecord.name) + '</option>';
+  }).join("");
+}
+
+function buildReviewCourseOptions() {
+  var seen = {};
+  var options = [];
+
+  (state.courses || []).forEach(function (course) {
+    var courseId = course.courseId || course.id || "";
+    if (!courseId || seen[courseId]) {
+      return;
+    }
+
+    seen[courseId] = true;
+    options.push({
+      id: courseId,
+      title: course.courseTitle || course.title || courseId
+    });
+  });
+
+  (state.submissions || []).forEach(function (submission) {
+    var courseId = submission.courseId || "";
+    if (!courseId || seen[courseId]) {
+      return;
+    }
+
+    seen[courseId] = true;
+    options.push({
+      id: courseId,
+      title: submission.courseTitle || submission.courseName || courseId
+    });
+  });
+
+  return options.map(function (course) {
+    return '<option value="' + escapeHtml(course.id) + '"' + selected(state.reviewCourseId, course.id) + '>' + escapeHtml(course.title) + '</option>';
   }).join("");
 }
 
 function buildStatusOption(value, label) {
   return '<option value="' + escapeHtml(value) + '"' + selected(state.statusFilter, value) + '>' + escapeHtml(label) + '</option>';
+}
+
+function buildReviewEmptyState() {
+  var hasRawSubmissions = (state.submissions || []).length > 0;
+
+  if (!hasRawSubmissions && state.statusFilter === "pending") {
+    return buildEmptyState("reviews", "No pending reviews.", "Submitted External Task work that needs review will appear here.");
+  }
+
+  return buildEmptyState("reviews", "No submissions match these filters.", "Try a different class, course, status, or student search.");
+}
+
+function getFilteredReviewSubmissions() {
+  var search = String(state.reviewStudentSearch || "").trim().toLowerCase();
+  var filtered = (state.submissions || []).filter(function (submission) {
+    return matchesReviewClass(submission)
+      && matchesReviewCourse(submission)
+      && matchesStudentSearch(submission, search);
+  });
+
+  console.info("[teacher-review:filters]", {
+    classId: state.reviewClassId || "",
+    courseId: state.reviewCourseId || "",
+    status: state.statusFilter || "pending",
+    search: search,
+    visibleSubmissionCount: filtered.length,
+    totalSubmissionCount: (state.submissions || []).length
+  });
+
+  return filtered;
+}
+
+function matchesReviewClass(submission) {
+  if (!state.reviewClassId) {
+    return true;
+  }
+
+  return submission.classId === state.reviewClassId
+    || submission.targetId === state.reviewClassId
+    || submission.targetClassId === state.reviewClassId;
+}
+
+function matchesReviewCourse(submission) {
+  if (!state.reviewCourseId) {
+    return true;
+  }
+
+  return submission.courseId === state.reviewCourseId;
+}
+
+function matchesStudentSearch(submission, search) {
+  if (!search) {
+    return true;
+  }
+
+  return String(submission.studentName || submission.studentId || "").toLowerCase().indexOf(search) !== -1;
+}
+
+function readReviewStatusForQuery() {
+  return state.statusFilter === "all" ? "" : state.statusFilter;
+}
+
+function buildOpenFileAction(file) {
+  if (!file || !file.downloadUrl) {
+    return '<button type="button" class="teacher-secondary-btn" disabled>Open file</button>';
+  }
+
+  return '<a class="teacher-secondary-btn teacher-open-file-btn" href="' + escapeHtml(file.downloadUrl) + '" target="_blank" rel="noopener">Open file</a>';
+}
+
+function readFeedbackSaveStatus(submission) {
+  var status = submission.reviewStatus || "";
+  if (status === "complete" || status === "needsWork" || status === "incomplete") {
+    return status;
+  }
+
+  return "needsWork";
 }
 
 function buildStatusMessages() {
@@ -781,10 +951,19 @@ function filterStudentsForSelectedClass(students) {
 
 function readSubmissionContext(submission) {
   var parts = [];
-  addPart(parts, "Class", submission.classId);
+  addPart(parts, "Class", resolveSubmissionClassName(submission) || submission.classId);
   addPart(parts, "Course", submission.courseTitle || submission.courseId);
   addPart(parts, "Module", submission.moduleTitle || submission.moduleId);
   return parts.join(" | ") || "External Task";
+}
+
+function resolveSubmissionClassName(submission) {
+  var classId = submission.classId || submission.targetClassId || submission.targetId || "";
+  var classRecord = (state.classes || []).find(function (item) {
+    return item.id === classId;
+  });
+
+  return submission.className || submission.targetName || (classRecord ? classRecord.name : "");
 }
 
 function readFirstFile(submission) {
