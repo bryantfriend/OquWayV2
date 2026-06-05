@@ -1,4 +1,4 @@
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.59-teacher-login-errors";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.60-teacher-login-readtext";
 
 var app = document.getElementById("app");
 var state = {

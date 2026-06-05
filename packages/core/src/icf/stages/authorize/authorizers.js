@@ -22,6 +22,6 @@ export {
   allowTeacherLoginAuthorization,
   requireTeacherDashboardAuthorization,
   requireTeacherReviewScopeAuthorization
-} from "./domain/teacher/requireTeacherAuthorization.js?v=1.1.57-teacher-ownership";
+} from "./domain/teacher/requireTeacherAuthorization.js?v=1.1.60-teacher-login-readtext";
 
 

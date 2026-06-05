@@ -1,4 +1,4 @@
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.57-teacher-ownership";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.60-teacher-login-readtext";
 
 export async function attachTeacherProfileContext(executionState) {
   var actor = executionState.actor || {};

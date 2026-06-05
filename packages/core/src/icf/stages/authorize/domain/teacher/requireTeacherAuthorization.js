@@ -1,4 +1,4 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.57-teacher-ownership";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.60-teacher-login-readtext";
 
 export function allowTeacherLoginAuthorization() {
   return { valid: true };

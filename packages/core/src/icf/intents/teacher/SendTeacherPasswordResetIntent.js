@@ -1,8 +1,8 @@
-import { validateTeacherPasswordResetPayload } from "../../stages/validate/validators.js?v=1.1.59-teacher-login-errors";
-import { normalizeTeacherPasswordResetPayload } from "../../stages/normalize/normalizers.js?v=1.1.59-teacher-login-errors";
-import { allowTeacherLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.59-teacher-login-errors";
-import { processSendTeacherPasswordReset } from "../../stages/process/processors.js?v=1.1.59-teacher-login-errors";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.59-teacher-login-errors";
+import { validateTeacherPasswordResetPayload } from "../../stages/validate/validators.js?v=1.1.60-teacher-login-readtext";
+import { normalizeTeacherPasswordResetPayload } from "../../stages/normalize/normalizers.js?v=1.1.60-teacher-login-readtext";
+import { allowTeacherLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.60-teacher-login-readtext";
+import { processSendTeacherPasswordReset } from "../../stages/process/processors.js?v=1.1.60-teacher-login-readtext";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.60-teacher-login-readtext";
 
 export function SendTeacherPasswordResetIntent() {
   return {

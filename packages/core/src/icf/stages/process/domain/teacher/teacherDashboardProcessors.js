@@ -1,6 +1,6 @@
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.59-teacher-login-errors";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.59-teacher-login-errors";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.60-teacher-login-readtext";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.60-teacher-login-readtext";
 
 export async function processTeacherLogin(executionState) {
   var payload = executionState.payload || {};
@@ -1038,6 +1038,18 @@ function readTextArray(values) {
   }
 
   return result;
+}
+
+function readText(value) {
+  if (!value) {
+    return "";
+  }
+
+  if (typeof value === "string") {
+    return value.trim();
+  }
+
+  return String(value).trim();
 }
 
 function appendTextValues(result, value) {

@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.59-teacher-login-errors";
+import * as IntentExports from "../intents/intents.js?v=1.1.60-teacher-login-readtext";
 
 const registry = {
   // Demo Verification
