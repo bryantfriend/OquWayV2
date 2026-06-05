@@ -33,6 +33,7 @@ service cloud.firestore {
         (user().data.roles is list && (role in user().data.roles || legacyRole in user().data.roles)) ||
         (legacyRole == "ROLE_TEACHER" && user().data.ROLE_TEACHER == true) ||
         (legacyRole == "ROLE_ASSISTANT" && user().data.ROLE_ASSISTANT == true) ||
+        (legacyRole == "ROLE_STUDENT" && user().data.ROLE_STUDENT == true) ||
         (legacyRole == "ROLE_COURSE_CREATOR" && user().data.ROLE_COURSE_CREATOR == true) ||
         (legacyRole == "ROLE_ACCOUNTANT" && user().data.ROLE_ACCOUNTANT == true) ||
         (legacyRole == "ROLE_SCHOOL_ADMIN" && user().data.ROLE_SCHOOL_ADMIN == true) ||
@@ -49,7 +50,7 @@ service cloud.firestore {
     function isCourseEditor() { return isCourseCreator() || isAssistant(); }
     function isAccountant() { return hasAnyRole('accountant', 'ROLE_ACCOUNTANT'); }
     function isTeacher() { return hasAnyRole('teacher', 'ROLE_TEACHER') || profileHasAnyRole('teacher', 'ROLE_TEACHER'); }
-    function isStudent() { return hasAnyRole('student', 'ROLE_STUDENT'); }
+    function isStudent() { return hasAnyRole('student', 'ROLE_STUDENT') || profileHasAnyRole('student', 'ROLE_STUDENT'); }
 
 
     function user() {

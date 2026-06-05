@@ -1,7 +1,7 @@
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../stepTypes/stepTypeRegistry.js?v=1.1.63-external-task-student-feedback";
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.70-external-task-feedback";
 
 export class PracticeModePlayer {
   constructor(options) {

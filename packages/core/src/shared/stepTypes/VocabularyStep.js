@@ -1,4 +1,4 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.63-external-task-student-feedback";
+import { BaseStep } from "./BaseStep.js?v=1.1.69-course-creator-cleanup";
 
 export class VocabularyStep extends BaseStep {
   static get type() {

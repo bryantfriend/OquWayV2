@@ -1,4 +1,4 @@
-import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.63-external-task-student-feedback";
+import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.70-external-task-feedback";
 
 export async function callStudentLoginFunction(payload) {
   return callCallableFunction("studentLogin", payload);

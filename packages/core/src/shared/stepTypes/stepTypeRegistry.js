@@ -1,13 +1,13 @@
-import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.63-external-task-student-feedback";
-import { VocabularyStep } from "./VocabularyStep.js?v=1.1.63-external-task-student-feedback";
-import { PhraseStep } from "./PhraseStep.js?v=1.1.63-external-task-student-feedback";
-import { ListeningStep } from "./ListeningStep.js?v=1.1.63-external-task-student-feedback";
-import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.63-external-task-student-feedback";
-import { ReflectionStep } from "./ReflectionStep.js?v=1.1.63-external-task-student-feedback";
-import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.63-external-task-student-feedback";
-import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.63-external-task-student-feedback";
-import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.63-external-task-student-feedback";
-import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.63-external-task-student-feedback";
+import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.70-external-task-feedback";
+import { VocabularyStep } from "./VocabularyStep.js?v=1.1.70-external-task-feedback";
+import { PhraseStep } from "./PhraseStep.js?v=1.1.70-external-task-feedback";
+import { ListeningStep } from "./ListeningStep.js?v=1.1.70-external-task-feedback";
+import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.70-external-task-feedback";
+import { ReflectionStep } from "./ReflectionStep.js?v=1.1.70-external-task-feedback";
+import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.70-external-task-feedback";
+import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.70-external-task-feedback";
+import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.70-external-task-feedback";
+import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.70-external-task-feedback";
 
 var stepTypes = {
   textBriefing: TextBriefingStep,

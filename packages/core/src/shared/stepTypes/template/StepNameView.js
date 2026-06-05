@@ -1,5 +1,5 @@
-import { StepNameEngine } from "./StepNameEngine.js?v=1.1.63-external-task-student-feedback";
-import { StepNameIntent } from "./StepNameIntent.js?v=1.1.63-external-task-student-feedback";
+import { StepNameEngine } from "./StepNameEngine.js?v=1.1.69-course-creator-cleanup";
+import { StepNameIntent } from "./StepNameIntent.js?v=1.1.69-course-creator-cleanup";
 
 export default class StepName {
 

@@ -1,4 +1,4 @@
-import { canManageUsers, canReviewExternalTask, canViewStudentProgress } from "./policies.js";
+import { canManageUsers, canReviewExternalTask, canSubmitExternalTask, canViewStudentProgress } from "./policies.js?v=1.1.70-external-task-feedback";
 
 export function requireCanManageUsers(userProfile) {
   return createGuardResult(canManageUsers(userProfile), "MANAGE_USERS_REQUIRED", "User management access is required.");
@@ -6,6 +6,10 @@ export function requireCanManageUsers(userProfile) {
 
 export function requireCanReviewExternalTask(userProfile) {
   return createGuardResult(canReviewExternalTask(userProfile), "REVIEW_EXTERNAL_TASK_REQUIRED", "External Task review access is required.");
+}
+
+export function requireCanSubmitExternalTask(userProfile) {
+  return createGuardResult(canSubmitExternalTask(userProfile), "SUBMIT_EXTERNAL_TASK_REQUIRED", "External Task submission access is required.");
 }
 
 export function requireCanViewStudentProgress(userProfile, studentProfile) {

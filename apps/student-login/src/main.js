@@ -1,7 +1,6 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../packages/core/src/infrastructure/firebase/auth.js";
-import { getIntentDefinition } from "../../../packages/core/src/icf/engine/intentRegistry.js";
-import { runIntentPipeline } from "../../../packages/core/src/icf/engine/runIntentPipeline.js";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.70-external-task-feedback";
+import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.70-external-task-feedback";
 
 var appElement = document.getElementById("app");
 var startupMessage = consumeStartupMessage();

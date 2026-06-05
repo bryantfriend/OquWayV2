@@ -1,6 +1,7 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.65-architecture-phase1";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.65-architecture-phase1";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.65-architecture-phase1";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.70-external-task-feedback";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.70-external-task-feedback";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.70-external-task-feedback";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.70-external-task-feedback";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
@@ -349,76 +350,7 @@ function getActor() {
 }
 
 function isValidStudentProfile(profile) {
-  return readStudentProfileRejectReason(profile) === "";
-}
-
-function readStudentProfileRejectReason(profile) {
-  if (!profile) {
-    return "profile-missing";
-  }
-
-  if (!isStudentRole(profile)) {
-    return "not-student-role";
-  }
-
-  if (!isActiveStudentStatus(profile)) {
-    return "inactive-status";
-  }
-
-  if (!hasStudentClass(profile)) {
-    return "missing-class";
-  }
-
-  if (!hasStudentLocation(profile)) {
-    return "missing-location";
-  }
-
-  return "";
-}
-
-function isStudentRole(profile) {
-  var roles = [];
-
-  if (profile && Array.isArray(profile.roles)) {
-    roles = roles.concat(profile.roles);
-  }
-
-  if (profile && profile.role) {
-    roles.push(profile.role);
-  }
-
-  return roles.some(function (role) {
-    var normalizedRole = readText(role).replace(/[^a-z0-9]/gi, "").toLowerCase();
-    return normalizedRole === "student" || normalizedRole === "rolestudent";
-  });
-}
-
-function isActiveStudentStatus(profile) {
-  if (profile.status === "active") {
-    return true;
-  }
-
-  if (profile.status === "approved") {
-    return true;
-  }
-
-  if (profile.isActive === true) {
-    return true;
-  }
-
-  if (!profile.status) {
-    return true;
-  }
-
-  return false;
-}
-
-function hasStudentClass(profile) {
-  return Boolean(profile.classId || (Array.isArray(profile.classIds) && profile.classIds.length > 0));
-}
-
-function hasStudentLocation(profile) {
-  return Boolean(profile.locationId || profile.primaryLocationId || profile.schoolId || (Array.isArray(profile.locationIds) && profile.locationIds.length > 0));
+  return isStudentDashboardProfile(profile);
 }
 
 function hasConfirmedStudentSession() {
@@ -488,14 +420,6 @@ function logStartupProfileRejection(profile, reasonRejected) {
     locationId: profile && profile.locationId ? profile.locationId : "",
     reasonRejected: reasonRejected
   });
-}
-
-function readText(value) {
-  if (typeof value !== "string") {
-    return "";
-  }
-
-  return value;
 }
 
 function isDevelopmentHost() {

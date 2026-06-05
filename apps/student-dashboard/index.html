@@ -1325,11 +1325,31 @@
             padding: 0.85rem 1rem;
             margin-top: 0.8rem;
             cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.55rem;
         }
 
         .oqu-external-task-submit:disabled {
             opacity: 0.65;
             cursor: not-allowed;
+        }
+
+        .oqu-external-task-submit.is-uploading::before {
+            content: "";
+            width: 1rem;
+            height: 1rem;
+            border-radius: 999px;
+            border: 2px solid rgba(255,255,255,0.45);
+            border-top-color: #fff;
+            animation: externalTaskUploadSpin 0.8s linear infinite;
+        }
+
+        @keyframes externalTaskUploadSpin {
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .oqu-external-task-reference {
@@ -1666,7 +1686,7 @@
         <h1>Welcome to your Studies</h1>
         <p>Your educational journey continues here...</p>
     </main>
-    <script type="module" src="./src/main.js?v=1.1.65-architecture-phase1"></script>
+    <script type="module" src="./src/main.js?v=1.1.70-external-task-feedback"></script>
 </body>
 
 </html>

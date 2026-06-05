@@ -1,18 +1,24 @@
-import { collection, db, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
-import { getDownloadURL, ref, storage, uploadBytes } from "../../../../../infrastructure/firebase/storage.js?v=1.1.63-external-task-student-feedback";
-import { loadCourseAssignments } from "../courseAssignment/courseAssignmentHelpers.js?v=1.1.63-external-task-student-feedback";
+import {
+  createStudentExternalTaskResubmission,
+  createStudentExternalTaskSubmission,
+  getExternalTaskSubmissions,
+  getStudentExternalTaskSubmissions,
+  updateExternalTaskReview,
+  uploadExternalTaskFile
+} from "../../../../../../../domain/externalTasks/index.js?v=1.1.70-external-task-feedback";
 
 export async function processLoadExternalTaskStep(executionState) {
   var payload = executionState.payload || {};
   var actor = executionState.actor || {};
 
   try {
-    var submissions = await queryExternalTaskSubmissions({
+    var submissions = await getStudentExternalTaskSubmissions({
       courseId: payload.courseId,
       assignmentId: payload.assignmentId || payload.courseAssignmentId,
+      courseAssignmentId: payload.courseAssignmentId || payload.assignmentId,
       moduleId: payload.moduleId,
       stepId: payload.stepId,
-      studentId: payload.studentId || actor.id
+      studentId: actor.id
     });
 
     executionState.result = {
@@ -43,58 +49,52 @@ export async function processUploadExternalTaskFile(executionState) {
 }
 
 export async function processSubmitExternalTask(executionState) {
-  var payload = executionState.payload || {};
-  var actor = executionState.actor || {};
-  var profile = executionState.context.studentProfile || {};
-  var submissionId = createSubmissionId();
-  var files = Array.isArray(payload.files) ? payload.files : [];
-
   try {
-    var uploadedFiles = [];
-    var fileIndex = 0;
-    var previousSubmissions = await queryExternalTaskSubmissions({
-      courseId: payload.courseId,
-      assignmentId: payload.assignmentId || payload.courseAssignmentId,
-      moduleId: payload.moduleId,
-      stepId: payload.stepId,
-      studentId: actor.id || ""
-    });
-    var attemptNumber = readNextAttemptNumber(previousSubmissions);
-
-    while (fileIndex < files.length) {
-      uploadedFiles.push(await uploadExternalTaskFile(payload, actor, submissionId, files[fileIndex]));
-      fileIndex = fileIndex + 1;
-    }
-
-    var assignment = await loadSubmissionAssignment(payload, actor, profile);
-    var record = createSubmissionRecord(payload, actor, profile, submissionId, uploadedFiles, attemptNumber, assignment);
-
-    await setDoc(doc(db, "externalTaskSubmissions", submissionId), record, { merge: true });
+    var submission = await createStudentExternalTaskSubmission(
+      executionState.payload || {},
+      executionState.actor || {},
+      executionState.context.studentProfile || {}
+    );
 
     executionState.result = {
-      submission: Object.assign({ id: submissionId }, record)
+      submission: submission
     };
 
     return { valid: true, data: executionState.result };
   } catch (error) {
-    logExternalTaskProcessError("SubmitExternalTaskIntent", executionState, error, "externalTaskSubmissions/" + submissionId);
+    logExternalTaskProcessError("SubmitExternalTaskIntent", executionState, error, "externalTaskSubmissions");
     return createProcessError("EXTERNAL_TASK_SUBMIT_FAILED", "Could not submit external task: " + readErrorMessage(error));
   }
 }
 
 export async function processResubmitExternalTask(executionState) {
-  return processSubmitExternalTask(executionState);
+  try {
+    var submission = await createStudentExternalTaskResubmission(
+      executionState.payload || {},
+      executionState.actor || {},
+      executionState.context.studentProfile || {}
+    );
+
+    executionState.result = {
+      submission: submission
+    };
+
+    return { valid: true, data: executionState.result };
+  } catch (error) {
+    logExternalTaskProcessError("ResubmitExternalTaskIntent", executionState, error, "externalTaskSubmissions");
+    return createProcessError("EXTERNAL_TASK_RESUBMIT_FAILED", "Could not resubmit external task: " + readErrorMessage(error));
+  }
 }
 
 export async function processLoadExternalTaskSubmissions(executionState) {
   try {
-    var submissions = await queryExternalTaskSubmissions(executionState.payload || {});
+    var submissions = await getExternalTaskSubmissions(executionState.payload || {});
     executionState.result = {
       submissions: submissions
     };
     return { valid: true, data: executionState.result };
   } catch (error) {
-    logExternalTaskSubmissionsFailure(executionState, error, "externalTaskSubmissions");
+    logExternalTaskProcessError("LoadExternalTaskSubmissionsIntent", executionState, error, "externalTaskSubmissions");
     return createProcessError("EXTERNAL_TASK_SUBMISSIONS_LOAD_FAILED", "Could not load external task submissions: " + readErrorMessage(error));
   }
 }
@@ -114,12 +114,10 @@ export async function processReviewExternalTaskSubmission(executionState) {
       status: payload.reviewStatus === "complete" ? "complete" : "submitted",
       reviewStatus: payload.reviewStatus,
       reviewedBy: reviewerId,
-      reviewedAt: serverTimestamp(),
-      teacherFeedback: payload.teacherFeedback || "",
-      updatedAt: serverTimestamp()
+      teacherFeedback: payload.teacherFeedback || ""
     };
 
-    await setDoc(doc(db, "externalTaskSubmissions", payload.submissionId), update, { merge: true });
+    await updateExternalTaskReview(payload.submissionId, update);
 
     executionState.result = {
       submissionId: payload.submissionId,
@@ -134,382 +132,8 @@ export async function processReviewExternalTaskSubmission(executionState) {
   }
 }
 
-async function uploadExternalTaskFile(payload, actor, submissionId, file) {
-  validateUploadFile(file, payload);
-
-  var storagePath = buildStoragePath(payload, actor, submissionId, file.name);
-  var storageRef = ref(storage, storagePath);
-  var metadata = {
-    contentType: file.type || "application/octet-stream"
-  };
-
-  await uploadBytes(storageRef, file, metadata);
-
-  return {
-    name: file.name || "upload",
-    storagePath: storagePath,
-    downloadUrl: await getDownloadURL(storageRef),
-    contentType: file.type || "",
-    size: file.size || 0,
-    uploadedAt: Date.now()
-  };
-}
-
-function validateUploadFile(file, payload) {
-  var maxFileSizeMb = readNumber(payload.maxFileSizeMb, 10);
-  var maxBytes = maxFileSizeMb * 1024 * 1024;
-
-  if (!file) {
-    throw new Error("File is required.");
-  }
-
-  if (file.size > maxBytes) {
-    throw new Error("File is larger than " + maxFileSizeMb + " MB.");
-  }
-
-  if (!isAllowedContentType(file.type || "")) {
-    throw new Error("File type is not allowed.");
-  }
-}
-
-async function loadSubmissionAssignment(payload, actor, profile) {
-  var assignmentId = payload.assignmentId || payload.courseAssignmentId || "";
-  var targets = [];
-  var index = 0;
-
-  if (assignmentId) {
-    try {
-      var assignmentSnap = await getDoc(doc(db, "courseAssignments", assignmentId));
-      if (assignmentSnap.exists()) {
-        return Object.assign({ id: assignmentSnap.id }, assignmentSnap.data() || {});
-      }
-    } catch (error) {
-      return null;
-    }
-  }
-
-  addAssignmentTarget(targets, "student", actor && actor.id ? actor.id : "");
-  addAssignmentTarget(targets, "student", profile && profile.id ? profile.id : "");
-  addAssignmentTarget(targets, "class", payload.classId || (profile ? profile.classId : ""));
-  addAssignmentTarget(targets, "location", payload.locationId || (profile ? (profile.locationId || profile.primaryLocationId) : ""));
-
-  while (index < targets.length) {
-    try {
-      var assignments = await loadCourseAssignments({
-        courseId: payload.courseId,
-        targetType: targets[index].targetType,
-        targetId: targets[index].targetId,
-        status: "active"
-      });
-
-      if (assignments.length > 0) {
-        return assignments[0];
-      }
-    } catch (error) {
-      // Keep submission usable even if assignment metadata cannot be copied.
-    }
-
-    index = index + 1;
-  }
-
-  return null;
-}
-
-function addAssignmentTarget(targets, targetType, targetId) {
-  if (targetId) {
-    targets.push({
-      targetType: targetType,
-      targetId: targetId
-    });
-  }
-}
-
-function readTeacherOwnershipIdsFromAssignment(assignment) {
-  var ids = [];
-
-  if (!assignment) {
-    return ids;
-  }
-
-  appendUniqueText(ids, assignment.teacherOwnershipIds);
-  appendUniqueText(ids, assignment.responsibleTeacherId);
-  appendUniqueText(ids, assignment.assistantIds);
-
-  return ids;
-}
-
-function appendUniqueText(ids, value) {
-  var index = 0;
-
-  if (typeof value === "string") {
-    if (value && ids.indexOf(value) === -1) {
-      ids.push(value);
-    }
-    return;
-  }
-
-  if (!Array.isArray(value)) {
-    return;
-  }
-
-  while (index < value.length) {
-    appendUniqueText(ids, value[index]);
-    index = index + 1;
-  }
-}
-
-function createSubmissionRecord(payload, actor, profile, submissionId, files, attemptNumber, assignment) {
-  var assignmentId = payload.assignmentId || payload.courseAssignmentId || (assignment && assignment.id ? assignment.id : "");
-
-  return {
-    submissionId: submissionId,
-    stepId: payload.stepId,
-    modeId: payload.modeId,
-    sessionId: payload.sessionId,
-    moduleId: payload.moduleId,
-    courseId: payload.courseId,
-    assignmentId: assignmentId,
-    courseAssignmentId: assignmentId,
-    studentId: actor.id || "",
-    studentName: profile.displayName || profile.name || actor.id || "",
-    classId: payload.classId || profile.classId || "",
-    locationId: payload.locationId || profile.locationId || profile.primaryLocationId || "",
-    taskTitle: payload.taskTitle,
-    checklistSnapshot: Array.isArray(payload.checklistSnapshot) ? payload.checklistSnapshot : [],
-    studentNote: payload.studentNote || "",
-    files: files,
-    status: "submitted",
-    reviewStatus: "pending",
-    previousSubmissionId: payload.previousSubmissionId || "",
-    reviewedBy: null,
-    reviewedAt: null,
-    teacherFeedback: "",
-    teacherOwnershipIds: readTeacherOwnershipIdsFromAssignment(assignment),
-    attemptNumber: attemptNumber,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp()
-  };
-}
-
-async function queryExternalTaskSubmissions(filters) {
-  var constraints = [];
-  var submissionsRef = collection(db, "externalTaskSubmissions");
-  var snapshot = null;
-  var submissions = [];
-
-  appendWhere(constraints, "courseId", filters.courseId);
-  appendWhere(constraints, "moduleId", filters.moduleId);
-  appendWhere(constraints, "stepId", filters.stepId);
-  appendWhere(constraints, "studentId", filters.studentId);
-  appendWhere(constraints, "classId", filters.classId);
-  appendWhere(constraints, "locationId", filters.locationId);
-  appendWhere(constraints, "assignmentId", filters.assignmentId);
-  appendWhere(constraints, "courseAssignmentId", filters.courseAssignmentId);
-  appendWhere(constraints, "teacherOwnershipIds", filters.teacherOwnershipId, "array-contains");
-  appendWhere(constraints, "status", filters.status);
-  appendWhere(constraints, "reviewStatus", filters.reviewStatus);
-
-  try {
-    snapshot = constraints.length > 0
-      ? await getDocs(query(submissionsRef, ...constraints))
-      : await getDocs(submissionsRef);
-  } catch (error) {
-    if (!isRecoverableEmptyQueryError(error)) {
-      throw error;
-    }
-
-    logExternalTaskSubmissionsFailure({
-      actor: {},
-      payload: filters || {}
-    }, error, "externalTaskSubmissions");
-    snapshot = await queryExternalTaskSubmissionsFallback(submissionsRef, filters || {});
-  }
-
-  snapshot.forEach(function (submissionSnap) {
-    var submission = Object.assign({ id: submissionSnap.id }, submissionSnap.data() || {});
-    if (matchesExternalTaskFilters(submission, filters || {})) {
-      submissions.push(submission);
-    }
-  });
-
-  submissions.sort(function (a, b) {
-    return readMillis(b.createdAt) - readMillis(a.createdAt);
-  });
-
-  return submissions;
-}
-
-async function queryExternalTaskSubmissionsFallback(submissionsRef, filters) {
-  if (filters.studentId) {
-    return await getDocs(query(submissionsRef, where("studentId", "==", filters.studentId)));
-  }
-
-  if (filters.courseId) {
-    return await getDocs(query(submissionsRef, where("courseId", "==", filters.courseId)));
-  }
-
-  if (filters.classId) {
-    return await getDocs(query(submissionsRef, where("classId", "==", filters.classId)));
-  }
-
-  if (filters.locationId) {
-    return await getDocs(query(submissionsRef, where("locationId", "==", filters.locationId)));
-  }
-
-  if (filters.assignmentId) {
-    return await getDocs(query(submissionsRef, where("assignmentId", "==", filters.assignmentId)));
-  }
-
-  if (filters.courseAssignmentId) {
-    return await getDocs(query(submissionsRef, where("courseAssignmentId", "==", filters.courseAssignmentId)));
-  }
-
-  if (filters.teacherOwnershipId) {
-    return await getDocs(query(submissionsRef, where("teacherOwnershipIds", "array-contains", filters.teacherOwnershipId)));
-  }
-
-  if (filters.reviewStatus) {
-    return await getDocs(query(submissionsRef, where("reviewStatus", "==", filters.reviewStatus)));
-  }
-
-  return await getDocs(submissionsRef);
-}
-
-function matchesExternalTaskFilters(submission, filters) {
-  return matchesFilterValue(submission.courseId, filters.courseId)
-    && matchesFilterValue(submission.moduleId, filters.moduleId)
-    && matchesFilterValue(submission.stepId, filters.stepId)
-    && matchesFilterValue(submission.studentId, filters.studentId)
-    && matchesFilterValue(submission.classId, filters.classId)
-    && matchesFilterValue(submission.locationId, filters.locationId)
-    && matchesFilterValue(submission.assignmentId, filters.assignmentId)
-    && matchesFilterValue(submission.courseAssignmentId, filters.courseAssignmentId)
-    && matchesOwnershipFilter(submission.teacherOwnershipIds, filters.teacherOwnershipId)
-    && matchesFilterValue(submission.status, filters.status)
-    && matchesFilterValue(submission.reviewStatus, filters.reviewStatus);
-}
-
-function matchesFilterValue(actualValue, expectedValue) {
-  return !expectedValue || actualValue === expectedValue;
-}
-
-function isRecoverableEmptyQueryError(error) {
-  if (!error) {
-    return false;
-  }
-
-  var code = error.code || "";
-  var message = readErrorMessage(error).toLowerCase();
-
-  return code === "failed-precondition" ||
-    code === "permission-denied" ||
-    message.indexOf("index") !== -1 ||
-    message.indexOf("requires an index") !== -1 ||
-    message.indexOf("permission") !== -1;
-}
-
-function logExternalTaskSubmissionsFailure(executionState, error, queryPath) {
-  if (!isDevelopmentHost()) {
-    return;
-  }
-
-  var payload = executionState && executionState.payload ? executionState.payload : {};
-  var actor = executionState && executionState.actor ? executionState.actor : {};
-
-  console.warn("[external-task-submissions] load failed", {
-    actorUid: actor.id || "unknown",
-    courseId: payload.courseId || "",
-    classId: payload.classId || "",
-    locationId: payload.locationId || "",
-    queryPath: queryPath || "externalTaskSubmissions",
-    errorCode: error && error.code ? error.code : "",
-    errorMessage: readErrorMessage(error)
-  });
-}
-
-function matchesOwnershipFilter(actualIds, expectedId) {
-  return !expectedId || (Array.isArray(actualIds) && actualIds.indexOf(expectedId) !== -1);
-}
-
-function appendWhere(constraints, fieldName, value, operator) {
-  if (value) {
-    constraints.push(where(fieldName, operator || "==", value));
-  }
-}
-
 function readLatestSubmission(submissions) {
   return Array.isArray(submissions) && submissions.length > 0 ? submissions[0] : null;
-}
-
-function readNextAttemptNumber(submissions) {
-  var maxAttempt = 0;
-  var index = 0;
-  var safeSubmissions = Array.isArray(submissions) ? submissions : [];
-
-  while (index < safeSubmissions.length) {
-    if (typeof safeSubmissions[index].attemptNumber === "number" && safeSubmissions[index].attemptNumber > maxAttempt) {
-      maxAttempt = safeSubmissions[index].attemptNumber;
-    }
-    index = index + 1;
-  }
-
-  return maxAttempt + 1;
-}
-
-function buildStoragePath(payload, actor, submissionId, fileName) {
-  return "external-task-submissions/"
-    + cleanSegment(payload.courseId) + "/"
-    + cleanSegment(payload.moduleId) + "/"
-    + cleanSegment(payload.stepId) + "/"
-    + cleanSegment(actor.id) + "/"
-    + cleanSegment(submissionId) + "/"
-    + Date.now() + "-" + cleanFileName(fileName);
-}
-
-function createSubmissionId() {
-  return "external-task-" + Date.now() + "-" + Math.random().toString(36).slice(2, 10);
-}
-
-function cleanSegment(value) {
-  return String(value || "unknown").replace(/[^a-zA-Z0-9_-]/g, "-");
-}
-
-function cleanFileName(value) {
-  return String(value || "upload").replace(/[^a-zA-Z0-9._-]/g, "-");
-}
-
-function isAllowedContentType(contentType) {
-  return contentType.indexOf("image/") === 0
-    || contentType === "application/pdf"
-    || contentType === "application/msword"
-    || contentType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    || contentType === "application/vnd.ms-powerpoint"
-    || contentType === "application/vnd.openxmlformats-officedocument.presentationml.presentation"
-    || contentType === "application/vnd.ms-excel"
-    || contentType === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    || contentType === "text/plain"
-    || contentType === "text/csv";
-}
-
-function readNumber(value, fallback) {
-  var numberValue = typeof value === "number" ? value : Number(value);
-  return Number.isFinite(numberValue) ? numberValue : fallback;
-}
-
-function readMillis(value) {
-  if (!value) {
-    return 0;
-  }
-
-  if (typeof value.toMillis === "function") {
-    return value.toMillis();
-  }
-
-  if (typeof value === "number") {
-    return value;
-  }
-
-  return 0;
 }
 
 function createProcessError(code, message) {

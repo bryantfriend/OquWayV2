@@ -16,13 +16,42 @@ service firebase.storage {
         || (request.auth != null && request.auth.token.userRoles is list && legacyRole in request.auth.token.userRoles);
     }
 
+    function user() {
+      return request.auth != null
+        && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
+        ? firestore.get(/databases/(default)/documents/users/$(request.auth.uid))
+        : null;
+    }
+
+    function profileIsActive() {
+      return user() != null
+        && (!(user().data.status is string)
+          || user().data.status == "active"
+          || user().data.status == "approved");
+    }
+
+    function profileHasAnyRole(role, legacyRole) {
+      return profileIsActive() && (
+        user().data.role == role ||
+        user().data.role == legacyRole ||
+        (user().data.roles is list && (role in user().data.roles || legacyRole in user().data.roles)) ||
+        (legacyRole == "ROLE_TEACHER" && user().data.ROLE_TEACHER == true) ||
+        (legacyRole == "ROLE_ASSISTANT" && user().data.ROLE_ASSISTANT == true) ||
+        (legacyRole == "ROLE_STUDENT" && user().data.ROLE_STUDENT == true) ||
+        (legacyRole == "ROLE_COURSE_CREATOR" && user().data.ROLE_COURSE_CREATOR == true) ||
+        (legacyRole == "ROLE_SCHOOL_ADMIN" && user().data.ROLE_SCHOOL_ADMIN == true) ||
+        (legacyRole == "ROLE_PLATFORM_ADMIN" && user().data.ROLE_PLATFORM_ADMIN == true) ||
+        (legacyRole == "ROLE_SUPER_ADMIN" && user().data.ROLE_SUPER_ADMIN == true)
+      );
+    }
+
     function isSuperAdmin() { return hasAnyRole('superAdmin', 'ROLE_SUPER_ADMIN'); }
     function isPlatformAdmin() { return hasAnyRole('platformAdmin', 'ROLE_PLATFORM_ADMIN'); }
     function isSchoolAdmin() { return hasAnyRole('schoolAdmin', 'ROLE_SCHOOL_ADMIN'); }
     function isCourseCreator() { return hasAnyRole('courseCreator', 'ROLE_COURSE_CREATOR'); }
-    function isAssistant() { return hasAnyRole('assistant', 'ROLE_ASSISTANT'); }
-    function isTeacher() { return hasAnyRole('teacher', 'ROLE_TEACHER'); }
-    function isStudent() { return hasAnyRole('student', 'ROLE_STUDENT'); }
+    function isAssistant() { return hasAnyRole('assistant', 'ROLE_ASSISTANT') || profileHasAnyRole('assistant', 'ROLE_ASSISTANT'); }
+    function isTeacher() { return hasAnyRole('teacher', 'ROLE_TEACHER') || profileHasAnyRole('teacher', 'ROLE_TEACHER'); }
+    function isStudent() { return hasAnyRole('student', 'ROLE_STUDENT') || profileHasAnyRole('student', 'ROLE_STUDENT'); }
     function isReviewer() { return isTeacher() || isCourseCreator() || isAssistant() || isSchoolAdmin() || isPlatformAdmin() || isSuperAdmin(); }
 
     function isAllowedExternalTaskFile() {

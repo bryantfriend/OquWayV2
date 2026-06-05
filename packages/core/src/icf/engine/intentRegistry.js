@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.63-external-task-student-feedback";
+import * as IntentExports from "../intents/intents.js?v=1.1.70-external-task-feedback";
 
 const registry = {
   // Demo Verification

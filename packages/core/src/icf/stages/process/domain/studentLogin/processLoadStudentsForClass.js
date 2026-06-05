@@ -1,4 +1,4 @@
-import { callGetStudentsForClassFunction } from "./studentLoginHelpers.js?v=1.1.63-external-task-student-feedback";
+import { callGetStudentsForClassFunction } from "./studentLoginHelpers.js?v=1.1.70-external-task-feedback";
 
 export async function processLoadStudentsForClass(executionState) {
   var payload = executionState.payload;

@@ -1,4 +1,6 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.63-external-task-student-feedback";
+import { BaseStep } from "./BaseStep.js?v=1.1.69-course-creator-cleanup";
+import { canResubmitExternalTaskSubmission } from "../../../../domain/externalTasks/index.js?v=1.1.70-external-task-feedback";
+import { isExternalTaskReviewComplete } from "../../../../domain/progress/index.js?v=1.1.70-external-task-feedback";
 
 export class ExternalTaskStep extends BaseStep {
   static get type() {
@@ -186,11 +188,14 @@ function attachExternalTaskHandlers(container, config, callbacks) {
     }
 
     button.disabled = true;
+    button.classList.add("is-uploading");
+    button.textContent = "Uploading proof...";
     writeStatus(status, "Uploading proof...");
 
     try {
+      var result = null;
       if (callbacks && typeof callbacks.onExternalTaskSubmit === "function") {
-        await callbacks.onExternalTaskSubmit({
+        result = await callbacks.onExternalTaskSubmit({
           config: config,
           files: files,
           studentNote: noteInput ? noteInput.value : "",
@@ -199,7 +204,7 @@ function attachExternalTaskHandlers(container, config, callbacks) {
           isResubmission: shouldAllowResubmission(latestSubmission)
         });
       }
-      writeStatusCard(status, {
+      latestSubmission = result && result.submission ? result.submission : {
         reviewStatus: "pending",
         status: "submitted",
         files: files.map(function (file) {
@@ -208,12 +213,15 @@ function attachExternalTaskHandlers(container, config, callbacks) {
             size: file.size || 0
           };
         })
-      });
+      };
+      writeStatusCard(status, latestSubmission);
       button.disabled = true;
       button.textContent = "Submitted";
     } catch (error) {
       button.disabled = false;
       writeStatus(status, error && error.message ? error.message : "Could not submit this task yet.");
+    } finally {
+      button.classList.remove("is-uploading");
     }
   });
 }
@@ -227,7 +235,7 @@ function applySubmissionState(container, submission, callbacks) {
     return;
   }
 
-  if (submission.reviewStatus === "complete") {
+  if (isExternalTaskReviewComplete(submission)) {
     writeStatusCard(status, submission);
     if (button) {
       button.textContent = "Completed";
@@ -287,7 +295,7 @@ function emitExternalTaskCompleteOnce(container, submission, callbacks) {
 }
 
 function shouldAllowResubmission(submission) {
-  return Boolean(submission && (submission.reviewStatus === "needsWork" || submission.reviewStatus === "incomplete"));
+  return canResubmitExternalTaskSubmission(submission);
 }
 
 function writeStatusCard(statusElement, submission) {

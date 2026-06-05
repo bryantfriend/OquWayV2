@@ -1,8 +1,17 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.65-architecture-phase1";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.65-architecture-phase1";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.65-architecture-phase1";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.65-architecture-phase1";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.70-external-task-feedback";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.70-external-task-feedback";
+import {
+  calculateCourseCompletion as calculateSharedCourseCompletion,
+  countCourseCompletedSteps as countSharedCourseCompletedSteps,
+  countCourseSteps as countSharedCourseSteps,
+  countModuleCompletedSteps as countSharedModuleCompletedSteps,
+  countModuleSteps as countSharedModuleSteps,
+  countSessionCompletedSteps as countSharedSessionCompletedSteps,
+  countSessionSteps as countSharedSessionSteps
+} from "../../../packages/domain/progress/index.js?v=1.1.70-external-task-feedback";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.70-external-task-feedback";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.70-external-task-feedback";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -1224,18 +1233,7 @@ function readStudentActor(state) {
 }
 
 function readCourseProgressPercent(course) {
-  var modules = course && Array.isArray(course.modules) ? course.modules : [];
-  var total = 0;
-  var complete = 0;
-  var moduleIndex = 0;
-
-  while (moduleIndex < modules.length) {
-    total = total + countModuleSteps(modules[moduleIndex]);
-    complete = complete + countModuleCompletedSteps(modules[moduleIndex]);
-    moduleIndex = moduleIndex + 1;
-  }
-
-  return calculatePercent(complete, total);
+  return calculateSharedCourseCompletion(course);
 }
 
 function readOverallProgressPercent(courses) {
@@ -1254,29 +1252,11 @@ function readOverallProgressPercent(courses) {
 }
 
 function countCourseSteps(course) {
-  var modules = course && Array.isArray(course.modules) ? course.modules : [];
-  var count = 0;
-  var moduleIndex = 0;
-
-  while (moduleIndex < modules.length) {
-    count = count + countModuleSteps(modules[moduleIndex]);
-    moduleIndex = moduleIndex + 1;
-  }
-
-  return count;
+  return countSharedCourseSteps(course);
 }
 
 function countCourseCompletedSteps(course) {
-  var modules = course && Array.isArray(course.modules) ? course.modules : [];
-  var count = 0;
-  var moduleIndex = 0;
-
-  while (moduleIndex < modules.length) {
-    count = count + countModuleCompletedSteps(modules[moduleIndex]);
-    moduleIndex = moduleIndex + 1;
-  }
-
-  return count;
+  return countSharedCourseCompletedSteps(course);
 }
 
 function readStudentName(student) {
@@ -1308,59 +1288,19 @@ function readSessionCompletionPercent(session) {
 }
 
 function countModuleSteps(module) {
-  var sessions = module && Array.isArray(module.sessions) ? module.sessions : [];
-  var count = 0;
-  var sessionIndex = 0;
-
-  while (sessionIndex < sessions.length) {
-    count = count + countSessionSteps(sessions[sessionIndex]);
-    sessionIndex = sessionIndex + 1;
-  }
-
-  return count;
+  return countSharedModuleSteps(module);
 }
 
 function countModuleCompletedSteps(module) {
-  var sessions = module && Array.isArray(module.sessions) ? module.sessions : [];
-  var count = 0;
-  var sessionIndex = 0;
-
-  while (sessionIndex < sessions.length) {
-    count = count + countSessionCompletedSteps(sessions[sessionIndex]);
-    sessionIndex = sessionIndex + 1;
-  }
-
-  return count;
+  return countSharedModuleCompletedSteps(module);
 }
 
 function countSessionSteps(session) {
-  var practiceModes = normalizePracticeModes(session ? session.practiceModes : null);
-  var keys = createPracticeModeKeys();
-  var count = 0;
-  var keyIndex = 0;
-
-  while (keyIndex < keys.length) {
-    count = count + readSortedSteps(practiceModes[keys[keyIndex]].steps).length;
-    keyIndex = keyIndex + 1;
-  }
-
-  return count;
+  return countSharedSessionSteps(session);
 }
 
 function countSessionCompletedSteps(session) {
-  var practiceModes = normalizePracticeModes(session ? session.practiceModes : null);
-  var keys = createPracticeModeKeys();
-  var count = 0;
-  var keyIndex = 0;
-
-  while (keyIndex < keys.length) {
-    var steps = readSortedSteps(practiceModes[keys[keyIndex]].steps);
-    var progress = readPracticeModeProgress(session ? session.progress : null, keys[keyIndex]);
-    count = count + countCompletedSteps(steps, progress.completedStepIds);
-    keyIndex = keyIndex + 1;
-  }
-
-  return count;
+  return countSharedSessionCompletedSteps(session);
 }
 
 function countCompletedSteps(steps, completedStepIds) {

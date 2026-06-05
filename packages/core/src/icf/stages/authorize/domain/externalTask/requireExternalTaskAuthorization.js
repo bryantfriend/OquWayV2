@@ -1,4 +1,4 @@
-import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.63-external-task-student-feedback";
+import { canReviewExternalTask, canSubmitExternalTask } from "../../../../../../../permissions/index.js?v=1.1.70-external-task-feedback";
 
 export function requireExternalTaskStudentAuthorization(executionState) {
   var actor = executionState.actor;
@@ -7,7 +7,7 @@ export function requireExternalTaskStudentAuthorization(executionState) {
     return createError("EXTERNAL_TASK_ACTOR_REQUIRED", "A signed-in student is required.");
   }
 
-  if (hasAnyRole(actor, ["student", "superAdmin", "platformAdmin", "schoolAdmin"])) {
+  if (canSubmitExternalTask(actor)) {
     return { valid: true };
   }
 
@@ -21,15 +21,7 @@ export function requireExternalTaskReviewerAuthorization(executionState) {
     return createError("EXTERNAL_TASK_REVIEWER_REQUIRED", "A signed-in reviewer is required.");
   }
 
-  if (hasAnyRole(actor, [
-      "teacher",
-      "courseCreator",
-      "assistant",
-      "schoolAdmin",
-      "platformAdmin",
-      "superAdmin",
-      "admin"
-  ])) {
+  if (canReviewExternalTask(actor)) {
     return { valid: true };
   }
 
