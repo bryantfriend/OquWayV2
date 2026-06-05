@@ -141,6 +141,14 @@ service cloud.firestore {
         : [];
     }
 
+    function teacherOwnershipIds() {
+      return user() != null
+        ? ([request.auth.uid]
+          + (user().data.profileUserId is string ? [user().data.profileUserId] : [])
+          + (user().data.authUid is string ? [user().data.authUid] : []))
+        : (request.auth != null ? [request.auth.uid] : []);
+    }
+
     function isTeacherAssignedToClass(classData, classId) {
       return isTeacher()
         && user() != null
@@ -163,8 +171,19 @@ service cloud.firestore {
       return isTeacher()
         && user() != null
         && (
+          (assignmentData.teacherOwnershipIds is list && assignmentData.teacherOwnershipIds.hasAny(teacherOwnershipIds())) ||
           (assignmentData.responsibleTeacherId is string && assignmentData.responsibleTeacherId in teacherProfileIds()) ||
           (assignmentData.assistantIds is list && assignmentData.assistantIds.hasAny(teacherProfileIds()))
+        );
+    }
+
+    function isTeacherOwnedAssignment() {
+      return isTeacher()
+        && user() != null
+        && (
+          (resource.data.teacherOwnershipIds is list && resource.data.teacherOwnershipIds.hasAny(teacherOwnershipIds())) ||
+          (resource.data.responsibleTeacherId is string && resource.data.responsibleTeacherId in teacherOwnershipIds()) ||
+          (resource.data.assistantIds is list && resource.data.assistantIds.hasAny(teacherOwnershipIds()))
         );
     }
 
@@ -181,7 +200,7 @@ service cloud.firestore {
     }
 
     function courseAssignmentOwnershipKeys() {
-      return ["responsibleTeacherId", "assistantIds", "responsibleTeacherName", "assistantNames"];
+      return ["responsibleTeacherId", "assistantIds", "teacherOwnershipIds", "responsibleTeacherName", "assistantNames"];
     }
 
     function courseAssignmentCreateOwnershipAllowed() {
@@ -189,6 +208,7 @@ service cloud.firestore {
         || (
           (!(request.resource.data.responsibleTeacherId is string) || request.resource.data.responsibleTeacherId == "")
           && (!(request.resource.data.assistantIds is list) || request.resource.data.assistantIds.size() == 0)
+          && (!(request.resource.data.teacherOwnershipIds is list) || request.resource.data.teacherOwnershipIds.size() == 0)
           && (!(request.resource.data.responsibleTeacherName is string) || request.resource.data.responsibleTeacherName == "")
           && (!(request.resource.data.assistantNames is list) || request.resource.data.assistantNames.size() == 0)
         );
@@ -341,7 +361,7 @@ service cloud.firestore {
         isPlatformAdmin() ||
         isSchoolAdmin() ||
         isCourseEditor() ||
-        isTeacherAssignedToCourseAssignment(resource.data) ||
+        isTeacherOwnedAssignment() ||
         isRelevantCourseAssignment()
       );
 
@@ -350,7 +370,7 @@ service cloud.firestore {
         isPlatformAdmin() ||
         isSchoolAdmin() ||
         isCourseEditor() ||
-        isTeacher() ||
+        isTeacherOwnedAssignment() ||
         isRelevantCourseAssignment()
       );
 

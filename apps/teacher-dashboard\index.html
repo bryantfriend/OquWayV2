@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Dashboard</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #eef2f7;
+      color: #152033;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(20, 184, 166, 0.06)),
+        #eef2f7;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.65;
+    }
+
+    .teacher-center,
+    .teacher-login-shell,
+    .teacher-dashboard-shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .teacher-center {
+      min-height: 100vh;
+      display: grid;
+      place-content: center;
+      text-align: center;
+      gap: 12px;
+    }
+
+    .teacher-loader {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .teacher-loader span {
+      width: 14px;
+      height: 40px;
+      border-radius: 4px;
+      background: #2563eb;
+      animation: teacher-stack 1s infinite ease-in-out;
+    }
+
+    .teacher-loader span:nth-child(2) {
+      background: #14b8a6;
+      animation-delay: 0.12s;
+    }
+
+    .teacher-loader span:nth-child(3) {
+      background: #f59e0b;
+      animation-delay: 0.24s;
+    }
+
+    .teacher-svg {
+      display: block;
+      overflow: visible;
+      pointer-events: none;
+    }
+
+    .teacher-loading-svg {
+      width: min(260px, 76vw);
+      margin: 0 auto 8px;
+    }
+
+    .teacher-svg-track,
+    .teacher-hero-path,
+    .teacher-header-path,
+    .teacher-class-route,
+    .teacher-backdrop-line,
+    .teacher-empty-path,
+    .teacher-ribbon-path,
+    .teacher-student-wave {
+      fill: none;
+      stroke: #2563eb;
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 10 12;
+      animation: teacher-dash 2.8s linear infinite;
+    }
+
+    .teacher-backdrop-line {
+      stroke-width: 2;
+      opacity: 0.34;
+    }
+
+    .teacher-backdrop-line.line-two {
+      stroke: #14b8a6;
+      animation-duration: 3.6s;
+    }
+
+    .teacher-svg-card rect,
+    .teacher-hero-board rect,
+    .teacher-hero-card rect,
+    .teacher-header-book rect,
+    .teacher-class-route-svg rect,
+    .teacher-course-book-svg rect,
+    .teacher-empty-card,
+    .teacher-submission-ribbon rect {
+      fill: white;
+      stroke: #cbd5e1;
+      stroke-width: 2;
+      filter: drop-shadow(0 10px 16px rgba(15, 23, 42, 0.1));
+    }
+
+    .teacher-svg-card path,
+    .teacher-hero-board path,
+    .teacher-hero-card path,
+    .teacher-header-book path {
+      fill: none;
+      stroke: #64748b;
+      stroke-width: 3;
+      stroke-linecap: round;
+    }
+
+    .teacher-svg-card,
+    .teacher-hero-card,
+    .teacher-header-book,
+    .teacher-empty-card {
+      animation: teacher-float 3.2s ease-in-out infinite;
+      transform-origin: center;
+    }
+
+    .teacher-svg-card.card-b,
+    .teacher-hero-card.hero-card-two,
+    .teacher-header-book.book-two,
+    .teacher-empty-card.card-b {
+      animation-delay: 0.24s;
+    }
+
+    .teacher-svg-card.card-c,
+    .teacher-header-book.book-three {
+      animation-delay: 0.46s;
+    }
+
+    .teacher-svg-dot,
+    .teacher-hero-orbit,
+    .teacher-class-node,
+    .teacher-backdrop-dot,
+    .teacher-student-pulse-dot,
+    .teacher-metric-satellite {
+      fill: #f59e0b;
+      animation: teacher-pulse 1.7s ease-in-out infinite;
+      transform-origin: center;
+    }
+
+    .teacher-svg-dot.dot-b,
+    .teacher-class-node.node-b,
+    .teacher-backdrop-dot.dot-b,
+    .teacher-hero-orbit.orbit-delay {
+      fill: #14b8a6;
+      animation-delay: 0.22s;
+    }
+
+    .teacher-svg-dot.dot-c,
+    .teacher-backdrop-dot.dot-c {
+      fill: #2563eb;
+      animation-delay: 0.42s;
+    }
+
+    .teacher-svg-spark {
+      fill: none;
+      stroke: #f59e0b;
+      stroke-width: 4;
+      stroke-linecap: round;
+      animation: teacher-spark 2.4s ease-in-out infinite;
+      transform-origin: center;
+    }
+
+    .teacher-svg-spark.spark-b {
+      stroke: #14b8a6;
+      animation-delay: 0.35s;
+    }
+
+    .teacher-mini-logo {
+      width: 42px;
+      height: 42px;
+      flex: 0 0 auto;
+    }
+
+    .teacher-mini-logo rect {
+      fill: #2563eb;
+    }
+
+    .teacher-mini-logo path,
+    .teacher-mini-logo circle {
+      fill: none;
+      stroke: white;
+      stroke-width: 3;
+      stroke-linecap: round;
+    }
+
+    .teacher-svg-draw {
+      fill: none;
+      stroke-dasharray: 90;
+      stroke-dashoffset: 90;
+      animation: teacher-draw 2.2s ease-in-out infinite alternate;
+    }
+
+    .teacher-svg-pulse {
+      animation: teacher-pulse 1.8s ease-in-out infinite;
+      transform-origin: center;
+    }
+
+    .teacher-login-hero-svg {
+      width: 100%;
+      aspect-ratio: 360 / 210;
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(219, 234, 254, 0.85), rgba(240, 253, 250, 0.9));
+      padding: 8px;
+    }
+
+    .teacher-backdrop-svg {
+      position: absolute;
+      inset: 8px 0 auto;
+      width: 100%;
+      height: 260px;
+      z-index: 0;
+      opacity: 0.55;
+    }
+
+    .teacher-header-scene-svg {
+      width: clamp(160px, 22vw, 240px);
+      flex: 0 0 auto;
+    }
+
+    @keyframes teacher-stack {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    @keyframes teacher-dash {
+      to { stroke-dashoffset: -44; }
+    }
+
+    @keyframes teacher-float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-7px) rotate(-1deg); }
+    }
+
+    @keyframes teacher-pulse {
+      0%, 100% { opacity: 0.78; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.18); }
+    }
+
+    @keyframes teacher-draw {
+      0% { stroke-dashoffset: 90; }
+      100% { stroke-dashoffset: 0; }
+    }
+
+    @keyframes teacher-spark {
+      0%, 100% { opacity: 0.36; transform: scale(0.8) rotate(0deg); }
+      50% { opacity: 1; transform: scale(1.08) rotate(8deg); }
+    }
+
+    @keyframes teacher-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .teacher-login-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      gap: 24px;
+      align-items: center;
+      padding: 32px 0;
+    }
+
+    .teacher-login-panel,
+    .teacher-login-aside,
+    .teacher-metric,
+    .teacher-card-section,
+    .teacher-review-section,
+    .teacher-submission-card {
+      border: 1px solid rgba(148, 163, 184, 0.34);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+    }
+
+    .teacher-login-panel {
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .teacher-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      color: #2563eb;
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .teacher-brand span {
+      border-radius: 6px;
+      background: #2563eb;
+      color: white;
+      padding: 7px 9px;
+    }
+
+    .teacher-login-panel h1,
+    .teacher-header h1 {
+      margin: 0;
+      font-size: 34px;
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .teacher-login-panel p,
+    .teacher-section-title p,
+    .teacher-header p {
+      color: #64748b;
+      margin: 8px 0 0;
+    }
+
+    .teacher-form,
+    .teacher-reset-form {
+      display: grid;
+      gap: 14px;
+      margin-top: 22px;
+    }
+
+    .teacher-form label,
+    .teacher-reset-form label,
+    .teacher-filters label,
+    .teacher-feedback-label {
+      display: grid;
+      gap: 6px;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .teacher-form input,
+    .teacher-reset-form input,
+    .teacher-filters select,
+    .teacher-feedback-label textarea {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: white;
+      color: #152033;
+      padding: 11px 12px;
+      outline: none;
+    }
+
+    .teacher-form input:focus,
+    .teacher-reset-form input:focus,
+    .teacher-filters select:focus,
+    .teacher-feedback-label textarea:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+    }
+
+    .teacher-form button,
+    .teacher-reset-form button,
+    .teacher-secondary-btn,
+    .teacher-review-btn {
+      border: 0;
+      border-radius: 8px;
+      padding: 11px 14px;
+      font-weight: 900;
+    }
+
+    .teacher-form button {
+      background: #2563eb;
+      color: white;
+    }
+
+    .teacher-reset-form {
+      grid-template-columns: 1fr auto;
+      align-items: end;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 18px;
+    }
+
+    .teacher-reset-form button,
+    .teacher-secondary-btn {
+      background: #e2e8f0;
+      color: #334155;
+    }
+
+    .teacher-login-aside {
+      display: grid;
+      gap: 14px;
+      padding: 24px;
+      overflow: hidden;
+    }
+
+    .teacher-login-aside div {
+      display: grid;
+      gap: 6px;
+      border-left: 4px solid #14b8a6;
+      padding-left: 14px;
+    }
+
+    .teacher-login-aside span,
+    .teacher-class-card span,
+    .teacher-course-card span,
+    .teacher-student-row span,
+    .teacher-submission-meta,
+    .teacher-submission-head span {
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    .teacher-message,
+    .teacher-error {
+      margin: 12px 0;
+      border-radius: 8px;
+      padding: 11px 13px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .teacher-message {
+      background: #ecfdf5;
+      color: #047857;
+    }
+
+    .teacher-error {
+      background: #fef2f2;
+      color: #b91c1c;
+    }
+
+    .teacher-dashboard-shell {
+      position: relative;
+      padding: 28px 0 48px;
+    }
+
+    .teacher-header {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .teacher-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .teacher-role-badge,
+    .teacher-status-pill {
+      border-radius: 999px;
+      background: #dbeafe;
+      color: #1d4ed8;
+      font-size: 12px;
+      font-weight: 900;
+      padding: 8px 10px;
+    }
+
+    .teacher-metrics {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .teacher-metric {
+      position: relative;
+      min-height: 124px;
+      padding: 18px;
+      overflow: hidden;
+    }
+
+    .teacher-metric strong {
+      position: relative;
+      z-index: 1;
+      display: block;
+      font-size: 28px;
+    }
+
+    .teacher-metric span {
+      position: relative;
+      z-index: 1;
+      color: #64748b;
+      font-weight: 800;
+    }
+
+    .teacher-metric-svg {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      width: 82px;
+      height: 82px;
+      opacity: 0.9;
+    }
+
+    .teacher-metric-ring {
+      fill: rgba(37, 99, 235, 0.08);
+      stroke: rgba(37, 99, 235, 0.34);
+      stroke-width: 3;
+    }
+
+    .teacher-metric-path {
+      fill: none;
+      stroke: #2563eb;
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 120;
+      animation: teacher-draw 2.7s ease-in-out infinite alternate;
+    }
+
+    .teacher-metric-students .teacher-metric-ring,
+    .teacher-metric-svg-students .teacher-metric-ring {
+      fill: rgba(20, 184, 166, 0.1);
+      stroke: rgba(20, 184, 166, 0.38);
+    }
+
+    .teacher-metric-svg-students .teacher-metric-path {
+      stroke: #0f766e;
+    }
+
+    .teacher-metric-courses .teacher-metric-ring,
+    .teacher-metric-svg-courses .teacher-metric-ring {
+      fill: rgba(59, 130, 246, 0.1);
+      stroke: rgba(59, 130, 246, 0.38);
+    }
+
+    .teacher-metric-svg-courses .teacher-metric-path {
+      stroke: #1d4ed8;
+    }
+
+    .teacher-metric-reviews .teacher-metric-ring,
+    .teacher-metric-svg-reviews .teacher-metric-ring {
+      fill: rgba(245, 158, 11, 0.12);
+      stroke: rgba(245, 158, 11, 0.42);
+    }
+
+    .teacher-metric-svg-reviews .teacher-metric-path {
+      stroke: #d97706;
+    }
+
+    .teacher-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.1fr);
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .teacher-tabs {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .teacher-tab {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border: 1px solid #dbe3ef;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.88);
+      color: #334155;
+      padding: 12px 14px;
+      font-weight: 900;
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.05);
+      transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+    }
+
+    .teacher-tab:hover,
+    .teacher-tab.active {
+      transform: translateY(-1px);
+      border-color: #2563eb;
+      box-shadow: 0 16px 34px rgba(37, 99, 235, 0.12);
+    }
+
+    .teacher-tab.active {
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .teacher-tab span {
+      display: grid;
+      place-items: center;
+      min-width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: #dbeafe;
+      color: #1d4ed8;
+      font-size: 12px;
+    }
+
+    .teacher-card-section,
+    .teacher-review-section {
+      position: relative;
+      z-index: 1;
+      padding: 18px;
+    }
+
+    .teacher-wide-section {
+      margin-bottom: 18px;
+    }
+
+    .teacher-section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .teacher-section-glyph {
+      width: 58px;
+      height: 58px;
+      flex: 0 0 auto;
+    }
+
+    .teacher-section-glyph rect {
+      fill: #eff6ff;
+      stroke: #bfdbfe;
+      stroke-width: 2;
+    }
+
+    .teacher-section-glyph path {
+      stroke: #2563eb;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .teacher-section-glyph circle {
+      fill: #f59e0b;
+    }
+
+    .teacher-section-title h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .teacher-class-list,
+    .teacher-course-list,
+    .teacher-student-list,
+    .teacher-review-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .teacher-class-card,
+    .teacher-course-card {
+      display: grid;
+      grid-template-columns: 76px minmax(0, 1fr);
+      gap: 5px 12px;
+      width: 100%;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: white;
+      color: #152033;
+      padding: 13px;
+      text-align: left;
+      transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+    }
+
+    .teacher-course-card {
+      grid-template-columns: 82px minmax(0, 1fr) auto;
+      align-items: center;
+    }
+
+    .teacher-class-card:hover,
+    .teacher-course-card:hover {
+      transform: translateY(-1px);
+      border-color: rgba(37, 99, 235, 0.42);
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    .teacher-class-card.active,
+    .teacher-course-card.active {
+      border-color: #2563eb;
+      background: #eff6ff;
+    }
+
+    .teacher-class-route-svg {
+      grid-row: span 3;
+      width: 76px;
+      height: 44px;
+      align-self: center;
+    }
+
+    .teacher-class-route-svg rect {
+      fill: #ffffff;
+      stroke: #cbd5e1;
+      stroke-width: 2;
+    }
+
+    .teacher-class-route-svg text {
+      fill: #1d4ed8;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .teacher-course-book-svg {
+      grid-row: span 3;
+      width: 78px;
+      height: 56px;
+      align-self: center;
+    }
+
+    .teacher-course-book-svg rect {
+      fill: #ffffff;
+      stroke: #cbd5e1;
+      stroke-width: 2;
+      filter: drop-shadow(0 10px 16px rgba(15, 23, 42, 0.1));
+    }
+
+    .teacher-course-book-svg path.teacher-svg-draw {
+      stroke: #0f766e;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .teacher-course-book-svg text {
+      fill: #0f766e;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .teacher-course-card b {
+      border-radius: 999px;
+      background: #ecfdf5;
+      color: #047857;
+      font-size: 11px;
+      padding: 7px 9px;
+      white-space: nowrap;
+    }
+
+    .teacher-class-card small,
+    .teacher-course-card small {
+      color: #0f766e;
+      font-weight: 800;
+    }
+
+    .teacher-student-row {
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr) 64px auto auto;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: white;
+      padding: 11px;
+    }
+
+    .teacher-student-pulse-svg {
+      width: 64px;
+      height: 34px;
+    }
+
+    .teacher-student-wave {
+      stroke: #14b8a6;
+      stroke-width: 3;
+      stroke-dasharray: 7 8;
+    }
+
+    .teacher-student-pulse-svg.needs-review .teacher-student-wave {
+      stroke: #f59e0b;
+    }
+
+    .teacher-avatar {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      background: #ccfbf1;
+      color: #0f766e;
+      font-weight: 900;
+      overflow: hidden;
+    }
+
+    .teacher-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .teacher-student-row b {
+      border-radius: 999px;
+      padding: 7px 9px;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .teacher-student-row b.needs-review {
+      background: #fff7ed;
+      color: #c2410c;
+    }
+
+    .teacher-student-row b.steady {
+      background: #ecfdf5;
+      color: #047857;
+    }
+
+    .teacher-filters {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 190px;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .teacher-submission-card {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .teacher-submission-ribbon {
+      position: absolute;
+      right: 16px;
+      top: 10px;
+      width: 124px;
+      height: 38px;
+      opacity: 0.58;
+    }
+
+    .teacher-submission-ribbon rect {
+      fill: white;
+      stroke: #cbd5e1;
+      stroke-width: 2;
+    }
+
+    .teacher-submission-head,
+    .teacher-submission-meta,
+    .teacher-review-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .teacher-proof {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: #f8fafc;
+      padding: 10px;
+      color: #1d4ed8;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .teacher-file-icon {
+      width: 38px;
+      height: 38px;
+      flex: 0 0 auto;
+    }
+
+    .teacher-file-icon path:first-child {
+      fill: white;
+      stroke: #94a3b8;
+      stroke-width: 2;
+    }
+
+    .teacher-file-icon .teacher-svg-draw {
+      stroke: #2563eb;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .teacher-proof img {
+      width: 92px;
+      height: 70px;
+      border-radius: 6px;
+      object-fit: cover;
+    }
+
+    .teacher-proof.empty {
+      color: #64748b;
+    }
+
+    .teacher-note {
+      margin: 0;
+      border-left: 4px solid #f59e0b;
+      padding-left: 10px;
+      color: #334155;
+    }
+
+    .teacher-review-btn.complete {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .teacher-review-btn.needsWork {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .teacher-review-btn.incomplete {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .teacher-review-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .teacher-review-icon,
+    .teacher-saving-icon {
+      width: 22px;
+      height: 22px;
+      flex: 0 0 auto;
+    }
+
+    .teacher-review-icon circle {
+      fill: rgba(255, 255, 255, 0.42);
+      stroke: currentColor;
+      stroke-width: 2;
+    }
+
+    .teacher-review-icon path {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .teacher-saving-icon {
+      animation: teacher-spin 0.85s linear infinite;
+      transform-origin: center;
+    }
+
+    .teacher-saving-icon circle {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 3;
+      opacity: 0.24;
+    }
+
+    .teacher-saving-icon path {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 4;
+      stroke-linecap: round;
+    }
+
+    .teacher-empty {
+      border: 1px dashed #cbd5e1;
+      border-radius: 8px;
+      background: #f8fafc;
+      color: #64748b;
+      padding: 18px;
+    }
+
+    .teacher-empty-visual {
+      display: grid;
+      grid-template-columns: 120px minmax(0, 1fr);
+      align-items: center;
+      gap: 14px;
+    }
+
+    .teacher-empty-illustration {
+      width: 120px;
+      height: 92px;
+    }
+
+    .teacher-empty-card {
+      stroke-width: 2;
+    }
+
+    .teacher-empty strong {
+      display: block;
+      color: #334155;
+      margin-bottom: 4px;
+    }
+
+    @media (max-width: 860px) {
+      .teacher-login-shell,
+      .teacher-grid,
+      .teacher-metrics,
+      .teacher-tabs,
+      .teacher-filters {
+        grid-template-columns: 1fr;
+      }
+
+      .teacher-header,
+      .teacher-submission-head,
+      .teacher-submission-meta {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .teacher-reset-form,
+      .teacher-student-row {
+        grid-template-columns: 1fr;
+      }
+
+      .teacher-header-scene-svg {
+        width: min(220px, 100%);
+      }
+
+      .teacher-class-card,
+      .teacher-course-card,
+      .teacher-empty-visual {
+        grid-template-columns: 1fr;
+      }
+
+      .teacher-class-route-svg,
+      .teacher-course-book-svg,
+      .teacher-student-pulse-svg {
+        width: 100%;
+        max-width: 120px;
+      }
+    }
+  </style>
+  <!-- Import map for Firebase -->
+  <script type="importmap">
+    {
+      "imports": {
+        "firebase/app": "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js",
+        "firebase/firestore": "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js",
+        "firebase/auth": "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js",
+        "firebase/functions": "https://www.gstatic.com/firebasejs/10.11.1/firebase-functions.js",
+        "firebase/storage": "https://www.gstatic.com/firebasejs/10.11.1/firebase-storage.js"
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <div id="app">
+    <main class="teacher-shell teacher-center">
+      <div class="teacher-loader" aria-hidden="true"><span></span><span></span><span></span></div>
+      <h1>Opening your classroom...</h1>
+      <p>Loading teacher classroom tools...</p>
+    </main>
+  </div>
+
+  <script type="module" src="./src/main.js?v=1.1.61-assignment-ownership-read"></script>
+</body>
+
+</html>
+
+
