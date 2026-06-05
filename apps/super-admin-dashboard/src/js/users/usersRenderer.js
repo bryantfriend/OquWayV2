@@ -1,6 +1,7 @@
 import { roleFilterCards } from "../../../../../packages/shared/constants/admin.js?v=1.1.66-super-admin-cleanup";
 import { escapeHtml, formatDateTime } from "../../../../../packages/shared/formatting/index.js?v=1.1.66-super-admin-cleanup";
 import { collectUserRoles } from "../../../../../packages/domain/users/index.js?v=1.1.66-super-admin-cleanup";
+import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.74-shared-ui-foundation";
 
 export function renderUsersRoleCards(users, selectedRoleFilter) {
   var html = '<section class="sa-role-card-grid" aria-label="Role filters">';
@@ -36,7 +37,7 @@ export function renderUsersTableRows(users) {
       + '<div class="sa-role-badges">' + escapeHtml((users[index].roles || []).join(", ")) + '</div>'
       + '<div class="sa-user-meta"><span>' + escapeHtml((users[index].locationIds || []).join(", ") || "No location scope") + '</span></div>'
       + '<div class="sa-user-meta"><span>' + escapeHtml((users[index].classIds || []).join(", ") || users[index].classId || "No classes") + '</span></div>'
-      + '<div><span class="sa-status sa-status-' + escapeHtml(users[index].status || "active") + '">' + escapeHtml(users[index].status || "active") + '</span></div>'
+      + '<div>' + createStatusBadge(users[index].status || "active", { className: "sa-status", statusClassPrefix: "sa-status-" }) + '</div>'
       + '<div class="sa-user-meta"><span>' + escapeHtml(formatDateTime(users[index].lastActiveAt || users[index].updatedAt)) + '</span></div>'
       + '<div class="sa-row-actions"></div>'
       + '</div></article>';

@@ -1,8 +1,9 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.71-course-assignment-cleanup";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.71-course-assignment-cleanup";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.73-student-course-polish";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.73-student-course-polish";
 import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js";
+import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.73-student-course-polish";
 import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js";
-import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.71-course-assignment-cleanup";
+import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.73-student-course-polish";
 
 export async function processLoadStudentCourse(executionState) {
   var actor = executionState.actor;
@@ -54,7 +55,7 @@ export async function processLoadStudentCourse(executionState) {
       courses: courses,
       assignmentCount: courseAssignmentResult.assignmentCount,
       assignmentSource: courseAssignmentResult.source,
-      emptyStateMessage: courses.length === 0 ? "No courses assigned yet. Ask your teacher to assign a course." : ""
+      emptyStateMessage: courses.length === 0 ? "No courses assigned yet." : ""
     };
 
     return { valid: true };
@@ -89,15 +90,153 @@ async function loadStudentCourses(actor, assignedCourseIds, executionState, assi
   }
 
   while (courseIndex < courseSnaps.length) {
-    courses.push(attachAssignmentIdToCourse(
+    var course = attachAssignmentIdToCourse(
       await buildCourseTree(actor, courseSnaps[courseIndex]),
       assignmentIdByCourseId || {}
-    ));
+    );
+    courses.push(await attachExternalTaskSubmissionsToCourse(actor, course));
     courseIndex = courseIndex + 1;
   }
 
   courses.sort(compareByOrderThenTitle);
   return courses;
+}
+
+async function attachExternalTaskSubmissionsToCourse(actor, course) {
+  var submissions = [];
+
+  if (!course || !course.id || !actor || !actor.id || isPreviewActor(actor)) {
+    return course;
+  }
+
+  try {
+    submissions = await getStudentExternalTaskSubmissions({
+      studentId: actor.id,
+      courseId: course.id,
+      assignmentId: course.assignmentId || course.courseAssignmentId || "",
+      courseAssignmentId: course.courseAssignmentId || course.assignmentId || ""
+    });
+
+    if (submissions.length === 0 && (course.assignmentId || course.courseAssignmentId)) {
+      submissions = await getStudentExternalTaskSubmissions({
+        studentId: actor.id,
+        courseId: course.id
+      });
+    }
+  } catch (error) {
+    console.warn("[student-course:external-task-status-failed]", {
+      studentId: actor.id,
+      courseId: course.id,
+      errorMessage: readErrorMessage(error)
+    });
+    return course;
+  }
+
+  return Object.assign({}, course, {
+    externalTaskSubmissions: submissions,
+    modules: attachExternalTaskSubmissionsToModules(course.modules, submissions)
+  });
+}
+
+function attachExternalTaskSubmissionsToModules(modules, submissions) {
+  var safeModules = Array.isArray(modules) ? modules : [];
+  var moduleIndex = 0;
+  var result = [];
+
+  while (moduleIndex < safeModules.length) {
+    result.push(attachExternalTaskSubmissionsToModule(safeModules[moduleIndex], submissions));
+    moduleIndex = moduleIndex + 1;
+  }
+
+  return result;
+}
+
+function attachExternalTaskSubmissionsToModule(module, submissions) {
+  var sessions = module && Array.isArray(module.sessions) ? module.sessions : [];
+  var sessionIndex = 0;
+  var updatedSessions = [];
+
+  while (sessionIndex < sessions.length) {
+    updatedSessions.push(attachExternalTaskSubmissionsToSession(module, sessions[sessionIndex], submissions));
+    sessionIndex = sessionIndex + 1;
+  }
+
+  return Object.assign({}, module, {
+    sessions: updatedSessions
+  });
+}
+
+function attachExternalTaskSubmissionsToSession(module, session, submissions) {
+  var practiceModes = session && session.practiceModes && typeof session.practiceModes === "object" ? session.practiceModes : {};
+  var keys = Object.keys(practiceModes);
+  var updatedPracticeModes = Object.assign({}, practiceModes);
+  var keyIndex = 0;
+
+  while (keyIndex < keys.length) {
+    updatedPracticeModes[keys[keyIndex]] = attachExternalTaskSubmissionsToPracticeMode(
+      module,
+      practiceModes[keys[keyIndex]],
+      submissions
+    );
+    keyIndex = keyIndex + 1;
+  }
+
+  return Object.assign({}, session, {
+    practiceModes: updatedPracticeModes
+  });
+}
+
+function attachExternalTaskSubmissionsToPracticeMode(module, practiceMode, submissions) {
+  var steps = practiceMode && Array.isArray(practiceMode.steps) ? practiceMode.steps : [];
+  var updatedSteps = [];
+  var stepIndex = 0;
+
+  while (stepIndex < steps.length) {
+    updatedSteps.push(attachExternalTaskSubmissionToStep(module, steps[stepIndex], submissions));
+    stepIndex = stepIndex + 1;
+  }
+
+  return Object.assign({}, practiceMode, {
+    steps: updatedSteps
+  });
+}
+
+function attachExternalTaskSubmissionToStep(module, step, submissions) {
+  var latestSubmission = null;
+
+  if (!isExternalTaskStep(step)) {
+    return step;
+  }
+
+  latestSubmission = findLatestExternalTaskSubmission(submissions, module ? module.id : "", step.id || "");
+
+  if (!latestSubmission) {
+    return step;
+  }
+
+  return Object.assign({}, step, {
+    latestExternalTaskSubmission: latestSubmission,
+    externalTaskReviewStatus: latestSubmission.reviewStatus || "pending"
+  });
+}
+
+function findLatestExternalTaskSubmission(submissions, moduleId, stepId) {
+  var safeSubmissions = Array.isArray(submissions) ? submissions : [];
+  var index = 0;
+
+  while (index < safeSubmissions.length) {
+    if ((!moduleId || safeSubmissions[index].moduleId === moduleId) && safeSubmissions[index].stepId === stepId) {
+      return safeSubmissions[index];
+    }
+    index = index + 1;
+  }
+
+  return null;
+}
+
+function isExternalTaskStep(step) {
+  var type = step && typeof step.type === "string" ? step.type : "";
+  return type === "externalTask" || type === "ExternalTaskStep";
 }
 
 function attachAssignmentIdToCourse(course, assignmentIdByCourseId) {

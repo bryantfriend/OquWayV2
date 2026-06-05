@@ -845,10 +845,29 @@
 
     .teacher-filters {
       display: grid;
-      grid-template-columns: minmax(150px, 1fr) minmax(150px, 1fr) 160px minmax(180px, 1fr);
+      grid-template-columns: repeat(5, minmax(140px, 1fr));
       gap: 12px;
       margin-bottom: 14px;
       align-items: end;
+    }
+
+    .teacher-review-loading {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      width: fit-content;
+      margin: 10px 0 4px;
+      padding: 12px 14px;
+      border: 1px solid #bfdbfe;
+      border-radius: 14px;
+      background: #eff6ff;
+      color: #1e40af;
+      box-shadow: 0 14px 34px rgba(37, 99, 235, 0.12);
+    }
+
+    .teacher-review-loading svg {
+      width: 28px;
+      height: 28px;
     }
 
     .teacher-submission-card {
@@ -1172,7 +1191,7 @@
     </main>
   </div>
 
-  <script type="module" src="./src/main.js?v=1.1.65-architecture-phase1"></script>
+  <script type="module" src="./src/main.js?v=1.1.74-shared-ui-foundation"></script>
 </body>
 
 </html>

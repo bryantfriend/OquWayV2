@@ -1,13 +1,8 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.73-student-course-polish";
+import { createDefaultProgressDocument as createSharedDefaultProgressDocument } from "../../../../../../../domain/progress/index.js";
 
 export function createDefaultProgressDocument(courseId, moduleId, sessionId) {
-  return {
-    courseId: courseId,
-    moduleId: moduleId,
-    sessionId: sessionId,
-    practiceModes: {},
-    updatedAt: null
-  };
+  return createSharedDefaultProgressDocument(courseId, moduleId, sessionId);
 }
 
 export function readPracticeModeProgress(progress, practiceModeKey) {

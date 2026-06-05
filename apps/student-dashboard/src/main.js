@@ -1,6 +1,6 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.71-course-assignment-cleanup";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.71-course-assignment-cleanup";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.73-student-course-polish";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.73-student-course-polish";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -8,10 +8,20 @@ import {
   countModuleCompletedSteps as countSharedModuleCompletedSteps,
   countModuleSteps as countSharedModuleSteps,
   countSessionCompletedSteps as countSharedSessionCompletedSteps,
-  countSessionSteps as countSharedSessionSteps
-} from "../../../packages/domain/progress/index.js?v=1.1.71-course-assignment-cleanup";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.71-course-assignment-cleanup";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.71-course-assignment-cleanup";
+  countSessionSteps as countSharedSessionSteps,
+  readCourseLearningStatus,
+  readModuleLearningStatus,
+  readSessionLearningStatus
+} from "../../../packages/domain/progress/index.js?v=1.1.73-student-course-polish";
+import {
+  createEmptyState,
+  createErrorState,
+  createLoadingState,
+  createStatusBadge,
+  formatStatusLabel
+} from "../../../packages/ui/index.js?v=1.1.74-shared-ui-foundation";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.73-student-course-polish";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.73-student-course-polish";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -478,19 +488,21 @@ function mergeOpenedCourse(courses, openedCourse) {
 }
 
 function buildLoadingView() {
-  return '<section class="student-loading-card">'
-    + '<div class="student-spinner"></div>'
-    + '<h1>Loading your courses</h1>'
-    + '<p>Preparing your practice path.</p>'
-    + '</section>';
+  return createLoadingState("Loading courses...", {
+    className: "student-loading-card",
+    titleTag: "h1",
+    beforeHtml: '<div class="student-spinner"></div>',
+    note: "Preparing your classroom learning path."
+  });
 }
 
 function buildCourseOpeningView() {
-  return '<section class="student-loading-card">'
-    + '<div class="student-spinner"></div>'
-    + '<h1>Opening your course...</h1>'
-    + '<p>Finding your next activity.</p>'
-    + '</section>';
+  return createLoadingState("Loading course...", {
+    className: "student-loading-card",
+    titleTag: "h1",
+    beforeHtml: '<div class="student-spinner"></div>',
+    note: "Finding your next activity."
+  });
 }
 
 function buildDashboardView(state) {
@@ -518,7 +530,10 @@ function buildDashboardView(state) {
   }
 
   if (state.error) {
-    html += '<div class="student-error">' + escapeHtml(state.error) + '</div>';
+    html += createErrorState(state.error, "", {
+      className: "student-error",
+      titleTag: "span"
+    });
   }
 
   if (state.statusMessage) {
@@ -526,13 +541,11 @@ function buildDashboardView(state) {
   }
 
   if (courses.length === 0) {
-    html += '<section class="student-empty">';
-    html += '<img class="student-empty-illustration" src="./src/assets/empty-courses.svg" alt="">';
-    html += '<h2>No assigned courses yet</h2>';
-    html += '<p>No courses assigned yet. Ask your teacher to assign your first course.</p>';
-    html += buildDailyBonusCard(state.dailyBonus, true);
-    html += buildIntentionPoints(state.intentionPoints);
-    html += '</section>';
+    html += createEmptyState("No assigned courses yet", "No courses assigned yet.", {
+      className: "student-empty",
+      beforeHtml: '<img class="student-empty-illustration" src="./src/assets/empty-courses.svg" alt="">',
+      afterHtml: buildDailyBonusCard(state.dailyBonus, true) + buildIntentionPoints(state.intentionPoints)
+    });
     return html;
   }
 
@@ -567,11 +580,13 @@ function buildCourseCards(courses, selectedCourseId) {
     var activeClass = selectedCourseId === course.id ? " student-course-card-active" : "";
     var progressPercent = readCourseProgressPercent(course);
     var moduleCount = readCourseModuleCount(course);
+    var completedModuleCount = countCompletedModules(course);
+    var status = readCourseLearningStatus(course);
     var title = readLocalizedText(course.title, "Untitled Course");
     html += '<article class="student-course-card' + activeClass + '" data-course-id="' + escapeHtml(course.id) + '">';
     html += '<div class="student-course-art"><img src="./src/assets/course-illustration.svg" alt=""></div>';
-    html += '<div class="student-course-card-copy"><span class="student-course-status">' + escapeHtml(readCourseStatusLabel(progressPercent)) + '</span><strong>' + escapeHtml(title) + '</strong><p>' + escapeHtml(readLocalizedText(course.description, "Practice activities are ready when your teacher assigns sessions.")) + '</p></div>';
-    html += '<div class="student-course-meta"><span>' + moduleCount + ' module' + (moduleCount === 1 ? "" : "s") + '</span><span>' + progressPercent + '% complete</span></div>';
+    html += '<div class="student-course-card-copy">' + buildStudentStatusBadge(status) + '<strong>' + escapeHtml(title) + '</strong><p>' + escapeHtml(readLocalizedText(course.description, "Practice activities are ready when your teacher assigns sessions.")) + '</p></div>';
+    html += '<div class="student-course-meta"><span>' + completedModuleCount + ' / ' + moduleCount + ' modules</span><span>' + progressPercent + '% complete</span></div>';
     html += '<div class="student-progress-bar"><span style="width:' + progressPercent + '%"></span></div>';
     html += '<button type="button" class="student-course-open-btn" data-course-id="' + escapeHtml(course.id) + '">' + (progressPercent > 0 ? "Continue" : "Start") + '</button>';
     html += '</article>';
@@ -755,16 +770,48 @@ function readLastOpenedLabel(lastOpenedAt) {
   return "Last opened " + elapsedDays + " days ago";
 }
 
-function readCourseStatusLabel(progressPercent) {
-  if (progressPercent >= 100) {
-    return "Complete";
+function readLearningStatusLabel(status) {
+  return formatStatusLabel(status || "notStarted");
+}
+
+function buildStudentStatusBadge(status) {
+  return createStatusBadge(status || "notStarted", {
+    className: "student-course-status",
+    statusClassPrefix: "student-course-status-"
+  });
+}
+
+function buildStudentModuleActionBadge(status, label) {
+  return createStatusBadge(status || "notStarted", {
+    className: "student-module-action",
+    statusClassPrefix: "student-module-action-",
+    tagName: "b",
+    label: label
+  });
+}
+
+function readModuleActionLabel(status, completedSteps) {
+  if (status === "complete") {
+    return "Review";
   }
 
-  if (progressPercent > 0) {
-    return "In Progress";
+  if (status === "needsWork") {
+    return "Needs Work";
   }
 
-  return "New";
+  if (status === "pendingReview") {
+    return "Waiting";
+  }
+
+  if (completedSteps > 0) {
+    return "Continue";
+  }
+
+  return "Start";
+}
+
+function readModuleLastActivityLabel(module) {
+  return readLastOpenedLabel(readModuleLastOpenedAt(module));
 }
 
 function disabled(value) {
@@ -775,11 +822,28 @@ function readCourseModuleCount(course) {
   return Array.isArray(course && course.modules) ? course.modules.length : 0;
 }
 
+function countCompletedModules(course) {
+  var modules = course && Array.isArray(course.modules) ? course.modules : [];
+  var count = 0;
+  var moduleIndex = 0;
+
+  while (moduleIndex < modules.length) {
+    if (readModuleLearningStatus(modules[moduleIndex]) === "complete") {
+      count = count + 1;
+    }
+    moduleIndex = moduleIndex + 1;
+  }
+
+  return count;
+}
+
 function buildCourseDetail(course, state) {
   var html = "";
 
   if (!course) {
-    return '<div class="student-empty"><h2>Select a course</h2><p>Pick a course from the left to begin.</p></div>';
+    return createEmptyState("Select a course", "Pick a course from the left to begin.", {
+      className: "student-empty"
+    });
   }
 
   html += '<div class="student-course-heading">';
@@ -787,6 +851,7 @@ function buildCourseDetail(course, state) {
   html += '<p class="student-eyebrow">Course</p>';
   html += '<h2>' + escapeHtml(readLocalizedText(course.title, "Untitled Course")) + '</h2>';
   html += '<p>' + escapeHtml(readLocalizedText(course.description, "Practice activities are ready when your teacher assigns sessions.")) + '</p>';
+  html += '<div class="student-course-detail-meta"><span>' + escapeHtml(readLearningStatusLabel(readCourseLearningStatus(course))) + '</span><span>' + countCompletedModules(course) + ' / ' + readCourseModuleCount(course) + ' modules</span></div>';
   html += '</div>';
   html += '<div class="student-big-progress">' + readCourseProgressPercent(course) + '%</div>';
   html += '</div>';
@@ -801,16 +866,23 @@ function buildModules(course, state) {
   var moduleIndex = 0;
 
   if (modules.length === 0) {
-    return '<div class="student-empty"><h2>No modules ready yet</h2><p>Your course is assigned, but no modules are ready yet.</p></div>';
+    return createEmptyState("No modules ready yet", "This course does not have modules yet.", {
+      className: "student-empty"
+    });
   }
 
   while (moduleIndex < modules.length) {
     var module = modules[moduleIndex];
     var activeClass = state.selectedModuleId === module.id ? " student-module-active" : "";
+    var moduleStatus = readModuleLearningStatus(module);
+    var completedSteps = countModuleCompletedSteps(module);
+    var totalSteps = countModuleSteps(module);
     html += '<article class="student-module">';
     html += '<button type="button" class="student-module-card' + activeClass + '" data-module-id="' + escapeHtml(module.id) + '">';
     html += '<span>' + escapeHtml(readLocalizedText(module.title, "Module")) + '</span>';
-    html += '<small>' + readModuleProgressPercent(module) + '% complete</small>';
+    html += '<small>' + escapeHtml(readLearningStatusLabel(moduleStatus)) + ' - ' + completedSteps + ' / ' + totalSteps + ' steps</small>';
+    html += '<small>' + escapeHtml(readModuleLastActivityLabel(module)) + '</small>';
+    html += buildStudentModuleActionBadge(moduleStatus, readModuleActionLabel(moduleStatus, completedSteps));
     html += '</button>';
     html += buildSessions(course, module, state);
     html += '</article>';
@@ -826,7 +898,11 @@ function buildSessions(course, module, state) {
   var sessionIndex = 0;
 
   if (sessions.length === 0) {
-    return '<div class="student-session-empty">No sessions in this module yet.</div>';
+    return '<div class="student-session-empty">This module does not have steps yet.</div>';
+  }
+
+  if (countModuleSteps(module) === 0) {
+    return '<div class="student-session-empty">This module does not have steps yet.</div>';
   }
 
   html += '<div class="student-session-list">';
@@ -834,10 +910,11 @@ function buildSessions(course, module, state) {
   while (sessionIndex < sessions.length) {
     var session = sessions[sessionIndex];
     var activeClass = state.selectedSessionId === session.id ? " student-session-active" : "";
+    var sessionStatus = readSessionLearningStatus(session);
     html += '<div class="student-session-card-shell">';
     html += '<button type="button" class="student-session-card' + activeClass + '" data-module-id="' + escapeHtml(module.id) + '" data-session-id="' + escapeHtml(session.id) + '">';
     html += '<span>' + escapeHtml(readLocalizedText(session.title, "Session")) + '</span>';
-    html += '<small>' + readSessionCompletionPercent(session) + '% complete</small>';
+    html += '<small>' + escapeHtml(readLearningStatusLabel(sessionStatus)) + ' - ' + readSessionCompletionPercent(session) + '% complete</small>';
     html += '</button>';
     html += buildPracticeModeCards(course, module, session);
     html += '</div>';
@@ -871,7 +948,7 @@ function buildPracticeModeCards(course, module, session) {
     html += ' data-practice-mode-key="' + escapeHtml(key) + '">';
     html += '<strong>' + escapeHtml(readLocalizedText(mode.title, "Practice Mode")) + '</strong>';
     html += '<span>' + escapeHtml(mode.purpose) + '</span>';
-    html += '<small>' + escapeHtml(completeText) + ' · ' + completedCount + ' / ' + steps.length + ' steps</small>';
+    html += '<small>' + escapeHtml(completeText) + ' - ' + completedCount + ' / ' + steps.length + ' steps</small>';
     html += '</button>';
 
     keyIndex = keyIndex + 1;
@@ -1010,8 +1087,9 @@ async function submitExternalTaskStep(step, submissionRequest, snapshot) {
   var module = readSelectedModule(state);
   var session = readSelectedSession(state);
   var config = submissionRequest && submissionRequest.config ? submissionRequest.config : {};
+  var result = null;
 
-  return studentDashboardService.submitExternalTask({
+  result = await studentDashboardService.submitExternalTask({
     courseId: course ? course.id : snapshot.courseId,
     assignmentId: course ? (course.assignmentId || course.courseAssignmentId || "") : "",
     courseAssignmentId: course ? (course.courseAssignmentId || course.assignmentId || "") : "",
@@ -1029,6 +1107,117 @@ async function submitExternalTaskStep(step, submissionRequest, snapshot) {
     maxFileSizeMb: config.maxFileSizeMb || 10,
     classId: state.student ? state.student.classId : "",
     locationId: state.student ? (state.student.locationId || state.student.primaryLocationId) : ""
+  });
+
+  if (result && result.submission) {
+    applyExternalTaskSubmissionResult(result.submission);
+  }
+
+  return result;
+}
+
+function applyExternalTaskSubmissionResult(submission) {
+  var state = studentDashboardStore.getState();
+
+  studentDashboardStore.setState({
+    courses: updateCoursesWithExternalTaskSubmission(state.courses || [], submission)
+  });
+}
+
+function updateCoursesWithExternalTaskSubmission(courses, submission) {
+  var safeCourses = Array.isArray(courses) ? courses : [];
+  var courseIndex = 0;
+  var updatedCourses = [];
+
+  while (courseIndex < safeCourses.length) {
+    updatedCourses.push(updateCourseWithExternalTaskSubmission(safeCourses[courseIndex], submission));
+    courseIndex = courseIndex + 1;
+  }
+
+  return updatedCourses;
+}
+
+function updateCourseWithExternalTaskSubmission(course, submission) {
+  if (!course || !submission || course.id !== submission.courseId) {
+    return course;
+  }
+
+  return Object.assign({}, course, {
+    modules: updateModulesWithExternalTaskSubmission(course.modules, submission)
+  });
+}
+
+function updateModulesWithExternalTaskSubmission(modules, submission) {
+  var safeModules = Array.isArray(modules) ? modules : [];
+  var updatedModules = [];
+  var moduleIndex = 0;
+
+  while (moduleIndex < safeModules.length) {
+    updatedModules.push(updateModuleWithExternalTaskSubmission(safeModules[moduleIndex], submission));
+    moduleIndex = moduleIndex + 1;
+  }
+
+  return updatedModules;
+}
+
+function updateModuleWithExternalTaskSubmission(module, submission) {
+  if (!module || module.id !== submission.moduleId) {
+    return module;
+  }
+
+  return Object.assign({}, module, {
+    sessions: updateSessionsWithExternalTaskSubmission(module.sessions, submission)
+  });
+}
+
+function updateSessionsWithExternalTaskSubmission(sessions, submission) {
+  var safeSessions = Array.isArray(sessions) ? sessions : [];
+  var updatedSessions = [];
+  var sessionIndex = 0;
+
+  while (sessionIndex < safeSessions.length) {
+    updatedSessions.push(updateSessionWithExternalTaskSubmission(safeSessions[sessionIndex], submission));
+    sessionIndex = sessionIndex + 1;
+  }
+
+  return updatedSessions;
+}
+
+function updateSessionWithExternalTaskSubmission(session, submission) {
+  var practiceModes = session && session.practiceModes && typeof session.practiceModes === "object" ? session.practiceModes : {};
+  var keys = Object.keys(practiceModes);
+  var updatedPracticeModes = Object.assign({}, practiceModes);
+  var keyIndex = 0;
+
+  while (keyIndex < keys.length) {
+    updatedPracticeModes[keys[keyIndex]] = updatePracticeModeWithExternalTaskSubmission(practiceModes[keys[keyIndex]], submission);
+    keyIndex = keyIndex + 1;
+  }
+
+  return Object.assign({}, session, {
+    practiceModes: updatedPracticeModes
+  });
+}
+
+function updatePracticeModeWithExternalTaskSubmission(practiceMode, submission) {
+  var steps = practiceMode && Array.isArray(practiceMode.steps) ? practiceMode.steps : [];
+  var updatedSteps = [];
+  var stepIndex = 0;
+
+  while (stepIndex < steps.length) {
+    if (steps[stepIndex] && steps[stepIndex].id === submission.stepId) {
+      updatedSteps.push(Object.assign({}, steps[stepIndex], {
+        latestExternalTaskSubmission: submission,
+        externalTaskReviewStatus: submission.reviewStatus || "pending"
+      }));
+    } else {
+      updatedSteps.push(steps[stepIndex]);
+    }
+    stepIndex = stepIndex + 1;
+  }
+
+  return Object.assign({}, practiceMode, {
+    steps: updatedSteps
   });
 }
 
@@ -1309,7 +1498,7 @@ function countCompletedSteps(steps, completedStepIds) {
   var safeCompletedStepIds = Array.isArray(completedStepIds) ? completedStepIds : [];
 
   while (stepIndex < steps.length) {
-    if (safeCompletedStepIds.indexOf(readStepId(steps[stepIndex], "")) !== -1) {
+    if (isStepCompleteForDisplay(steps[stepIndex], safeCompletedStepIds)) {
       count = count + 1;
     }
 
@@ -1317,6 +1506,29 @@ function countCompletedSteps(steps, completedStepIds) {
   }
 
   return count;
+}
+
+function isStepCompleteForDisplay(step, completedStepIds) {
+  if (isExternalTaskStep(step)) {
+    return readStepExternalTaskReviewStatus(step) === "complete";
+  }
+
+  return completedStepIds.indexOf(readStepId(step, "")) !== -1;
+}
+
+function isExternalTaskStep(step) {
+  var type = step && typeof step.type === "string" ? step.type : "";
+  return type === "externalTask" || type === "ExternalTaskStep";
+}
+
+function readStepExternalTaskReviewStatus(step) {
+  var submission = step && (step.latestExternalTaskSubmission || step.externalTaskSubmission) ? (step.latestExternalTaskSubmission || step.externalTaskSubmission) : null;
+
+  if (!submission) {
+    return "";
+  }
+
+  return submission.reviewStatus || "pending";
 }
 
 function readPracticeModeProgress(progress, practiceModeKey) {

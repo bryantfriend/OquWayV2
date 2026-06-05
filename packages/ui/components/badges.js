@@ -1,6 +1,7 @@
+import { createStatusBadge } from "../badges/index.js";
+
 export function buildStatusBadge(status) {
-  var safeStatus = String(status || "active");
-  return '<span class="oqu-status-badge oqu-status-' + escapeAttribute(safeStatus) + '">' + escapeHtml(formatStatus(safeStatus)) + '</span>';
+  return createStatusBadge(status);
 }
 
 export function buildRoleBadge(role) {

@@ -786,6 +786,28 @@
             flex-shrink: 0;
         }
 
+        .student-course-detail-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem;
+            margin-top: 0.8rem;
+        }
+
+        .student-course-detail-meta span,
+        .student-module-card b {
+            width: fit-content;
+            border-radius: 999px;
+            background: #eef6ff;
+            color: var(--blue);
+            padding: 0.28rem 0.55rem;
+            font-size: 0.72rem;
+            font-weight: 900;
+        }
+
+        .student-module-card b {
+            justify-self: start;
+        }
+
         .student-module {
             margin-top: 1rem;
         }
@@ -1686,7 +1708,7 @@
         <h1>Welcome to your Studies</h1>
         <p>Your educational journey continues here...</p>
     </main>
-    <script type="module" src="./src/main.js?v=1.1.71-course-assignment-cleanup"></script>
+    <script type="module" src="./src/main.js?v=1.1.74-shared-ui-foundation"></script>
 </body>
 
 </html>

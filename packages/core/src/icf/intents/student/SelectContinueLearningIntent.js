@@ -1,4 +1,4 @@
-import { ContinueLearningIntent } from "./ContinueLearningIntent.js?v=1.1.63-external-task-student-feedback";
+import { ContinueLearningIntent } from "./ContinueLearningIntent.js?v=1.1.73-student-course-polish";
 
 export function SelectContinueLearningIntent() {
   return Object.assign({}, ContinueLearningIntent(), {

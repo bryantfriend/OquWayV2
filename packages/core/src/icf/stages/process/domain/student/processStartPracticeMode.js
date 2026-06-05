@@ -1,4 +1,4 @@
-import { readPracticeModeProgress } from "./studentProgressHelpers.js?v=1.1.63-external-task-student-feedback";
+import { readPracticeModeProgress } from "./studentProgressHelpers.js?v=1.1.73-student-course-polish";
 
 export function processStartPracticeMode(executionState) {
   var payload = executionState.payload;

@@ -1,4 +1,9 @@
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.65-architecture-phase1";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.72-teacher-review-filters";
+import {
+  createEmptyState,
+  createLoadingState,
+  createStatusBadge
+} from "../../../packages/ui/index.js?v=1.1.74-shared-ui-foundation";
 
 var app = document.getElementById("app");
 var state = {
@@ -18,8 +23,10 @@ var state = {
   activeTab: "classes",
   reviewClassId: "",
   reviewCourseId: "",
+  reviewModuleId: "",
   statusFilter: "pending",
   reviewStudentSearch: "",
+  isReviewQueueLoading: false,
   message: "",
   error: "",
   unauthorized: false
@@ -104,6 +111,7 @@ async function loadDashboard() {
 
 async function refreshReviewQueue() {
   setState({
+    isReviewQueueLoading: true,
     message: "Loading submissions...",
     error: ""
   });
@@ -111,16 +119,21 @@ async function refreshReviewQueue() {
   try {
     var data = await teacherDashboardService.loadReviewQueue({
       reviewStatus: readReviewStatusForQuery(),
-      classId: ""
+      classId: state.reviewClassId,
+      courseId: state.reviewCourseId,
+      moduleId: state.reviewModuleId,
+      studentSearch: state.reviewStudentSearch
     });
 
     setState({
+      isReviewQueueLoading: false,
       submissions: data.submissions || [],
       message: "",
       error: ""
     });
   } catch (error) {
     setState({
+      isReviewQueueLoading: false,
       error: error.message,
       message: ""
     });
@@ -226,6 +239,9 @@ async function handleClick(event) {
     setState({
       activeTab: "reviews",
       statusFilter: "all",
+      reviewClassId: "",
+      reviewCourseId: "",
+      reviewModuleId: "",
       reviewStudentSearch: studentHistoryButton.getAttribute("data-student-name") || studentHistoryButton.getAttribute("data-student-id") || ""
     });
     await refreshReviewQueue();
@@ -265,8 +281,9 @@ async function handleChange(event) {
   var statusSelect = event.target.closest("#reviewStatusFilter");
   var classSelect = event.target.closest("#reviewClassFilter");
   var courseSelect = event.target.closest("#reviewCourseFilter");
+  var moduleSelect = event.target.closest("#reviewModuleFilter");
 
-  if (!statusSelect && !classSelect && !courseSelect) {
+  if (!statusSelect && !classSelect && !courseSelect && !moduleSelect) {
     return;
   }
 
@@ -282,13 +299,24 @@ async function handleChange(event) {
     setState({
       reviewClassId: classSelect.value
     });
+    await refreshReviewQueue();
     return;
   }
 
   if (courseSelect) {
     setState({
-      reviewCourseId: courseSelect.value
+      reviewCourseId: courseSelect.value,
+      reviewModuleId: ""
     });
+    await refreshReviewQueue();
+    return;
+  }
+
+  if (moduleSelect) {
+    setState({
+      reviewModuleId: moduleSelect.value
+    });
+    await refreshReviewQueue();
   }
 }
 
@@ -463,10 +491,12 @@ function readSectionGlyphPath(kind) {
 }
 
 function buildEmptyState(kind, title, note) {
-  return '<div class="teacher-empty teacher-empty-visual">'
-    + buildEmptyStateSvg(kind)
-    + '<div><strong>' + escapeHtml(title) + '</strong><span>' + escapeHtml(note) + '</span></div>'
-    + '</div>';
+  return createEmptyState(title, note, {
+    className: "teacher-empty teacher-empty-visual",
+    titleTag: "strong",
+    messageTag: "span",
+    beforeHtml: buildEmptyStateSvg(kind)
+  });
 }
 
 function buildEmptyStateSvg(kind) {
@@ -723,6 +753,7 @@ function buildReviewQueue() {
     + '<div class="teacher-filters">'
     + '<label>Class<select id="reviewClassFilter"><option value="">All classes</option>' + buildClassOptions() + '</select></label>'
     + '<label>Course<select id="reviewCourseFilter"><option value="">All courses</option>' + buildReviewCourseOptions() + '</select></label>'
+    + '<label>Module<select id="reviewModuleFilter"><option value="">All modules</option>' + buildReviewModuleOptions() + '</select></label>'
     + '<label>Status<select id="reviewStatusFilter">'
     + buildStatusOption("all", "All")
     + buildStatusOption("pending", "Pending")
@@ -732,6 +763,13 @@ function buildReviewQueue() {
     + '</select></label>'
     + '<label>Student<input id="reviewStudentSearch" type="search" value="' + escapeHtml(state.reviewStudentSearch || "") + '" placeholder="Search student name"></label>'
     + '</div>';
+
+  if (state.isReviewQueueLoading) {
+    return html + createLoadingState("Loading submissions...", {
+      className: "teacher-review-loading",
+      beforeHtml: buildSavingSvg()
+    }) + '</section>';
+  }
 
   if (submissions.length === 0) {
     return html + buildReviewEmptyState() + '</section>';
@@ -758,7 +796,7 @@ function buildSubmissionCard(submission) {
     + buildSubmissionRibbonSvg()
     + '<div class="teacher-submission-head"><div><strong>' + escapeHtml(submission.studentName || submission.studentId || "Student") + '</strong>'
     + '<span>' + escapeHtml(readSubmissionContext(submission)) + '</span></div>'
-    + '<b class="teacher-status-pill ' + escapeHtml(currentStatus) + '">' + escapeHtml(formatReviewStatus(currentStatus)) + '</b></div>'
+    + buildReviewStatusBadge(currentStatus) + '</div>'
     + '<div class="teacher-submission-meta">'
     + '<span>Class: ' + escapeHtml(className || "Class") + '</span>'
     + '<span>Course: ' + escapeHtml(courseTitle) + '</span>'
@@ -787,6 +825,15 @@ function buildSubmissionCard(submission) {
 
 function buildReviewButton(submissionId, status, label, isPending) {
   return '<button type="button" class="teacher-review-btn ' + escapeHtml(status) + '" data-submission-id="' + escapeHtml(submissionId) + '" data-review-status="' + escapeHtml(status) + '"' + disabled(isPending) + '>' + (isPending ? buildSavingSvg() + "Saving..." : buildReviewButtonSvg(status) + label) + '</button>';
+}
+
+function buildReviewStatusBadge(status) {
+  return createStatusBadge(status || "pending", {
+    className: "teacher-status-pill",
+    statusClassPrefix: "",
+    tagName: "b",
+    label: formatReviewStatus(status || "pending")
+  });
 }
 
 function buildProofPreview(file) {
@@ -844,6 +891,34 @@ function buildReviewCourseOptions() {
   }).join("");
 }
 
+function buildReviewModuleOptions() {
+  var seen = {};
+  var options = [];
+
+  (state.submissions || []).forEach(function (submission) {
+    var moduleId = submission.moduleId || "";
+    if (!moduleId || seen[moduleId]) {
+      return;
+    }
+
+    if (state.reviewCourseId && submission.courseId !== state.reviewCourseId) {
+      return;
+    }
+
+    seen[moduleId] = true;
+    options.push({
+      id: moduleId,
+      title: submission.moduleTitle || submission.moduleName || moduleId
+    });
+  });
+
+  return options.sort(function (a, b) {
+    return a.title.localeCompare(b.title);
+  }).map(function (moduleRecord) {
+    return '<option value="' + escapeHtml(moduleRecord.id) + '"' + selected(state.reviewModuleId, moduleRecord.id) + '>' + escapeHtml(moduleRecord.title) + '</option>';
+  }).join("");
+}
+
 function buildStatusOption(value, label) {
   return '<option value="' + escapeHtml(value) + '"' + selected(state.statusFilter, value) + '>' + escapeHtml(label) + '</option>';
 }
@@ -861,14 +936,17 @@ function buildReviewEmptyState() {
 function getFilteredReviewSubmissions() {
   var search = String(state.reviewStudentSearch || "").trim().toLowerCase();
   var filtered = (state.submissions || []).filter(function (submission) {
-    return matchesReviewClass(submission)
+    return matchesReviewStatus(submission)
+      && matchesReviewClass(submission)
       && matchesReviewCourse(submission)
+      && matchesReviewModule(submission)
       && matchesStudentSearch(submission, search);
   });
 
   console.info("[teacher-review:filters]", {
     classId: state.reviewClassId || "",
     courseId: state.reviewCourseId || "",
+    moduleId: state.reviewModuleId || "",
     status: state.statusFilter || "pending",
     search: search,
     visibleSubmissionCount: filtered.length,
@@ -876,6 +954,14 @@ function getFilteredReviewSubmissions() {
   });
 
   return filtered;
+}
+
+function matchesReviewStatus(submission) {
+  if (state.statusFilter === "all") {
+    return true;
+  }
+
+  return (submission.reviewStatus || "pending") === (state.statusFilter || "pending");
 }
 
 function matchesReviewClass(submission) {
@@ -894,6 +980,14 @@ function matchesReviewCourse(submission) {
   }
 
   return submission.courseId === state.reviewCourseId;
+}
+
+function matchesReviewModule(submission) {
+  if (!state.reviewModuleId) {
+    return true;
+  }
+
+  return submission.moduleId === state.reviewModuleId;
 }
 
 function matchesStudentSearch(submission, search) {

@@ -1,7 +1,7 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.71-course-assignment-cleanup";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.71-course-assignment-cleanup";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.71-course-assignment-cleanup";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.71-course-assignment-cleanup";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.73-student-course-polish";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.73-student-course-polish";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.73-student-course-polish";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.73-student-course-polish";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
@@ -87,7 +87,8 @@ export const studentDashboardService = {
     } catch (error) {
       studentDashboardStore.setState({
         isLoading: false,
-        error: error.message,
+        error: "Could not load courses.",
+        statusMessage: "",
         actorIsPreview: auth.currentUser ? false : true
       });
       return null;
@@ -146,7 +147,7 @@ export const studentDashboardService = {
     } catch (error) {
       studentDashboardStore.setState({
         isCourseOpening: false,
-        error: error.message,
+        error: "Could not load this course.",
         statusMessage: ""
       });
       return null;

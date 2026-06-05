@@ -1,6 +1,6 @@
 import { updateAppState } from "../app/appState.js?v=1.1.66-super-admin-cleanup";
 import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.66-super-admin-cleanup";
-import { renderUsersRoleCards, renderUsersTableRows } from "./usersRenderer.js?v=1.1.66-super-admin-cleanup";
+import { renderUsersRoleCards, renderUsersTableRows } from "./usersRenderer.js?v=1.1.74-shared-ui-foundation";
 import { collectUserRoles } from "../../../../../packages/domain/users/index.js?v=1.1.66-super-admin-cleanup";
 
 export async function loadUsersPage(context) {

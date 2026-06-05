@@ -1,5 +1,5 @@
 import { collection, db, getDocs, query, where } from "../../firebase/index.js";
-import { normalizeExternalTaskSubmission } from "./externalTaskModel.js?v=1.1.70-external-task-feedback";
+import { normalizeExternalTaskSubmission } from "./externalTaskModel.js?v=1.1.73-student-course-polish";
 
 export async function getStudentExternalTaskSubmissions(filters) {
   var safeFilters = filters || {};
@@ -138,6 +138,20 @@ export async function getScopedExternalTaskSubmissions(filters) {
   }).sort(compareSubmissionByCreatedAt);
 }
 
+export async function getExternalTaskSubmissionsForTeacher(filters) {
+  var safeFilters = normalizeTeacherSubmissionFilters(filters || {});
+  var submissions = await getScopedExternalTaskSubmissions(safeFilters);
+  var search = readSearchText(safeFilters.studentSearch || safeFilters.searchStudentName || safeFilters.search);
+
+  return submissions.filter(function (submission) {
+    return matchesOptional(submission.classId, safeFilters.classId)
+      && matchesOptional(submission.courseId, safeFilters.courseId)
+      && matchesOptional(submission.moduleId, safeFilters.moduleId)
+      && matchesOptional(submission.reviewStatus, safeFilters.reviewStatus)
+      && matchesStudentSearch(submission, search);
+  }).sort(compareSubmissionByCreatedAt);
+}
+
 export function isSubmissionInOwnedScope(submission, filters) {
   var safeFilters = filters || {};
   var classIds = safeFilters.classIds || [];
@@ -164,6 +178,36 @@ export function isSubmissionInOwnedScope(submission, filters) {
   }
 
   return assignmentIds.length === 0 && classIds.length === 0 && submission.courseId && courseIds.indexOf(submission.courseId) !== -1;
+}
+
+function normalizeTeacherSubmissionFilters(filters) {
+  var safeFilters = Object.assign({}, filters || {});
+
+  if (safeFilters.reviewStatus === "all") {
+    safeFilters.reviewStatus = "";
+  }
+
+  if (safeFilters.classId && (!Array.isArray(safeFilters.classIds) || safeFilters.classIds.length === 0)) {
+    safeFilters.classIds = [safeFilters.classId];
+  }
+
+  return safeFilters;
+}
+
+function matchesStudentSearch(submission, search) {
+  if (!search) {
+    return true;
+  }
+
+  return readSearchText([
+    submission.studentName,
+    submission.studentDisplayName,
+    submission.studentId
+  ].join(" ")).indexOf(search) !== -1;
+}
+
+function readSearchText(value) {
+  return String(value || "").trim().toLowerCase();
 }
 
 function buildSubmissionQuery(scopeField, scopeValue, filters, operator) {
