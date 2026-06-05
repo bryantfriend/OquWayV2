@@ -1,6 +1,7 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth, collection, db, deleteDoc, doc, functions, getDoc, getDocs, httpsCallable, serverTimestamp, setDoc, storage } from "../../../../../packages/firebase/index.js?v=1.1.66-super-admin-cleanup";
 import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.66-super-admin-cleanup";
+import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.74-shared-ui-foundation";
 import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.66-super-admin-cleanup";
 import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.66-super-admin-cleanup";
 
@@ -253,30 +254,13 @@ function readRoleFromTokenClaims(claims) {
 
 async function loadRoleFromProfile(userId) {
   try {
-    var userSnap = await getDoc(doc(db, "users", userId));
+    var data = await getUserProfile(userId, { authUid: userId });
 
-    if (userSnap.exists()) {
-      var data = userSnap.data() || {};
-      if (Array.isArray(data.roles)) {
-        var roles = normalizeRoles(data.roles, data.role || "");
-        return {
-          role: readPrimaryAdminRole(roles),
-          roles: roles,
-          missing: false
-        };
-      }
-
-      if (typeof data.role === "string") {
-        return {
-          role: data.role,
-          roles: normalizeRoles([], data.role),
-          missing: false
-        };
-      }
-
+    if (data) {
+      var roles = normalizeRoles(data.roles, data.role || "");
       return {
-        role: "",
-        roles: [],
+        role: Array.isArray(data.roles) ? readPrimaryAdminRole(roles) : data.role || "",
+        roles: roles,
         missing: false
       };
     }
@@ -6492,7 +6476,7 @@ function readUserDisplayName(userId) {
 
 function getSafeUser(user) {
   var safeUser = user || {};
-  var roles = applyBooleanUserRoles(normalizeRoles(safeUser.roles, safeUser.role), safeUser);
+  var roles = collectUserRoles(safeUser);
   var locationIds = normalizeIdList(safeUser.locationIds || safeUser.locations || safeUser.locationId);
   var primaryLocationId = readSafeString(safeUser.primaryLocationId || safeUser.locationId);
 
@@ -6648,28 +6632,6 @@ function mergeUserDisplayFields(primaryUser, fallbackUser) {
   if (!merged.classId && fallback.classId) merged.classId = fallback.classId;
 
   return merged;
-}
-
-function applyBooleanUserRoles(roles, user) {
-  var nextRoles = Array.isArray(roles) ? roles.slice() : [];
-
-  addUserRoleIfClaimed(nextRoles, user, "ROLE_TEACHER", "teacher");
-  addUserRoleIfClaimed(nextRoles, user, "ROLE_ASSISTANT", "assistant");
-  addUserRoleIfClaimed(nextRoles, user, "ROLE_SCHOOL_ADMIN", "schoolAdmin");
-  addUserRoleIfClaimed(nextRoles, user, "ROLE_PLATFORM_ADMIN", "platformAdmin");
-  addUserRoleIfClaimed(nextRoles, user, "ROLE_SUPER_ADMIN", "superAdmin");
-
-  return nextRoles;
-}
-
-function addUserRoleIfClaimed(roles, user, claimKey, role) {
-  if (user && user[claimKey] === true && roles.indexOf(role) === -1) {
-    roles.push(role);
-  }
-}
-
-function isTeacherUser(user) {
-  return getSafeUser(user).roles.indexOf("teacher") !== -1;
 }
 
 function hasTeacherLoginAuthorization(user) {
@@ -7382,48 +7344,6 @@ function readRoleLabel(role) {
   };
 
   return labels[role] || role;
-}
-
-function normalizeRoles(roles, legacyRole) {
-  var source = Array.isArray(roles) ? roles.slice() : [];
-
-  if (source.length === 0 && legacyRole) {
-    source.push(legacyRole);
-  }
-
-  return source.map(normalizeUserRole).filter(function (role, index, list) {
-    return role && userRoles.indexOf(role) !== -1 && list.indexOf(role) === index;
-  });
-}
-
-function normalizeUserRole(role) {
-  var normalizedRole = readSafeString(role).replace(/[^a-z0-9]/gi, "").toLowerCase().replace(/^role/, "");
-
-  if (normalizedRole === "schooladmin") {
-    return "schoolAdmin";
-  }
-
-  if (normalizedRole === "regionaladmin") {
-    return "regionalAdmin";
-  }
-
-  if (normalizedRole === "ministryuser" || normalizedRole === "ministry") {
-    return "ministryUser";
-  }
-
-  if (normalizedRole === "platformadmin") {
-    return "platformAdmin";
-  }
-
-  if (normalizedRole === "superadmin") {
-    return "superAdmin";
-  }
-
-  if (normalizedRole === "student" || normalizedRole === "teacher" || normalizedRole === "assistant" || normalizedRole === "parent") {
-    return normalizedRole;
-  }
-
-  return "";
 }
 
 function readPrimaryRole(roles) {

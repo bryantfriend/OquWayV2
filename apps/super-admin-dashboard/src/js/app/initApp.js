@@ -25,7 +25,7 @@ export async function initApp() {
     runIntent: runAdminIntent
   };
 
-  await import("./legacyDashboard.js?v=1.1.71-course-assignment-cleanup");
+  await import("./legacyDashboard.js?v=1.1.75-super-admin-cleanup");
   updateAppState({ legacyDashboardLoaded: true });
 }
 
