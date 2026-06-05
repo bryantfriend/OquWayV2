@@ -1,4 +1,4 @@
-import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.65-architecture-phase1";
+import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.66-super-admin-cleanup";
 
 export function bindUsersEvents(rootElement, handlers) {
   rootElement.addEventListener("click", function (event) {

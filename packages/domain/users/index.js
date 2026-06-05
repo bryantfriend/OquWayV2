@@ -43,6 +43,19 @@ export function normalizeRoles(roles, legacyRole) {
   });
 }
 
+export function collectUserRoles(user) {
+  var roles = Array.isArray(user && user.roles) ? user.roles.slice() : [];
+
+  addRole(roles, user && user.role);
+  addClaimedRole(roles, user, "ROLE_TEACHER", "teacher");
+  addClaimedRole(roles, user, "ROLE_ASSISTANT", "assistant");
+  addClaimedRole(roles, user, "ROLE_SCHOOL_ADMIN", "schoolAdmin");
+  addClaimedRole(roles, user, "ROLE_PLATFORM_ADMIN", "platformAdmin");
+  addClaimedRole(roles, user, "ROLE_SUPER_ADMIN", "superAdmin");
+
+  return normalizeRoles(roles, "");
+}
+
 export function hasUserRole(user, role) {
   return userHasAnyRole(user, [role]);
 }
@@ -76,4 +89,16 @@ export function isTeacherUser(user) {
 
 export function isStudentUser(user) {
   return hasUserRole(user, "student") || user && user.ROLE_STUDENT === true;
+}
+
+function addClaimedRole(roles, user, claimKey, role) {
+  if (user && user[claimKey] === true) {
+    addRole(roles, role);
+  }
+}
+
+function addRole(roles, role) {
+  if (role && roles.indexOf(role) === -1) {
+    roles.push(role);
+  }
 }

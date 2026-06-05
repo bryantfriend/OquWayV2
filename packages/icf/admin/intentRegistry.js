@@ -1,4 +1,4 @@
-import { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.65-architecture-phase1";
+import { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.66-super-admin-cleanup";
 
 var intents = {};
 

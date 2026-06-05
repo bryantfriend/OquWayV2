@@ -1,6 +1,7 @@
-import { updateAppState } from "../app/appState.js?v=1.1.65-architecture-phase1";
-import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.65-architecture-phase1";
-import { renderUsersRoleCards, renderUsersTableRows } from "./usersRenderer.js?v=1.1.65-architecture-phase1";
+import { updateAppState } from "../app/appState.js?v=1.1.66-super-admin-cleanup";
+import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.66-super-admin-cleanup";
+import { renderUsersRoleCards, renderUsersTableRows } from "./usersRenderer.js?v=1.1.66-super-admin-cleanup";
+import { collectUserRoles } from "../../../../../packages/domain/users/index.js?v=1.1.66-super-admin-cleanup";
 
 export async function loadUsersPage(context) {
   var result = await runAdminIntent("LoadUsersIntent", {}, context || {});
@@ -31,7 +32,7 @@ function filterUsersByRole(users, selectedRoleFilter) {
 }
 
 function userMatchesRoleFilter(user, roleFilter) {
-  var roles = normalizeUserRoles(user);
+  var roles = collectUserRoles(user);
 
   if (roleFilter === "admin") {
     return roles.indexOf("schoolAdmin") !== -1
@@ -41,20 +42,4 @@ function userMatchesRoleFilter(user, roleFilter) {
   }
 
   return roles.indexOf(roleFilter) !== -1;
-}
-
-function normalizeUserRoles(user) {
-  var roles = Array.isArray(user && user.roles) ? user.roles.slice() : [];
-
-  if (user && user.role && roles.indexOf(user.role) === -1) {
-    roles.push(user.role);
-  }
-
-  if (user && user.ROLE_TEACHER === true && roles.indexOf("teacher") === -1) roles.push("teacher");
-  if (user && user.ROLE_ASSISTANT === true && roles.indexOf("assistant") === -1) roles.push("assistant");
-  if (user && user.ROLE_SCHOOL_ADMIN === true && roles.indexOf("schoolAdmin") === -1) roles.push("schoolAdmin");
-  if (user && user.ROLE_PLATFORM_ADMIN === true && roles.indexOf("platformAdmin") === -1) roles.push("platformAdmin");
-  if (user && user.ROLE_SUPER_ADMIN === true && roles.indexOf("superAdmin") === -1) roles.push("superAdmin");
-
-  return roles;
 }
