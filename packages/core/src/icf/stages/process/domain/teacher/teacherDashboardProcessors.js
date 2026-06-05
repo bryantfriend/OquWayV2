@@ -1,6 +1,6 @@
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.57-teacher-ownership";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.57-teacher-ownership";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.59-teacher-login-errors";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.59-teacher-login-errors";
 
 export async function processTeacherLogin(executionState) {
   var payload = executionState.payload || {};
@@ -23,7 +23,12 @@ export async function processTeacherLogin(executionState) {
 
     return { valid: true, data: executionState.result };
   } catch (error) {
-    return createProcessError("TEACHER_LOGIN_FAILED", "Teacher login failed: " + readAuthErrorMessage(error));
+    console.warn("[teacher-login:auth-failed]", {
+      email: payload.email || "",
+      errorCode: error && error.code ? error.code : "",
+      errorMessage: readErrorMessage(error)
+    });
+    return createProcessError("TEACHER_LOGIN_FAILED", readAuthErrorMessage(error));
   }
 }
 
@@ -39,7 +44,7 @@ export async function processSendTeacherPasswordReset(executionState) {
 
     return { valid: true, data: executionState.result };
   } catch (error) {
-    return createProcessError("TEACHER_PASSWORD_RESET_FAILED", "Could not send reset email: " + readAuthErrorMessage(error));
+    return createProcessError("TEACHER_PASSWORD_RESET_FAILED", readPasswordResetErrorMessage(error));
   }
 }
 
@@ -1089,11 +1094,55 @@ function readAuthErrorMessage(error) {
     return "unknown error";
   }
 
-  if (error.code === "auth/invalid-credential" || error.code === "auth/wrong-password") {
-    return "Email or password is incorrect.";
+  if (error.code === "auth/invalid-credential" || error.code === "auth/wrong-password" || error.code === "auth/invalid-login-credentials") {
+    return "Email or password is incorrect. Try again or reset your password.";
+  }
+
+  if (error.code === "auth/user-not-found") {
+    return "No teacher login account was found for this email. Ask an admin to authorize teacher login.";
+  }
+
+  if (error.code === "auth/invalid-email") {
+    return "Enter a valid email address.";
+  }
+
+  if (error.code === "auth/too-many-requests") {
+    return "Too many attempts. Wait a few minutes or reset your password.";
+  }
+
+  if (error.code === "auth/user-disabled") {
+    return "This login account is disabled. Contact an admin.";
+  }
+
+  if (error.code === "auth/network-request-failed") {
+    return "Network error. Check your connection and try again.";
   }
 
   return readErrorMessage(error);
+}
+
+function readPasswordResetErrorMessage(error) {
+  if (!error) {
+    return "Could not send reset email.";
+  }
+
+  if (error.code === "auth/invalid-email") {
+    return "Enter a valid email address.";
+  }
+
+  if (error.code === "auth/too-many-requests") {
+    return "Too many attempts. Wait a few minutes before requesting another reset email.";
+  }
+
+  if (error.code === "auth/user-disabled") {
+    return "This login account is disabled. Contact an admin.";
+  }
+
+  if (error.code === "auth/network-request-failed") {
+    return "Network error. Check your connection and try again.";
+  }
+
+  return "Could not send reset email: " + readErrorMessage(error);
 }
 
 function readErrorMessage(error) {

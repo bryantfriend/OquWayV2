@@ -1,4 +1,4 @@
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.57-teacher-ownership";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.59-teacher-login-errors";
 
 var app = document.getElementById("app");
 var state = {
@@ -164,7 +164,18 @@ async function loginTeacher(form) {
 }
 
 async function sendPasswordReset(form) {
-  var email = form.querySelector("[name=resetEmail]").value;
+  var resetInput = form.querySelector("[name=resetEmail]");
+  var loginEmailInput = document.querySelector("#teacherLoginForm [name=email]");
+  var email = (resetInput && resetInput.value ? resetInput.value : "") || (loginEmailInput && loginEmailInput.value ? loginEmailInput.value : "");
+
+  if (!email) {
+    setState({
+      isResetting: false,
+      error: "Enter your teacher email first.",
+      message: ""
+    });
+    return;
+  }
 
   setState({
     isResetting: true,
@@ -176,7 +187,7 @@ async function sendPasswordReset(form) {
     await teacherDashboardService.sendPasswordReset(email);
     setState({
       isResetting: false,
-      message: "Password reset email sent.",
+      message: "If this teacher account exists, a reset email has been sent.",
       error: ""
     });
   } catch (error) {
@@ -518,8 +529,8 @@ function buildLoginView() {
     + '<button type="submit"' + disabled(state.isLoggingIn) + '>' + (state.isLoggingIn ? "Signing in..." : "Sign In") + '</button>'
     + '</form>'
     + '<form id="teacherResetForm" class="teacher-reset-form">'
-    + '<label>Forgot password?<input name="resetEmail" type="email" placeholder="teacher@email.com"></label>'
-    + '<button type="submit"' + disabled(state.isResetting) + '>' + (state.isResetting ? "Sending..." : "Send Reset Email") + '</button>'
+    + '<label>Forgot Password?<input name="resetEmail" type="email" placeholder="Use login email or enter one here"></label>'
+    + '<button type="submit"' + disabled(state.isResetting) + '>' + (state.isResetting ? "Sending..." : "Forgot Password?") + '</button>'
     + '</form>'
     + '</section>'
     + '<aside class="teacher-login-aside">'

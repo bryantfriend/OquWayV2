@@ -4,7 +4,7 @@ import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/
 import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userRoles, userStatuses } from "../shared/constants.js?v=1.1.58-shared-phase1";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.58";
+var appVersion = "1.1.59";
 var adminCallableFunctions = functions;
 var state = {
   isLoading: true,
@@ -1435,10 +1435,11 @@ function buildUserActionButtons(user) {
     html += buildTeacherLoginActionButton(user, capabilities);
   }
 
-  if (user.roles.indexOf("student") !== -1) {
+  if (user.roles.indexOf("student") !== -1 && user.roles.length === 1) {
     html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="reset-fruit-user" data-id="' + escapeHtml(user.id) + '"' + disabled(isBusy()) + '>Reset Fruit</button>';
   } else {
-    html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="send-password-reset" data-id="' + escapeHtml(user.id) + '"' + disabled(!capabilities.canResetPassword) + '>Reset Password</button>';
+    var resetLabel = isTeacherUser(user) && hasTeacherLoginAuthorization(user) ? "Send Password Reset" : "Reset Password";
+    html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="send-password-reset" data-id="' + escapeHtml(user.id) + '"' + disabled(!capabilities.canResetPassword) + '>' + escapeHtml(resetLabel) + '</button>';
   }
 
   if (user.status === "active") {

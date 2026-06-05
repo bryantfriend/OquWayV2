@@ -132,6 +132,6 @@ export {
   processLoadTeacherStudents,
   processSendTeacherPasswordReset,
   processTeacherLogin
-} from "./domain/teacher/teacherDashboardProcessors.js?v=1.1.57-teacher-ownership";
+} from "./domain/teacher/teacherDashboardProcessors.js?v=1.1.59-teacher-login-errors";
 
 

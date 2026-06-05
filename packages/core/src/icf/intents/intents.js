@@ -74,7 +74,7 @@ export { ResubmitExternalTaskIntent } from "./externalTask/ResubmitExternalTaskI
 // ----------------------
 // Teacher Dashboard
 // ----------------------
-export { TeacherLoginIntent } from "./teacher/TeacherLoginIntent.js?v=1.1.57-teacher-ownership";
+export { TeacherLoginIntent } from "./teacher/TeacherLoginIntent.js?v=1.1.59-teacher-login-errors";
 export { LoadTeacherClassDetailIntent } from "./teacher/LoadTeacherClassDetailIntent.js?v=1.1.57-teacher-ownership";
 export { LoadTeacherCourseDetailIntent } from "./teacher/LoadTeacherCourseDetailIntent.js?v=1.1.57-teacher-ownership";
 export { LoadTeacherCoursesIntent } from "./teacher/LoadTeacherCoursesIntent.js?v=1.1.57-teacher-ownership";
@@ -82,7 +82,7 @@ export { LoadTeacherDashboardIntent } from "./teacher/LoadTeacherDashboardIntent
 export { LoadTeacherClassesIntent } from "./teacher/LoadTeacherClassesIntent.js?v=1.1.57-teacher-ownership";
 export { LoadTeacherStudentsIntent } from "./teacher/LoadTeacherStudentsIntent.js?v=1.1.57-teacher-ownership";
 export { LoadTeacherReviewQueueIntent } from "./teacher/LoadTeacherReviewQueueIntent.js?v=1.1.57-teacher-ownership";
-export { SendTeacherPasswordResetIntent } from "./teacher/SendTeacherPasswordResetIntent.js?v=1.1.57-teacher-ownership";
+export { SendTeacherPasswordResetIntent } from "./teacher/SendTeacherPasswordResetIntent.js?v=1.1.59-teacher-login-errors";
 
 // ----------------------
 // Locations / Login Settings
