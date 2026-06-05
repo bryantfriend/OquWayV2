@@ -23,3 +23,5 @@ export function readModuleTitle(moduleRecord) {
 
   return readSafeString(moduleRecord && (moduleRecord.name || moduleRecord.displayName)).trim() || "Untitled Module";
 }
+
+export * from "./moduleRepository.js";

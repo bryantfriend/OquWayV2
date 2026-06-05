@@ -23,3 +23,6 @@ export function readCourseTitle(course) {
 
   return readSafeString(course && (course.name || course.displayName)).trim() || "Untitled Course";
 }
+
+export * from "./courseQueries.js";
+export * from "./courseRepository.js";

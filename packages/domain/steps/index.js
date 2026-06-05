@@ -23,3 +23,5 @@ export function readStepTitle(step) {
 
   return readSafeString(step && (step.name || step.displayName || step.taskTitle)).trim() || "Untitled Step";
 }
+
+export * from "./stepTypeRegistry.js";

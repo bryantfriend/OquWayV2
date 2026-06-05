@@ -49,6 +49,7 @@ export function collectUserRoles(user) {
   addRole(roles, user && user.role);
   addClaimedRole(roles, user, "ROLE_TEACHER", "teacher");
   addClaimedRole(roles, user, "ROLE_ASSISTANT", "assistant");
+  addClaimedRole(roles, user, "ROLE_COURSE_CREATOR", "courseCreator");
   addClaimedRole(roles, user, "ROLE_SCHOOL_ADMIN", "schoolAdmin");
   addClaimedRole(roles, user, "ROLE_PLATFORM_ADMIN", "platformAdmin");
   addClaimedRole(roles, user, "ROLE_SUPER_ADMIN", "superAdmin");
@@ -102,3 +103,7 @@ function addRole(roles, role) {
     roles.push(role);
   }
 }
+
+export * from "./roleService.js";
+export * from "./userQueries.js";
+export * from "./userRepository.js";

@@ -20,3 +20,6 @@ export function getClassDisplayName(classRecord) {
 export function getClassLocationId(classRecord) {
   return readSafeString(classRecord && (classRecord.locationId || classRecord.locId || classRecord.schoolId || classRecord.primaryLocationId)).trim();
 }
+
+export * from "./classQueries.js";
+export * from "./classRepository.js";

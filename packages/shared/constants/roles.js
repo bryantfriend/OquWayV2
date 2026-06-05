@@ -2,6 +2,7 @@ export var userRoles = [
   "student",
   "teacher",
   "assistant",
+  "courseCreator",
   "parent",
   "schoolAdmin",
   "regionalAdmin",

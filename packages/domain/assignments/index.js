@@ -29,3 +29,5 @@ export function assignmentBelongsToTeacher(assignment, teacherIds) {
       return ids.indexOf(teacherId) !== -1;
     }));
 }
+
+export * from "./assignmentRepository.js";
