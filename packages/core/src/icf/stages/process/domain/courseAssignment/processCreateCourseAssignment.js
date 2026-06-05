@@ -1,6 +1,7 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
-import { createCourseAssignmentId, loadCourseAssignments } from "./courseAssignmentHelpers.js?v=1.1.63-external-task-student-feedback";
-import { buildCourseAssignmentOwnershipFields } from "./courseAssignmentOwnershipHelpers.js?v=1.1.63-external-task-student-feedback";
+import { serverTimestamp } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.71-course-assignment-cleanup";
+import { createCourseAssignment } from "../../../../../../../domain/assignments/index.js";
+import { createCourseAssignmentId, loadCourseAssignments } from "./courseAssignmentHelpers.js?v=1.1.71-course-assignment-cleanup";
+import { buildCourseAssignmentOwnershipFields } from "./courseAssignmentOwnershipHelpers.js?v=1.1.71-course-assignment-cleanup";
 
 export async function processCreateCourseAssignment(executionState) {
   var payload = executionState.payload;
@@ -47,8 +48,7 @@ export async function processCreateCourseAssignment(executionState) {
       updatedAt: serverTimestamp()
     });
 
-    await setDoc(doc(db, "courseAssignments", assignmentId), assignmentRecord);
-    executionState.result = assignmentRecord;
+    executionState.result = await createCourseAssignment(assignmentRecord);
     return {
       valid: true,
       data: executionState.result

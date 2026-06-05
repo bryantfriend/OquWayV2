@@ -1,12 +1,17 @@
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.63-external-task-student-feedback";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.71-course-assignment-cleanup";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js";
 
 export async function processStudentOpenCourse(executionState) {
   var payload = executionState.payload || {};
   var courseId = readText(payload.courseId);
+  var studentId = readText(payload.studentId || (executionState.actor ? executionState.actor.id : ""));
   var courses = Array.isArray(executionState.context.studentOpenCourses) ? executionState.context.studentOpenCourses : [];
+  var assignmentResult = await getAssignedCourseIds(studentId, executionState.context.studentProfile);
+  var assignmentId = assignmentResult.assignmentIdByCourseId[courseId] || "";
+  var isAssignedCourse = assignmentResult.courseIds.indexOf(courseId) !== -1;
   var course = executionState.context.studentOpenCourse || findCourseById(courses, courseId);
 
-  if (!course) {
+  if (!course || (!isAssignedCourse && !isPreviewActor(executionState.actor))) {
     return {
       valid: false,
       errors: [
@@ -16,6 +21,16 @@ export async function processStudentOpenCourse(executionState) {
         }
       ]
     };
+  }
+
+  course = attachAssignmentId(course, assignmentId);
+  courses = [course];
+
+  if (!assignmentId && !isPreviewActor(executionState.actor)) {
+    executionState.warnings.push({
+      code: "STUDENT_COURSE_ASSIGNMENT_ID_MISSING",
+      message: "Course is visible from a legacy profile course field, but no courseAssignments document was found for progress context."
+    });
   }
 
   var modules = Array.isArray(course.modules) ? course.modules : [];
@@ -29,8 +44,10 @@ export async function processStudentOpenCourse(executionState) {
   }
 
   console.info("[student-course:open]", {
-    studentId: readText(payload.studentId || (executionState.actor ? executionState.actor.id : "")),
+    studentId: studentId,
     courseId: courseId,
+    assignmentId: course.assignmentId || "",
+    assignmentSource: assignmentId ? assignmentResult.source : "legacy-profile-course",
     moduleCount: modules.length,
     selectedModuleId: openTarget.moduleId,
     selectedSessionId: openTarget.sessionId,
@@ -56,6 +73,21 @@ export async function processStudentOpenCourse(executionState) {
     valid: true,
     data: executionState.result
   };
+}
+
+function attachAssignmentId(course, assignmentId) {
+  if (!course) {
+    return course;
+  }
+
+  return Object.assign({}, course, {
+    assignmentId: assignmentId || course.assignmentId || "",
+    courseAssignmentId: assignmentId || course.courseAssignmentId || course.assignmentId || ""
+  });
+}
+
+function isPreviewActor(actor) {
+  return actor && actor.id === "preview-student";
 }
 
 async function selectCourseOpenTarget(executionState, course) {

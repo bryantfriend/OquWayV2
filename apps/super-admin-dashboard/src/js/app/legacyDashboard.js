@@ -3636,6 +3636,13 @@ async function updateAssignmentStatus(assignmentId, status) {
 }
 
 async function createAssignment() {
+  var validationMessage = readAssignmentValidationMessage(state.assignmentForm);
+
+  if (validationMessage) {
+    setState({ message: validationMessage, messageType: "error" });
+    return;
+  }
+
   setState({ pendingAction: "create-assignment", message: "Creating assignment...", messageType: "info" });
   var saved = await saveIntent("CreateCourseAssignmentIntent", buildAssignmentPayload(state.assignmentForm), "Course assignment created.");
 
@@ -7173,17 +7180,29 @@ function readAssignmentStudentName(studentId) {
 }
 
 function canCreateAssignment() {
-  var form = state.assignmentForm;
+  return readAssignmentValidationMessage(state.assignmentForm) === "";
+}
 
-  if (!form.courseId || !form.locationId) {
-    return false;
+function readAssignmentValidationMessage(form) {
+  var safeForm = form || {};
+
+  if (!safeForm.courseId) {
+    return "Choose a course before creating this assignment.";
   }
 
-  if (form.targetType === "student") {
-    return !!form.studentId;
+  if (!safeForm.locationId) {
+    return "Choose a location before creating this assignment.";
   }
 
-  return !!form.classId;
+  if (safeForm.targetType === "student" && !safeForm.studentId) {
+    return "Choose a student before creating this assignment.";
+  }
+
+  if (safeForm.targetType !== "student" && !safeForm.classId) {
+    return "Choose a class before creating this assignment.";
+  }
+
+  return "";
 }
 
 function readAssignmentStats() {

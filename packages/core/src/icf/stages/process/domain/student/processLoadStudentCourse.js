@@ -1,7 +1,8 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.63-external-task-student-feedback";
-import { loadCourseAssignments } from "../courseAssignment/courseAssignmentHelpers.js?v=1.1.63-external-task-student-feedback";
-import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.63-external-task-student-feedback";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.71-course-assignment-cleanup";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.71-course-assignment-cleanup";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js";
+import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js";
+import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.71-course-assignment-cleanup";
 
 export async function processLoadStudentCourse(executionState) {
   var actor = executionState.actor;
@@ -39,6 +40,10 @@ export async function processLoadStudentCourse(executionState) {
       classId: readFirstProfileClassId(studentProfile),
       classIds: readProfileClassIds(studentProfile),
       queryPaths: courseAssignmentResult.queryPaths,
+      directCount: courseAssignmentResult.directCount || 0,
+      classCount: courseAssignmentResult.classCount || 0,
+      locationCount: courseAssignmentResult.locationCount || 0,
+      mergedCount: courseAssignmentResult.mergedCount || courseAssignmentResult.assignmentCount || 0,
       rawCourseCount: courseAssignmentResult.courseIds.length,
       filteredCourseCount: courses.length,
       rejectionReasons: courseAssignmentResult.rejectionReasons
@@ -152,224 +157,9 @@ async function loadCourseSnap(courseId, executionState) {
 }
 
 async function loadAssignedCourseIds(actor, studentProfile, executionState) {
-  var assignmentResult = await loadAssignedCourseIdsFromAssignments(actor, studentProfile);
-  var directCourseIds = readDirectCourseIds(studentProfile, executionState.context.assignedCourseIds);
-  var directIndex = 0;
+  var contextCourseIds = executionState && executionState.context ? executionState.context.assignedCourseIds : [];
 
-  while (directIndex < directCourseIds.length) {
-    addUniqueText(assignmentResult.courseIds, directCourseIds[directIndex]);
-    directIndex = directIndex + 1;
-  }
-
-  if (directCourseIds.length > 0) {
-    assignmentResult.source = assignmentResult.source + "+profileCourseIds";
-    assignmentResult.queryPaths.push("users/" + (studentProfile && studentProfile.id ? studentProfile.id : "") + ".assignedCourseIds|courseIds|courses|assignedCourses");
-  }
-
-  return assignmentResult;
-}
-
-async function loadAssignedCourseIdsFromAssignments(actor, studentProfile) {
-  var targets = buildStudentAssignmentTargets(actor, studentProfile);
-  var courseIds = [];
-  var assignmentIds = [];
-  var assignmentIdByCourseId = {};
-  var warnings = [];
-  var queryPaths = [];
-  var rejectionReasons = {};
-  var targetIndex = 0;
-
-  while (targetIndex < targets.length) {
-    var target = targets[targetIndex];
-    var queryPath = "courseAssignments where targetType=" + target.targetType + ", targetId=" + target.targetId + ", status=active";
-
-    queryPaths.push(queryPath);
-
-    try {
-      var assignments = await loadCourseAssignments({
-        targetType: target.targetType,
-        targetId: target.targetId,
-        status: "active"
-      });
-
-      addAssignmentCourses(courseIds, assignmentIds, assignmentIdByCourseId, assignments.filter(isVisibleAssignment));
-
-      if (assignments.length === 0) {
-        addReasonCount(rejectionReasons, "no-assignment-for-target");
-      }
-    } catch (error) {
-      addReasonCount(rejectionReasons, "assignment-query-failed");
-      warnings.push({
-        code: "STUDENT_ASSIGNMENT_QUERY_FAILED",
-        message: queryPath + " failed: " + readErrorMessage(error)
-      });
-    }
-
-    targetIndex = targetIndex + 1;
-  }
-
-  if (targets.length === 0) {
-    warnings.push({
-      code: "STUDENT_ASSIGNMENT_TARGETS_MISSING",
-      message: "Student profile has no student, class, or location assignment targets."
-    });
-  }
-
-  return {
-    courseIds: courseIds,
-    assignmentIdByCourseId: assignmentIdByCourseId,
-    assignmentCount: assignmentIds.length,
-    warnings: warnings,
-    source: "courseAssignments",
-    queryPaths: queryPaths,
-    rejectionReasons: rejectionReasons
-  };
-}
-
-function buildStudentAssignmentTargets(actor, studentProfile) {
-  var targets = [];
-
-  if (actor && actor.id) {
-    addTarget(targets, "student", actor.id);
-  }
-
-  if (studentProfile && studentProfile.id) {
-    addTarget(targets, "student", studentProfile.id);
-  }
-
-  addTarget(targets, "class", readTextField(studentProfile, "classId"));
-  addTargetList(targets, "class", readArrayField(studentProfile, "classIds"));
-  addTargetList(targets, "class", readArrayField(studentProfile, "assignedClassIds"));
-  addRecordTargetList(targets, "class", studentProfile ? studentProfile.assignedClasses : null);
-  addRecordTargetList(targets, "class", studentProfile ? studentProfile.classRefs : null);
-  addRecordTargetList(targets, "class", studentProfile ? studentProfile.classes : null);
-  addTarget(targets, "location", readTextField(studentProfile, "locationId"));
-  addTarget(targets, "location", readTextField(studentProfile, "primaryLocationId"));
-  addTarget(targets, "location", readTextField(studentProfile, "schoolId"));
-  addTarget(targets, "location", readTextField(studentProfile, "locId"));
-  addTargetList(targets, "location", readArrayField(studentProfile, "locationIds"));
-  addTargetList(targets, "location", readArrayField(studentProfile, "schoolIds"));
-
-  return targets;
-}
-
-function addAssignmentCourses(courseIds, assignmentIds, assignmentIdByCourseId, assignments) {
-  var assignmentIndex = 0;
-
-  while (assignmentIndex < assignments.length) {
-    var assignment = assignments[assignmentIndex];
-
-    if (assignment && assignment.id) {
-      addUniqueText(assignmentIds, assignment.id);
-    }
-
-    if (assignment && assignment.courseId) {
-      addUniqueText(courseIds, assignment.courseId);
-      if (assignment.id && !assignmentIdByCourseId[assignment.courseId]) {
-        assignmentIdByCourseId[assignment.courseId] = assignment.id;
-      }
-    }
-
-    assignmentIndex = assignmentIndex + 1;
-  }
-}
-
-function isVisibleAssignment(assignment) {
-  if (!assignment || assignment.visibility === "hidden") {
-    return false;
-  }
-
-  if (assignment.assignmentType && assignment.assignmentType !== "course") {
-    return false;
-  }
-
-  return true;
-}
-
-function readDirectCourseIds(studentProfile, contextCourseIds) {
-  var courseIds = [];
-
-  addCourseIdList(courseIds, contextCourseIds);
-  addCourseIdList(courseIds, studentProfile ? studentProfile.assignedCourseIds : null);
-  addCourseIdList(courseIds, studentProfile ? studentProfile.courseIds : null);
-  addCourseIdList(courseIds, studentProfile ? studentProfile.courses : null);
-  addCourseIdList(courseIds, studentProfile ? studentProfile.assignedCourses : null);
-
-  return courseIds;
-}
-
-function addCourseIdList(courseIds, values) {
-  var valueIndex = 0;
-  var source = values;
-
-  if (!Array.isArray(source)) {
-    return;
-  }
-
-  while (valueIndex < source.length) {
-    addUniqueText(courseIds, readCourseId(source[valueIndex]));
-    valueIndex = valueIndex + 1;
-  }
-}
-
-function readCourseId(value) {
-  if (!value || typeof value !== "object") {
-    return readTextValue(value);
-  }
-
-  return readTextValue(value.id || value.courseId || value.refId || value.uid);
-}
-
-function addTarget(targets, targetType, targetId) {
-  if (typeof targetId !== "string" || targetId.length === 0) {
-    return;
-  }
-
-  if (hasTarget(targets, targetType, targetId)) {
-    return;
-  }
-
-  targets.push({
-    targetType: targetType,
-    targetId: targetId
-  });
-}
-
-function addTargetList(targets, targetType, values) {
-  var valueIndex = 0;
-
-  while (valueIndex < values.length) {
-    addTarget(targets, targetType, values[valueIndex]);
-    valueIndex = valueIndex + 1;
-  }
-}
-
-function addRecordTargetList(targets, targetType, values) {
-  var valueIndex = 0;
-  var source = values;
-
-  if (!Array.isArray(source)) {
-    source = [];
-  }
-
-  while (valueIndex < source.length) {
-    addTarget(targets, targetType, readRecordId(source[valueIndex], targetType));
-    valueIndex = valueIndex + 1;
-  }
-}
-
-function hasTarget(targets, targetType, targetId) {
-  var targetIndex = 0;
-
-  while (targetIndex < targets.length) {
-    if (targets[targetIndex].targetType === targetType && targets[targetIndex].targetId === targetId) {
-      return true;
-    }
-
-    targetIndex = targetIndex + 1;
-  }
-
-  return false;
+  return getAssignedCourseIds(actor && actor.id ? actor.id : "", studentProfile, contextCourseIds);
 }
 
 function addUniqueText(values, value) {
@@ -380,10 +170,6 @@ function addUniqueText(values, value) {
   if (values.indexOf(value) === -1) {
     values.push(value);
   }
-}
-
-function addReasonCount(reasons, reason) {
-  reasons[reason] = (reasons[reason] || 0) + 1;
 }
 
 function readErrorMessage(error) {
@@ -424,67 +210,49 @@ function isPreviewActor(actor) {
 }
 
 function validateStudentProfileForDashboard(studentProfile) {
-  if (!studentProfile) {
-    return {
-      valid: false,
-      errors: [
-        {
-          code: "STUDENT_PROFILE_MISSING",
-          message: "Student profile is required."
-        }
-      ]
-    };
+  var reason = readStudentProfileRejectReason(studentProfile);
+
+  if (isStudentDashboardProfile(studentProfile)) {
+    return { valid: true };
   }
 
-  if (!hasStudentRole(studentProfile)) {
-    return {
-      valid: false,
-      errors: [
-        {
-          code: "STUDENT_ROLE_REQUIRED",
-          message: "Only student accounts can open the student dashboard."
-        }
-      ]
-    };
+  return createStudentProfileValidationError(reason);
+}
+
+function createStudentProfileValidationError(reason) {
+  if (reason === "profile-missing") {
+    return createValidationError("STUDENT_PROFILE_MISSING", "Student profile is required.");
   }
 
-  if (!isActiveStudentProfile(studentProfile)) {
-    return {
-      valid: false,
-      errors: [
-        {
-          code: "STUDENT_ACCOUNT_INACTIVE",
-          message: "This student account is not active."
-        }
-      ]
-    };
+  if (reason === "not-student-role") {
+    return createValidationError("STUDENT_ROLE_REQUIRED", "Only student accounts can open the student dashboard.");
   }
 
-  if (!hasStudentClass(studentProfile)) {
-    return {
-      valid: false,
-      errors: [
-        {
-          code: "STUDENT_CLASS_REQUIRED",
-          message: "This student profile is missing a class."
-        }
-      ]
-    };
+  if (reason === "inactive-status") {
+    return createValidationError("STUDENT_ACCOUNT_INACTIVE", "This student account is not active.");
   }
 
-  if (!hasStudentLocation(studentProfile)) {
-    return {
-      valid: false,
-      errors: [
-        {
-          code: "STUDENT_LOCATION_REQUIRED",
-          message: "This student profile is missing a location."
-        }
-      ]
-    };
+  if (reason === "missing-class") {
+    return createValidationError("STUDENT_CLASS_REQUIRED", "This student profile is missing a class.");
   }
 
-  return { valid: true };
+  if (reason === "missing-location") {
+    return createValidationError("STUDENT_LOCATION_REQUIRED", "This student profile is missing a location.");
+  }
+
+  return createValidationError("STUDENT_PROFILE_INVALID", "Student profile is not valid for the dashboard.");
+}
+
+function createValidationError(code, message) {
+  return {
+    valid: false,
+    errors: [
+      {
+        code: code,
+        message: message
+      }
+    ]
+  };
 }
 
 function isActiveStudentStatus(status) {
@@ -576,27 +344,11 @@ function readFirstProfileClassId(profile) {
 }
 
 function readProfileClassIds(profile) {
-  var classIds = [];
-
-  addUniqueText(classIds, readTextField(profile, "classId"));
-  addTextList(classIds, readArrayField(profile, "classIds"));
-  addTextList(classIds, readArrayField(profile, "assignedClassIds"));
-  addTextList(classIds, readRecordList(profile ? profile.assignedClasses : null, "class"));
-  addTextList(classIds, readRecordList(profile ? profile.classRefs : null, "class"));
-  addTextList(classIds, readRecordList(profile ? profile.classes : null, "class"));
-
-  return classIds;
+  return readStudentClassIds(profile);
 }
 
 function readFirstProfileLocationId(profile) {
-  var locationIds = [];
-
-  addUniqueText(locationIds, readTextField(profile, "locationId"));
-  addUniqueText(locationIds, readTextField(profile, "primaryLocationId"));
-  addUniqueText(locationIds, readTextField(profile, "schoolId"));
-  addUniqueText(locationIds, readTextField(profile, "locId"));
-  addTextList(locationIds, readArrayField(profile, "locationIds"));
-  addTextList(locationIds, readArrayField(profile, "schoolIds"));
+  var locationIds = readStudentLocationIds(profile);
 
   return locationIds.length > 0 ? locationIds[0] : "";
 }
@@ -622,9 +374,21 @@ function logStudentCourseDebug(details) {
     classId: details.classId,
     classIds: details.classIds,
     queryPath: details.queryPaths,
+    directCount: details.directCount,
+    classCount: details.classCount,
+    locationCount: details.locationCount,
+    mergedCount: details.mergedCount,
     rawCourseCount: details.rawCourseCount,
     filteredCourseCount: details.filteredCourseCount,
     rejectionReasons: details.rejectionReasons
+  });
+
+  console.info("[assignments:student-load]", {
+    studentId: details.studentId,
+    classIds: details.classIds,
+    directCount: details.directCount,
+    classCount: details.classCount,
+    mergedCount: details.mergedCount
   });
 }
 

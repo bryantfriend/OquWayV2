@@ -1,5 +1,6 @@
-import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.63-external-task-student-feedback";
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.63-external-task-student-feedback";
+import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.71-course-assignment-cleanup";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.71-course-assignment-cleanup";
+import { calculateCourseCompletion, calculateCourseProgressSummary } from "../../../../../../../domain/progress/index.js";
 
 export async function processLoadStudentDashboard(executionState) {
   var courseResult = await processLoadStudentCourse(executionState);
@@ -19,7 +20,7 @@ export async function processLoadStudentDashboard(executionState) {
     continueLearning: continueLearning,
     intentionPoints: readIntentionPoints(student),
     dailyBonus: readDailyBonus(student),
-    progressSummary: buildProgressSummary(courses)
+    progressSummary: calculateCourseProgressSummary(courses)
   });
 
   return {
@@ -183,14 +184,7 @@ function readDailyBonus(student) {
 }
 
 function readCourseProgressPercent(course) {
-  var total = countCourseSteps(course);
-  var completed = countCourseCompletedSteps(course);
-
-  if (total <= 0) {
-    return 0;
-  }
-
-  return Math.round((completed / total) * 100);
+  return calculateCourseCompletion(course);
 }
 
 function countCourseSteps(course) {

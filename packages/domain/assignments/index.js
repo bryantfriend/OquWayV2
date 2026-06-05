@@ -5,11 +5,17 @@ export function normalizeCourseAssignment(assignment) {
 
   return Object.assign({}, safeAssignment, {
     id: readSafeString(safeAssignment.id || safeAssignment.assignmentId),
+    assignmentId: readSafeString(safeAssignment.assignmentId || safeAssignment.id),
+    assignmentType: readSafeString(safeAssignment.assignmentType || "course") || "course",
     courseId: readSafeString(safeAssignment.courseId),
     targetType: readSafeString(safeAssignment.targetType),
     targetId: readSafeString(safeAssignment.targetId),
+    locationId: readSafeString(safeAssignment.locationId),
+    classId: readSafeString(safeAssignment.classId),
+    studentId: readSafeString(safeAssignment.studentId),
     responsibleTeacherId: readSafeString(safeAssignment.responsibleTeacherId),
     assistantIds: Array.isArray(safeAssignment.assistantIds) ? safeAssignment.assistantIds.slice() : [],
+    visibility: readSafeString(safeAssignment.visibility || "visible") || "visible",
     status: readSafeString(safeAssignment.status || "active") || "active"
   });
 }

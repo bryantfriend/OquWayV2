@@ -1,7 +1,7 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.70-external-task-feedback";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.70-external-task-feedback";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.70-external-task-feedback";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.70-external-task-feedback";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.71-course-assignment-cleanup";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.71-course-assignment-cleanup";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.71-course-assignment-cleanup";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.71-course-assignment-cleanup";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {

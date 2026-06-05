@@ -4,201 +4,201 @@
 // ----------------------
 // Demo Verification
 // ----------------------
-export { DemoIntent } from "./demo/DemoIntent.js?v=1.1.70-external-task-feedback";
+export { DemoIntent } from "./demo/DemoIntent.js?v=1.1.71-course-assignment-cleanup";
 
 // ----------------------
 // Catalog Course (Full Production Specs)
 // ----------------------
-export { CreateCatalogCourseIntent } from "./catalogCourse/CreateCatalogCourseIntent.js?v=1.1.70-external-task-feedback";
-export { UpdateCatalogCourseMetadataIntent } from "./catalogCourse/UpdateCatalogCourseMetadataIntent.js?v=1.1.70-external-task-feedback";
-export { ArchiveCatalogCourseIntent } from "./catalogCourse/ArchiveCatalogCourseIntent.js?v=1.1.70-external-task-feedback";
-export { RestoreCatalogCourseIntent } from "./catalogCourse/RestoreCatalogCourseIntent.js?v=1.1.70-external-task-feedback";
-export { DeleteCatalogCourseIntent } from "./catalogCourse/DeleteCatalogCourseIntent.js?v=1.1.70-external-task-feedback";
+export { CreateCatalogCourseIntent } from "./catalogCourse/CreateCatalogCourseIntent.js?v=1.1.71-course-assignment-cleanup";
+export { UpdateCatalogCourseMetadataIntent } from "./catalogCourse/UpdateCatalogCourseMetadataIntent.js?v=1.1.71-course-assignment-cleanup";
+export { ArchiveCatalogCourseIntent } from "./catalogCourse/ArchiveCatalogCourseIntent.js?v=1.1.71-course-assignment-cleanup";
+export { RestoreCatalogCourseIntent } from "./catalogCourse/RestoreCatalogCourseIntent.js?v=1.1.71-course-assignment-cleanup";
+export { DeleteCatalogCourseIntent } from "./catalogCourse/DeleteCatalogCourseIntent.js?v=1.1.71-course-assignment-cleanup";
 
-export { CreateCatalogCourseVersionIntent } from "./catalogCourse/CreateCatalogCourseVersionIntent.js?v=1.1.70-external-task-feedback";
-export { PublishCatalogCourseVersionIntent } from "./catalogCourse/PublishCatalogCourseVersionIntent.js?v=1.1.70-external-task-feedback";
-export { RevertCatalogCourseVersionIntent } from "./catalogCourse/RevertCatalogCourseVersionIntent.js?v=1.1.70-external-task-feedback";
+export { CreateCatalogCourseVersionIntent } from "./catalogCourse/CreateCatalogCourseVersionIntent.js?v=1.1.71-course-assignment-cleanup";
+export { PublishCatalogCourseVersionIntent } from "./catalogCourse/PublishCatalogCourseVersionIntent.js?v=1.1.71-course-assignment-cleanup";
+export { RevertCatalogCourseVersionIntent } from "./catalogCourse/RevertCatalogCourseVersionIntent.js?v=1.1.71-course-assignment-cleanup";
 
-export { CreateCatalogModuleIntent } from "./catalogCourse/CreateCatalogModuleIntent.js?v=1.1.70-external-task-feedback";
-export { UpdateCatalogModuleIntent } from "./catalogCourse/UpdateCatalogModuleIntent.js?v=1.1.70-external-task-feedback";
-export { ReorderCatalogModulesIntent } from "./catalogCourse/ReorderCatalogModulesIntent.js?v=1.1.70-external-task-feedback";
-export { DeleteCatalogModuleIntent } from "./catalogCourse/DeleteCatalogModuleIntent.js?v=1.1.70-external-task-feedback";
+export { CreateCatalogModuleIntent } from "./catalogCourse/CreateCatalogModuleIntent.js?v=1.1.71-course-assignment-cleanup";
+export { UpdateCatalogModuleIntent } from "./catalogCourse/UpdateCatalogModuleIntent.js?v=1.1.71-course-assignment-cleanup";
+export { ReorderCatalogModulesIntent } from "./catalogCourse/ReorderCatalogModulesIntent.js?v=1.1.71-course-assignment-cleanup";
+export { DeleteCatalogModuleIntent } from "./catalogCourse/DeleteCatalogModuleIntent.js?v=1.1.71-course-assignment-cleanup";
 
-export { CreateCatalogStepIntent } from "./catalogCourse/CreateCatalogStepIntent.js?v=1.1.70-external-task-feedback";
-export { UpdateCatalogStepIntent } from "./catalogCourse/UpdateCatalogStepIntent.js?v=1.1.70-external-task-feedback";
-export { DeleteCatalogStepIntent } from "./catalogCourse/DeleteCatalogStepIntent.js?v=1.1.70-external-task-feedback";
-export { ReorderCatalogStepsIntent } from "./catalogCourse/ReorderCatalogStepsIntent.js?v=1.1.70-external-task-feedback";
+export { CreateCatalogStepIntent } from "./catalogCourse/CreateCatalogStepIntent.js?v=1.1.71-course-assignment-cleanup";
+export { UpdateCatalogStepIntent } from "./catalogCourse/UpdateCatalogStepIntent.js?v=1.1.71-course-assignment-cleanup";
+export { DeleteCatalogStepIntent } from "./catalogCourse/DeleteCatalogStepIntent.js?v=1.1.71-course-assignment-cleanup";
+export { ReorderCatalogStepsIntent } from "./catalogCourse/ReorderCatalogStepsIntent.js?v=1.1.71-course-assignment-cleanup";
 
-export { AddTagToCatalogCourseIntent } from "./catalogCourse/AddTagToCatalogCourseIntent.js?v=1.1.70-external-task-feedback";
-export { RemoveTagFromCatalogCourseIntent } from "./catalogCourse/RemoveTagFromCatalogCourseIntent.js?v=1.1.70-external-task-feedback";
+export { AddTagToCatalogCourseIntent } from "./catalogCourse/AddTagToCatalogCourseIntent.js?v=1.1.71-course-assignment-cleanup";
+export { RemoveTagFromCatalogCourseIntent } from "./catalogCourse/RemoveTagFromCatalogCourseIntent.js?v=1.1.71-course-assignment-cleanup";
 
-export { FetchAllCatalogCoursesIntent } from "./catalogCourse/FetchAllCatalogCoursesIntent.js?v=1.1.70-external-task-feedback";
-export { FetchCatalogCourseByIdIntent } from "./catalogCourse/FetchCatalogCourseByIdIntent.js?v=1.1.70-external-task-feedback";
-export { FetchCatalogCourseVersionsIntent } from "./catalogCourse/FetchCatalogCourseVersionsIntent.js?v=1.1.70-external-task-feedback";
+export { FetchAllCatalogCoursesIntent } from "./catalogCourse/FetchAllCatalogCoursesIntent.js?v=1.1.71-course-assignment-cleanup";
+export { FetchCatalogCourseByIdIntent } from "./catalogCourse/FetchCatalogCourseByIdIntent.js?v=1.1.71-course-assignment-cleanup";
+export { FetchCatalogCourseVersionsIntent } from "./catalogCourse/FetchCatalogCourseVersionsIntent.js?v=1.1.71-course-assignment-cleanup";
 
 // ----------------------
 // Course Sandbox
 // ----------------------
-export { CreateCourseIntent } from "./course/CreateCourseIntent.js?v=1.1.70-external-task-feedback";
-export { LoadCoursesIntent } from "./course/LoadCoursesIntent.js?v=1.1.70-external-task-feedback";
-export { ListCoursesIntent } from "./course/ListCoursesIntent.js?v=1.1.70-external-task-feedback";
-export { UpdateCourseIntent } from "./course/UpdateCourseIntent.js?v=1.1.70-external-task-feedback";
-export { UpdateCourseMetadataIntent } from "./course/UpdateCourseMetadataIntent.js?v=1.1.70-external-task-feedback";
-export { DeleteCourseIntent } from "./course/DeleteCourseIntent.js?v=1.1.70-external-task-feedback";
-export { ArchiveCourseIntent } from "./course/ArchiveCourseIntent.js?v=1.1.70-external-task-feedback";
+export { CreateCourseIntent } from "./course/CreateCourseIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadCoursesIntent } from "./course/LoadCoursesIntent.js?v=1.1.71-course-assignment-cleanup";
+export { ListCoursesIntent } from "./course/ListCoursesIntent.js?v=1.1.71-course-assignment-cleanup";
+export { UpdateCourseIntent } from "./course/UpdateCourseIntent.js?v=1.1.71-course-assignment-cleanup";
+export { UpdateCourseMetadataIntent } from "./course/UpdateCourseMetadataIntent.js?v=1.1.71-course-assignment-cleanup";
+export { DeleteCourseIntent } from "./course/DeleteCourseIntent.js?v=1.1.71-course-assignment-cleanup";
+export { ArchiveCourseIntent } from "./course/ArchiveCourseIntent.js?v=1.1.71-course-assignment-cleanup";
 
 // ----------------------
 // Course Assignments
 // ----------------------
-export { AssignCourseAssistantsIntent } from "./courseAssignment/AssignCourseAssistantsIntent.js?v=1.1.70-external-task-feedback";
-export { AssignCourseTeacherIntent } from "./courseAssignment/AssignCourseTeacherIntent.js?v=1.1.70-external-task-feedback";
-export { CreateCourseAssignmentIntent } from "./courseAssignment/CreateCourseAssignmentIntent.js?v=1.1.70-external-task-feedback";
-export { ListCourseAssignmentsIntent } from "./courseAssignment/ListCourseAssignmentsIntent.js?v=1.1.70-external-task-feedback";
-export { LoadCourseAssignmentOwnershipIntent } from "./courseAssignment/LoadCourseAssignmentOwnershipIntent.js?v=1.1.70-external-task-feedback";
-export { LoadCourseAssignmentsIntent } from "./courseAssignment/LoadCourseAssignmentsIntent.js?v=1.1.70-external-task-feedback";
-export { UpdateCourseAssignmentIntent } from "./courseAssignment/UpdateCourseAssignmentIntent.js?v=1.1.70-external-task-feedback";
-export { ArchiveCourseAssignmentIntent } from "./courseAssignment/ArchiveCourseAssignmentIntent.js?v=1.1.70-external-task-feedback";
-export { DisableCourseAssignmentIntent } from "./courseAssignment/DisableCourseAssignmentIntent.js?v=1.1.70-external-task-feedback";
-export { DeleteCourseAssignmentIntent } from "./courseAssignment/DeleteCourseAssignmentIntent.js?v=1.1.70-external-task-feedback";
+export { AssignCourseAssistantsIntent } from "./courseAssignment/AssignCourseAssistantsIntent.js?v=1.1.71-course-assignment-cleanup";
+export { AssignCourseTeacherIntent } from "./courseAssignment/AssignCourseTeacherIntent.js?v=1.1.71-course-assignment-cleanup";
+export { CreateCourseAssignmentIntent } from "./courseAssignment/CreateCourseAssignmentIntent.js?v=1.1.71-course-assignment-cleanup";
+export { ListCourseAssignmentsIntent } from "./courseAssignment/ListCourseAssignmentsIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadCourseAssignmentOwnershipIntent } from "./courseAssignment/LoadCourseAssignmentOwnershipIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadCourseAssignmentsIntent } from "./courseAssignment/LoadCourseAssignmentsIntent.js?v=1.1.71-course-assignment-cleanup";
+export { UpdateCourseAssignmentIntent } from "./courseAssignment/UpdateCourseAssignmentIntent.js?v=1.1.71-course-assignment-cleanup";
+export { ArchiveCourseAssignmentIntent } from "./courseAssignment/ArchiveCourseAssignmentIntent.js?v=1.1.71-course-assignment-cleanup";
+export { DisableCourseAssignmentIntent } from "./courseAssignment/DisableCourseAssignmentIntent.js?v=1.1.71-course-assignment-cleanup";
+export { DeleteCourseAssignmentIntent } from "./courseAssignment/DeleteCourseAssignmentIntent.js?v=1.1.71-course-assignment-cleanup";
 
 // ----------------------
 // External Tasks
 // ----------------------
-export { LoadExternalTaskStepIntent } from "./externalTask/LoadExternalTaskStepIntent.js?v=1.1.70-external-task-feedback";
-export { LoadStudentExternalTaskSubmissionIntent } from "./externalTask/LoadStudentExternalTaskSubmissionIntent.js?v=1.1.70-external-task-feedback";
-export { SubmitExternalTaskIntent } from "./externalTask/SubmitExternalTaskIntent.js?v=1.1.70-external-task-feedback";
-export { UploadExternalTaskFileIntent } from "./externalTask/UploadExternalTaskFileIntent.js?v=1.1.70-external-task-feedback";
-export { LoadExternalTaskSubmissionsIntent } from "./externalTask/LoadExternalTaskSubmissionsIntent.js?v=1.1.70-external-task-feedback";
-export { ReviewExternalTaskSubmissionIntent } from "./externalTask/ReviewExternalTaskSubmissionIntent.js?v=1.1.70-external-task-feedback";
-export { ResubmitExternalTaskIntent } from "./externalTask/ResubmitExternalTaskIntent.js?v=1.1.70-external-task-feedback";
+export { LoadExternalTaskStepIntent } from "./externalTask/LoadExternalTaskStepIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadStudentExternalTaskSubmissionIntent } from "./externalTask/LoadStudentExternalTaskSubmissionIntent.js?v=1.1.71-course-assignment-cleanup";
+export { SubmitExternalTaskIntent } from "./externalTask/SubmitExternalTaskIntent.js?v=1.1.71-course-assignment-cleanup";
+export { UploadExternalTaskFileIntent } from "./externalTask/UploadExternalTaskFileIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadExternalTaskSubmissionsIntent } from "./externalTask/LoadExternalTaskSubmissionsIntent.js?v=1.1.71-course-assignment-cleanup";
+export { ReviewExternalTaskSubmissionIntent } from "./externalTask/ReviewExternalTaskSubmissionIntent.js?v=1.1.71-course-assignment-cleanup";
+export { ResubmitExternalTaskIntent } from "./externalTask/ResubmitExternalTaskIntent.js?v=1.1.71-course-assignment-cleanup";
 
 // ----------------------
 // Teacher Dashboard
 // ----------------------
-export { TeacherLoginIntent } from "./teacher/TeacherLoginIntent.js?v=1.1.70-external-task-feedback";
-export { LoadTeacherClassDetailIntent } from "./teacher/LoadTeacherClassDetailIntent.js?v=1.1.70-external-task-feedback";
-export { LoadTeacherCourseDetailIntent } from "./teacher/LoadTeacherCourseDetailIntent.js?v=1.1.70-external-task-feedback";
-export { LoadTeacherCoursesIntent } from "./teacher/LoadTeacherCoursesIntent.js?v=1.1.70-external-task-feedback";
-export { LoadTeacherDashboardIntent } from "./teacher/LoadTeacherDashboardIntent.js?v=1.1.70-external-task-feedback";
-export { LoadTeacherClassesIntent } from "./teacher/LoadTeacherClassesIntent.js?v=1.1.70-external-task-feedback";
-export { LoadTeacherStudentsIntent } from "./teacher/LoadTeacherStudentsIntent.js?v=1.1.70-external-task-feedback";
-export { LoadTeacherReviewQueueIntent } from "./teacher/LoadTeacherReviewQueueIntent.js?v=1.1.70-external-task-feedback";
-export { SendTeacherPasswordResetIntent } from "./teacher/SendTeacherPasswordResetIntent.js?v=1.1.70-external-task-feedback";
+export { TeacherLoginIntent } from "./teacher/TeacherLoginIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadTeacherClassDetailIntent } from "./teacher/LoadTeacherClassDetailIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadTeacherCourseDetailIntent } from "./teacher/LoadTeacherCourseDetailIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadTeacherCoursesIntent } from "./teacher/LoadTeacherCoursesIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadTeacherDashboardIntent } from "./teacher/LoadTeacherDashboardIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadTeacherClassesIntent } from "./teacher/LoadTeacherClassesIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadTeacherStudentsIntent } from "./teacher/LoadTeacherStudentsIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadTeacherReviewQueueIntent } from "./teacher/LoadTeacherReviewQueueIntent.js?v=1.1.71-course-assignment-cleanup";
+export { SendTeacherPasswordResetIntent } from "./teacher/SendTeacherPasswordResetIntent.js?v=1.1.71-course-assignment-cleanup";
 
 // ----------------------
 // Locations / Login Settings
 // ----------------------
-export { ListLocationsIntent } from "./location/ListLocationsIntent.js?v=1.1.70-external-task-feedback";
-export { LoadLocationsIntent } from "./location/LoadLocationsIntent.js?v=1.1.70-external-task-feedback";
-export { ResolveLocationBySlugIntent } from "./location/ResolveLocationBySlugIntent.js?v=1.1.70-external-task-feedback";
-export { UpdateLocationLoginModeIntent } from "./location/UpdateLocationLoginModeIntent.js?v=1.1.70-external-task-feedback";
-export { UpdateLocationLoginSlugIntent } from "./location/UpdateLocationLoginSlugIntent.js?v=1.1.70-external-task-feedback";
+export { ListLocationsIntent } from "./location/ListLocationsIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadLocationsIntent } from "./location/LoadLocationsIntent.js?v=1.1.71-course-assignment-cleanup";
+export { ResolveLocationBySlugIntent } from "./location/ResolveLocationBySlugIntent.js?v=1.1.71-course-assignment-cleanup";
+export { UpdateLocationLoginModeIntent } from "./location/UpdateLocationLoginModeIntent.js?v=1.1.71-course-assignment-cleanup";
+export { UpdateLocationLoginSlugIntent } from "./location/UpdateLocationLoginSlugIntent.js?v=1.1.71-course-assignment-cleanup";
 
 // ----------------------
 // Student Login
 // ----------------------
-export { LoadClassesForLocationIntent } from "./studentLogin/LoadClassesForLocationIntent.js?v=1.1.70-external-task-feedback";
-export { LoadStudentsForClassIntent } from "./studentLogin/LoadStudentsForClassIntent.js?v=1.1.70-external-task-feedback";
-export { StudentFruitLoginIntent } from "./studentLogin/StudentFruitLoginIntent.js?v=1.1.70-external-task-feedback";
-export { StudentStandardLoginIntent } from "./studentLogin/StudentStandardLoginIntent.js?v=1.1.70-external-task-feedback";
-export { LoadStudentProfileIntent } from "./studentLogin/LoadStudentProfileIntent.js?v=1.1.70-external-task-feedback";
-export { StartStudentSessionIntent } from "./studentLogin/StartStudentSessionIntent.js?v=1.1.70-external-task-feedback";
-export { AssignClassAssistantsIntent } from "./superAdmin/AssignClassAssistantsIntent.js?v=1.1.70-external-task-feedback";
-export { AssignClassTeacherIntent } from "./superAdmin/AssignClassTeacherIntent.js?v=1.1.70-external-task-feedback";
-export { CreateClassIntent } from "./superAdmin/CreateClassIntent.js?v=1.1.70-external-task-feedback";
-export { CreateLocationIntent } from "./superAdmin/CreateLocationIntent.js?v=1.1.70-external-task-feedback";
-export { CreateStudentIntent } from "./superAdmin/CreateStudentIntent.js?v=1.1.70-external-task-feedback";
-export { ListClassesIntent } from "./superAdmin/ListClassesIntent.js?v=1.1.70-external-task-feedback";
-export { ListStudentsIntent } from "./superAdmin/ListStudentsIntent.js?v=1.1.70-external-task-feedback";
-export { LoadClassOwnershipIntent } from "./superAdmin/LoadClassOwnershipIntent.js?v=1.1.70-external-task-feedback";
-export { LoadAdminProfileIntent } from "./superAdmin/LoadAdminProfileIntent.js?v=1.1.70-external-task-feedback";
-export { ResetStudentFruitPasswordIntent } from "./superAdmin/ResetStudentFruitPasswordIntent.js?v=1.1.70-external-task-feedback";
-export { SetStudentStatusIntent } from "./superAdmin/SetStudentStatusIntent.js?v=1.1.70-external-task-feedback";
-export { UpdateClassIntent } from "./superAdmin/UpdateClassIntent.js?v=1.1.70-external-task-feedback";
-export { UpdateLocationIntent } from "./superAdmin/UpdateLocationIntent.js?v=1.1.70-external-task-feedback";
-export { UpdateStudentIntent } from "./superAdmin/UpdateStudentIntent.js?v=1.1.70-external-task-feedback";
-export { VerifySuperAdminAccessIntent } from "./superAdmin/VerifySuperAdminAccessIntent.js?v=1.1.70-external-task-feedback";
+export { LoadClassesForLocationIntent } from "./studentLogin/LoadClassesForLocationIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadStudentsForClassIntent } from "./studentLogin/LoadStudentsForClassIntent.js?v=1.1.71-course-assignment-cleanup";
+export { StudentFruitLoginIntent } from "./studentLogin/StudentFruitLoginIntent.js?v=1.1.71-course-assignment-cleanup";
+export { StudentStandardLoginIntent } from "./studentLogin/StudentStandardLoginIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadStudentProfileIntent } from "./studentLogin/LoadStudentProfileIntent.js?v=1.1.71-course-assignment-cleanup";
+export { StartStudentSessionIntent } from "./studentLogin/StartStudentSessionIntent.js?v=1.1.71-course-assignment-cleanup";
+export { AssignClassAssistantsIntent } from "./superAdmin/AssignClassAssistantsIntent.js?v=1.1.71-course-assignment-cleanup";
+export { AssignClassTeacherIntent } from "./superAdmin/AssignClassTeacherIntent.js?v=1.1.71-course-assignment-cleanup";
+export { CreateClassIntent } from "./superAdmin/CreateClassIntent.js?v=1.1.71-course-assignment-cleanup";
+export { CreateLocationIntent } from "./superAdmin/CreateLocationIntent.js?v=1.1.71-course-assignment-cleanup";
+export { CreateStudentIntent } from "./superAdmin/CreateStudentIntent.js?v=1.1.71-course-assignment-cleanup";
+export { ListClassesIntent } from "./superAdmin/ListClassesIntent.js?v=1.1.71-course-assignment-cleanup";
+export { ListStudentsIntent } from "./superAdmin/ListStudentsIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadClassOwnershipIntent } from "./superAdmin/LoadClassOwnershipIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadAdminProfileIntent } from "./superAdmin/LoadAdminProfileIntent.js?v=1.1.71-course-assignment-cleanup";
+export { ResetStudentFruitPasswordIntent } from "./superAdmin/ResetStudentFruitPasswordIntent.js?v=1.1.71-course-assignment-cleanup";
+export { SetStudentStatusIntent } from "./superAdmin/SetStudentStatusIntent.js?v=1.1.71-course-assignment-cleanup";
+export { UpdateClassIntent } from "./superAdmin/UpdateClassIntent.js?v=1.1.71-course-assignment-cleanup";
+export { UpdateLocationIntent } from "./superAdmin/UpdateLocationIntent.js?v=1.1.71-course-assignment-cleanup";
+export { UpdateStudentIntent } from "./superAdmin/UpdateStudentIntent.js?v=1.1.71-course-assignment-cleanup";
+export { VerifySuperAdminAccessIntent } from "./superAdmin/VerifySuperAdminAccessIntent.js?v=1.1.71-course-assignment-cleanup";
 
 // ----------------------
 // Course Editor (Phase 2 UI Intents)
 // ----------------------
-export { OpenCourseEditorIntent } from "./courseEditor/OpenCourseEditorIntent.js?v=1.1.70-external-task-feedback";
-export { LoadCourseIntent } from "./courseEditor/LoadCourseIntent.js?v=1.1.70-external-task-feedback";
-export { LoadModulesIntent } from "./courseEditor/LoadModulesIntent.js?v=1.1.70-external-task-feedback";
-export { LoadCourseModulesIntent } from "./courseEditor/LoadCourseModulesIntent.js?v=1.1.70-external-task-feedback";
-export { PreviewCourseIntent } from "./courseEditor/PreviewCourseIntent.js?v=1.1.70-external-task-feedback";
-export { CreateModuleIntent } from "./courseEditor/CreateModuleIntent.js?v=1.1.70-external-task-feedback";
-export { OpenCreateModuleWizardIntent } from "./courseEditor/OpenCreateModuleWizardIntent.js?v=1.1.70-external-task-feedback";
-export { ParseLearningContentIntent } from "./courseEditor/ParseLearningContentIntent.js?v=1.1.70-external-task-feedback";
-export { CreateModuleFromWizardIntent } from "./courseEditor/CreateModuleFromWizardIntent.js?v=1.1.70-external-task-feedback";
-export { GenerateModuleSkeletonIntent } from "./courseEditor/GenerateModuleSkeletonIntent.js?v=1.1.70-external-task-feedback";
-export { GenerateStarterStepsIntent } from "./courseEditor/GenerateStarterStepsIntent.js?v=1.1.70-external-task-feedback";
-export { ListModulesIntent } from "./courseEditor/ListModulesIntent.js?v=1.1.70-external-task-feedback";
-export { UpdateModuleIntent } from "./courseEditor/UpdateModuleIntent.js?v=1.1.70-external-task-feedback";
-export { AddModuleIntent } from "./courseEditor/AddModuleIntent.js?v=1.1.70-external-task-feedback";
-export { UpdateModuleFieldIntent } from "./courseEditor/UpdateModuleFieldIntent.js?v=1.1.70-external-task-feedback";
-export { ReorderModulesIntent } from "./courseEditor/ReorderModulesIntent.js?v=1.1.70-external-task-feedback";
-export { DeleteModuleIntent } from "./courseEditor/DeleteModuleIntent.js?v=1.1.70-external-task-feedback";
-export { DuplicateModuleIntent } from "./courseEditor/DuplicateModuleIntent.js?v=1.1.70-external-task-feedback";
-export { SaveCourseDraftIntent } from "./courseEditor/SaveCourseDraftIntent.js?v=1.1.70-external-task-feedback";
-export { PublishCourseIntent } from "./courseEditor/PublishCourseIntent.js?v=1.1.70-external-task-feedback";
-export { ValidateCourseStructureIntent } from "./courseEditor/ValidateCourseStructureIntent.js?v=1.1.70-external-task-feedback";
-export { UpdateCourseFieldIntent } from "./courseEditor/UpdateCourseFieldIntent.js?v=1.1.70-external-task-feedback";
-export { MigrateLegacyModulesToCatalogCourseIntent } from "./courseEditor/MigrateLegacyModulesToCatalogCourseIntent.js?v=1.1.70-external-task-feedback";
+export { OpenCourseEditorIntent } from "./courseEditor/OpenCourseEditorIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadCourseIntent } from "./courseEditor/LoadCourseIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadModulesIntent } from "./courseEditor/LoadModulesIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadCourseModulesIntent } from "./courseEditor/LoadCourseModulesIntent.js?v=1.1.71-course-assignment-cleanup";
+export { PreviewCourseIntent } from "./courseEditor/PreviewCourseIntent.js?v=1.1.71-course-assignment-cleanup";
+export { CreateModuleIntent } from "./courseEditor/CreateModuleIntent.js?v=1.1.71-course-assignment-cleanup";
+export { OpenCreateModuleWizardIntent } from "./courseEditor/OpenCreateModuleWizardIntent.js?v=1.1.71-course-assignment-cleanup";
+export { ParseLearningContentIntent } from "./courseEditor/ParseLearningContentIntent.js?v=1.1.71-course-assignment-cleanup";
+export { CreateModuleFromWizardIntent } from "./courseEditor/CreateModuleFromWizardIntent.js?v=1.1.71-course-assignment-cleanup";
+export { GenerateModuleSkeletonIntent } from "./courseEditor/GenerateModuleSkeletonIntent.js?v=1.1.71-course-assignment-cleanup";
+export { GenerateStarterStepsIntent } from "./courseEditor/GenerateStarterStepsIntent.js?v=1.1.71-course-assignment-cleanup";
+export { ListModulesIntent } from "./courseEditor/ListModulesIntent.js?v=1.1.71-course-assignment-cleanup";
+export { UpdateModuleIntent } from "./courseEditor/UpdateModuleIntent.js?v=1.1.71-course-assignment-cleanup";
+export { AddModuleIntent } from "./courseEditor/AddModuleIntent.js?v=1.1.71-course-assignment-cleanup";
+export { UpdateModuleFieldIntent } from "./courseEditor/UpdateModuleFieldIntent.js?v=1.1.71-course-assignment-cleanup";
+export { ReorderModulesIntent } from "./courseEditor/ReorderModulesIntent.js?v=1.1.71-course-assignment-cleanup";
+export { DeleteModuleIntent } from "./courseEditor/DeleteModuleIntent.js?v=1.1.71-course-assignment-cleanup";
+export { DuplicateModuleIntent } from "./courseEditor/DuplicateModuleIntent.js?v=1.1.71-course-assignment-cleanup";
+export { SaveCourseDraftIntent } from "./courseEditor/SaveCourseDraftIntent.js?v=1.1.71-course-assignment-cleanup";
+export { PublishCourseIntent } from "./courseEditor/PublishCourseIntent.js?v=1.1.71-course-assignment-cleanup";
+export { ValidateCourseStructureIntent } from "./courseEditor/ValidateCourseStructureIntent.js?v=1.1.71-course-assignment-cleanup";
+export { UpdateCourseFieldIntent } from "./courseEditor/UpdateCourseFieldIntent.js?v=1.1.71-course-assignment-cleanup";
+export { MigrateLegacyModulesToCatalogCourseIntent } from "./courseEditor/MigrateLegacyModulesToCatalogCourseIntent.js?v=1.1.71-course-assignment-cleanup";
 
 // ----------------------
 // Module Editor
 // ----------------------
-export { OpenModuleEditorIntent } from "./moduleEditor/OpenModuleEditorIntent.js?v=1.1.70-external-task-feedback";
-export { LoadLearningContentIntent } from "./moduleEditor/LoadLearningContentIntent.js?v=1.1.70-external-task-feedback";
-export { SaveLearningContentIntent } from "./moduleEditor/SaveLearningContentIntent.js?v=1.1.70-external-task-feedback";
-export { LoadLearningModesIntent } from "./moduleEditor/LoadLearningModesIntent.js?v=1.1.70-external-task-feedback";
-export { CreateLearningModeIntent } from "./moduleEditor/CreateLearningModeIntent.js?v=1.1.70-external-task-feedback";
-export { RenameLearningModeIntent } from "./moduleEditor/RenameLearningModeIntent.js?v=1.1.70-external-task-feedback";
-export { DeleteLearningModeIntent } from "./moduleEditor/DeleteLearningModeIntent.js?v=1.1.70-external-task-feedback";
-export { DuplicateLearningModeIntent } from "./moduleEditor/DuplicateLearningModeIntent.js?v=1.1.70-external-task-feedback";
-export { GenerateModeFromPrimaryIntent } from "./moduleEditor/GenerateModeFromPrimaryIntent.js?v=1.1.70-external-task-feedback";
-export { PullLearningContentIntent } from "./moduleEditor/PullLearningContentIntent.js?v=1.1.70-external-task-feedback";
-export { PreviewStepIntent } from "./moduleEditor/PreviewStepIntent.js?v=1.1.70-external-task-feedback";
-export { AddStepToLearningModeIntent } from "./moduleEditor/AddStepToLearningModeIntent.js?v=1.1.70-external-task-feedback";
-export { UpdateLearningModeStepIntent } from "./moduleEditor/UpdateLearningModeStepIntent.js?v=1.1.70-external-task-feedback";
-export { AddStepToPracticeModeIntent } from "./moduleEditor/AddStepToPracticeModeIntent.js?v=1.1.70-external-task-feedback";
-export { CreatePracticeModeShellsIntent } from "./moduleEditor/CreatePracticeModeShellsIntent.js?v=1.1.70-external-task-feedback";
-export { CreateSessionIntent } from "./moduleEditor/CreateSessionIntent.js?v=1.1.70-external-task-feedback";
-export { LoadStepsIntent } from "./moduleEditor/LoadStepsIntent.js?v=1.1.70-external-task-feedback";
-export { CreateStepIntent } from "./moduleEditor/CreateStepIntent.js?v=1.1.70-external-task-feedback";
-export { UpdateStepIntent } from "./moduleEditor/UpdateStepIntent.js?v=1.1.70-external-task-feedback";
-export { DeleteStepIntent } from "./moduleEditor/DeleteStepIntent.js?v=1.1.70-external-task-feedback";
-export { ReorderStepsIntent } from "./moduleEditor/ReorderStepsIntent.js?v=1.1.70-external-task-feedback";
-export { DeletePracticeModeStepIntent } from "./moduleEditor/DeletePracticeModeStepIntent.js?v=1.1.70-external-task-feedback";
-export { ListPracticeModeStepsIntent } from "./moduleEditor/ListPracticeModeStepsIntent.js?v=1.1.70-external-task-feedback";
-export { ListSessionsIntent } from "./moduleEditor/ListSessionsIntent.js?v=1.1.70-external-task-feedback";
-export { ReorderPracticeModeStepsIntent } from "./moduleEditor/ReorderPracticeModeStepsIntent.js?v=1.1.70-external-task-feedback";
-export { UpdatePracticeModeIntent } from "./moduleEditor/UpdatePracticeModeIntent.js?v=1.1.70-external-task-feedback";
-export { UpdatePracticeModeStepIntent } from "./moduleEditor/UpdatePracticeModeStepIntent.js?v=1.1.70-external-task-feedback";
-export { UploadStepMediaIntent } from "./moduleEditor/UploadStepMediaIntent.js?v=1.1.70-external-task-feedback";
-export { UpdateSessionIntent } from "./moduleEditor/UpdateSessionIntent.js?v=1.1.70-external-task-feedback";
-export { AddStepIntent } from "./moduleEditor/AddStepIntent.js?v=1.1.70-external-task-feedback";
-export { UpdateStepFieldIntent } from "./moduleEditor/UpdateStepFieldIntent.js?v=1.1.70-external-task-feedback";
-export { SaveModuleDraftIntent } from "./moduleEditor/SaveModuleDraftIntent.js?v=1.1.70-external-task-feedback";
+export { OpenModuleEditorIntent } from "./moduleEditor/OpenModuleEditorIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadLearningContentIntent } from "./moduleEditor/LoadLearningContentIntent.js?v=1.1.71-course-assignment-cleanup";
+export { SaveLearningContentIntent } from "./moduleEditor/SaveLearningContentIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadLearningModesIntent } from "./moduleEditor/LoadLearningModesIntent.js?v=1.1.71-course-assignment-cleanup";
+export { CreateLearningModeIntent } from "./moduleEditor/CreateLearningModeIntent.js?v=1.1.71-course-assignment-cleanup";
+export { RenameLearningModeIntent } from "./moduleEditor/RenameLearningModeIntent.js?v=1.1.71-course-assignment-cleanup";
+export { DeleteLearningModeIntent } from "./moduleEditor/DeleteLearningModeIntent.js?v=1.1.71-course-assignment-cleanup";
+export { DuplicateLearningModeIntent } from "./moduleEditor/DuplicateLearningModeIntent.js?v=1.1.71-course-assignment-cleanup";
+export { GenerateModeFromPrimaryIntent } from "./moduleEditor/GenerateModeFromPrimaryIntent.js?v=1.1.71-course-assignment-cleanup";
+export { PullLearningContentIntent } from "./moduleEditor/PullLearningContentIntent.js?v=1.1.71-course-assignment-cleanup";
+export { PreviewStepIntent } from "./moduleEditor/PreviewStepIntent.js?v=1.1.71-course-assignment-cleanup";
+export { AddStepToLearningModeIntent } from "./moduleEditor/AddStepToLearningModeIntent.js?v=1.1.71-course-assignment-cleanup";
+export { UpdateLearningModeStepIntent } from "./moduleEditor/UpdateLearningModeStepIntent.js?v=1.1.71-course-assignment-cleanup";
+export { AddStepToPracticeModeIntent } from "./moduleEditor/AddStepToPracticeModeIntent.js?v=1.1.71-course-assignment-cleanup";
+export { CreatePracticeModeShellsIntent } from "./moduleEditor/CreatePracticeModeShellsIntent.js?v=1.1.71-course-assignment-cleanup";
+export { CreateSessionIntent } from "./moduleEditor/CreateSessionIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadStepsIntent } from "./moduleEditor/LoadStepsIntent.js?v=1.1.71-course-assignment-cleanup";
+export { CreateStepIntent } from "./moduleEditor/CreateStepIntent.js?v=1.1.71-course-assignment-cleanup";
+export { UpdateStepIntent } from "./moduleEditor/UpdateStepIntent.js?v=1.1.71-course-assignment-cleanup";
+export { DeleteStepIntent } from "./moduleEditor/DeleteStepIntent.js?v=1.1.71-course-assignment-cleanup";
+export { ReorderStepsIntent } from "./moduleEditor/ReorderStepsIntent.js?v=1.1.71-course-assignment-cleanup";
+export { DeletePracticeModeStepIntent } from "./moduleEditor/DeletePracticeModeStepIntent.js?v=1.1.71-course-assignment-cleanup";
+export { ListPracticeModeStepsIntent } from "./moduleEditor/ListPracticeModeStepsIntent.js?v=1.1.71-course-assignment-cleanup";
+export { ListSessionsIntent } from "./moduleEditor/ListSessionsIntent.js?v=1.1.71-course-assignment-cleanup";
+export { ReorderPracticeModeStepsIntent } from "./moduleEditor/ReorderPracticeModeStepsIntent.js?v=1.1.71-course-assignment-cleanup";
+export { UpdatePracticeModeIntent } from "./moduleEditor/UpdatePracticeModeIntent.js?v=1.1.71-course-assignment-cleanup";
+export { UpdatePracticeModeStepIntent } from "./moduleEditor/UpdatePracticeModeStepIntent.js?v=1.1.71-course-assignment-cleanup";
+export { UploadStepMediaIntent } from "./moduleEditor/UploadStepMediaIntent.js?v=1.1.71-course-assignment-cleanup";
+export { UpdateSessionIntent } from "./moduleEditor/UpdateSessionIntent.js?v=1.1.71-course-assignment-cleanup";
+export { AddStepIntent } from "./moduleEditor/AddStepIntent.js?v=1.1.71-course-assignment-cleanup";
+export { UpdateStepFieldIntent } from "./moduleEditor/UpdateStepFieldIntent.js?v=1.1.71-course-assignment-cleanup";
+export { SaveModuleDraftIntent } from "./moduleEditor/SaveModuleDraftIntent.js?v=1.1.71-course-assignment-cleanup";
 
 // ----------------------
 // Student Dashboard / Player
 // ----------------------
-export { LoadStudentCourseIntent } from "./student/LoadStudentCourseIntent.js?v=1.1.70-external-task-feedback";
-export { LoadStudentDashboardIntent } from "./student/LoadStudentDashboardIntent.js?v=1.1.70-external-task-feedback";
-export { LoadStudentCoursesIntent } from "./student/LoadStudentCoursesIntent.js?v=1.1.70-external-task-feedback";
-export { LoadStudentCourseStructureIntent } from "./student/LoadStudentCourseStructureIntent.js?v=1.1.70-external-task-feedback";
-export { LoadStudentProgressIntent } from "./student/LoadStudentProgressIntent.js?v=1.1.70-external-task-feedback";
-export { ClaimDailyBonusIntent } from "./student/ClaimDailyBonusIntent.js?v=1.1.70-external-task-feedback";
-export { ContinueLearningIntent } from "./student/ContinueLearningIntent.js?v=1.1.70-external-task-feedback";
-export { SelectContinueLearningIntent } from "./student/SelectContinueLearningIntent.js?v=1.1.70-external-task-feedback";
-export { StudentOpenCourseIntent } from "./student/StudentOpenCourseIntent.js?v=1.1.70-external-task-feedback";
-export { StartPracticeModeIntent } from "./student/StartPracticeModeIntent.js?v=1.1.70-external-task-feedback";
-export { CompleteStepIntent } from "./student/CompleteStepIntent.js?v=1.1.70-external-task-feedback";
-export { CompleteStudentStepIntent } from "./student/CompleteStudentStepIntent.js?v=1.1.70-external-task-feedback";
-export { CompletePracticeModeIntent } from "./student/CompletePracticeModeIntent.js?v=1.1.70-external-task-feedback";
-export { CompleteStudentPracticeModeIntent } from "./student/CompleteStudentPracticeModeIntent.js?v=1.1.70-external-task-feedback";
-export { SaveStudentProgressIntent } from "./student/SaveStudentProgressIntent.js?v=1.1.70-external-task-feedback";
+export { LoadStudentCourseIntent } from "./student/LoadStudentCourseIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadStudentDashboardIntent } from "./student/LoadStudentDashboardIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadStudentCoursesIntent } from "./student/LoadStudentCoursesIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadStudentCourseStructureIntent } from "./student/LoadStudentCourseStructureIntent.js?v=1.1.71-course-assignment-cleanup";
+export { LoadStudentProgressIntent } from "./student/LoadStudentProgressIntent.js?v=1.1.71-course-assignment-cleanup";
+export { ClaimDailyBonusIntent } from "./student/ClaimDailyBonusIntent.js?v=1.1.71-course-assignment-cleanup";
+export { ContinueLearningIntent } from "./student/ContinueLearningIntent.js?v=1.1.71-course-assignment-cleanup";
+export { SelectContinueLearningIntent } from "./student/SelectContinueLearningIntent.js?v=1.1.71-course-assignment-cleanup";
+export { StudentOpenCourseIntent } from "./student/StudentOpenCourseIntent.js?v=1.1.71-course-assignment-cleanup";
+export { StartPracticeModeIntent } from "./student/StartPracticeModeIntent.js?v=1.1.71-course-assignment-cleanup";
+export { CompleteStepIntent } from "./student/CompleteStepIntent.js?v=1.1.71-course-assignment-cleanup";
+export { CompleteStudentStepIntent } from "./student/CompleteStudentStepIntent.js?v=1.1.71-course-assignment-cleanup";
+export { CompletePracticeModeIntent } from "./student/CompletePracticeModeIntent.js?v=1.1.71-course-assignment-cleanup";
+export { CompleteStudentPracticeModeIntent } from "./student/CompleteStudentPracticeModeIntent.js?v=1.1.71-course-assignment-cleanup";
+export { SaveStudentProgressIntent } from "./student/SaveStudentProgressIntent.js?v=1.1.71-course-assignment-cleanup";
 
 

@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.70-external-task-feedback";
+import * as IntentExports from "../intents/intents.js?v=1.1.71-course-assignment-cleanup";
 
 const registry = {
   // Demo Verification

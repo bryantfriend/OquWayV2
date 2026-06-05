@@ -1,6 +1,6 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.70-external-task-feedback";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.70-external-task-feedback";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.71-course-assignment-cleanup";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.71-course-assignment-cleanup";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -9,9 +9,9 @@ import {
   countModuleSteps as countSharedModuleSteps,
   countSessionCompletedSteps as countSharedSessionCompletedSteps,
   countSessionSteps as countSharedSessionSteps
-} from "../../../packages/domain/progress/index.js?v=1.1.70-external-task-feedback";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.70-external-task-feedback";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.70-external-task-feedback";
+} from "../../../packages/domain/progress/index.js?v=1.1.71-course-assignment-cleanup";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.71-course-assignment-cleanup";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.71-course-assignment-cleanup";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
