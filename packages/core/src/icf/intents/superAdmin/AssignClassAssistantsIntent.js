@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateClassOwnershipPayload } from "../../stages/validate/validators.js?v=1.1.55-class-ownership";
-import { normalizeClassOwnershipPayload } from "../../stages/normalize/normalizers.js?v=1.1.55-class-ownership";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.55-class-ownership";
-import { requireClassOwnershipAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.55-class-ownership";
-import { processAssignClassAssistants } from "../../stages/process/processors.js?v=1.1.55-class-ownership";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.55-class-ownership";
+import { validateAuthenticated, validateClassOwnershipPayload } from "../../stages/validate/validators.js?v=1.1.62-external-task-review-loop";
+import { normalizeClassOwnershipPayload } from "../../stages/normalize/normalizers.js?v=1.1.62-external-task-review-loop";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.62-external-task-review-loop";
+import { requireClassOwnershipAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.62-external-task-review-loop";
+import { processAssignClassAssistants } from "../../stages/process/processors.js?v=1.1.62-external-task-review-loop";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.62-external-task-review-loop";
 
 export function AssignClassAssistantsIntent() {
   return {

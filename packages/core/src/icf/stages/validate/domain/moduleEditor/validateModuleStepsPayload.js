@@ -1,4 +1,4 @@
-import { requireNonEmptyArrayValidation } from "../../validators.js?v=1.1.54-multi-role-assistant";
+import { requireNonEmptyArrayValidation } from "../../validators.js?v=1.1.62-external-task-review-loop";
 
 export function validateModuleStepsPayload(executionState) {
     const payload = executionState.payload;

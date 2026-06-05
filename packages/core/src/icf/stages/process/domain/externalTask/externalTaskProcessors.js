@@ -1,5 +1,6 @@
-import { collection, db, doc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.54-multi-role-assistant";
-import { getDownloadURL, ref, storage, uploadBytes } from "../../../../../infrastructure/firebase/storage.js?v=1.1.54-multi-role-assistant";
+import { collection, db, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.62-external-task-review-loop";
+import { getDownloadURL, ref, storage, uploadBytes } from "../../../../../infrastructure/firebase/storage.js?v=1.1.62-external-task-review-loop";
+import { loadCourseAssignments } from "../courseAssignment/courseAssignmentHelpers.js?v=1.1.62-external-task-review-loop";
 
 export async function processLoadExternalTaskStep(executionState) {
   var payload = executionState.payload || {};
@@ -63,7 +64,8 @@ export async function processSubmitExternalTask(executionState) {
       fileIndex = fileIndex + 1;
     }
 
-    var record = createSubmissionRecord(payload, actor, profile, submissionId, uploadedFiles, attemptNumber);
+    var assignment = await loadSubmissionAssignment(payload, actor, profile);
+    var record = createSubmissionRecord(payload, actor, profile, submissionId, uploadedFiles, attemptNumber, assignment);
 
     await setDoc(doc(db, "externalTaskSubmissions", submissionId), record, { merge: true });
 
@@ -98,12 +100,18 @@ export async function processLoadExternalTaskSubmissions(executionState) {
 export async function processReviewExternalTaskSubmission(executionState) {
   var payload = executionState.payload || {};
   var actor = executionState.actor || {};
+  var teacherProfile = executionState.context && executionState.context.teacherProfile ? executionState.context.teacherProfile : null;
+  var reviewerId = (executionState.context && executionState.context.profileUserId)
+    || (teacherProfile && teacherProfile.profileUserId)
+    || (teacherProfile && teacherProfile.id)
+    || actor.id
+    || "";
 
   try {
     var update = {
       status: payload.reviewStatus === "complete" ? "complete" : "submitted",
       reviewStatus: payload.reviewStatus,
-      reviewedBy: actor.id || "",
+      reviewedBy: reviewerId,
       reviewedAt: serverTimestamp(),
       teacherFeedback: payload.teacherFeedback || "",
       updatedAt: serverTimestamp()
@@ -162,14 +170,104 @@ function validateUploadFile(file, payload) {
   }
 }
 
-function createSubmissionRecord(payload, actor, profile, submissionId, files, attemptNumber) {
+async function loadSubmissionAssignment(payload, actor, profile) {
+  var assignmentId = payload.assignmentId || payload.courseAssignmentId || "";
+  var targets = [];
+  var index = 0;
+
+  if (assignmentId) {
+    try {
+      var assignmentSnap = await getDoc(doc(db, "courseAssignments", assignmentId));
+      if (assignmentSnap.exists()) {
+        return Object.assign({ id: assignmentSnap.id }, assignmentSnap.data() || {});
+      }
+    } catch (error) {
+      return null;
+    }
+  }
+
+  addAssignmentTarget(targets, "student", actor && actor.id ? actor.id : "");
+  addAssignmentTarget(targets, "student", profile && profile.id ? profile.id : "");
+  addAssignmentTarget(targets, "class", payload.classId || (profile ? profile.classId : ""));
+  addAssignmentTarget(targets, "location", payload.locationId || (profile ? (profile.locationId || profile.primaryLocationId) : ""));
+
+  while (index < targets.length) {
+    try {
+      var assignments = await loadCourseAssignments({
+        courseId: payload.courseId,
+        targetType: targets[index].targetType,
+        targetId: targets[index].targetId,
+        status: "active"
+      });
+
+      if (assignments.length > 0) {
+        return assignments[0];
+      }
+    } catch (error) {
+      // Keep submission usable even if assignment metadata cannot be copied.
+    }
+
+    index = index + 1;
+  }
+
+  return null;
+}
+
+function addAssignmentTarget(targets, targetType, targetId) {
+  if (targetId) {
+    targets.push({
+      targetType: targetType,
+      targetId: targetId
+    });
+  }
+}
+
+function readTeacherOwnershipIdsFromAssignment(assignment) {
+  var ids = [];
+
+  if (!assignment) {
+    return ids;
+  }
+
+  appendUniqueText(ids, assignment.teacherOwnershipIds);
+  appendUniqueText(ids, assignment.responsibleTeacherId);
+  appendUniqueText(ids, assignment.assistantIds);
+
+  return ids;
+}
+
+function appendUniqueText(ids, value) {
+  var index = 0;
+
+  if (typeof value === "string") {
+    if (value && ids.indexOf(value) === -1) {
+      ids.push(value);
+    }
+    return;
+  }
+
+  if (!Array.isArray(value)) {
+    return;
+  }
+
+  while (index < value.length) {
+    appendUniqueText(ids, value[index]);
+    index = index + 1;
+  }
+}
+
+function createSubmissionRecord(payload, actor, profile, submissionId, files, attemptNumber, assignment) {
+  var assignmentId = payload.assignmentId || payload.courseAssignmentId || (assignment && assignment.id ? assignment.id : "");
+
   return {
+    submissionId: submissionId,
     stepId: payload.stepId,
     modeId: payload.modeId,
     sessionId: payload.sessionId,
     moduleId: payload.moduleId,
     courseId: payload.courseId,
-    assignmentId: payload.assignmentId || "",
+    assignmentId: assignmentId,
+    courseAssignmentId: assignmentId,
     studentId: actor.id || "",
     studentName: profile.displayName || profile.name || actor.id || "",
     classId: payload.classId || profile.classId || "",
@@ -183,6 +281,7 @@ function createSubmissionRecord(payload, actor, profile, submissionId, files, at
     reviewedBy: null,
     reviewedAt: null,
     teacherFeedback: "",
+    teacherOwnershipIds: readTeacherOwnershipIdsFromAssignment(assignment),
     attemptNumber: attemptNumber,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
@@ -201,6 +300,9 @@ async function queryExternalTaskSubmissions(filters) {
   appendWhere(constraints, "studentId", filters.studentId);
   appendWhere(constraints, "classId", filters.classId);
   appendWhere(constraints, "locationId", filters.locationId);
+  appendWhere(constraints, "assignmentId", filters.assignmentId);
+  appendWhere(constraints, "courseAssignmentId", filters.courseAssignmentId);
+  appendWhere(constraints, "teacherOwnershipIds", filters.teacherOwnershipId, "array-contains");
   appendWhere(constraints, "status", filters.status);
   appendWhere(constraints, "reviewStatus", filters.reviewStatus);
 
@@ -251,6 +353,18 @@ async function queryExternalTaskSubmissionsFallback(submissionsRef, filters) {
     return await getDocs(query(submissionsRef, where("locationId", "==", filters.locationId)));
   }
 
+  if (filters.assignmentId) {
+    return await getDocs(query(submissionsRef, where("assignmentId", "==", filters.assignmentId)));
+  }
+
+  if (filters.courseAssignmentId) {
+    return await getDocs(query(submissionsRef, where("courseAssignmentId", "==", filters.courseAssignmentId)));
+  }
+
+  if (filters.teacherOwnershipId) {
+    return await getDocs(query(submissionsRef, where("teacherOwnershipIds", "array-contains", filters.teacherOwnershipId)));
+  }
+
   if (filters.reviewStatus) {
     return await getDocs(query(submissionsRef, where("reviewStatus", "==", filters.reviewStatus)));
   }
@@ -265,6 +379,9 @@ function matchesExternalTaskFilters(submission, filters) {
     && matchesFilterValue(submission.studentId, filters.studentId)
     && matchesFilterValue(submission.classId, filters.classId)
     && matchesFilterValue(submission.locationId, filters.locationId)
+    && matchesFilterValue(submission.assignmentId, filters.assignmentId)
+    && matchesFilterValue(submission.courseAssignmentId, filters.courseAssignmentId)
+    && matchesOwnershipFilter(submission.teacherOwnershipIds, filters.teacherOwnershipId)
     && matchesFilterValue(submission.status, filters.status)
     && matchesFilterValue(submission.reviewStatus, filters.reviewStatus);
 }
@@ -307,9 +424,13 @@ function logExternalTaskSubmissionsFailure(executionState, error, queryPath) {
   });
 }
 
-function appendWhere(constraints, fieldName, value) {
+function matchesOwnershipFilter(actualIds, expectedId) {
+  return !expectedId || (Array.isArray(actualIds) && actualIds.indexOf(expectedId) !== -1);
+}
+
+function appendWhere(constraints, fieldName, value, operator) {
   if (value) {
-    constraints.push(where(fieldName, "==", value));
+    constraints.push(where(fieldName, operator || "==", value));
   }
 }
 

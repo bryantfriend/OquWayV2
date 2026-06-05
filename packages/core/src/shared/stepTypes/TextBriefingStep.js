@@ -1,4 +1,4 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.29-module-render-fix";
+import { BaseStep } from "./BaseStep.js?v=1.1.62-external-task-review-loop";
 
 export class TextBriefingStep extends BaseStep {
   static get type() {

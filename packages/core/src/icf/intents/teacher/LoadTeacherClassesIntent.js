@@ -1,9 +1,9 @@
-import { validateAuthenticated } from "../../stages/validate/validators.js?v=1.1.60-teacher-login-readtext";
-import { normalizeTeacherDashboardPayload } from "../../stages/normalize/normalizers.js?v=1.1.60-teacher-login-readtext";
-import { attachActorContext, attachActorRoleContext, attachTeacherProfileContext } from "../../stages/addContext/contexts.js?v=1.1.60-teacher-login-readtext";
-import { requireTeacherDashboardAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.60-teacher-login-readtext";
-import { processLoadTeacherClasses } from "../../stages/process/processors.js?v=1.1.60-teacher-login-readtext";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.60-teacher-login-readtext";
+import { validateAuthenticated } from "../../stages/validate/validators.js?v=1.1.62-external-task-review-loop";
+import { normalizeTeacherDashboardPayload } from "../../stages/normalize/normalizers.js?v=1.1.62-external-task-review-loop";
+import { attachActorContext, attachActorRoleContext, attachTeacherProfileContext } from "../../stages/addContext/contexts.js?v=1.1.62-external-task-review-loop";
+import { requireTeacherDashboardAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.62-external-task-review-loop";
+import { processLoadTeacherClasses } from "../../stages/process/processors.js?v=1.1.62-external-task-review-loop";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.62-external-task-review-loop";
 
 export function LoadTeacherClassesIntent() {
   return {

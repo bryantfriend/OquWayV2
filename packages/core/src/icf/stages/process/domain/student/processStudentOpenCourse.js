@@ -1,4 +1,4 @@
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.54-multi-role-assistant";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.62-external-task-review-loop";
 
 export async function processStudentOpenCourse(executionState) {
   var payload = executionState.payload || {};

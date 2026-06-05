@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.60-teacher-login-readtext";
+import * as IntentExports from "../intents/intents.js?v=1.1.62-external-task-review-loop";
 
 const registry = {
   // Demo Verification

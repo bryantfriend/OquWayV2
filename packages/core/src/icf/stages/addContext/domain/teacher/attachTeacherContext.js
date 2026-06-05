@@ -1,4 +1,4 @@
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.60-teacher-login-readtext";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.62-external-task-review-loop";
 
 export async function attachTeacherProfileContext(executionState) {
   var actor = executionState.actor || {};

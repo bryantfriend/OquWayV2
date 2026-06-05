@@ -1,4 +1,4 @@
-import { db, doc, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.54-multi-role-assistant";
+import { db, doc, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.62-external-task-review-loop";
 
 export async function catalogCourseArchiveProcessing(executionState) {
     const { payload, context } = executionState;

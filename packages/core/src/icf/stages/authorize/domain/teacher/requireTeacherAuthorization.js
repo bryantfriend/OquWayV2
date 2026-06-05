@@ -1,4 +1,4 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.60-teacher-login-readtext";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.62-external-task-review-loop";
 
 export function allowTeacherLoginAuthorization() {
   return { valid: true };
@@ -221,6 +221,12 @@ async function isSubmissionInTeacherOwnershipScope(submission, context, actor) {
   var teacherIds = readTeacherOwnershipIds(context, profile, actor);
   var assignmentId = submission.courseAssignmentId || submission.assignmentId || "";
 
+  if (Array.isArray(submission.teacherOwnershipIds) && submission.teacherOwnershipIds.some(function (teacherId) {
+    return teacherIds.indexOf(teacherId) !== -1;
+  })) {
+    return true;
+  }
+
   if (assignmentId && await isOwnedCourseAssignment(assignmentId, teacherIds)) {
     return true;
   }
@@ -260,7 +266,10 @@ async function isOwnedCourseAssignment(assignmentId, teacherIds) {
 
 function recordHasTeacherOwnership(data, teacherIds, primaryFieldName) {
   return data && (
-    (typeof data[primaryFieldName] === "string" && teacherIds.indexOf(data[primaryFieldName]) !== -1)
+    (Array.isArray(data.teacherOwnershipIds) && data.teacherOwnershipIds.some(function (teacherId) {
+      return teacherIds.indexOf(teacherId) !== -1;
+    }))
+    || (typeof data[primaryFieldName] === "string" && teacherIds.indexOf(data[primaryFieldName]) !== -1)
     || (Array.isArray(data.assistantIds) && data.assistantIds.some(function (teacherId) {
       return teacherIds.indexOf(teacherId) !== -1;
     }))

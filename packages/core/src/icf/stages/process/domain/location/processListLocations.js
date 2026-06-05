@@ -1,4 +1,4 @@
-import { collection, db, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.54-multi-role-assistant";
+import { collection, db, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.62-external-task-review-loop";
 
 export async function processListLocations(executionState) {
   try {

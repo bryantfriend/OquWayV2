@@ -1,4 +1,4 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.29-module-render-fix";
+import { BaseStep } from "./BaseStep.js?v=1.1.62-external-task-review-loop";
 
 export class ExternalTaskStep extends BaseStep {
   static get type() {
@@ -218,7 +218,7 @@ function applySubmissionState(container, submission, callbacks) {
   }
 
   if (submission.reviewStatus === "complete") {
-    writeStatus(status, "Status: complete. " + readFeedbackMessage(submission, "Teacher marked this task complete."));
+    writeStatus(status, readFeedbackMessage(submission, "Great work! Your teacher marked this complete."));
     if (button) {
       button.textContent = "Completed";
       button.classList.add("oqu-player-complete-btn");
@@ -229,7 +229,7 @@ function applySubmissionState(container, submission, callbacks) {
   }
 
   if (submission.reviewStatus === "needsWork") {
-    writeStatus(status, "Status: needs work. " + readFeedbackMessage(submission, "Review your task and resubmit."));
+    writeStatus(status, readFeedbackMessage(submission, "Your teacher wants you to improve this."));
     if (button) {
       button.textContent = "Resubmit for review";
       button.disabled = false;
@@ -239,7 +239,7 @@ function applySubmissionState(container, submission, callbacks) {
   }
 
   if (submission.reviewStatus === "incomplete") {
-    writeStatus(status, "Status: incomplete. " + readFeedbackMessage(submission, "Please resubmit your proof."));
+    writeStatus(status, readFeedbackMessage(submission, "This was marked incomplete."));
     if (button) {
       button.textContent = "Resubmit for review";
       button.disabled = false;
@@ -281,7 +281,11 @@ function shouldAllowResubmission(submission) {
 }
 
 function readFeedbackMessage(submission, fallbackText) {
-  return submission && submission.teacherFeedback ? submission.teacherFeedback : fallbackText;
+  if (submission && submission.teacherFeedback) {
+    return fallbackText + " Feedback: " + submission.teacherFeedback;
+  }
+
+  return fallbackText;
 }
 
 function writeStatus(statusElement, message) {

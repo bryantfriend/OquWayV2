@@ -1,4 +1,4 @@
-import { processCreateModule } from "./processCreateModule.js?v=1.1.54-multi-role-assistant";
+import { processCreateModule } from "./processCreateModule.js?v=1.1.62-external-task-review-loop";
 
 export async function processCreateModuleFromWizard(executionState) {
   var payload = executionState.payload || {};

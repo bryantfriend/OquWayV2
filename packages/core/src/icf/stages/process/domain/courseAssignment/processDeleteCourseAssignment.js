@@ -1,4 +1,4 @@
-import { db, deleteDoc, doc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.54-multi-role-assistant";
+import { db, deleteDoc, doc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.62-external-task-review-loop";
 
 export async function processDeleteCourseAssignment(executionState) {
   var payload = executionState.payload;

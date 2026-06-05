@@ -1,8 +1,8 @@
-import { validateResolveLocationSlugPayload } from "../../stages/validate/validators.js?v=1.1.54-multi-role-assistant";
-import { normalizeResolveLocationSlugPayload } from "../../stages/normalize/normalizers.js?v=1.1.54-multi-role-assistant";
-import { allowPublicLocationRead } from "../../stages/authorize/authorizers.js?v=1.1.54-multi-role-assistant";
-import { processResolveLocationBySlug } from "../../stages/process/processors.js?v=1.1.54-multi-role-assistant";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.54-multi-role-assistant";
+import { validateResolveLocationSlugPayload } from "../../stages/validate/validators.js?v=1.1.62-external-task-review-loop";
+import { normalizeResolveLocationSlugPayload } from "../../stages/normalize/normalizers.js?v=1.1.62-external-task-review-loop";
+import { allowPublicLocationRead } from "../../stages/authorize/authorizers.js?v=1.1.62-external-task-review-loop";
+import { processResolveLocationBySlug } from "../../stages/process/processors.js?v=1.1.62-external-task-review-loop";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.62-external-task-review-loop";
 
 export function ResolveLocationBySlugIntent() {
   return {

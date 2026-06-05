@@ -1,4 +1,4 @@
-import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.56-assignment-ownership";
+import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.62-external-task-review-loop";
 
 export function requireCourseAssignmentOwnershipAuthorization(executionState) {
   var actor = executionState.actor;

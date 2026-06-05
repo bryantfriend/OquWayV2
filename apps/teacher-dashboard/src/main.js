@@ -1,4 +1,4 @@
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.60-teacher-login-readtext";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.62-external-task-review-loop";
 
 var app = document.getElementById("app");
 var state = {

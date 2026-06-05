@@ -1,4 +1,4 @@
-import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.54-multi-role-assistant";
+import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.62-external-task-review-loop";
 
 export function normalizePracticeModeStep(executionState) {
   var payload = executionState.payload;

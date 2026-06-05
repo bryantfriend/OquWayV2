@@ -1,4 +1,4 @@
-import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.54-multi-role-assistant";
+import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.62-external-task-review-loop";
 
 export function requireCourseCreatorAuthorization(executionState) {
     if (!executionState.actor) {

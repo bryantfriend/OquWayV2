@@ -1,4 +1,4 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.56-assignment-ownership";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.62-external-task-review-loop";
 
 export async function buildCourseAssignmentOwnershipFields(payload) {
   var responsibleTeacherId = readText(payload.responsibleTeacherId);
@@ -6,14 +6,17 @@ export async function buildCourseAssignmentOwnershipFields(payload) {
     return assistantId !== responsibleTeacherId;
   });
   var assistantNames = [];
+  var teacherOwnershipIds = [];
   var index = 0;
 
   if (responsibleTeacherId) {
     await requireStaffRole(responsibleTeacherId, ["teacher"], "Responsible teacher must be active and have the teacher role.");
+    await appendUserOwnershipIds(teacherOwnershipIds, responsibleTeacherId);
   }
 
   while (index < assistantIds.length) {
     await requireStaffRole(assistantIds[index], ["teacher", "assistant"], "Course assistants must be active and have teacher or assistant role.");
+    await appendUserOwnershipIds(teacherOwnershipIds, assistantIds[index]);
     assistantNames.push(await readUserDisplayName(assistantIds[index]));
     index = index + 1;
   }
@@ -21,6 +24,7 @@ export async function buildCourseAssignmentOwnershipFields(payload) {
   return {
     responsibleTeacherId: responsibleTeacherId,
     assistantIds: assistantIds,
+    teacherOwnershipIds: teacherOwnershipIds,
     responsibleTeacherName: responsibleTeacherId ? await readUserDisplayName(responsibleTeacherId) : "",
     assistantNames: assistantNames.filter(Boolean)
   };
@@ -35,9 +39,45 @@ export function readCourseAssignmentOwnership(data) {
   return {
     responsibleTeacherId: responsibleTeacherId,
     assistantIds: assistantIds,
+    teacherOwnershipIds: readIdList([data.teacherOwnershipIds, responsibleTeacherId, assistantIds]),
     responsibleTeacherName: readText(data.responsibleTeacherName),
     assistantNames: Array.isArray(data.assistantNames) ? data.assistantNames.map(readText).filter(Boolean) : []
   };
+}
+
+async function appendUserOwnershipIds(ids, userId) {
+  var safeId = readText(userId);
+
+  appendUniqueId(ids, safeId);
+
+  if (!safeId) {
+    return;
+  }
+
+  try {
+    var userSnap = await getDoc(doc(db, "users", safeId));
+    var data = userSnap.exists() ? userSnap.data() || {} : {};
+
+    appendUniqueId(ids, userSnap.id);
+    appendUniqueId(ids, data.authUid);
+    appendUniqueId(ids, data.profileUserId);
+
+    if (data.linkedProfile && typeof data.linkedProfile === "object") {
+      appendUniqueId(ids, data.linkedProfile.id);
+      appendUniqueId(ids, data.linkedProfile.authUid);
+      appendUniqueId(ids, data.linkedProfile.profileUserId);
+    }
+  } catch (error) {
+    appendUniqueId(ids, safeId);
+  }
+}
+
+function appendUniqueId(ids, value) {
+  var id = readText(value);
+
+  if (id && ids.indexOf(id) === -1) {
+    ids.push(id);
+  }
 }
 
 async function requireStaffRole(userId, allowedRoles, message) {

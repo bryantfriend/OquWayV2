@@ -1,4 +1,4 @@
-import { loadCourseAssignments, sortAssignments } from "./courseAssignmentHelpers.js?v=1.1.56-assignment-ownership";
+import { loadCourseAssignments, sortAssignments } from "./courseAssignmentHelpers.js?v=1.1.62-external-task-review-loop";
 
 export async function processListCourseAssignments(executionState) {
   var payload = executionState.payload || {};

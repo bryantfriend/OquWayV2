@@ -1,4 +1,4 @@
-import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.54-multi-role-assistant";
+import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.62-external-task-review-loop";
 
 export async function callStudentLoginFunction(payload) {
   return callCallableFunction("studentLogin", payload);

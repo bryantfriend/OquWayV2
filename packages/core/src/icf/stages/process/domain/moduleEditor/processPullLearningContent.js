@@ -1,4 +1,4 @@
-import { createPulledStepDraft } from "./learningArchitecture.js?v=1.1.54-multi-role-assistant";
+import { createPulledStepDraft } from "./learningArchitecture.js?v=1.1.62-external-task-review-loop";
 
 export function processPullLearningContent(executionState) {
   var learningContent = executionState.context.module && executionState.context.module.learningContent;

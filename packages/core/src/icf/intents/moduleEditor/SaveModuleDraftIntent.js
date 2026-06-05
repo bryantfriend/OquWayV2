@@ -1,7 +1,7 @@
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.54-multi-role-assistant";
-import { processSaveModuleDraft } from "../../stages/process/processors.js?v=1.1.54-multi-role-assistant";
-import { validateCourseId, validateModuleId, validateModuleStepsPayload } from "../../stages/validate/validators.js?v=1.1.54-multi-role-assistant";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.54-multi-role-assistant";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.62-external-task-review-loop";
+import { processSaveModuleDraft } from "../../stages/process/processors.js?v=1.1.62-external-task-review-loop";
+import { validateCourseId, validateModuleId, validateModuleStepsPayload } from "../../stages/validate/validators.js?v=1.1.62-external-task-review-loop";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.62-external-task-review-loop";
 
 export function SaveModuleDraftIntent() {
     return {

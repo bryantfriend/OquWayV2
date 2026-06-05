@@ -105,7 +105,7 @@ service cloud.firestore {
       );
     }
 
-    function isExternalTaskReviewer() {
+    function isExternalTaskAdminReviewer() {
       return request.auth != null && (
         isCourseEditor() ||
         isSchoolAdmin() ||
@@ -150,7 +150,7 @@ service cloud.firestore {
     }
 
     function isTeacherAssignedToClass(classData, classId) {
-      return isTeacher()
+      return (isTeacher() || isAssistant())
         && user() != null
         && (
           classId in teacherClassIds() ||
@@ -160,7 +160,7 @@ service cloud.firestore {
     }
 
     function isTeacherAssignedToClassId(classId) {
-      return isTeacher()
+      return (isTeacher() || isAssistant())
         && user() != null
         && classId is string
         && exists(/databases/$(db)/documents/classes/$(classId))
@@ -168,7 +168,7 @@ service cloud.firestore {
     }
 
     function isTeacherAssignedToCourseAssignment(assignmentData) {
-      return isTeacher()
+      return (isTeacher() || isAssistant())
         && user() != null
         && (
           (assignmentData.teacherOwnershipIds is list && assignmentData.teacherOwnershipIds.hasAny(teacherOwnershipIds())) ||
@@ -178,7 +178,7 @@ service cloud.firestore {
     }
 
     function isTeacherOwnedAssignment() {
-      return isTeacher()
+      return (isTeacher() || isAssistant())
         && user() != null
         && (
           (resource.data.teacherOwnershipIds is list && resource.data.teacherOwnershipIds.hasAny(teacherOwnershipIds())) ||
@@ -188,7 +188,7 @@ service cloud.firestore {
     }
 
     function isTeacherAssignedToCourseAssignmentId(assignmentId) {
-      return isTeacher()
+      return (isTeacher() || isAssistant())
         && user() != null
         && assignmentId is string
         && exists(/databases/$(db)/documents/courseAssignments/$(assignmentId))
@@ -246,9 +246,10 @@ service cloud.firestore {
 
     function isTeacherInExternalTaskScope() {
       return request.auth != null
-        && isTeacher()
+        && (isTeacher() || isAssistant())
         && user() != null
         && (
+          (resource.data.teacherOwnershipIds is list && resource.data.teacherOwnershipIds.hasAny(teacherOwnershipIds())) ||
           (resource.data.assignmentId is string && isTeacherAssignedToCourseAssignmentId(resource.data.assignmentId)) ||
           (resource.data.courseAssignmentId is string && isTeacherAssignedToCourseAssignmentId(resource.data.courseAssignmentId)) ||
           (resource.data.classId is string && isTeacherAssignedToClassId(resource.data.classId)) ||
@@ -401,7 +402,7 @@ service cloud.firestore {
 
       allow read, list: if request.auth != null && (
         resource.data.studentId == request.auth.uid ||
-        isExternalTaskReviewer() ||
+        isExternalTaskAdminReviewer() ||
         isTeacherInExternalTaskScope()
       );
 
@@ -418,7 +419,7 @@ service cloud.firestore {
           ])
         ) ||
         (
-          (isExternalTaskReviewer() || isTeacherInExternalTaskScope())
+          (isExternalTaskAdminReviewer() || isTeacherInExternalTaskScope())
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             "reviewStatus",
             "reviewedBy",

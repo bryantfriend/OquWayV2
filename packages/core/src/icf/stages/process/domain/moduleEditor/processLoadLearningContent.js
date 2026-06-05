@@ -1,4 +1,4 @@
-import { createDefaultLearningContent } from "./learningArchitecture.js?v=1.1.54-multi-role-assistant";
+import { createDefaultLearningContent } from "./learningArchitecture.js?v=1.1.62-external-task-review-loop";
 
 export function processLoadLearningContent(executionState) {
   executionState.result = {

@@ -1,6 +1,6 @@
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.60-teacher-login-readtext";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.60-teacher-login-readtext";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.62-external-task-review-loop";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.62-external-task-review-loop";
 
 export async function processTeacherLogin(executionState) {
   var payload = executionState.payload || {};
@@ -145,6 +145,7 @@ export async function processLoadTeacherStudents(executionState) {
       classIds: classIds,
       assignmentIds: scope.assignmentIds,
       courseIds: scope.courseIds,
+      teacherIds: scope.teacherIds,
       reviewStatus: "pending"
     });
     var pendingCounts = countSubmissionsByField(submissions, "studentId");
@@ -170,6 +171,7 @@ export async function processLoadTeacherReviewQueue(executionState) {
       classIds: resolveRequestedClassIds(payload, scope.classIds),
       assignmentIds: scope.assignmentIds,
       courseIds: scope.courseIds,
+      teacherIds: scope.teacherIds,
       reviewStatus: payload.reviewStatus,
       courseId: payload.courseId,
       moduleId: payload.moduleId
@@ -196,6 +198,7 @@ async function buildTeacherDashboardData(executionState) {
     classIds: effectiveClassIds,
     assignmentIds: scope.assignmentIds,
     courseIds: scope.courseIds,
+    teacherIds: scope.teacherIds,
     reviewStatus: (executionState.payload || {}).reviewStatus || "pending"
   });
   var pendingCountsByClass = countSubmissionsByField(submissions, "classId");
@@ -373,6 +376,11 @@ async function loadOwnedCourseAssignments(teacherIds) {
   var index = 0;
 
   while (index < teacherIds.length) {
+    await appendAssignmentOwnershipQuery(assignments, query(collection(db, "courseAssignments"), where("teacherOwnershipIds", "array-contains", teacherIds[index])), {
+      teacherId: teacherIds[index],
+      ownershipRole: "Assigned",
+      queryShape: "courseAssignments where teacherOwnershipIds array-contains teacherId"
+    });
     await appendAssignmentOwnershipQuery(assignments, query(collection(db, "courseAssignments"), where("responsibleTeacherId", "==", teacherIds[index])), {
       teacherId: teacherIds[index],
       ownershipRole: "Responsible Teacher",
@@ -455,8 +463,20 @@ async function loadScopedSubmissions(filters) {
   var classIds = filters.classIds || [];
   var assignmentIds = filters.assignmentIds || [];
   var courseIds = filters.courseIds || [];
+  var teacherIds = filters.teacherIds || [];
   var index = 0;
 
+  while (index < teacherIds.length) {
+    await appendSubmissionQuery(submissions, buildSubmissionQuery("teacherOwnershipIds", teacherIds[index], filters, "array-contains"), {
+      classId: "",
+      assignmentId: "",
+      courseId: "",
+      queryShape: readSubmissionQueryShape("teacherOwnershipIds", filters)
+    });
+    index = index + 1;
+  }
+
+  index = 0;
   while (index < assignmentIds.length) {
     await appendSubmissionQuery(submissions, buildSubmissionQuery("assignmentId", assignmentIds[index], filters), {
       classId: "",
@@ -511,12 +531,12 @@ async function loadScopedSubmissions(filters) {
   return await enrichSubmissionsWithCourseMetadata(submissions);
 }
 
-function buildSubmissionQuery(scopeField, scopeValue, filters) {
+function buildSubmissionQuery(scopeField, scopeValue, filters, operator) {
   if (filters && filters.reviewStatus) {
-    return query(collection(db, "externalTaskSubmissions"), where(scopeField, "==", scopeValue), where("reviewStatus", "==", filters.reviewStatus));
+    return query(collection(db, "externalTaskSubmissions"), where(scopeField, operator || "==", scopeValue), where("reviewStatus", "==", filters.reviewStatus));
   }
 
-  return query(collection(db, "externalTaskSubmissions"), where(scopeField, "==", scopeValue));
+  return query(collection(db, "externalTaskSubmissions"), where(scopeField, operator || "==", scopeValue));
 }
 
 function readSubmissionQueryShape(scopeField, filters) {
@@ -837,6 +857,13 @@ function isSubmissionInOwnedScope(submission, filters) {
   var classIds = filters.classIds || [];
   var assignmentIds = filters.assignmentIds || [];
   var courseIds = filters.courseIds || [];
+  var teacherIds = filters.teacherIds || [];
+
+  if (Array.isArray(submission.teacherOwnershipIds) && submission.teacherOwnershipIds.some(function (teacherId) {
+    return teacherIds.indexOf(teacherId) !== -1;
+  })) {
+    return true;
+  }
 
   if (submission.assignmentId && assignmentIds.indexOf(submission.assignmentId) !== -1) {
     return true;

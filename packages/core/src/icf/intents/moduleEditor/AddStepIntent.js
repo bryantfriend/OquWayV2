@@ -1,8 +1,8 @@
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.54-multi-role-assistant";
-import { attachStepRegistryDefinitionForStep, attachStepsCollection } from "../../stages/addContext/contexts.js?v=1.1.54-multi-role-assistant";
-import { processAddStep } from "../../stages/process/processors.js?v=1.1.54-multi-role-assistant";
-import { validateCourseId, validateModuleId, validateStepTypeRegistered } from "../../stages/validate/validators.js?v=1.1.54-multi-role-assistant";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.54-multi-role-assistant";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.62-external-task-review-loop";
+import { attachStepRegistryDefinitionForStep, attachStepsCollection } from "../../stages/addContext/contexts.js?v=1.1.62-external-task-review-loop";
+import { processAddStep } from "../../stages/process/processors.js?v=1.1.62-external-task-review-loop";
+import { validateCourseId, validateModuleId, validateStepTypeRegistered } from "../../stages/validate/validators.js?v=1.1.62-external-task-review-loop";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.62-external-task-review-loop";
 
 export function AddStepIntent() {
     return {

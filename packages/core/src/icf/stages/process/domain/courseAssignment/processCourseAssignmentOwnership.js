@@ -1,5 +1,5 @@
-import { db, doc, getDoc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.56-assignment-ownership";
-import { buildCourseAssignmentOwnershipFields, readCourseAssignmentOwnership } from "./courseAssignmentOwnershipHelpers.js?v=1.1.56-assignment-ownership";
+import { db, doc, getDoc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.62-external-task-review-loop";
+import { buildCourseAssignmentOwnershipFields, readCourseAssignmentOwnership } from "./courseAssignmentOwnershipHelpers.js?v=1.1.62-external-task-review-loop";
 
 export async function processLoadCourseAssignmentOwnership(executionState) {
   var payload = executionState.payload || {};
@@ -31,6 +31,7 @@ export async function processAssignCourseTeacher(executionState) {
     await setDoc(doc(db, "courseAssignments", payload.assignmentId), {
       responsibleTeacherId: ownershipFields.responsibleTeacherId,
       assistantIds: ownershipFields.assistantIds,
+      teacherOwnershipIds: ownershipFields.teacherOwnershipIds,
       responsibleTeacherName: ownershipFields.responsibleTeacherName,
       assistantNames: ownershipFields.assistantNames,
       updatedAt: serverTimestamp()
@@ -55,6 +56,7 @@ export async function processAssignCourseAssistants(executionState) {
 
     await setDoc(doc(db, "courseAssignments", payload.assignmentId), {
       assistantIds: ownershipFields.assistantIds,
+      teacherOwnershipIds: ownershipFields.teacherOwnershipIds,
       assistantNames: ownershipFields.assistantNames,
       updatedAt: serverTimestamp()
     }, { merge: true });

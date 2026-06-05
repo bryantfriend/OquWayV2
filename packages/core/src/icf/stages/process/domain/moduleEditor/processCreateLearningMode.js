@@ -1,6 +1,6 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.54-multi-role-assistant";
-import { createDefaultPracticeModes } from "./practiceModeShells.js?v=1.1.54-multi-role-assistant";
-import { createDefaultLearningModes, createLearningModeRecord, createModeFromPayload } from "./learningArchitecture.js?v=1.1.54-multi-role-assistant";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.62-external-task-review-loop";
+import { createDefaultPracticeModes } from "./practiceModeShells.js?v=1.1.62-external-task-review-loop";
+import { createDefaultLearningModes, createLearningModeRecord, createModeFromPayload } from "./learningArchitecture.js?v=1.1.62-external-task-review-loop";
 
 export async function processCreateLearningMode(executionState) {
   var payload = executionState.payload;

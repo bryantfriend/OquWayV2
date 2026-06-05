@@ -2,7 +2,7 @@ import {
   createLearningModesForTemplate,
   createStarterStepsForMode,
   normalizeLearningContentPayload
-} from "../moduleEditor/learningArchitecture.js?v=1.1.54-multi-role-assistant";
+} from "../moduleEditor/learningArchitecture.js?v=1.1.62-external-task-review-loop";
 
 export function processGenerateStarterSteps(executionState) {
   var payload = executionState.payload || {};

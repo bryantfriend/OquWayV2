@@ -1,4 +1,4 @@
-import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.55-class-ownership";
+import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.62-external-task-review-loop";
 
 export function requireClassOwnershipAdminAuthorization(executionState) {
   var actor = executionState.actor;

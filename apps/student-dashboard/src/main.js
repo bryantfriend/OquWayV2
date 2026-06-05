@@ -1,8 +1,8 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.31-student-open-context";
-import { PracticeModePlayer } from "../../../packages/core/src/shared/player/PracticeModePlayer.js?v=1.1.34-external-task-mvp";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.31-student-open-context";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.34-external-task-mvp";
+import { auth } from "../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.62-external-task-review-loop";
+import { PracticeModePlayer } from "../../../packages/core/src/shared/player/PracticeModePlayer.js?v=1.1.62-external-task-review-loop";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.62-external-task-review-loop";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.62-external-task-review-loop";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -988,6 +988,8 @@ async function loadExternalTaskStepStatus(step, snapshot) {
 
   return studentDashboardService.loadExternalTaskStep({
     courseId: course ? course.id : snapshot.courseId,
+    assignmentId: course ? (course.assignmentId || course.courseAssignmentId || "") : "",
+    courseAssignmentId: course ? (course.courseAssignmentId || course.assignmentId || "") : "",
     moduleId: module ? module.id : snapshot.moduleId,
     stepId: readStepId(step, "")
   });

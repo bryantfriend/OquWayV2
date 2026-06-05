@@ -1,7 +1,7 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.54-multi-role-assistant";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.54-multi-role-assistant";
-import { loadCourseAssignments } from "../courseAssignment/courseAssignmentHelpers.js?v=1.1.54-multi-role-assistant";
-import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.54-multi-role-assistant";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.62-external-task-review-loop";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.62-external-task-review-loop";
+import { loadCourseAssignments } from "../courseAssignment/courseAssignmentHelpers.js?v=1.1.62-external-task-review-loop";
+import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.62-external-task-review-loop";
 
 export async function processLoadStudentCourse(executionState) {
   var actor = executionState.actor;
@@ -30,7 +30,7 @@ export async function processLoadStudentCourse(executionState) {
     var courseAssignmentResult = await loadAssignedCourseIds(actor, studentProfile, executionState);
     appendWarnings(executionState, courseAssignmentResult.warnings);
 
-    var courses = await loadStudentCourses(actor, courseAssignmentResult.courseIds, executionState);
+    var courses = await loadStudentCourses(actor, courseAssignmentResult.courseIds, executionState, courseAssignmentResult.assignmentIdByCourseId);
 
     logStudentCourseDebug({
       studentId: studentProfile && studentProfile.id ? studentProfile.id : "",
@@ -66,7 +66,7 @@ export async function processLoadStudentCourse(executionState) {
   }
 }
 
-async function loadStudentCourses(actor, assignedCourseIds, executionState) {
+async function loadStudentCourses(actor, assignedCourseIds, executionState, assignmentIdByCourseId) {
   var courseSnaps = [];
   var courses = [];
   var courseIndex = 0;
@@ -84,12 +84,26 @@ async function loadStudentCourses(actor, assignedCourseIds, executionState) {
   }
 
   while (courseIndex < courseSnaps.length) {
-    courses.push(await buildCourseTree(actor, courseSnaps[courseIndex]));
+    courses.push(attachAssignmentIdToCourse(
+      await buildCourseTree(actor, courseSnaps[courseIndex]),
+      assignmentIdByCourseId || {}
+    ));
     courseIndex = courseIndex + 1;
   }
 
   courses.sort(compareByOrderThenTitle);
   return courses;
+}
+
+function attachAssignmentIdToCourse(course, assignmentIdByCourseId) {
+  if (!course || !course.id) {
+    return course;
+  }
+
+  return Object.assign({}, course, {
+    assignmentId: assignmentIdByCourseId[course.id] || course.assignmentId || "",
+    courseAssignmentId: assignmentIdByCourseId[course.id] || course.courseAssignmentId || course.assignmentId || ""
+  });
 }
 
 async function loadAssignedCourseSnaps(courseIds, executionState) {
@@ -159,6 +173,7 @@ async function loadAssignedCourseIdsFromAssignments(actor, studentProfile) {
   var targets = buildStudentAssignmentTargets(actor, studentProfile);
   var courseIds = [];
   var assignmentIds = [];
+  var assignmentIdByCourseId = {};
   var warnings = [];
   var queryPaths = [];
   var rejectionReasons = {};
@@ -177,7 +192,7 @@ async function loadAssignedCourseIdsFromAssignments(actor, studentProfile) {
         status: "active"
       });
 
-      addAssignmentCourses(courseIds, assignmentIds, assignments.filter(isVisibleAssignment));
+      addAssignmentCourses(courseIds, assignmentIds, assignmentIdByCourseId, assignments.filter(isVisibleAssignment));
 
       if (assignments.length === 0) {
         addReasonCount(rejectionReasons, "no-assignment-for-target");
@@ -202,6 +217,7 @@ async function loadAssignedCourseIdsFromAssignments(actor, studentProfile) {
 
   return {
     courseIds: courseIds,
+    assignmentIdByCourseId: assignmentIdByCourseId,
     assignmentCount: assignmentIds.length,
     warnings: warnings,
     source: "courseAssignments",
@@ -237,7 +253,7 @@ function buildStudentAssignmentTargets(actor, studentProfile) {
   return targets;
 }
 
-function addAssignmentCourses(courseIds, assignmentIds, assignments) {
+function addAssignmentCourses(courseIds, assignmentIds, assignmentIdByCourseId, assignments) {
   var assignmentIndex = 0;
 
   while (assignmentIndex < assignments.length) {
@@ -249,6 +265,9 @@ function addAssignmentCourses(courseIds, assignmentIds, assignments) {
 
     if (assignment && assignment.courseId) {
       addUniqueText(courseIds, assignment.courseId);
+      if (assignment.id && !assignmentIdByCourseId[assignment.courseId]) {
+        assignmentIdByCourseId[assignment.courseId] = assignment.id;
+      }
     }
 
     assignmentIndex = assignmentIndex + 1;

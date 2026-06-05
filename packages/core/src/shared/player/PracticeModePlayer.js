@@ -1,7 +1,7 @@
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../stepTypes/stepTypeRegistry.js?v=1.1.34-external-task-mvp";
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.62-external-task-review-loop";
 
 export class PracticeModePlayer {
   constructor(options) {

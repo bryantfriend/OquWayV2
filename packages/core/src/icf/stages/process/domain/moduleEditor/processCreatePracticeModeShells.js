@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.54-multi-role-assistant";
-import { normalizePracticeModes } from "./practiceModeShells.js?v=1.1.54-multi-role-assistant";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.62-external-task-review-loop";
+import { normalizePracticeModes } from "./practiceModeShells.js?v=1.1.62-external-task-review-loop";
 
 export async function processCreatePracticeModeShells(executionState) {
   var payload = executionState.payload;

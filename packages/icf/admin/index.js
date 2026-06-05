@@ -4,5 +4,5 @@ export {
   registerIntent,
   registerIntentDefinitions,
   runAdminIntent
-} from "./intentRegistry.js";
-export { runIntentPipeline } from "./runIntentPipeline.js";
+} from "./intentRegistry.js?v=1.1.62-external-task-review-loop";
+export { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.62-external-task-review-loop";

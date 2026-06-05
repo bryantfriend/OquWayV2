@@ -1,6 +1,6 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.54-multi-role-assistant";
-import { createCourseAssignmentId, loadCourseAssignments } from "./courseAssignmentHelpers.js?v=1.1.56-assignment-ownership";
-import { buildCourseAssignmentOwnershipFields } from "./courseAssignmentOwnershipHelpers.js?v=1.1.56-assignment-ownership";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.62-external-task-review-loop";
+import { createCourseAssignmentId, loadCourseAssignments } from "./courseAssignmentHelpers.js?v=1.1.62-external-task-review-loop";
+import { buildCourseAssignmentOwnershipFields } from "./courseAssignmentOwnershipHelpers.js?v=1.1.62-external-task-review-loop";
 
 export async function processCreateCourseAssignment(executionState) {
   var payload = executionState.payload;
@@ -41,6 +41,7 @@ export async function processCreateCourseAssignment(executionState) {
       dueAt: payload.dueAt || null,
       responsibleTeacherId: ownershipFields.responsibleTeacherId,
       assistantIds: ownershipFields.assistantIds,
+      teacherOwnershipIds: ownershipFields.teacherOwnershipIds,
       responsibleTeacherName: ownershipFields.responsibleTeacherName,
       assistantNames: ownershipFields.assistantNames,
       updatedAt: serverTimestamp()

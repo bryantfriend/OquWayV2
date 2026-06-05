@@ -1,8 +1,8 @@
-import { validateTeacherPasswordResetPayload } from "../../stages/validate/validators.js?v=1.1.60-teacher-login-readtext";
-import { normalizeTeacherPasswordResetPayload } from "../../stages/normalize/normalizers.js?v=1.1.60-teacher-login-readtext";
-import { allowTeacherLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.60-teacher-login-readtext";
-import { processSendTeacherPasswordReset } from "../../stages/process/processors.js?v=1.1.60-teacher-login-readtext";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.60-teacher-login-readtext";
+import { validateTeacherPasswordResetPayload } from "../../stages/validate/validators.js?v=1.1.62-external-task-review-loop";
+import { normalizeTeacherPasswordResetPayload } from "../../stages/normalize/normalizers.js?v=1.1.62-external-task-review-loop";
+import { allowTeacherLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.62-external-task-review-loop";
+import { processSendTeacherPasswordReset } from "../../stages/process/processors.js?v=1.1.62-external-task-review-loop";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.62-external-task-review-loop";
 
 export function SendTeacherPasswordResetIntent() {
   return {
