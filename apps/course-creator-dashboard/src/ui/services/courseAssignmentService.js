@@ -1,6 +1,6 @@
-import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.54-multi-role-assistant";
-import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.54-multi-role-assistant";
-import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.54-multi-role-assistant";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.78-location-command-center";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.78-location-command-center";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.78-location-command-center";
 
 export const courseAssignmentService = {
   createCourseAssignment: async function (courseId, targetType, targetId, status) {

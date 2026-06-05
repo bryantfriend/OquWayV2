@@ -1,6 +1,6 @@
-import { createIntent } from "../../../../../packages/core/src/icf/engine/createIntent.js?v=1.1.33-course-counts";
-import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.33-course-counts";
-import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.54-multi-role-assistant";
+import { createIntent } from "../../../../../packages/icf/index.js?v=1.1.78-location-command-center";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.78-location-command-center";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.78-location-command-center";
 
 function getActor() {
     const user = auth.currentUser;

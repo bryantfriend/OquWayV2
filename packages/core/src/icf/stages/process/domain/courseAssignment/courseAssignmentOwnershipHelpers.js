@@ -1,4 +1,4 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.78-location-command-center";
 
 export async function buildCourseAssignmentOwnershipFields(payload) {
   var responsibleTeacherId = readText(payload.responsibleTeacherId);

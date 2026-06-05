@@ -1,11 +1,11 @@
-import { auth } from "../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.54-multi-role-assistant";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.78-location-command-center";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.54-multi-role-assistant";
-import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.34-external-task-mvp";
-import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.34-external-task-mvp";
-import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.33-course-counts";
-import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.34-external-task-mvp";
-import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.54-multi-role-assistant";
+import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.78-location-command-center";
+import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.78-location-command-center";
+import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.78-location-command-center";
+import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.78-location-command-center";
+import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.78-location-command-center";
+import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.78-location-command-center";
 
 console.warn("[course-creator-build-check] latest build active");
 

@@ -1,6 +1,6 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.70-external-task-feedback";
-import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.70-external-task-feedback";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.78-location-command-center";
+import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.78-location-command-center";
 
 var appElement = document.getElementById("app");
 var startupMessage = consumeStartupMessage();

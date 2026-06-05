@@ -1,9 +1,9 @@
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.72-teacher-review-filters";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.78-location-command-center";
 import {
   createEmptyState,
   createLoadingState,
   createStatusBadge
-} from "../../../packages/ui/index.js?v=1.1.74-shared-ui-foundation";
+} from "../../../packages/ui/index.js?v=1.1.78-location-command-center";
 
 var app = document.getElementById("app");
 var state = {

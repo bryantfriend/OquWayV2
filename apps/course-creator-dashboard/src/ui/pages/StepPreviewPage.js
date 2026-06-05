@@ -1,9 +1,9 @@
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.54-multi-role-assistant";
-import { PracticeModePlayer } from "../../../../../packages/core/src/shared/player/PracticeModePlayer.js?v=1.1.34-external-task-mvp";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.78-location-command-center";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.78-location-command-center";
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../../../../../packages/core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.34-external-task-mvp";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.78-location-command-center";
 
 export class StepPreviewPage {
   constructor(courseId, moduleId, modeId, stepId) {

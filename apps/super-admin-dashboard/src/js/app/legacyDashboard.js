@@ -1,12 +1,13 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth, collection, db, deleteDoc, doc, functions, getDoc, getDocs, httpsCallable, serverTimestamp, setDoc, storage } from "../../../../../packages/firebase/index.js?v=1.1.66-super-admin-cleanup";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.66-super-admin-cleanup";
-import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.74-shared-ui-foundation";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.66-super-admin-cleanup";
-import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.66-super-admin-cleanup";
+import { auth, collection, db, deleteDoc, doc, functions, getDoc, getDocs, httpsCallable, serverTimestamp, setDoc, storage } from "../../../../../packages/firebase/index.js?v=1.1.78-location-command-center";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.78-location-command-center";
+import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.78-location-command-center";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.78-location-command-center";
+import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.78-location-command-center";
+import { createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.78-location-command-center";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.66";
+var appVersion = "1.1.78";
 var adminCallableFunctions = functions;
 var state = {
   isLoading: true,
@@ -15,6 +16,7 @@ var state = {
   pendingAction: "",
   activeLocationId: "",
   locationCreateOpen: false,
+  locationCommandCenter: createLocationCommandCenterState(),
   authPhase: "checkingAuth",
   needsLogin: false,
   activeTab: "overview",
@@ -352,16 +354,19 @@ async function loadOverviewData() {
   var modulesResult = await readOptionalCollection("modules");
   var auditResult = await readOptionalCollection("auditLogs");
   var activityResult = await readOptionalCollection("activityLogs");
+  var externalTaskResult = await readOptionalCollection("externalTaskSubmissions");
 
   overviewData.users = usersResult.items;
   overviewData.modules = modulesResult.items;
   overviewData.auditLogs = auditResult.items;
   overviewData.activityLogs = activityResult.items;
+  overviewData.externalTaskSubmissions = externalTaskResult.items;
   overviewData.collectionStatus = {
     users: usersResult,
     modules: modulesResult,
     auditLogs: auditResult,
-    activityLogs: activityResult
+    activityLogs: activityResult,
+    externalTaskSubmissions: externalTaskResult
   };
   overviewData.lastRefreshAt = Date.now();
   overviewData.storageAvailable = !!storage;
@@ -511,6 +516,7 @@ function buildDashboardView() {
   html += buildAssignmentTargetPickerModal();
   html += buildAssignmentStaffPickerModal();
   html += buildAssignmentDeleteModal();
+  html += buildLocationCommandCenterModal();
   html += buildOperationToast();
   html += '</section>';
 
@@ -1664,7 +1670,6 @@ function buildLocationSkeletons() {
 }
 
 function buildLocationCard(location) {
-  var isOpen = state.activeLocationId === location.id;
   var locationLine = [location.city, location.region].filter(Boolean).join(", ") || location.country || "No address details";
   var loginSlug = normalizeLoginSlug(location.loginSlug);
   var actionLabel = location.status === "archived" ? "Restore" : "Archive";
@@ -1676,12 +1681,8 @@ function buildLocationCard(location) {
   html += '<div class="sa-location-main"><div class="sa-location-title-row"><h3>' + escapeHtml(location.name || "Untitled location") + '</h3>' + buildStatusBadge(location.status) + '</div>';
   html += '<p>' + escapeHtml(location.type || "Private location") + '</p><small>' + escapeHtml(locationLine) + '</small>';
   html += '<div class="sa-location-meta"><span>' + (loginSlug ? "Slug: " + escapeHtml(loginSlug) : "Missing login slug") + '</span><span>' + escapeHtml(location.loginMode || "fruit") + ' login</span></div></div>';
-  html += '<div class="sa-row-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="edit-location" data-id="' + escapeHtml(location.id) + '"' + disabled(isBusy()) + '>' + (isOpen ? "Close" : "Edit") + '</button><button type="button" class="sa-btn ' + (location.status === "archived" ? "sa-btn-secondary" : "sa-danger-btn") + '" data-action="' + actionName + '" data-id="' + escapeHtml(location.id) + '"' + disabled(isBusy()) + '>' + buildButtonContent(actionLabel, actionName + ":" + location.id) + '</button></div>';
+  html += '<div class="sa-row-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="edit-location" data-id="' + escapeHtml(location.id) + '"' + disabled(isBusy()) + '>Open Command Center</button><button type="button" class="sa-btn ' + (location.status === "archived" ? "sa-btn-secondary" : "sa-danger-btn") + '" data-action="' + actionName + '" data-id="' + escapeHtml(location.id) + '"' + disabled(isBusy()) + '>' + buildButtonContent(actionLabel, actionName + ":" + location.id) + '</button></div>';
   html += '</div>';
-
-  if (isOpen) {
-    html += '<div class="sa-location-detail">' + buildLocationDetailForm(location.id, location, false) + '</div>';
-  }
 
   html += '</article>';
   return html;
@@ -1779,6 +1780,299 @@ function buildLoginLinkPreview(formId, loginSlug) {
   }
 
   return '<div class="sa-login-link-preview" data-login-preview-for="' + escapeHtml(formId) + '"><strong>Login Link</strong><span>' + escapeHtml(loginLink) + '</span><button type="button" class="sa-btn sa-btn-secondary" data-action="copy-login-link" data-id="' + escapeHtml(normalizedSlug) + '">Copy Link</button></div>';
+}
+
+function buildLocationCommandCenterModal() {
+  var command = state.locationCommandCenter || createLocationCommandCenterState();
+
+  if (!command.isOpen) {
+    return "";
+  }
+
+  var location = getSafeLocation(findLocation(command.locationId));
+  var stats = readLocationCommandStats(location.id);
+
+  return '<div class="sa-location-command-backdrop" role="dialog" aria-modal="true" aria-label="Location Command Center">'
+    + '<section class="sa-location-command-modal">'
+    + '<header class="sa-location-command-header">'
+    + '<div class="sa-location-command-identity">'
+    + buildLocationPhoto(location)
+    + '<div><div class="sa-location-command-title"><h2>' + escapeHtml(location.name || "Untitled Location") + '</h2>' + createStatusBadge(location.status, { className: "sa-command-status", statusClassPrefix: "sa-command-status-" }) + '</div>'
+    + '<p>Location Code: ' + escapeHtml(location.schoolCode || location.loginSlug || location.id) + '<span></span>Created: ' + escapeHtml(formatDateTime(location.createdAt)) + '<span></span>Last Activity: ' + escapeHtml(formatDateTime(readLocationLastActivity(location.id))) + '</p></div>'
+    + '</div>'
+    + '<div class="sa-location-command-header-actions">'
+    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="location-command-navigate" data-id="users">Open Global View</button>'
+    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="location-command-tab" data-id="loginSettings">More Actions</button>'
+    + '<button type="button" class="sa-location-command-close" data-action="close-location-command-center" aria-label="Close">x</button>'
+    + '</div>'
+    + '</header>'
+    + '<div class="sa-location-command-shell">'
+    + buildLocationCommandTabs(command.activeTab)
+    + '<main class="sa-location-command-content">' + buildLocationCommandBody(command, location, stats) + '</main>'
+    + '</div>'
+    + '</section>'
+    + '</div>';
+}
+
+function buildLocationCommandTabs(activeTab) {
+  var tabs = [
+    { key: "overview", label: "Overview", icon: "⌂" },
+    { key: "users", label: "Users", icon: "◉" },
+    { key: "classes", label: "Classes", icon: "◫" },
+    { key: "courses", label: "Courses", icon: "▣" },
+    { key: "assignments", label: "Assignments", icon: "☑" },
+    { key: "loginSettings", label: "Login Settings", icon: "⚿" },
+    { key: "reports", label: "Reports", icon: "▥" },
+    { key: "danger", label: "Danger Zone", icon: "!" }
+  ];
+  var html = '<nav class="sa-location-command-tabs">';
+  var index = 0;
+
+  while (index < tabs.length) {
+    html += '<button type="button" class="' + (activeTab === tabs[index].key ? "is-active" : "") + '" data-action="location-command-tab" data-id="' + escapeHtml(tabs[index].key) + '"><span>' + escapeHtml(tabs[index].icon) + '</span>' + escapeHtml(tabs[index].label) + '</button>';
+    index = index + 1;
+  }
+
+  html += '<small>' + escapeHtml(readRoleLabel(state.actor && state.actor.role ? state.actor.role : "superAdmin")) + '</small></nav>';
+  return html;
+}
+
+function buildLocationCommandBody(command, location, stats) {
+  if (command.activeTab === "users") return buildLocationCommandUsersTab(command, location);
+  if (command.activeTab === "classes") return buildLocationCommandClassesTab(location);
+  if (command.activeTab === "courses") return buildLocationCommandCoursesTab(location);
+  if (command.activeTab === "assignments") return buildLocationCommandAssignmentsTab(location);
+  if (command.activeTab === "loginSettings") return buildLocationCommandLoginSettingsTab(location);
+  if (command.activeTab === "reports") return buildLocationCommandReportsTab(location);
+  if (command.activeTab === "danger") return buildLocationCommandDangerTab(location);
+  return buildLocationCommandOverviewTab(command, location, stats);
+}
+
+function buildLocationCommandOverviewTab(command, location, stats) {
+  return '<section class="sa-location-command-overview">'
+    + '<div class="sa-command-kpi-grid">'
+    + buildLocationKpiCard("Students", stats.students, "users-student", "blue")
+    + buildLocationKpiCard("Teachers", stats.teachers, "users-teacher", "purple")
+    + buildLocationKpiCard("Parents", stats.parents, "users-parent", "green")
+    + buildLocationKpiCard("Admins", stats.admins, "users-admin", "red")
+    + buildLocationKpiCard("Classes", stats.classes, "classes", "sky")
+    + buildLocationKpiCard("Courses", stats.courses, "courses", "indigo")
+    + buildLocationKpiCard("Assignments", stats.assignments, "assignments", "orange")
+    + buildLocationKpiCard("Pending Reviews", stats.pendingReviews, "reviews", "rose")
+    + '</div>'
+    + '<div class="sa-command-grid sa-command-grid-main">'
+    + buildLocationCommandChartCard("Enrollment Trend", command.chartRange, "No enrollment trend data is available for this location yet.")
+    + buildLocationCommandChartCard("Activity Trend", command.chartRange, "No activity trend data is available for this location yet.")
+    + buildLocationReviewTrendCard(stats)
+    + buildLocationRecentActivityCard(location.id)
+    + '</div>'
+    + '<div class="sa-command-grid sa-command-grid-bottom">'
+    + buildLocationQuickActionsCard()
+    + buildLocationSummaryCard(location, stats)
+    + buildLocationHealthCard(stats)
+    + '</div>'
+    + '</section>';
+}
+
+function buildLocationKpiCard(label, value, target, tone) {
+  return '<button type="button" class="sa-command-kpi sa-command-kpi-' + escapeHtml(tone) + '" data-action="location-command-navigate" data-id="' + escapeHtml(target) + '">'
+    + '<span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(String(value)) + '</strong><small>Open ' + escapeHtml(label) + ' -></small></button>';
+}
+
+function buildLocationCommandChartCard(title, range, emptyMessage) {
+  return '<article class="sa-command-panel"><div class="sa-command-panel-head"><h3>' + escapeHtml(title) + '</h3>' + buildLocationRangeControl(range) + '</div>'
+    + createEmptyState(title + " unavailable", emptyMessage, {
+      className: "sa-command-empty",
+      titleTag: "strong",
+      messageTag: "span"
+    })
+    + '</article>';
+}
+
+function buildLocationRangeControl(range) {
+  return '<select data-location-command-filter="chartRange"><option value="week"' + selected(range, "week") + '>7 Days</option><option value="month"' + selected(range, "month") + '>30 Days</option><option value="year"' + selected(range, "year") + '>This Year</option></select>';
+}
+
+function buildLocationReviewTrendCard(stats) {
+  var total = stats.pendingReviews + stats.completedReviews + stats.needsWorkReviews;
+
+  return '<article class="sa-command-panel sa-command-review-panel"><div class="sa-command-panel-head"><h3>Review Trend</h3></div>'
+    + '<div class="sa-command-review-ring"><strong>' + escapeHtml(String(total)) + '</strong><span>Total</span></div>'
+    + '<div class="sa-command-review-list"><span><i class="pending"></i>Pending <b>' + stats.pendingReviews + '</b></span><span><i class="complete"></i>Completed <b>' + stats.completedReviews + '</b></span><span><i class="needs"></i>Needs Work <b>' + stats.needsWorkReviews + '</b></span></div>'
+    + '</article>';
+}
+
+function buildLocationRecentActivityCard(locationId) {
+  var activity = readLocationRecentActivity(locationId);
+  var html = '<article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Recent Activity</h3><button type="button" class="sa-text-link" data-action="location-command-tab" data-id="reports">View All</button></div>';
+
+  if (activity.length === 0) {
+    return html + createEmptyState("No recent activity.", "Activity logs will appear here when connected to this location.", {
+      className: "sa-command-empty",
+      titleTag: "strong",
+      messageTag: "span"
+    }) + '</article>';
+  }
+
+  html += '<div class="sa-command-activity-list">';
+  activity.slice(0, 6).forEach(function (item) {
+    html += '<div><span>' + escapeHtml(item.type) + '</span><strong>' + escapeHtml(item.title) + '</strong><small>' + escapeHtml(formatDateTime(item.time)) + '</small></div>';
+  });
+  html += '</div></article>';
+  return html;
+}
+
+function buildLocationQuickActionsCard() {
+  var actions = [
+    ["View All Users", "users"],
+    ["View Classes", "classes"],
+    ["View Courses", "courses"],
+    ["View Assignments", "assignments"],
+    ["Login Settings", "loginSettings"],
+    ["Reports", "reports"]
+  ];
+  var html = '<article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Quick Actions</h3></div><div class="sa-command-action-grid">';
+
+  actions.forEach(function (action) {
+    var target = action[1] === "loginSettings" || action[1] === "reports" ? "location-command-tab" : "location-command-navigate";
+    html += '<button type="button" class="sa-command-action" data-action="' + target + '" data-id="' + escapeHtml(action[1]) + '">' + escapeHtml(action[0]) + '</button>';
+  });
+
+  html += '</div></article>';
+  return html;
+}
+
+function buildLocationSummaryCard(location, stats) {
+  return '<article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Location Summary</h3></div>'
+    + '<dl class="sa-command-summary-list">'
+    + '<dt>Location Name</dt><dd>' + escapeHtml(location.name || "Untitled Location") + '</dd>'
+    + '<dt>Location Code</dt><dd>' + escapeHtml(location.schoolCode || location.loginSlug || location.id) + '</dd>'
+    + '<dt>Status</dt><dd>' + createStatusBadge(location.status, { className: "sa-command-mini-status", statusClassPrefix: "sa-command-status-" }) + '</dd>'
+    + '<dt>Students</dt><dd>' + escapeHtml(String(stats.students)) + '</dd>'
+    + '<dt>Classes</dt><dd>' + escapeHtml(String(stats.classes)) + '</dd>'
+    + '<dt>Primary Language</dt><dd>' + escapeHtml((location.languages && location.languages[0]) || "Not set") + '</dd>'
+    + '</dl>'
+    + '</article>';
+}
+
+function buildLocationHealthCard(stats) {
+  var score = 60;
+  if (stats.students > 0) score += 10;
+  if (stats.teachers > 0) score += 10;
+  if (stats.classes > 0) score += 10;
+  if (stats.assignments > 0) score += 10;
+
+  return '<article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Health Score</h3></div>'
+    + '<div class="sa-command-health-score"><strong>' + score + '</strong><span>' + (score >= 90 ? "Excellent" : score >= 75 ? "Healthy" : "Needs setup") + '</span></div>'
+    + '<div class="sa-command-health-list"><span>Student Activity <b>' + (stats.students > 0 ? "Ready" : "Empty") + '</b></span><span>Teacher Coverage <b>' + (stats.teachers > 0 ? "Ready" : "Missing") + '</b></span><span>Assignments <b>' + (stats.assignments > 0 ? "Ready" : "Empty") + '</b></span></div>'
+    + '</article>';
+}
+
+function buildLocationCommandUsersTab(command, location) {
+  var users = readLocationCommandUsers(location.id, command.userRoleFilter, command.userSearchText);
+  var html = '<section class="sa-command-tab-stack"><div class="sa-command-toolbar"><label>Role' + buildBasicOptionsSelect('data-location-command-filter="userRole"', command.userRoleFilter, ["student", "teacher", "parent", "admin", "assistant"], "All") + '</label><label>Search<input data-location-command-filter="userSearch" value="' + escapeHtml(command.userSearchText) + '" placeholder="Name, email, UID"></label></div>';
+
+  if (users.length === 0) {
+    return html + createEmptyState("No users found.", "Try another role filter or search term.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
+  }
+
+  html += '<div class="sa-command-table sa-command-users-table"><div class="sa-command-table-head"><span>Avatar</span><span>Name</span><span>Role</span><span>Primary Class</span><span>Status</span></div>';
+  users.forEach(function (user) {
+    html += '<button type="button" class="sa-command-table-row" data-action="edit-user" data-id="' + escapeHtml(user.id) + '">'
+      + '<span>' + buildAvatar(user) + '</span><span><strong>' + escapeHtml(user.displayName || user.name || user.email || user.id) + '</strong><small>' + escapeHtml(user.email || user.id) + '</small></span><span>' + buildRoleBadges(user.roles) + '</span><span>' + escapeHtml(readUserClassSummary(user)) + '</span><span>' + buildStatusBadge(user.status) + '</span></button>';
+  });
+  html += '</div></section>';
+  return html;
+}
+
+function buildLocationCommandClassesTab(location) {
+  var classes = readLocationCommandClasses(location.id);
+  var html = '<section class="sa-command-tab-stack">';
+
+  if (classes.length === 0) {
+    return html + createEmptyState("No classes found.", "Classes assigned to this location will appear here.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
+  }
+
+  html += '<div class="sa-command-table"><div class="sa-command-table-head"><span>Class</span><span>Teacher</span><span>Students</span><span>Courses</span><span>Status</span></div>';
+  classes.forEach(function (classRecord) {
+    var form = normalizeClassForm(classRecord);
+    html += '<button type="button" class="sa-command-table-row" data-action="location-command-navigate" data-id="classes">'
+      + '<span><strong>' + escapeHtml(form.name || form.id || "Untitled class") + '</strong><small>' + escapeHtml(readLocationName(form.locationId)) + '</small></span>'
+      + '<span>' + escapeHtml(readTeacherName(form.primaryTeacherId)) + '</span>'
+      + '<span>' + countStudentsForClass(form.classId) + '</span>'
+      + '<span>' + countAssignmentsForClass(form.classId) + '</span>'
+      + '<span>' + buildStatusBadge(form.status) + '</span></button>';
+  });
+  html += '</div></section>';
+  return html;
+}
+
+function buildLocationCommandCoursesTab(location) {
+  var courses = readLocationCommandCourses(location.id);
+  var html = '<section class="sa-command-tab-stack">';
+
+  if (courses.length === 0) {
+    return html + createEmptyState("No courses found.", "Courses connected by this location's assignments will appear here.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
+  }
+
+  html += '<div class="sa-command-table"><div class="sa-command-table-head"><span>Course</span><span>Assigned Classes</span><span>Assigned Students</span><span>Modules</span><span>Status</span></div>';
+  courses.forEach(function (course) {
+    var assignmentStats = readCourseAssignmentStatsForLocation(course.id, location.id);
+    html += '<button type="button" class="sa-command-table-row" data-action="location-command-navigate" data-id="courses">'
+      + '<span><strong>' + escapeHtml(readCourseTitle(course)) + '</strong><small>' + escapeHtml(readCourseDescription(course) || course.id) + '</small></span>'
+      + '<span>' + assignmentStats.classes + '</span><span>' + assignmentStats.students + '</span><span>' + readCourseModuleCount(course) + '</span><span>' + buildStatusBadge(course.status || "draft") + '</span></button>';
+  });
+  html += '</div></section>';
+  return html;
+}
+
+function buildLocationCommandAssignmentsTab(location) {
+  var assignments = readLocationCommandAssignments(location.id);
+  var html = '<section class="sa-command-tab-stack">';
+
+  if (assignments.length === 0) {
+    return html + createEmptyState("No assignments found.", "Class and student course assignments for this location will appear here.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
+  }
+
+  html += '<div class="sa-command-table"><div class="sa-command-table-head"><span>Course</span><span>Assigned To</span><span>Type</span><span>Assigned Date</span><span>Status</span></div>';
+  assignments.forEach(function (assignment) {
+    html += '<button type="button" class="sa-command-table-row" data-action="view-assignment" data-id="' + escapeHtml(assignment.id) + '">'
+      + '<span><strong>' + escapeHtml(readCourseName(assignment.courseId)) + '</strong><small>' + escapeHtml(assignment.courseId || "") + '</small></span>'
+      + '<span>' + escapeHtml(readAssignmentTargetName(assignment)) + '</span>'
+      + '<span>' + escapeHtml(assignment.targetType || "class") + '</span>'
+      + '<span>' + escapeHtml(formatDateTime(assignment.assignedAt || assignment.createdAt || assignment.updatedAt)) + '</span>'
+      + '<span>' + buildStatusBadge(assignment.status || "active") + '</span></button>';
+  });
+  html += '</div></section>';
+  return html;
+}
+
+function buildLocationCommandLoginSettingsTab(location) {
+  var slug = normalizeLoginSlug(location.loginSlug);
+  var loginUrl = slug ? buildLoginLink(slug) : "";
+
+  return '<section class="sa-command-tab-stack">'
+    + '<article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Login Settings</h3></div>'
+    + '<dl class="sa-command-summary-list"><dt>Location Name</dt><dd>' + escapeHtml(location.name || "Untitled Location") + '</dd><dt>Location Code</dt><dd>' + escapeHtml(location.schoolCode || location.id) + '</dd><dt>Student Login URL</dt><dd>' + escapeHtml(loginUrl || "Coming Soon") + '</dd><dt>Teacher Login URL</dt><dd>Coming Soon</dd><dt>Parent Login URL</dt><dd>Coming Soon</dd></dl>'
+    + '<div class="sa-command-toggle-grid"><span>Student Login <b>' + (location.allowStudentLogin ? "Enabled" : "Disabled") + '</b></span><span>Teacher Login <b>Coming Soon</b></span><span>Parent Login <b>' + (location.parentPortalEnabled ? "Enabled" : "Coming Soon") + '</b></span></div></article>'
+    + '<article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Location Profile Editor</h3><p>Existing global location save flow.</p></div>' + buildLocationDetailForm(location.id, location, false) + '</article>'
+    + '</section>';
+}
+
+function buildLocationCommandReportsTab(location) {
+  var sections = ["Enrollment", "Attendance", "Course Completion", "External Tasks", "Intention Points", "Activity Reports"];
+  var html = '<section class="sa-command-tab-stack"><div class="sa-command-report-grid">';
+
+  sections.forEach(function (section) {
+    html += '<article class="sa-command-panel"><h3>' + escapeHtml(section) + '</h3>' + createEmptyState(section + " report unavailable", "Connect report data to show this location's report.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</article>';
+  });
+
+  html += '</div></section>';
+  return html;
+}
+
+function buildLocationCommandDangerTab(location) {
+  return '<section class="sa-command-tab-stack"><article class="sa-command-panel sa-command-danger-panel"><div class="sa-command-panel-head"><h3>Danger Zone</h3></div><p>Destructive operations must run through ICF intents. These controls remain disabled until the matching intents are wired.</p><div class="sa-command-danger-actions"><button type="button" class="sa-btn sa-danger-btn" disabled>Archive Location</button><button type="button" class="sa-btn sa-danger-btn" disabled>Disable Location</button><button type="button" class="sa-btn sa-danger-btn" disabled>Transfer Students</button><button type="button" class="sa-btn sa-danger-btn" disabled>Transfer Teachers</button></div><small>Location: ' + escapeHtml(location.name || location.id) + '</small></article></section>';
 }
 
 function buildClassesTab() {
@@ -2728,6 +3022,11 @@ function handleInput(event) {
     return;
   }
 
+  if (target.getAttribute("data-location-command-filter")) {
+    updateLocationCommandFilter(target.getAttribute("data-location-command-filter"), target.value);
+    return;
+  }
+
   if (target.getAttribute("data-class-picker-search")) {
     state.classPicker.searchText = target.value;
     render();
@@ -2761,6 +3060,128 @@ function updateOverviewFilter(field, value) {
   }
 
   render();
+}
+
+function updateLocationCommandFilter(field, value) {
+  var nextState = Object.assign({}, state.locationCommandCenter);
+
+  if (field === "userRole") {
+    nextState.userRoleFilter = readSafeString(value);
+  } else if (field === "userSearch") {
+    nextState.userSearchText = readSafeString(value);
+  } else if (field === "chartRange") {
+    nextState.chartRange = readSafeString(value) || "month";
+  }
+
+  state.locationCommandCenter = nextState;
+  render();
+}
+
+function openLocationCommandCenter(locationId) {
+  var location = findLocation(locationId);
+
+  if (!location || !location.id) {
+    setState({ message: "Location was not found.", messageType: "error" });
+    return;
+  }
+
+  console.info("[location-command-center:open]", {
+    locationId: location.id,
+    locationName: location.name || ""
+  });
+
+  setState({
+    activeLocationId: location.id,
+    locationCreateOpen: false,
+    locationCommandCenter: Object.assign(createLocationCommandCenterState(), {
+      isOpen: true,
+      locationId: location.id
+    }),
+    message: ""
+  });
+}
+
+function closeLocationCommandCenter() {
+  setState({
+    locationCommandCenter: createLocationCommandCenterState(),
+    activeLocationId: "",
+    message: ""
+  });
+}
+
+function setLocationCommandCenterTab(tabKey) {
+  var safeTab = readSafeString(tabKey) || "overview";
+
+  setState({
+    locationCommandCenter: Object.assign({}, state.locationCommandCenter, {
+      activeTab: safeTab
+    }),
+    message: ""
+  });
+}
+
+function navigateFromLocationCommandCenter(target) {
+  var command = state.locationCommandCenter || createLocationCommandCenterState();
+  var locationId = command.locationId || state.activeLocationId;
+
+  if (!locationId) {
+    return;
+  }
+
+  if (target === "users-student" || target === "users-teacher" || target === "users-parent" || target === "users-admin" || target === "users-assistant" || target === "users") {
+    var role = "";
+
+    if (target === "users-student") role = "student";
+    if (target === "users-teacher") role = "teacher";
+    if (target === "users-parent") role = "parent";
+    if (target === "users-admin") role = "admin";
+    if (target === "users-assistant") role = "assistant";
+
+    setState({
+      activeTab: "users",
+      userFilters: Object.assign({}, state.userFilters, {
+        locationId: locationId,
+        role: role
+      }),
+      locationCommandCenter: createLocationCommandCenterState(),
+      activeUserId: "",
+      message: ""
+    });
+    return;
+  }
+
+  if (target === "classes") {
+    applyClassLocationFilter(locationId);
+    state.locationCommandCenter = createLocationCommandCenterState();
+    state.activeTab = "classes";
+    state.activeLocationId = "";
+    render();
+    return;
+  }
+
+  if (target === "courses") {
+    setState({
+      activeTab: "lessons",
+      locationCommandCenter: createLocationCommandCenterState(),
+      activeLocationId: "",
+      message: "Course inventory opened. Use existing course tools for editing.",
+      messageType: "info"
+    });
+    return;
+  }
+
+  if (target === "assignments" || target === "reviews") {
+    setState({
+      activeTab: "assignments",
+      assignmentFilters: Object.assign({}, state.assignmentFilters, {
+        targetType: target === "assignments" ? "" : state.assignmentFilters.targetType
+      }),
+      locationCommandCenter: createLocationCommandCenterState(),
+      activeLocationId: "",
+      message: target === "reviews" ? "Pending review data is shown in existing review tools when available." : "",
+      messageType: target === "reviews" ? "info" : state.messageType
+    });
+  }
 }
 
 function updateLoginField(field, value) {
@@ -3197,9 +3618,15 @@ async function handleAction(action, id) {
   } else if (action === "toggle-create-location") {
     setState({ locationCreateOpen: !state.locationCreateOpen, activeLocationId: "", message: "" });
   } else if (action === "edit-location") {
-    setState({ activeLocationId: state.activeLocationId === id ? "" : id, locationCreateOpen: false, message: "" });
+    openLocationCommandCenter(id);
+  } else if (action === "close-location-command-center") {
+    closeLocationCommandCenter();
+  } else if (action === "location-command-tab") {
+    setLocationCommandCenterTab(id);
+  } else if (action === "location-command-navigate") {
+    navigateFromLocationCommandCenter(id);
   } else if (action === "close-location-editor") {
-    setState({ activeLocationId: "", message: "" });
+    setState({ activeLocationId: "", locationCommandCenter: Object.assign({}, state.locationCommandCenter, { activeTab: "overview" }), message: "" });
   } else if (action === "create-location") {
     await saveLocation("CreateLocationIntent", state.locationForm, "Location created.", "create-location:new");
   } else if (action === "update-location") {
@@ -4711,9 +5138,21 @@ function createOverviewData() {
     modules: [],
     auditLogs: [],
     activityLogs: [],
+    externalTaskSubmissions: [],
     collectionStatus: {},
     lastRefreshAt: null,
     storageAvailable: false
+  };
+}
+
+function createLocationCommandCenterState() {
+  return {
+    isOpen: false,
+    locationId: "",
+    activeTab: "overview",
+    userRoleFilter: "",
+    userSearchText: "",
+    chartRange: "month"
   };
 }
 
@@ -6300,6 +6739,212 @@ function readVisibleClassesForLocation(selectedLocationId) {
   }
 
   return classes;
+}
+
+function readLocationCommandStats(locationId) {
+  var users = readLocationCommandUsers(locationId, "", "");
+  var classes = readLocationCommandClasses(locationId);
+  var assignments = readLocationCommandAssignments(locationId);
+  var courses = readLocationCommandCourses(locationId);
+  var submissions = readLocationCommandSubmissions(locationId);
+
+  return {
+    students: countItems(users, function (user) { return userMatchesRoleFilter(user, "student"); }),
+    teachers: countItems(users, function (user) { return userMatchesRoleFilter(user, "teacher"); }),
+    parents: countItems(users, function (user) { return userMatchesRoleFilter(user, "parent"); }),
+    admins: countItems(users, function (user) { return userMatchesRoleFilter(user, "admin") || user.roles.indexOf("schoolAdmin") !== -1 || user.roles.indexOf("platformAdmin") !== -1 || user.roles.indexOf("superAdmin") !== -1; }),
+    assistants: countItems(users, function (user) { return user.roles.indexOf("assistant") !== -1; }),
+    classes: classes.length,
+    courses: courses.length,
+    assignments: assignments.length,
+    pendingReviews: countItems(submissions, function (submission) { return readSafeString(submission.reviewStatus || submission.status) === "pending"; }),
+    completedReviews: countItems(submissions, function (submission) { return readSafeString(submission.reviewStatus || submission.status) === "complete"; }),
+    needsWorkReviews: countItems(submissions, function (submission) { return readSafeString(submission.reviewStatus || submission.status) === "needsWork" || readSafeString(submission.reviewStatus || submission.status) === "incomplete"; })
+  };
+}
+
+function readLocationCommandUsers(locationId, roleFilter, searchText) {
+  var query = readSafeString(searchText).trim().toLowerCase();
+  return state.users.map(getSafeUser).filter(function (user) {
+    var searchable = [user.displayName, user.name, user.email, user.phone, user.id].join(" ").toLowerCase();
+    return isVisibleUserProfile(user)
+      && userMatchesLocation(user, locationId)
+      && userMatchesRoleFilter(user, roleFilter || "")
+      && (!query || searchable.indexOf(query) !== -1);
+  }).sort(function (a, b) {
+    return (a.displayName || a.email || a.id).localeCompare(b.displayName || b.email || b.id);
+  });
+}
+
+function userMatchesLocation(user, locationId) {
+  var safeUser = getSafeUser(user);
+  var safeLocationId = readSafeString(locationId);
+
+  if (!safeLocationId) {
+    return true;
+  }
+
+  return safeUser.locationIds.indexOf(safeLocationId) !== -1 || safeUser.primaryLocationId === safeLocationId || safeUser.locationId === safeLocationId;
+}
+
+function readLocationCommandClasses(locationId) {
+  return state.classes.filter(function (classRecord) {
+    return classMatchesLocationFilter(classRecord, locationId);
+  }).sort(function (a, b) {
+    return readSafeString(a.name || a.id).localeCompare(readSafeString(b.name || b.id));
+  });
+}
+
+function readLocationCommandAssignments(locationId) {
+  return state.assignments.filter(function (assignment) {
+    return assignmentMatchesLocation(assignment, locationId);
+  }).sort(function (a, b) {
+    return readSafeString(a.courseId).localeCompare(readSafeString(b.courseId));
+  });
+}
+
+function assignmentMatchesLocation(assignment, locationId) {
+  var safeLocationId = readSafeString(locationId);
+  var targetType = readSafeString(assignment && assignment.targetType);
+  var targetId = readSafeString(assignment && (assignment.targetId || assignment.classId || assignment.studentId || assignment.locationId));
+  var classRecord = null;
+  var student = null;
+
+  if (!safeLocationId) {
+    return true;
+  }
+
+  if (assignment && (assignment.locationId === safeLocationId || assignment.primaryLocationId === safeLocationId)) {
+    return true;
+  }
+
+  if (targetType === "location" && targetId === safeLocationId) {
+    return true;
+  }
+
+  if (targetType === "class" || assignment && assignment.classId) {
+    classRecord = findClass(targetId || assignment.classId);
+    return classMatchesLocationFilter(classRecord, safeLocationId);
+  }
+
+  if (targetType === "student" || assignment && assignment.studentId) {
+    student = findStudent(targetId || assignment.studentId);
+    return readStudentLocationId(student) === safeLocationId;
+  }
+
+  return false;
+}
+
+function readLocationCommandCourses(locationId) {
+  var courseIds = [];
+  var assignments = readLocationCommandAssignments(locationId);
+  var courses = [];
+
+  assignments.forEach(function (assignment) {
+    if (assignment.courseId && courseIds.indexOf(assignment.courseId) === -1) {
+      courseIds.push(assignment.courseId);
+    }
+  });
+
+  state.courses.forEach(function (course) {
+    if (courseMatchesLocation(course, locationId) && courseIds.indexOf(course.id) === -1) {
+      courseIds.push(course.id);
+    }
+  });
+
+  courseIds.forEach(function (courseId) {
+    var course = findCourse(courseId);
+    if (course) {
+      courses.push(course);
+    }
+  });
+
+  return courses.sort(function (a, b) {
+    return readCourseTitle(a).localeCompare(readCourseTitle(b));
+  });
+}
+
+function courseMatchesLocation(course, locationId) {
+  var safeLocationId = readSafeString(locationId);
+  var ids = normalizeIdList([
+    course && course.locationId,
+    course && course.primaryLocationId,
+    course && course.schoolId,
+    course && course.locationIds,
+    course && course.assignedLocationIds
+  ]);
+
+  return safeLocationId && ids.indexOf(safeLocationId) !== -1;
+}
+
+function readLocationCommandSubmissions(locationId) {
+  var submissions = state.overviewData && Array.isArray(state.overviewData.externalTaskSubmissions) ? state.overviewData.externalTaskSubmissions : [];
+
+  return submissions.filter(function (submission) {
+    if (submission.locationId === locationId || submission.primaryLocationId === locationId) {
+      return true;
+    }
+
+    if (submission.classId && classMatchesLocationFilter(findClass(submission.classId), locationId)) {
+      return true;
+    }
+
+    if (submission.studentId && readStudentLocationId(findStudent(submission.studentId)) === locationId) {
+      return true;
+    }
+
+    return false;
+  });
+}
+
+function readLocationRecentActivity(locationId) {
+  var activity = [];
+  var records = state.overviewData && Array.isArray(state.overviewData.activityLogs) ? state.overviewData.activityLogs : [];
+
+  records.forEach(function (record) {
+    if (record.locationId === locationId || record.primaryLocationId === locationId || record.schoolId === locationId) {
+      activity.push({
+        type: readSafeString(record.type || record.action || "Activity"),
+        title: readSafeString(record.title || record.message || record.description || "Location activity"),
+        time: normalizeTimestamp(record.createdAt || record.updatedAt || record.time || Date.now())
+      });
+    }
+  });
+
+  return activity.sort(compareByTimeDesc);
+}
+
+function readLocationLastActivity(locationId) {
+  var activity = readLocationRecentActivity(locationId);
+  return activity.length > 0 ? activity[0].time : null;
+}
+
+function readTeacherName(userId) {
+  var user = findUser(userId);
+  return user ? (user.displayName || user.name || user.email || user.id) : "No teacher assigned";
+}
+
+function countStudentsForClass(classId) {
+  return countItems(state.users.map(getSafeUser), function (user) {
+    return user.roles.indexOf("student") !== -1 && (user.classId === classId || user.classIds.indexOf(classId) !== -1);
+  });
+}
+
+function countAssignmentsForClass(classId) {
+  return countItems(state.assignments, function (assignment) {
+    return (assignment.targetType === "class" || assignment.classId) && (assignment.targetId === classId || assignment.classId === classId);
+  });
+}
+
+function readCourseAssignmentStatsForLocation(courseId, locationId) {
+  var assignments = readLocationCommandAssignments(locationId).filter(function (assignment) {
+    return assignment.courseId === courseId;
+  });
+
+  return {
+    classes: countItems(assignments, function (assignment) { return assignment.targetType === "class" || Boolean(assignment.classId); }),
+    students: countItems(assignments, function (assignment) { return assignment.targetType === "student" || Boolean(assignment.studentId); })
+  };
 }
 
 function userMatchesRoleFilter(user, roleFilter) {

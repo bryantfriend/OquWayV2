@@ -1,4 +1,4 @@
-import { processCreateModule } from "./processCreateModule.js?v=1.1.63-external-task-student-feedback";
+import { processCreateModule } from "./processCreateModule.js?v=1.1.78-location-command-center";
 
 export async function processCreateModuleFromWizard(executionState) {
   var payload = executionState.payload || {};

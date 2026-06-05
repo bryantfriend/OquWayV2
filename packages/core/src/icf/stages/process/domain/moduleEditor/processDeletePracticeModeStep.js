@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
-import { deletePracticeModeStep } from "./practiceModeShells.js?v=1.1.63-external-task-student-feedback";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.78-location-command-center";
+import { deletePracticeModeStep } from "./practiceModeShells.js?v=1.1.78-location-command-center";
 
 export async function processDeletePracticeModeStep(executionState) {
   var payload = executionState.payload;

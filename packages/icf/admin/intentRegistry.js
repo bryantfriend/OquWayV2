@@ -1,4 +1,4 @@
-import { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.66-super-admin-cleanup";
+import { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.78-location-command-center";
 
 var intents = {};
 

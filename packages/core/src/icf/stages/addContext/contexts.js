@@ -1,35 +1,35 @@
-export { attachDemoContext } from "./core/attachDemoContext.js?v=1.1.69-course-creator-cleanup";
-export { catalogAttachSystemContext } from "./domain/catalog/catalogAttachSystemContext.js?v=1.1.69-course-creator-cleanup";
-export { attachActorContext } from "./domain/catalogCourse/attachActorRoleContext.js?v=1.1.69-course-creator-cleanup";
-export { attachActorRoleContext } from "./domain/catalogCourse/attachActorRoleContext.js?v=1.1.69-course-creator-cleanup";
-export { attachTimestampContext } from "./domain/catalogCourse/attachCreatedByContext.js?v=1.1.69-course-creator-cleanup";
-export { attachCreatedByContext } from "./domain/catalogCourse/attachCreatedByContext.js?v=1.1.69-course-creator-cleanup";
-export { attachExistingCourseContext } from "./domain/catalogCourse/attachExistingCourseContext.js?v=1.1.69-course-creator-cleanup";
-export { attachExistingModuleContext } from "./domain/catalogCourse/attachExistingModuleContext.js?v=1.1.69-course-creator-cleanup";
-export { attachExistingStepContext } from "./domain/catalogCourse/attachExistingStepContext.js?v=1.1.69-course-creator-cleanup";
-export { attachExistingVersionContext } from "./domain/catalogCourse/attachExistingVersionContext.js?v=1.1.69-course-creator-cleanup";
-export { attachCourseAssignmentCourseContext, attachCourseAssignmentContext } from "./domain/courseAssignment/attachCourseAssignmentContext.js?v=1.1.69-course-creator-cleanup";
-export { attachTenantContext } from "./domain/catalogCourse/attachMinistryScopeContext.js?v=1.1.69-course-creator-cleanup";
-export { attachMinistryScopeContext } from "./domain/catalogCourse/attachMinistryScopeContext.js?v=1.1.69-course-creator-cleanup";
-export { attachUpdatedByContext } from "./domain/catalogCourse/attachUpdatedByContext.js?v=1.1.69-course-creator-cleanup";
-export { attachCourseDocument } from "./domain/courseEditor/attachCourseDocument.js?v=1.1.69-course-creator-cleanup";
-export { attachModule } from "./domain/courseEditor/attachModule.js?v=1.1.69-course-creator-cleanup";
-export { attachModulesCollection } from "./domain/courseEditor/attachModulesCollection.js?v=1.1.69-course-creator-cleanup";
-export { attachStepRegistryDefinition } from "./domain/courseEditor/attachStepRegistryDefinition.js?v=1.1.69-course-creator-cleanup";
-export { attachCourseDocumentForModule } from "./domain/moduleEditor/attachCourseDocumentForModule.js?v=1.1.69-course-creator-cleanup";
-export { attachModuleDocument } from "./domain/moduleEditor/attachModuleDocument.js?v=1.1.69-course-creator-cleanup";
-export { attachLearningModeDocument } from "./domain/moduleEditor/attachLearningModeDocument.js?v=1.1.69-course-creator-cleanup";
-export { attachSessionDocument } from "./domain/moduleEditor/attachSessionDocument.js?v=1.1.69-course-creator-cleanup";
-export { attachSessionsCollection } from "./domain/moduleEditor/attachSessionsCollection.js?v=1.1.69-course-creator-cleanup";
-export { attachStepPreviewContext } from "./domain/moduleEditor/attachStepPreviewContext.js?v=1.1.69-course-creator-cleanup";
-export { attachStepRegistryDefinitionForStep } from "./domain/moduleEditor/attachStepRegistryDefinitionForStep.js?v=1.1.69-course-creator-cleanup";
-export { attachStepsCollection } from "./domain/moduleEditor/attachStepsCollection.js?v=1.1.69-course-creator-cleanup";
-export { attachStudentProfileContext } from "./domain/student/attachStudentProfileContext.js?v=1.1.69-course-creator-cleanup";
-export { attachStudentSessionContext } from "./domain/student/attachStudentSessionContext.js?v=1.1.69-course-creator-cleanup";
-export { attachStudentOpenCourseContext } from "./domain/student/attachStudentOpenCourseContext.js?v=1.1.69-course-creator-cleanup";
+export { attachDemoContext } from "./core/attachDemoContext.js?v=1.1.78-location-command-center";
+export { catalogAttachSystemContext } from "./domain/catalog/catalogAttachSystemContext.js?v=1.1.78-location-command-center";
+export { attachActorContext } from "./domain/catalogCourse/attachActorRoleContext.js?v=1.1.78-location-command-center";
+export { attachActorRoleContext } from "./domain/catalogCourse/attachActorRoleContext.js?v=1.1.78-location-command-center";
+export { attachTimestampContext } from "./domain/catalogCourse/attachCreatedByContext.js?v=1.1.78-location-command-center";
+export { attachCreatedByContext } from "./domain/catalogCourse/attachCreatedByContext.js?v=1.1.78-location-command-center";
+export { attachExistingCourseContext } from "./domain/catalogCourse/attachExistingCourseContext.js?v=1.1.78-location-command-center";
+export { attachExistingModuleContext } from "./domain/catalogCourse/attachExistingModuleContext.js?v=1.1.78-location-command-center";
+export { attachExistingStepContext } from "./domain/catalogCourse/attachExistingStepContext.js?v=1.1.78-location-command-center";
+export { attachExistingVersionContext } from "./domain/catalogCourse/attachExistingVersionContext.js?v=1.1.78-location-command-center";
+export { attachCourseAssignmentCourseContext, attachCourseAssignmentContext } from "./domain/courseAssignment/attachCourseAssignmentContext.js?v=1.1.78-location-command-center";
+export { attachTenantContext } from "./domain/catalogCourse/attachMinistryScopeContext.js?v=1.1.78-location-command-center";
+export { attachMinistryScopeContext } from "./domain/catalogCourse/attachMinistryScopeContext.js?v=1.1.78-location-command-center";
+export { attachUpdatedByContext } from "./domain/catalogCourse/attachUpdatedByContext.js?v=1.1.78-location-command-center";
+export { attachCourseDocument } from "./domain/courseEditor/attachCourseDocument.js?v=1.1.78-location-command-center";
+export { attachModule } from "./domain/courseEditor/attachModule.js?v=1.1.78-location-command-center";
+export { attachModulesCollection } from "./domain/courseEditor/attachModulesCollection.js?v=1.1.78-location-command-center";
+export { attachStepRegistryDefinition } from "./domain/courseEditor/attachStepRegistryDefinition.js?v=1.1.78-location-command-center";
+export { attachCourseDocumentForModule } from "./domain/moduleEditor/attachCourseDocumentForModule.js?v=1.1.78-location-command-center";
+export { attachModuleDocument } from "./domain/moduleEditor/attachModuleDocument.js?v=1.1.78-location-command-center";
+export { attachLearningModeDocument } from "./domain/moduleEditor/attachLearningModeDocument.js?v=1.1.78-location-command-center";
+export { attachSessionDocument } from "./domain/moduleEditor/attachSessionDocument.js?v=1.1.78-location-command-center";
+export { attachSessionsCollection } from "./domain/moduleEditor/attachSessionsCollection.js?v=1.1.78-location-command-center";
+export { attachStepPreviewContext } from "./domain/moduleEditor/attachStepPreviewContext.js?v=1.1.78-location-command-center";
+export { attachStepRegistryDefinitionForStep } from "./domain/moduleEditor/attachStepRegistryDefinitionForStep.js?v=1.1.78-location-command-center";
+export { attachStepsCollection } from "./domain/moduleEditor/attachStepsCollection.js?v=1.1.78-location-command-center";
+export { attachStudentProfileContext } from "./domain/student/attachStudentProfileContext.js?v=1.1.78-location-command-center";
+export { attachStudentSessionContext } from "./domain/student/attachStudentSessionContext.js?v=1.1.78-location-command-center";
+export { attachStudentOpenCourseContext } from "./domain/student/attachStudentOpenCourseContext.js?v=1.1.78-location-command-center";
 export {
   attachExternalTaskSubmissionReviewContext,
   attachTeacherProfileContext
-} from "./domain/teacher/attachTeacherContext.js?v=1.1.69-course-creator-cleanup";
+} from "./domain/teacher/attachTeacherContext.js?v=1.1.78-location-command-center";
 
 

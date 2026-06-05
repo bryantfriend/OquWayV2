@@ -1,6 +1,6 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.73-student-course-polish";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.73-student-course-polish";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.78-location-command-center";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.78-location-command-center";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -12,16 +12,16 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.73-student-course-polish";
+} from "../../../packages/domain/progress/index.js?v=1.1.78-location-command-center";
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.74-shared-ui-foundation";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.73-student-course-polish";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.73-student-course-polish";
+} from "../../../packages/ui/index.js?v=1.1.78-location-command-center";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.78-location-command-center";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.78-location-command-center";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;

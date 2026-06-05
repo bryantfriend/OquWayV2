@@ -1,4 +1,4 @@
-import { createDefaultLearningContent, readTemplateSpecs } from "../moduleEditor/learningArchitecture.js?v=1.1.63-external-task-student-feedback";
+import { createDefaultLearningContent, readTemplateSpecs } from "../moduleEditor/learningArchitecture.js?v=1.1.78-location-command-center";
 
 export function processOpenCreateModuleWizard(executionState) {
   var payload = executionState.payload || {};

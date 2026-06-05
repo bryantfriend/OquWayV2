@@ -1,4 +1,4 @@
-import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.63-external-task-student-feedback";
+import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.78-location-command-center";
 
 export function normalizePracticeModeStep(executionState) {
   var payload = executionState.payload;

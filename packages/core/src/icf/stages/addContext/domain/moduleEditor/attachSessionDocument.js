@@ -1,5 +1,5 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
-import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.63-external-task-student-feedback";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.78-location-command-center";
+import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.78-location-command-center";
 
 export async function attachSessionDocument(executionState) {
   var payload = executionState.payload;

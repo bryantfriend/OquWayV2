@@ -2,7 +2,7 @@ import {
   createLearningModesForTemplate,
   createStarterStepsForMode,
   normalizeLearningContentPayload
-} from "../moduleEditor/learningArchitecture.js?v=1.1.63-external-task-student-feedback";
+} from "../moduleEditor/learningArchitecture.js?v=1.1.78-location-command-center";
 
 export function processGenerateModuleSkeleton(executionState) {
   var payload = executionState.payload || {};

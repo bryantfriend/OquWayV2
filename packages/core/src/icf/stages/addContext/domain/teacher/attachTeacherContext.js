@@ -1,4 +1,6 @@
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.78-location-command-center";
+import { getExternalTaskSubmissionById } from "../../../../../../../domain/externalTasks/index.js";
+import { getUserProfileByAuthUid, getUserRoles } from "../../../../../../../domain/users/index.js";
 
 export async function attachTeacherProfileContext(executionState) {
   var actor = executionState.actor || {};
@@ -52,52 +54,36 @@ export async function attachTeacherProfileContext(executionState) {
 }
 
 async function loadTeacherProfileByAuthUid(authUid) {
-  var directProfileFound = false;
-  var authUidQueryFound = false;
-  var directProfile = null;
-  var profile = null;
-
   if (!authUid) {
     return { profile: null };
   }
 
-  var directSnap = await getDoc(doc(db, "users", authUid));
-
-  if (directSnap.exists()) {
-    directProfileFound = true;
-    directProfile = normalizeTeacherProfileDocument(directSnap, authUid);
-  }
+  var lookup = await getUserProfileByAuthUid(authUid);
+  var profile = lookup.profile;
+  var directProfile = lookup.directProfile;
 
   console.info("[teacher-profile:direct]", {
     authUid: authUid,
     path: "users/" + authUid,
-    found: directProfileFound,
+    found: lookup.directProfileFound,
     profileUserId: directProfile && directProfile.profileUserId ? directProfile.profileUserId : "",
     roles: readProfileRoles(directProfile)
   });
 
-  if (directProfile && readProfileRoles(directProfile).length > 0) {
-    profile = directProfile;
-  } else {
-    var authUidSnapshot = await getDocs(query(collection(db, "users"), where("authUid", "==", authUid)));
-
-    authUidSnapshot.forEach(function (profileSnap) {
-      if (!profile) {
-        authUidQueryFound = true;
-        profile = normalizeTeacherProfileDocument(profileSnap, authUid);
-      }
-    });
-  }
-
-  profile = await attachLinkedTeacherProfile(profile, authUid);
-
   console.info("[teacher-profile:lookup]", {
     authUid: authUid,
     triedDirectProfile: true,
-    directProfileFound: directProfileFound,
-    authUidQueryFound: authUidQueryFound,
+    directProfileFound: lookup.directProfileFound,
+    authUidQueryFound: lookup.authUidQueryFound,
     profileUserId: profile && profile.profileUserId ? profile.profileUserId : "",
     role: profile && profile.role ? profile.role : "",
+    roles: readProfileRoles(profile)
+  });
+
+  console.info("[teacher-profile:linked]", {
+    authUid: authUid,
+    profileUserId: profile && profile.profileUserId ? profile.profileUserId : "",
+    found: Boolean(profile && profile.linkedProfile),
     roles: readProfileRoles(profile)
   });
 
@@ -106,94 +92,8 @@ async function loadTeacherProfileByAuthUid(authUid) {
   };
 }
 
-async function attachLinkedTeacherProfile(profile, authUid) {
-  var profileUserId = profile && profile.profileUserId ? profile.profileUserId : "";
-  var linkedFound = false;
-  var linkedProfile = null;
-
-  if (profileUserId && profileUserId !== authUid) {
-    var linkedSnap = await getDoc(doc(db, "users", profileUserId));
-
-    if (linkedSnap.exists()) {
-      linkedFound = true;
-      linkedProfile = normalizeTeacherProfileDocument(linkedSnap, authUid);
-      profile = Object.assign({}, linkedProfile, profile, {
-        id: profile.id,
-        authUid: authUid,
-        profileUserId: profileUserId,
-        linkedProfile: linkedProfile
-      });
-    }
-  }
-
-  console.info("[teacher-profile:linked]", {
-    authUid: authUid,
-    profileUserId: profileUserId,
-    found: linkedFound,
-    roles: readProfileRoles(profile)
-  });
-
-  return profile;
-}
-
-function normalizeTeacherProfileDocument(profileSnap, authUid) {
-  var data = profileSnap.data() || {};
-  var profileAuthUid = readText(data.authUid) || authUid;
-
-  return Object.assign({
-    id: profileSnap.id,
-    profileUserId: profileSnap.id,
-    authUid: profileAuthUid
-  }, data, {
-    id: profileSnap.id,
-    profileUserId: profileSnap.id,
-    authUid: profileAuthUid
-  });
-}
-
 function readProfileRoles(profile) {
-  var roles = [];
-
-  addRole(roles, profile && profile.role ? profile.role : "");
-  addRoleList(roles, profile && Array.isArray(profile.roles) ? profile.roles : []);
-
-  if (profile && profile.ROLE_TEACHER === true) addRole(roles, "ROLE_TEACHER");
-  if (profile && profile.ROLE_SCHOOL_ADMIN === true) addRole(roles, "ROLE_SCHOOL_ADMIN");
-  if (profile && profile.ROLE_PLATFORM_ADMIN === true) addRole(roles, "ROLE_PLATFORM_ADMIN");
-  if (profile && profile.ROLE_SUPER_ADMIN === true) addRole(roles, "ROLE_SUPER_ADMIN");
-
-  return roles;
-}
-
-function addRoleList(roles, values) {
-  var index = 0;
-
-  while (index < values.length) {
-    addRole(roles, values[index]);
-    index = index + 1;
-  }
-}
-
-function addRole(roles, role) {
-  var normalized = normalizeRole(role);
-
-  if (normalized && roles.indexOf(normalized) === -1) {
-    roles.push(normalized);
-  }
-}
-
-function normalizeRole(role) {
-  var normalized = readText(role).replace(/^ROLE_/i, "").replace(/[^a-z0-9]/gi, "").toLowerCase();
-
-  if (normalized === "teacher") return "teacher";
-  if (normalized === "schooladmin") return "schoolAdmin";
-  if (normalized === "platformadmin") return "platformAdmin";
-  if (normalized === "superadmin") return "superAdmin";
-  if (normalized === "coursecreator") return "courseCreator";
-  if (normalized === "admin") return "admin";
-  if (normalized === "student") return "student";
-  if (normalized === "parent") return "parent";
-  return normalized;
+  return getUserRoles(profile);
 }
 
 export async function attachExternalTaskSubmissionReviewContext(executionState) {
@@ -209,14 +109,12 @@ export async function attachExternalTaskSubmissionReviewContext(executionState) 
   }
 
   try {
-    var submissionSnap = await getDoc(doc(db, "externalTaskSubmissions", payload.submissionId));
+    var submission = await getExternalTaskSubmissionById(payload.submissionId);
 
     return {
       valid: true,
       data: {
-        externalTaskSubmission: submissionSnap.exists()
-          ? Object.assign({ id: submissionSnap.id }, submissionSnap.data() || {})
-          : null
+        externalTaskSubmission: submission
       }
     };
   } catch (error) {

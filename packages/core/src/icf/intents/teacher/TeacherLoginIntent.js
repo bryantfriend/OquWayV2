@@ -1,8 +1,8 @@
-import { validateTeacherLoginPayload } from "../../stages/validate/validators.js?v=1.1.63-external-task-student-feedback";
-import { normalizeTeacherLoginPayload } from "../../stages/normalize/normalizers.js?v=1.1.63-external-task-student-feedback";
-import { allowTeacherLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.63-external-task-student-feedback";
-import { processTeacherLogin } from "../../stages/process/processors.js?v=1.1.63-external-task-student-feedback";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.63-external-task-student-feedback";
+import { validateTeacherLoginPayload } from "../../stages/validate/validators.js?v=1.1.78-location-command-center";
+import { normalizeTeacherLoginPayload } from "../../stages/normalize/normalizers.js?v=1.1.78-location-command-center";
+import { allowTeacherLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.78-location-command-center";
+import { processTeacherLogin } from "../../stages/process/processors.js?v=1.1.78-location-command-center";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.78-location-command-center";
 
 export function TeacherLoginIntent() {
   return {

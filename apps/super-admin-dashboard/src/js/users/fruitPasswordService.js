@@ -1,4 +1,4 @@
-import { fruitOptions } from "../../../../../packages/shared/constants/admin.js?v=1.1.66-super-admin-cleanup";
+import { fruitOptions } from "../../../../../packages/shared/constants/admin.js?v=1.1.78-location-command-center";
 
 export function createRandomFruitPassword() {
   var values = [];

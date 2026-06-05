@@ -1,5 +1,5 @@
-import { StepNameEngine } from "./StepNameEngine.js?v=1.1.69-course-creator-cleanup";
-import { StepNameIntent } from "./StepNameIntent.js?v=1.1.69-course-creator-cleanup";
+import { StepNameEngine } from "./StepNameEngine.js?v=1.1.78-location-command-center";
+import { StepNameIntent } from "./StepNameIntent.js?v=1.1.78-location-command-center";
 
 export default class StepName {
 

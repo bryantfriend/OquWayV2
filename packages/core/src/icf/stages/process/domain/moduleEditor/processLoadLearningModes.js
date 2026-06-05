@@ -1,4 +1,4 @@
-import { createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.63-external-task-student-feedback";
+import { createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.78-location-command-center";
 
 export function processLoadLearningModes(executionState) {
   executionState.result = {

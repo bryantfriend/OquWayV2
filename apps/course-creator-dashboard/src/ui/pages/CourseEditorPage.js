@@ -1,10 +1,12 @@
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.54-multi-role-assistant";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.54-multi-role-assistant";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.78-location-command-center";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.78-location-command-center";
 import {
   getStepTypeDefinition,
-  listStepTypeDefinitions
-} from "../../../../../packages/core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.34-external-task-mvp";
-import { PracticeModePlayer } from "../../../../../packages/core/src/shared/player/PracticeModePlayer.js?v=1.1.34-external-task-mvp";
+  listStepTypeDefinitions,
+  validateStepConfig
+} from "../../../../../packages/domain/steps/index.js?v=1.1.78-location-command-center";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.78-location-command-center";
+import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.78-location-command-center";
 
 export class CourseEditorPage {
   constructor(courseId, moduleId) {
@@ -213,9 +215,12 @@ export class CourseEditorPage {
       var learningContent = readLearningContentFromWorkspace();
       saveLearningContentBtn.disabled = true;
       saveLearningContentBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving';
+      self.showEditorSaveStatus("saving", "Saving...");
       moduleEditorService.saveLearningContent(this.courseId, this.moduleId, learningContent).then(function () {
+        self.showEditorSaveStatus("success", "Saved");
         self.updateUi(moduleEditorStore.getState());
       }).catch(function (error) {
+        self.showEditorSaveStatus("error", "Could not save changes");
         alert("Learning content save failed: " + error.message);
       }).finally(function () {
         saveLearningContentBtn.disabled = false;
@@ -593,15 +598,18 @@ export class CourseEditorPage {
       var practiceMode = self.readPracticeModeFromInspector(propsPane, session, practiceModeKey);
       saveModeBtn.textContent = "Saving\u2026";
       saveModeBtn.disabled = true;
+      self.showEditorSaveStatus("saving", "Saving...");
       moduleEditorService.updatePracticeMode(
         self.courseId, self.moduleId, session.id, practiceMode
       ).then(function () {
+        self.showEditorSaveStatus("success", "Saved");
         saveModeBtn.textContent = "Saved \u2713";
         setTimeout(function () {
           saveModeBtn.textContent = "Save Practice Mode";
           saveModeBtn.disabled = false;
         }, 1400);
       }).catch(function (error) {
+        self.showEditorSaveStatus("error", "Could not save changes");
         saveModeBtn.textContent = "Save Practice Mode";
         saveModeBtn.disabled = false;
         alert("Failed to save practice mode: " + error.message);
@@ -618,15 +626,18 @@ export class CourseEditorPage {
       var step = self.readStepFromInspector(propsPane, session, practiceModeKey, stepId);
       saveStepBtn.textContent = "Saving\u2026";
       saveStepBtn.disabled = true;
+      self.showEditorSaveStatus("saving", "Saving...");
       moduleEditorService.updateLearningModeStep(
         self.courseId, self.moduleId, modeId, stepId, createLearningModeStepUpdates(step)
       ).then(function () {
+        self.showEditorSaveStatus("success", "Saved");
         saveStepBtn.textContent = "Saved \u2713";
         setTimeout(function () {
           saveStepBtn.textContent = "Save Step";
           saveStepBtn.disabled = false;
         }, 1400);
       }).catch(function (error) {
+        self.showEditorSaveStatus("error", "Could not save changes");
         alert("Failed to save step: " + error.message);
       }).finally(function () {
         if (saveStepBtn.textContent !== "Saved \u2713") {
@@ -839,6 +850,32 @@ export class CourseEditorPage {
       el.classList.remove("hidden");
       el.className = "text-green-600 font-medium flex items-center gap-1.5 text-xs";
     }
+  }
+
+  showEditorSaveStatus(type, message) {
+    var el = document.getElementById("saveStatusIndicator");
+
+    if (!el) {
+      return;
+    }
+
+    if (type === "error") {
+      el.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-xs"></i> ' + escapeHtml(message || "Could not save changes");
+      el.classList.remove("hidden");
+      el.className = "text-red-600 font-medium flex items-center gap-1.5 text-xs";
+      return;
+    }
+
+    if (type === "saving") {
+      el.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-xs"></i> ' + escapeHtml(message || "Saving...");
+      el.classList.remove("hidden");
+      el.className = "text-yellow-600 font-medium flex items-center gap-1.5 text-xs";
+      return;
+    }
+
+    el.innerHTML = '<i class="fa-regular fa-circle-check text-xs"></i> ' + escapeHtml(message || "Saved");
+    el.classList.remove("hidden");
+    el.className = "text-green-600 font-medium flex items-center gap-1.5 text-xs";
   }
 
   renderSessionList(state) {
@@ -1072,6 +1109,8 @@ export class CourseEditorPage {
       var stepTitle = readLocalizedText(step.title, "New Step");
       var stepType = readStepType(step);
       var stepStatus = readString(step.status, "draft");
+      var validation = readStepValidation(step);
+      var completionRule = readStepCompletionRule(step);
       var isActive = effectiveStepId === stepId;
       var tileClass = "oqu-step-tile step-tile" + (isActive ? " oqu-step-tile-active" : "");
       var upDisabled = i === 0 ? " disabled" : "";
@@ -1082,9 +1121,12 @@ export class CourseEditorPage {
       html += '<span class="text-sm shrink-0">' + readStepTypeIcon(stepType) + '</span>';
       html += '<div class="flex-1 min-w-0">';
       html += '<div class="text-xs font-bold text-gray-800 truncate">' + escapeHtml(stepTitle) + '</div>';
-      html += '<div class="text-[9px] font-semibold text-gray-400">' + readStepTypeLabel(stepType) + '</div>';
+      html += '<div class="text-[9px] font-semibold text-gray-400">' + readStepTypeLabel(stepType) + ' · ' + escapeHtml(completionRule) + '</div>';
+      if (!validation.valid) {
+        html += '<div class="mt-1 text-[10px] font-bold text-amber-700 flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation"></i> ' + escapeHtml(validation.message) + '</div>';
+      }
       html += '</div>';
-      html += buildStatusPill(stepStatus);
+      html += buildStepStatusBadge(stepStatus);
       html += '<div class="oqu-step-tile-actions">';
       html += '<button type="button" class="step-reorder-btn oqu-step-icon-btn" data-step-id="' + stepId + '" data-direction="up"' + upDisabled + ' title="Move up">↑</button>';
       html += '<button type="button" class="step-reorder-btn oqu-step-icon-btn" data-step-id="' + stepId + '" data-direction="down"' + downDisabled + ' title="Move down">↓</button>';
@@ -1982,6 +2024,78 @@ function buildStatusPill(status) {
   }
 
   return '<span class="' + pillClass + '">' + dot + ' ' + safeStatus + '</span>';
+}
+
+function buildStepStatusBadge(status) {
+  return createStatusBadge(status || "draft", {
+    className: "oqu-pill oqu-pill-" + escapeHtml(String(status || "draft").toLowerCase()),
+    statusClassPrefix: ""
+  });
+}
+
+function readStepValidation(step) {
+  var stepType = readStepType(step);
+  var title = readLocalizedText(step && step.title, "");
+
+  if (!stepType) {
+    return {
+      valid: false,
+      message: "Missing step type"
+    };
+  }
+
+  if (!title || title === "New Step") {
+    return {
+      valid: false,
+      message: "Add a step title"
+    };
+  }
+
+  try {
+    var result = validateStepConfig(step || {});
+
+    if (!result || result.valid !== true) {
+      return {
+        valid: false,
+        message: "Unsupported step type"
+      };
+    }
+  } catch (error) {
+    return {
+      valid: false,
+      message: "Step config needs review"
+    };
+  }
+
+  return {
+    valid: true,
+    message: ""
+  };
+}
+
+function readStepCompletionRule(step) {
+  var config = readStepConfig(step);
+  var rule = step && (step.completionRule || step.completeWhen || step.requiredCompletion);
+
+  if (!rule && config) {
+    rule = config.completionRule || config.completeWhen || config.requiredCompletion;
+  }
+
+  if (typeof rule === "string" && rule.trim()) {
+    return "Completion: " + rule.trim();
+  }
+
+  if (rule && typeof rule === "object") {
+    if (typeof rule.type === "string" && rule.type.trim()) {
+      return "Completion: " + rule.type.trim();
+    }
+
+    if (typeof rule.label === "string" && rule.label.trim()) {
+      return "Completion: " + rule.label.trim();
+    }
+  }
+
+  return "Completion: default";
 }
 
 // ── Progress calculation ─────────────────────────────────────────────────────

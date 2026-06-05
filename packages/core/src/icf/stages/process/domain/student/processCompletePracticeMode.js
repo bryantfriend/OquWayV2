@@ -2,7 +2,7 @@ import {
   readPracticeModeProgress,
   readPracticeModeStepIds,
   saveStudentPracticeModeProgress
-} from "./studentProgressHelpers.js?v=1.1.73-student-course-polish";
+} from "./studentProgressHelpers.js?v=1.1.78-location-command-center";
 
 export async function processCompletePracticeMode(executionState) {
   var payload = executionState.payload;

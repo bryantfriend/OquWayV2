@@ -1,4 +1,4 @@
-import { isValidPracticeModeKey } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.63-external-task-student-feedback";
+import { isValidPracticeModeKey } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.78-location-command-center";
 
 export function validatePracticeModeKey(executionState) {
   var payload = executionState.payload;

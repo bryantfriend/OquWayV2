@@ -1,4 +1,4 @@
-import { db, doc, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
+import { db, doc, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.78-location-command-center";
 
 export async function catalogCourseArchiveProcessing(executionState) {
     const { payload, context } = executionState;

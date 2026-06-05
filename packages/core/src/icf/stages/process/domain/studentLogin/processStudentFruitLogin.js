@@ -1,7 +1,7 @@
 import { signInWithCustomToken } from "firebase/auth";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.70-external-task-feedback";
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.70-external-task-feedback";
-import { callStudentLoginFunction, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.70-external-task-feedback";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.78-location-command-center";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.78-location-command-center";
+import { callStudentLoginFunction, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.78-location-command-center";
 
 export async function processStudentFruitLogin(executionState) {
   var payload = executionState.payload;

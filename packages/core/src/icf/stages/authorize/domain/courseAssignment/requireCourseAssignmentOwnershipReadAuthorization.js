@@ -1,4 +1,4 @@
-import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.63-external-task-student-feedback";
+import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.78-location-command-center";
 
 export function requireCourseAssignmentOwnershipReadAuthorization(executionState) {
   var actor = executionState.actor;

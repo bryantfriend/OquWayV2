@@ -3,7 +3,7 @@ import {
   getStepTypeDefinition,
   isSupportedStepType,
   listStepTypeDefinitions
-} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.69-course-creator-cleanup";
+} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.78-location-command-center";
 
 export {
   createDefaultStepConfig,

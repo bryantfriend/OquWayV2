@@ -1,6 +1,6 @@
 // createIntent.js
 
-import { getIntentDefinition } from "./intentRegistry.js?v=1.1.70-external-task-feedback";
+import { getIntentDefinition } from "./intentRegistry.js?v=1.1.78-location-command-center";
 
 export function createIntent(intentInput) {
   const intentType = readIntentType(intentInput);

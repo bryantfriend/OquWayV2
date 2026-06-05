@@ -9,4 +9,4 @@ export {
   serverTimestamp,
   setDoc,
   where
-} from "../../core/src/infrastructure/firebase/firestore.js?v=1.1.70-external-task-feedback";
+} from "../../core/src/infrastructure/firebase/firestore.js?v=1.1.78-location-command-center";

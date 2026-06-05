@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateCourseAssignmentId, validateCourseAssignmentUpdatePayload } from "../../stages/validate/validators.js?v=1.1.63-external-task-student-feedback";
-import { normalizeCourseAssignmentUpdatePayload } from "../../stages/normalize/normalizers.js?v=1.1.63-external-task-student-feedback";
-import { attachActorContext, attachActorRoleContext, attachCourseAssignmentContext } from "../../stages/addContext/contexts.js?v=1.1.63-external-task-student-feedback";
-import { requireCourseAssignmentAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.63-external-task-student-feedback";
-import { processUpdateCourseAssignment } from "../../stages/process/processors.js?v=1.1.63-external-task-student-feedback";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.63-external-task-student-feedback";
+import { validateAuthenticated, validateCourseAssignmentId, validateCourseAssignmentUpdatePayload } from "../../stages/validate/validators.js?v=1.1.78-location-command-center";
+import { normalizeCourseAssignmentUpdatePayload } from "../../stages/normalize/normalizers.js?v=1.1.78-location-command-center";
+import { attachActorContext, attachActorRoleContext, attachCourseAssignmentContext } from "../../stages/addContext/contexts.js?v=1.1.78-location-command-center";
+import { requireCourseAssignmentAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.78-location-command-center";
+import { processUpdateCourseAssignment } from "../../stages/process/processors.js?v=1.1.78-location-command-center";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.78-location-command-center";
 
 export function UpdateCourseAssignmentIntent() {
   return {

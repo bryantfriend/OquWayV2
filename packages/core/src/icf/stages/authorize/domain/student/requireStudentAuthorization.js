@@ -1,4 +1,5 @@
-import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.63-external-task-student-feedback";
+import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.78-location-command-center";
+import { canAccessStudentDashboard } from "../../../../../../../permissions/index.js";
 
 export function requireStudentAuthorization(executionState) {
   var actor = executionState.actor;
@@ -22,6 +23,18 @@ export function requireStudentAuthorization(executionState) {
       "admin",
       "courseCreator"
   ])) {
+    if (executionState.context && executionState.context.studentProfile && !canAccessStudentDashboard(executionState.context.studentProfile)) {
+      return {
+        valid: false,
+        errors: [
+          {
+            code: "STUDENT_ROLE_REQUIRED",
+            message: "Only students can use the student player."
+          }
+        ]
+      };
+    }
+
     return { valid: true };
   }
 

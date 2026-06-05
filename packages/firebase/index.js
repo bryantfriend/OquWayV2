@@ -1,5 +1,5 @@
-export { firebaseApp } from "../core/src/infrastructure/firebase/firebaseApp.js?v=1.1.70-external-task-feedback";
-export { auth } from "../core/src/infrastructure/firebase/auth.js?v=1.1.70-external-task-feedback";
+export { firebaseApp } from "../core/src/infrastructure/firebase/firebaseApp.js?v=1.1.78-location-command-center";
+export { auth } from "../core/src/infrastructure/firebase/auth.js?v=1.1.78-location-command-center";
 export {
   collection,
   db,
@@ -11,7 +11,7 @@ export {
   serverTimestamp,
   setDoc,
   where
-} from "../core/src/infrastructure/firebase/firestore.js?v=1.1.70-external-task-feedback";
-export { functions, httpsCallable } from "../core/src/infrastructure/firebase/functions.js?v=1.1.70-external-task-feedback";
-export { storage } from "../core/src/infrastructure/firebase/storage.js?v=1.1.70-external-task-feedback";
+} from "../core/src/infrastructure/firebase/firestore.js?v=1.1.78-location-command-center";
+export { functions, httpsCallable } from "../core/src/infrastructure/firebase/functions.js?v=1.1.78-location-command-center";
+export { storage } from "../core/src/infrastructure/firebase/storage.js?v=1.1.78-location-command-center";
 export { getCurrentUserClaims } from "./claims/index.js";

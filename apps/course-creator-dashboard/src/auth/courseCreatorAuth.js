@@ -1,4 +1,10 @@
-import { db, doc, getDoc } from "../../../../packages/core/src/infrastructure/firebase/firestore.js?v=1.1.54-multi-role-assistant";
+import {
+    getActorClaimRoles,
+    getUserProfileByAuthUid,
+    getUserRoles,
+    normalizeUserRole
+} from "../../../../packages/domain/users/index.js?v=1.1.78-location-command-center";
+import { canAccessCourseCreator } from "../../../../packages/permissions/index.js?v=1.1.78-location-command-center";
 
 export const ALLOWED_COURSE_CREATOR_ROLES = [
     "superAdmin",
@@ -12,10 +18,10 @@ export async function verifyCourseCreatorAccess(user, options) {
     const safeOptions = options || {};
     const claimsResult = await readAuthClaims(user);
     const profileResult = await readUserProfile(user);
-    const claimsRoles = collectRoles(claimsResult.claims);
-    const profileRoles = collectRoles(profileResult.profile);
+    const claimsRoles = getActorClaimRoles({ claims: claimsResult.claims });
+    const profileRoles = getUserRoles(profileResult.profile);
     const normalizedRoles = mergeRoles(profileRoles, claimsRoles);
-    const allowed = hasAnyRole(profileResult.profile, claimsResult.claims, ALLOWED_COURSE_CREATOR_ROLES);
+    const allowed = canAccessCourseCreator(createAuthorizationProfile(profileResult.profile, claimsRoles));
     const reason = readAuthorizationReason(allowed, normalizedRoles, claimsResult.error, profileResult.error);
 
     logCourseCreatorAuth("auth uid", {
@@ -49,15 +55,6 @@ export async function verifyCourseCreatorAccess(user, options) {
     };
 }
 
-export function hasAnyRole(userProfile, claims, allowedRoles) {
-    const roles = mergeRoles(collectRoles(userProfile), collectRoles(claims));
-    const normalizedAllowedRoles = normalizeRoles(allowedRoles);
-
-    return roles.some(function (role) {
-        return normalizedAllowedRoles.indexOf(role) !== -1;
-    });
-}
-
 export function normalizeRoles(value) {
     if (!Array.isArray(value)) {
         return [];
@@ -67,43 +64,7 @@ export function normalizeRoles(value) {
 }
 
 export function normalizeRole(value) {
-    if (typeof value !== "string") {
-        return "";
-    }
-
-    const normalized = value.replace(/^ROLE_/i, "").replace(/[^a-z0-9]/gi, "").toLowerCase();
-
-    if (normalized === "superadmin") return "superAdmin";
-    if (normalized === "platformadmin") return "platformAdmin";
-    if (normalized === "schooladmin") return "schoolAdmin";
-    if (normalized === "coursecreator") return "courseCreator";
-    if (normalized === "assistant") return "assistant";
-    if (normalized === "admin") return "admin";
-    if (normalized === "student") return "student";
-
-    return normalized;
-}
-
-function collectRoles(source) {
-    const roles = [];
-
-    if (!source || typeof source !== "object") {
-        return roles;
-    }
-
-    addRole(roles, source.role);
-    addRole(roles, source.userRole);
-    addRole(roles, source.primaryRole);
-    addRoles(roles, source.roles);
-    addRoles(roles, source.userRoles);
-
-    Object.keys(source).forEach(function (key) {
-        if (source[key] === true) {
-            addRole(roles, key);
-        }
-    });
-
-    return roles;
+    return normalizeUserRole(value);
 }
 
 async function readAuthClaims(user) {
@@ -126,11 +87,12 @@ async function readAuthClaims(user) {
 
 async function readUserProfile(user) {
     try {
-        const profileSnap = await getDoc(doc(db, "users", user.uid));
+        const lookup = await getUserProfileByAuthUid(user.uid);
+        const profile = lookup && lookup.profile ? lookup.profile : {};
 
         return {
-            profile: profileSnap.exists() ? profileSnap.data() : {},
-            exists: profileSnap.exists(),
+            profile: profile,
+            exists: Boolean(profile && profile.id),
             error: null,
             errorCode: ""
         };
@@ -144,34 +106,30 @@ async function readUserProfile(user) {
     }
 }
 
-function addRoles(target, values) {
-    if (!Array.isArray(values)) {
-        return;
-    }
-
-    values.forEach(function (value) {
-        addRole(target, value);
-    });
-}
-
-function addRole(target, value) {
-    const role = normalizeRole(value);
-
-    if (role && target.indexOf(role) === -1) {
-        target.push(role);
-    }
-}
-
 function mergeRoles() {
     const merged = [];
 
     Array.prototype.slice.call(arguments).forEach(function (roles) {
         roles.forEach(function (role) {
-            addRole(merged, role);
+            const normalizedRole = normalizeRole(role);
+
+            if (normalizedRole && merged.indexOf(normalizedRole) === -1) {
+                merged.push(normalizedRole);
+            }
         });
     });
 
     return merged;
+}
+
+function createAuthorizationProfile(profile, claimsRoles) {
+    const profileRoles = getUserRoles(profile);
+    const roles = mergeRoles(profileRoles, claimsRoles);
+
+    return Object.assign({}, profile || {}, {
+        roles: roles,
+        role: roles.length > 0 ? roles[0] : ""
+    });
 }
 
 function readAuthorizationReason(allowed, normalizedRoles, claimsError, profileError) {

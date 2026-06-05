@@ -1,9 +1,9 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.73-student-course-polish";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.73-student-course-polish";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.78-location-command-center";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.78-location-command-center";
 import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js";
-import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.73-student-course-polish";
+import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.78-location-command-center";
 import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js";
-import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.73-student-course-polish";
+import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.78-location-command-center";
 
 export async function processLoadStudentCourse(executionState) {
   var actor = executionState.actor;

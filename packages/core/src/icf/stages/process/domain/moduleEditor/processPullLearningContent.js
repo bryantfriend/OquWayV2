@@ -1,4 +1,4 @@
-import { createPulledStepDraft } from "./learningArchitecture.js?v=1.1.63-external-task-student-feedback";
+import { createPulledStepDraft } from "./learningArchitecture.js?v=1.1.78-location-command-center";
 
 export function processPullLearningContent(executionState) {
   var learningContent = executionState.context.module && executionState.context.module.learningContent;

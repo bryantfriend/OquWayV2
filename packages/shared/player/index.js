@@ -1,1 +1,1 @@
-export { PracticeModePlayer } from "../../core/src/shared/player/PracticeModePlayer.js?v=1.1.70-external-task-feedback";
+export { PracticeModePlayer } from "../../core/src/shared/player/PracticeModePlayer.js?v=1.1.78-location-command-center";

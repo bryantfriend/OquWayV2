@@ -1,11 +1,11 @@
-import { validateAuthenticated, validateCourseId, validateCourseMetadataPayload } from "../../stages/validate/validators.js?v=1.1.63-external-task-student-feedback";
-import { normalizeCourseId, normalizeCourseMetadata } from "../../stages/normalize/normalizers.js?v=1.1.63-external-task-student-feedback";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.63-external-task-student-feedback";
-import { attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.63-external-task-student-feedback";
-import { attachCourseDocument } from "../../stages/addContext/contexts.js?v=1.1.63-external-task-student-feedback";
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.63-external-task-student-feedback";
-import { catalogCourseUpdateMetadataProcessing } from "../../stages/process/processors.js?v=1.1.63-external-task-student-feedback";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.63-external-task-student-feedback";
+import { validateAuthenticated, validateCourseId, validateCourseMetadataPayload } from "../../stages/validate/validators.js?v=1.1.78-location-command-center";
+import { normalizeCourseId, normalizeCourseMetadata } from "../../stages/normalize/normalizers.js?v=1.1.78-location-command-center";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.78-location-command-center";
+import { attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.78-location-command-center";
+import { attachCourseDocument } from "../../stages/addContext/contexts.js?v=1.1.78-location-command-center";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.78-location-command-center";
+import { catalogCourseUpdateMetadataProcessing } from "../../stages/process/processors.js?v=1.1.78-location-command-center";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.78-location-command-center";
 
 export function UpdateCatalogCourseMetadataIntent() {
     return {

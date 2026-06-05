@@ -1,6 +1,6 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.69-course-creator-cleanup";
-import { canResubmitExternalTaskSubmission } from "../../../../domain/externalTasks/index.js?v=1.1.70-external-task-feedback";
-import { isExternalTaskReviewComplete } from "../../../../domain/progress/index.js?v=1.1.70-external-task-feedback";
+import { BaseStep } from "./BaseStep.js?v=1.1.78-location-command-center";
+import { canResubmitExternalTaskSubmission } from "../../../../domain/externalTasks/index.js?v=1.1.78-location-command-center";
+import { isExternalTaskReviewComplete } from "../../../../domain/progress/index.js?v=1.1.78-location-command-center";
 
 export class ExternalTaskStep extends BaseStep {
   static get type() {

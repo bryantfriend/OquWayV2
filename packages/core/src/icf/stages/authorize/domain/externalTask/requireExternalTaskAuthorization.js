@@ -1,4 +1,4 @@
-import { canReviewExternalTask, canSubmitExternalTask } from "../../../../../../../permissions/index.js?v=1.1.70-external-task-feedback";
+import { canReviewExternalTask, canSubmitExternalTask } from "../../../../../../../permissions/index.js?v=1.1.78-location-command-center";
 
 export function requireExternalTaskStudentAuthorization(executionState) {
   var actor = executionState.actor;

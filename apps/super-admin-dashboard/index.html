@@ -3419,6 +3419,394 @@
             border-radius: 8px;
         }
 
+        .sa-location-command-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 80;
+            padding: 22px;
+            background: rgba(15, 23, 42, 0.72);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sa-location-command-modal {
+            width: min(1780px, 100%);
+            height: min(980px, calc(100vh - 44px));
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr);
+            overflow: hidden;
+            border: 1px solid rgba(219, 229, 242, 0.92);
+            border-radius: 22px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fbff 58%, #fff7ed 100%);
+            box-shadow: 0 34px 100px rgba(15, 23, 42, 0.35);
+        }
+
+        .sa-location-command-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 22px 28px;
+            border-bottom: 1px solid rgba(219, 229, 242, 0.88);
+            background: rgba(255, 255, 255, 0.78);
+        }
+
+        .sa-location-command-identity {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            min-width: 0;
+        }
+
+        .sa-location-command-title {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .sa-location-command-title h2 {
+            margin: 0;
+            font-size: clamp(1.6rem, 3vw, 2.5rem);
+            letter-spacing: -0.04em;
+        }
+
+        .sa-location-command-header p {
+            margin: 6px 0 0;
+            color: #475569;
+            font-weight: 800;
+        }
+
+        .sa-location-command-header p span::before {
+            content: "•";
+            padding: 0 10px;
+            color: #94a3b8;
+        }
+
+        .sa-location-command-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .sa-location-command-close {
+            width: 40px;
+            height: 40px;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            color: #0f172a;
+            font-size: 1.6rem;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .sa-location-command-shell {
+            display: grid;
+            grid-template-columns: 240px minmax(0, 1fr);
+            min-height: 0;
+        }
+
+        .sa-location-command-tabs {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 18px 12px;
+            background: linear-gradient(180deg, #0f2b5f, #081a3c);
+            color: white;
+            overflow-y: auto;
+        }
+
+        .sa-location-command-tabs button {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 13px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.84);
+            font-weight: 900;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .sa-location-command-tabs button.is-active,
+        .sa-location-command-tabs button:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            box-shadow: 0 14px 32px rgba(37, 99, 235, 0.3);
+        }
+
+        .sa-location-command-tabs small {
+            margin-top: auto;
+            padding: 14px;
+            color: rgba(255, 255, 255, 0.74);
+            font-weight: 900;
+        }
+
+        .sa-location-command-content {
+            min-width: 0;
+            overflow: auto;
+            padding: 18px;
+        }
+
+        .sa-command-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(8, minmax(130px, 1fr));
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .sa-command-kpi {
+            display: grid;
+            gap: 8px;
+            padding: 16px;
+            border: 1px solid #dbe5f2;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.86);
+            text-align: left;
+            cursor: pointer;
+            box-shadow: 0 14px 36px rgba(15, 23, 42, 0.06);
+        }
+
+        .sa-command-kpi:hover,
+        .sa-command-action:hover,
+        .sa-command-table-row:hover {
+            transform: translateY(-1px);
+            border-color: #93c5fd;
+            box-shadow: 0 18px 42px rgba(37, 99, 235, 0.13);
+        }
+
+        .sa-command-kpi span,
+        .sa-command-kpi small {
+            color: #2563eb;
+            font-weight: 900;
+        }
+
+        .sa-command-kpi strong {
+            color: #0f172a;
+            font-size: 2rem;
+            letter-spacing: -0.04em;
+        }
+
+        .sa-command-grid {
+            display: grid;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .sa-command-grid-main {
+            grid-template-columns: 1.15fr 1.15fr 0.9fr 1fr;
+        }
+
+        .sa-command-grid-bottom {
+            grid-template-columns: 0.9fr 1.15fr 1fr;
+        }
+
+        .sa-command-panel {
+            border: 1px solid #dbe5f2;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 18px;
+            box-shadow: 0 14px 36px rgba(15, 23, 42, 0.06);
+        }
+
+        .sa-command-panel-head,
+        .sa-command-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .sa-command-panel h3 {
+            margin: 0;
+            color: #0f172a;
+        }
+
+        .sa-command-empty {
+            min-height: 150px;
+            display: grid;
+            place-content: center;
+            gap: 6px;
+            text-align: center;
+            color: #64748b;
+            border: 1px dashed #cbd5e1;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+
+        .sa-command-review-ring,
+        .sa-command-health-score {
+            width: 130px;
+            height: 130px;
+            display: grid;
+            place-content: center;
+            margin: 8px auto 16px;
+            border-radius: 50%;
+            border: 14px solid #22c55e;
+            border-left-color: #fb923c;
+            color: #0f172a;
+            text-align: center;
+        }
+
+        .sa-command-review-ring strong,
+        .sa-command-health-score strong {
+            font-size: 2rem;
+            line-height: 1;
+        }
+
+        .sa-command-review-list,
+        .sa-command-health-list,
+        .sa-command-toggle-grid,
+        .sa-command-summary-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .sa-command-review-list span,
+        .sa-command-health-list span,
+        .sa-command-toggle-grid span {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            color: #475569;
+            font-weight: 900;
+        }
+
+        .sa-command-review-list i {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            margin-right: 8px;
+            border-radius: 50%;
+            background: #fb923c;
+        }
+
+        .sa-command-review-list i.complete {
+            background: #22c55e;
+        }
+
+        .sa-command-review-list i.needs {
+            background: #ef4444;
+        }
+
+        .sa-command-action-grid,
+        .sa-command-report-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .sa-command-action {
+            min-height: 74px;
+            border: 1px solid #dbe5f2;
+            border-radius: 10px;
+            background: #f8fafc;
+            color: #1d4ed8;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .sa-command-summary-list {
+            grid-template-columns: auto minmax(0, 1fr);
+            align-items: center;
+            margin: 0;
+        }
+
+        .sa-command-summary-list dt {
+            color: #475569;
+            font-weight: 900;
+        }
+
+        .sa-command-summary-list dd {
+            margin: 0;
+            min-width: 0;
+            overflow-wrap: anywhere;
+            color: #0f172a;
+            font-weight: 800;
+        }
+
+        .sa-command-tab-stack {
+            display: grid;
+            gap: 16px;
+        }
+
+        .sa-command-table {
+            display: grid;
+            gap: 8px;
+        }
+
+        .sa-command-table-head,
+        .sa-command-table-row {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 12px;
+            align-items: center;
+        }
+
+        .sa-command-users-table .sa-command-table-head,
+        .sa-command-users-table .sa-command-table-row {
+            grid-template-columns: 72px 1.4fr 1.2fr 1fr 0.7fr;
+        }
+
+        .sa-command-table-head {
+            padding: 0 14px 4px;
+            color: #64748b;
+            font-size: 0.78rem;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .sa-command-table-row {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #dbe5f2;
+            border-radius: 12px;
+            background: white;
+            color: inherit;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .sa-command-table-row strong,
+        .sa-command-table-row small {
+            display: block;
+            overflow-wrap: anywhere;
+        }
+
+        .sa-command-danger-panel {
+            border-color: #fecaca;
+            background: #fff7f7;
+        }
+
+        .sa-command-danger-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 16px 0;
+        }
+
+        .sa-command-status,
+        .sa-command-mini-status {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 5px 10px;
+            background: #dcfce7;
+            color: #166534;
+            font-size: 0.78rem;
+            font-weight: 900;
+            text-transform: capitalize;
+        }
+
         @media (max-width: 1280px) {
             .sa-executive-metrics {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -3426,8 +3814,14 @@
 
             .sa-analytics-row,
             .sa-ops-row,
-            .sa-summary-strip {
+            .sa-summary-strip,
+            .sa-command-grid-main,
+            .sa-command-grid-bottom {
                 grid-template-columns: 1fr;
+            }
+
+            .sa-command-kpi-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
             }
         }
 
@@ -3524,9 +3918,54 @@
 
             .sa-topbar-actions label,
             .sa-topbar-actions .sa-btn,
-            .sa-profile-pill {
+            .sa-profile-pill,
+            .sa-location-command-header-actions .sa-btn {
                 width: 100%;
                 min-width: 0;
+            }
+
+            .sa-location-command-backdrop {
+                padding: 8px;
+            }
+
+            .sa-location-command-modal {
+                height: calc(100vh - 16px);
+                border-radius: 14px;
+            }
+
+            .sa-location-command-header,
+            .sa-location-command-shell,
+            .sa-command-table-head,
+            .sa-command-table-row {
+                grid-template-columns: 1fr;
+            }
+
+            .sa-location-command-header,
+            .sa-location-command-identity {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .sa-location-command-shell {
+                display: block;
+            }
+
+            .sa-location-command-tabs {
+                display: flex;
+                flex-direction: row;
+                overflow-x: auto;
+                padding: 10px;
+            }
+
+            .sa-location-command-tabs button {
+                white-space: nowrap;
+                width: auto;
+            }
+
+            .sa-command-kpi-grid,
+            .sa-command-action-grid,
+            .sa-command-report-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -3541,7 +3980,7 @@
         <h1>Core System Configuration</h1>
         <p>Managing the heart of the national educational engine...</p>
     </main>
-    <script type="module" src="./src/main.js?v=1.1.75-super-admin-cleanup"></script>
+    <script type="module" src="./src/main.js?v=1.1.78-location-command-center"></script>
 </body>
 
 </html>

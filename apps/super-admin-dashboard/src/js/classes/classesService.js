@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../../../../packages/firebase/index.js?v=1.1.66-super-admin-cleanup";
+import { collection, db, getDocs, query, where } from "../../../../../packages/firebase/index.js?v=1.1.78-location-command-center";
 
 export async function loadClasses() {
   return [];

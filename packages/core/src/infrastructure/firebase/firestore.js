@@ -14,7 +14,7 @@ import {
     writeBatch
 } from "firebase/firestore";
 
-import { firebaseApp } from "./firebaseApp.js?v=1.1.70-external-task-feedback";
+import { firebaseApp } from "./firebaseApp.js?v=1.1.78-location-command-center";
 
 export const db = initializeFirestore(firebaseApp, {
     localCache: memoryLocalCache()

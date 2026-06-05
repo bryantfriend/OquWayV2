@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
-import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.63-external-task-student-feedback";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.78-location-command-center";
+import { createDefaultStepConfig } from "../../../../../../../domain/steps/index.js";
 
 export async function processUpdateLearningModeStep(executionState) {
   var payload = executionState.payload || {};

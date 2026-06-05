@@ -1,7 +1,7 @@
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../stepTypes/stepTypeRegistry.js?v=1.1.70-external-task-feedback";
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.78-location-command-center";
 
 export class PracticeModePlayer {
   constructor(options) {

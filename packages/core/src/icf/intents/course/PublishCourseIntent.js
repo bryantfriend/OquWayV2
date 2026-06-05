@@ -1,4 +1,4 @@
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.63-external-task-student-feedback";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.78-location-command-center";
 
 export function PublishCourseIntent() {
   return {

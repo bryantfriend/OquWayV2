@@ -1,7 +1,7 @@
-import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.54-multi-role-assistant";
-import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.54-multi-role-assistant";
-import { courseEditorStore } from "../state/courseEditorState.js?v=1.1.54-multi-role-assistant";
-import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.54-multi-role-assistant";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.78-location-command-center";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.78-location-command-center";
+import { courseEditorStore } from "../state/courseEditorState.js?v=1.1.78-location-command-center";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.78-location-command-center";
 
 function getActor() {
   return auth.currentUser ? { id: auth.currentUser.uid, role: "ROLE_COURSE_CREATOR" } : null;
@@ -380,6 +380,14 @@ export const courseEditorService = {
     courseEditorStore.setState({ isPublishing: true });
     try {
       var state = courseEditorStore.getState();
+      var stepGuardErrors = findClearlyInvalidModuleSteps(state.modules);
+
+      if (stepGuardErrors.length > 0) {
+        alert("Cannot publish. Fix these module steps first:\n" + stepGuardErrors.join("\n"));
+        courseEditorStore.setState({ isPublishing: false });
+        return;
+      }
+
       var valResult = await runIntentPipeline(getIntentDefinition("ValidateCourseStructureIntent"), {
         payload: {
           courseId: courseId,
@@ -500,4 +508,103 @@ function readModuleId(module) {
   }
 
   return module.id || module.moduleId || "";
+}
+
+function findClearlyInvalidModuleSteps(modules) {
+  var errors = [];
+  var safeModules = Array.isArray(modules) ? modules : [];
+
+  safeModules.forEach(function (module, moduleIndex) {
+    var moduleTitle = readModuleTitle(module) || "Module " + (moduleIndex + 1);
+    var steps = collectModuleSteps(module);
+
+    steps.forEach(function (step, stepIndex) {
+      var stepLabel = moduleTitle + " step " + (stepIndex + 1);
+
+      if (!step || typeof step !== "object") {
+        errors.push(stepLabel + " is missing data.");
+        return;
+      }
+
+      if (!readStepType(step)) {
+        errors.push(stepLabel + " is missing a step type.");
+      }
+
+      if (!readStepTitle(step)) {
+        errors.push(stepLabel + " is missing a title.");
+      }
+    });
+  });
+
+  return errors;
+}
+
+function collectModuleSteps(module) {
+  var steps = [];
+
+  if (!module || typeof module !== "object") {
+    return steps;
+  }
+
+  if (Array.isArray(module.steps)) {
+    return module.steps.slice();
+  }
+
+  if (module.learningModes && typeof module.learningModes === "object") {
+    Object.keys(module.learningModes).forEach(function (modeId) {
+      var mode = module.learningModes[modeId];
+
+      if (mode && Array.isArray(mode.steps)) {
+        steps = steps.concat(mode.steps);
+      }
+    });
+  }
+
+  if (Array.isArray(module.sessions)) {
+    module.sessions.forEach(function (session) {
+      var practiceModes = session && session.practiceModes && typeof session.practiceModes === "object" ? session.practiceModes : {};
+
+      Object.keys(practiceModes).forEach(function (modeKey) {
+        var practiceMode = practiceModes[modeKey];
+
+        if (practiceMode && Array.isArray(practiceMode.steps)) {
+          steps = steps.concat(practiceMode.steps);
+        }
+      });
+    });
+  }
+
+  return steps;
+}
+
+function readStepType(step) {
+  return step && typeof step.type === "string" ? step.type.trim() : "";
+}
+
+function readStepTitle(step) {
+  var title = step && step.title;
+
+  if (typeof title === "string") {
+    return title.trim();
+  }
+
+  if (title && typeof title === "object") {
+    return title.en || title.ru || title.ky || "";
+  }
+
+  return step && (step.name || step.displayName || step.taskTitle) ? String(step.name || step.displayName || step.taskTitle).trim() : "";
+}
+
+function readModuleTitle(module) {
+  var title = module && (module.title || (module.config && module.config.title));
+
+  if (typeof title === "string") {
+    return title.trim();
+  }
+
+  if (title && typeof title === "object") {
+    return title.en || title.ru || title.ky || "";
+  }
+
+  return module && (module.name || module.displayName) ? String(module.name || module.displayName).trim() : "";
 }

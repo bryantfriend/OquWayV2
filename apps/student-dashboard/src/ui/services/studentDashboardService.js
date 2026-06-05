@@ -1,7 +1,7 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.73-student-course-polish";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.73-student-course-polish";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.73-student-course-polish";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.73-student-course-polish";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.78-location-command-center";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.78-location-command-center";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.78-location-command-center";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.78-location-command-center";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {

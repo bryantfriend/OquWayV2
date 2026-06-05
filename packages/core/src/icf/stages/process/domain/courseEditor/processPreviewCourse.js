@@ -1,5 +1,5 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.63-external-task-student-feedback";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.78-location-command-center";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.78-location-command-center";
 
 export async function processPreviewCourse(executionState) {
   var payload = executionState.payload || {};

@@ -1,4 +1,4 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.69-course-creator-cleanup";
+import { BaseStep } from "./BaseStep.js?v=1.1.78-location-command-center";
 
 export class CustomExperienceStep extends BaseStep {
   static get type() {

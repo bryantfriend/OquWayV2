@@ -1,13 +1,13 @@
-import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.70-external-task-feedback";
-import { VocabularyStep } from "./VocabularyStep.js?v=1.1.70-external-task-feedback";
-import { PhraseStep } from "./PhraseStep.js?v=1.1.70-external-task-feedback";
-import { ListeningStep } from "./ListeningStep.js?v=1.1.70-external-task-feedback";
-import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.70-external-task-feedback";
-import { ReflectionStep } from "./ReflectionStep.js?v=1.1.70-external-task-feedback";
-import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.70-external-task-feedback";
-import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.70-external-task-feedback";
-import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.70-external-task-feedback";
-import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.70-external-task-feedback";
+import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.78-location-command-center";
+import { VocabularyStep } from "./VocabularyStep.js?v=1.1.78-location-command-center";
+import { PhraseStep } from "./PhraseStep.js?v=1.1.78-location-command-center";
+import { ListeningStep } from "./ListeningStep.js?v=1.1.78-location-command-center";
+import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.78-location-command-center";
+import { ReflectionStep } from "./ReflectionStep.js?v=1.1.78-location-command-center";
+import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.78-location-command-center";
+import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.78-location-command-center";
+import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.78-location-command-center";
+import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.78-location-command-center";
 
 var stepTypes = {
   textBriefing: TextBriefingStep,

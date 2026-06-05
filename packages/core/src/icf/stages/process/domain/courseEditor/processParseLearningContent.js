@@ -1,4 +1,4 @@
-import { parseLearningContentText } from "../moduleEditor/learningArchitecture.js?v=1.1.63-external-task-student-feedback";
+import { parseLearningContentText } from "../moduleEditor/learningArchitecture.js?v=1.1.78-location-command-center";
 
 export function processParseLearningContent(executionState) {
   var payload = executionState.payload || {};

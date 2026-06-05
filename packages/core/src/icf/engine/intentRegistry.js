@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.73-student-course-polish";
+import * as IntentExports from "../intents/intents.js?v=1.1.78-location-command-center";
 
 const registry = {
   // Demo Verification

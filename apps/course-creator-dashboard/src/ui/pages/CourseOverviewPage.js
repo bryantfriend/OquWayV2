@@ -1,7 +1,13 @@
-import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.54-multi-role-assistant';
-import { courseEditorService } from '../services/courseEditorService.js?v=1.1.54-multi-role-assistant';
-import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.54-multi-role-assistant';
-import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.34-external-task-mvp';
+import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.78-location-command-center';
+import { courseEditorService } from '../services/courseEditorService.js?v=1.1.78-location-command-center';
+import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.78-location-command-center';
+import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.78-location-command-center';
+import {
+  createEmptyState,
+  createErrorState,
+  createLoadingState,
+  createStatusBadge
+} from '../../../../../packages/ui/index.js?v=1.1.78-location-command-center';
 
 export class CourseOverviewPage {
   constructor(courseId, options) {
@@ -38,7 +44,7 @@ export class CourseOverviewPage {
           <div class="flex items-center gap-4">
             <span class="text-blue-600 font-bold text-xl tracking-tight">OquWay</span>
             <div class="h-6 w-px bg-gray-300"></div>
-            <span class="text-gray-600 font-medium text-sm" id="headerContextualTitle">Loading Overview...</span>
+            <span class="text-gray-600 font-medium text-sm" id="headerContextualTitle">Loading course...</span>
           </div>
           <div class="flex items-center gap-3 text-sm">
             <span id="saveStatusIndicator" class="text-green-600 font-medium flex items-center gap-1 mr-2 hidden">
@@ -80,6 +86,8 @@ export class CourseOverviewPage {
                     <th class="py-3 px-6 font-semibold w-12 text-center">Order</th>
                     <th class="py-3 px-6 font-semibold">Module Title</th>
                     <th class="py-3 px-6 font-semibold text-center w-24">Status</th>
+                    <th class="py-3 px-6 font-semibold text-center w-24">Steps</th>
+                    <th class="py-3 px-6 font-semibold text-center w-32">Updated</th>
                     <th class="py-3 px-6 font-semibold text-right w-32">Actions</th>
                   </tr>
                 </thead>
@@ -94,6 +102,13 @@ export class CourseOverviewPage {
           <div class="w-96 shrink-0">
             <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 sticky top-24">
               <h2 class="text-lg font-bold text-gray-900 tracking-tight mb-5 border-b border-gray-100 pb-3">Course Metadata</h2>
+
+              <div id="courseOverviewSummary" class="mb-5 rounded-xl border border-gray-200 bg-gray-50 p-4 text-xs text-gray-600">
+                ${createLoadingState('Loading course...', {
+                  className: 'flex items-center gap-2 text-xs font-semibold text-gray-500',
+                  beforeHtml: '<i class="fa-solid fa-circle-notch fa-spin text-blue-500"></i>'
+                })}
+              </div>
 
               <div class="space-y-4">
                 <div>
@@ -1245,15 +1260,21 @@ export class CourseOverviewPage {
   }
 
   updateUI(state) {
-    if (state.error) {
-      document.getElementById('headerContextualTitle').textContent = 'Error Loading Course';
-      document.getElementById('moduleTableBody').innerHTML = '<tr><td colspan="4" class="py-10 text-center text-red-600 font-bold border-b bg-red-50">ERROR: ' + state.error + '</td></tr>';
+    if (state.error && !state.course) {
+      document.getElementById('headerContextualTitle').textContent = 'Could not load course';
+      this.renderCourseSummary(null, state);
+      document.getElementById('moduleTableBody').innerHTML = '<tr><td colspan="6" class="py-6 border-b bg-red-50">'
+        + createErrorState('Could not load course', state.error, {
+          className: 'rounded-xl border border-red-100 bg-red-50 p-4 text-sm font-bold text-red-700 flex flex-col gap-1'
+        })
+        + '</td></tr>';
       return;
     }
 
     if (!state.course && state.isFetching) {
-      this.logCourseHeaderRender(state, null, 'Loading your learning path\u2026');
-      document.getElementById('headerContextualTitle').textContent = 'Loading your learning path\u2026';
+      this.logCourseHeaderRender(state, null, 'Loading course...');
+      document.getElementById('headerContextualTitle').textContent = 'Loading course...';
+      this.renderCourseSummary(null, state);
       document.getElementById('moduleTableBody').innerHTML = buildModuleSkeletonRows(3);
       return;
     }
@@ -1292,9 +1313,11 @@ export class CourseOverviewPage {
 
       document.getElementById('courseVersionText').textContent = course.version || 1;
       document.getElementById('courseStatusText').textContent = course.status || 'draft';
+      this.renderCourseSummary(course, state);
     } else {
       this.logCourseHeaderRender(state, null, 'Untitled Course');
-      document.getElementById('headerContextualTitle').textContent = 'Untitled Course';
+      document.getElementById('headerContextualTitle').textContent = 'Course not found';
+      this.renderCourseSummary(null, state);
     }
 
     var saveIndicator = document.getElementById('saveStatusIndicator');
@@ -1302,6 +1325,10 @@ export class CourseOverviewPage {
       saveIndicator.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
       saveIndicator.classList.remove('hidden');
       saveIndicator.className = 'text-yellow-600 font-medium flex items-center gap-1 mr-2';
+    } else if (state.error && state.course) {
+      saveIndicator.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Could not save changes';
+      saveIndicator.classList.remove('hidden');
+      saveIndicator.className = 'text-red-600 font-medium flex items-center gap-1 mr-2';
     } else if (state.lastSaved) {
       saveIndicator.innerHTML = '<i class="fa-regular fa-circle-check"></i> Saved';
       saveIndicator.classList.remove('hidden');
@@ -1310,6 +1337,71 @@ export class CourseOverviewPage {
 
     this.renderModuleRepairBanner(state);
     this.renderModuleList(state.modules, state.course, state.moduleSourceCheck);
+  }
+
+  renderCourseSummary(course, state) {
+    var summary = document.getElementById('courseOverviewSummary');
+    var safeModules = state && Array.isArray(state.modules) ? state.modules : [];
+
+    if (!summary) {
+      return;
+    }
+
+    if (!course && state && state.isFetching) {
+      summary.innerHTML = createLoadingState('Loading course...', {
+        className: 'flex items-center gap-2 text-xs font-semibold text-gray-500',
+        beforeHtml: '<i class="fa-solid fa-circle-notch fa-spin text-blue-500"></i>'
+      });
+      return;
+    }
+
+    if (!course && state && state.error) {
+      summary.innerHTML = createErrorState('Could not load course', state.error, {
+        className: 'rounded-lg border border-red-100 bg-red-50 p-3 text-xs font-bold text-red-700 flex flex-col gap-1'
+      });
+      return;
+    }
+
+    if (!course) {
+      summary.innerHTML = createEmptyState('Course not found', 'Open a course from the catalog to edit modules and settings.', {
+        className: 'rounded-lg border border-dashed border-gray-300 bg-white p-3 text-xs text-gray-500',
+        titleTag: 'strong',
+        messageTag: 'p'
+      });
+      return;
+    }
+
+    var defaultLanguage = course.defaultLanguage || 'en';
+    var title = this.resolveCourseTitle(course, defaultLanguage, 'Untitled Course');
+    var description = this.getLocalizedText(course.description, defaultLanguage) || 'No description yet.';
+    var status = course.status || 'draft';
+    var visibility = readCourseVisibility(course);
+    var moduleCount = safeModules.length;
+    var stepCount = countCourseSteps(safeModules);
+    var updatedAt = formatCourseDate(course.updatedAt || course.modifiedAt || course.createdAt);
+    var assignmentsSummary = summarizeAssignments(this.assignments);
+
+    summary.innerHTML = '<div class="space-y-3">'
+      + '<div class="flex items-start justify-between gap-3">'
+      + '<div class="min-w-0">'
+      + '<div class="text-sm font-black text-gray-900 truncate">' + escapeHtml(title) + '</div>'
+      + '<p class="mt-1 line-clamp-2 text-xs font-medium text-gray-500">' + escapeHtml(description) + '</p>'
+      + '</div>'
+      + createStatusBadge(status, {
+        className: 'shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wide bg-white text-gray-700 border-gray-200',
+        statusClassPrefix: ''
+      })
+      + '</div>'
+      + '<div class="grid grid-cols-2 gap-2">'
+      + buildCourseSummaryItem('Visibility', visibility)
+      + buildCourseSummaryItem('Modules', String(moduleCount))
+      + buildCourseSummaryItem('Steps', String(stepCount))
+      + buildCourseSummaryItem('Updated', updatedAt)
+      + '</div>'
+      + '<div class="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-[11px] font-semibold text-blue-800">'
+      + escapeHtml(assignmentsSummary)
+      + '</div>'
+      + '</div>';
   }
 
   renderModuleRepairBanner(state) {
@@ -1364,6 +1456,7 @@ export class CourseOverviewPage {
       self.assignments = assignments;
       self.assignmentsLoading = false;
       self.renderAssignments();
+      self.renderCourseSummary(courseEditorStore.getState().course, courseEditorStore.getState());
       self.showAssignmentStatus('success', 'Assignments loaded.');
       setTimeout(function () {
         self.hideAssignmentStatus();
@@ -1371,6 +1464,7 @@ export class CourseOverviewPage {
     }).catch(function (error) {
       self.assignmentsLoading = false;
       self.renderAssignments();
+      self.renderCourseSummary(courseEditorStore.getState().course, courseEditorStore.getState());
       self.showAssignmentStatus('error', error.message);
     });
   }
@@ -1652,11 +1746,21 @@ export class CourseOverviewPage {
           moduleOrder: courseModuleOrder,
           moduleSourceCheck: moduleSourceCheck || null
         });
-        tbody.innerHTML = '<tr><td colspan="4" class="py-10 text-center text-amber-700 border-b bg-amber-50 font-bold">This course says it has modules, but no module documents were loaded. Use Repair Course Modules if legacy modules are detected.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="py-6 border-b bg-amber-50">'
+          + createErrorState('Module documents were not loaded', 'This course says it has modules, but no module documents were loaded. Use Repair Course Modules if legacy modules are detected.', {
+            className: 'rounded-xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold text-amber-800 flex flex-col gap-1'
+          })
+          + '</td></tr>';
         return;
       }
 
-      tbody.innerHTML = '<tr><td colspan="4" class="py-10 text-center text-gray-500 border-b">No modules added yet. Create one above to get started.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" class="py-6 border-b">'
+        + createEmptyState('This course does not have modules yet.', 'Create a module to start building the learning path.', {
+          className: 'rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-center text-gray-500',
+          titleTag: 'strong',
+          messageTag: 'p'
+        })
+        + '</td></tr>';
       return;
     }
 
@@ -1674,6 +1778,12 @@ export class CourseOverviewPage {
       var dirtyDot = moduleDisplay.isDirty
         ? '<span class="inline-flex items-center gap-1 text-orange-500 font-bold ml-2 text-[10px] uppercase tracking-wider"><div class="w-1.5 h-1.5 rounded-full bg-orange-500"></div>Unsaved</span>'
         : '';
+      var stepLabel = moduleDisplay.stepCount + ' step' + (moduleDisplay.stepCount === 1 ? '' : 's');
+      var publishedBadge = createStatusBadge(moduleDisplay.status, {
+        label: moduleDisplay.statusLabel,
+        className: 'inline-flex rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wide bg-white border-gray-200 ' + moduleDisplay.statusClass,
+        statusClassPrefix: ''
+      });
 
       return '<tr class="hover:bg-gray-50 transition group module-row" draggable="true" data-index="' + idx + '">'
         + '<td class="py-4 px-6 border-b border-gray-100 text-center text-gray-400 font-medium text-xs module-drag-handle cursor-grab active:cursor-grabbing">'
@@ -1688,7 +1798,13 @@ export class CourseOverviewPage {
         + '</div>'
         + '</td>'
         + '<td class="py-4 px-6 border-b border-gray-100 text-center">'
-        + '<span class="' + moduleDisplay.statusClass + ' text-xs font-bold uppercase tracking-wider">' + escapeHtml(moduleDisplay.statusLabel) + '</span>'
+        + publishedBadge
+        + '</td>'
+        + '<td class="py-4 px-6 border-b border-gray-100 text-center text-xs font-bold text-gray-600">'
+        + escapeHtml(stepLabel)
+        + '</td>'
+        + '<td class="py-4 px-6 border-b border-gray-100 text-center text-xs font-semibold text-gray-500">'
+        + escapeHtml(formatCourseDate(moduleDisplay.updatedAt))
         + '</td>'
         + '<td class="py-4 px-6 border-b border-gray-100 text-right">'
         + '<button data-id="' + escapeHtml(moduleDisplay.id) + '" class="open-module-btn border border-gray-200 bg-white hover:bg-gray-50 text-blue-600 hover:text-blue-700 px-3 py-1.5 rounded text-sm font-bold transition shadow-sm items-center gap-1 inline-flex">'
@@ -1998,6 +2114,8 @@ function buildModuleSkeletonRows(rowCount) {
       + '<td class="py-4 px-6 border-b border-gray-100"><div class="oqu-skeleton-line" style="height:12px;width:30px;margin:0 auto"></div></td>'
       + '<td class="py-4 px-6 border-b border-gray-100"><div class="oqu-skeleton-line" style="height:14px;width:65%"></div></td>'
       + '<td class="py-4 px-6 border-b border-gray-100"><div class="oqu-skeleton-line" style="height:12px;width:48px;margin:0 auto"></div></td>'
+      + '<td class="py-4 px-6 border-b border-gray-100"><div class="oqu-skeleton-line" style="height:12px;width:52px;margin:0 auto"></div></td>'
+      + '<td class="py-4 px-6 border-b border-gray-100"><div class="oqu-skeleton-line" style="height:12px;width:72px;margin:0 auto"></div></td>'
       + '<td class="py-4 px-6 border-b border-gray-100"><div class="oqu-skeleton-line" style="height:28px;width:90px;margin-left:auto;border-radius:8px"></div></td>'
       + '</tr>';
     row = row + 1;
@@ -2369,6 +2487,54 @@ function countPreviewModuleSteps(module) {
   return count;
 }
 
+function countCourseSteps(modules) {
+  var safeModules = Array.isArray(modules) ? modules : [];
+  var count = 0;
+
+  safeModules.forEach(function (module) {
+    count = count + countModuleSteps(module);
+  });
+
+  return count;
+}
+
+function countModuleSteps(module) {
+  if (!module || typeof module !== 'object') {
+    return 0;
+  }
+
+  if (typeof module.stepCount === 'number') {
+    return module.stepCount;
+  }
+
+  if (Array.isArray(module.steps)) {
+    return module.steps.length;
+  }
+
+  if (Array.isArray(module.sessions)) {
+    return countPreviewModuleSteps(module);
+  }
+
+  return countLearningModeSteps(module.learningModes);
+}
+
+function countLearningModeSteps(learningModes) {
+  if (!learningModes || typeof learningModes !== 'object') {
+    return 0;
+  }
+
+  var count = 0;
+  Object.keys(learningModes).forEach(function (modeId) {
+    var mode = learningModes[modeId];
+
+    if (mode && Array.isArray(mode.steps)) {
+      count = count + mode.steps.length;
+    }
+  });
+
+  return count;
+}
+
 function readPreviewText(value, fallback) {
   if (typeof value === 'string' && value.length > 0) {
     return value;
@@ -2425,6 +2591,7 @@ function normalizeModuleDisplay(module, index) {
     status: status,
     statusLabel: readModuleStatusLabel(status),
     statusClass: readModuleStatusClass(status),
+    stepCount: countModuleSteps(module),
     updatedAt: module ? module.updatedAt || module.modifiedAt || module.createdAt || null : null,
     isDirty: Boolean(module && module.isDirty),
     index: index
@@ -2509,14 +2676,96 @@ function readModuleStatusLabel(status) {
 
 function readModuleStatusClass(status) {
   if (status === 'published' || status === 'active') {
-    return 'text-green-600';
+    return 'text-green-700';
   }
 
   if (status === 'archived') {
     return 'text-gray-500';
   }
 
-  return 'text-yellow-600';
+  return 'text-yellow-700';
+}
+
+function readCourseVisibility(course) {
+  if (!course) {
+    return 'Unknown';
+  }
+
+  if (course.visibility) {
+    return course.visibility;
+  }
+
+  if (course.isPublic === true) {
+    return 'Public';
+  }
+
+  if (course.status === 'published') {
+    return 'Published';
+  }
+
+  return 'Draft only';
+}
+
+function summarizeAssignments(assignments) {
+  var safeAssignments = Array.isArray(assignments) ? assignments : [];
+  var activeAssignments = safeAssignments.filter(function (assignment) {
+    return assignment && assignment.status !== 'archived' && assignment.status !== 'disabled';
+  });
+
+  if (activeAssignments.length === 0) {
+    return 'No active class, student, or location assignments yet.';
+  }
+
+  return activeAssignments.length + ' active assignment' + (activeAssignments.length === 1 ? '' : 's') + ' connected to this course.';
+}
+
+function buildCourseSummaryItem(label, value) {
+  return '<div class="rounded-lg border border-gray-200 bg-white px-3 py-2">'
+    + '<div class="text-[10px] font-black uppercase tracking-wide text-gray-400">' + escapeHtml(label) + '</div>'
+    + '<div class="mt-1 truncate text-xs font-bold text-gray-900">' + escapeHtml(value || 'None') + '</div>'
+    + '</div>';
+}
+
+function formatCourseDate(value) {
+  var date = normalizeDateValue(value);
+
+  if (!date) {
+    return 'Not saved';
+  }
+
+  return date.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+}
+
+function normalizeDateValue(value) {
+  if (!value) {
+    return null;
+  }
+
+  if (value instanceof Date) {
+    return value;
+  }
+
+  if (typeof value.toDate === 'function') {
+    return value.toDate();
+  }
+
+  if (typeof value.seconds === 'number') {
+    return new Date(value.seconds * 1000);
+  }
+
+  if (typeof value === 'number' || typeof value === 'string') {
+    var date = new Date(value);
+
+    if (!Number.isNaN(date.getTime())) {
+      return date;
+    }
+  }
+
+  return null;
 }
 
 function escapeHtml(value) {

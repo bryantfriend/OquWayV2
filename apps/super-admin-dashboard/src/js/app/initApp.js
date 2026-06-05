@@ -1,8 +1,8 @@
-import { appState, updateAppState } from "./appState.js?v=1.1.71-course-assignment-cleanup";
-import { registerIntentDefinitions, runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.71-course-assignment-cleanup";
-import { createClassesIntentRegistrar, createDashboardIntentRegistrar, createUsersIntentRegistrar } from "../../../../../packages/icf/admin/intents/index.js?v=1.1.71-course-assignment-cleanup";
-import { createUser, deleteUser, disableUser, getUser, getUsers, sendPasswordReset, updateUser } from "../users/usersService.js?v=1.1.71-course-assignment-cleanup";
-import { resetFruitPassword } from "../users/fruitPasswordService.js?v=1.1.71-course-assignment-cleanup";
+import { appState, updateAppState } from "./appState.js?v=1.1.78-location-command-center";
+import { registerIntentDefinitions, runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.78-location-command-center";
+import { createClassesIntentRegistrar, createDashboardIntentRegistrar, createUsersIntentRegistrar } from "../../../../../packages/icf/admin/intents/index.js?v=1.1.78-location-command-center";
+import { createUser, deleteUser, disableUser, getUser, getUsers, sendPasswordReset, updateUser } from "../users/usersService.js?v=1.1.78-location-command-center";
+import { resetFruitPassword } from "../users/fruitPasswordService.js?v=1.1.78-location-command-center";
 
 export async function initApp() {
   registerIntentDefinitions([
@@ -25,7 +25,7 @@ export async function initApp() {
     runIntent: runAdminIntent
   };
 
-  await import("./legacyDashboard.js?v=1.1.75-super-admin-cleanup");
+  await import("./legacyDashboard.js?v=1.1.78-location-command-center");
   updateAppState({ legacyDashboardLoaded: true });
 }
 
