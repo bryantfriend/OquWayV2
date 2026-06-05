@@ -1,4 +1,4 @@
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.64-review-queue-filters";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.65-architecture-phase1";
 
 var app = document.getElementById("app");
 var state = {

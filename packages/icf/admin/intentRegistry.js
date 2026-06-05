@@ -1,4 +1,4 @@
-import { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.63-external-task-student-feedback";
+import { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.65-architecture-phase1";
 
 var intents = {};
 

@@ -1,4 +1,4 @@
-import { initApp } from "./js/app/initApp.js?v=1.1.59-teacher-login-errors";
+import { initApp } from "./js/app/initApp.js?v=1.1.65-architecture-phase1";
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initApp);

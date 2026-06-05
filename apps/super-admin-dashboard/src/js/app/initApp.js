@@ -1,14 +1,23 @@
-import { appState, updateAppState } from "./appState.js?v=1.1.59-teacher-login-errors";
-import { registerIntentDefinitions, runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.58-shared-phase1";
-import { registerUsersIntents } from "../icf/intents/usersIntents.js?v=1.1.58-shared-phase1";
-import { registerDashboardIntents } from "../icf/intents/dashboardIntents.js?v=1.1.58-shared-phase1";
-import { registerClassesIntents } from "../icf/intents/classesIntents.js?v=1.1.58-shared-phase1";
+import { appState, updateAppState } from "./appState.js?v=1.1.65-architecture-phase1";
+import { registerIntentDefinitions, runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.65-architecture-phase1";
+import { createClassesIntentRegistrar, createDashboardIntentRegistrar, createUsersIntentRegistrar } from "../../../../../packages/icf/admin/intents/index.js?v=1.1.65-architecture-phase1";
+import { createUser, deleteUser, disableUser, getUser, getUsers, sendPasswordReset, updateUser } from "../users/usersService.js?v=1.1.65-architecture-phase1";
+import { resetFruitPassword } from "../users/fruitPasswordService.js?v=1.1.65-architecture-phase1";
 
 export async function initApp() {
   registerIntentDefinitions([
-    registerUsersIntents,
-    registerDashboardIntents,
-    registerClassesIntents
+    createUsersIntentRegistrar({
+      createUser: createUser,
+      deleteUser: deleteUser,
+      disableUser: disableUser,
+      getUser: getUser,
+      getUsers: getUsers,
+      resetFruitPassword: resetFruitPassword,
+      sendPasswordReset: sendPasswordReset,
+      updateUser: updateUser
+    }),
+    createDashboardIntentRegistrar(),
+    createClassesIntentRegistrar()
   ]);
 
   window.oquwayAdminApp = {
@@ -16,7 +25,7 @@ export async function initApp() {
     runIntent: runAdminIntent
   };
 
-  await import("./legacyDashboard.js?v=1.1.59-teacher-login-errors");
+  await import("./legacyDashboard.js?v=1.1.65-architecture-phase1");
   updateAppState({ legacyDashboardLoaded: true });
 }
 

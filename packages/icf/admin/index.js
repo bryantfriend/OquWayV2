@@ -4,5 +4,5 @@ export {
   registerIntent,
   registerIntentDefinitions,
   runAdminIntent
-} from "./intentRegistry.js?v=1.1.63-external-task-student-feedback";
-export { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.63-external-task-student-feedback";
+} from "./intentRegistry.js?v=1.1.65-architecture-phase1";
+export { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.65-architecture-phase1";

@@ -1,5 +1,5 @@
-import { roleFilterCards } from "../shared/constants.js?v=1.1.58-shared-phase1";
-import { escapeHtml, formatDateTime } from "../shared/formatters.js?v=1.1.58-shared-phase1";
+import { roleFilterCards } from "../../../../../packages/shared/constants/admin.js?v=1.1.65-architecture-phase1";
+import { escapeHtml, formatDateTime } from "../../../../../packages/shared/formatting/index.js?v=1.1.65-architecture-phase1";
 
 export function renderUsersRoleCards(users, selectedRoleFilter) {
   var html = '<section class="sa-role-card-grid" aria-label="Role filters">';

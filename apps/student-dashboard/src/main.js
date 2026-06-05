@@ -1,8 +1,8 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.63-external-task-student-feedback";
-import { PracticeModePlayer } from "../../../packages/core/src/shared/player/PracticeModePlayer.js?v=1.1.63-external-task-student-feedback";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.63-external-task-student-feedback";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.63-external-task-student-feedback";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.65-architecture-phase1";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.65-architecture-phase1";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.65-architecture-phase1";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.65-architecture-phase1";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;

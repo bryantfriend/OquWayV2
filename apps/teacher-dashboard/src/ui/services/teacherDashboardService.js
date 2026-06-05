@@ -1,7 +1,6 @@
 import { getIdTokenResult, onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.64-review-queue-filters";
-import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.64-review-queue-filters";
-import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.64-review-queue-filters";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.65-architecture-phase1";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.65-architecture-phase1";
 
 var currentTeacherClaims = {};
 

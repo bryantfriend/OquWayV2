@@ -1,13 +1,5 @@
-export function getRequiredElement(id) {
-  var element = document.getElementById(id);
-
-  if (!element) {
-    throw new Error("Missing required element: " + id);
-  }
-
-  return element;
-}
-
-export function setHtml(element, html) {
-  element.innerHTML = html;
-}
+// Deprecated Phase 1 shim: DOM helpers live in packages/shared.
+export {
+  getRequiredElement,
+  setHtml
+} from "../../../../../packages/shared/utils/dom.js";

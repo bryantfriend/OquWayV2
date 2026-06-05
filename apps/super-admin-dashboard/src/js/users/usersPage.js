@@ -1,6 +1,6 @@
-import { updateAppState } from "../app/appState.js?v=1.1.58-shared-phase1";
-import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.58-shared-phase1";
-import { renderUsersRoleCards, renderUsersTableRows } from "./usersRenderer.js?v=1.1.58-shared-phase1";
+import { updateAppState } from "../app/appState.js?v=1.1.65-architecture-phase1";
+import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.65-architecture-phase1";
+import { renderUsersRoleCards, renderUsersTableRows } from "./usersRenderer.js?v=1.1.65-architecture-phase1";
 
 export async function loadUsersPage(context) {
   var result = await runAdminIntent("LoadUsersIntent", {}, context || {});

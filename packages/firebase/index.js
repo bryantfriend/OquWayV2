@@ -14,3 +14,4 @@ export {
 } from "../core/src/infrastructure/firebase/firestore.js";
 export { functions, httpsCallable } from "../core/src/infrastructure/firebase/functions.js";
 export { storage } from "../core/src/infrastructure/firebase/storage.js";
+export { getCurrentUserClaims } from "./claims/index.js";
