@@ -1,5 +1,5 @@
 import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.82-shared-command-center-shell";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.82-shared-command-center-shell";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.87-student-class-assignments";
 import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.82-shared-command-center-shell";
 import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.82-shared-command-center-shell";
 
@@ -20,6 +20,7 @@ export const studentDashboardService = {
       if (result && result.emitted && result.emitted.success) {
         var profile = result.emitted.data.student;
         logStartupProfileResult(true, profile);
+        logStudentCourseProfileDebug(profile);
 
         if (isValidStudentProfile(profile)) {
           return profile;
@@ -69,6 +70,8 @@ export const studentDashboardService = {
 
       if (result && result.emitted && result.emitted.success) {
         var courses = result.emitted.data.courses || [];
+        logStudentCourseProfileDebug(result.emitted.data.student || profile);
+        logLoadedCoursesDebug(courses);
         studentDashboardStore.setState({
           isLoading: false,
           student: result.emitted.data.student,
@@ -423,10 +426,53 @@ function logStartupProfileRejection(profile, reasonRejected) {
   });
 }
 
+function logStudentCourseProfileDebug(studentProfile) {
+  if (!isStudentCourseDebugEnabled()) {
+    return;
+  }
+
+  console.log("[student-course-debug] profile", {
+    id: studentProfile && studentProfile.id ? studentProfile.id : "",
+    uid: studentProfile && studentProfile.uid ? studentProfile.uid : "",
+    authUid: studentProfile && studentProfile.authUid ? studentProfile.authUid : "",
+    userId: studentProfile && studentProfile.userId ? studentProfile.userId : "",
+    studentId: studentProfile && studentProfile.studentId ? studentProfile.studentId : "",
+    classId: studentProfile && studentProfile.classId ? studentProfile.classId : "",
+    primaryClassId: studentProfile && studentProfile.primaryClassId ? studentProfile.primaryClassId : "",
+    className: studentProfile && studentProfile.className ? studentProfile.className : "",
+    locationId: studentProfile && studentProfile.locationId ? studentProfile.locationId : ""
+  });
+}
+
+function logLoadedCoursesDebug(courses) {
+  if (!isStudentCourseDebugEnabled()) {
+    return;
+  }
+
+  console.log("[student-course-debug] loaded courses");
+  console.table((courses || []).map(function (course) {
+    return {
+      id: course && course.id ? course.id : "",
+      title: readLocalizedText(course ? course.title : "", "Untitled Course"),
+      assignmentId: course && course.assignmentId ? course.assignmentId : "",
+      courseAssignmentId: course && course.courseAssignmentId ? course.courseAssignmentId : ""
+    };
+  }));
+}
+
 function isDevelopmentHost() {
   return window.location.hostname === "localhost"
     || window.location.hostname === "127.0.0.1"
     || window.location.hostname === "";
+}
+
+function isStudentCourseDebugEnabled() {
+  if (typeof window === "undefined" || !window.location) {
+    return false;
+  }
+
+  return window.location.search.indexOf("debug=true") !== -1
+    || isDevelopmentHost();
 }
 
 function readFirstCourseId(courses) {

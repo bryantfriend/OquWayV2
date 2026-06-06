@@ -1,4 +1,5 @@
 import { collection, db, doc, getDocs, query, serverTimestamp, setDoc, where } from "../../firebase/index.js";
+import { getClassById } from "../classes/index.js";
 import { isActiveAssignment, normalizeCourseAssignment } from "./index.js";
 
 export async function getCourseAssignments(filters) {
@@ -53,21 +54,31 @@ export async function getAssignmentsForClass(classId) {
 
 export async function getActiveAssignmentsForStudent(studentProfile) {
   var studentId = readTextValue(studentProfile && (studentProfile.id || studentProfile.studentId || studentProfile.uid || studentProfile.authUid));
-  var targets = buildStudentAssignmentTargets(studentId, studentProfile);
+  var identifiers = await buildStudentAssignmentIdentifiers(studentId, studentProfile);
+  var queries = buildStudentAssignmentQueries(identifiers);
   var result = createStudentAssignmentResult(studentProfile);
-  var targetIndex = 0;
+  var queryIndex = 0;
 
-  while (targetIndex < targets.length) {
-    await appendTargetAssignments(result, targets[targetIndex]);
-    targetIndex = targetIndex + 1;
+  result.studentIdentifiers = identifiers.studentIdentifiers;
+  result.classIdentifiers = identifiers.classIdentifiers;
+  result.locationIdentifiers = identifiers.locationIdentifiers;
+  result.warnings = result.warnings.concat(identifiers.warnings);
+
+  logAssignmentIdentifiers(identifiers);
+
+  while (queryIndex < queries.length) {
+    await appendAssignmentQuery(result, queries[queryIndex], identifiers);
+    queryIndex = queryIndex + 1;
   }
 
-  if (targets.length === 0) {
+  if (queries.length === 0) {
     result.warnings.push({
       code: "STUDENT_ASSIGNMENT_TARGETS_MISSING",
       message: "Student profile has no student, class, or location assignment targets."
     });
   }
+
+  logMatchedAssignments(result.assignments);
 
   return result;
 }
@@ -112,15 +123,8 @@ export function normalizeAssignment(rawAssignment) {
 export function buildStudentAssignmentTargets(studentId, studentProfile) {
   var targets = [];
 
-  addTarget(targets, "student", studentId || "");
-  addTarget(targets, "student", studentProfile && studentProfile.id ? studentProfile.id : "");
-  addTarget(targets, "student", studentProfile && studentProfile.studentId ? studentProfile.studentId : "");
-  addTarget(targets, "class", readTextField(studentProfile, "classId"));
-  addTargetList(targets, "class", readArrayField(studentProfile, "classIds"));
-  addTargetList(targets, "class", readArrayField(studentProfile, "assignedClassIds"));
-  addRecordTargetList(targets, "class", studentProfile ? studentProfile.assignedClasses : null);
-  addRecordTargetList(targets, "class", studentProfile ? studentProfile.classRefs : null);
-  addRecordTargetList(targets, "class", studentProfile ? studentProfile.classes : null);
+  addTargetList(targets, "student", buildStudentIdentifiers(studentId, studentProfile));
+  addTargetList(targets, "class", buildClassIdentifiers(studentProfile));
   addTarget(targets, "location", readTextField(studentProfile, "locationId"));
   addTarget(targets, "location", readTextField(studentProfile, "primaryLocationId"));
   addTarget(targets, "location", readTextField(studentProfile, "schoolId"));
@@ -129,6 +133,179 @@ export function buildStudentAssignmentTargets(studentId, studentProfile) {
   addTargetList(targets, "location", readArrayField(studentProfile, "schoolIds"));
 
   return targets;
+}
+
+async function buildStudentAssignmentIdentifiers(studentId, studentProfile) {
+  var identifiers = {
+    studentIdentifiers: buildStudentIdentifiers(studentId, studentProfile),
+    classIdentifiers: buildClassIdentifiers(studentProfile),
+    locationIdentifiers: buildLocationIdentifiers(studentProfile),
+    warnings: []
+  };
+
+  await appendClassDocumentIdentifiers(identifiers, studentProfile);
+
+  return identifiers;
+}
+
+function buildStudentIdentifiers(studentId, studentProfile) {
+  var ids = [];
+
+  addUniqueText(ids, studentId);
+  addUniqueText(ids, readTextField(studentProfile, "id"));
+  addUniqueText(ids, readTextField(studentProfile, "authUid"));
+  addUniqueText(ids, readTextField(studentProfile, "uid"));
+  addUniqueText(ids, readTextField(studentProfile, "userId"));
+  addUniqueText(ids, readTextField(studentProfile, "studentId"));
+  addUniqueText(ids, readTextField(studentProfile, "profileUserId"));
+
+  if (studentProfile && studentProfile.linkedProfile) {
+    addUniqueText(ids, readTextField(studentProfile.linkedProfile, "id"));
+    addUniqueText(ids, readTextField(studentProfile.linkedProfile, "authUid"));
+    addUniqueText(ids, readTextField(studentProfile.linkedProfile, "uid"));
+    addUniqueText(ids, readTextField(studentProfile.linkedProfile, "userId"));
+    addUniqueText(ids, readTextField(studentProfile.linkedProfile, "studentId"));
+    addUniqueText(ids, readTextField(studentProfile.linkedProfile, "profileUserId"));
+  }
+
+  return ids;
+}
+
+function buildClassIdentifiers(studentProfile) {
+  var ids = [];
+
+  addUniqueText(ids, readTextField(studentProfile, "classId"));
+  addUniqueText(ids, readTextField(studentProfile, "primaryClassId"));
+  addUniqueText(ids, readTextField(studentProfile, "className"));
+  addUniqueText(ids, readTextField(studentProfile, "classCode"));
+  addUniqueText(ids, readTextField(studentProfile, "code"));
+  addTextList(ids, readArrayField(studentProfile, "classIds"));
+  addTextList(ids, readArrayField(studentProfile, "assignedClassIds"));
+  addRecordClassIdentifierList(ids, studentProfile ? studentProfile.assignedClasses : null);
+  addRecordClassIdentifierList(ids, studentProfile ? studentProfile.classRefs : null);
+  addRecordClassIdentifierList(ids, studentProfile ? studentProfile.classes : null);
+
+  return ids;
+}
+
+function buildLocationIdentifiers(studentProfile) {
+  var ids = [];
+
+  addUniqueText(ids, readTextField(studentProfile, "locationId"));
+  addUniqueText(ids, readTextField(studentProfile, "primaryLocationId"));
+  addUniqueText(ids, readTextField(studentProfile, "schoolId"));
+  addUniqueText(ids, readTextField(studentProfile, "locId"));
+  addTextList(ids, readArrayField(studentProfile, "locationIds"));
+  addTextList(ids, readArrayField(studentProfile, "schoolIds"));
+
+  return ids;
+}
+
+async function appendClassDocumentIdentifiers(identifiers, studentProfile) {
+  if (studentProfile && studentProfile.linkedProfile) {
+    addTextList(identifiers.classIdentifiers, buildClassIdentifiers(studentProfile.linkedProfile));
+  }
+
+  var originalClassIds = identifiers.classIdentifiers.slice();
+  var classIndex = 0;
+
+  while (classIndex < originalClassIds.length) {
+    await appendClassDocumentIdentifier(identifiers, originalClassIds[classIndex]);
+    classIndex = classIndex + 1;
+  }
+}
+
+async function appendClassDocumentIdentifier(identifiers, classId) {
+  if (!classId) {
+    return;
+  }
+
+  try {
+    var classRecord = await getClassById(classId);
+
+    if (!classRecord) {
+      return;
+    }
+
+    addClassRecordIdentifiers(identifiers.classIdentifiers, classRecord);
+  } catch (error) {
+    identifiers.warnings.push({
+      code: "STUDENT_CLASS_ALIAS_READ_FAILED",
+      message: "Class aliases could not be read for " + classId + ": " + readErrorMessage(error)
+    });
+  }
+}
+
+function buildStudentAssignmentQueries(identifiers) {
+  var queries = [];
+  var studentIndex = 0;
+  var classIndex = 0;
+  var locationIndex = 0;
+
+  while (studentIndex < identifiers.studentIdentifiers.length) {
+    addAssignmentQuery(queries, "student-targetId", "student", [
+      where("targetType", "==", "student"),
+      where("targetId", "==", identifiers.studentIdentifiers[studentIndex])
+    ], identifiers.studentIdentifiers[studentIndex]);
+    addAssignmentQuery(queries, "student-studentId", "student", [
+      where("studentId", "==", identifiers.studentIdentifiers[studentIndex])
+    ], identifiers.studentIdentifiers[studentIndex]);
+    studentIndex = studentIndex + 1;
+  }
+
+  while (classIndex < identifiers.classIdentifiers.length) {
+    addAssignmentQuery(queries, "class-targetId", "class", [
+      where("targetType", "==", "class"),
+      where("targetId", "==", identifiers.classIdentifiers[classIndex])
+    ], identifiers.classIdentifiers[classIndex]);
+    addAssignmentQuery(queries, "class-classId", "class", [
+      where("classId", "==", identifiers.classIdentifiers[classIndex])
+    ], identifiers.classIdentifiers[classIndex]);
+    classIndex = classIndex + 1;
+  }
+
+  while (locationIndex < identifiers.locationIdentifiers.length) {
+    addAssignmentQuery(queries, "location-targetId", "location", [
+      where("targetType", "==", "location"),
+      where("targetId", "==", identifiers.locationIdentifiers[locationIndex])
+    ], identifiers.locationIdentifiers[locationIndex]);
+    addAssignmentQuery(queries, "location-locationId", "location", [
+      where("locationId", "==", identifiers.locationIdentifiers[locationIndex])
+    ], identifiers.locationIdentifiers[locationIndex]);
+    locationIndex = locationIndex + 1;
+  }
+
+  return queries;
+}
+
+function addAssignmentQuery(queries, queryType, targetType, constraints, identifier) {
+  var key = queryType + ":" + identifier;
+
+  if (!identifier || hasAssignmentQuery(queries, key)) {
+    return;
+  }
+
+  queries.push({
+    key: key,
+    queryType: queryType,
+    targetType: targetType,
+    identifier: identifier,
+    query: query(collection(db, "courseAssignments"), ...constraints)
+  });
+}
+
+function hasAssignmentQuery(queries, key) {
+  var queryIndex = 0;
+
+  while (queryIndex < queries.length) {
+    if (queries[queryIndex].key === key) {
+      return true;
+    }
+
+    queryIndex = queryIndex + 1;
+  }
+
+  return false;
 }
 
 async function loadAssignments(assignmentQuery) {
@@ -175,6 +352,102 @@ async function appendTargetAssignments(result, target) {
       message: queryPath + " failed: " + readErrorMessage(error)
     });
   }
+}
+
+async function appendAssignmentQuery(result, assignmentQuery, identifiers) {
+  var queryPath = readAssignmentQueryPath(assignmentQuery);
+
+  result.queryPaths.push(queryPath);
+
+  try {
+    var assignments = await loadAssignments(assignmentQuery.query);
+    var visibleAssignments = assignments.filter(isVisibleAssignment).filter(function (assignment) {
+      return matchesStudentAssignmentScope(assignment, assignmentQuery.targetType, identifiers);
+    });
+
+    appendAssignments(result, visibleAssignments, {
+      targetType: assignmentQuery.targetType,
+      targetId: assignmentQuery.identifier
+    });
+
+    if (assignments.length === 0) {
+      addReasonCount(result.rejectionReasons, "no-assignment-for-target");
+    }
+  } catch (error) {
+    addReasonCount(result.rejectionReasons, "assignment-query-failed");
+    result.warnings.push({
+      code: "STUDENT_ASSIGNMENT_QUERY_FAILED",
+      message: queryPath + " failed: " + readErrorMessage(error)
+    });
+  }
+}
+
+function readAssignmentQueryPath(assignmentQuery) {
+  if (assignmentQuery.queryType === "student-targetId") {
+    return "courseAssignments where targetType=student, targetId=" + assignmentQuery.identifier;
+  }
+
+  if (assignmentQuery.queryType === "student-studentId") {
+    return "courseAssignments where studentId=" + assignmentQuery.identifier;
+  }
+
+  if (assignmentQuery.queryType === "class-targetId") {
+    return "courseAssignments where targetType=class, targetId=" + assignmentQuery.identifier;
+  }
+
+  if (assignmentQuery.queryType === "class-classId") {
+    return "courseAssignments where classId=" + assignmentQuery.identifier;
+  }
+
+  if (assignmentQuery.queryType === "location-targetId") {
+    return "courseAssignments where targetType=location, targetId=" + assignmentQuery.identifier;
+  }
+
+  if (assignmentQuery.queryType === "location-locationId") {
+    return "courseAssignments where locationId=" + assignmentQuery.identifier;
+  }
+
+  return "courseAssignments assignment query";
+}
+
+function matchesStudentAssignmentScope(assignment, targetType, identifiers) {
+  if (targetType === "student") {
+    return matchesDirectStudentAssignment(assignment, identifiers.studentIdentifiers);
+  }
+
+  if (targetType === "class") {
+    return matchesClassAssignment(assignment, identifiers.classIdentifiers);
+  }
+
+  if (targetType === "location") {
+    return matchesLocationAssignment(assignment, identifiers.locationIdentifiers);
+  }
+
+  return false;
+}
+
+function matchesDirectStudentAssignment(assignment, studentIdentifiers) {
+  return assignment
+    && ((assignment.targetType === "student" && idListContains(studentIdentifiers, assignment.targetId))
+      || idListContains(studentIdentifiers, assignment.studentId));
+}
+
+function matchesClassAssignment(assignment, classIdentifiers) {
+  return assignment
+    && ((assignment.targetType === "class" && idListContains(classIdentifiers, assignment.targetId))
+      || idListContains(classIdentifiers, assignment.classId));
+}
+
+function matchesLocationAssignment(assignment, locationIdentifiers) {
+  return assignment
+    && ((assignment.targetType === "location" && idListContains(locationIdentifiers, assignment.targetId))
+      || idListContains(locationIdentifiers, assignment.locationId));
+}
+
+function idListContains(values, value) {
+  var text = readTextValue(value);
+
+  return Boolean(text && values.indexOf(text) !== -1);
 }
 
 function appendAssignments(result, assignments, target) {
@@ -269,6 +542,9 @@ function createStudentAssignmentResult(studentProfile) {
     courseIds: [],
     assignmentIds: [],
     assignmentIdByCourseId: {},
+    studentIdentifiers: [],
+    classIdentifiers: [],
+    locationIdentifiers: [],
     classIds: readStudentClassIds(studentProfile),
     locationIds: readStudentLocationIds(studentProfile),
     warnings: [],
@@ -314,11 +590,12 @@ function readStudentClassIds(studentProfile) {
   var ids = [];
 
   addUniqueText(ids, readTextField(studentProfile, "classId"));
+  addUniqueText(ids, readTextField(studentProfile, "primaryClassId"));
   addTextList(ids, readArrayField(studentProfile, "classIds"));
   addTextList(ids, readArrayField(studentProfile, "assignedClassIds"));
-  addRecordTextList(ids, studentProfile ? studentProfile.assignedClasses : null, "class");
-  addRecordTextList(ids, studentProfile ? studentProfile.classRefs : null, "class");
-  addRecordTextList(ids, studentProfile ? studentProfile.classes : null, "class");
+  addRecordClassIdentifierList(ids, studentProfile ? studentProfile.assignedClasses : null);
+  addRecordClassIdentifierList(ids, studentProfile ? studentProfile.classRefs : null);
+  addRecordClassIdentifierList(ids, studentProfile ? studentProfile.classes : null);
 
   return ids;
 }
@@ -369,6 +646,35 @@ function addRecordTargetList(targets, targetType, values) {
   }
 }
 
+function addRecordClassIdentifierList(ids, values) {
+  var index = 0;
+  var safeValues = Array.isArray(values) ? values : [];
+
+  while (index < safeValues.length) {
+    addClassRecordIdentifiers(ids, safeValues[index]);
+    index = index + 1;
+  }
+}
+
+function addClassRecordIdentifiers(ids, classRecord) {
+  if (!classRecord || typeof classRecord !== "object") {
+    addUniqueText(ids, classRecord);
+    return;
+  }
+
+  addUniqueText(ids, classRecord.id);
+  addUniqueText(ids, classRecord.classId);
+  addUniqueText(ids, classRecord.primaryClassId);
+  addUniqueText(ids, classRecord.refId);
+  addUniqueText(ids, classRecord.uid);
+  addUniqueText(ids, classRecord.className);
+  addUniqueText(ids, classRecord.name);
+  addUniqueText(ids, classRecord.displayName);
+  addUniqueText(ids, classRecord.title);
+  addUniqueText(ids, classRecord.code);
+  addUniqueText(ids, classRecord.classCode);
+}
+
 function hasTarget(targets, targetType, targetId) {
   var targetIndex = 0;
 
@@ -413,6 +719,49 @@ function readRecordId(value, targetType) {
   }
 
   return readTextValue(value.id || value.locationId || value.schoolId || value.refId || value.uid);
+}
+
+function logAssignmentIdentifiers(identifiers) {
+  if (!isStudentCourseDebugEnabled()) {
+    return;
+  }
+
+  console.log("[student-course-debug] assignment identifiers", {
+    studentIdentifiers: identifiers.studentIdentifiers,
+    classIdentifiers: identifiers.classIdentifiers,
+    locationIdentifiers: identifiers.locationIdentifiers
+  });
+}
+
+function logMatchedAssignments(assignments) {
+  if (!isStudentCourseDebugEnabled()) {
+    return;
+  }
+
+  console.log("[student-course-debug] matched assignments");
+  console.table(assignments.map(function (assignment) {
+    return {
+      id: assignment.id,
+      courseId: assignment.courseId,
+      targetType: assignment.targetType,
+      targetId: assignment.targetId,
+      classId: assignment.classId,
+      studentId: assignment.studentId,
+      status: assignment.status,
+      visibility: assignment.visibility
+    };
+  }));
+}
+
+function isStudentCourseDebugEnabled() {
+  if (typeof window === "undefined" || !window.location) {
+    return false;
+  }
+
+  return window.location.search.indexOf("debug=true") !== -1
+    || window.location.hostname === "localhost"
+    || window.location.hostname === "127.0.0.1"
+    || window.location.hostname === "";
 }
 
 function readTextField(source, fieldName) {
