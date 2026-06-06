@@ -1,1 +1,1 @@
-export const OQUWAY_BUILD_VERSION = "1.1.89-student-fruit-session";
+export const OQUWAY_BUILD_VERSION = "1.1.90-student-profile-handoff";

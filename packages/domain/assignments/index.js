@@ -36,4 +36,4 @@ export function assignmentBelongsToTeacher(assignment, teacherIds) {
     }));
 }
 
-export * from "./assignmentRepository.js?v=1.1.89-student-fruit-session";
+export * from "./assignmentRepository.js?v=1.1.90-student-profile-handoff";

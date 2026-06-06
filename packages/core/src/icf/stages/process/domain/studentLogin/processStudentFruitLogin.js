@@ -1,6 +1,6 @@
 import { signInWithCustomToken } from "firebase/auth";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.89-student-fruit-session";
-import { callStudentLoginFunction, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.89-student-fruit-session";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.90-student-profile-handoff";
+import { callStudentLoginFunction, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.90-student-profile-handoff";
 
 export async function processStudentFruitLogin(executionState) {
   var payload = executionState.payload;

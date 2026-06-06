@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.89-student-fruit-session";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.89-student-fruit-session";
-import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.89-student-fruit-session";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.90-student-profile-handoff";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.90-student-profile-handoff";
+import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.90-student-profile-handoff";
 
 var appElement = document.getElementById("app");
 var startupMessage = consumeStartupMessage();

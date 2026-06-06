@@ -1,5 +1,5 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.89-student-fruit-session";
-import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.89-student-fruit-session";
+import { getStudentProfileByAuthUid } from "../../../../../../../domain/users/index.js";
+import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.90-student-profile-handoff";
 
 export async function processLoadStudentProfile(executionState) {
   var actor = executionState.actor;
@@ -9,10 +9,10 @@ export async function processLoadStudentProfile(executionState) {
       throw new Error("A signed-in student is required.");
     }
 
-    var profilePath = "users/" + actor.id;
-    var userSnap = await getDoc(doc(db, "users", actor.id));
+    var profilePath = "users/" + actor.id + " or authUid=" + actor.id;
+    var profile = await getStudentProfileByAuthUid(actor.id);
 
-    if (!userSnap.exists()) {
+    if (!profile) {
       logStudentProfileDebug({
         authUid: actor.id,
         profilePath: profilePath,
@@ -25,7 +25,6 @@ export async function processLoadStudentProfile(executionState) {
       throw new Error("Student profile was not found.");
     }
 
-    var profile = Object.assign({ id: userSnap.id }, userSnap.data());
     var sanitizedProfile = sanitizeProfile(profile);
 
     if (!hasStudentRole(profile)) {

@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.89-student-fruit-session";
+import * as IntentExports from "../intents/intents.js?v=1.1.90-student-profile-handoff";
 
 const registry = {
   // Demo Verification

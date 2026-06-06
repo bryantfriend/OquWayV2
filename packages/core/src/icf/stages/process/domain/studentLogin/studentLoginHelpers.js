@@ -1,4 +1,4 @@
-import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.89-student-fruit-session";
+import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.90-student-profile-handoff";
 
 export async function callStudentLoginFunction(payload) {
   return callCallableFunction("studentLogin", payload);
