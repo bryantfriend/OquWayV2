@@ -1,13 +1,13 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth, collection, db, deleteDoc, doc, functions, getDoc, getDocs, httpsCallable, serverTimestamp, setDoc, storage } from "../../../../../packages/firebase/index.js?v=1.1.81-class-command-center";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.81-class-command-center";
-import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.81-class-command-center";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.81-class-command-center";
-import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.81-class-command-center";
-import { createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.81-class-command-center";
+import { auth, collection, db, deleteDoc, doc, functions, getDoc, getDocs, httpsCallable, serverTimestamp, setDoc, storage } from "../../../../../packages/firebase/index.js?v=1.1.82-shared-command-center-shell";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.82-shared-command-center-shell";
+import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.82-shared-command-center-shell";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.82-shared-command-center-shell";
+import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.82-shared-command-center-shell";
+import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.82-shared-command-center-shell";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.81";
+var appVersion = "1.1.82";
 var adminCallableFunctions = functions;
 var state = {
   isLoading: true,
@@ -2778,38 +2778,61 @@ function buildClassCommandCenterModal() {
 
   var context = readClassCommandContext(classRecord);
 
-  return '<div class="sa-location-command-backdrop sa-class-command-backdrop" role="dialog" aria-modal="true" aria-label="Class Command Center">'
-    + '<section class="sa-location-command-modal sa-class-command-modal">'
-    + buildClassCommandHeader(classRecord, context)
-    + '<div class="sa-location-command-shell sa-class-command-shell">'
-    + buildClassCommandTabs(command.activeTab)
-    + '<main class="sa-location-command-content sa-class-command-content">' + buildClassCommandBody(command.activeTab, classRecord, context) + '</main>'
-    + buildClassCommandSideRail(classRecord, context)
-    + '</div></section></div>';
+  return createCommandCenterShell({
+    label: "Class Command Center",
+    header: buildClassCommandHeader(classRecord, context),
+    tabsHtml: buildClassCommandTabs(command.activeTab),
+    content: buildClassCommandBody(command.activeTab, classRecord, context),
+    rightRail: buildClassCommandSideRail(classRecord, context),
+    classNames: {
+      backdrop: "sa-location-command-backdrop sa-class-command-backdrop",
+      modal: "sa-location-command-modal sa-class-command-modal",
+      shell: "sa-location-command-shell sa-class-command-shell",
+      content: "sa-location-command-content sa-class-command-content"
+    }
+  });
 }
 
 function buildClassCommandHeader(classRecord, context) {
   var form = context.form;
 
-  return '<header class="sa-location-command-header sa-class-command-header">'
-    + '<div class="sa-location-command-identity sa-class-command-identity">'
-    + '<span class="sa-class-command-icon sa-class-command-icon-large">' + escapeHtml(readInitials(form.name || form.classId || "CL")) + '</span>'
-    + '<div><div class="sa-location-command-title"><h2>' + escapeHtml(form.name || form.classId || "Untitled class") + '</h2>' + createStatusBadge(form.status, { className: "sa-command-status", statusClassPrefix: "sa-command-status-" }) + '</div>'
-    + '<p>' + escapeHtml(readLocationName(form.locationId) || "No location") + '<span></span>Teacher: ' + escapeHtml(readTeacherName(form.primaryTeacherId)) + '<span></span>Students: ' + context.students.length + '<span></span>Courses: ' + context.courses.length + '<span></span>Last Activity: ' + escapeHtml(readClassLastActivityLabel(context)) + '</p></div>'
-    + '</div><div class="sa-location-command-header-actions sa-class-command-header-actions">'
-    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="class-command-tab" data-id="overview">Edit Class</button>'
-    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="class-command-tab" data-id="assignments">Assign Course</button>'
-    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="class-command-tab" data-id="students">Manage Students</button>'
-    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="class-command-tab" data-id="teachers">Open Teacher View</button>'
-    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="class-command-tab" data-id="danger">More Actions</button>'
-    + '<button type="button" class="sa-location-command-close" data-action="close-class-command-center" aria-label="Close">x</button>'
-    + '</div></header>';
+  return createCommandCenterHeader({
+    title: form.name || form.classId || "Untitled class",
+    avatarHtml: '<span class="sa-class-command-icon sa-class-command-icon-large">' + escapeHtml(readInitials(form.name || form.classId || "CL")) + '</span>',
+    statusBadge: createStatusBadge(form.status, { className: "sa-command-status", statusClassPrefix: "sa-command-status-" }),
+    metadata: [
+      readLocationName(form.locationId) || "No location",
+      "Teacher: " + readTeacherName(form.primaryTeacherId),
+      "Students: " + context.students.length,
+      "Courses: " + context.courses.length,
+      "Last Activity: " + readClassLastActivityLabel(context)
+    ],
+    actions: [
+      { label: "Edit Class", action: "class-command-tab", id: "overview", className: "sa-btn sa-btn-secondary" },
+      { label: "Assign Course", action: "class-command-tab", id: "assignments", className: "sa-btn sa-btn-secondary" },
+      { label: "Manage Students", action: "class-command-tab", id: "students", className: "sa-btn sa-btn-secondary" },
+      { label: "Open Teacher View", action: "class-command-tab", id: "teachers", className: "sa-btn sa-btn-secondary" },
+      { label: "More Actions", action: "class-command-tab", id: "danger", className: "sa-btn sa-btn-secondary" }
+    ],
+    closeAction: "close-class-command-center",
+    classNames: {
+      header: "sa-location-command-header sa-class-command-header",
+      identity: "sa-location-command-identity sa-class-command-identity",
+      titleRow: "sa-location-command-title",
+      headerActions: "sa-location-command-header-actions sa-class-command-header-actions",
+      closeButton: "sa-location-command-close"
+    }
+  });
 }
 
 function buildClassCommandTabs(activeTab) {
-  return buildCommandTabs("class-command-tab", activeTab, [
+  return createCommandCenterTabs([
     ["overview", "Overview", "O"], ["students", "Students", "S"], ["teachers", "Teachers", "T"], ["courses", "Courses", "C"], ["assignments", "Assignments", "A"], ["activity", "Activity", "V"], ["schedule", "Schedule", "D"], ["reports", "Reports", "R"], ["audit", "Audit Log", "L"], ["danger", "Danger Zone", "!"]
-  ], "Class Command Center");
+  ], activeTab, {
+    action: "class-command-tab",
+    className: "sa-location-command-tabs sa-course-command-tabs",
+    label: "Class Command Center"
+  });
 }
 
 function buildClassCommandBody(activeTab, classRecord, context) {
@@ -2826,16 +2849,18 @@ function buildClassCommandBody(activeTab, classRecord, context) {
 }
 
 function buildClassOverviewTab(classRecord, context) {
-  return '<section class="sa-location-command-overview sa-class-command-overview"><div class="sa-command-kpi-grid sa-class-command-kpis">'
-    + buildUserCommandKpiCard("Students", context.students.length, "students", "blue", "Enrolled learners")
-    + buildUserCommandKpiCard("Teachers", context.teachers.length, "teachers", "green", "Primary and assistants")
-    + buildUserCommandKpiCard("Assigned Courses", context.courses.length, "courses", "purple", "Course assignments")
-    + buildUserCommandKpiCard("Modules Completed", readClassMetricLabel(context, ["modulesCompleted", "completedModules"]), "activity", "sky", "If available")
-    + buildUserCommandKpiCard("Steps Completed", readClassMetricLabel(context, ["stepsCompleted", "completedSteps"]), "activity", "orange", "If available")
-    + buildUserCommandKpiCard("Pending Reviews", countPendingSubmissions(context.submissions), "reports", "rose", "External tasks")
-    + buildUserCommandKpiCard("Attendance", readClassAttendanceLabel(context), "reports", "amber", "If available")
-    + buildUserCommandKpiCard("Activity Score", readClassActivityScoreLabel(context), "activity", "blue", "If available")
-    + '</div><div class="sa-command-grid sa-command-grid-main">'
+  return '<section class="sa-location-command-overview sa-class-command-overview">'
+    + createCommandCenterKpiGrid([
+      { label: "Students", value: context.students.length, icon: "students", action: "class-command-tab", id: "students", className: "sa-command-kpi", detail: "Enrolled learners" },
+      { label: "Teachers", value: context.teachers.length, icon: "teachers", action: "class-command-tab", id: "teachers", className: "sa-command-kpi", detail: "Primary and assistants" },
+      { label: "Assigned Courses", value: context.courses.length, icon: "courses", action: "class-command-tab", id: "courses", className: "sa-command-kpi", detail: "Course assignments" },
+      { label: "Modules Completed", value: readClassMetricLabel(context, ["modulesCompleted", "completedModules"]), icon: "activity", action: "class-command-tab", id: "activity", className: "sa-command-kpi", detail: "If available" },
+      { label: "Steps Completed", value: readClassMetricLabel(context, ["stepsCompleted", "completedSteps"]), icon: "activity", action: "class-command-tab", id: "activity", className: "sa-command-kpi", detail: "If available" },
+      { label: "Pending Reviews", value: countPendingSubmissions(context.submissions), icon: "reports", action: "class-command-tab", id: "reports", className: "sa-command-kpi", detail: "External tasks" },
+      { label: "Attendance", value: readClassAttendanceLabel(context), icon: "reports", action: "class-command-tab", id: "reports", className: "sa-command-kpi", detail: "If available" },
+      { label: "Activity Score", value: readClassActivityScoreLabel(context), icon: "activity", action: "class-command-tab", id: "activity", className: "sa-command-kpi", detail: "If available" }
+    ], { className: "sa-command-kpi-grid sa-class-command-kpis" })
+    + '<div class="sa-command-grid sa-command-grid-main">'
     + buildUserCommandChartCard("Class Activity Trend", "Class activity trend data is not connected yet.")
     + buildUserCommandChartCard("Course Progress Trend", "Course progress trend data is not connected yet.")
     + buildLocationReviewTrendCard({ pendingReviews: countPendingSubmissions(context.submissions), completedReviews: countReviewedClassSubmissions(context), needsWorkReviews: countNeedsWorkClassSubmissions(context) })
@@ -2953,7 +2978,18 @@ function buildClassAuditTab(classRecord, context) {
 }
 
 function buildClassDangerTab(classRecord, context) {
-  return '<section class="sa-command-tab-stack"><article class="sa-command-panel sa-command-danger-panel"><div class="sa-command-panel-head"><h3>Danger Zone</h3><span class="sa-user-command-super">ICF Only</span></div><p>Destructive class actions remain disabled unless the matching ICF intent is implemented and explicitly wired.</p><div class="sa-command-danger-actions"><button type="button" class="sa-btn sa-danger-btn" disabled>Archive Class</button><button type="button" class="sa-btn sa-danger-btn" disabled>Restore Class</button><button type="button" class="sa-btn sa-danger-btn" disabled>Transfer Students</button><button type="button" class="sa-btn sa-danger-btn" disabled>Delete Class</button></div><small>Class: ' + escapeHtml(context.form.name || context.form.classId) + '</small></article></section>';
+  return '<section class="sa-command-tab-stack">' + createCommandCenterDangerZone({
+    className: "sa-command-panel sa-command-danger-panel",
+    actionsClassName: "sa-command-danger-actions",
+    message: "Destructive class actions remain disabled unless the matching ICF intent is implemented and explicitly wired.",
+    actions: [
+      { label: "Archive Class", className: "sa-btn sa-danger-btn", disabled: true },
+      { label: "Restore Class", className: "sa-btn sa-danger-btn", disabled: true },
+      { label: "Transfer Students", className: "sa-btn sa-danger-btn", disabled: true },
+      { label: "Delete Class", className: "sa-btn sa-danger-btn", disabled: true }
+    ],
+    footerHtml: '<small>Class: ' + escapeHtml(context.form.name || context.form.classId) + '</small>'
+  }) + '</section>';
 }
 
 function buildClassCommandSideRail(classRecord, context) {

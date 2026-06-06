@@ -1,6 +1,6 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.81-class-command-center";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.81-class-command-center";
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.81-class-command-center";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.82-shared-command-center-shell";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.82-shared-command-center-shell";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.82-shared-command-center-shell";
 
 export const courseAssignmentService = {
   createCourseAssignment: async function (courseId, targetType, targetId, status) {

@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateCourseId } from "../../stages/validate/validators.js?v=1.1.81-class-command-center";
-import { normalizeCourseId } from "../../stages/normalize/normalizers.js?v=1.1.81-class-command-center";
-import { attachActorContext, attachActorRoleContext, attachCourseDocument } from "../../stages/addContext/contexts.js?v=1.1.81-class-command-center";
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.81-class-command-center";
-import { processOpenCreateModuleWizard } from "../../stages/process/processors.js?v=1.1.81-class-command-center";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.81-class-command-center";
+import { validateAuthenticated, validateCourseId } from "../../stages/validate/validators.js?v=1.1.82-shared-command-center-shell";
+import { normalizeCourseId } from "../../stages/normalize/normalizers.js?v=1.1.82-shared-command-center-shell";
+import { attachActorContext, attachActorRoleContext, attachCourseDocument } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.82-shared-command-center-shell";
+import { processOpenCreateModuleWizard } from "../../stages/process/processors.js?v=1.1.82-shared-command-center-shell";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.82-shared-command-center-shell";
 
 export function OpenCreateModuleWizardIntent() {
   return {

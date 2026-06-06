@@ -1,13 +1,13 @@
-import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.81-class-command-center';
-import { courseEditorService } from '../services/courseEditorService.js?v=1.1.81-class-command-center';
-import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.81-class-command-center';
-import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.81-class-command-center';
+import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.82-shared-command-center-shell';
+import { courseEditorService } from '../services/courseEditorService.js?v=1.1.82-shared-command-center-shell';
+import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.82-shared-command-center-shell';
+import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.82-shared-command-center-shell';
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge
-} from '../../../../../packages/ui/index.js?v=1.1.81-class-command-center';
+} from '../../../../../packages/ui/index.js?v=1.1.82-shared-command-center-shell';
 
 export class CourseOverviewPage {
   constructor(courseId, options) {

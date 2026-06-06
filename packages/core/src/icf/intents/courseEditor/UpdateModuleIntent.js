@@ -1,11 +1,11 @@
-import { validateAuthenticated, validateCourseId, validateModuleId } from "../../stages/validate/validators.js?v=1.1.81-class-command-center";
-import { normalizeCourseId, normalizeModuleShell } from "../../stages/normalize/normalizers.js?v=1.1.81-class-command-center";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.81-class-command-center";
-import { attachCourseDocument } from "../../stages/addContext/contexts.js?v=1.1.81-class-command-center";
-import { attachModuleDocument } from "../../stages/addContext/contexts.js?v=1.1.81-class-command-center";
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.81-class-command-center";
-import { processUpdateModule } from "../../stages/process/processors.js?v=1.1.81-class-command-center";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.81-class-command-center";
+import { validateAuthenticated, validateCourseId, validateModuleId } from "../../stages/validate/validators.js?v=1.1.82-shared-command-center-shell";
+import { normalizeCourseId, normalizeModuleShell } from "../../stages/normalize/normalizers.js?v=1.1.82-shared-command-center-shell";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
+import { attachCourseDocument } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
+import { attachModuleDocument } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.82-shared-command-center-shell";
+import { processUpdateModule } from "../../stages/process/processors.js?v=1.1.82-shared-command-center-shell";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.82-shared-command-center-shell";
 
 export function UpdateModuleIntent() {
   return {

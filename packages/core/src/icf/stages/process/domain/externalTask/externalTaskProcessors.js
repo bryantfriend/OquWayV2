@@ -5,7 +5,7 @@ import {
   getStudentExternalTaskSubmissions,
   updateExternalTaskReview,
   uploadExternalTaskFile
-} from "../../../../../../../domain/externalTasks/index.js?v=1.1.81-class-command-center";
+} from "../../../../../../../domain/externalTasks/index.js?v=1.1.82-shared-command-center-shell";
 
 export async function processLoadExternalTaskStep(executionState) {
   var payload = executionState.payload || {};

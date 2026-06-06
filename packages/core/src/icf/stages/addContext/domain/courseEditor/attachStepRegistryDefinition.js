@@ -1,4 +1,4 @@
-import { db, doc, getDoc, collection, getDocs, query, orderBy } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.81-class-command-center";
+import { db, doc, getDoc, collection, getDocs, query, orderBy } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
 
 export async function attachStepRegistryDefinition(executionState) {
     const { payload } = executionState;

@@ -1,4 +1,4 @@
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.81-class-command-center";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.82-shared-command-center-shell";
 import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js";
 
 export async function processStudentOpenCourse(executionState) {

@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.81-class-command-center";
-import { normalizeLearningContentPayload } from "./learningArchitecture.js?v=1.1.81-class-command-center";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
+import { normalizeLearningContentPayload } from "./learningArchitecture.js?v=1.1.82-shared-command-center-shell";
 
 export async function processSaveLearningContent(executionState) {
   var payload = executionState.payload;

@@ -1,4 +1,4 @@
-import { createDefaultLearningContent, readTemplateSpecs } from "../moduleEditor/learningArchitecture.js?v=1.1.81-class-command-center";
+import { createDefaultLearningContent, readTemplateSpecs } from "../moduleEditor/learningArchitecture.js?v=1.1.82-shared-command-center-shell";
 
 export function processOpenCreateModuleWizard(executionState) {
   var payload = executionState.payload || {};

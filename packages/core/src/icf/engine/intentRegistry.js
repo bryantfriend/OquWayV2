@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.81-class-command-center";
+import * as IntentExports from "../intents/intents.js?v=1.1.82-shared-command-center-shell";
 
 const registry = {
   // Demo Verification

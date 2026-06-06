@@ -1,5 +1,5 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.81-class-command-center";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.81-class-command-center";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.82-shared-command-center-shell";
 
 export async function processPreviewCourse(executionState) {
   var payload = executionState.payload || {};

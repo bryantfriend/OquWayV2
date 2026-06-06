@@ -1,4 +1,4 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.81-class-command-center";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
 import { createDefaultStepConfig } from "../../../../../../../domain/steps/index.js";
 
 export async function processUpdateLearningModeStep(executionState) {

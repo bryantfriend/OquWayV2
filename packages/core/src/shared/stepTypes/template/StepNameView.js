@@ -1,5 +1,5 @@
-import { StepNameEngine } from "./StepNameEngine.js?v=1.1.81-class-command-center";
-import { StepNameIntent } from "./StepNameIntent.js?v=1.1.81-class-command-center";
+import { StepNameEngine } from "./StepNameEngine.js?v=1.1.82-shared-command-center-shell";
+import { StepNameIntent } from "./StepNameIntent.js?v=1.1.82-shared-command-center-shell";
 
 export default class StepName {
 

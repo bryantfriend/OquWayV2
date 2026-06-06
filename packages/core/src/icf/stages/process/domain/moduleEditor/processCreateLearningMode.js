@@ -1,6 +1,6 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.81-class-command-center";
-import { createDefaultPracticeModes } from "./practiceModeShells.js?v=1.1.81-class-command-center";
-import { createDefaultLearningModes, createLearningModeRecord, createModeFromPayload } from "./learningArchitecture.js?v=1.1.81-class-command-center";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
+import { createDefaultPracticeModes } from "./practiceModeShells.js?v=1.1.82-shared-command-center-shell";
+import { createDefaultLearningModes, createLearningModeRecord, createModeFromPayload } from "./learningArchitecture.js?v=1.1.82-shared-command-center-shell";
 
 export async function processCreateLearningMode(executionState) {
   var payload = executionState.payload;

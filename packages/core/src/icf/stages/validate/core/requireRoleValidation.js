@@ -1,4 +1,4 @@
-import { hasAnyRole } from "../../authorize/core/roleAuthorization.js?v=1.1.81-class-command-center";
+import { hasAnyRole } from "../../authorize/core/roleAuthorization.js?v=1.1.82-shared-command-center-shell";
 
 export function requireRoleValidation(actor, requiredRole) {
     if (!actor) {

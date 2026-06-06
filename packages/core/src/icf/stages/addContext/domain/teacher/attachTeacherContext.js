@@ -1,4 +1,4 @@
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.81-class-command-center";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
 import { getExternalTaskSubmissionById } from "../../../../../../../domain/externalTasks/index.js";
 import { getUserProfileByAuthUid, getUserRoles } from "../../../../../../../domain/users/index.js";
 

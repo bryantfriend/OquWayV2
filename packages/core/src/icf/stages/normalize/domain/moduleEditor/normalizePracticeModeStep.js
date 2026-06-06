@@ -1,4 +1,4 @@
-import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.81-class-command-center";
+import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.82-shared-command-center-shell";
 
 export function normalizePracticeModeStep(executionState) {
   var payload = executionState.payload;

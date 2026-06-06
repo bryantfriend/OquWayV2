@@ -1,5 +1,5 @@
-import { auth } from "../../packages/firebase/auth/index.js?v=1.1.81-class-command-center";
-import { verifyCourseCreatorAccess, normalizeRole } from "./src/auth/courseCreatorAuth.js?v=1.1.81-class-command-center";
+import { auth } from "../../packages/firebase/auth/index.js?v=1.1.82-shared-command-center-shell";
+import { verifyCourseCreatorAccess, normalizeRole } from "./src/auth/courseCreatorAuth.js?v=1.1.82-shared-command-center-shell";
 import {
     signInWithEmailAndPassword,
     onAuthStateChanged,

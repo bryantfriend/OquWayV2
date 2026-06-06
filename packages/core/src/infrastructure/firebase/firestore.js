@@ -14,7 +14,7 @@ import {
     writeBatch
 } from "firebase/firestore";
 
-import { firebaseApp } from "./firebaseApp.js?v=1.1.81-class-command-center";
+import { firebaseApp } from "./firebaseApp.js?v=1.1.82-shared-command-center-shell";
 
 export const db = initializeFirestore(firebaseApp, {
     localCache: memoryLocalCache()

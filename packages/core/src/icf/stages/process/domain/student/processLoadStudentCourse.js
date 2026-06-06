@@ -1,9 +1,9 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.81-class-command-center";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.81-class-command-center";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.82-shared-command-center-shell";
 import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js";
-import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.81-class-command-center";
+import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.82-shared-command-center-shell";
 import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js";
-import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.81-class-command-center";
+import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.82-shared-command-center-shell";
 
 export async function processLoadStudentCourse(executionState) {
   var actor = executionState.actor;

@@ -1,4 +1,4 @@
-import { requireNonEmptyArrayValidation } from "../../validators.js?v=1.1.81-class-command-center";
+import { requireNonEmptyArrayValidation } from "../../validators.js?v=1.1.82-shared-command-center-shell";
 
 export function validateModuleStepsPayload(executionState) {
     const payload = executionState.payload;

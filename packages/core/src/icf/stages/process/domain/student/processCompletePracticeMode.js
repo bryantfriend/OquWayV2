@@ -2,7 +2,7 @@ import {
   readPracticeModeProgress,
   readPracticeModeStepIds,
   saveStudentPracticeModeProgress
-} from "./studentProgressHelpers.js?v=1.1.81-class-command-center";
+} from "./studentProgressHelpers.js?v=1.1.82-shared-command-center-shell";
 
 export async function processCompletePracticeMode(executionState) {
   var payload = executionState.payload;

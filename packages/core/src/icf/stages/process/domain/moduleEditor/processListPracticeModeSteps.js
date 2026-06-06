@@ -1,4 +1,4 @@
-import { normalizePracticeModes } from "./practiceModeShells.js?v=1.1.81-class-command-center";
+import { normalizePracticeModes } from "./practiceModeShells.js?v=1.1.82-shared-command-center-shell";
 
 export function processListPracticeModeSteps(executionState) {
   var payload = executionState.payload;

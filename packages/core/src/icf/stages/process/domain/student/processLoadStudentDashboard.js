@@ -1,5 +1,5 @@
-import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.81-class-command-center";
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.81-class-command-center";
+import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.82-shared-command-center-shell";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.82-shared-command-center-shell";
 import { calculateCourseCompletion, calculateCourseProgressSummary } from "../../../../../../../domain/progress/index.js";
 
 export async function processLoadStudentDashboard(executionState) {

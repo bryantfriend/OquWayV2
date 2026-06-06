@@ -2,7 +2,7 @@ import {
   createLearningModesForTemplate,
   createStarterStepsForMode,
   normalizeLearningContentPayload
-} from "../moduleEditor/learningArchitecture.js?v=1.1.81-class-command-center";
+} from "../moduleEditor/learningArchitecture.js?v=1.1.82-shared-command-center-shell";
 
 export function processGenerateModuleSkeleton(executionState) {
   var payload = executionState.payload || {};

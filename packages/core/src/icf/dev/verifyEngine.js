@@ -3,12 +3,12 @@
 // ICF Engine Verification Runner
 //
 // Usage from browser console:
-//   import("./packages/core/src/icf/dev/verifyEngine.js?v=1.1.81-class-command-center").then(function (m) { m.verifyEngine(); });
+//   import("./packages/core/src/icf/dev/verifyEngine.js?v=1.1.82-shared-command-center-shell").then(function (m) { m.verifyEngine(); });
 //
 // Or call verifyEngine() after importing this module in your app entry point.
 
-import { createIntent } from "../engine/createIntent.js?v=1.1.81-class-command-center";
-import { runIntentPipeline } from "../engine/runIntentPipeline.js?v=1.1.81-class-command-center";
+import { createIntent } from "../engine/createIntent.js?v=1.1.82-shared-command-center-shell";
+import { runIntentPipeline } from "../engine/runIntentPipeline.js?v=1.1.82-shared-command-center-shell";
 
 export async function verifyEngine() {
   console.info("");

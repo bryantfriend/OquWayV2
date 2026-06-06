@@ -1,4 +1,4 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.81-class-command-center";
+import { BaseStep } from "./BaseStep.js?v=1.1.82-shared-command-center-shell";
 
 export class TextBriefingStep extends BaseStep {
   static get type() {
