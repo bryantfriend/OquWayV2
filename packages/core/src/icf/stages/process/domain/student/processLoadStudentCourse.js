@@ -1,9 +1,9 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.101-student-profile-fallback";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.101-student-profile-fallback";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.101-student-profile-fallback";
-import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.101-student-profile-fallback";
-import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js?v=1.1.101-student-profile-fallback";
-import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.101-student-profile-fallback";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.102-student-profile-payload";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.102-student-profile-payload";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.102-student-profile-payload";
+import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.102-student-profile-payload";
+import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js?v=1.1.102-student-profile-payload";
+import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.102-student-profile-payload";
 
 export async function processLoadStudentCourse(executionState) {
   var actor = executionState.actor;

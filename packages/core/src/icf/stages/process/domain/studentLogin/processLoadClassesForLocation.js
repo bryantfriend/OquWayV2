@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.101-student-profile-fallback";
+import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.102-student-profile-payload";
 
 export async function processLoadClassesForLocation(executionState) {
   var payload = executionState.payload;

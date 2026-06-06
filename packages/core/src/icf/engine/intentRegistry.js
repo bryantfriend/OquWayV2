@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.101-student-profile-fallback";
+import * as IntentExports from "../intents/intents.js?v=1.1.102-student-profile-payload";
 
 const registry = {
   // Demo Verification

@@ -22,4 +22,4 @@ export function getClassLocationId(classRecord) {
 }
 
 export * from "./classQueries.js";
-export * from "./classRepository.js?v=1.1.101-student-profile-fallback";
+export * from "./classRepository.js?v=1.1.102-student-profile-payload";

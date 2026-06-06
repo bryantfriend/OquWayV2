@@ -1,8 +1,8 @@
-import { validateAuthenticated } from "../../stages/validate/validators.js?v=1.1.101-student-profile-fallback";
-import { attachActorContext, attachActorRoleContext, attachStudentProfileContext } from "../../stages/addContext/contexts.js?v=1.1.101-student-profile-fallback";
-import { requireStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.101-student-profile-fallback";
-import { processLoadStudentDashboard } from "../../stages/process/processors.js?v=1.1.101-student-profile-fallback";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.101-student-profile-fallback";
+import { validateAuthenticated } from "../../stages/validate/validators.js?v=1.1.102-student-profile-payload";
+import { attachActorContext, attachActorRoleContext, attachStudentProfileContext } from "../../stages/addContext/contexts.js?v=1.1.102-student-profile-payload";
+import { requireStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.102-student-profile-payload";
+import { processLoadStudentDashboard } from "../../stages/process/processors.js?v=1.1.102-student-profile-payload";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.102-student-profile-payload";
 
 export function LoadStudentDashboardIntent() {
   return {
