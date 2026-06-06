@@ -1,5 +1,5 @@
 import { collection, db, doc, getDocs, query, serverTimestamp, setDoc, where } from "../../firebase/index.js";
-import { getClassById } from "../classes/index.js?v=1.1.105-student-active-assignment-query";
+import { getClassById } from "../classes/index.js?v=1.1.106-student-assignment-error-trace";
 import { isActiveAssignment, normalizeCourseAssignment } from "./index.js";
 
 export async function getCourseAssignments(filters) {
@@ -386,6 +386,7 @@ async function appendAssignmentQuery(result, assignmentQuery, identifiers) {
     }
   } catch (error) {
     addReasonCount(result.rejectionReasons, "assignment-query-failed");
+    logAssignmentQueryFailed(queryPath, error);
     result.warnings.push({
       code: "STUDENT_ASSIGNMENT_QUERY_FAILED",
       message: queryPath + " failed: " + readErrorMessage(error)
@@ -764,6 +765,17 @@ function logMatchedAssignments(assignments) {
 
   console.log("[student-course-debug] matched assignments", JSON.stringify(summary));
   console.table(summary);
+}
+
+function logAssignmentQueryFailed(queryPath, error) {
+  if (!isStudentCourseDebugEnabled()) {
+    return;
+  }
+
+  console.warn("[student-course-debug] assignment query failed", JSON.stringify({
+    queryPath: queryPath,
+    error: readErrorMessage(error)
+  }));
 }
 
 function isStudentCourseDebugEnabled() {

@@ -1,9 +1,9 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.105-student-active-assignment-query";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.105-student-active-assignment-query";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.105-student-active-assignment-query";
-import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.105-student-active-assignment-query";
-import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js?v=1.1.105-student-active-assignment-query";
-import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.105-student-active-assignment-query";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.106-student-assignment-error-trace";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.106-student-assignment-error-trace";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.106-student-assignment-error-trace";
+import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.106-student-assignment-error-trace";
+import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js?v=1.1.106-student-assignment-error-trace";
+import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.106-student-assignment-error-trace";
 
 export async function processLoadStudentCourse(executionState) {
   var actor = executionState.actor;

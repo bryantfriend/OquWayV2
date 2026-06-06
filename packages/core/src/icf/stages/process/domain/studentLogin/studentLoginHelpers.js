@@ -1,4 +1,4 @@
-import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.105-student-active-assignment-query";
+import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.106-student-assignment-error-trace";
 
 export async function callStudentLoginFunction(payload) {
   return callCallableFunction("studentLogin", payload);

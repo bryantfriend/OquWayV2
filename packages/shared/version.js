@@ -1,1 +1,1 @@
-export const OQUWAY_BUILD_VERSION = "1.1.105-student-active-assignment-query";
+export const OQUWAY_BUILD_VERSION = "1.1.106-student-assignment-error-trace";

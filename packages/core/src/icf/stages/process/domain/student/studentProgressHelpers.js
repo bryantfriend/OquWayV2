@@ -1,4 +1,4 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.105-student-active-assignment-query";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.106-student-assignment-error-trace";
 import { createDefaultProgressDocument as createSharedDefaultProgressDocument } from "../../../../../../../domain/progress/index.js";
 
 export function createDefaultProgressDocument(courseId, moduleId, sessionId) {
