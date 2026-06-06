@@ -1,12 +1,12 @@
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.78-location-command-center";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.78-location-command-center";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.79-user-command-center";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.79-user-command-center";
 import {
   getStepTypeDefinition,
   listStepTypeDefinitions,
   validateStepConfig
-} from "../../../../../packages/domain/steps/index.js?v=1.1.78-location-command-center";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.78-location-command-center";
-import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.78-location-command-center";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.79-user-command-center";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.79-user-command-center";
+import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.79-user-command-center";
 
 export class CourseEditorPage {
   constructor(courseId, moduleId) {

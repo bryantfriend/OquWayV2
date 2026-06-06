@@ -3,8 +3,8 @@ import {
     getUserProfileByAuthUid,
     getUserRoles,
     normalizeUserRole
-} from "../../../../packages/domain/users/index.js?v=1.1.78-location-command-center";
-import { canAccessCourseCreator } from "../../../../packages/permissions/index.js?v=1.1.78-location-command-center";
+} from "../../../../packages/domain/users/index.js?v=1.1.79-user-command-center";
+import { canAccessCourseCreator } from "../../../../packages/permissions/index.js?v=1.1.79-user-command-center";
 
 export const ALLOWED_COURSE_CREATOR_ROLES = [
     "superAdmin",

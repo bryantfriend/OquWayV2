@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../../../../packages/firebase/index.js?v=1.1.78-location-command-center";
+import { collection, db, getDocs, query, where } from "../../../../../packages/firebase/index.js?v=1.1.79-user-command-center";
 
 export async function getTeacherCourseAssignments(teacherId) {
   var safeTeacherId = typeof teacherId === "string" ? teacherId.trim() : "";

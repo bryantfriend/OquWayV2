@@ -1,4 +1,4 @@
-import { locationLoginSettingsService } from "../services/locationLoginSettingsService.js?v=1.1.78-location-command-center";
+import { locationLoginSettingsService } from "../services/locationLoginSettingsService.js?v=1.1.79-user-command-center";
 
 export class LocationLoginSettingsPage {
   constructor() {

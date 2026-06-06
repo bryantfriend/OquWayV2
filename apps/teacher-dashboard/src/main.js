@@ -1,9 +1,9 @@
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.78-location-command-center";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.79-user-command-center";
 import {
   createEmptyState,
   createLoadingState,
   createStatusBadge
-} from "../../../packages/ui/index.js?v=1.1.78-location-command-center";
+} from "../../../packages/ui/index.js?v=1.1.79-user-command-center";
 
 var app = document.getElementById("app");
 var state = {

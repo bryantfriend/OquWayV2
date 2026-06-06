@@ -1,4 +1,4 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.78-location-command-center";
+import { BaseStep } from "./BaseStep.js?v=1.1.79-user-command-center";
 
 export class CyberCodeMissionStep extends BaseStep {
   static get type() {

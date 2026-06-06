@@ -1,7 +1,7 @@
-import { catalogAttachSystemContext } from "../../stages/addContext/contexts.js?v=1.1.78-location-command-center";
-import { catalogRequireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.78-location-command-center";
-import { catalogCourseFetchAllProcessing } from "../../stages/process/processors.js?v=1.1.78-location-command-center";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.78-location-command-center";
+import { catalogAttachSystemContext } from "../../stages/addContext/contexts.js?v=1.1.79-user-command-center";
+import { catalogRequireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.79-user-command-center";
+import { catalogCourseFetchAllProcessing } from "../../stages/process/processors.js?v=1.1.79-user-command-center";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.79-user-command-center";
 
 export function FetchAllCatalogCoursesIntent() {
     return {

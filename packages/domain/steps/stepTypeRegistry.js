@@ -3,7 +3,7 @@ import {
   getStepTypeDefinition,
   isSupportedStepType,
   listStepTypeDefinitions
-} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.78-location-command-center";
+} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.79-user-command-center";
 
 export {
   createDefaultStepConfig,

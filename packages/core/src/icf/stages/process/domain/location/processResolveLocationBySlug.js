@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.78-location-command-center";
+import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.79-user-command-center";
 
 export async function processResolveLocationBySlug(executionState) {
   var payload = executionState.payload || {};

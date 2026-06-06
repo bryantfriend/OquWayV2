@@ -1,7 +1,7 @@
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../stepTypes/stepTypeRegistry.js?v=1.1.78-location-command-center";
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.79-user-command-center";
 
 export class PracticeModePlayer {
   constructor(options) {

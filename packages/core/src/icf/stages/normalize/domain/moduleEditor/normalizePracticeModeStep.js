@@ -1,4 +1,4 @@
-import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.78-location-command-center";
+import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.79-user-command-center";
 
 export function normalizePracticeModeStep(executionState) {
   var payload = executionState.payload;

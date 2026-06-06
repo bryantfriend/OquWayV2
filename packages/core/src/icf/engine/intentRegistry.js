@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.78-location-command-center";
+import * as IntentExports from "../intents/intents.js?v=1.1.79-user-command-center";
 
 const registry = {
   // Demo Verification
@@ -64,6 +64,7 @@ const registry = {
   ListStudentsIntent: IntentExports.ListStudentsIntent,
   LoadClassOwnershipIntent: IntentExports.LoadClassOwnershipIntent,
   LoadAdminProfileIntent: IntentExports.LoadAdminProfileIntent,
+  OpenUserCommandCenterIntent: IntentExports.OpenUserCommandCenterIntent,
   ResetStudentFruitPasswordIntent: IntentExports.ResetStudentFruitPasswordIntent,
   SetStudentStatusIntent: IntentExports.SetStudentStatusIntent,
   UpdateClassIntent: IntentExports.UpdateClassIntent,

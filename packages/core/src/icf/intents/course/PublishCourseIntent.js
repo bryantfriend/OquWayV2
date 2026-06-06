@@ -1,4 +1,4 @@
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.78-location-command-center";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.79-user-command-center";
 
 export function PublishCourseIntent() {
   return {

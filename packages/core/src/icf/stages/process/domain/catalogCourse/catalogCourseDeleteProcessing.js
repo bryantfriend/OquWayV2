@@ -1,4 +1,4 @@
-import { db, doc, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.78-location-command-center";
+import { db, doc, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.79-user-command-center";
 
 export async function catalogCourseDeleteProcessing(executionState) {
     const { payload, context } = executionState;

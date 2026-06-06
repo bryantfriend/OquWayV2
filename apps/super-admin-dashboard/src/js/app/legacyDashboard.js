@@ -1,13 +1,13 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth, collection, db, deleteDoc, doc, functions, getDoc, getDocs, httpsCallable, serverTimestamp, setDoc, storage } from "../../../../../packages/firebase/index.js?v=1.1.78-location-command-center";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.78-location-command-center";
-import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.78-location-command-center";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.78-location-command-center";
-import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.78-location-command-center";
-import { createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.78-location-command-center";
+import { auth, collection, db, deleteDoc, doc, functions, getDoc, getDocs, httpsCallable, serverTimestamp, setDoc, storage } from "../../../../../packages/firebase/index.js?v=1.1.79-user-command-center";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.79-user-command-center";
+import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.79-user-command-center";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.79-user-command-center";
+import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.79-user-command-center";
+import { createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.79-user-command-center";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.78";
+var appVersion = "1.1.79";
 var adminCallableFunctions = functions;
 var state = {
   isLoading: true,
@@ -17,6 +17,7 @@ var state = {
   activeLocationId: "",
   locationCreateOpen: false,
   locationCommandCenter: createLocationCommandCenterState(),
+  userCommandCenter: createUserCommandCenterState(),
   authPhase: "checkingAuth",
   needsLogin: false,
   activeTab: "overview",
@@ -509,6 +510,7 @@ function buildDashboardView() {
   html += buildActiveTab();
   html += '</main>';
   html += buildResetModal();
+  html += buildUserCommandCenterModal();
   html += buildUserEditModal();
   html += buildClassPickerModal();
   html += buildClassStaffPickerModal();
@@ -1419,7 +1421,7 @@ function buildUserCard(user) {
 
 function buildUserActionButtons(user) {
   var capabilities = readUserActionCapabilities(user);
-  var html = '<button type="button" class="sa-btn sa-btn-secondary" data-action="edit-user" data-id="' + escapeHtml(user.id) + '"' + disabled(!capabilities.canEdit) + '>Edit</button>';
+  var html = '<button type="button" class="sa-btn sa-btn-secondary" data-action="edit-user" data-id="' + escapeHtml(user.id) + '"' + disabled(!capabilities.canEdit) + '>Open</button>';
 
   if (isTeacherUser(user)) {
     logTeacherActionRender(user, capabilities);
@@ -1504,6 +1506,334 @@ function logTeacherActionRender(user, capabilities) {
     canDisable: capabilities.canDisable,
     canDelete: capabilities.canDelete
   });
+}
+
+function buildUserCommandCenterModal() {
+  var command = state.userCommandCenter || createUserCommandCenterState();
+
+  if (!command.isOpen) {
+    return "";
+  }
+
+  var user = getSafeUser(findUser(command.userId));
+
+  if (!user.id) {
+    return '<div class="sa-location-command-backdrop sa-user-command-backdrop" role="dialog" aria-modal="true" aria-label="User Command Center"><section class="sa-location-command-modal sa-user-command-modal">' + createEmptyState("User not found.", "Return to the user list and open a current profile.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '<button type="button" class="sa-location-command-close" data-action="close-user-command-center" aria-label="Close">x</button></section></div>';
+  }
+
+  var context = readUserCommandContext(user);
+
+  return '<div class="sa-location-command-backdrop sa-user-command-backdrop" role="dialog" aria-modal="true" aria-label="User Command Center">'
+    + '<section class="sa-location-command-modal sa-user-command-modal">'
+    + buildUserCommandHeader(user, context)
+    + '<div class="sa-location-command-shell sa-user-command-shell">'
+    + buildUserCommandTabs(command.activeTab)
+    + '<main class="sa-location-command-content sa-user-command-content">' + buildUserCommandBody(command.activeTab, user, context) + '</main>'
+    + buildUserCommandSideRail(user, context)
+    + '</div>'
+    + '</section>'
+    + '</div>';
+}
+
+function buildUserCommandHeader(user, context) {
+  var roleLabel = readRoleLabel(context.primaryRole || user.role || "user");
+  var locationName = context.location ? context.location.name : readUserLocationSummary(user);
+  var className = context.primaryClass ? context.primaryClass.name : readUserClassSummary(user);
+
+  return '<header class="sa-location-command-header sa-user-command-header">'
+    + '<div class="sa-location-command-identity sa-user-command-identity">'
+    + buildAvatar(user)
+    + '<div><div class="sa-location-command-title"><h2>' + escapeHtml(readUserCommandName(user)) + '</h2><span class="sa-user-command-role-pill">' + escapeHtml(roleLabel) + '</span>' + createStatusBadge(user.status, { className: "sa-command-status", statusClassPrefix: "sa-command-status-" }) + '</div>'
+    + '<p>' + escapeHtml(locationName || "No location") + '<span></span>' + escapeHtml(className || "No class") + '<span></span>User ID: ' + escapeHtml(user.id) + '</p>'
+    + '<p><small>Last login: ' + escapeHtml(formatDateTime(readUserLastActive(user)) || "Not recorded") + '</small><span></span><small>Auth UID: ' + escapeHtml(user.authUid || "Not linked") + '</small></p></div>'
+    + '</div>'
+    + '<div class="sa-location-command-header-actions sa-user-command-header-actions">'
+    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="open-user-edit-modal" data-id="' + escapeHtml(user.id) + '">Edit User</button>'
+    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="user-command-tab" data-id="permissions">Login Tools</button>'
+    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="send-password-reset" data-id="' + escapeHtml(user.id) + '"' + disabled(!readUserActionCapabilities(user).canResetPassword) + '>Reset Password</button>'
+    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="disable-user" data-id="' + escapeHtml(user.id) + '"' + disabled(!readUserActionCapabilities(user).canDisable) + '>Disable Login</button>'
+    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="user-command-tab" data-id="danger">More Actions</button>'
+    + '<button type="button" class="sa-location-command-close" data-action="close-user-command-center" aria-label="Close">x</button>'
+    + '</div>'
+    + '</header>';
+}
+
+function buildUserCommandTabs(activeTab) {
+  var tabs = [
+    { key: "overview", label: "Overview", icon: "O" },
+    { key: "classes", label: "Classes", icon: "C" },
+    { key: "courses", label: "Courses", icon: "B" },
+    { key: "activity", label: "Activity", icon: "A" },
+    { key: "schedule", label: "Schedule", icon: "S" },
+    { key: "permissions", label: "Permissions", icon: "P" },
+    { key: "audit", label: "Audit Log", icon: "L" },
+    { key: "danger", label: "Danger Zone", icon: "!" }
+  ];
+  var html = '<nav class="sa-location-command-tabs sa-user-command-tabs">';
+
+  tabs.forEach(function (tab) {
+    html += '<button type="button" class="' + (activeTab === tab.key ? "is-active" : "") + '" data-action="user-command-tab" data-id="' + escapeHtml(tab.key) + '"><span>' + escapeHtml(tab.icon) + '</span>' + escapeHtml(tab.label) + '</button>';
+  });
+
+  html += '<small>User Command Center</small></nav>';
+  return html;
+}
+
+function buildUserCommandSideRail(user, context) {
+  var roleViews = [
+    { role: "student", title: "Student", note: "Learning overview, courses, tasks, progress." },
+    { role: "teacher", title: "Teacher", note: "Classes, reviews, assigned courses." },
+    { role: "parent", title: "Parent", note: "Children and attendance signals." },
+    { role: "assistant", title: "Assistant", note: "Operational support and assigned classes." },
+    { role: "admin", title: "Admin", note: "Operational management and login tools." }
+  ];
+  var html = '<aside class="sa-user-command-rail"><article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Role Adaptive Views</h3></div><p>The content adapts to this profile role.</p><div class="sa-user-role-view-list">';
+
+  roleViews.forEach(function (view) {
+    var isActive = context.primaryRole === view.role || (view.role === "admin" && isAdminLikeUser(user));
+    html += '<button type="button" class="' + (isActive ? "is-active" : "") + '" data-action="user-command-tab" data-id="overview"><strong>' + escapeHtml(view.title) + '</strong><span>' + escapeHtml(view.note) + '</span><i>' + (isActive ? "Active" : "") + '</i></button>';
+  });
+
+  html += '</div></article><article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Quick Actions</h3></div><div class="sa-user-command-quick-list">'
+    + '<button type="button" data-action="send-password-reset" data-id="' + escapeHtml(user.id) + '"' + disabled(!readUserActionCapabilities(user).canResetPassword) + '>Send password reset</button>'
+    + '<button type="button" data-action="open-user-edit-modal" data-id="' + escapeHtml(user.id) + '">Edit profile fields</button>'
+    + '<button type="button" data-action="user-command-tab" data-id="audit">View audit trail</button>'
+    + '<button type="button" data-action="user-command-tab" data-id="danger">Sensitive actions</button>'
+    + '</div></article></aside>';
+
+  return html;
+}
+
+function buildUserCommandBody(activeTab, user, context) {
+  if (activeTab === "classes") return buildUserCommandClassesTab(user, context);
+  if (activeTab === "courses") return buildUserCommandCoursesTab(user, context);
+  if (activeTab === "activity") return buildUserCommandActivityTab(user, context);
+  if (activeTab === "schedule") return buildUserCommandScheduleTab(user, context);
+  if (activeTab === "permissions") return buildUserCommandPermissionsTab(user, context);
+  if (activeTab === "audit") return buildUserCommandAuditTab(user, context);
+  if (activeTab === "danger") return buildUserCommandDangerTab(user, context);
+  return buildUserCommandOverviewTab(user, context);
+}
+
+function buildUserCommandOverviewTab(user, context) {
+  if (context.primaryRole === "student") {
+    return buildStudentUserOverview(user, context);
+  }
+
+  if (context.primaryRole === "teacher") {
+    return buildTeacherUserOverview(user, context);
+  }
+
+  if (context.primaryRole === "parent") {
+    return buildParentUserOverview(user, context);
+  }
+
+  return buildAdminUserOverview(user, context);
+}
+
+function buildStudentUserOverview(user, context) {
+  return '<section class="sa-location-command-overview sa-user-command-overview">'
+    + '<div class="sa-command-kpi-grid sa-user-command-kpis">'
+    + buildUserCommandKpiCard("Courses Assigned", context.courses.length, "courses", "blue", "Active course assignments")
+    + buildUserCommandKpiCard("Modules Completed", readUserMetricNumber(user, ["modulesCompleted", "completedModules", "moduleCompletionCount"]), "activity", "green", "From profile/progress fields")
+    + buildUserCommandKpiCard("Steps Completed", readUserMetricNumber(user, ["stepsCompleted", "completedSteps", "stepCompletionCount"]), "activity", "purple", "From profile/progress fields")
+    + buildUserCommandKpiCard("Pending Reviews", countPendingSubmissions(context.submissions), "activity", "orange", "External tasks")
+    + buildUserCommandKpiCard("Current Streak", readUserMetricNumber(user, ["currentStreak", "streak", "streakDays"]), "activity", "rose", "Learning streak")
+    + buildUserCommandKpiCard("Intention Points", readUserMetricNumber(user, ["intentionPoints", "points", "pointBalance"]), "activity", "amber", "Available balance")
+    + buildUserCommandKpiCard("Attendance", readAttendanceLabel(user), "classes", "sky", "Most recent attendance")
+    + '</div>'
+    + '<div class="sa-command-grid sa-command-grid-main">'
+    + buildUserCommandChartCard("Activity Trend", "Activity trend data is not connected for this user yet.")
+    + buildUserCommandChartCard("Completion Trend", "Completion trend data is not connected for this user yet.")
+    + buildUserCommandChartCard("Attendance Trend", "Attendance trend data is not connected for this user yet.")
+    + buildUserRecentActivityCard(context)
+    + '</div>'
+    + '</section>';
+}
+
+function buildTeacherUserOverview(user, context) {
+  return '<section class="sa-location-command-overview sa-user-command-overview">'
+    + '<div class="sa-command-kpi-grid sa-user-command-kpis">'
+    + buildUserCommandKpiCard("Classes Taught", context.classes.length, "classes", "blue", "Primary or assistant")
+    + buildUserCommandKpiCard("Students", countStudentsAcrossClasses(context.classes), "classes", "green", "Visible class students")
+    + buildUserCommandKpiCard("Courses Assigned", context.courses.length, "courses", "purple", "Responsible or assistant")
+    + buildUserCommandKpiCard("Pending Reviews", countPendingSubmissions(context.submissions), "activity", "orange", "External tasks")
+    + buildUserCommandKpiCard("External Tasks Reviewed", countReviewedSubmissionsForUser(user.id), "activity", "rose", "Review records")
+    + buildUserCommandKpiCard("Attendance Recorded", countUserActivityMatches(user.id, ["attendance"]), "activity", "sky", "Activity logs")
+    + '</div>'
+    + '<div class="sa-command-grid sa-command-grid-main">'
+    + buildUserCommandChartCard("Review Activity", "Review activity chart data is not connected for this teacher yet.")
+    + buildUserCommandChartCard("Class Activity", "Class activity chart data is not connected for this teacher yet.")
+    + buildUserCommandChartCard("Course Progress", "Course progress chart data is not connected for this teacher yet.")
+    + buildUserRecentActivityCard(context)
+    + '</div>'
+    + '</section>';
+}
+
+function buildParentUserOverview(user, context) {
+  return '<section class="sa-command-tab-stack"><div class="sa-command-kpi-grid sa-user-command-kpis">'
+    + buildUserCommandKpiCard("Children", context.children.length, "classes", "purple", "Linked child profiles")
+    + buildUserCommandKpiCard("Locations", context.locations.length, "classes", "blue", "Location scope")
+    + buildUserCommandKpiCard("Attendance Signals", 0, "activity", "orange", "Not connected")
+    + buildUserCommandKpiCard("Pending Items", countPendingSubmissions(context.submissions), "activity", "rose", "Child submissions where available")
+    + '</div>' + buildUserCommandChildrenPanel(context) + '</section>';
+}
+
+function buildAdminUserOverview(user, context) {
+  return '<section class="sa-command-tab-stack"><div class="sa-command-kpi-grid sa-user-command-kpis">'
+    + buildUserCommandKpiCard("Locations Managed", context.locations.length, "permissions", "blue", "Location scope")
+    + buildUserCommandKpiCard("Users Managed", countManagedUsers(user), "activity", "green", "Activity/audit references")
+    + buildUserCommandKpiCard("Classes Managed", context.classes.length, "classes", "purple", "Scoped classes")
+    + buildUserCommandKpiCard("Courses Managed", context.courses.length, "courses", "orange", "Scoped assignments")
+    + '</div>' + buildUserRecentActivityCard(context) + '</section>';
+}
+
+function buildUserCommandKpiCard(label, value, target, tone, note) {
+  return '<button type="button" class="sa-command-kpi sa-command-kpi-' + escapeHtml(tone) + '" data-action="user-command-tab" data-id="' + escapeHtml(target) + '">'
+    + '<span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(String(value)) + '</strong><small>' + escapeHtml(note || "Open details") + '</small></button>';
+}
+
+function buildUserCommandChartCard(title, emptyMessage) {
+  return '<article class="sa-command-panel"><div class="sa-command-panel-head"><h3>' + escapeHtml(title) + '</h3><select disabled><option>30 Days</option></select></div>'
+    + createEmptyState(title + " unavailable", emptyMessage, { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</article>';
+}
+
+function buildUserRecentActivityCard(context) {
+  var html = '<article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Recent Activity</h3><button type="button" class="sa-text-link" data-action="user-command-tab" data-id="activity">View All</button></div>';
+
+  if (context.activity.length === 0) {
+    return html + createEmptyState("No recent activity.", "Activity logs will appear here when connected to this user.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</article>';
+  }
+
+  html += '<div class="sa-command-activity-list">';
+  context.activity.slice(0, 6).forEach(function (item) {
+    html += '<div><span>' + escapeHtml(item.type) + '</span><strong>' + escapeHtml(item.title) + '</strong><small>' + escapeHtml(formatDateTime(item.time)) + '</small></div>';
+  });
+  html += '</div></article>';
+  return html;
+}
+
+function buildUserCommandClassesTab(user, context) {
+  var html = '<section class="sa-command-tab-stack">';
+
+  if (context.classes.length === 0 && context.children.length === 0) {
+    return html + createEmptyState("No classes connected.", "Class relationships for this user are not available yet.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
+  }
+
+  html += '<div class="sa-command-table"><div class="sa-command-table-head"><span>Class</span><span>Location</span><span>Teacher</span><span>Students</span><span>Status</span></div>';
+  context.classes.forEach(function (classRecord) {
+    var form = normalizeClassForm(classRecord);
+    html += '<button type="button" class="sa-command-table-row" data-action="user-command-navigate" data-id="classes">'
+      + '<span><strong>' + escapeHtml(form.name || form.classId || "Untitled class") + '</strong><small>' + escapeHtml(form.classId || classRecord.id) + '</small></span>'
+      + '<span>' + escapeHtml(readLocationName(form.locationId) || "No location") + '</span>'
+      + '<span>' + escapeHtml(readTeacherName(form.primaryTeacherId)) + '</span>'
+      + '<span>' + countStudentsForClass(form.classId) + '</span>'
+      + '<span>' + buildStatusBadge(form.status || "active") + '</span></button>';
+  });
+  html += '</div>';
+
+  if (context.children.length > 0) {
+    html += buildUserCommandChildrenPanel(context);
+  }
+
+  html += '</section>';
+  return html;
+}
+
+function buildUserCommandChildrenPanel(context) {
+  if (context.children.length === 0) {
+    return createEmptyState("No linked children.", "Parent-child relationships are not connected for this user yet.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" });
+  }
+
+  var html = '<article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Linked Children</h3></div><div class="sa-command-table"><div class="sa-command-table-head"><span>Student</span><span>Class</span><span>Location</span><span>Status</span><span>ID</span></div>';
+  context.children.forEach(function (child) {
+    html += '<button type="button" class="sa-command-table-row" data-action="edit-user" data-id="' + escapeHtml(child.id) + '"><span><strong>' + escapeHtml(readUserCommandName(child)) + '</strong><small>' + escapeHtml(child.email || child.id) + '</small></span><span>' + escapeHtml(readUserClassSummary(child)) + '</span><span>' + escapeHtml(readUserLocationSummary(child)) + '</span><span>' + buildStatusBadge(child.status) + '</span><span>' + escapeHtml(child.id) + '</span></button>';
+  });
+  html += '</div></article>';
+  return html;
+}
+
+function buildUserCommandCoursesTab(user, context) {
+  var html = '<section class="sa-command-tab-stack">';
+
+  if (context.courses.length === 0) {
+    return html + createEmptyState("No courses connected.", "Course assignments for this user are not available yet.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
+  }
+
+  html += '<div class="sa-command-table"><div class="sa-command-table-head"><span>Course</span><span>Assignment</span><span>Progress</span><span>Last Activity</span><span>Status</span></div>';
+  context.courses.forEach(function (course) {
+    var assignment = readCourseAssignmentForUserCourse(user, course.id);
+    html += '<button type="button" class="sa-command-table-row" data-action="user-command-navigate" data-id="lessons">'
+      + '<span><strong>' + escapeHtml(readCourseTitle(course)) + '</strong><small>' + escapeHtml(readCourseDescription(course) || course.id) + '</small></span>'
+      + '<span>' + escapeHtml(readAssignmentTargetName(assignment) || assignment.targetType || "Assigned") + '</span>'
+      + '<span>' + escapeHtml(readCourseProgressLabel(user, course, assignment)) + '</span>'
+      + '<span>' + escapeHtml(formatDateTime(readCourseUpdatedAt(course)) || "No activity") + '</span>'
+      + '<span>' + buildStatusBadge(course.status || assignment.status || "active") + '</span></button>';
+  });
+  html += '</div></section>';
+  return html;
+}
+
+function buildUserCommandActivityTab(user, context) {
+  var html = '<section class="sa-command-tab-stack">';
+
+  if (context.activity.length === 0 && context.submissions.length === 0) {
+    return html + createEmptyState("No recent activity.", "Activity records for this user are not available yet.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
+  }
+
+  html += '<article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Activity Feed</h3></div><div class="sa-command-activity-list">';
+  context.activity.forEach(function (item) {
+    html += '<div><span>' + escapeHtml(item.type) + '</span><strong>' + escapeHtml(item.title) + '</strong><small>' + escapeHtml(formatDateTime(item.time)) + '</small></div>';
+  });
+  context.submissions.slice(0, 8).forEach(function (submission) {
+    html += '<div><span>External Task</span><strong>' + escapeHtml(submission.stepTitle || submission.title || "External task submission") + '</strong><small>' + escapeHtml(readSafeString(submission.reviewStatus || submission.status || "pending")) + ' - ' + escapeHtml(formatDateTime(submission.updatedAt || submission.createdAt)) + '</small></div>';
+  });
+  html += '</div></article></section>';
+  return html;
+}
+
+function buildUserCommandScheduleTab(user, context) {
+  return '<section class="sa-command-tab-stack">' + createEmptyState("No schedule data yet.", "Schedule records are not connected to this user profile yet.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
+}
+
+function buildUserCommandPermissionsTab(user, context) {
+  return '<section class="sa-command-tab-stack"><article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Permissions Debug</h3><span class="sa-user-command-super">Super Admin Only</span></div>'
+    + '<dl class="sa-command-summary-list">'
+    + '<dt>Primary Role</dt><dd>' + escapeHtml(readRoleLabel(context.primaryRole || user.role || "user")) + '</dd>'
+    + '<dt>Roles</dt><dd>' + escapeHtml(user.roles.map(readRoleLabel).join(", ") || "No roles") + '</dd>'
+    + '<dt>Location</dt><dd>' + escapeHtml(readUserLocationSummary(user)) + '</dd>'
+    + '<dt>Status</dt><dd>' + createStatusBadge(user.status, { className: "sa-command-mini-status", statusClassPrefix: "sa-command-status-" }) + '</dd>'
+    + '<dt>Login Method</dt><dd>' + escapeHtml(readUserLoginMethod(user)) + '</dd>'
+    + '<dt>Auth UID</dt><dd>' + escapeHtml(user.authUid || "Not linked") + '</dd>'
+    + '<dt>User Document ID</dt><dd>' + escapeHtml(user.id) + '</dd>'
+    + '<dt>Profile User ID</dt><dd>' + escapeHtml(user.profileUserId || "Not linked") + '</dd>'
+    + '</dl></article></section>';
+}
+
+function buildUserCommandAuditTab(user, context) {
+  var html = '<section class="sa-command-tab-stack">';
+
+  if (context.audit.length === 0) {
+    return html + createEmptyState("No audit log entries yet.", "Audit records will appear here when this profile has logged admin events.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
+  }
+
+  html += '<article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Audit Log</h3></div><div class="sa-command-table"><div class="sa-command-table-head"><span>Action</span><span>Performed By</span><span>Date</span><span>Status</span><span>Record</span></div>';
+  context.audit.forEach(function (entry) {
+    html += '<div class="sa-command-table-row"><span><strong>' + escapeHtml(entry.action || entry.type || "Audit entry") + '</strong><small>' + escapeHtml(entry.message || entry.description || "") + '</small></span><span>' + escapeHtml(entry.performedByName || entry.actorName || entry.performedBy || entry.actorId || "System") + '</span><span>' + escapeHtml(formatDateTime(entry.createdAt || entry.updatedAt || entry.time)) + '</span><span>' + buildStatusBadge(entry.status || "active") + '</span><span>' + escapeHtml(entry.id || "") + '</span></div>';
+  });
+  html += '</div></article></section>';
+  return html;
+}
+
+function buildUserCommandDangerTab(user, context) {
+  return '<section class="sa-command-tab-stack"><article class="sa-command-panel sa-command-danger-panel"><div class="sa-command-panel-head"><h3>Danger Zone</h3><span class="sa-user-command-super">Super Admin Only</span></div><p>Destructive or sensitive user operations must run through ICF intents. Unsupported actions are intentionally disabled in Phase 1.</p><div class="sa-command-danger-actions">'
+    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="disable-user" data-id="' + escapeHtml(user.id) + '"' + disabled(!readUserActionCapabilities(user).canDisable) + '>Disable Login</button>'
+    + '<button type="button" class="sa-btn sa-danger-btn" disabled>Enable User Login</button>'
+    + '<button type="button" class="sa-btn sa-danger-btn" disabled>Assign User To Location</button>'
+    + '<button type="button" class="sa-btn sa-danger-btn" disabled>Transfer User Location</button>'
+    + '<button type="button" class="sa-btn sa-danger-btn" disabled>Archive User</button>'
+    + '<button type="button" class="sa-btn sa-danger-btn" data-action="delete-user" data-id="' + escapeHtml(user.id) + '"' + disabled(!readUserActionCapabilities(user).canDelete) + '>Delete User</button>'
+    + '</div><small>User: ' + escapeHtml(readUserCommandName(user)) + ' (' + escapeHtml(user.id) + ')</small></article></section>';
 }
 
 function buildUserEditModal() {
@@ -2924,11 +3254,11 @@ function canRunActionWhileBusy(action) {
     return true;
   }
 
-  if (action === "edit-user" || action === "close-user-edit-modal") {
+  if (action === "edit-user" || action === "close-user-command-center" || action === "user-command-tab" || action === "open-user-edit-modal" || action === "close-user-edit-modal") {
     return true;
   }
 
-  if (!state.isSaving && state.isRefreshing && (action === "edit-user" || action === "close-user-edit-modal")) {
+  if (!state.isSaving && state.isRefreshing && (action === "edit-user" || action === "close-user-command-center" || action === "user-command-tab" || action === "open-user-edit-modal" || action === "close-user-edit-modal")) {
     return true;
   }
 
@@ -3180,6 +3510,92 @@ function navigateFromLocationCommandCenter(target) {
       activeLocationId: "",
       message: target === "reviews" ? "Pending review data is shown in existing review tools when available." : "",
       messageType: target === "reviews" ? "info" : state.messageType
+    });
+  }
+}
+
+async function openUserCommandCenter(userId) {
+  var user = findUser(userId);
+
+  if (!user || !user.id) {
+    setState({ message: "User was not found.", messageType: "error" });
+    return;
+  }
+
+  console.info("[user-command-center:open]", {
+    userId: user.id,
+    roles: getSafeUser(user).roles
+  });
+
+  try {
+    await runAdminIntent("OpenUserCommandCenterIntent", { userId: user.id });
+  } catch (error) {
+    console.warn("[user-command-center:intent-warning]", {
+      userId: user.id,
+      errorMessage: error && error.message ? error.message : String(error)
+    });
+  }
+
+  setState({
+    activeUserId: user.id,
+    userCreateOpen: false,
+    userCommandCenter: Object.assign(createUserCommandCenterState(), {
+      isOpen: true,
+      userId: user.id
+    }),
+    message: ""
+  });
+}
+
+function closeUserCommandCenter() {
+  setState({
+    userCommandCenter: createUserCommandCenterState(),
+    activeUserId: "",
+    message: ""
+  });
+}
+
+function setUserCommandCenterTab(tabKey) {
+  var safeTab = readSafeString(tabKey) || "overview";
+
+  setState({
+    userCommandCenter: Object.assign({}, state.userCommandCenter, {
+      activeTab: safeTab
+    }),
+    message: ""
+  });
+}
+
+function navigateFromUserCommandCenter(target) {
+  var command = state.userCommandCenter || createUserCommandCenterState();
+  var user = getSafeUser(findUser(command.userId));
+
+  if (!user.id) {
+    return;
+  }
+
+  if (target === "classes") {
+    setState({
+      activeTab: "classes",
+      filters: Object.assign({}, state.filters, {
+        locationId: user.primaryLocationId || user.locationIds[0] || "",
+        classId: user.classId || ""
+      }),
+      userCommandCenter: createUserCommandCenterState(),
+      activeUserId: "",
+      message: "Class tools opened for " + readUserCommandName(user) + ".",
+      messageType: "info"
+    });
+    return;
+  }
+
+  if (target === "lessons") {
+    setState({
+      activeTab: "lessons",
+      userCommandCenter: createUserCommandCenterState(),
+      activeUserId: "",
+      message: "Course tools opened. Use existing global filters for editing.",
+      messageType: "info"
     });
   }
 }
@@ -3638,6 +4054,14 @@ async function handleAction(action, id) {
   } else if (action === "toggle-create-user") {
     setState({ userCreateOpen: !state.userCreateOpen, activeUserId: "", message: "" });
   } else if (action === "edit-user") {
+    await openUserCommandCenter(id);
+  } else if (action === "close-user-command-center") {
+    closeUserCommandCenter();
+  } else if (action === "user-command-tab") {
+    setUserCommandCenterTab(id);
+  } else if (action === "user-command-navigate") {
+    navigateFromUserCommandCenter(id);
+  } else if (action === "open-user-edit-modal") {
     openUserEditModal(id);
   } else if (action === "close-user-edit-modal") {
     closeUserEditModal();
@@ -5153,6 +5577,14 @@ function createLocationCommandCenterState() {
     userRoleFilter: "",
     userSearchText: "",
     chartRange: "month"
+  };
+}
+
+function createUserCommandCenterState() {
+  return {
+    isOpen: false,
+    userId: "",
+    activeTab: "overview"
   };
 }
 
@@ -6702,6 +7134,7 @@ function applyUserRoleFilter(selectedRole, shouldClearFilters) {
     userFilters: nextFilters,
     activeUserId: "",
     userEditModal: createUserEditModalState(),
+    userCommandCenter: createUserCommandCenterState(),
     message: ""
   });
 }
@@ -6917,6 +7350,418 @@ function readLocationRecentActivity(locationId) {
 function readLocationLastActivity(locationId) {
   var activity = readLocationRecentActivity(locationId);
   return activity.length > 0 ? activity[0].time : null;
+}
+
+function readUserCommandContext(user) {
+  var safeUser = getSafeUser(user);
+  var primaryRole = readUserCommandPrimaryRole(safeUser);
+  var locations = readUserCommandLocations(safeUser);
+  var classes = readUserCommandClasses(safeUser, primaryRole);
+  var assignments = readUserCommandAssignments(safeUser, primaryRole, classes);
+  var courses = readUserCommandCourses(assignments, safeUser, primaryRole);
+  var children = readUserCommandChildren(safeUser);
+  var submissions = readUserCommandSubmissions(safeUser, primaryRole, classes, assignments, children);
+  var activity = readUserCommandActivity(safeUser, children);
+  var audit = readUserCommandAudit(safeUser);
+
+  return {
+    primaryRole: primaryRole,
+    location: locations[0] || null,
+    locations: locations,
+    primaryClass: classes[0] || null,
+    classes: classes,
+    assignments: assignments,
+    courses: courses,
+    children: children,
+    submissions: submissions,
+    activity: activity,
+    audit: audit
+  };
+}
+
+function readUserCommandPrimaryRole(user) {
+  var roles = getSafeUser(user).roles;
+
+  if (roles.indexOf("student") !== -1) return "student";
+  if (roles.indexOf("teacher") !== -1) return "teacher";
+  if (roles.indexOf("parent") !== -1) return "parent";
+  if (roles.indexOf("assistant") !== -1) return "assistant";
+  if (isAdminLikeUser(user)) return "admin";
+  return roles[0] || "user";
+}
+
+function isAdminLikeUser(user) {
+  var roles = getSafeUser(user).roles;
+
+  return roles.indexOf("admin") !== -1
+    || roles.indexOf("schoolAdmin") !== -1
+    || roles.indexOf("platformAdmin") !== -1
+    || roles.indexOf("superAdmin") !== -1;
+}
+
+function readUserCommandName(user) {
+  var safeUser = getSafeUser(user);
+  return safeUser.displayName || safeUser.name || safeUser.email || safeUser.id || "Untitled User";
+}
+
+function readUserCommandLocations(user) {
+  var safeUser = getSafeUser(user);
+  var locations = [];
+
+  safeUser.locationIds.forEach(function (locationId) {
+    var location = findLocation(locationId);
+    if (location && locations.indexOf(location) === -1) {
+      locations.push(location);
+    }
+  });
+
+  return locations;
+}
+
+function readUserCommandClasses(user, primaryRole) {
+  var safeUser = getSafeUser(user);
+  var classIds = safeUser.classIds.slice();
+  var classes = [];
+
+  if (safeUser.classId && classIds.indexOf(safeUser.classId) === -1) {
+    classIds.unshift(safeUser.classId);
+  }
+
+  state.classes.forEach(function (classRecord) {
+    var form = normalizeClassForm(classRecord);
+    var matchesDirectClass = classIds.indexOf(form.classId) !== -1 || classIds.indexOf(classRecord.id) !== -1;
+    var matchesTeacher = primaryRole === "teacher" && (form.primaryTeacherId === safeUser.id || form.primaryTeacherId === safeUser.profileUserId || form.primaryTeacherId === safeUser.authUid || form.assistantIds.indexOf(safeUser.id) !== -1 || form.assistantIds.indexOf(safeUser.profileUserId) !== -1 || form.assistantIds.indexOf(safeUser.authUid) !== -1);
+    var matchesAdminScope = isAdminLikeUser(safeUser) && userMatchesLocation(safeUser, form.locationId);
+
+    if (matchesDirectClass || matchesTeacher || matchesAdminScope) {
+      classes.push(classRecord);
+    }
+  });
+
+  return dedupeRecords(classes).sort(function (a, b) {
+    return readSafeString(a.name || a.id).localeCompare(readSafeString(b.name || b.id));
+  });
+}
+
+function readUserCommandAssignments(user, primaryRole, classes) {
+  var safeUser = getSafeUser(user);
+  var classIds = classes.map(function (classRecord) { return classRecord.id; });
+  var userIds = normalizeMixedIdList([safeUser.id, safeUser.authUid, safeUser.profileUserId]);
+  var assignments = [];
+
+  state.assignments.forEach(function (assignment) {
+    var targetId = readSafeString(assignment.targetId || assignment.studentId || assignment.classId || assignment.locationId);
+    var targetType = readSafeString(assignment.targetType || (assignment.studentId ? "student" : assignment.classId ? "class" : ""));
+    var teacherIds = normalizeMixedIdList([assignment.responsibleTeacherId, assignment.assistantIds, assignment.teacherOwnershipIds]);
+    var matchesStudent = primaryRole === "student" && ((targetType === "student" && userIds.indexOf(targetId) !== -1) || (targetType === "class" && classIds.indexOf(targetId || assignment.classId) !== -1));
+    var matchesTeacher = primaryRole === "teacher" && teacherIds.some(function (id) { return userIds.indexOf(id) !== -1; });
+    var matchesClass = classIds.indexOf(targetId) !== -1 || classIds.indexOf(readSafeString(assignment.classId)) !== -1;
+    var matchesAdminScope = isAdminLikeUser(safeUser) && assignmentMatchesAnyLocation(assignment, safeUser.locationIds);
+
+    if (matchesStudent || matchesTeacher || matchesClass || matchesAdminScope) {
+      assignments.push(assignment);
+    }
+  });
+
+  return dedupeRecords(assignments);
+}
+
+function assignmentMatchesAnyLocation(assignment, locationIds) {
+  return normalizeMixedIdList(locationIds).some(function (locationId) {
+    return assignmentMatchesLocation(assignment, locationId);
+  });
+}
+
+function readUserCommandCourses(assignments, user, primaryRole) {
+  var courseIds = [];
+  var courses = [];
+
+  assignments.forEach(function (assignment) {
+    if (assignment.courseId && courseIds.indexOf(assignment.courseId) === -1) {
+      courseIds.push(assignment.courseId);
+    }
+  });
+
+  if (isAdminLikeUser(user)) {
+    state.courses.forEach(function (course) {
+      if (user.locationIds.some(function (locationId) { return courseMatchesLocation(course, locationId); }) && courseIds.indexOf(course.id) === -1) {
+        courseIds.push(course.id);
+      }
+    });
+  }
+
+  courseIds.forEach(function (courseId) {
+    var course = findCourse(courseId);
+    if (course) {
+      courses.push(course);
+    }
+  });
+
+  return courses.sort(function (a, b) {
+    return readCourseTitle(a).localeCompare(readCourseTitle(b));
+  });
+}
+
+function readUserCommandChildren(user) {
+  var safeUser = getSafeUser(user);
+  var children = [];
+
+  safeUser.childStudentIds.forEach(function (studentId) {
+    var child = findUser(studentId) || findStudent(studentId);
+    if (child) {
+      children.push(getSafeUser(child));
+    }
+  });
+
+  return dedupeRecords(children);
+}
+
+function readUserCommandSubmissions(user, primaryRole, classes, assignments, children) {
+  var safeUser = getSafeUser(user);
+  var submissions = state.overviewData && Array.isArray(state.overviewData.externalTaskSubmissions) ? state.overviewData.externalTaskSubmissions : [];
+  var classIds = classes.map(function (classRecord) { return classRecord.id; });
+  var courseIds = assignments.map(function (assignment) { return assignment.courseId; }).filter(Boolean);
+  var childIds = children.map(function (child) { return child.id; });
+  var userIds = normalizeMixedIdList([safeUser.id, safeUser.authUid, safeUser.profileUserId]);
+
+  return submissions.filter(function (submission) {
+    if (userIds.indexOf(readSafeString(submission.studentId)) !== -1 || userIds.indexOf(readSafeString(submission.userId)) !== -1) {
+      return true;
+    }
+
+    if (childIds.indexOf(readSafeString(submission.studentId)) !== -1) {
+      return true;
+    }
+
+    if ((primaryRole === "teacher" || isAdminLikeUser(safeUser)) && (classIds.indexOf(readSafeString(submission.classId)) !== -1 || courseIds.indexOf(readSafeString(submission.courseId)) !== -1)) {
+      return true;
+    }
+
+    return false;
+  }).sort(compareByUpdatedDesc);
+}
+
+function readUserCommandActivity(user, children) {
+  var safeUser = getSafeUser(user);
+  var childIds = children.map(function (child) { return child.id; });
+  var userIds = normalizeMixedIdList([safeUser.id, safeUser.authUid, safeUser.profileUserId].concat(childIds));
+  var records = state.overviewData && Array.isArray(state.overviewData.activityLogs) ? state.overviewData.activityLogs : [];
+  var activity = [];
+
+  records.forEach(function (record) {
+    if (recordMatchesAnyUserId(record, userIds)) {
+      activity.push({
+        type: readSafeString(record.type || record.action || "Activity"),
+        title: readSafeString(record.title || record.message || record.description || "User activity"),
+        time: normalizeTimestamp(record.createdAt || record.updatedAt || record.time || Date.now())
+      });
+    }
+  });
+
+  return activity.sort(compareByTimeDesc);
+}
+
+function readUserCommandAudit(user) {
+  var safeUser = getSafeUser(user);
+  var userIds = normalizeMixedIdList([safeUser.id, safeUser.authUid, safeUser.profileUserId]);
+  var records = state.overviewData && Array.isArray(state.overviewData.auditLogs) ? state.overviewData.auditLogs : [];
+
+  return records.filter(function (record) {
+    return recordMatchesAnyUserId(record, userIds);
+  }).sort(compareByUpdatedDesc);
+}
+
+function recordMatchesAnyUserId(record, userIds) {
+  var recordIds = normalizeMixedIdList([
+    record && record.userId,
+    record && record.uid,
+    record && record.authUid,
+    record && record.profileUserId,
+    record && record.studentId,
+    record && record.teacherId,
+    record && record.targetUserId,
+    record && record.performedBy,
+    record && record.actorId
+  ]);
+
+  return recordIds.some(function (id) {
+    return userIds.indexOf(id) !== -1;
+  });
+}
+
+function readUserMetricNumber(user, fields) {
+  var index = 0;
+
+  while (index < fields.length) {
+    var value = user[fields[index]];
+
+    if (typeof value === "number" && isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === "string" && value.trim() !== "" && !isNaN(Number(value))) {
+      return Number(value);
+    }
+
+    index = index + 1;
+  }
+
+  return 0;
+}
+
+function readAttendanceLabel(user) {
+  var value = readUserMetricNumber(user, ["attendancePercent", "attendancePercentage", "attendanceRate"]);
+
+  if (!value) {
+    return "No data";
+  }
+
+  return value + "%";
+}
+
+function countPendingSubmissions(submissions) {
+  return countItems(submissions, function (submission) {
+    var status = readSafeString(submission.reviewStatus || submission.status || "pending");
+    return status === "pending" || status === "submitted";
+  });
+}
+
+function countReviewedSubmissionsForUser(userId) {
+  var submissions = state.overviewData && Array.isArray(state.overviewData.externalTaskSubmissions) ? state.overviewData.externalTaskSubmissions : [];
+
+  return countItems(submissions, function (submission) {
+    return readSafeString(submission.reviewedBy || submission.teacherId || submission.reviewerId) === userId && readSafeString(submission.reviewStatus || submission.status) !== "pending";
+  });
+}
+
+function countUserActivityMatches(userId, keywords) {
+  var records = state.overviewData && Array.isArray(state.overviewData.activityLogs) ? state.overviewData.activityLogs : [];
+
+  return countItems(records, function (record) {
+    var text = [record.type, record.action, record.title, record.message, record.description].join(" ").toLowerCase();
+    return recordMatchesAnyUserId(record, [userId]) && keywords.some(function (keyword) { return text.indexOf(keyword) !== -1; });
+  });
+}
+
+function countStudentsAcrossClasses(classes) {
+  var studentIds = [];
+
+  classes.forEach(function (classRecord) {
+    state.users.map(getSafeUser).forEach(function (user) {
+      if (user.roles.indexOf("student") !== -1 && (user.classId === classRecord.id || user.classIds.indexOf(classRecord.id) !== -1) && studentIds.indexOf(user.id) === -1) {
+        studentIds.push(user.id);
+      }
+    });
+  });
+
+  return studentIds.length;
+}
+
+function countManagedUsers(user) {
+  var safeUser = getSafeUser(user);
+
+  if (!isAdminLikeUser(safeUser)) {
+    return 0;
+  }
+
+  return countItems(state.users.map(getSafeUser), function (profile) {
+    return safeUser.locationIds.length > 0 && safeUser.locationIds.some(function (locationId) {
+      return userMatchesLocation(profile, locationId);
+    });
+  });
+}
+
+function readCourseAssignmentForUserCourse(user, courseId) {
+  var context = readUserCommandContext(user);
+  var index = 0;
+
+  while (index < context.assignments.length) {
+    if (context.assignments[index].courseId === courseId) {
+      return context.assignments[index];
+    }
+    index = index + 1;
+  }
+
+  return {};
+}
+
+function readCourseProgressLabel(user, course, assignment) {
+  var progress = readUserMetricNumber(user, ["courseProgress", "progress", "completionPercent"]);
+
+  if (progress) {
+    return progress + "%";
+  }
+
+  if (assignment && typeof assignment.progress === "number") {
+    return assignment.progress + "%";
+  }
+
+  if (course && typeof course.progress === "number") {
+    return course.progress + "%";
+  }
+
+  return "No progress data";
+}
+
+function readUserLoginMethod(user) {
+  var safeUser = getSafeUser(user);
+
+  if (safeUser.roles.indexOf("student") !== -1 && safeUser.roles.length === 1) {
+    return "Fruit login / student access";
+  }
+
+  if (safeUser.loginEnabled || safeUser.authUid) {
+    return "Firebase email/password";
+  }
+
+  return "Not authorized";
+}
+
+function dedupeRecords(records) {
+  var seen = {};
+  var deduped = [];
+
+  records.forEach(function (record) {
+    var key = readSafeString(record && (record.id || record.userId || record.uid || record.classId || record.courseId));
+
+    if (!key || seen[key]) {
+      return;
+    }
+
+    seen[key] = true;
+    deduped.push(record);
+  });
+
+  return deduped;
+}
+
+function normalizeMixedIdList(value) {
+  var result = [];
+
+  addMixedIds(result, value);
+  return result;
+}
+
+function addMixedIds(result, value) {
+  var index = 0;
+
+  if (Array.isArray(value)) {
+    while (index < value.length) {
+      addMixedIds(result, value[index]);
+      index = index + 1;
+    }
+    return;
+  }
+
+  splitCommaList(value).forEach(function (id) {
+    if (id && result.indexOf(id) === -1) {
+      result.push(id);
+    }
+  });
+}
+
+function compareByUpdatedDesc(a, b) {
+  return normalizeTimestamp(b.updatedAt || b.createdAt || b.time) - normalizeTimestamp(a.updatedAt || a.createdAt || a.time);
 }
 
 function readTeacherName(userId) {

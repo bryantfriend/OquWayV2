@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.78-location-command-center";
-import { createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.78-location-command-center";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.79-user-command-center";
+import { createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.79-user-command-center";
 
 export async function processRenameLearningMode(executionState) {
   var payload = executionState.payload || {};
