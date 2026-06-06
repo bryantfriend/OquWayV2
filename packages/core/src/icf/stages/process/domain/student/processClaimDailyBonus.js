@@ -1,4 +1,4 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.104-student-assignment-json-trace";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.105-student-active-assignment-query";
 
 export async function processClaimDailyBonus(executionState) {
   var actor = executionState.actor;

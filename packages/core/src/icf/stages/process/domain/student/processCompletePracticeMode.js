@@ -2,7 +2,7 @@ import {
   readPracticeModeProgress,
   readPracticeModeStepIds,
   saveStudentPracticeModeProgress
-} from "./studentProgressHelpers.js?v=1.1.104-student-assignment-json-trace";
+} from "./studentProgressHelpers.js?v=1.1.105-student-active-assignment-query";
 
 export async function processCompletePracticeMode(executionState) {
   var payload = executionState.payload;

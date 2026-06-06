@@ -1,10 +1,10 @@
-import { validateAuthenticated, validatePracticeModeKey } from "../../stages/validate/validators.js?v=1.1.104-student-assignment-json-trace";
-import { validateStudentProgressPayload } from "../../stages/validate/validators.js?v=1.1.104-student-assignment-json-trace";
-import { normalizeStudentProgressPayload } from "../../stages/normalize/normalizers.js?v=1.1.104-student-assignment-json-trace";
-import { attachActorContext, attachActorRoleContext, attachStudentSessionContext } from "../../stages/addContext/contexts.js?v=1.1.104-student-assignment-json-trace";
-import { requireStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.104-student-assignment-json-trace";
-import { processCompletePracticeMode } from "../../stages/process/processors.js?v=1.1.104-student-assignment-json-trace";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.104-student-assignment-json-trace";
+import { validateAuthenticated, validatePracticeModeKey } from "../../stages/validate/validators.js?v=1.1.105-student-active-assignment-query";
+import { validateStudentProgressPayload } from "../../stages/validate/validators.js?v=1.1.105-student-active-assignment-query";
+import { normalizeStudentProgressPayload } from "../../stages/normalize/normalizers.js?v=1.1.105-student-active-assignment-query";
+import { attachActorContext, attachActorRoleContext, attachStudentSessionContext } from "../../stages/addContext/contexts.js?v=1.1.105-student-active-assignment-query";
+import { requireStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.105-student-active-assignment-query";
+import { processCompletePracticeMode } from "../../stages/process/processors.js?v=1.1.105-student-active-assignment-query";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.105-student-active-assignment-query";
 
 export function CompleteStudentPracticeModeIntent() {
   return {

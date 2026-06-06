@@ -1,8 +1,8 @@
-import { validateStudentStandardLoginPayload } from "../../stages/validate/validators.js?v=1.1.104-student-assignment-json-trace";
-import { normalizeStudentStandardLoginPayload } from "../../stages/normalize/normalizers.js?v=1.1.104-student-assignment-json-trace";
-import { allowStudentLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.104-student-assignment-json-trace";
-import { processStudentStandardLogin } from "../../stages/process/processors.js?v=1.1.104-student-assignment-json-trace";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.104-student-assignment-json-trace";
+import { validateStudentStandardLoginPayload } from "../../stages/validate/validators.js?v=1.1.105-student-active-assignment-query";
+import { normalizeStudentStandardLoginPayload } from "../../stages/normalize/normalizers.js?v=1.1.105-student-active-assignment-query";
+import { allowStudentLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.105-student-active-assignment-query";
+import { processStudentStandardLogin } from "../../stages/process/processors.js?v=1.1.105-student-active-assignment-query";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.105-student-active-assignment-query";
 
 export function StudentStandardLoginIntent() {
   return {

@@ -1,6 +1,6 @@
 // createIntent.js
 
-import { getIntentDefinition } from "./intentRegistry.js?v=1.1.104-student-assignment-json-trace";
+import { getIntentDefinition } from "./intentRegistry.js?v=1.1.105-student-active-assignment-query";
 
 export function createIntent(intentInput) {
   const intentType = readIntentType(intentInput);

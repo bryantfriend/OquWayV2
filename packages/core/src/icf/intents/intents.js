@@ -4,205 +4,205 @@
 // ----------------------
 // Demo Verification
 // ----------------------
-export { DemoIntent } from "./demo/DemoIntent.js?v=1.1.104-student-assignment-json-trace";
+export { DemoIntent } from "./demo/DemoIntent.js?v=1.1.105-student-active-assignment-query";
 
 // ----------------------
 // Catalog Course (Full Production Specs)
 // ----------------------
-export { CreateCatalogCourseIntent } from "./catalogCourse/CreateCatalogCourseIntent.js?v=1.1.104-student-assignment-json-trace";
-export { UpdateCatalogCourseMetadataIntent } from "./catalogCourse/UpdateCatalogCourseMetadataIntent.js?v=1.1.104-student-assignment-json-trace";
-export { ArchiveCatalogCourseIntent } from "./catalogCourse/ArchiveCatalogCourseIntent.js?v=1.1.104-student-assignment-json-trace";
-export { RestoreCatalogCourseIntent } from "./catalogCourse/RestoreCatalogCourseIntent.js?v=1.1.104-student-assignment-json-trace";
-export { DeleteCatalogCourseIntent } from "./catalogCourse/DeleteCatalogCourseIntent.js?v=1.1.104-student-assignment-json-trace";
+export { CreateCatalogCourseIntent } from "./catalogCourse/CreateCatalogCourseIntent.js?v=1.1.105-student-active-assignment-query";
+export { UpdateCatalogCourseMetadataIntent } from "./catalogCourse/UpdateCatalogCourseMetadataIntent.js?v=1.1.105-student-active-assignment-query";
+export { ArchiveCatalogCourseIntent } from "./catalogCourse/ArchiveCatalogCourseIntent.js?v=1.1.105-student-active-assignment-query";
+export { RestoreCatalogCourseIntent } from "./catalogCourse/RestoreCatalogCourseIntent.js?v=1.1.105-student-active-assignment-query";
+export { DeleteCatalogCourseIntent } from "./catalogCourse/DeleteCatalogCourseIntent.js?v=1.1.105-student-active-assignment-query";
 
-export { CreateCatalogCourseVersionIntent } from "./catalogCourse/CreateCatalogCourseVersionIntent.js?v=1.1.104-student-assignment-json-trace";
-export { PublishCatalogCourseVersionIntent } from "./catalogCourse/PublishCatalogCourseVersionIntent.js?v=1.1.104-student-assignment-json-trace";
-export { RevertCatalogCourseVersionIntent } from "./catalogCourse/RevertCatalogCourseVersionIntent.js?v=1.1.104-student-assignment-json-trace";
+export { CreateCatalogCourseVersionIntent } from "./catalogCourse/CreateCatalogCourseVersionIntent.js?v=1.1.105-student-active-assignment-query";
+export { PublishCatalogCourseVersionIntent } from "./catalogCourse/PublishCatalogCourseVersionIntent.js?v=1.1.105-student-active-assignment-query";
+export { RevertCatalogCourseVersionIntent } from "./catalogCourse/RevertCatalogCourseVersionIntent.js?v=1.1.105-student-active-assignment-query";
 
-export { CreateCatalogModuleIntent } from "./catalogCourse/CreateCatalogModuleIntent.js?v=1.1.104-student-assignment-json-trace";
-export { UpdateCatalogModuleIntent } from "./catalogCourse/UpdateCatalogModuleIntent.js?v=1.1.104-student-assignment-json-trace";
-export { ReorderCatalogModulesIntent } from "./catalogCourse/ReorderCatalogModulesIntent.js?v=1.1.104-student-assignment-json-trace";
-export { DeleteCatalogModuleIntent } from "./catalogCourse/DeleteCatalogModuleIntent.js?v=1.1.104-student-assignment-json-trace";
+export { CreateCatalogModuleIntent } from "./catalogCourse/CreateCatalogModuleIntent.js?v=1.1.105-student-active-assignment-query";
+export { UpdateCatalogModuleIntent } from "./catalogCourse/UpdateCatalogModuleIntent.js?v=1.1.105-student-active-assignment-query";
+export { ReorderCatalogModulesIntent } from "./catalogCourse/ReorderCatalogModulesIntent.js?v=1.1.105-student-active-assignment-query";
+export { DeleteCatalogModuleIntent } from "./catalogCourse/DeleteCatalogModuleIntent.js?v=1.1.105-student-active-assignment-query";
 
-export { CreateCatalogStepIntent } from "./catalogCourse/CreateCatalogStepIntent.js?v=1.1.104-student-assignment-json-trace";
-export { UpdateCatalogStepIntent } from "./catalogCourse/UpdateCatalogStepIntent.js?v=1.1.104-student-assignment-json-trace";
-export { DeleteCatalogStepIntent } from "./catalogCourse/DeleteCatalogStepIntent.js?v=1.1.104-student-assignment-json-trace";
-export { ReorderCatalogStepsIntent } from "./catalogCourse/ReorderCatalogStepsIntent.js?v=1.1.104-student-assignment-json-trace";
+export { CreateCatalogStepIntent } from "./catalogCourse/CreateCatalogStepIntent.js?v=1.1.105-student-active-assignment-query";
+export { UpdateCatalogStepIntent } from "./catalogCourse/UpdateCatalogStepIntent.js?v=1.1.105-student-active-assignment-query";
+export { DeleteCatalogStepIntent } from "./catalogCourse/DeleteCatalogStepIntent.js?v=1.1.105-student-active-assignment-query";
+export { ReorderCatalogStepsIntent } from "./catalogCourse/ReorderCatalogStepsIntent.js?v=1.1.105-student-active-assignment-query";
 
-export { AddTagToCatalogCourseIntent } from "./catalogCourse/AddTagToCatalogCourseIntent.js?v=1.1.104-student-assignment-json-trace";
-export { RemoveTagFromCatalogCourseIntent } from "./catalogCourse/RemoveTagFromCatalogCourseIntent.js?v=1.1.104-student-assignment-json-trace";
+export { AddTagToCatalogCourseIntent } from "./catalogCourse/AddTagToCatalogCourseIntent.js?v=1.1.105-student-active-assignment-query";
+export { RemoveTagFromCatalogCourseIntent } from "./catalogCourse/RemoveTagFromCatalogCourseIntent.js?v=1.1.105-student-active-assignment-query";
 
-export { FetchAllCatalogCoursesIntent } from "./catalogCourse/FetchAllCatalogCoursesIntent.js?v=1.1.104-student-assignment-json-trace";
-export { FetchCatalogCourseByIdIntent } from "./catalogCourse/FetchCatalogCourseByIdIntent.js?v=1.1.104-student-assignment-json-trace";
-export { FetchCatalogCourseVersionsIntent } from "./catalogCourse/FetchCatalogCourseVersionsIntent.js?v=1.1.104-student-assignment-json-trace";
+export { FetchAllCatalogCoursesIntent } from "./catalogCourse/FetchAllCatalogCoursesIntent.js?v=1.1.105-student-active-assignment-query";
+export { FetchCatalogCourseByIdIntent } from "./catalogCourse/FetchCatalogCourseByIdIntent.js?v=1.1.105-student-active-assignment-query";
+export { FetchCatalogCourseVersionsIntent } from "./catalogCourse/FetchCatalogCourseVersionsIntent.js?v=1.1.105-student-active-assignment-query";
 
 // ----------------------
 // Course Sandbox
 // ----------------------
-export { CreateCourseIntent } from "./course/CreateCourseIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadCoursesIntent } from "./course/LoadCoursesIntent.js?v=1.1.104-student-assignment-json-trace";
-export { ListCoursesIntent } from "./course/ListCoursesIntent.js?v=1.1.104-student-assignment-json-trace";
-export { UpdateCourseIntent } from "./course/UpdateCourseIntent.js?v=1.1.104-student-assignment-json-trace";
-export { UpdateCourseMetadataIntent } from "./course/UpdateCourseMetadataIntent.js?v=1.1.104-student-assignment-json-trace";
-export { DeleteCourseIntent } from "./course/DeleteCourseIntent.js?v=1.1.104-student-assignment-json-trace";
-export { ArchiveCourseIntent } from "./course/ArchiveCourseIntent.js?v=1.1.104-student-assignment-json-trace";
+export { CreateCourseIntent } from "./course/CreateCourseIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadCoursesIntent } from "./course/LoadCoursesIntent.js?v=1.1.105-student-active-assignment-query";
+export { ListCoursesIntent } from "./course/ListCoursesIntent.js?v=1.1.105-student-active-assignment-query";
+export { UpdateCourseIntent } from "./course/UpdateCourseIntent.js?v=1.1.105-student-active-assignment-query";
+export { UpdateCourseMetadataIntent } from "./course/UpdateCourseMetadataIntent.js?v=1.1.105-student-active-assignment-query";
+export { DeleteCourseIntent } from "./course/DeleteCourseIntent.js?v=1.1.105-student-active-assignment-query";
+export { ArchiveCourseIntent } from "./course/ArchiveCourseIntent.js?v=1.1.105-student-active-assignment-query";
 
 // ----------------------
 // Course Assignments
 // ----------------------
-export { AssignCourseAssistantsIntent } from "./courseAssignment/AssignCourseAssistantsIntent.js?v=1.1.104-student-assignment-json-trace";
-export { AssignCourseTeacherIntent } from "./courseAssignment/AssignCourseTeacherIntent.js?v=1.1.104-student-assignment-json-trace";
-export { CreateCourseAssignmentIntent } from "./courseAssignment/CreateCourseAssignmentIntent.js?v=1.1.104-student-assignment-json-trace";
-export { ListCourseAssignmentsIntent } from "./courseAssignment/ListCourseAssignmentsIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadCourseAssignmentOwnershipIntent } from "./courseAssignment/LoadCourseAssignmentOwnershipIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadCourseAssignmentsIntent } from "./courseAssignment/LoadCourseAssignmentsIntent.js?v=1.1.104-student-assignment-json-trace";
-export { UpdateCourseAssignmentIntent } from "./courseAssignment/UpdateCourseAssignmentIntent.js?v=1.1.104-student-assignment-json-trace";
-export { ArchiveCourseAssignmentIntent } from "./courseAssignment/ArchiveCourseAssignmentIntent.js?v=1.1.104-student-assignment-json-trace";
-export { DisableCourseAssignmentIntent } from "./courseAssignment/DisableCourseAssignmentIntent.js?v=1.1.104-student-assignment-json-trace";
-export { DeleteCourseAssignmentIntent } from "./courseAssignment/DeleteCourseAssignmentIntent.js?v=1.1.104-student-assignment-json-trace";
+export { AssignCourseAssistantsIntent } from "./courseAssignment/AssignCourseAssistantsIntent.js?v=1.1.105-student-active-assignment-query";
+export { AssignCourseTeacherIntent } from "./courseAssignment/AssignCourseTeacherIntent.js?v=1.1.105-student-active-assignment-query";
+export { CreateCourseAssignmentIntent } from "./courseAssignment/CreateCourseAssignmentIntent.js?v=1.1.105-student-active-assignment-query";
+export { ListCourseAssignmentsIntent } from "./courseAssignment/ListCourseAssignmentsIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadCourseAssignmentOwnershipIntent } from "./courseAssignment/LoadCourseAssignmentOwnershipIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadCourseAssignmentsIntent } from "./courseAssignment/LoadCourseAssignmentsIntent.js?v=1.1.105-student-active-assignment-query";
+export { UpdateCourseAssignmentIntent } from "./courseAssignment/UpdateCourseAssignmentIntent.js?v=1.1.105-student-active-assignment-query";
+export { ArchiveCourseAssignmentIntent } from "./courseAssignment/ArchiveCourseAssignmentIntent.js?v=1.1.105-student-active-assignment-query";
+export { DisableCourseAssignmentIntent } from "./courseAssignment/DisableCourseAssignmentIntent.js?v=1.1.105-student-active-assignment-query";
+export { DeleteCourseAssignmentIntent } from "./courseAssignment/DeleteCourseAssignmentIntent.js?v=1.1.105-student-active-assignment-query";
 
 // ----------------------
 // External Tasks
 // ----------------------
-export { LoadExternalTaskStepIntent } from "./externalTask/LoadExternalTaskStepIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadStudentExternalTaskSubmissionIntent } from "./externalTask/LoadStudentExternalTaskSubmissionIntent.js?v=1.1.104-student-assignment-json-trace";
-export { SubmitExternalTaskIntent } from "./externalTask/SubmitExternalTaskIntent.js?v=1.1.104-student-assignment-json-trace";
-export { UploadExternalTaskFileIntent } from "./externalTask/UploadExternalTaskFileIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadExternalTaskSubmissionsIntent } from "./externalTask/LoadExternalTaskSubmissionsIntent.js?v=1.1.104-student-assignment-json-trace";
-export { ReviewExternalTaskSubmissionIntent } from "./externalTask/ReviewExternalTaskSubmissionIntent.js?v=1.1.104-student-assignment-json-trace";
-export { ResubmitExternalTaskIntent } from "./externalTask/ResubmitExternalTaskIntent.js?v=1.1.104-student-assignment-json-trace";
+export { LoadExternalTaskStepIntent } from "./externalTask/LoadExternalTaskStepIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadStudentExternalTaskSubmissionIntent } from "./externalTask/LoadStudentExternalTaskSubmissionIntent.js?v=1.1.105-student-active-assignment-query";
+export { SubmitExternalTaskIntent } from "./externalTask/SubmitExternalTaskIntent.js?v=1.1.105-student-active-assignment-query";
+export { UploadExternalTaskFileIntent } from "./externalTask/UploadExternalTaskFileIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadExternalTaskSubmissionsIntent } from "./externalTask/LoadExternalTaskSubmissionsIntent.js?v=1.1.105-student-active-assignment-query";
+export { ReviewExternalTaskSubmissionIntent } from "./externalTask/ReviewExternalTaskSubmissionIntent.js?v=1.1.105-student-active-assignment-query";
+export { ResubmitExternalTaskIntent } from "./externalTask/ResubmitExternalTaskIntent.js?v=1.1.105-student-active-assignment-query";
 
 // ----------------------
 // Teacher Dashboard
 // ----------------------
-export { TeacherLoginIntent } from "./teacher/TeacherLoginIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadTeacherClassDetailIntent } from "./teacher/LoadTeacherClassDetailIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadTeacherCourseDetailIntent } from "./teacher/LoadTeacherCourseDetailIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadTeacherCoursesIntent } from "./teacher/LoadTeacherCoursesIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadTeacherDashboardIntent } from "./teacher/LoadTeacherDashboardIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadTeacherClassesIntent } from "./teacher/LoadTeacherClassesIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadTeacherStudentsIntent } from "./teacher/LoadTeacherStudentsIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadTeacherReviewQueueIntent } from "./teacher/LoadTeacherReviewQueueIntent.js?v=1.1.104-student-assignment-json-trace";
-export { SendTeacherPasswordResetIntent } from "./teacher/SendTeacherPasswordResetIntent.js?v=1.1.104-student-assignment-json-trace";
+export { TeacherLoginIntent } from "./teacher/TeacherLoginIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadTeacherClassDetailIntent } from "./teacher/LoadTeacherClassDetailIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadTeacherCourseDetailIntent } from "./teacher/LoadTeacherCourseDetailIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadTeacherCoursesIntent } from "./teacher/LoadTeacherCoursesIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadTeacherDashboardIntent } from "./teacher/LoadTeacherDashboardIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadTeacherClassesIntent } from "./teacher/LoadTeacherClassesIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadTeacherStudentsIntent } from "./teacher/LoadTeacherStudentsIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadTeacherReviewQueueIntent } from "./teacher/LoadTeacherReviewQueueIntent.js?v=1.1.105-student-active-assignment-query";
+export { SendTeacherPasswordResetIntent } from "./teacher/SendTeacherPasswordResetIntent.js?v=1.1.105-student-active-assignment-query";
 
 // ----------------------
 // Locations / Login Settings
 // ----------------------
-export { ListLocationsIntent } from "./location/ListLocationsIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadLocationsIntent } from "./location/LoadLocationsIntent.js?v=1.1.104-student-assignment-json-trace";
-export { ResolveLocationBySlugIntent } from "./location/ResolveLocationBySlugIntent.js?v=1.1.104-student-assignment-json-trace";
-export { UpdateLocationLoginModeIntent } from "./location/UpdateLocationLoginModeIntent.js?v=1.1.104-student-assignment-json-trace";
-export { UpdateLocationLoginSlugIntent } from "./location/UpdateLocationLoginSlugIntent.js?v=1.1.104-student-assignment-json-trace";
+export { ListLocationsIntent } from "./location/ListLocationsIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadLocationsIntent } from "./location/LoadLocationsIntent.js?v=1.1.105-student-active-assignment-query";
+export { ResolveLocationBySlugIntent } from "./location/ResolveLocationBySlugIntent.js?v=1.1.105-student-active-assignment-query";
+export { UpdateLocationLoginModeIntent } from "./location/UpdateLocationLoginModeIntent.js?v=1.1.105-student-active-assignment-query";
+export { UpdateLocationLoginSlugIntent } from "./location/UpdateLocationLoginSlugIntent.js?v=1.1.105-student-active-assignment-query";
 
 // ----------------------
 // Student Login
 // ----------------------
-export { LoadClassesForLocationIntent } from "./studentLogin/LoadClassesForLocationIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadStudentsForClassIntent } from "./studentLogin/LoadStudentsForClassIntent.js?v=1.1.104-student-assignment-json-trace";
-export { StudentFruitLoginIntent } from "./studentLogin/StudentFruitLoginIntent.js?v=1.1.104-student-assignment-json-trace";
-export { StudentStandardLoginIntent } from "./studentLogin/StudentStandardLoginIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadStudentProfileIntent } from "./studentLogin/LoadStudentProfileIntent.js?v=1.1.104-student-assignment-json-trace";
-export { StartStudentSessionIntent } from "./studentLogin/StartStudentSessionIntent.js?v=1.1.104-student-assignment-json-trace";
-export { AssignClassAssistantsIntent } from "./superAdmin/AssignClassAssistantsIntent.js?v=1.1.104-student-assignment-json-trace";
-export { AssignClassTeacherIntent } from "./superAdmin/AssignClassTeacherIntent.js?v=1.1.104-student-assignment-json-trace";
-export { CreateClassIntent } from "./superAdmin/CreateClassIntent.js?v=1.1.104-student-assignment-json-trace";
-export { CreateLocationIntent } from "./superAdmin/CreateLocationIntent.js?v=1.1.104-student-assignment-json-trace";
-export { CreateStudentIntent } from "./superAdmin/CreateStudentIntent.js?v=1.1.104-student-assignment-json-trace";
-export { ListClassesIntent } from "./superAdmin/ListClassesIntent.js?v=1.1.104-student-assignment-json-trace";
-export { ListStudentsIntent } from "./superAdmin/ListStudentsIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadClassOwnershipIntent } from "./superAdmin/LoadClassOwnershipIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadAdminProfileIntent } from "./superAdmin/LoadAdminProfileIntent.js?v=1.1.104-student-assignment-json-trace";
-export { OpenClassCommandCenterIntent } from "./superAdmin/OpenClassCommandCenterIntent.js?v=1.1.104-student-assignment-json-trace";
-export { OpenCourseCommandCenterIntent } from "./superAdmin/OpenCourseCommandCenterIntent.js?v=1.1.104-student-assignment-json-trace";
-export { OpenModuleCommandCenterIntent } from "./superAdmin/OpenModuleCommandCenterIntent.js?v=1.1.104-student-assignment-json-trace";
-export { OpenUserCommandCenterIntent } from "./superAdmin/OpenUserCommandCenterIntent.js?v=1.1.104-student-assignment-json-trace";
-export { ResetStudentFruitPasswordIntent } from "./superAdmin/ResetStudentFruitPasswordIntent.js?v=1.1.104-student-assignment-json-trace";
-export { SetStudentStatusIntent } from "./superAdmin/SetStudentStatusIntent.js?v=1.1.104-student-assignment-json-trace";
-export { UpdateClassIntent } from "./superAdmin/UpdateClassIntent.js?v=1.1.104-student-assignment-json-trace";
-export { UpdateLocationIntent } from "./superAdmin/UpdateLocationIntent.js?v=1.1.104-student-assignment-json-trace";
-export { UpdateStudentIntent } from "./superAdmin/UpdateStudentIntent.js?v=1.1.104-student-assignment-json-trace";
-export { VerifySuperAdminAccessIntent } from "./superAdmin/VerifySuperAdminAccessIntent.js?v=1.1.104-student-assignment-json-trace";
+export { LoadClassesForLocationIntent } from "./studentLogin/LoadClassesForLocationIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadStudentsForClassIntent } from "./studentLogin/LoadStudentsForClassIntent.js?v=1.1.105-student-active-assignment-query";
+export { StudentFruitLoginIntent } from "./studentLogin/StudentFruitLoginIntent.js?v=1.1.105-student-active-assignment-query";
+export { StudentStandardLoginIntent } from "./studentLogin/StudentStandardLoginIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadStudentProfileIntent } from "./studentLogin/LoadStudentProfileIntent.js?v=1.1.105-student-active-assignment-query";
+export { StartStudentSessionIntent } from "./studentLogin/StartStudentSessionIntent.js?v=1.1.105-student-active-assignment-query";
+export { AssignClassAssistantsIntent } from "./superAdmin/AssignClassAssistantsIntent.js?v=1.1.105-student-active-assignment-query";
+export { AssignClassTeacherIntent } from "./superAdmin/AssignClassTeacherIntent.js?v=1.1.105-student-active-assignment-query";
+export { CreateClassIntent } from "./superAdmin/CreateClassIntent.js?v=1.1.105-student-active-assignment-query";
+export { CreateLocationIntent } from "./superAdmin/CreateLocationIntent.js?v=1.1.105-student-active-assignment-query";
+export { CreateStudentIntent } from "./superAdmin/CreateStudentIntent.js?v=1.1.105-student-active-assignment-query";
+export { ListClassesIntent } from "./superAdmin/ListClassesIntent.js?v=1.1.105-student-active-assignment-query";
+export { ListStudentsIntent } from "./superAdmin/ListStudentsIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadClassOwnershipIntent } from "./superAdmin/LoadClassOwnershipIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadAdminProfileIntent } from "./superAdmin/LoadAdminProfileIntent.js?v=1.1.105-student-active-assignment-query";
+export { OpenClassCommandCenterIntent } from "./superAdmin/OpenClassCommandCenterIntent.js?v=1.1.105-student-active-assignment-query";
+export { OpenCourseCommandCenterIntent } from "./superAdmin/OpenCourseCommandCenterIntent.js?v=1.1.105-student-active-assignment-query";
+export { OpenModuleCommandCenterIntent } from "./superAdmin/OpenModuleCommandCenterIntent.js?v=1.1.105-student-active-assignment-query";
+export { OpenUserCommandCenterIntent } from "./superAdmin/OpenUserCommandCenterIntent.js?v=1.1.105-student-active-assignment-query";
+export { ResetStudentFruitPasswordIntent } from "./superAdmin/ResetStudentFruitPasswordIntent.js?v=1.1.105-student-active-assignment-query";
+export { SetStudentStatusIntent } from "./superAdmin/SetStudentStatusIntent.js?v=1.1.105-student-active-assignment-query";
+export { UpdateClassIntent } from "./superAdmin/UpdateClassIntent.js?v=1.1.105-student-active-assignment-query";
+export { UpdateLocationIntent } from "./superAdmin/UpdateLocationIntent.js?v=1.1.105-student-active-assignment-query";
+export { UpdateStudentIntent } from "./superAdmin/UpdateStudentIntent.js?v=1.1.105-student-active-assignment-query";
+export { VerifySuperAdminAccessIntent } from "./superAdmin/VerifySuperAdminAccessIntent.js?v=1.1.105-student-active-assignment-query";
 
 // ----------------------
 // Course Editor (Phase 2 UI Intents)
 // ----------------------
-export { OpenCourseEditorIntent } from "./courseEditor/OpenCourseEditorIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadCourseIntent } from "./courseEditor/LoadCourseIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadModulesIntent } from "./courseEditor/LoadModulesIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadCourseModulesIntent } from "./courseEditor/LoadCourseModulesIntent.js?v=1.1.104-student-assignment-json-trace";
-export { PreviewCourseIntent } from "./courseEditor/PreviewCourseIntent.js?v=1.1.104-student-assignment-json-trace";
-export { CreateModuleIntent } from "./courseEditor/CreateModuleIntent.js?v=1.1.104-student-assignment-json-trace";
-export { OpenCreateModuleWizardIntent } from "./courseEditor/OpenCreateModuleWizardIntent.js?v=1.1.104-student-assignment-json-trace";
-export { ParseLearningContentIntent } from "./courseEditor/ParseLearningContentIntent.js?v=1.1.104-student-assignment-json-trace";
-export { CreateModuleFromWizardIntent } from "./courseEditor/CreateModuleFromWizardIntent.js?v=1.1.104-student-assignment-json-trace";
-export { GenerateModuleSkeletonIntent } from "./courseEditor/GenerateModuleSkeletonIntent.js?v=1.1.104-student-assignment-json-trace";
-export { GenerateStarterStepsIntent } from "./courseEditor/GenerateStarterStepsIntent.js?v=1.1.104-student-assignment-json-trace";
-export { ListModulesIntent } from "./courseEditor/ListModulesIntent.js?v=1.1.104-student-assignment-json-trace";
-export { UpdateModuleIntent } from "./courseEditor/UpdateModuleIntent.js?v=1.1.104-student-assignment-json-trace";
-export { AddModuleIntent } from "./courseEditor/AddModuleIntent.js?v=1.1.104-student-assignment-json-trace";
-export { UpdateModuleFieldIntent } from "./courseEditor/UpdateModuleFieldIntent.js?v=1.1.104-student-assignment-json-trace";
-export { ReorderModulesIntent } from "./courseEditor/ReorderModulesIntent.js?v=1.1.104-student-assignment-json-trace";
-export { DeleteModuleIntent } from "./courseEditor/DeleteModuleIntent.js?v=1.1.104-student-assignment-json-trace";
-export { DuplicateModuleIntent } from "./courseEditor/DuplicateModuleIntent.js?v=1.1.104-student-assignment-json-trace";
-export { SaveCourseDraftIntent } from "./courseEditor/SaveCourseDraftIntent.js?v=1.1.104-student-assignment-json-trace";
-export { PublishCourseIntent } from "./courseEditor/PublishCourseIntent.js?v=1.1.104-student-assignment-json-trace";
-export { ValidateCourseStructureIntent } from "./courseEditor/ValidateCourseStructureIntent.js?v=1.1.104-student-assignment-json-trace";
-export { UpdateCourseFieldIntent } from "./courseEditor/UpdateCourseFieldIntent.js?v=1.1.104-student-assignment-json-trace";
-export { MigrateLegacyModulesToCatalogCourseIntent } from "./courseEditor/MigrateLegacyModulesToCatalogCourseIntent.js?v=1.1.104-student-assignment-json-trace";
+export { OpenCourseEditorIntent } from "./courseEditor/OpenCourseEditorIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadCourseIntent } from "./courseEditor/LoadCourseIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadModulesIntent } from "./courseEditor/LoadModulesIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadCourseModulesIntent } from "./courseEditor/LoadCourseModulesIntent.js?v=1.1.105-student-active-assignment-query";
+export { PreviewCourseIntent } from "./courseEditor/PreviewCourseIntent.js?v=1.1.105-student-active-assignment-query";
+export { CreateModuleIntent } from "./courseEditor/CreateModuleIntent.js?v=1.1.105-student-active-assignment-query";
+export { OpenCreateModuleWizardIntent } from "./courseEditor/OpenCreateModuleWizardIntent.js?v=1.1.105-student-active-assignment-query";
+export { ParseLearningContentIntent } from "./courseEditor/ParseLearningContentIntent.js?v=1.1.105-student-active-assignment-query";
+export { CreateModuleFromWizardIntent } from "./courseEditor/CreateModuleFromWizardIntent.js?v=1.1.105-student-active-assignment-query";
+export { GenerateModuleSkeletonIntent } from "./courseEditor/GenerateModuleSkeletonIntent.js?v=1.1.105-student-active-assignment-query";
+export { GenerateStarterStepsIntent } from "./courseEditor/GenerateStarterStepsIntent.js?v=1.1.105-student-active-assignment-query";
+export { ListModulesIntent } from "./courseEditor/ListModulesIntent.js?v=1.1.105-student-active-assignment-query";
+export { UpdateModuleIntent } from "./courseEditor/UpdateModuleIntent.js?v=1.1.105-student-active-assignment-query";
+export { AddModuleIntent } from "./courseEditor/AddModuleIntent.js?v=1.1.105-student-active-assignment-query";
+export { UpdateModuleFieldIntent } from "./courseEditor/UpdateModuleFieldIntent.js?v=1.1.105-student-active-assignment-query";
+export { ReorderModulesIntent } from "./courseEditor/ReorderModulesIntent.js?v=1.1.105-student-active-assignment-query";
+export { DeleteModuleIntent } from "./courseEditor/DeleteModuleIntent.js?v=1.1.105-student-active-assignment-query";
+export { DuplicateModuleIntent } from "./courseEditor/DuplicateModuleIntent.js?v=1.1.105-student-active-assignment-query";
+export { SaveCourseDraftIntent } from "./courseEditor/SaveCourseDraftIntent.js?v=1.1.105-student-active-assignment-query";
+export { PublishCourseIntent } from "./courseEditor/PublishCourseIntent.js?v=1.1.105-student-active-assignment-query";
+export { ValidateCourseStructureIntent } from "./courseEditor/ValidateCourseStructureIntent.js?v=1.1.105-student-active-assignment-query";
+export { UpdateCourseFieldIntent } from "./courseEditor/UpdateCourseFieldIntent.js?v=1.1.105-student-active-assignment-query";
+export { MigrateLegacyModulesToCatalogCourseIntent } from "./courseEditor/MigrateLegacyModulesToCatalogCourseIntent.js?v=1.1.105-student-active-assignment-query";
 
 // ----------------------
 // Module Editor
 // ----------------------
-export { OpenModuleEditorIntent } from "./moduleEditor/OpenModuleEditorIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadLearningContentIntent } from "./moduleEditor/LoadLearningContentIntent.js?v=1.1.104-student-assignment-json-trace";
-export { SaveLearningContentIntent } from "./moduleEditor/SaveLearningContentIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadLearningModesIntent } from "./moduleEditor/LoadLearningModesIntent.js?v=1.1.104-student-assignment-json-trace";
-export { CreateLearningModeIntent } from "./moduleEditor/CreateLearningModeIntent.js?v=1.1.104-student-assignment-json-trace";
-export { RenameLearningModeIntent } from "./moduleEditor/RenameLearningModeIntent.js?v=1.1.104-student-assignment-json-trace";
-export { DeleteLearningModeIntent } from "./moduleEditor/DeleteLearningModeIntent.js?v=1.1.104-student-assignment-json-trace";
-export { DuplicateLearningModeIntent } from "./moduleEditor/DuplicateLearningModeIntent.js?v=1.1.104-student-assignment-json-trace";
-export { GenerateModeFromPrimaryIntent } from "./moduleEditor/GenerateModeFromPrimaryIntent.js?v=1.1.104-student-assignment-json-trace";
-export { PullLearningContentIntent } from "./moduleEditor/PullLearningContentIntent.js?v=1.1.104-student-assignment-json-trace";
-export { PreviewStepIntent } from "./moduleEditor/PreviewStepIntent.js?v=1.1.104-student-assignment-json-trace";
-export { AddStepToLearningModeIntent } from "./moduleEditor/AddStepToLearningModeIntent.js?v=1.1.104-student-assignment-json-trace";
-export { UpdateLearningModeStepIntent } from "./moduleEditor/UpdateLearningModeStepIntent.js?v=1.1.104-student-assignment-json-trace";
-export { AddStepToPracticeModeIntent } from "./moduleEditor/AddStepToPracticeModeIntent.js?v=1.1.104-student-assignment-json-trace";
-export { CreatePracticeModeShellsIntent } from "./moduleEditor/CreatePracticeModeShellsIntent.js?v=1.1.104-student-assignment-json-trace";
-export { CreateSessionIntent } from "./moduleEditor/CreateSessionIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadStepsIntent } from "./moduleEditor/LoadStepsIntent.js?v=1.1.104-student-assignment-json-trace";
-export { CreateStepIntent } from "./moduleEditor/CreateStepIntent.js?v=1.1.104-student-assignment-json-trace";
-export { UpdateStepIntent } from "./moduleEditor/UpdateStepIntent.js?v=1.1.104-student-assignment-json-trace";
-export { DeleteStepIntent } from "./moduleEditor/DeleteStepIntent.js?v=1.1.104-student-assignment-json-trace";
-export { ReorderStepsIntent } from "./moduleEditor/ReorderStepsIntent.js?v=1.1.104-student-assignment-json-trace";
-export { DeletePracticeModeStepIntent } from "./moduleEditor/DeletePracticeModeStepIntent.js?v=1.1.104-student-assignment-json-trace";
-export { ListPracticeModeStepsIntent } from "./moduleEditor/ListPracticeModeStepsIntent.js?v=1.1.104-student-assignment-json-trace";
-export { ListSessionsIntent } from "./moduleEditor/ListSessionsIntent.js?v=1.1.104-student-assignment-json-trace";
-export { ReorderPracticeModeStepsIntent } from "./moduleEditor/ReorderPracticeModeStepsIntent.js?v=1.1.104-student-assignment-json-trace";
-export { UpdatePracticeModeIntent } from "./moduleEditor/UpdatePracticeModeIntent.js?v=1.1.104-student-assignment-json-trace";
-export { UpdatePracticeModeStepIntent } from "./moduleEditor/UpdatePracticeModeStepIntent.js?v=1.1.104-student-assignment-json-trace";
-export { UploadStepMediaIntent } from "./moduleEditor/UploadStepMediaIntent.js?v=1.1.104-student-assignment-json-trace";
-export { UpdateSessionIntent } from "./moduleEditor/UpdateSessionIntent.js?v=1.1.104-student-assignment-json-trace";
-export { AddStepIntent } from "./moduleEditor/AddStepIntent.js?v=1.1.104-student-assignment-json-trace";
-export { UpdateStepFieldIntent } from "./moduleEditor/UpdateStepFieldIntent.js?v=1.1.104-student-assignment-json-trace";
-export { SaveModuleDraftIntent } from "./moduleEditor/SaveModuleDraftIntent.js?v=1.1.104-student-assignment-json-trace";
+export { OpenModuleEditorIntent } from "./moduleEditor/OpenModuleEditorIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadLearningContentIntent } from "./moduleEditor/LoadLearningContentIntent.js?v=1.1.105-student-active-assignment-query";
+export { SaveLearningContentIntent } from "./moduleEditor/SaveLearningContentIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadLearningModesIntent } from "./moduleEditor/LoadLearningModesIntent.js?v=1.1.105-student-active-assignment-query";
+export { CreateLearningModeIntent } from "./moduleEditor/CreateLearningModeIntent.js?v=1.1.105-student-active-assignment-query";
+export { RenameLearningModeIntent } from "./moduleEditor/RenameLearningModeIntent.js?v=1.1.105-student-active-assignment-query";
+export { DeleteLearningModeIntent } from "./moduleEditor/DeleteLearningModeIntent.js?v=1.1.105-student-active-assignment-query";
+export { DuplicateLearningModeIntent } from "./moduleEditor/DuplicateLearningModeIntent.js?v=1.1.105-student-active-assignment-query";
+export { GenerateModeFromPrimaryIntent } from "./moduleEditor/GenerateModeFromPrimaryIntent.js?v=1.1.105-student-active-assignment-query";
+export { PullLearningContentIntent } from "./moduleEditor/PullLearningContentIntent.js?v=1.1.105-student-active-assignment-query";
+export { PreviewStepIntent } from "./moduleEditor/PreviewStepIntent.js?v=1.1.105-student-active-assignment-query";
+export { AddStepToLearningModeIntent } from "./moduleEditor/AddStepToLearningModeIntent.js?v=1.1.105-student-active-assignment-query";
+export { UpdateLearningModeStepIntent } from "./moduleEditor/UpdateLearningModeStepIntent.js?v=1.1.105-student-active-assignment-query";
+export { AddStepToPracticeModeIntent } from "./moduleEditor/AddStepToPracticeModeIntent.js?v=1.1.105-student-active-assignment-query";
+export { CreatePracticeModeShellsIntent } from "./moduleEditor/CreatePracticeModeShellsIntent.js?v=1.1.105-student-active-assignment-query";
+export { CreateSessionIntent } from "./moduleEditor/CreateSessionIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadStepsIntent } from "./moduleEditor/LoadStepsIntent.js?v=1.1.105-student-active-assignment-query";
+export { CreateStepIntent } from "./moduleEditor/CreateStepIntent.js?v=1.1.105-student-active-assignment-query";
+export { UpdateStepIntent } from "./moduleEditor/UpdateStepIntent.js?v=1.1.105-student-active-assignment-query";
+export { DeleteStepIntent } from "./moduleEditor/DeleteStepIntent.js?v=1.1.105-student-active-assignment-query";
+export { ReorderStepsIntent } from "./moduleEditor/ReorderStepsIntent.js?v=1.1.105-student-active-assignment-query";
+export { DeletePracticeModeStepIntent } from "./moduleEditor/DeletePracticeModeStepIntent.js?v=1.1.105-student-active-assignment-query";
+export { ListPracticeModeStepsIntent } from "./moduleEditor/ListPracticeModeStepsIntent.js?v=1.1.105-student-active-assignment-query";
+export { ListSessionsIntent } from "./moduleEditor/ListSessionsIntent.js?v=1.1.105-student-active-assignment-query";
+export { ReorderPracticeModeStepsIntent } from "./moduleEditor/ReorderPracticeModeStepsIntent.js?v=1.1.105-student-active-assignment-query";
+export { UpdatePracticeModeIntent } from "./moduleEditor/UpdatePracticeModeIntent.js?v=1.1.105-student-active-assignment-query";
+export { UpdatePracticeModeStepIntent } from "./moduleEditor/UpdatePracticeModeStepIntent.js?v=1.1.105-student-active-assignment-query";
+export { UploadStepMediaIntent } from "./moduleEditor/UploadStepMediaIntent.js?v=1.1.105-student-active-assignment-query";
+export { UpdateSessionIntent } from "./moduleEditor/UpdateSessionIntent.js?v=1.1.105-student-active-assignment-query";
+export { AddStepIntent } from "./moduleEditor/AddStepIntent.js?v=1.1.105-student-active-assignment-query";
+export { UpdateStepFieldIntent } from "./moduleEditor/UpdateStepFieldIntent.js?v=1.1.105-student-active-assignment-query";
+export { SaveModuleDraftIntent } from "./moduleEditor/SaveModuleDraftIntent.js?v=1.1.105-student-active-assignment-query";
 
 // ----------------------
 // Student Dashboard / Player
 // ----------------------
-export { LoadStudentCourseIntent } from "./student/LoadStudentCourseIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadStudentDashboardIntent } from "./student/LoadStudentDashboardIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadStudentCoursesIntent } from "./student/LoadStudentCoursesIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadStudentCourseStructureIntent } from "./student/LoadStudentCourseStructureIntent.js?v=1.1.104-student-assignment-json-trace";
-export { LoadStudentProgressIntent } from "./student/LoadStudentProgressIntent.js?v=1.1.104-student-assignment-json-trace";
-export { ClaimDailyBonusIntent } from "./student/ClaimDailyBonusIntent.js?v=1.1.104-student-assignment-json-trace";
-export { ContinueLearningIntent } from "./student/ContinueLearningIntent.js?v=1.1.104-student-assignment-json-trace";
-export { SelectContinueLearningIntent } from "./student/SelectContinueLearningIntent.js?v=1.1.104-student-assignment-json-trace";
-export { StudentOpenCourseIntent } from "./student/StudentOpenCourseIntent.js?v=1.1.104-student-assignment-json-trace";
-export { StartPracticeModeIntent } from "./student/StartPracticeModeIntent.js?v=1.1.104-student-assignment-json-trace";
-export { CompleteStepIntent } from "./student/CompleteStepIntent.js?v=1.1.104-student-assignment-json-trace";
-export { CompleteStudentStepIntent } from "./student/CompleteStudentStepIntent.js?v=1.1.104-student-assignment-json-trace";
-export { CompletePracticeModeIntent } from "./student/CompletePracticeModeIntent.js?v=1.1.104-student-assignment-json-trace";
-export { CompleteStudentPracticeModeIntent } from "./student/CompleteStudentPracticeModeIntent.js?v=1.1.104-student-assignment-json-trace";
-export { SaveStudentProgressIntent } from "./student/SaveStudentProgressIntent.js?v=1.1.104-student-assignment-json-trace";
+export { LoadStudentCourseIntent } from "./student/LoadStudentCourseIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadStudentDashboardIntent } from "./student/LoadStudentDashboardIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadStudentCoursesIntent } from "./student/LoadStudentCoursesIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadStudentCourseStructureIntent } from "./student/LoadStudentCourseStructureIntent.js?v=1.1.105-student-active-assignment-query";
+export { LoadStudentProgressIntent } from "./student/LoadStudentProgressIntent.js?v=1.1.105-student-active-assignment-query";
+export { ClaimDailyBonusIntent } from "./student/ClaimDailyBonusIntent.js?v=1.1.105-student-active-assignment-query";
+export { ContinueLearningIntent } from "./student/ContinueLearningIntent.js?v=1.1.105-student-active-assignment-query";
+export { SelectContinueLearningIntent } from "./student/SelectContinueLearningIntent.js?v=1.1.105-student-active-assignment-query";
+export { StudentOpenCourseIntent } from "./student/StudentOpenCourseIntent.js?v=1.1.105-student-active-assignment-query";
+export { StartPracticeModeIntent } from "./student/StartPracticeModeIntent.js?v=1.1.105-student-active-assignment-query";
+export { CompleteStepIntent } from "./student/CompleteStepIntent.js?v=1.1.105-student-active-assignment-query";
+export { CompleteStudentStepIntent } from "./student/CompleteStudentStepIntent.js?v=1.1.105-student-active-assignment-query";
+export { CompletePracticeModeIntent } from "./student/CompletePracticeModeIntent.js?v=1.1.105-student-active-assignment-query";
+export { CompleteStudentPracticeModeIntent } from "./student/CompleteStudentPracticeModeIntent.js?v=1.1.105-student-active-assignment-query";
+export { SaveStudentProgressIntent } from "./student/SaveStudentProgressIntent.js?v=1.1.105-student-active-assignment-query";
 
 

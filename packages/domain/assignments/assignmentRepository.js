@@ -1,5 +1,5 @@
 import { collection, db, doc, getDocs, query, serverTimestamp, setDoc, where } from "../../firebase/index.js";
-import { getClassById } from "../classes/index.js?v=1.1.104-student-assignment-json-trace";
+import { getClassById } from "../classes/index.js?v=1.1.105-student-active-assignment-query";
 import { isActiveAssignment, normalizeCourseAssignment } from "./index.js";
 
 export async function getCourseAssignments(filters) {
@@ -247,10 +247,13 @@ function buildStudentAssignmentQueries(identifiers) {
   while (studentIndex < identifiers.studentIdentifiers.length) {
     addAssignmentQuery(queries, "student-targetId", "student", [
       where("targetType", "==", "student"),
-      where("targetId", "==", identifiers.studentIdentifiers[studentIndex])
+      where("targetId", "==", identifiers.studentIdentifiers[studentIndex]),
+      where("status", "==", "active")
     ], identifiers.studentIdentifiers[studentIndex]);
     addAssignmentQuery(queries, "student-studentId", "student", [
-      where("studentId", "==", identifiers.studentIdentifiers[studentIndex])
+      where("targetType", "==", "student"),
+      where("studentId", "==", identifiers.studentIdentifiers[studentIndex]),
+      where("status", "==", "active")
     ], identifiers.studentIdentifiers[studentIndex]);
     studentIndex = studentIndex + 1;
   }
@@ -258,10 +261,13 @@ function buildStudentAssignmentQueries(identifiers) {
   while (classIndex < identifiers.classIdentifiers.length) {
     addAssignmentQuery(queries, "class-targetId", "class", [
       where("targetType", "==", "class"),
-      where("targetId", "==", identifiers.classIdentifiers[classIndex])
+      where("targetId", "==", identifiers.classIdentifiers[classIndex]),
+      where("status", "==", "active")
     ], identifiers.classIdentifiers[classIndex]);
     addAssignmentQuery(queries, "class-classId", "class", [
-      where("classId", "==", identifiers.classIdentifiers[classIndex])
+      where("targetType", "==", "class"),
+      where("classId", "==", identifiers.classIdentifiers[classIndex]),
+      where("status", "==", "active")
     ], identifiers.classIdentifiers[classIndex]);
     classIndex = classIndex + 1;
   }
@@ -269,10 +275,13 @@ function buildStudentAssignmentQueries(identifiers) {
   while (locationIndex < identifiers.locationIdentifiers.length) {
     addAssignmentQuery(queries, "location-targetId", "location", [
       where("targetType", "==", "location"),
-      where("targetId", "==", identifiers.locationIdentifiers[locationIndex])
+      where("targetId", "==", identifiers.locationIdentifiers[locationIndex]),
+      where("status", "==", "active")
     ], identifiers.locationIdentifiers[locationIndex]);
     addAssignmentQuery(queries, "location-locationId", "location", [
-      where("locationId", "==", identifiers.locationIdentifiers[locationIndex])
+      where("targetType", "==", "location"),
+      where("locationId", "==", identifiers.locationIdentifiers[locationIndex]),
+      where("status", "==", "active")
     ], identifiers.locationIdentifiers[locationIndex]);
     locationIndex = locationIndex + 1;
   }

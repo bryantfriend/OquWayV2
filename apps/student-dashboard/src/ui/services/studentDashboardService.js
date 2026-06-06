@@ -1,8 +1,8 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.104-student-assignment-json-trace";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.104-student-assignment-json-trace";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.104-student-assignment-json-trace";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.104-student-assignment-json-trace";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.104-student-assignment-json-trace";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.105-student-active-assignment-query";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.105-student-active-assignment-query";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.105-student-active-assignment-query";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.105-student-active-assignment-query";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.105-student-active-assignment-query";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {

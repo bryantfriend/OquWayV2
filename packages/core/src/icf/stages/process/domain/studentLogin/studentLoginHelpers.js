@@ -1,4 +1,4 @@
-import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.104-student-assignment-json-trace";
+import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.105-student-active-assignment-query";
 
 export async function callStudentLoginFunction(payload) {
   return callCallableFunction("studentLogin", payload);
@@ -54,6 +54,8 @@ export function sanitizeProfile(profile) {
     photoUrl: readText(profile.photoUrl),
     classId: readText(profile.classId) || readFirstText(classIds),
     classIds: classIds,
+    className: readText(profile.className),
+    classCode: readText(profile.classCode || profile.code),
     locationId: readText(profile.locationId || profile.primaryLocationId || profile.schoolId) || readFirstText(locationIds),
     locationIds: locationIds,
     primaryLocationId: readText(profile.primaryLocationId),

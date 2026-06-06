@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.104-student-assignment-json-trace";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.104-student-assignment-json-trace";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.104-student-assignment-json-trace";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.105-student-active-assignment-query";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.105-student-active-assignment-query";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.105-student-active-assignment-query";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,16 +13,16 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.104-student-assignment-json-trace";
+} from "../../../packages/domain/progress/index.js?v=1.1.105-student-active-assignment-query";
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.104-student-assignment-json-trace";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.104-student-assignment-json-trace";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.104-student-assignment-json-trace";
+} from "../../../packages/ui/index.js?v=1.1.105-student-active-assignment-query";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.105-student-active-assignment-query";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.105-student-active-assignment-query";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;

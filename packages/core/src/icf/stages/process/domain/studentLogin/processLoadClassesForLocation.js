@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.104-student-assignment-json-trace";
+import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.105-student-active-assignment-query";
 
 export async function processLoadClassesForLocation(executionState) {
   var payload = executionState.payload;
