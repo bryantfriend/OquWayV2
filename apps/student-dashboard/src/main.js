@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.98-student-session-proof";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.98-student-session-proof";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.98-student-session-proof";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.99-student-profile-gate";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.99-student-profile-gate";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.99-student-profile-gate";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,16 +13,16 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.98-student-session-proof";
+} from "../../../packages/domain/progress/index.js?v=1.1.99-student-profile-gate";
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.98-student-session-proof";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.98-student-session-proof";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.98-student-session-proof";
+} from "../../../packages/ui/index.js?v=1.1.99-student-profile-gate";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.99-student-profile-gate";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.99-student-profile-gate";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -73,11 +73,6 @@ async function handleStartupAuth(user) {
     return;
   }
 
-  if (!hasConfirmedStudentSession(user.uid)) {
-    await clearStudentSessionAndRedirect("Please choose your student card and enter your fruit password.");
-    return;
-  }
-
   studentDashboardService.loadDashboard(profile);
 }
 
@@ -101,38 +96,6 @@ async function clearStudentSessionAndRedirect(message) {
   }
 
   redirectToStudentLogin(message);
-}
-
-function hasConfirmedStudentSession(uid) {
-  if (!window.sessionStorage || !uid) {
-    return false;
-  }
-
-  return window.sessionStorage.getItem("oquwayStudentSessionUid") === uid
-    || readStoredStudentProfileAuthUid() === uid;
-}
-
-function readStoredStudentProfileAuthUid() {
-  var value = "";
-  var profile = null;
-
-  if (!window.sessionStorage) {
-    return "";
-  }
-
-  value = window.sessionStorage.getItem("oquwayStudentProfile") || "";
-
-  if (!value) {
-    return "";
-  }
-
-  try {
-    profile = JSON.parse(value);
-  } catch (error) {
-    return "";
-  }
-
-  return profile && typeof profile.authUid === "string" ? profile.authUid : "";
 }
 
 function clearStudentSessionMarker() {

@@ -1,8 +1,8 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.98-student-session-proof";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.98-student-session-proof";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.98-student-session-proof";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.98-student-session-proof";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.98-student-session-proof";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.99-student-profile-gate";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.99-student-profile-gate";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.99-student-profile-gate";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.99-student-profile-gate";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.99-student-profile-gate";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
@@ -52,11 +52,6 @@ export const studentDashboardService = {
 
     try {
       var profile = verifiedStudentProfile;
-
-      if (!isPreviewMode() && !hasConfirmedStudentSession()) {
-        redirectToStudentLogin("Please choose your student card and enter your fruit password.");
-        return null;
-      }
 
       if (!isPreviewMode() && !profile) {
         profile = await this.loadVerifiedStudentProfile();
@@ -365,15 +360,6 @@ function isValidStudentProfile(profile) {
   return isStudentDashboardProfile(profile);
 }
 
-function hasConfirmedStudentSession() {
-  if (!window.sessionStorage || !auth.currentUser || !auth.currentUser.uid) {
-    return false;
-  }
-
-  return window.sessionStorage.getItem("oquwayStudentSessionUid") === auth.currentUser.uid
-    || readStoredStudentProfileAuthUid() === auth.currentUser.uid;
-}
-
 function isPreviewMode() {
   return window.location.search.indexOf("preview=1") !== -1;
 }
@@ -493,12 +479,6 @@ function readStoredStudentProfile() {
   } catch (error) {
     return null;
   }
-}
-
-function readStoredStudentProfileAuthUid() {
-  var profile = readStoredStudentProfile();
-
-  return profile && typeof profile.authUid === "string" ? profile.authUid : "";
 }
 
 function logStudentCourseProfileDebug(studentProfile) {

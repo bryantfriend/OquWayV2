@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.98-student-session-proof";
+import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.99-student-profile-gate";
 
 export async function processLoadClassesForLocation(executionState) {
   var payload = executionState.payload;

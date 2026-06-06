@@ -1,6 +1,6 @@
-import { getActiveAssignmentsForStudent } from "../assignments/index.js?v=1.1.98-student-session-proof";
+import { getActiveAssignmentsForStudent } from "../assignments/index.js?v=1.1.99-student-profile-gate";
 
-export { buildStudentAssignmentTargets } from "../assignments/index.js?v=1.1.98-student-session-proof";
+export { buildStudentAssignmentTargets } from "../assignments/index.js?v=1.1.99-student-profile-gate";
 
 export async function getAssignedCourses(studentId, studentProfile) {
   var assignmentResult = await getAssignedCourseIds(studentId, studentProfile);
