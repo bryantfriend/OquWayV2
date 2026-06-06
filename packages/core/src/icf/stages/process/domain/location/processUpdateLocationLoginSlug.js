@@ -1,4 +1,4 @@
-import { collection, db, doc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.107-student-firebase-auth-chain";
+import { collection, db, doc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.108-student-class-alias-merge";
 
 export async function processUpdateLocationLoginSlug(executionState) {
   var payload = executionState.payload || {};

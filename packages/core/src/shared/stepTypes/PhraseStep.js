@@ -1,4 +1,4 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.107-student-firebase-auth-chain";
+import { BaseStep } from "./BaseStep.js?v=1.1.108-student-class-alias-merge";
 
 export class PhraseStep extends BaseStep {
   static get type() {

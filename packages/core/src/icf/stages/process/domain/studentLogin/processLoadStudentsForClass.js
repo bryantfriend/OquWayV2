@@ -1,4 +1,4 @@
-import { callGetStudentsForClassFunction } from "./studentLoginHelpers.js?v=1.1.107-student-firebase-auth-chain";
+import { callGetStudentsForClassFunction } from "./studentLoginHelpers.js?v=1.1.108-student-class-alias-merge";
 
 export async function processLoadStudentsForClass(executionState) {
   var payload = executionState.payload;

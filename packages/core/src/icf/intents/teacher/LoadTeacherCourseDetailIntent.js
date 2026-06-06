@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateTeacherReviewQueuePayload } from "../../stages/validate/validators.js?v=1.1.107-student-firebase-auth-chain";
-import { normalizeTeacherDashboardPayload } from "../../stages/normalize/normalizers.js?v=1.1.107-student-firebase-auth-chain";
-import { attachActorContext, attachActorRoleContext, attachTeacherProfileContext } from "../../stages/addContext/contexts.js?v=1.1.107-student-firebase-auth-chain";
-import { requireTeacherDashboardAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.107-student-firebase-auth-chain";
-import { processLoadTeacherCourseDetail } from "../../stages/process/processors.js?v=1.1.107-student-firebase-auth-chain";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.107-student-firebase-auth-chain";
+import { validateAuthenticated, validateTeacherReviewQueuePayload } from "../../stages/validate/validators.js?v=1.1.108-student-class-alias-merge";
+import { normalizeTeacherDashboardPayload } from "../../stages/normalize/normalizers.js?v=1.1.108-student-class-alias-merge";
+import { attachActorContext, attachActorRoleContext, attachTeacherProfileContext } from "../../stages/addContext/contexts.js?v=1.1.108-student-class-alias-merge";
+import { requireTeacherDashboardAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.108-student-class-alias-merge";
+import { processLoadTeacherCourseDetail } from "../../stages/process/processors.js?v=1.1.108-student-class-alias-merge";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.108-student-class-alias-merge";
 
 export function LoadTeacherCourseDetailIntent() {
   return {

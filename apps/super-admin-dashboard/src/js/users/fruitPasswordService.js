@@ -1,4 +1,4 @@
-import { fruitOptions } from "../../../../../packages/shared/constants/admin.js?v=1.1.107-student-firebase-auth-chain";
+import { fruitOptions } from "../../../../../packages/shared/constants/admin.js?v=1.1.108-student-class-alias-merge";
 
 export function createRandomFruitPassword() {
   var values = [];

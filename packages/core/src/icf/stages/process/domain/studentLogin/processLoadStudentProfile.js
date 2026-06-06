@@ -1,5 +1,5 @@
-import { getStudentProfileByAuthUid } from "../../../../../../../domain/users/index.js?v=1.1.107-student-firebase-auth-chain";
-import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.107-student-firebase-auth-chain";
+import { getStudentProfileByAuthUid } from "../../../../../../../domain/users/index.js?v=1.1.108-student-class-alias-merge";
+import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.108-student-class-alias-merge";
 
 export async function processLoadStudentProfile(executionState) {
   var actor = executionState.actor;
@@ -158,6 +158,10 @@ function mergeActorStudentContext(profile, actor) {
     mergedProfile.classId = actor.classId;
   }
 
+  if (actor && actor.classId) {
+    mergedProfile.classIds = mergeTextLists(mergedProfile.classIds, [actor.classId]);
+  }
+
   if (actor && actor.className && !mergedProfile.className) {
     mergedProfile.className = actor.className;
   }
@@ -167,4 +171,38 @@ function mergeActorStudentContext(profile, actor) {
   }
 
   return mergedProfile;
+}
+
+function mergeTextLists(primaryValues, fallbackValues) {
+  var result = [];
+
+  appendTextValues(result, primaryValues);
+  appendTextValues(result, fallbackValues);
+
+  return result;
+}
+
+function appendTextValues(result, values) {
+  if (typeof values === "string") {
+    appendUniqueText(result, values);
+    return;
+  }
+
+  if (!Array.isArray(values)) {
+    return;
+  }
+
+  values.forEach(function (value) {
+    appendTextValues(result, value);
+  });
+}
+
+function appendUniqueText(result, value) {
+  if (typeof value !== "string" || value.length === 0) {
+    return;
+  }
+
+  if (result.indexOf(value) === -1) {
+    result.push(value);
+  }
 }

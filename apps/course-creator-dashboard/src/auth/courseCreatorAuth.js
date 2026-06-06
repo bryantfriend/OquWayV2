@@ -3,8 +3,8 @@ import {
     getUserProfileByAuthUid,
     getUserRoles,
     normalizeUserRole
-} from "../../../../packages/domain/users/index.js?v=1.1.107-student-firebase-auth-chain";
-import { canAccessCourseCreator } from "../../../../packages/permissions/index.js?v=1.1.107-student-firebase-auth-chain";
+} from "../../../../packages/domain/users/index.js?v=1.1.108-student-class-alias-merge";
+import { canAccessCourseCreator } from "../../../../packages/permissions/index.js?v=1.1.108-student-class-alias-merge";
 
 export const ALLOWED_COURSE_CREATOR_ROLES = [
     "superAdmin",

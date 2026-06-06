@@ -1,5 +1,5 @@
-import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.107-student-firebase-auth-chain";
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.107-student-firebase-auth-chain";
+import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.108-student-class-alias-merge";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.108-student-class-alias-merge";
 import { calculateCourseCompletion, calculateCourseProgressSummary } from "../../../../../../../domain/progress/index.js";
 
 export async function processLoadStudentDashboard(executionState) {

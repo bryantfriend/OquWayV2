@@ -1,7 +1,7 @@
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.107-student-firebase-auth-chain";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.107-student-firebase-auth-chain";
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.107-student-firebase-auth-chain";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.107-student-firebase-auth-chain";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.108-student-class-alias-merge";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.108-student-class-alias-merge";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.108-student-class-alias-merge";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.108-student-class-alias-merge";
 
 function getActor() {
   return auth.currentUser ? { id: auth.currentUser.uid, role: "ROLE_COURSE_CREATOR" } : null;

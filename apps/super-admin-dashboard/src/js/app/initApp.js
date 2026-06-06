@@ -1,8 +1,8 @@
-import { appState, updateAppState } from "./appState.js?v=1.1.107-student-firebase-auth-chain";
-import { registerIntentDefinitions, runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.107-student-firebase-auth-chain";
-import { createClassesIntentRegistrar, createDashboardIntentRegistrar, createUsersIntentRegistrar } from "../../../../../packages/icf/admin/intents/index.js?v=1.1.107-student-firebase-auth-chain";
-import { createUser, deleteUser, disableUser, getUser, getUsers, sendPasswordReset, updateUser } from "../users/usersService.js?v=1.1.107-student-firebase-auth-chain";
-import { resetFruitPassword } from "../users/fruitPasswordService.js?v=1.1.107-student-firebase-auth-chain";
+import { appState, updateAppState } from "./appState.js?v=1.1.108-student-class-alias-merge";
+import { registerIntentDefinitions, runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.108-student-class-alias-merge";
+import { createClassesIntentRegistrar, createDashboardIntentRegistrar, createUsersIntentRegistrar } from "../../../../../packages/icf/admin/intents/index.js?v=1.1.108-student-class-alias-merge";
+import { createUser, deleteUser, disableUser, getUser, getUsers, sendPasswordReset, updateUser } from "../users/usersService.js?v=1.1.108-student-class-alias-merge";
+import { resetFruitPassword } from "../users/fruitPasswordService.js?v=1.1.108-student-class-alias-merge";
 
 export async function initApp() {
   registerIntentDefinitions([
@@ -25,7 +25,7 @@ export async function initApp() {
     runIntent: runAdminIntent
   };
 
-  await import("./legacyDashboard.js?v=1.1.107-student-firebase-auth-chain");
+  await import("./legacyDashboard.js?v=1.1.108-student-class-alias-merge");
   updateAppState({ legacyDashboardLoaded: true });
 }
 

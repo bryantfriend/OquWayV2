@@ -1,6 +1,6 @@
-import { allowPublicLocationRead } from "../../stages/authorize/authorizers.js?v=1.1.107-student-firebase-auth-chain";
-import { processListLocations } from "../../stages/process/processors.js?v=1.1.107-student-firebase-auth-chain";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.107-student-firebase-auth-chain";
+import { allowPublicLocationRead } from "../../stages/authorize/authorizers.js?v=1.1.108-student-class-alias-merge";
+import { processListLocations } from "../../stages/process/processors.js?v=1.1.108-student-class-alias-merge";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.108-student-class-alias-merge";
 
 export function LoadLocationsIntent() {
   return {

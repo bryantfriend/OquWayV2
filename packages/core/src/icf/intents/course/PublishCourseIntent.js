@@ -1,4 +1,4 @@
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.107-student-firebase-auth-chain";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.108-student-class-alias-merge";
 
 export function PublishCourseIntent() {
   return {

@@ -2,7 +2,7 @@ import {
   readPracticeModeProgress,
   readPracticeModeStepIds,
   saveStudentPracticeModeProgress
-} from "./studentProgressHelpers.js?v=1.1.107-student-firebase-auth-chain";
+} from "./studentProgressHelpers.js?v=1.1.108-student-class-alias-merge";
 
 export async function processCompletePracticeMode(executionState) {
   var payload = executionState.payload;

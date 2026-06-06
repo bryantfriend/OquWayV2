@@ -1,4 +1,4 @@
-import { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.107-student-firebase-auth-chain";
+import { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.108-student-class-alias-merge";
 
 var intents = {};
 

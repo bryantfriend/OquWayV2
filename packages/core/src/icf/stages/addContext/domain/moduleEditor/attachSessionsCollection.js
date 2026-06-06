@@ -1,5 +1,5 @@
-import { db, collection, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.107-student-firebase-auth-chain";
-import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.107-student-firebase-auth-chain";
+import { db, collection, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.108-student-class-alias-merge";
+import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.108-student-class-alias-merge";
 
 export async function attachSessionsCollection(executionState) {
   const payload = executionState.payload;

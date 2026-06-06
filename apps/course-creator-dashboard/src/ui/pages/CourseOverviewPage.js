@@ -1,13 +1,13 @@
-import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.107-student-firebase-auth-chain';
-import { courseEditorService } from '../services/courseEditorService.js?v=1.1.107-student-firebase-auth-chain';
-import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.107-student-firebase-auth-chain';
-import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.107-student-firebase-auth-chain';
+import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.108-student-class-alias-merge';
+import { courseEditorService } from '../services/courseEditorService.js?v=1.1.108-student-class-alias-merge';
+import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.108-student-class-alias-merge';
+import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.108-student-class-alias-merge';
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge
-} from '../../../../../packages/ui/index.js?v=1.1.107-student-firebase-auth-chain';
+} from '../../../../../packages/ui/index.js?v=1.1.108-student-class-alias-merge';
 
 export class CourseOverviewPage {
   constructor(courseId, options) {

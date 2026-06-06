@@ -1,4 +1,4 @@
-import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.107-student-firebase-auth-chain";
+import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.108-student-class-alias-merge";
 
 export function normalizePracticeModeStep(executionState) {
   var payload = executionState.payload;

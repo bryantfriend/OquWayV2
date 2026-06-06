@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.107-student-firebase-auth-chain";
-import { createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.107-student-firebase-auth-chain";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.108-student-class-alias-merge";
+import { createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.108-student-class-alias-merge";
 
 export async function processRenameLearningMode(executionState) {
   var payload = executionState.payload || {};

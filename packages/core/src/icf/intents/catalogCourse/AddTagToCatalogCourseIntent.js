@@ -1,12 +1,12 @@
-import { catalogCourseRequireTagValidation } from "../../stages/validate/validators.js?v=1.1.107-student-firebase-auth-chain";
-import { catalogCourseNormalizeTagNormalization } from "../../stages/normalize/normalizers.js?v=1.1.107-student-firebase-auth-chain";
-import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.107-student-firebase-auth-chain";
-import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.107-student-firebase-auth-chain";
-import { attachExistingCourseContext } from "../../stages/addContext/contexts.js?v=1.1.107-student-firebase-auth-chain";
-import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.107-student-firebase-auth-chain";
-import { preventModificationIfPublishedAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.107-student-firebase-auth-chain";
-import { catalogCourseAddTagProcessing, catalogCourseUpdateMetadataProcessing } from "../../stages/process/processors.js?v=1.1.107-student-firebase-auth-chain";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.107-student-firebase-auth-chain";
+import { catalogCourseRequireTagValidation } from "../../stages/validate/validators.js?v=1.1.108-student-class-alias-merge";
+import { catalogCourseNormalizeTagNormalization } from "../../stages/normalize/normalizers.js?v=1.1.108-student-class-alias-merge";
+import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.108-student-class-alias-merge";
+import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.108-student-class-alias-merge";
+import { attachExistingCourseContext } from "../../stages/addContext/contexts.js?v=1.1.108-student-class-alias-merge";
+import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.108-student-class-alias-merge";
+import { preventModificationIfPublishedAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.108-student-class-alias-merge";
+import { catalogCourseAddTagProcessing, catalogCourseUpdateMetadataProcessing } from "../../stages/process/processors.js?v=1.1.108-student-class-alias-merge";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.108-student-class-alias-merge";
 
 export function AddTagToCatalogCourseIntent() {
     return {

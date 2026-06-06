@@ -1,8 +1,8 @@
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.107-student-firebase-auth-chain";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.107-student-firebase-auth-chain";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.108-student-class-alias-merge";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.108-student-class-alias-merge";
 import { getClassesForTeacher } from "../../../../../../../domain/classes/index.js";
-import { getExternalTaskSubmissionsForTeacher } from "../../../../../../../domain/externalTasks/index.js?v=1.1.107-student-firebase-auth-chain";
+import { getExternalTaskSubmissionsForTeacher } from "../../../../../../../domain/externalTasks/index.js?v=1.1.108-student-class-alias-merge";
 import {
   getStudentsForClasses,
   getUserProfileByAuthUid,

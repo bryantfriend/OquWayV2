@@ -1,5 +1,5 @@
-import { auth } from "../../packages/firebase/auth/index.js?v=1.1.107-student-firebase-auth-chain";
-import { verifyCourseCreatorAccess, normalizeRole } from "./src/auth/courseCreatorAuth.js?v=1.1.107-student-firebase-auth-chain";
+import { auth } from "../../packages/firebase/auth/index.js?v=1.1.108-student-class-alias-merge";
+import { verifyCourseCreatorAccess, normalizeRole } from "./src/auth/courseCreatorAuth.js?v=1.1.108-student-class-alias-merge";
 import {
     signInWithEmailAndPassword,
     onAuthStateChanged,

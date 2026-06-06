@@ -3,7 +3,7 @@ import {
   getStepTypeDefinition,
   isSupportedStepType,
   listStepTypeDefinitions
-} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.107-student-firebase-auth-chain";
+} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.108-student-class-alias-merge";
 
 export {
   createDefaultStepConfig,

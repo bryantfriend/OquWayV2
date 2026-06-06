@@ -1,4 +1,4 @@
-import { createDefaultLearningContent, readTemplateSpecs } from "../moduleEditor/learningArchitecture.js?v=1.1.107-student-firebase-auth-chain";
+import { createDefaultLearningContent, readTemplateSpecs } from "../moduleEditor/learningArchitecture.js?v=1.1.108-student-class-alias-merge";
 
 export function processOpenCreateModuleWizard(executionState) {
   var payload = executionState.payload || {};

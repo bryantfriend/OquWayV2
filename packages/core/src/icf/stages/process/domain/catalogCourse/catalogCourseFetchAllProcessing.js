@@ -1,4 +1,4 @@
-import { db, collection, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.107-student-firebase-auth-chain";
+import { db, collection, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.108-student-class-alias-merge";
 
 const COURSE_COUNT_CONCURRENCY = 4;
 const MODULE_COUNT_CONCURRENCY = 4;

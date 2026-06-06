@@ -1,4 +1,4 @@
-import { db, collection, doc, getDoc, getDocs, serverTimestamp, writeBatch } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.107-student-firebase-auth-chain";
+import { db, collection, doc, getDoc, getDocs, serverTimestamp, writeBatch } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.108-student-class-alias-merge";
 
 export async function migrateLegacyModulesToCatalogCourse(courseId) {
     const legacyModulesSnapshot = await getDocs(collection(db, "courses", courseId, "modules"));

@@ -1,9 +1,9 @@
-import { validateDemoPayload } from "../../stages/validate/validators.js?v=1.1.107-student-firebase-auth-chain";
-import { normalizeDemoPayload } from "../../stages/normalize/normalizers.js?v=1.1.107-student-firebase-auth-chain";
-import { attachDemoContext } from "../../stages/addContext/contexts.js?v=1.1.107-student-firebase-auth-chain";
-import { authorizeDemoActor } from "../../stages/authorize/authorizers.js?v=1.1.107-student-firebase-auth-chain";
-import { processDemoAction } from "../../stages/process/processors.js?v=1.1.107-student-firebase-auth-chain";
-import { emitDemoResult } from "../../stages/emit/emitters.js?v=1.1.107-student-firebase-auth-chain";
+import { validateDemoPayload } from "../../stages/validate/validators.js?v=1.1.108-student-class-alias-merge";
+import { normalizeDemoPayload } from "../../stages/normalize/normalizers.js?v=1.1.108-student-class-alias-merge";
+import { attachDemoContext } from "../../stages/addContext/contexts.js?v=1.1.108-student-class-alias-merge";
+import { authorizeDemoActor } from "../../stages/authorize/authorizers.js?v=1.1.108-student-class-alias-merge";
+import { processDemoAction } from "../../stages/process/processors.js?v=1.1.108-student-class-alias-merge";
+import { emitDemoResult } from "../../stages/emit/emitters.js?v=1.1.108-student-class-alias-merge";
 
 export function DemoIntent() {
   return {

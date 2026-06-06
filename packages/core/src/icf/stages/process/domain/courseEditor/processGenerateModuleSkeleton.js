@@ -2,7 +2,7 @@ import {
   createLearningModesForTemplate,
   createStarterStepsForMode,
   normalizeLearningContentPayload
-} from "../moduleEditor/learningArchitecture.js?v=1.1.107-student-firebase-auth-chain";
+} from "../moduleEditor/learningArchitecture.js?v=1.1.108-student-class-alias-merge";
 
 export function processGenerateModuleSkeleton(executionState) {
   var payload = executionState.payload || {};

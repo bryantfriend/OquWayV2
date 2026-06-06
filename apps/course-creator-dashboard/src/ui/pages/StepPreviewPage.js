@@ -1,9 +1,9 @@
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.107-student-firebase-auth-chain";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.107-student-firebase-auth-chain";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.108-student-class-alias-merge";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.108-student-class-alias-merge";
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../../../../../packages/domain/steps/index.js?v=1.1.107-student-firebase-auth-chain";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.108-student-class-alias-merge";
 
 export class StepPreviewPage {
   constructor(courseId, moduleId, modeId, stepId) {

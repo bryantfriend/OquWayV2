@@ -1,7 +1,7 @@
 // runIntentPipeline.js
 
-import { runStageArray } from "./runStageArray.js?v=1.1.107-student-firebase-auth-chain";
-import { buildResult } from "./buildResult.js?v=1.1.107-student-firebase-auth-chain";
+import { runStageArray } from "./runStageArray.js?v=1.1.108-student-class-alias-merge";
+import { buildResult } from "./buildResult.js?v=1.1.108-student-class-alias-merge";
 
 export async function runIntentPipeline(intentDefinition, executionInput) {
   const executionState = createExecutionState(intentDefinition, executionInput);

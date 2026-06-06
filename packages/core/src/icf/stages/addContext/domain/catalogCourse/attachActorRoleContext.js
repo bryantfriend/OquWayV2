@@ -1,4 +1,4 @@
-import { readActorRoles, readPrimaryRole } from "../../../authorize/core/roleAuthorization.js?v=1.1.107-student-firebase-auth-chain";
+import { readActorRoles, readPrimaryRole } from "../../../authorize/core/roleAuthorization.js?v=1.1.108-student-class-alias-merge";
 
 export function attachActorContext(executionState) {
     if (executionState.actor && executionState.actor.id) {

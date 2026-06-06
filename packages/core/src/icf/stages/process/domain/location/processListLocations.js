@@ -1,4 +1,4 @@
-import { collection, db, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.107-student-firebase-auth-chain";
+import { collection, db, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.108-student-class-alias-merge";
 
 export async function processListLocations(executionState) {
   try {

@@ -1,6 +1,6 @@
 // createIntent.js
 
-import { getIntentDefinition } from "./intentRegistry.js?v=1.1.107-student-firebase-auth-chain";
+import { getIntentDefinition } from "./intentRegistry.js?v=1.1.108-student-class-alias-merge";
 
 export function createIntent(intentInput) {
   const intentType = readIntentType(intentInput);

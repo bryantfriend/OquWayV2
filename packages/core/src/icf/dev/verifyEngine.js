@@ -3,12 +3,12 @@
 // ICF Engine Verification Runner
 //
 // Usage from browser console:
-//   import("./packages/core/src/icf/dev/verifyEngine.js?v=1.1.107-student-firebase-auth-chain").then(function (m) { m.verifyEngine(); });
+//   import("./packages/core/src/icf/dev/verifyEngine.js?v=1.1.108-student-class-alias-merge").then(function (m) { m.verifyEngine(); });
 //
 // Or call verifyEngine() after importing this module in your app entry point.
 
-import { createIntent } from "../engine/createIntent.js?v=1.1.107-student-firebase-auth-chain";
-import { runIntentPipeline } from "../engine/runIntentPipeline.js?v=1.1.107-student-firebase-auth-chain";
+import { createIntent } from "../engine/createIntent.js?v=1.1.108-student-class-alias-merge";
+import { runIntentPipeline } from "../engine/runIntentPipeline.js?v=1.1.108-student-class-alias-merge";
 
 export async function verifyEngine() {
   console.info("");

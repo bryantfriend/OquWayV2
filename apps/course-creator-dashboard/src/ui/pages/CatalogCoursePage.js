@@ -1,5 +1,5 @@
-import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.107-student-firebase-auth-chain";
-import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.107-student-firebase-auth-chain";
+import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.108-student-class-alias-merge";
+import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.108-student-class-alias-merge";
 
 export class CatalogCoursePage {
   constructor() {

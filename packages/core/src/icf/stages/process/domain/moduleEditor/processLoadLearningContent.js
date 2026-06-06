@@ -1,4 +1,4 @@
-import { createDefaultLearningContent } from "./learningArchitecture.js?v=1.1.107-student-firebase-auth-chain";
+import { createDefaultLearningContent } from "./learningArchitecture.js?v=1.1.108-student-class-alias-merge";
 
 export function processLoadLearningContent(executionState) {
   executionState.result = {

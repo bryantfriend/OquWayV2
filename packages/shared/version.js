@@ -1,1 +1,1 @@
-export const OQUWAY_BUILD_VERSION = "1.1.107-student-firebase-auth-chain";
+export const OQUWAY_BUILD_VERSION = "1.1.108-student-class-alias-merge";

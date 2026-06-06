@@ -1,4 +1,4 @@
-import { createPulledStepDraft } from "./learningArchitecture.js?v=1.1.107-student-firebase-auth-chain";
+import { createPulledStepDraft } from "./learningArchitecture.js?v=1.1.108-student-class-alias-merge";
 
 export function processPullLearningContent(executionState) {
   var learningContent = executionState.context.module && executionState.context.module.learningContent;

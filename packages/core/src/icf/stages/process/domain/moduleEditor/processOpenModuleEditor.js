@@ -1,4 +1,4 @@
-import { createDefaultLearningContent, createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.107-student-firebase-auth-chain";
+import { createDefaultLearningContent, createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.108-student-class-alias-merge";
 
 export async function processOpenModuleEditor(executionState) {
   const context = executionState.context;

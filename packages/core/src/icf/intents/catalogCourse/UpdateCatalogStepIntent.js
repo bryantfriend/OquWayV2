@@ -1,11 +1,11 @@
-import { catalogCourseRequireStepIdValidation, catalogCourseValidateStepConfigValidation } from "../../stages/validate/validators.js?v=1.1.107-student-firebase-auth-chain";
-import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.107-student-firebase-auth-chain";
-import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.107-student-firebase-auth-chain";
-import { attachExistingStepContext } from "../../stages/addContext/contexts.js?v=1.1.107-student-firebase-auth-chain";
-import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.107-student-firebase-auth-chain";
-import { preventModificationIfPublishedAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.107-student-firebase-auth-chain";
-import { catalogStepUpdateProcessing } from "../../stages/process/processors.js?v=1.1.107-student-firebase-auth-chain";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.107-student-firebase-auth-chain";
+import { catalogCourseRequireStepIdValidation, catalogCourseValidateStepConfigValidation } from "../../stages/validate/validators.js?v=1.1.108-student-class-alias-merge";
+import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.108-student-class-alias-merge";
+import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.108-student-class-alias-merge";
+import { attachExistingStepContext } from "../../stages/addContext/contexts.js?v=1.1.108-student-class-alias-merge";
+import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.108-student-class-alias-merge";
+import { preventModificationIfPublishedAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.108-student-class-alias-merge";
+import { catalogStepUpdateProcessing } from "../../stages/process/processors.js?v=1.1.108-student-class-alias-merge";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.108-student-class-alias-merge";
 
 export function UpdateCatalogStepIntent() {
     return {

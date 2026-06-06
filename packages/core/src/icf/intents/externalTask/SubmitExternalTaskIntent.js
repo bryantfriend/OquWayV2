@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateExternalTaskSubmitPayload } from "../../stages/validate/validators.js?v=1.1.107-student-firebase-auth-chain";
-import { normalizeExternalTaskPayload } from "../../stages/normalize/normalizers.js?v=1.1.107-student-firebase-auth-chain";
-import { attachActorContext, attachActorRoleContext, attachStudentProfileContext } from "../../stages/addContext/contexts.js?v=1.1.107-student-firebase-auth-chain";
-import { requireExternalTaskStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.107-student-firebase-auth-chain";
-import { processSubmitExternalTask } from "../../stages/process/processors.js?v=1.1.107-student-firebase-auth-chain";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.107-student-firebase-auth-chain";
+import { validateAuthenticated, validateExternalTaskSubmitPayload } from "../../stages/validate/validators.js?v=1.1.108-student-class-alias-merge";
+import { normalizeExternalTaskPayload } from "../../stages/normalize/normalizers.js?v=1.1.108-student-class-alias-merge";
+import { attachActorContext, attachActorRoleContext, attachStudentProfileContext } from "../../stages/addContext/contexts.js?v=1.1.108-student-class-alias-merge";
+import { requireExternalTaskStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.108-student-class-alias-merge";
+import { processSubmitExternalTask } from "../../stages/process/processors.js?v=1.1.108-student-class-alias-merge";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.108-student-class-alias-merge";
 
 export function SubmitExternalTaskIntent() {
   return {

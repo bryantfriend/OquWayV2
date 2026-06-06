@@ -1,12 +1,12 @@
 import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.86-dev-workflow";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.107-student-firebase-auth-chain";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.108-student-class-alias-merge";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.107-student-firebase-auth-chain";
-import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.107-student-firebase-auth-chain";
-import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.107-student-firebase-auth-chain";
-import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.107-student-firebase-auth-chain";
-import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.107-student-firebase-auth-chain";
-import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.107-student-firebase-auth-chain";
+import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.108-student-class-alias-merge";
+import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.108-student-class-alias-merge";
+import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.108-student-class-alias-merge";
+import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.108-student-class-alias-merge";
+import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.108-student-class-alias-merge";
+import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.108-student-class-alias-merge";
 
 console.log("[oquway-build]", OQUWAY_BUILD_VERSION);
 console.warn("[course-creator-build-check] latest build active");

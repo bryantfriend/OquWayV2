@@ -1,6 +1,6 @@
-import { getActiveAssignmentsForStudent } from "../assignments/index.js?v=1.1.107-student-firebase-auth-chain";
+import { getActiveAssignmentsForStudent } from "../assignments/index.js?v=1.1.108-student-class-alias-merge";
 
-export { buildStudentAssignmentTargets } from "../assignments/index.js?v=1.1.107-student-firebase-auth-chain";
+export { buildStudentAssignmentTargets } from "../assignments/index.js?v=1.1.108-student-class-alias-merge";
 
 export async function getAssignedCourses(studentId, studentProfile) {
   var assignmentResult = await getAssignedCourseIds(studentId, studentProfile);

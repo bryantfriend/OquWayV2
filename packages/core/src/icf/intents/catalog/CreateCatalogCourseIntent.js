@@ -1,9 +1,9 @@
-import { catalogCourseRequireTitleValidation } from "../../stages/validate/validators.js?v=1.1.107-student-firebase-auth-chain";
-import { catalogCourseNormalizeTitleNormalization } from "../../stages/normalize/normalizers.js?v=1.1.107-student-firebase-auth-chain";
-import { catalogAttachSystemContext } from "../../stages/addContext/contexts.js?v=1.1.107-student-firebase-auth-chain";
-import { catalogRequireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.107-student-firebase-auth-chain";
-import { catalogCourseCreateRecordProcessing } from "../../stages/process/processors.js?v=1.1.107-student-firebase-auth-chain";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.107-student-firebase-auth-chain";
+import { catalogCourseRequireTitleValidation } from "../../stages/validate/validators.js?v=1.1.108-student-class-alias-merge";
+import { catalogCourseNormalizeTitleNormalization } from "../../stages/normalize/normalizers.js?v=1.1.108-student-class-alias-merge";
+import { catalogAttachSystemContext } from "../../stages/addContext/contexts.js?v=1.1.108-student-class-alias-merge";
+import { catalogRequireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.108-student-class-alias-merge";
+import { catalogCourseCreateRecordProcessing } from "../../stages/process/processors.js?v=1.1.108-student-class-alias-merge";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.108-student-class-alias-merge";
 
 export function CreateCatalogCourseIntent() {
     return {

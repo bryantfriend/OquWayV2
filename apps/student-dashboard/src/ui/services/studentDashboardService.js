@@ -1,8 +1,8 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.107-student-firebase-auth-chain";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.107-student-firebase-auth-chain";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.107-student-firebase-auth-chain";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.107-student-firebase-auth-chain";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.107-student-firebase-auth-chain";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.108-student-class-alias-merge";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.108-student-class-alias-merge";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.108-student-class-alias-merge";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.108-student-class-alias-merge";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.108-student-class-alias-merge";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {

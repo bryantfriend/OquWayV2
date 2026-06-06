@@ -1,9 +1,9 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.107-student-firebase-auth-chain";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.107-student-firebase-auth-chain";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.107-student-firebase-auth-chain";
-import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.107-student-firebase-auth-chain";
-import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js?v=1.1.107-student-firebase-auth-chain";
-import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.107-student-firebase-auth-chain";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.108-student-class-alias-merge";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.108-student-class-alias-merge";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.108-student-class-alias-merge";
+import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.108-student-class-alias-merge";
+import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js?v=1.1.108-student-class-alias-merge";
+import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.108-student-class-alias-merge";
 
 export async function processLoadStudentCourse(executionState) {
   var actor = executionState.actor;

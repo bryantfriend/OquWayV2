@@ -9,4 +9,4 @@ export {
   serverTimestamp,
   setDoc,
   where
-} from "../../core/src/infrastructure/firebase/firestore.js?v=1.1.107-student-firebase-auth-chain";
+} from "../../core/src/infrastructure/firebase/firestore.js?v=1.1.108-student-class-alias-merge";

@@ -1,4 +1,4 @@
-import { loadCourseAssignments, sortAssignments } from "./courseAssignmentHelpers.js?v=1.1.107-student-firebase-auth-chain";
+import { loadCourseAssignments, sortAssignments } from "./courseAssignmentHelpers.js?v=1.1.108-student-class-alias-merge";
 
 export async function processLoadCourseAssignments(executionState) {
   var payload = executionState.payload || {};

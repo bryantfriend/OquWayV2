@@ -1,13 +1,13 @@
-import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.107-student-firebase-auth-chain";
-import { VocabularyStep } from "./VocabularyStep.js?v=1.1.107-student-firebase-auth-chain";
-import { PhraseStep } from "./PhraseStep.js?v=1.1.107-student-firebase-auth-chain";
-import { ListeningStep } from "./ListeningStep.js?v=1.1.107-student-firebase-auth-chain";
-import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.107-student-firebase-auth-chain";
-import { ReflectionStep } from "./ReflectionStep.js?v=1.1.107-student-firebase-auth-chain";
-import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.107-student-firebase-auth-chain";
-import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.107-student-firebase-auth-chain";
-import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.107-student-firebase-auth-chain";
-import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.107-student-firebase-auth-chain";
+import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.108-student-class-alias-merge";
+import { VocabularyStep } from "./VocabularyStep.js?v=1.1.108-student-class-alias-merge";
+import { PhraseStep } from "./PhraseStep.js?v=1.1.108-student-class-alias-merge";
+import { ListeningStep } from "./ListeningStep.js?v=1.1.108-student-class-alias-merge";
+import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.108-student-class-alias-merge";
+import { ReflectionStep } from "./ReflectionStep.js?v=1.1.108-student-class-alias-merge";
+import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.108-student-class-alias-merge";
+import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.108-student-class-alias-merge";
+import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.108-student-class-alias-merge";
+import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.108-student-class-alias-merge";
 
 var stepTypes = {
   textBriefing: TextBriefingStep,

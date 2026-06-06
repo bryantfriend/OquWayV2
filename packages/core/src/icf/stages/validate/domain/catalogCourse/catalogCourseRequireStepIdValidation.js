@@ -1,7 +1,7 @@
-import { requireStringValidation } from "../../validators.js?v=1.1.107-student-firebase-auth-chain";
-import { requireNonEmptyArrayValidation } from "../../validators.js?v=1.1.107-student-firebase-auth-chain";
-import { requireEnumValidation } from "../../validators.js?v=1.1.107-student-firebase-auth-chain";
-import { requireUUIDValidation } from "../../validators.js?v=1.1.107-student-firebase-auth-chain";
+import { requireStringValidation } from "../../validators.js?v=1.1.108-student-class-alias-merge";
+import { requireNonEmptyArrayValidation } from "../../validators.js?v=1.1.108-student-class-alias-merge";
+import { requireEnumValidation } from "../../validators.js?v=1.1.108-student-class-alias-merge";
+import { requireUUIDValidation } from "../../validators.js?v=1.1.108-student-class-alias-merge";
 
 export function catalogCourseRequireStepIdValidation(executionState) {
     const { payload } = executionState;
