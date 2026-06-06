@@ -1,6 +1,6 @@
-import { getActiveAssignmentsForStudent } from "../assignments/index.js";
+import { getActiveAssignmentsForStudent } from "../assignments/index.js?v=1.1.88-student-course-assignment-trace";
 
-export { buildStudentAssignmentTargets } from "../assignments/index.js";
+export { buildStudentAssignmentTargets } from "../assignments/index.js?v=1.1.88-student-course-assignment-trace";
 
 export async function getAssignedCourses(studentId, studentProfile) {
   var assignmentResult = await getAssignedCourseIds(studentId, studentProfile);
@@ -13,6 +13,7 @@ export async function getAssignedCourses(studentId, studentProfile) {
     warnings: assignmentResult.warnings,
     queryPaths: assignmentResult.queryPaths,
     rejectionReasons: assignmentResult.rejectionReasons,
+    assignments: assignmentResult.assignments || [],
     directCount: assignmentResult.directCount || 0,
     classCount: assignmentResult.classCount || 0,
     locationCount: assignmentResult.locationCount || 0,
@@ -51,6 +52,7 @@ async function getAssignedCourseIdsFromAssignments(studentId, studentProfile) {
     source: "courseAssignments",
     queryPaths: assignmentResult.queryPaths,
     rejectionReasons: assignmentResult.rejectionReasons,
+    assignments: assignmentResult.assignments || [],
     directCount: assignmentResult.directAssignments.length,
     classCount: assignmentResult.classAssignments.length,
     locationCount: assignmentResult.locationAssignments.length,

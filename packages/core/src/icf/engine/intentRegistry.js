@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.82-shared-command-center-shell";
+import * as IntentExports from "../intents/intents.js?v=1.1.88-student-course-assignment-trace";
 
 const registry = {
   // Demo Verification

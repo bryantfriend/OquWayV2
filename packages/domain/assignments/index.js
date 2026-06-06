@@ -36,4 +36,4 @@ export function assignmentBelongsToTeacher(assignment, teacherIds) {
     }));
 }
 
-export * from "./assignmentRepository.js";
+export * from "./assignmentRepository.js?v=1.1.88-student-course-assignment-trace";

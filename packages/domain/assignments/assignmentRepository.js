@@ -1,5 +1,5 @@
 import { collection, db, doc, getDocs, query, serverTimestamp, setDoc, where } from "../../firebase/index.js";
-import { getClassById } from "../classes/index.js";
+import { getClassById } from "../classes/index.js?v=1.1.88-student-course-assignment-trace";
 import { isActiveAssignment, normalizeCourseAssignment } from "./index.js";
 
 export async function getCourseAssignments(filters) {
@@ -726,7 +726,7 @@ function logAssignmentIdentifiers(identifiers) {
     return;
   }
 
-  console.log("[student-course-debug] assignment identifiers", {
+  console.log("[student-course-debug] assignment query identifiers", {
     studentIdentifiers: identifiers.studentIdentifiers,
     classIdentifiers: identifiers.classIdentifiers,
     locationIdentifiers: identifiers.locationIdentifiers

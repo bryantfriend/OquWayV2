@@ -1,9 +1,9 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.82-shared-command-center-shell";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js";
-import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.82-shared-command-center-shell";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.88-student-course-assignment-trace";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.88-student-course-assignment-trace";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.88-student-course-assignment-trace";
+import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.88-student-course-assignment-trace";
 import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js";
-import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.82-shared-command-center-shell";
+import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.88-student-course-assignment-trace";
 
 export async function processLoadStudentCourse(executionState) {
   var actor = executionState.actor;
@@ -31,8 +31,11 @@ export async function processLoadStudentCourse(executionState) {
 
     var courseAssignmentResult = await loadAssignedCourseIds(actor, studentProfile, executionState);
     appendWarnings(executionState, courseAssignmentResult.warnings);
+    logStudentCourseTrace("studentProfile", studentProfile);
+    logStudentCourseTrace("assignments", courseAssignmentResult.assignments || []);
 
     var courses = await loadStudentCourses(actor, courseAssignmentResult.courseIds, executionState, courseAssignmentResult.assignmentIdByCourseId);
+    logStudentCourseTrace("courses", courses);
 
     logStudentCourseDebug({
       studentId: studentProfile && studentProfile.id ? studentProfile.id : "",
@@ -502,7 +505,7 @@ function addTextList(target, values) {
 }
 
 function logStudentCourseDebug(details) {
-  if (!isDevelopmentHost()) {
+  if (!isStudentCourseDebugEnabled()) {
     return;
   }
 
@@ -539,6 +542,23 @@ function isDevelopmentHost() {
   return window.location.hostname === "localhost"
     || window.location.hostname === "127.0.0.1"
     || window.location.hostname === "";
+}
+
+function logStudentCourseTrace(label, value) {
+  if (!isStudentCourseDebugEnabled()) {
+    return;
+  }
+
+  console.log("[student-course-debug] " + label, value);
+}
+
+function isStudentCourseDebugEnabled() {
+  if (typeof window === "undefined" || !window.location) {
+    return false;
+  }
+
+  return window.location.search.indexOf("debug=true") !== -1
+    || isDevelopmentHost();
 }
 
 function readRecordList(values, targetType) {

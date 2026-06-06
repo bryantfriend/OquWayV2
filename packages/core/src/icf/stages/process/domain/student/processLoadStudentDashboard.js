@@ -1,9 +1,11 @@
-import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.82-shared-command-center-shell";
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.82-shared-command-center-shell";
+import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.88-student-course-assignment-trace";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.88-student-course-assignment-trace";
 import { calculateCourseCompletion, calculateCourseProgressSummary } from "../../../../../../../domain/progress/index.js";
 
 export async function processLoadStudentDashboard(executionState) {
   var courseResult = await processLoadStudentCourse(executionState);
+  logStudentDashboardDebug("courseResult", courseResult);
+  logStudentDashboardDebug("executionState.result", executionState.result);
 
   if (courseResult && courseResult.valid === false) {
     return courseResult;
@@ -27,6 +29,25 @@ export async function processLoadStudentDashboard(executionState) {
     valid: true,
     data: executionState.result
   };
+}
+
+function logStudentDashboardDebug(label, value) {
+  if (!isStudentDashboardDebugEnabled()) {
+    return;
+  }
+
+  console.log("[student-dashboard-debug] " + label, value);
+}
+
+function isStudentDashboardDebugEnabled() {
+  if (typeof window === "undefined" || !window.location) {
+    return false;
+  }
+
+  return window.location.search.indexOf("debug=true") !== -1
+    || window.location.hostname === "localhost"
+    || window.location.hostname === "127.0.0.1"
+    || window.location.hostname === "";
 }
 
 async function selectContinueLearning(executionState, courses) {
