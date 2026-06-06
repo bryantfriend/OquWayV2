@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.103-student-profile-actor-fallback";
+import * as IntentExports from "../intents/intents.js?v=1.1.104-student-assignment-json-trace";
 
 const registry = {
   // Demo Verification

@@ -1,1 +1,1 @@
-export const OQUWAY_BUILD_VERSION = "1.1.103-student-profile-actor-fallback";
+export const OQUWAY_BUILD_VERSION = "1.1.104-student-assignment-json-trace";

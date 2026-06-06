@@ -1,4 +1,4 @@
-import { ContinueLearningIntent } from "./ContinueLearningIntent.js?v=1.1.103-student-profile-actor-fallback";
+import { ContinueLearningIntent } from "./ContinueLearningIntent.js?v=1.1.104-student-assignment-json-trace";
 
 export function SelectContinueLearningIntent() {
   return Object.assign({}, ContinueLearningIntent(), {

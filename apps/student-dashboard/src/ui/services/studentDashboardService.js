@@ -1,8 +1,8 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.103-student-profile-actor-fallback";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.103-student-profile-actor-fallback";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.103-student-profile-actor-fallback";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.103-student-profile-actor-fallback";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.103-student-profile-actor-fallback";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.104-student-assignment-json-trace";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.104-student-assignment-json-trace";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.104-student-assignment-json-trace";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.104-student-assignment-json-trace";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.104-student-assignment-json-trace";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
@@ -68,6 +68,7 @@ export const studentDashboardService = {
 
       if (result && result.emitted && result.emitted.success) {
         var courses = result.emitted.data.courses || [];
+        var actorIsPreview = result.emitted.data.actorIsPreview === true;
         logStudentCourseProfileDebug(result.emitted.data.student || profile);
         logLoadedCoursesDebug(courses);
         studentDashboardStore.setState({
@@ -79,7 +80,7 @@ export const studentDashboardService = {
           intentionPoints: result.emitted.data.intentionPoints || createEmptyIntentionPoints(),
           progressSummary: result.emitted.data.progressSummary || null,
           selectedCourseId: readFirstCourseId(courses),
-          actorIsPreview: auth.currentUser ? false : true
+          actorIsPreview: actorIsPreview
         });
         return result.emitted.data;
       }
@@ -512,7 +513,7 @@ function logStudentCourseProfileDebug(studentProfile) {
     return;
   }
 
-  console.log("[student-course-debug] profile", {
+  console.log("[student-course-debug] profile", JSON.stringify({
     id: studentProfile && studentProfile.id ? studentProfile.id : "",
     uid: studentProfile && studentProfile.uid ? studentProfile.uid : "",
     authUid: studentProfile && studentProfile.authUid ? studentProfile.authUid : "",
@@ -522,7 +523,7 @@ function logStudentCourseProfileDebug(studentProfile) {
     primaryClassId: studentProfile && studentProfile.primaryClassId ? studentProfile.primaryClassId : "",
     className: studentProfile && studentProfile.className ? studentProfile.className : "",
     locationId: studentProfile && studentProfile.locationId ? studentProfile.locationId : ""
-  });
+  }));
 }
 
 function logLoadedCoursesDebug(courses) {
@@ -530,7 +531,14 @@ function logLoadedCoursesDebug(courses) {
     return;
   }
 
-  console.log("[student-course-debug] loaded courses");
+  console.log("[student-course-debug] loaded courses", JSON.stringify((courses || []).map(function (course) {
+    return {
+      id: course && course.id ? course.id : "",
+      title: readLocalizedText(course ? course.title : "", "Untitled Course"),
+      assignmentId: course && course.assignmentId ? course.assignmentId : "",
+      courseAssignmentId: course && course.courseAssignmentId ? course.courseAssignmentId : ""
+    };
+  })));
   console.table((courses || []).map(function (course) {
     return {
       id: course && course.id ? course.id : "",

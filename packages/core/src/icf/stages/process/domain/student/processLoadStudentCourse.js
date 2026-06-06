@@ -1,9 +1,9 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.103-student-profile-actor-fallback";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.103-student-profile-actor-fallback";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.103-student-profile-actor-fallback";
-import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.103-student-profile-actor-fallback";
-import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js?v=1.1.103-student-profile-actor-fallback";
-import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.103-student-profile-actor-fallback";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.104-student-assignment-json-trace";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.104-student-assignment-json-trace";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.104-student-assignment-json-trace";
+import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.104-student-assignment-json-trace";
+import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js?v=1.1.104-student-assignment-json-trace";
+import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.104-student-assignment-json-trace";
 
 export async function processLoadStudentCourse(executionState) {
   var actor = executionState.actor;
@@ -56,6 +56,7 @@ export async function processLoadStudentCourse(executionState) {
     executionState.result = {
       student: studentProfile,
       courses: courses,
+      actorIsPreview: isPreviewActor(actor),
       assignmentCount: courseAssignmentResult.assignmentCount,
       assignmentSource: courseAssignmentResult.source,
       emptyStateMessage: courses.length === 0 ? "No courses assigned yet." : ""
@@ -509,7 +510,7 @@ function logStudentCourseDebug(details) {
     return;
   }
 
-  console.info("[student-course-debug]", {
+  console.info("[student-course-debug] summary", JSON.stringify({
     studentId: details.studentId,
     uid: details.uid,
     locationId: details.locationId,
@@ -523,7 +524,7 @@ function logStudentCourseDebug(details) {
     rawCourseCount: details.rawCourseCount,
     filteredCourseCount: details.filteredCourseCount,
     rejectionReasons: details.rejectionReasons
-  });
+  }));
 
   console.info("[assignments:student-load]", {
     studentId: details.studentId,
@@ -549,7 +550,7 @@ function logStudentCourseTrace(label, value) {
     return;
   }
 
-  console.log("[student-course-debug] " + label, value);
+  console.log("[student-course-debug] " + label, JSON.stringify(value));
 }
 
 function isStudentCourseDebugEnabled() {

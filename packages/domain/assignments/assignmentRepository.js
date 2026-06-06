@@ -1,5 +1,5 @@
 import { collection, db, doc, getDocs, query, serverTimestamp, setDoc, where } from "../../firebase/index.js";
-import { getClassById } from "../classes/index.js?v=1.1.103-student-profile-actor-fallback";
+import { getClassById } from "../classes/index.js?v=1.1.104-student-assignment-json-trace";
 import { isActiveAssignment, normalizeCourseAssignment } from "./index.js";
 
 export async function getCourseAssignments(filters) {
@@ -728,11 +728,11 @@ function logAssignmentIdentifiers(identifiers) {
     return;
   }
 
-  console.log("[student-course-debug] assignment query identifiers", {
+  console.log("[student-course-debug] assignment query identifiers", JSON.stringify({
     studentIdentifiers: identifiers.studentIdentifiers,
     classIdentifiers: identifiers.classIdentifiers,
     locationIdentifiers: identifiers.locationIdentifiers
-  });
+  }));
 }
 
 function logMatchedAssignments(assignments) {
@@ -740,8 +740,7 @@ function logMatchedAssignments(assignments) {
     return;
   }
 
-  console.log("[student-course-debug] matched assignments");
-  console.table(assignments.map(function (assignment) {
+  var summary = assignments.map(function (assignment) {
     return {
       id: assignment.id,
       courseId: assignment.courseId,
@@ -752,7 +751,10 @@ function logMatchedAssignments(assignments) {
       status: assignment.status,
       visibility: assignment.visibility
     };
-  }));
+  });
+
+  console.log("[student-course-debug] matched assignments", JSON.stringify(summary));
+  console.table(summary);
 }
 
 function isStudentCourseDebugEnabled() {

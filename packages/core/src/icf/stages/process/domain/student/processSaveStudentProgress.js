@@ -1,4 +1,4 @@
-import { saveStudentPracticeModeProgress } from "./studentProgressHelpers.js?v=1.1.103-student-profile-actor-fallback";
+import { saveStudentPracticeModeProgress } from "./studentProgressHelpers.js?v=1.1.104-student-assignment-json-trace";
 
 export async function processSaveStudentProgress(executionState) {
   var payload = executionState.payload;

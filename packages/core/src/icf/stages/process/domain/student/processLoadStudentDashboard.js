@@ -1,5 +1,5 @@
-import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.103-student-profile-actor-fallback";
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.103-student-profile-actor-fallback";
+import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.104-student-assignment-json-trace";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.104-student-assignment-json-trace";
 import { calculateCourseCompletion, calculateCourseProgressSummary } from "../../../../../../../domain/progress/index.js";
 
 export async function processLoadStudentDashboard(executionState) {
@@ -22,7 +22,8 @@ export async function processLoadStudentDashboard(executionState) {
     continueLearning: continueLearning,
     intentionPoints: readIntentionPoints(student),
     dailyBonus: readDailyBonus(student),
-    progressSummary: calculateCourseProgressSummary(courses)
+    progressSummary: calculateCourseProgressSummary(courses),
+    actorIsPreview: result.actorIsPreview === true
   });
 
   return {
@@ -36,7 +37,7 @@ function logStudentDashboardDebug(label, value) {
     return;
   }
 
-  console.log("[student-dashboard-debug] " + label, value);
+  console.log("[student-dashboard-debug] " + label, JSON.stringify(value));
 }
 
 function isStudentDashboardDebugEnabled() {

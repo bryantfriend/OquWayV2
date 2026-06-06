@@ -1,8 +1,8 @@
-import { validateStudentFruitLoginPayload } from "../../stages/validate/validators.js?v=1.1.103-student-profile-actor-fallback";
-import { normalizeStudentFruitLoginPayload } from "../../stages/normalize/normalizers.js?v=1.1.103-student-profile-actor-fallback";
-import { allowStudentLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.103-student-profile-actor-fallback";
-import { processStudentFruitLogin } from "../../stages/process/processors.js?v=1.1.103-student-profile-actor-fallback";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.103-student-profile-actor-fallback";
+import { validateStudentFruitLoginPayload } from "../../stages/validate/validators.js?v=1.1.104-student-assignment-json-trace";
+import { normalizeStudentFruitLoginPayload } from "../../stages/normalize/normalizers.js?v=1.1.104-student-assignment-json-trace";
+import { allowStudentLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.104-student-assignment-json-trace";
+import { processStudentFruitLogin } from "../../stages/process/processors.js?v=1.1.104-student-assignment-json-trace";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.104-student-assignment-json-trace";
 
 export function StudentFruitLoginIntent() {
   return {

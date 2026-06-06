@@ -1,7 +1,7 @@
 // runIntentPipeline.js
 
-import { runStageArray } from "./runStageArray.js?v=1.1.103-student-profile-actor-fallback";
-import { buildResult } from "./buildResult.js?v=1.1.103-student-profile-actor-fallback";
+import { runStageArray } from "./runStageArray.js?v=1.1.104-student-assignment-json-trace";
+import { buildResult } from "./buildResult.js?v=1.1.104-student-assignment-json-trace";
 
 export async function runIntentPipeline(intentDefinition, executionInput) {
   const executionState = createExecutionState(intentDefinition, executionInput);

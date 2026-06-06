@@ -1,6 +1,6 @@
-import { getActiveAssignmentsForStudent } from "../assignments/index.js?v=1.1.103-student-profile-actor-fallback";
+import { getActiveAssignmentsForStudent } from "../assignments/index.js?v=1.1.104-student-assignment-json-trace";
 
-export { buildStudentAssignmentTargets } from "../assignments/index.js?v=1.1.103-student-profile-actor-fallback";
+export { buildStudentAssignmentTargets } from "../assignments/index.js?v=1.1.104-student-assignment-json-trace";
 
 export async function getAssignedCourses(studentId, studentProfile) {
   var assignmentResult = await getAssignedCourseIds(studentId, studentProfile);
