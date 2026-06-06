@@ -1,7 +1,7 @@
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.96-student-session-profile";
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.96-student-session-profile";
-import { hasStudentRole, isActiveStudentStatus, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.96-student-session-profile";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.97-student-session-uid";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.97-student-session-uid";
+import { hasStudentRole, isActiveStudentStatus, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.97-student-session-uid";
 
 export async function processStudentStandardLogin(executionState) {
   var payload = executionState.payload;

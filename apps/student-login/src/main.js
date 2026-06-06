@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.96-student-session-profile";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.96-student-session-profile";
-import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.96-student-session-profile";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.97-student-session-uid";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.97-student-session-uid";
+import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.97-student-session-uid";
 
 var appElement = document.getElementById("app");
 var startupMessage = consumeStartupMessage();
@@ -657,7 +657,8 @@ async function startStudentSession() {
 
   if (result && result.emitted && result.emitted.success) {
     return {
-      success: true
+      success: true,
+      actorId: result.emitted.data && result.emitted.data.actorId ? result.emitted.data.actorId : auth.currentUser.uid
     };
   }
 
@@ -677,19 +678,21 @@ async function routeToStudentDashboardAfterSessionStart(studentProfile) {
   var sessionResult = await startStudentSession();
 
   if (sessionResult.success) {
-    markStudentSessionStarted(studentProfile);
+    markStudentSessionStarted(studentProfile, sessionResult.actorId);
     window.location.href = buildStudentDashboardUrl();
   }
 }
 
-function markStudentSessionStarted(studentProfile) {
-  if (!window.sessionStorage || !auth.currentUser || !auth.currentUser.uid) {
+function markStudentSessionStarted(studentProfile, actorId) {
+  var sessionUid = actorId || (auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : "");
+
+  if (!window.sessionStorage || !sessionUid) {
     return;
   }
 
-  var safeProfile = buildSessionStudentProfile(studentProfile);
+  var safeProfile = buildSessionStudentProfile(studentProfile, sessionUid);
 
-  window.sessionStorage.setItem("oquwayStudentSessionUid", auth.currentUser.uid);
+  window.sessionStorage.setItem("oquwayStudentSessionUid", sessionUid);
   window.sessionStorage.setItem("oquwayStudentSessionStartedAt", String(Date.now()));
   window.sessionStorage.setItem("oquwayStudentClassId", safeProfile.classId || state.selectedClassId || "");
   window.sessionStorage.setItem("oquwayStudentClassName", safeProfile.className || readClassName(findClass(state.selectedClassId)));
@@ -697,14 +700,14 @@ function markStudentSessionStarted(studentProfile) {
   window.sessionStorage.setItem("oquwayStudentProfile", JSON.stringify(safeProfile));
 }
 
-function buildSessionStudentProfile(studentProfile) {
+function buildSessionStudentProfile(studentProfile, sessionUid) {
   var classItem = findClass(state.selectedClassId);
   var profile = studentProfile && typeof studentProfile === "object" ? studentProfile : {};
 
   return {
     id: readText(profile.id || state.selectedStudentId),
     uid: readText(profile.uid),
-    authUid: auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : readText(profile.authUid),
+    authUid: sessionUid || readText(profile.authUid),
     userId: readText(profile.userId),
     studentId: readText(profile.studentId || state.selectedStudentId),
     profileUserId: readText(profile.profileUserId),

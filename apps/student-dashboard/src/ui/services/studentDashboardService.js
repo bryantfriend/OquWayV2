@@ -1,7 +1,7 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.96-student-session-profile";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.96-student-session-profile";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.96-student-session-profile";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.96-student-session-profile";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.97-student-session-uid";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.97-student-session-uid";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.97-student-session-uid";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.97-student-session-uid";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
@@ -393,6 +393,10 @@ function clearStudentSessionMarker() {
 
   window.sessionStorage.removeItem("oquwayStudentSessionUid");
   window.sessionStorage.removeItem("oquwayStudentSessionStartedAt");
+  window.sessionStorage.removeItem("oquwayStudentClassId");
+  window.sessionStorage.removeItem("oquwayStudentClassName");
+  window.sessionStorage.removeItem("oquwayStudentLocationId");
+  window.sessionStorage.removeItem("oquwayStudentProfile");
 }
 
 function logStartupProfileResult(success, profile) {
