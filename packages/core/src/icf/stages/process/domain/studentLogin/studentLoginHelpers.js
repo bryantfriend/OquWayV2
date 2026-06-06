@@ -1,4 +1,4 @@
-import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.92-student-login-race";
+import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.93-student-class-alias";
 
 export async function callStudentLoginFunction(payload) {
   return callCallableFunction("studentLogin", payload);

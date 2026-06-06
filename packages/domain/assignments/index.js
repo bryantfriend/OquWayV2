@@ -36,4 +36,4 @@ export function assignmentBelongsToTeacher(assignment, teacherIds) {
     }));
 }
 
-export * from "./assignmentRepository.js?v=1.1.92-student-login-race";
+export * from "./assignmentRepository.js?v=1.1.93-student-class-alias";

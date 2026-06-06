@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.92-student-login-race";
+import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.93-student-class-alias";
 
 export async function processLoadClassesForLocation(executionState) {
   var payload = executionState.payload;

@@ -26,11 +26,13 @@ export async function attachStudentProfileContext(executionState) {
       };
     }
 
+    var mergedProfile = mergeActorStudentContext(profile, actor);
+
     return {
       valid: true,
       data: {
-        studentProfile: profile,
-        assignedCourseIds: readAssignedCourseIds(profile)
+        studentProfile: mergedProfile,
+        assignedCourseIds: readAssignedCourseIds(mergedProfile)
       }
     };
   } catch (error) {
@@ -42,4 +44,22 @@ export async function attachStudentProfileContext(executionState) {
       }
     };
   }
+}
+
+function mergeActorStudentContext(profile, actor) {
+  var mergedProfile = Object.assign({}, profile || {});
+
+  if (actor && actor.classId && !mergedProfile.classId) {
+    mergedProfile.classId = actor.classId;
+  }
+
+  if (actor && actor.className && !mergedProfile.className) {
+    mergedProfile.className = actor.className;
+  }
+
+  if (actor && actor.locationId && !mergedProfile.locationId) {
+    mergedProfile.locationId = actor.locationId;
+  }
+
+  return mergedProfile;
 }

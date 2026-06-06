@@ -82,6 +82,20 @@ service cloud.firestore {
             && resource.data.targetType == "class"
             && (user().data.classIds is list)
             && resource.data.targetId in user().data.classIds)
+          || (resource.data.targetType == "class"
+            && request.auth.token.classId is string
+            && resource.data.targetId == request.auth.token.classId)
+          || (resource.data.targetType == "class"
+            && request.auth.token.className is string
+            && resource.data.targetId == request.auth.token.className)
+          || (resource.data.targetType == "class"
+            && resource.data.classId is string
+            && request.auth.token.classId is string
+            && resource.data.classId == request.auth.token.classId)
+          || (resource.data.targetType == "class"
+            && resource.data.classId is string
+            && request.auth.token.className is string
+            && resource.data.classId == request.auth.token.className)
           || (user() != null
             && resource.data.targetType == "location"
             && resource.data.targetId == user().data.locationId)

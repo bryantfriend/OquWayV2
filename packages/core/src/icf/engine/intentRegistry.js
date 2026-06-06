@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.92-student-login-race";
+import * as IntentExports from "../intents/intents.js?v=1.1.93-student-class-alias";
 
 const registry = {
   // Demo Verification

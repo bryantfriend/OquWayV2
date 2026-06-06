@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.92-student-login-race";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.92-student-login-race";
-import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.92-student-login-race";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.93-student-class-alias";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.93-student-class-alias";
+import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.93-student-class-alias";
 
 var appElement = document.getElementById("app");
 var startupMessage = consumeStartupMessage();
@@ -689,6 +689,9 @@ function markStudentSessionStarted() {
 
   window.sessionStorage.setItem("oquwayStudentSessionUid", auth.currentUser.uid);
   window.sessionStorage.setItem("oquwayStudentSessionStartedAt", String(Date.now()));
+  window.sessionStorage.setItem("oquwayStudentClassId", state.selectedClassId || "");
+  window.sessionStorage.setItem("oquwayStudentClassName", readClassName(findClass(state.selectedClassId)));
+  window.sessionStorage.setItem("oquwayStudentLocationId", state.selectedLocationId || "");
 }
 
 function hasConfirmedStudentSession(uid) {

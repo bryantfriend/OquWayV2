@@ -1,5 +1,5 @@
 import { collection, db, doc, getDocs, query, serverTimestamp, setDoc, where } from "../../firebase/index.js";
-import { getClassById } from "../classes/index.js?v=1.1.92-student-login-race";
+import { getClassById } from "../classes/index.js?v=1.1.93-student-class-alias";
 import { isActiveAssignment, normalizeCourseAssignment } from "./index.js";
 
 export async function getCourseAssignments(filters) {
@@ -210,18 +210,20 @@ async function appendClassDocumentIdentifiers(identifiers, studentProfile) {
   var classIndex = 0;
 
   while (classIndex < originalClassIds.length) {
-    await appendClassDocumentIdentifier(identifiers, originalClassIds[classIndex]);
+    await appendClassDocumentIdentifier(identifiers, originalClassIds[classIndex], identifiers.locationIdentifiers);
     classIndex = classIndex + 1;
   }
 }
 
-async function appendClassDocumentIdentifier(identifiers, classId) {
+async function appendClassDocumentIdentifier(identifiers, classId, locationIds) {
   if (!classId) {
     return;
   }
 
   try {
-    var classRecord = await getClassById(classId);
+    var classRecord = await getClassById(classId, {
+      locationIds: locationIds
+    });
 
     if (!classRecord) {
       return;

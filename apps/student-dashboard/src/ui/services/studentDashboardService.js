@@ -1,7 +1,7 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.92-student-login-race";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.92-student-login-race";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.92-student-login-race";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.92-student-login-race";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.93-student-class-alias";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.93-student-class-alias";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.93-student-class-alias";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.93-student-class-alias";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
@@ -324,7 +324,7 @@ export const studentDashboardService = {
 async function runStudentIntent(intentType, payload) {
   return runIntentPipeline(getIntentDefinition(intentType), {
     payload: payload,
-    actor: getActor(),
+    actor: await getActor(),
     meta: {
       createdAt: Date.now(),
       source: "student-dashboard"
@@ -332,7 +332,7 @@ async function runStudentIntent(intentType, payload) {
   });
 }
 
-function getActor() {
+async function getActor() {
   if (auth.currentUser && auth.currentUser.isAnonymous) {
     return {
       id: "anonymous-user",
@@ -341,9 +341,15 @@ function getActor() {
   }
 
   if (auth.currentUser) {
+    var sessionContext = readStudentSessionContext();
+    var claimContext = await readStudentClaimContext(auth.currentUser);
+
     return {
       id: auth.currentUser.uid,
-      role: "ROLE_STUDENT"
+      role: "ROLE_STUDENT",
+      classId: sessionContext.classId || claimContext.classId,
+      className: sessionContext.className || claimContext.className,
+      locationId: sessionContext.locationId || claimContext.locationId
     };
   }
 
@@ -424,6 +430,41 @@ function logStartupProfileRejection(profile, reasonRejected) {
     locationId: profile && profile.locationId ? profile.locationId : "",
     reasonRejected: reasonRejected
   });
+}
+
+async function readStudentClaimContext(user) {
+  try {
+    var tokenResult = await user.getIdTokenResult();
+    var claims = tokenResult && tokenResult.claims ? tokenResult.claims : {};
+
+    return {
+      classId: typeof claims.classId === "string" ? claims.classId : "",
+      className: typeof claims.className === "string" ? claims.className : "",
+      locationId: typeof claims.locationId === "string" ? claims.locationId : ""
+    };
+  } catch (error) {
+    return {
+      classId: "",
+      className: "",
+      locationId: ""
+    };
+  }
+}
+
+function readStudentSessionContext() {
+  if (!window.sessionStorage) {
+    return {
+      classId: "",
+      className: "",
+      locationId: ""
+    };
+  }
+
+  return {
+    classId: window.sessionStorage.getItem("oquwayStudentClassId") || "",
+    className: window.sessionStorage.getItem("oquwayStudentClassName") || "",
+    locationId: window.sessionStorage.getItem("oquwayStudentLocationId") || ""
+  };
 }
 
 function logStudentCourseProfileDebug(studentProfile) {

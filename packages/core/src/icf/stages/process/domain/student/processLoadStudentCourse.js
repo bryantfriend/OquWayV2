@@ -1,9 +1,9 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.92-student-login-race";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.92-student-login-race";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.92-student-login-race";
-import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.92-student-login-race";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.93-student-class-alias";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.93-student-class-alias";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.93-student-class-alias";
+import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.93-student-class-alias";
 import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js";
-import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.92-student-login-race";
+import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.93-student-class-alias";
 
 export async function processLoadStudentCourse(executionState) {
   var actor = executionState.actor;
