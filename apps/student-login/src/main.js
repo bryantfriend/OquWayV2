@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.94-student-profile-context";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.94-student-profile-context";
-import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.94-student-profile-context";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.95-student-icf-root";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.95-student-icf-root";
+import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.95-student-icf-root";
 
 var appElement = document.getElementById("app");
 var startupMessage = consumeStartupMessage();
@@ -695,11 +695,15 @@ function markStudentSessionStarted() {
 }
 
 function buildStudentDashboardUrl() {
+  var params = new URLSearchParams();
+
+  params.set("cb", OQUWAY_BUILD_VERSION);
+
   if (window.location.search.indexOf("debug=true") !== -1) {
-    return "../student-dashboard/index.html?debug=true";
+    params.set("debug", "true");
   }
 
-  return "../student-dashboard/index.html";
+  return "../student-dashboard/index.html?" + params.toString();
 }
 
 function hasConfirmedStudentSession(uid) {

@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.94-student-profile-context";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.94-student-profile-context";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.94-student-profile-context";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.95-student-icf-root";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.95-student-icf-root";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.95-student-icf-root";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,16 +13,16 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.94-student-profile-context";
+} from "../../../packages/domain/progress/index.js?v=1.1.95-student-icf-root";
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.94-student-profile-context";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.94-student-profile-context";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.94-student-profile-context";
+} from "../../../packages/ui/index.js?v=1.1.95-student-icf-root";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.95-student-icf-root";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.95-student-icf-root";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -90,7 +90,7 @@ function redirectToStudentLogin(message) {
     window.sessionStorage.setItem("oquwayStudentLoginMessage", message);
   }
 
-  window.location.href = "../student-login/index.html";
+  window.location.href = "../student-login/index.html?cb=" + encodeURIComponent(OQUWAY_BUILD_VERSION);
 }
 
 async function clearStudentSessionAndRedirect(message) {

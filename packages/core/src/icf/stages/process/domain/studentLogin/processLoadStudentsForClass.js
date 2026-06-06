@@ -1,4 +1,4 @@
-import { callGetStudentsForClassFunction } from "./studentLoginHelpers.js?v=1.1.94-student-profile-context";
+import { callGetStudentsForClassFunction } from "./studentLoginHelpers.js?v=1.1.95-student-icf-root";
 
 export async function processLoadStudentsForClass(executionState) {
   var payload = executionState.payload;

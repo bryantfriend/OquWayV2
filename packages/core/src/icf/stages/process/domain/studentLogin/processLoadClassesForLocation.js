@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.94-student-profile-context";
+import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.95-student-icf-root";
 
 export async function processLoadClassesForLocation(executionState) {
   var payload = executionState.payload;

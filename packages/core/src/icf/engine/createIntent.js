@@ -1,6 +1,6 @@
 // createIntent.js
 
-import { getIntentDefinition } from "./intentRegistry.js?v=1.1.94-student-profile-context";
+import { getIntentDefinition } from "./intentRegistry.js?v=1.1.95-student-icf-root";
 
 export function createIntent(intentInput) {
   const intentType = readIntentType(intentInput);

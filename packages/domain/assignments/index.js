@@ -36,4 +36,4 @@ export function assignmentBelongsToTeacher(assignment, teacherIds) {
     }));
 }
 
-export * from "./assignmentRepository.js?v=1.1.94-student-profile-context";
+export * from "./assignmentRepository.js?v=1.1.95-student-icf-root";

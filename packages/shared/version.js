@@ -1,1 +1,1 @@
-export const OQUWAY_BUILD_VERSION = "1.1.94-student-profile-context";
+export const OQUWAY_BUILD_VERSION = "1.1.95-student-icf-root";
