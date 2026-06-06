@@ -1,5 +1,5 @@
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.97-student-session-uid";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.97-student-session-uid";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.98-student-session-proof";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.98-student-session-proof";
 
 export async function processStudentOpenCourse(executionState) {
   var payload = executionState.payload || {};

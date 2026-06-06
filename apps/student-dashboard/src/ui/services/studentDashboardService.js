@@ -1,7 +1,8 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.97-student-session-uid";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.97-student-session-uid";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.97-student-session-uid";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.97-student-session-uid";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.98-student-session-proof";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.98-student-session-proof";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.98-student-session-proof";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.98-student-session-proof";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.98-student-session-proof";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
@@ -369,7 +370,8 @@ function hasConfirmedStudentSession() {
     return false;
   }
 
-  return window.sessionStorage.getItem("oquwayStudentSessionUid") === auth.currentUser.uid;
+  return window.sessionStorage.getItem("oquwayStudentSessionUid") === auth.currentUser.uid
+    || readStoredStudentProfileAuthUid() === auth.currentUser.uid;
 }
 
 function isPreviewMode() {
@@ -383,7 +385,7 @@ function redirectToStudentLogin(message) {
 
   clearStudentSessionMarker();
 
-  window.location.href = "../student-login/index.html";
+  window.location.href = "../student-login/index.html?cb=" + encodeURIComponent(OQUWAY_BUILD_VERSION);
 }
 
 function clearStudentSessionMarker() {
@@ -491,6 +493,12 @@ function readStoredStudentProfile() {
   } catch (error) {
     return null;
   }
+}
+
+function readStoredStudentProfileAuthUid() {
+  var profile = readStoredStudentProfile();
+
+  return profile && typeof profile.authUid === "string" ? profile.authUid : "";
 }
 
 function logStudentCourseProfileDebug(studentProfile) {

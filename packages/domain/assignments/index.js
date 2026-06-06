@@ -36,4 +36,4 @@ export function assignmentBelongsToTeacher(assignment, teacherIds) {
     }));
 }
 
-export * from "./assignmentRepository.js?v=1.1.97-student-session-uid";
+export * from "./assignmentRepository.js?v=1.1.98-student-session-proof";

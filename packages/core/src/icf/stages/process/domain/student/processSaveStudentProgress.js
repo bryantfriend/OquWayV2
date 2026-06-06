@@ -1,4 +1,4 @@
-import { saveStudentPracticeModeProgress } from "./studentProgressHelpers.js?v=1.1.97-student-session-uid";
+import { saveStudentPracticeModeProgress } from "./studentProgressHelpers.js?v=1.1.98-student-session-proof";
 
 export async function processSaveStudentProgress(executionState) {
   var payload = executionState.payload;

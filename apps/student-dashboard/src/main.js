@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.97-student-session-uid";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.97-student-session-uid";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.97-student-session-uid";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.98-student-session-proof";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.98-student-session-proof";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.98-student-session-proof";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,16 +13,16 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.97-student-session-uid";
+} from "../../../packages/domain/progress/index.js?v=1.1.98-student-session-proof";
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.97-student-session-uid";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.97-student-session-uid";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.97-student-session-uid";
+} from "../../../packages/ui/index.js?v=1.1.98-student-session-proof";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.98-student-session-proof";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.98-student-session-proof";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -108,7 +108,31 @@ function hasConfirmedStudentSession(uid) {
     return false;
   }
 
-  return window.sessionStorage.getItem("oquwayStudentSessionUid") === uid;
+  return window.sessionStorage.getItem("oquwayStudentSessionUid") === uid
+    || readStoredStudentProfileAuthUid() === uid;
+}
+
+function readStoredStudentProfileAuthUid() {
+  var value = "";
+  var profile = null;
+
+  if (!window.sessionStorage) {
+    return "";
+  }
+
+  value = window.sessionStorage.getItem("oquwayStudentProfile") || "";
+
+  if (!value) {
+    return "";
+  }
+
+  try {
+    profile = JSON.parse(value);
+  } catch (error) {
+    return "";
+  }
+
+  return profile && typeof profile.authUid === "string" ? profile.authUid : "";
 }
 
 function clearStudentSessionMarker() {

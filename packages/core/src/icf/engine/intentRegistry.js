@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.97-student-session-uid";
+import * as IntentExports from "../intents/intents.js?v=1.1.98-student-session-proof";
 
 const registry = {
   // Demo Verification

@@ -1,4 +1,4 @@
-import { callGetStudentsForClassFunction } from "./studentLoginHelpers.js?v=1.1.97-student-session-uid";
+import { callGetStudentsForClassFunction } from "./studentLoginHelpers.js?v=1.1.98-student-session-proof";
 
 export async function processLoadStudentsForClass(executionState) {
   var payload = executionState.payload;

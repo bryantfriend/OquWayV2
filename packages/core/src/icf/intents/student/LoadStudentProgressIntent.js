@@ -1,10 +1,10 @@
-import { validateAuthenticated, validatePracticeModeKey } from "../../stages/validate/validators.js?v=1.1.97-student-session-uid";
-import { validateStudentProgressPayload } from "../../stages/validate/validators.js?v=1.1.97-student-session-uid";
-import { normalizeStudentProgressPayload } from "../../stages/normalize/normalizers.js?v=1.1.97-student-session-uid";
-import { attachActorContext, attachActorRoleContext, attachStudentSessionContext } from "../../stages/addContext/contexts.js?v=1.1.97-student-session-uid";
-import { requireStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.97-student-session-uid";
-import { processStartPracticeMode } from "../../stages/process/processors.js?v=1.1.97-student-session-uid";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.97-student-session-uid";
+import { validateAuthenticated, validatePracticeModeKey } from "../../stages/validate/validators.js?v=1.1.98-student-session-proof";
+import { validateStudentProgressPayload } from "../../stages/validate/validators.js?v=1.1.98-student-session-proof";
+import { normalizeStudentProgressPayload } from "../../stages/normalize/normalizers.js?v=1.1.98-student-session-proof";
+import { attachActorContext, attachActorRoleContext, attachStudentSessionContext } from "../../stages/addContext/contexts.js?v=1.1.98-student-session-proof";
+import { requireStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.98-student-session-proof";
+import { processStartPracticeMode } from "../../stages/process/processors.js?v=1.1.98-student-session-proof";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.98-student-session-proof";
 
 export function LoadStudentProgressIntent() {
   return {
