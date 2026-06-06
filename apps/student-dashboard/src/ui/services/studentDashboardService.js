@@ -1,7 +1,7 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.88-student-course-assignment-trace";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.88-student-course-assignment-trace";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.88-student-course-assignment-trace";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.88-student-course-assignment-trace";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.89-student-fruit-session";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.89-student-fruit-session";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.89-student-fruit-session";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.89-student-fruit-session";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {

@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.88-student-course-assignment-trace";
+import * as IntentExports from "../intents/intents.js?v=1.1.89-student-fruit-session";
 
 const registry = {
   // Demo Verification

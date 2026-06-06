@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
+import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.89-student-fruit-session";
 
 export async function processLoadClassesForLocation(executionState) {
   var payload = executionState.payload;

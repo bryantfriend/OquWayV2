@@ -1,8 +1,8 @@
-import { validateStudentsForClassPayload } from "../../stages/validate/validators.js?v=1.1.88-student-course-assignment-trace";
-import { normalizeStudentsForClassPayload } from "../../stages/normalize/normalizers.js?v=1.1.88-student-course-assignment-trace";
-import { allowStudentLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.88-student-course-assignment-trace";
-import { processLoadStudentsForClass } from "../../stages/process/processors.js?v=1.1.88-student-course-assignment-trace";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.88-student-course-assignment-trace";
+import { validateStudentsForClassPayload } from "../../stages/validate/validators.js?v=1.1.89-student-fruit-session";
+import { normalizeStudentsForClassPayload } from "../../stages/normalize/normalizers.js?v=1.1.89-student-fruit-session";
+import { allowStudentLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.89-student-fruit-session";
+import { processLoadStudentsForClass } from "../../stages/process/processors.js?v=1.1.89-student-fruit-session";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.89-student-fruit-session";
 
 export function LoadStudentsForClassIntent() {
   return {

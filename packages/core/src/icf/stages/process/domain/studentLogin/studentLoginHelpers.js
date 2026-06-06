@@ -1,4 +1,4 @@
-import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.82-shared-command-center-shell";
+import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.89-student-fruit-session";
 
 export async function callStudentLoginFunction(payload) {
   return callCallableFunction("studentLogin", payload);

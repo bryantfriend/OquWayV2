@@ -1,27 +1,27 @@
-export { authorizeDemoActor } from "./core/authorizeDemoActor.js?v=1.1.88-student-course-assignment-trace";
-export { catalogRequireCourseCreatorAuthorization } from "./domain/catalog/catalogRequireCourseCreatorAuthorization.js?v=1.1.88-student-course-assignment-trace";
-export { requireCourseCreatorOwnershipAuthorization } from "./domain/catalogCourse/ownershipAuthorizers.js?v=1.1.88-student-course-assignment-trace";
-export { preventModificationIfPublishedAuthorization } from "./domain/catalogCourse/preventDeleteIfInUseAuthorization.js?v=1.1.88-student-course-assignment-trace";
-export { preventDeleteIfInUseAuthorization } from "./domain/catalogCourse/preventDeleteIfInUseAuthorization.js?v=1.1.88-student-course-assignment-trace";
-export { requireCourseAssignmentAdminAuthorization } from "./domain/courseAssignment/requireCourseAssignmentAdminAuthorization.js?v=1.1.88-student-course-assignment-trace";
-export { requireCourseAssignmentOwnershipAuthorization } from "./domain/courseAssignment/requireCourseAssignmentOwnershipAuthorization.js?v=1.1.88-student-course-assignment-trace";
-export { requireCourseAssignmentOwnershipReadAuthorization } from "./domain/courseAssignment/requireCourseAssignmentOwnershipReadAuthorization.js?v=1.1.88-student-course-assignment-trace";
+export { authorizeDemoActor } from "./core/authorizeDemoActor.js?v=1.1.89-student-fruit-session";
+export { catalogRequireCourseCreatorAuthorization } from "./domain/catalog/catalogRequireCourseCreatorAuthorization.js?v=1.1.89-student-fruit-session";
+export { requireCourseCreatorOwnershipAuthorization } from "./domain/catalogCourse/ownershipAuthorizers.js?v=1.1.89-student-fruit-session";
+export { preventModificationIfPublishedAuthorization } from "./domain/catalogCourse/preventDeleteIfInUseAuthorization.js?v=1.1.89-student-fruit-session";
+export { preventDeleteIfInUseAuthorization } from "./domain/catalogCourse/preventDeleteIfInUseAuthorization.js?v=1.1.89-student-fruit-session";
+export { requireCourseAssignmentAdminAuthorization } from "./domain/courseAssignment/requireCourseAssignmentAdminAuthorization.js?v=1.1.89-student-fruit-session";
+export { requireCourseAssignmentOwnershipAuthorization } from "./domain/courseAssignment/requireCourseAssignmentOwnershipAuthorization.js?v=1.1.89-student-fruit-session";
+export { requireCourseAssignmentOwnershipReadAuthorization } from "./domain/courseAssignment/requireCourseAssignmentOwnershipReadAuthorization.js?v=1.1.89-student-fruit-session";
 export {
   requireExternalTaskReviewerAuthorization,
   requireExternalTaskStudentAuthorization
-} from "./domain/externalTask/requireExternalTaskAuthorization.js?v=1.1.88-student-course-assignment-trace";
-export { requireCourseCreatorAuthorization } from "./domain/catalogCourse/requireCourseCreatorAuthorization.js?v=1.1.88-student-course-assignment-trace";
-export { requireLocationAdminAuthorization, allowPublicLocationRead } from "./domain/location/requireLocationAdminAuthorization.js?v=1.1.88-student-course-assignment-trace";
-export { requirePlatformAdminAuthorization } from "./domain/catalogCourse/requirePlatformAdminAuthorization.js?v=1.1.88-student-course-assignment-trace";
-export { requireSuperAdminAuthorization } from "./domain/catalogCourse/requireSuperAdminAuthorization.js?v=1.1.88-student-course-assignment-trace";
-export { requireStudentAuthorization } from "./domain/student/requireStudentAuthorization.js?v=1.1.88-student-course-assignment-trace";
-export { allowStudentLoginAuthorization } from "./domain/studentLogin/allowStudentLoginAuthorization.js?v=1.1.88-student-course-assignment-trace";
-export { requireClassOwnershipAdminAuthorization } from "./domain/superAdmin/requireClassOwnershipAdminAuthorization.js?v=1.1.88-student-course-assignment-trace";
-export { requireSuperAdminAccess } from "./domain/superAdmin/requireSuperAdminAccess.js?v=1.1.88-student-course-assignment-trace";
+} from "./domain/externalTask/requireExternalTaskAuthorization.js?v=1.1.89-student-fruit-session";
+export { requireCourseCreatorAuthorization } from "./domain/catalogCourse/requireCourseCreatorAuthorization.js?v=1.1.89-student-fruit-session";
+export { requireLocationAdminAuthorization, allowPublicLocationRead } from "./domain/location/requireLocationAdminAuthorization.js?v=1.1.89-student-fruit-session";
+export { requirePlatformAdminAuthorization } from "./domain/catalogCourse/requirePlatformAdminAuthorization.js?v=1.1.89-student-fruit-session";
+export { requireSuperAdminAuthorization } from "./domain/catalogCourse/requireSuperAdminAuthorization.js?v=1.1.89-student-fruit-session";
+export { requireStudentAuthorization } from "./domain/student/requireStudentAuthorization.js?v=1.1.89-student-fruit-session";
+export { allowStudentLoginAuthorization } from "./domain/studentLogin/allowStudentLoginAuthorization.js?v=1.1.89-student-fruit-session";
+export { requireClassOwnershipAdminAuthorization } from "./domain/superAdmin/requireClassOwnershipAdminAuthorization.js?v=1.1.89-student-fruit-session";
+export { requireSuperAdminAccess } from "./domain/superAdmin/requireSuperAdminAccess.js?v=1.1.89-student-fruit-session";
 export {
   allowTeacherLoginAuthorization,
   requireTeacherDashboardAuthorization,
   requireTeacherReviewScopeAuthorization
-} from "./domain/teacher/requireTeacherAuthorization.js?v=1.1.88-student-course-assignment-trace";
+} from "./domain/teacher/requireTeacherAuthorization.js?v=1.1.89-student-fruit-session";
 
 
