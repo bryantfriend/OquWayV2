@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.102-student-profile-payload";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.102-student-profile-payload";
-import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.102-student-profile-payload";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.103-student-profile-actor-fallback";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.103-student-profile-actor-fallback";
+import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.103-student-profile-actor-fallback";
 
 var appElement = document.getElementById("app");
 var startupMessage = consumeStartupMessage();

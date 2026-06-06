@@ -1,6 +1,6 @@
 // createIntent.js
 
-import { getIntentDefinition } from "./intentRegistry.js?v=1.1.102-student-profile-payload";
+import { getIntentDefinition } from "./intentRegistry.js?v=1.1.103-student-profile-actor-fallback";
 
 export function createIntent(intentInput) {
   const intentType = readIntentType(intentInput);

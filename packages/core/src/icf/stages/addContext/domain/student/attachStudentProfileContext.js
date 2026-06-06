@@ -1,4 +1,4 @@
-import { getStudentProfileByAuthUid, readAssignedCourseIds } from "../../../../../../../domain/users/index.js?v=1.1.102-student-profile-payload";
+import { getStudentProfileByAuthUid, readAssignedCourseIds } from "../../../../../../../domain/users/index.js?v=1.1.103-student-profile-actor-fallback";
 
 export async function attachStudentProfileContext(executionState) {
   var actor = executionState.actor;

@@ -24,5 +24,5 @@ export function readCourseTitle(course) {
   return readSafeString(course && (course.name || course.displayName)).trim() || "Untitled Course";
 }
 
-export * from "./courseQueries.js?v=1.1.102-student-profile-payload";
+export * from "./courseQueries.js?v=1.1.103-student-profile-actor-fallback";
 export * from "./courseRepository.js";

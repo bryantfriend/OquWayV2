@@ -36,4 +36,4 @@ export function assignmentBelongsToTeacher(assignment, teacherIds) {
     }));
 }
 
-export * from "./assignmentRepository.js?v=1.1.102-student-profile-payload";
+export * from "./assignmentRepository.js?v=1.1.103-student-profile-actor-fallback";
