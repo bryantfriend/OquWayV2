@@ -1,6 +1,6 @@
 // createIntent.js
 
-import { getIntentDefinition } from "./intentRegistry.js?v=1.1.99-student-profile-gate";
+import { getIntentDefinition } from "./intentRegistry.js?v=1.1.100-student-profile-actor";
 
 export function createIntent(intentInput) {
   const intentType = readIntentType(intentInput);

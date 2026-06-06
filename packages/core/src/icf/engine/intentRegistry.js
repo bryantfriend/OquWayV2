@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.99-student-profile-gate";
+import * as IntentExports from "../intents/intents.js?v=1.1.100-student-profile-actor";
 
 const registry = {
   // Demo Verification

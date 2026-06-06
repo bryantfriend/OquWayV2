@@ -1,4 +1,4 @@
-import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.99-student-profile-gate";
+import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.100-student-profile-actor";
 
 export async function callStudentLoginFunction(payload) {
   return callCallableFunction("studentLogin", payload);

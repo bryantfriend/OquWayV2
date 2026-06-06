@@ -1,4 +1,4 @@
-import { saveStudentPracticeModeProgress } from "./studentProgressHelpers.js?v=1.1.99-student-profile-gate";
+import { saveStudentPracticeModeProgress } from "./studentProgressHelpers.js?v=1.1.100-student-profile-actor";
 
 export async function processSaveStudentProgress(executionState) {
   var payload = executionState.payload;

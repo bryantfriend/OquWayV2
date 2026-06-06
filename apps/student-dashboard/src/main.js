@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.99-student-profile-gate";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.99-student-profile-gate";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.99-student-profile-gate";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.100-student-profile-actor";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.100-student-profile-actor";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.100-student-profile-actor";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,16 +13,16 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.99-student-profile-gate";
+} from "../../../packages/domain/progress/index.js?v=1.1.100-student-profile-actor";
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.99-student-profile-gate";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.99-student-profile-gate";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.99-student-profile-gate";
+} from "../../../packages/ui/index.js?v=1.1.100-student-profile-actor";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.100-student-profile-actor";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.100-student-profile-actor";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -806,6 +806,19 @@ function readModuleActionLabel(status, completedSteps) {
 
 function readModuleLastActivityLabel(module) {
   return readLastOpenedLabel(readModuleLastOpenedAt(module));
+}
+
+function readModuleLastOpenedAt(module) {
+  var sessions = module && Array.isArray(module.sessions) ? module.sessions : [];
+  var lastOpenedAt = 0;
+  var sessionIndex = 0;
+
+  while (sessionIndex < sessions.length) {
+    lastOpenedAt = Math.max(lastOpenedAt, readTimestampMillis(sessions[sessionIndex].progress ? sessions[sessionIndex].progress.updatedAt : null));
+    sessionIndex = sessionIndex + 1;
+  }
+
+  return lastOpenedAt;
 }
 
 function disabled(value) {

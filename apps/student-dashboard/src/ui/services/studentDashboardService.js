@@ -1,8 +1,8 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.99-student-profile-gate";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.99-student-profile-gate";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.99-student-profile-gate";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.99-student-profile-gate";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.99-student-profile-gate";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.100-student-profile-actor";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.100-student-profile-actor";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.100-student-profile-actor";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.100-student-profile-actor";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.100-student-profile-actor";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
@@ -62,7 +62,7 @@ export const studentDashboardService = {
         return null;
       }
 
-      var result = await runStudentIntent("LoadStudentDashboardIntent", {});
+      var result = await runStudentIntent("LoadStudentDashboardIntent", {}, profile);
 
       if (result && result.emitted && result.emitted.success) {
         var courses = result.emitted.data.courses || [];
@@ -317,10 +317,10 @@ export const studentDashboardService = {
   }
 };
 
-async function runStudentIntent(intentType, payload) {
+async function runStudentIntent(intentType, payload, studentProfile) {
   return runIntentPipeline(getIntentDefinition(intentType), {
     payload: payload,
-    actor: await getActor(),
+    actor: await getActor(studentProfile),
     meta: {
       createdAt: Date.now(),
       source: "student-dashboard"
@@ -328,7 +328,7 @@ async function runStudentIntent(intentType, payload) {
   });
 }
 
-async function getActor() {
+async function getActor(studentProfile) {
   if (auth.currentUser && auth.currentUser.isAnonymous) {
     return {
       id: "anonymous-user",
@@ -346,7 +346,7 @@ async function getActor() {
       classId: sessionContext.classId || claimContext.classId,
       className: sessionContext.className || claimContext.className,
       locationId: sessionContext.locationId || claimContext.locationId,
-      studentProfile: sessionContext.studentProfile
+      studentProfile: studentProfile || sessionContext.studentProfile
     };
   }
 

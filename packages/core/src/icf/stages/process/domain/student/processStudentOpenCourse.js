@@ -1,5 +1,5 @@
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.99-student-profile-gate";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.99-student-profile-gate";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.100-student-profile-actor";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.100-student-profile-actor";
 
 export async function processStudentOpenCourse(executionState) {
   var payload = executionState.payload || {};

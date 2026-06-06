@@ -1,10 +1,10 @@
-import { validateAuthenticated, validatePracticeModeKey } from "../../stages/validate/validators.js?v=1.1.99-student-profile-gate";
-import { validateStudentProgressPayload } from "../../stages/validate/validators.js?v=1.1.99-student-profile-gate";
-import { normalizeStudentProgressPayload } from "../../stages/normalize/normalizers.js?v=1.1.99-student-profile-gate";
-import { attachActorContext, attachActorRoleContext, attachStudentSessionContext } from "../../stages/addContext/contexts.js?v=1.1.99-student-profile-gate";
-import { requireStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.99-student-profile-gate";
-import { processCompletePracticeMode } from "../../stages/process/processors.js?v=1.1.99-student-profile-gate";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.99-student-profile-gate";
+import { validateAuthenticated, validatePracticeModeKey } from "../../stages/validate/validators.js?v=1.1.100-student-profile-actor";
+import { validateStudentProgressPayload } from "../../stages/validate/validators.js?v=1.1.100-student-profile-actor";
+import { normalizeStudentProgressPayload } from "../../stages/normalize/normalizers.js?v=1.1.100-student-profile-actor";
+import { attachActorContext, attachActorRoleContext, attachStudentSessionContext } from "../../stages/addContext/contexts.js?v=1.1.100-student-profile-actor";
+import { requireStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.100-student-profile-actor";
+import { processCompletePracticeMode } from "../../stages/process/processors.js?v=1.1.100-student-profile-actor";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.100-student-profile-actor";
 
 export function CompleteStudentPracticeModeIntent() {
   return {

@@ -1,8 +1,8 @@
-import { validateClassLocationPayload } from "../../stages/validate/validators.js?v=1.1.99-student-profile-gate";
-import { normalizeClassLocationPayload } from "../../stages/normalize/normalizers.js?v=1.1.99-student-profile-gate";
-import { allowStudentLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.99-student-profile-gate";
-import { processLoadClassesForLocation } from "../../stages/process/processors.js?v=1.1.99-student-profile-gate";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.99-student-profile-gate";
+import { validateClassLocationPayload } from "../../stages/validate/validators.js?v=1.1.100-student-profile-actor";
+import { normalizeClassLocationPayload } from "../../stages/normalize/normalizers.js?v=1.1.100-student-profile-actor";
+import { allowStudentLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.100-student-profile-actor";
+import { processLoadClassesForLocation } from "../../stages/process/processors.js?v=1.1.100-student-profile-actor";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.100-student-profile-actor";
 
 export function LoadClassesForLocationIntent() {
   return {
