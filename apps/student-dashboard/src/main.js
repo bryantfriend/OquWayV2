@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.100-student-profile-actor";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.100-student-profile-actor";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.100-student-profile-actor";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.101-student-profile-fallback";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.101-student-profile-fallback";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.101-student-profile-fallback";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,16 +13,16 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.100-student-profile-actor";
+} from "../../../packages/domain/progress/index.js?v=1.1.101-student-profile-fallback";
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.100-student-profile-actor";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.100-student-profile-actor";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.100-student-profile-actor";
+} from "../../../packages/ui/index.js?v=1.1.101-student-profile-fallback";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.101-student-profile-fallback";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.101-student-profile-fallback";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;

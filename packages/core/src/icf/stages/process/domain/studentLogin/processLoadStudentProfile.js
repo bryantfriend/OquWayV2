@@ -1,5 +1,5 @@
-import { getStudentProfileByAuthUid } from "../../../../../../../domain/users/index.js?v=1.1.100-student-profile-actor";
-import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.100-student-profile-actor";
+import { getStudentProfileByAuthUid } from "../../../../../../../domain/users/index.js?v=1.1.101-student-profile-fallback";
+import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.101-student-profile-fallback";
 
 export async function processLoadStudentProfile(executionState) {
   var actor = executionState.actor;
@@ -122,7 +122,9 @@ function isDevelopmentHost() {
 
 async function loadStudentProfile(actor) {
   try {
-    return await getStudentProfileByAuthUid(actor.id);
+    var profile = await getStudentProfileByAuthUid(actor.id);
+
+    return profile || actor.studentProfile || null;
   } catch (error) {
     logStudentProfileDebug({
       authUid: actor.id,

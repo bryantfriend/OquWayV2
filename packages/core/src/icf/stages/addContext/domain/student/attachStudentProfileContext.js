@@ -1,4 +1,4 @@
-import { getStudentProfileByAuthUid, readAssignedCourseIds } from "../../../../../../../domain/users/index.js?v=1.1.100-student-profile-actor";
+import { getStudentProfileByAuthUid, readAssignedCourseIds } from "../../../../../../../domain/users/index.js?v=1.1.101-student-profile-fallback";
 
 export async function attachStudentProfileContext(executionState) {
   var actor = executionState.actor;
@@ -15,6 +15,10 @@ export async function attachStudentProfileContext(executionState) {
 
   try {
     var profile = await loadStudentProfile(actor);
+
+    if (!profile && actor.studentProfile) {
+      profile = actor.studentProfile;
+    }
 
     if (!profile) {
       return {
@@ -48,7 +52,9 @@ export async function attachStudentProfileContext(executionState) {
 
 async function loadStudentProfile(actor) {
   try {
-    return await getStudentProfileByAuthUid(actor.id);
+    var profile = await getStudentProfileByAuthUid(actor.id);
+
+    return profile || actor.studentProfile || null;
   } catch (error) {
     return actor.studentProfile || null;
   }

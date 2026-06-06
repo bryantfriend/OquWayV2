@@ -1,4 +1,4 @@
-import { readPracticeModeProgress } from "./studentProgressHelpers.js?v=1.1.100-student-profile-actor";
+import { readPracticeModeProgress } from "./studentProgressHelpers.js?v=1.1.101-student-profile-fallback";
 
 export function processStartPracticeMode(executionState) {
   var payload = executionState.payload;

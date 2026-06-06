@@ -1,4 +1,4 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.100-student-profile-actor";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.101-student-profile-fallback";
 
 export async function processClaimDailyBonus(executionState) {
   var actor = executionState.actor;

@@ -1,6 +1,6 @@
 import { browserLocalPersistence, setPersistence, signInWithCustomToken } from "firebase/auth";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.100-student-profile-actor";
-import { callStudentLoginFunction, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.100-student-profile-actor";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.101-student-profile-fallback";
+import { callStudentLoginFunction, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.101-student-profile-fallback";
 
 export async function processStudentFruitLogin(executionState) {
   var payload = executionState.payload;

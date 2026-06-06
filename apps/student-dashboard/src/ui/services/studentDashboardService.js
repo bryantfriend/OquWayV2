@@ -1,8 +1,8 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.100-student-profile-actor";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.100-student-profile-actor";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.100-student-profile-actor";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.100-student-profile-actor";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.100-student-profile-actor";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.101-student-profile-fallback";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.101-student-profile-fallback";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.101-student-profile-fallback";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.101-student-profile-fallback";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.101-student-profile-fallback";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {

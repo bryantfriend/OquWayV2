@@ -1,6 +1,6 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.100-student-profile-actor";
-import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.100-student-profile-actor";
-import { createDefaultProgressDocument } from "../../../process/domain/student/studentProgressHelpers.js?v=1.1.100-student-profile-actor";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.101-student-profile-fallback";
+import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.101-student-profile-fallback";
+import { createDefaultProgressDocument } from "../../../process/domain/student/studentProgressHelpers.js?v=1.1.101-student-profile-fallback";
 
 export async function attachStudentSessionContext(executionState) {
   var payload = executionState.payload;

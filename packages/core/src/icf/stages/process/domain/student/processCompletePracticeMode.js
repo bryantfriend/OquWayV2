@@ -2,7 +2,7 @@ import {
   readPracticeModeProgress,
   readPracticeModeStepIds,
   saveStudentPracticeModeProgress
-} from "./studentProgressHelpers.js?v=1.1.100-student-profile-actor";
+} from "./studentProgressHelpers.js?v=1.1.101-student-profile-fallback";
 
 export async function processCompletePracticeMode(executionState) {
   var payload = executionState.payload;

@@ -1,1 +1,1 @@
-export const OQUWAY_BUILD_VERSION = "1.1.100-student-profile-actor";
+export const OQUWAY_BUILD_VERSION = "1.1.101-student-profile-fallback";
