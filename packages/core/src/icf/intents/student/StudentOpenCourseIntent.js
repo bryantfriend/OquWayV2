@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateCourseId } from "../../stages/validate/validators.js?v=1.1.93-student-class-alias";
-import { normalizeCourseId } from "../../stages/normalize/normalizers.js?v=1.1.93-student-class-alias";
-import { attachActorContext, attachActorRoleContext, attachStudentProfileContext, attachStudentOpenCourseContext } from "../../stages/addContext/contexts.js?v=1.1.93-student-class-alias";
-import { requireStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.93-student-class-alias";
-import { processStudentOpenCourse } from "../../stages/process/processors.js?v=1.1.93-student-class-alias";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.93-student-class-alias";
+import { validateAuthenticated, validateCourseId } from "../../stages/validate/validators.js?v=1.1.94-student-profile-context";
+import { normalizeCourseId } from "../../stages/normalize/normalizers.js?v=1.1.94-student-profile-context";
+import { attachActorContext, attachActorRoleContext, attachStudentProfileContext, attachStudentOpenCourseContext } from "../../stages/addContext/contexts.js?v=1.1.94-student-profile-context";
+import { requireStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.94-student-profile-context";
+import { processStudentOpenCourse } from "../../stages/process/processors.js?v=1.1.94-student-profile-context";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.94-student-profile-context";
 
 export function StudentOpenCourseIntent() {
   return {

@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.93-student-class-alias";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.93-student-class-alias";
-import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.93-student-class-alias";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.94-student-profile-context";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.94-student-profile-context";
+import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.94-student-profile-context";
 
 var appElement = document.getElementById("app");
 var startupMessage = consumeStartupMessage();
@@ -678,7 +678,7 @@ async function routeToStudentDashboardAfterSessionStart() {
 
   if (sessionResult.success) {
     markStudentSessionStarted();
-    window.location.href = "../student-dashboard/index.html";
+    window.location.href = buildStudentDashboardUrl();
   }
 }
 
@@ -692,6 +692,14 @@ function markStudentSessionStarted() {
   window.sessionStorage.setItem("oquwayStudentClassId", state.selectedClassId || "");
   window.sessionStorage.setItem("oquwayStudentClassName", readClassName(findClass(state.selectedClassId)));
   window.sessionStorage.setItem("oquwayStudentLocationId", state.selectedLocationId || "");
+}
+
+function buildStudentDashboardUrl() {
+  if (window.location.search.indexOf("debug=true") !== -1) {
+    return "../student-dashboard/index.html?debug=true";
+  }
+
+  return "../student-dashboard/index.html";
 }
 
 function hasConfirmedStudentSession(uid) {

@@ -1,5 +1,5 @@
-import { getStudentProfileByAuthUid } from "../../../../../../../domain/users/index.js";
-import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.93-student-class-alias";
+import { getStudentProfileByAuthUid } from "../../../../../../../domain/users/index.js?v=1.1.94-student-profile-context";
+import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.94-student-profile-context";
 
 export async function processLoadStudentProfile(executionState) {
   var actor = executionState.actor;
@@ -25,14 +25,15 @@ export async function processLoadStudentProfile(executionState) {
       throw new Error("Student profile was not found.");
     }
 
-    var sanitizedProfile = sanitizeProfile(profile);
+    var contextualProfile = mergeActorStudentContext(profile, actor);
+    var sanitizedProfile = sanitizeProfile(contextualProfile);
 
-    if (!hasStudentRole(profile)) {
+    if (!hasStudentRole(contextualProfile)) {
       logRejectedProfile(actor.id, profilePath, sanitizedProfile, "not-student-role");
       throw new Error("This account is not a student account.");
     }
 
-    if (!isActiveStudentProfile(profile)) {
+    if (!isActiveStudentProfile(contextualProfile)) {
       logRejectedProfile(actor.id, profilePath, sanitizedProfile, "inactive-status");
       throw new Error("This student account is not active.");
     }
@@ -92,7 +93,7 @@ function logRejectedProfile(authUid, profilePath, profile, reasonRejected) {
 }
 
 function logStudentProfileDebug(details) {
-  if (!isDevelopmentHost()) {
+  if (!isStudentProfileDebugEnabled()) {
     return;
   }
 
@@ -117,4 +118,31 @@ function isDevelopmentHost() {
   return window.location.hostname === "localhost"
     || window.location.hostname === "127.0.0.1"
     || window.location.hostname === "";
+}
+
+function isStudentProfileDebugEnabled() {
+  if (typeof window === "undefined" || !window.location) {
+    return false;
+  }
+
+  return window.location.search.indexOf("debug=true") !== -1
+    || isDevelopmentHost();
+}
+
+function mergeActorStudentContext(profile, actor) {
+  var mergedProfile = Object.assign({}, profile || {});
+
+  if (actor && actor.classId && !mergedProfile.classId) {
+    mergedProfile.classId = actor.classId;
+  }
+
+  if (actor && actor.className && !mergedProfile.className) {
+    mergedProfile.className = actor.className;
+  }
+
+  if (actor && actor.locationId && !mergedProfile.locationId) {
+    mergedProfile.locationId = actor.locationId;
+  }
+
+  return mergedProfile;
 }
