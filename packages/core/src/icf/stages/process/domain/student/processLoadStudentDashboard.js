@@ -1,5 +1,5 @@
-import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.90-student-profile-handoff";
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.90-student-profile-handoff";
+import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.91-student-auth-persistence";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.91-student-auth-persistence";
 import { calculateCourseCompletion, calculateCourseProgressSummary } from "../../../../../../../domain/progress/index.js";
 
 export async function processLoadStudentDashboard(executionState) {

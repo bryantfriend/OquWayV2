@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.90-student-profile-handoff";
+import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.91-student-auth-persistence";
 
 export async function processLoadClassesForLocation(executionState) {
   var payload = executionState.payload;

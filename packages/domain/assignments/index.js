@@ -36,4 +36,4 @@ export function assignmentBelongsToTeacher(assignment, teacherIds) {
     }));
 }
 
-export * from "./assignmentRepository.js?v=1.1.90-student-profile-handoff";
+export * from "./assignmentRepository.js?v=1.1.91-student-auth-persistence";

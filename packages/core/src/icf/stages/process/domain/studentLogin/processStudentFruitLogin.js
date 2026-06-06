@@ -1,6 +1,6 @@
-import { signInWithCustomToken } from "firebase/auth";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.90-student-profile-handoff";
-import { callStudentLoginFunction, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.90-student-profile-handoff";
+import { browserLocalPersistence, setPersistence, signInWithCustomToken } from "firebase/auth";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.91-student-auth-persistence";
+import { callStudentLoginFunction, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.91-student-auth-persistence";
 
 export async function processStudentFruitLogin(executionState) {
   var payload = executionState.payload;
@@ -29,7 +29,9 @@ export async function processStudentFruitLogin(executionState) {
       throw new Error("Student login service did not return a custom token.");
     }
 
-    await signInWithCustomToken(auth, token);
+    await setPersistence(auth, browserLocalPersistence);
+    var credential = await signInWithCustomToken(auth, token);
+    await credential.user.getIdToken(true);
     logFruitLoginDebug("signed-in", {
       studentId: payload.studentId,
       locationId: payload.locationId,

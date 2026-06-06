@@ -1,6 +1,6 @@
-import { getActiveAssignmentsForStudent } from "../assignments/index.js?v=1.1.90-student-profile-handoff";
+import { getActiveAssignmentsForStudent } from "../assignments/index.js?v=1.1.91-student-auth-persistence";
 
-export { buildStudentAssignmentTargets } from "../assignments/index.js?v=1.1.90-student-profile-handoff";
+export { buildStudentAssignmentTargets } from "../assignments/index.js?v=1.1.91-student-auth-persistence";
 
 export async function getAssignedCourses(studentId, studentProfile) {
   var assignmentResult = await getAssignedCourseIds(studentId, studentProfile);

@@ -1,6 +1,6 @@
 // createIntent.js
 
-import { getIntentDefinition } from "./intentRegistry.js?v=1.1.90-student-profile-handoff";
+import { getIntentDefinition } from "./intentRegistry.js?v=1.1.91-student-auth-persistence";
 
 export function createIntent(intentInput) {
   const intentType = readIntentType(intentInput);
