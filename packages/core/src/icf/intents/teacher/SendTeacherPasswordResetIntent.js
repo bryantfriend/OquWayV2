@@ -1,8 +1,8 @@
-import { validateTeacherPasswordResetPayload } from "../../stages/validate/validators.js?v=1.1.108-student-class-alias-merge";
-import { normalizeTeacherPasswordResetPayload } from "../../stages/normalize/normalizers.js?v=1.1.108-student-class-alias-merge";
-import { allowTeacherLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.108-student-class-alias-merge";
-import { processSendTeacherPasswordReset } from "../../stages/process/processors.js?v=1.1.108-student-class-alias-merge";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.108-student-class-alias-merge";
+import { validateTeacherPasswordResetPayload } from "../../stages/validate/validators.js?v=1.1.109-student-assignment-status-fallback";
+import { normalizeTeacherPasswordResetPayload } from "../../stages/normalize/normalizers.js?v=1.1.109-student-assignment-status-fallback";
+import { allowTeacherLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.109-student-assignment-status-fallback";
+import { processSendTeacherPasswordReset } from "../../stages/process/processors.js?v=1.1.109-student-assignment-status-fallback";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.109-student-assignment-status-fallback";
 
 export function SendTeacherPasswordResetIntent() {
   return {

@@ -1,6 +1,6 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.108-student-class-alias-merge";
-import { createDefaultPracticeModes } from "./practiceModeShells.js?v=1.1.108-student-class-alias-merge";
-import { createDefaultLearningModes, createLearningModeRecord, createModeFromPayload } from "./learningArchitecture.js?v=1.1.108-student-class-alias-merge";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.109-student-assignment-status-fallback";
+import { createDefaultPracticeModes } from "./practiceModeShells.js?v=1.1.109-student-assignment-status-fallback";
+import { createDefaultLearningModes, createLearningModeRecord, createModeFromPayload } from "./learningArchitecture.js?v=1.1.109-student-assignment-status-fallback";
 
 export async function processCreateLearningMode(executionState) {
   var payload = executionState.payload;

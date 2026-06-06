@@ -1,4 +1,4 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.108-student-class-alias-merge";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.109-student-assignment-status-fallback";
 
 export async function buildCourseAssignmentOwnershipFields(payload) {
   var responsibleTeacherId = readText(payload.responsibleTeacherId);

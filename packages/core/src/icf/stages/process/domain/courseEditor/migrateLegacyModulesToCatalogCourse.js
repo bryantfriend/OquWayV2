@@ -1,4 +1,4 @@
-import { db, collection, doc, getDoc, getDocs, serverTimestamp, writeBatch } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.108-student-class-alias-merge";
+import { db, collection, doc, getDoc, getDocs, serverTimestamp, writeBatch } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.109-student-assignment-status-fallback";
 
 export async function migrateLegacyModulesToCatalogCourse(courseId) {
     const legacyModulesSnapshot = await getDocs(collection(db, "courses", courseId, "modules"));

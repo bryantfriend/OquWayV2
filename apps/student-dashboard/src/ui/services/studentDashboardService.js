@@ -1,8 +1,8 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.108-student-class-alias-merge";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.108-student-class-alias-merge";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.108-student-class-alias-merge";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.108-student-class-alias-merge";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.108-student-class-alias-merge";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.109-student-assignment-status-fallback";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.109-student-assignment-status-fallback";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.109-student-assignment-status-fallback";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.109-student-assignment-status-fallback";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.109-student-assignment-status-fallback";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
@@ -71,6 +71,7 @@ export const studentDashboardService = {
         var actorIsPreview = result.emitted.data.actorIsPreview === true;
         logStudentCourseProfileDebug(result.emitted.data.student || profile);
         logLoadedCoursesDebug(courses);
+        writeStudentDashboardDebugState(result.emitted.data);
         studentDashboardStore.setState({
           isLoading: false,
           student: result.emitted.data.student,
@@ -547,6 +548,34 @@ function logLoadedCoursesDebug(courses) {
       courseAssignmentId: course && course.courseAssignmentId ? course.courseAssignmentId : ""
     };
   }));
+}
+
+function writeStudentDashboardDebugState(data) {
+  if (!isStudentCourseDebugEnabled() || typeof window === "undefined") {
+    return;
+  }
+
+  window.__oquwayStudentDebug = {
+    buildVersion: OQUWAY_BUILD_VERSION,
+    student: data && data.student ? {
+      id: data.student.id || "",
+      uid: data.student.uid || "",
+      authUid: data.student.authUid || "",
+      userId: data.student.userId || "",
+      studentId: data.student.studentId || "",
+      classId: data.student.classId || "",
+      primaryClassId: data.student.primaryClassId || "",
+      className: data.student.className || "",
+      classIds: Array.isArray(data.student.classIds) ? data.student.classIds.slice() : [],
+      locationId: data.student.locationId || ""
+    } : null,
+    assignmentDebug: data && data.assignmentDebug ? data.assignmentDebug : null,
+    courseTitles: (data && Array.isArray(data.courses) ? data.courses : []).map(function (course) {
+      return readLocalizedText(course ? course.title : "", "Untitled Course");
+    })
+  };
+
+  console.log("[student-dashboard-debug] state", JSON.stringify(window.__oquwayStudentDebug));
 }
 
 function isDevelopmentHost() {

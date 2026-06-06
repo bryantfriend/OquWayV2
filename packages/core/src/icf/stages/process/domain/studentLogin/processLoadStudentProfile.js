@@ -1,5 +1,5 @@
-import { getStudentProfileByAuthUid } from "../../../../../../../domain/users/index.js?v=1.1.108-student-class-alias-merge";
-import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.108-student-class-alias-merge";
+import { getStudentProfileByAuthUid } from "../../../../../../../domain/users/index.js?v=1.1.109-student-assignment-status-fallback";
+import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.109-student-assignment-status-fallback";
 
 export async function processLoadStudentProfile(executionState) {
   var actor = executionState.actor;

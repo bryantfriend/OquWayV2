@@ -1,4 +1,4 @@
-import { canManageUsers, canReviewExternalTask, canSubmitExternalTask, canViewStudentProgress } from "./policies.js?v=1.1.108-student-class-alias-merge";
+import { canManageUsers, canReviewExternalTask, canSubmitExternalTask, canViewStudentProgress } from "./policies.js?v=1.1.109-student-assignment-status-fallback";
 
 export function requireCanManageUsers(userProfile) {
   return createGuardResult(canManageUsers(userProfile), "MANAGE_USERS_REQUIRED", "User management access is required.");

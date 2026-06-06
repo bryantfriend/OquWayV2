@@ -1,10 +1,10 @@
 import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.86-dev-workflow";
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.108-student-class-alias-merge";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.109-student-assignment-status-fallback";
 import {
   createEmptyState,
   createLoadingState,
   createStatusBadge
-} from "../../../packages/ui/index.js?v=1.1.108-student-class-alias-merge";
+} from "../../../packages/ui/index.js?v=1.1.109-student-assignment-status-fallback";
 
 var app = document.getElementById("app");
 var state = {

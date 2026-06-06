@@ -1,6 +1,6 @@
-import { getActiveAssignmentsForStudent } from "../assignments/index.js?v=1.1.108-student-class-alias-merge";
+import { getActiveAssignmentsForStudent } from "../assignments/index.js?v=1.1.109-student-assignment-status-fallback";
 
-export { buildStudentAssignmentTargets } from "../assignments/index.js?v=1.1.108-student-class-alias-merge";
+export { buildStudentAssignmentTargets } from "../assignments/index.js?v=1.1.109-student-assignment-status-fallback";
 
 export async function getAssignedCourses(studentId, studentProfile) {
   var assignmentResult = await getAssignedCourseIds(studentId, studentProfile);
@@ -13,6 +13,9 @@ export async function getAssignedCourses(studentId, studentProfile) {
     warnings: assignmentResult.warnings,
     queryPaths: assignmentResult.queryPaths,
     rejectionReasons: assignmentResult.rejectionReasons,
+    studentIdentifiers: assignmentResult.studentIdentifiers || [],
+    classIdentifiers: assignmentResult.classIdentifiers || [],
+    locationIdentifiers: assignmentResult.locationIdentifiers || [],
     assignments: assignmentResult.assignments || [],
     directCount: assignmentResult.directCount || 0,
     classCount: assignmentResult.classCount || 0,
@@ -52,6 +55,9 @@ async function getAssignedCourseIdsFromAssignments(studentId, studentProfile) {
     source: "courseAssignments",
     queryPaths: assignmentResult.queryPaths,
     rejectionReasons: assignmentResult.rejectionReasons,
+    studentIdentifiers: assignmentResult.studentIdentifiers || [],
+    classIdentifiers: assignmentResult.classIdentifiers || [],
+    locationIdentifiers: assignmentResult.locationIdentifiers || [],
     assignments: assignmentResult.assignments || [],
     directCount: assignmentResult.directAssignments.length,
     classCount: assignmentResult.classAssignments.length,

@@ -3,7 +3,7 @@ import {
   getStepTypeDefinition,
   isSupportedStepType,
   listStepTypeDefinitions
-} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.108-student-class-alias-merge";
+} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.109-student-assignment-status-fallback";
 
 export {
   createDefaultStepConfig,

@@ -1,10 +1,10 @@
-import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.108-student-class-alias-merge";
-import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.108-student-class-alias-merge";
-import { attachExistingCourseContext } from "../../stages/addContext/contexts.js?v=1.1.108-student-class-alias-merge";
-import { requireSuperAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.108-student-class-alias-merge";
-import { preventDeleteIfInUseAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.108-student-class-alias-merge";
-import { catalogCourseDeleteProcessing } from "../../stages/process/processors.js?v=1.1.108-student-class-alias-merge";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.108-student-class-alias-merge";
+import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.109-student-assignment-status-fallback";
+import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.109-student-assignment-status-fallback";
+import { attachExistingCourseContext } from "../../stages/addContext/contexts.js?v=1.1.109-student-assignment-status-fallback";
+import { requireSuperAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.109-student-assignment-status-fallback";
+import { preventDeleteIfInUseAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.109-student-assignment-status-fallback";
+import { catalogCourseDeleteProcessing } from "../../stages/process/processors.js?v=1.1.109-student-assignment-status-fallback";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.109-student-assignment-status-fallback";
 
 export function DeleteCatalogCourseIntent() {
     return {

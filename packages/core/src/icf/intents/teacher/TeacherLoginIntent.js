@@ -1,8 +1,8 @@
-import { validateTeacherLoginPayload } from "../../stages/validate/validators.js?v=1.1.108-student-class-alias-merge";
-import { normalizeTeacherLoginPayload } from "../../stages/normalize/normalizers.js?v=1.1.108-student-class-alias-merge";
-import { allowTeacherLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.108-student-class-alias-merge";
-import { processTeacherLogin } from "../../stages/process/processors.js?v=1.1.108-student-class-alias-merge";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.108-student-class-alias-merge";
+import { validateTeacherLoginPayload } from "../../stages/validate/validators.js?v=1.1.109-student-assignment-status-fallback";
+import { normalizeTeacherLoginPayload } from "../../stages/normalize/normalizers.js?v=1.1.109-student-assignment-status-fallback";
+import { allowTeacherLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.109-student-assignment-status-fallback";
+import { processTeacherLogin } from "../../stages/process/processors.js?v=1.1.109-student-assignment-status-fallback";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.109-student-assignment-status-fallback";
 
 export function TeacherLoginIntent() {
   return {

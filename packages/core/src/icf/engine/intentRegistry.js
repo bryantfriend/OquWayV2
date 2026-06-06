@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.108-student-class-alias-merge";
+import * as IntentExports from "../intents/intents.js?v=1.1.109-student-assignment-status-fallback";
 
 const registry = {
   // Demo Verification

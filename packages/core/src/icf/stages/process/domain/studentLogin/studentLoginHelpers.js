@@ -1,4 +1,4 @@
-import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.108-student-class-alias-merge";
+import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.109-student-assignment-status-fallback";
 
 export async function callStudentLoginFunction(payload) {
   return callCallableFunction("studentLogin", payload);

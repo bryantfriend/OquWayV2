@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateCourseAssignmentId } from "../../stages/validate/validators.js?v=1.1.108-student-class-alias-merge";
-import { normalizeCourseAssignmentUpdatePayload } from "../../stages/normalize/normalizers.js?v=1.1.108-student-class-alias-merge";
-import { attachActorContext, attachActorRoleContext, attachCourseAssignmentContext } from "../../stages/addContext/contexts.js?v=1.1.108-student-class-alias-merge";
-import { requireCourseAssignmentAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.108-student-class-alias-merge";
-import { processDeleteCourseAssignment } from "../../stages/process/processors.js?v=1.1.108-student-class-alias-merge";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.108-student-class-alias-merge";
+import { validateAuthenticated, validateCourseAssignmentId } from "../../stages/validate/validators.js?v=1.1.109-student-assignment-status-fallback";
+import { normalizeCourseAssignmentUpdatePayload } from "../../stages/normalize/normalizers.js?v=1.1.109-student-assignment-status-fallback";
+import { attachActorContext, attachActorRoleContext, attachCourseAssignmentContext } from "../../stages/addContext/contexts.js?v=1.1.109-student-assignment-status-fallback";
+import { requireCourseAssignmentAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.109-student-assignment-status-fallback";
+import { processDeleteCourseAssignment } from "../../stages/process/processors.js?v=1.1.109-student-assignment-status-fallback";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.109-student-assignment-status-fallback";
 
 export function DeleteCourseAssignmentIntent() {
   return {

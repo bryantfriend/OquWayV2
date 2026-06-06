@@ -1,7 +1,7 @@
-import { serverTimestamp } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.108-student-class-alias-merge";
+import { serverTimestamp } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.109-student-assignment-status-fallback";
 import { createCourseAssignment } from "../../../../../../../domain/assignments/index.js";
-import { createCourseAssignmentId, loadCourseAssignments } from "./courseAssignmentHelpers.js?v=1.1.108-student-class-alias-merge";
-import { buildCourseAssignmentOwnershipFields } from "./courseAssignmentOwnershipHelpers.js?v=1.1.108-student-class-alias-merge";
+import { createCourseAssignmentId, loadCourseAssignments } from "./courseAssignmentHelpers.js?v=1.1.109-student-assignment-status-fallback";
+import { buildCourseAssignmentOwnershipFields } from "./courseAssignmentOwnershipHelpers.js?v=1.1.109-student-assignment-status-fallback";
 
 export async function processCreateCourseAssignment(executionState) {
   var payload = executionState.payload;

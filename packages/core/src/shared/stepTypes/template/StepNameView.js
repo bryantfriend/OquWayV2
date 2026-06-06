@@ -1,5 +1,5 @@
-import { StepNameEngine } from "./StepNameEngine.js?v=1.1.108-student-class-alias-merge";
-import { StepNameIntent } from "./StepNameIntent.js?v=1.1.108-student-class-alias-merge";
+import { StepNameEngine } from "./StepNameEngine.js?v=1.1.109-student-assignment-status-fallback";
+import { StepNameIntent } from "./StepNameIntent.js?v=1.1.109-student-assignment-status-fallback";
 
 export default class StepName {
 

@@ -1,7 +1,7 @@
-import { updateAppState } from "../app/appState.js?v=1.1.108-student-class-alias-merge";
-import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.108-student-class-alias-merge";
-import { renderUsersRoleCards, renderUsersTableRows } from "./usersRenderer.js?v=1.1.108-student-class-alias-merge";
-import { collectUserRoles } from "../../../../../packages/domain/users/index.js?v=1.1.108-student-class-alias-merge";
+import { updateAppState } from "../app/appState.js?v=1.1.109-student-assignment-status-fallback";
+import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.109-student-assignment-status-fallback";
+import { renderUsersRoleCards, renderUsersTableRows } from "./usersRenderer.js?v=1.1.109-student-assignment-status-fallback";
+import { collectUserRoles } from "../../../../../packages/domain/users/index.js?v=1.1.109-student-assignment-status-fallback";
 
 export async function loadUsersPage(context) {
   var result = await runAdminIntent("LoadUsersIntent", {}, context || {});

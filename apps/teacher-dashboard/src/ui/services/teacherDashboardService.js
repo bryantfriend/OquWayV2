@@ -1,6 +1,6 @@
 import { getIdTokenResult, onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.108-student-class-alias-merge";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.108-student-class-alias-merge";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.109-student-assignment-status-fallback";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.109-student-assignment-status-fallback";
 
 var currentTeacherClaims = {};
 

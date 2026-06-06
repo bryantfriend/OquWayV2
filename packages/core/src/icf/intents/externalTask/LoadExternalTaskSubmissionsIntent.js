@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateExternalTaskSubmissionsQuery } from "../../stages/validate/validators.js?v=1.1.108-student-class-alias-merge";
-import { normalizeExternalTaskListPayload } from "../../stages/normalize/normalizers.js?v=1.1.108-student-class-alias-merge";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.108-student-class-alias-merge";
-import { requireExternalTaskReviewerAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.108-student-class-alias-merge";
-import { processLoadExternalTaskSubmissions } from "../../stages/process/processors.js?v=1.1.108-student-class-alias-merge";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.108-student-class-alias-merge";
+import { validateAuthenticated, validateExternalTaskSubmissionsQuery } from "../../stages/validate/validators.js?v=1.1.109-student-assignment-status-fallback";
+import { normalizeExternalTaskListPayload } from "../../stages/normalize/normalizers.js?v=1.1.109-student-assignment-status-fallback";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.109-student-assignment-status-fallback";
+import { requireExternalTaskReviewerAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.109-student-assignment-status-fallback";
+import { processLoadExternalTaskSubmissions } from "../../stages/process/processors.js?v=1.1.109-student-assignment-status-fallback";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.109-student-assignment-status-fallback";
 
 export function LoadExternalTaskSubmissionsIntent() {
   return {

@@ -1,4 +1,4 @@
-import { processCreateModule } from "./processCreateModule.js?v=1.1.108-student-class-alias-merge";
+import { processCreateModule } from "./processCreateModule.js?v=1.1.109-student-assignment-status-fallback";
 
 export async function processCreateModuleFromWizard(executionState) {
   var payload = executionState.payload || {};

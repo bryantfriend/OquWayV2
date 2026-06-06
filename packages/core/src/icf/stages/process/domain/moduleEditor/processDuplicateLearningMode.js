@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.108-student-class-alias-merge";
-import { createDefaultLearningModes, createLearningModeRecord, generateLearningModeId } from "./learningArchitecture.js?v=1.1.108-student-class-alias-merge";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.109-student-assignment-status-fallback";
+import { createDefaultLearningModes, createLearningModeRecord, generateLearningModeId } from "./learningArchitecture.js?v=1.1.109-student-assignment-status-fallback";
 
 export async function processDuplicateLearningMode(executionState) {
   var payload = executionState.payload;

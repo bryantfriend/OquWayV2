@@ -1,4 +1,4 @@
-import { locationLoginSettingsService } from "../services/locationLoginSettingsService.js?v=1.1.108-student-class-alias-merge";
+import { locationLoginSettingsService } from "../services/locationLoginSettingsService.js?v=1.1.109-student-assignment-status-fallback";
 
 export class LocationLoginSettingsPage {
   constructor() {

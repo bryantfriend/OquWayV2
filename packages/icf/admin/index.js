@@ -4,5 +4,5 @@ export {
   registerIntent,
   registerIntentDefinitions,
   runAdminIntent
-} from "./intentRegistry.js?v=1.1.108-student-class-alias-merge";
-export { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.108-student-class-alias-merge";
+} from "./intentRegistry.js?v=1.1.109-student-assignment-status-fallback";
+export { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.109-student-assignment-status-fallback";

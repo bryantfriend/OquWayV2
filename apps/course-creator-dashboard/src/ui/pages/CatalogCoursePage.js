@@ -1,5 +1,5 @@
-import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.108-student-class-alias-merge";
-import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.108-student-class-alias-merge";
+import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.109-student-assignment-status-fallback";
+import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.109-student-assignment-status-fallback";
 
 export class CatalogCoursePage {
   constructor() {

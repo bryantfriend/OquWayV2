@@ -1,9 +1,9 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.108-student-class-alias-merge";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.108-student-class-alias-merge";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.108-student-class-alias-merge";
-import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.108-student-class-alias-merge";
-import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js?v=1.1.108-student-class-alias-merge";
-import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.108-student-class-alias-merge";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.109-student-assignment-status-fallback";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.109-student-assignment-status-fallback";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.109-student-assignment-status-fallback";
+import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.109-student-assignment-status-fallback";
+import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js?v=1.1.109-student-assignment-status-fallback";
+import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.109-student-assignment-status-fallback";
 
 export async function processLoadStudentCourse(executionState) {
   var actor = executionState.actor;
@@ -59,6 +59,7 @@ export async function processLoadStudentCourse(executionState) {
       actorIsPreview: isPreviewActor(actor),
       assignmentCount: courseAssignmentResult.assignmentCount,
       assignmentSource: courseAssignmentResult.source,
+      assignmentDebug: buildAssignmentDebug(courseAssignmentResult, courses),
       emptyStateMessage: courses.length === 0 ? "No courses assigned yet." : ""
     };
 
@@ -252,6 +253,60 @@ function attachAssignmentIdToCourse(course, assignmentIdByCourseId) {
     assignmentId: assignmentIdByCourseId[course.id] || course.assignmentId || "",
     courseAssignmentId: assignmentIdByCourseId[course.id] || course.courseAssignmentId || course.assignmentId || ""
   });
+}
+
+function buildAssignmentDebug(courseAssignmentResult, courses) {
+  return {
+    studentIdentifiers: courseAssignmentResult.studentIdentifiers || [],
+    classIdentifiers: courseAssignmentResult.classIdentifiers || [],
+    locationIdentifiers: courseAssignmentResult.locationIdentifiers || [],
+    queryPaths: courseAssignmentResult.queryPaths || [],
+    rejectionReasons: courseAssignmentResult.rejectionReasons || {},
+    assignmentCount: courseAssignmentResult.assignmentCount || 0,
+    directCount: courseAssignmentResult.directCount || 0,
+    classCount: courseAssignmentResult.classCount || 0,
+    locationCount: courseAssignmentResult.locationCount || 0,
+    assignments: summarizeAssignments(courseAssignmentResult.assignments || []),
+    courses: summarizeCourses(courses || [])
+  };
+}
+
+function summarizeAssignments(assignments) {
+  var result = [];
+  var assignmentIndex = 0;
+
+  while (assignmentIndex < assignments.length) {
+    result.push({
+      id: assignments[assignmentIndex].id || "",
+      courseId: assignments[assignmentIndex].courseId || "",
+      targetType: assignments[assignmentIndex].targetType || "",
+      targetId: assignments[assignmentIndex].targetId || "",
+      classId: assignments[assignmentIndex].classId || "",
+      studentId: assignments[assignmentIndex].studentId || "",
+      status: assignments[assignmentIndex].status || "",
+      visibility: assignments[assignmentIndex].visibility || ""
+    });
+    assignmentIndex = assignmentIndex + 1;
+  }
+
+  return result;
+}
+
+function summarizeCourses(courses) {
+  var result = [];
+  var courseIndex = 0;
+
+  while (courseIndex < courses.length) {
+    result.push({
+      id: courses[courseIndex].id || "",
+      title: readLocalizedText(courses[courseIndex].title, "Untitled Course"),
+      assignmentId: courses[courseIndex].assignmentId || "",
+      courseAssignmentId: courses[courseIndex].courseAssignmentId || ""
+    });
+    courseIndex = courseIndex + 1;
+  }
+
+  return result;
 }
 
 async function loadAssignedCourseSnaps(courseIds, executionState) {

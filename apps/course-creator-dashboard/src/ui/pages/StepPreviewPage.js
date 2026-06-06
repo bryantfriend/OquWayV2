@@ -1,9 +1,9 @@
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.108-student-class-alias-merge";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.108-student-class-alias-merge";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.109-student-assignment-status-fallback";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.109-student-assignment-status-fallback";
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../../../../../packages/domain/steps/index.js?v=1.1.108-student-class-alias-merge";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.109-student-assignment-status-fallback";
 
 export class StepPreviewPage {
   constructor(courseId, moduleId, modeId, stepId) {

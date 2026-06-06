@@ -1,12 +1,12 @@
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.108-student-class-alias-merge";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.108-student-class-alias-merge";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.109-student-assignment-status-fallback";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.109-student-assignment-status-fallback";
 import {
   getStepTypeDefinition,
   listStepTypeDefinitions,
   validateStepConfig
-} from "../../../../../packages/domain/steps/index.js?v=1.1.108-student-class-alias-merge";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.108-student-class-alias-merge";
-import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.108-student-class-alias-merge";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.109-student-assignment-status-fallback";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.109-student-assignment-status-fallback";
+import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.109-student-assignment-status-fallback";
 
 export class CourseEditorPage {
   constructor(courseId, moduleId) {

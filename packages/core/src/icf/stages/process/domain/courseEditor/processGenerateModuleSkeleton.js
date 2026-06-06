@@ -2,7 +2,7 @@ import {
   createLearningModesForTemplate,
   createStarterStepsForMode,
   normalizeLearningContentPayload
-} from "../moduleEditor/learningArchitecture.js?v=1.1.108-student-class-alias-merge";
+} from "../moduleEditor/learningArchitecture.js?v=1.1.109-student-assignment-status-fallback";
 
 export function processGenerateModuleSkeleton(executionState) {
   var payload = executionState.payload || {};

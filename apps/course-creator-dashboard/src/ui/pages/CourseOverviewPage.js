@@ -1,13 +1,13 @@
-import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.108-student-class-alias-merge';
-import { courseEditorService } from '../services/courseEditorService.js?v=1.1.108-student-class-alias-merge';
-import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.108-student-class-alias-merge';
-import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.108-student-class-alias-merge';
+import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.109-student-assignment-status-fallback';
+import { courseEditorService } from '../services/courseEditorService.js?v=1.1.109-student-assignment-status-fallback';
+import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.109-student-assignment-status-fallback';
+import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.109-student-assignment-status-fallback';
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge
-} from '../../../../../packages/ui/index.js?v=1.1.108-student-class-alias-merge';
+} from '../../../../../packages/ui/index.js?v=1.1.109-student-assignment-status-fallback';
 
 export class CourseOverviewPage {
   constructor(courseId, options) {

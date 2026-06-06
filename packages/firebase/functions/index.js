@@ -1,1 +1,1 @@
-export { functions, httpsCallable } from "../../core/src/infrastructure/firebase/functions.js?v=1.1.108-student-class-alias-merge";
+export { functions, httpsCallable } from "../../core/src/infrastructure/firebase/functions.js?v=1.1.109-student-assignment-status-fallback";

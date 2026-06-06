@@ -14,7 +14,7 @@ import {
     writeBatch
 } from "firebase/firestore";
 
-import { firebaseApp } from "./firebaseApp.js?v=1.1.108-student-class-alias-merge";
+import { firebaseApp } from "./firebaseApp.js?v=1.1.109-student-assignment-status-fallback";
 
 export const db = initializeFirestore(firebaseApp, {
     localCache: memoryLocalCache()

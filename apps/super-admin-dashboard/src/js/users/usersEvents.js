@@ -1,4 +1,4 @@
-import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.108-student-class-alias-merge";
+import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.109-student-assignment-status-fallback";
 
 export function bindUsersEvents(rootElement, handlers) {
   rootElement.addEventListener("click", function (event) {

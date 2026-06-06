@@ -1,4 +1,4 @@
-import { processDuplicateLearningMode } from "./processDuplicateLearningMode.js?v=1.1.108-student-class-alias-merge";
+import { processDuplicateLearningMode } from "./processDuplicateLearningMode.js?v=1.1.109-student-assignment-status-fallback";
 
 export async function processGenerateModeFromPrimary(executionState) {
   executionState.payload = Object.assign({}, executionState.payload, {

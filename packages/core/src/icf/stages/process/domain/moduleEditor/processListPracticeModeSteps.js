@@ -1,4 +1,4 @@
-import { normalizePracticeModes } from "./practiceModeShells.js?v=1.1.108-student-class-alias-merge";
+import { normalizePracticeModes } from "./practiceModeShells.js?v=1.1.109-student-assignment-status-fallback";
 
 export function processListPracticeModeSteps(executionState) {
   var payload = executionState.payload;

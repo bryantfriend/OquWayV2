@@ -1,4 +1,4 @@
-import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.108-student-class-alias-merge";
+import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.109-student-assignment-status-fallback";
 
 export function normalizePracticeModeStep(executionState) {
   var payload = executionState.payload;

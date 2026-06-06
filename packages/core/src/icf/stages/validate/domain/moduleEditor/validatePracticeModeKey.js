@@ -1,4 +1,4 @@
-import { isValidPracticeModeKey } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.108-student-class-alias-merge";
+import { isValidPracticeModeKey } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.109-student-assignment-status-fallback";
 
 export function validatePracticeModeKey(executionState) {
   var payload = executionState.payload;

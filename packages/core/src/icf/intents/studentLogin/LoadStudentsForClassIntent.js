@@ -1,8 +1,8 @@
-import { validateStudentsForClassPayload } from "../../stages/validate/validators.js?v=1.1.108-student-class-alias-merge";
-import { normalizeStudentsForClassPayload } from "../../stages/normalize/normalizers.js?v=1.1.108-student-class-alias-merge";
-import { allowStudentLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.108-student-class-alias-merge";
-import { processLoadStudentsForClass } from "../../stages/process/processors.js?v=1.1.108-student-class-alias-merge";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.108-student-class-alias-merge";
+import { validateStudentsForClassPayload } from "../../stages/validate/validators.js?v=1.1.109-student-assignment-status-fallback";
+import { normalizeStudentsForClassPayload } from "../../stages/normalize/normalizers.js?v=1.1.109-student-assignment-status-fallback";
+import { allowStudentLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.109-student-assignment-status-fallback";
+import { processLoadStudentsForClass } from "../../stages/process/processors.js?v=1.1.109-student-assignment-status-fallback";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.109-student-assignment-status-fallback";
 
 export function LoadStudentsForClassIntent() {
   return {

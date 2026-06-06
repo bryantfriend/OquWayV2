@@ -36,4 +36,4 @@ export function assignmentBelongsToTeacher(assignment, teacherIds) {
     }));
 }
 
-export * from "./assignmentRepository.js?v=1.1.108-student-class-alias-merge";
+export * from "./assignmentRepository.js?v=1.1.109-student-assignment-status-fallback";

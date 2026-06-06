@@ -1,10 +1,10 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth, collection, db, deleteDoc, doc, functions, getDoc, getDocs, httpsCallable, serverTimestamp, setDoc, storage } from "../../../../../packages/firebase/index.js?v=1.1.108-student-class-alias-merge";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.108-student-class-alias-merge";
-import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.108-student-class-alias-merge";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.108-student-class-alias-merge";
-import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.108-student-class-alias-merge";
-import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.108-student-class-alias-merge";
+import { auth, collection, db, deleteDoc, doc, functions, getDoc, getDocs, httpsCallable, serverTimestamp, setDoc, storage } from "../../../../../packages/firebase/index.js?v=1.1.109-student-assignment-status-fallback";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.109-student-assignment-status-fallback";
+import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.109-student-assignment-status-fallback";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.109-student-assignment-status-fallback";
+import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.109-student-assignment-status-fallback";
+import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.109-student-assignment-status-fallback";
 
 var appElement = document.getElementById("app");
 var appVersion = "1.1.82";

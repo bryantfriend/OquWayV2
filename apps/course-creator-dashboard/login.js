@@ -1,5 +1,5 @@
-import { auth } from "../../packages/firebase/auth/index.js?v=1.1.108-student-class-alias-merge";
-import { verifyCourseCreatorAccess, normalizeRole } from "./src/auth/courseCreatorAuth.js?v=1.1.108-student-class-alias-merge";
+import { auth } from "../../packages/firebase/auth/index.js?v=1.1.109-student-assignment-status-fallback";
+import { verifyCourseCreatorAccess, normalizeRole } from "./src/auth/courseCreatorAuth.js?v=1.1.109-student-assignment-status-fallback";
 import {
     signInWithEmailAndPassword,
     onAuthStateChanged,

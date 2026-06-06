@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.108-student-class-alias-merge";
-import { deletePracticeModeStep } from "./practiceModeShells.js?v=1.1.108-student-class-alias-merge";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.109-student-assignment-status-fallback";
+import { deletePracticeModeStep } from "./practiceModeShells.js?v=1.1.109-student-assignment-status-fallback";
 
 export async function processDeletePracticeModeStep(executionState) {
   var payload = executionState.payload;

@@ -1,4 +1,4 @@
-import { fruitOptions } from "../../../../../packages/shared/constants/admin.js?v=1.1.108-student-class-alias-merge";
+import { fruitOptions } from "../../../../../packages/shared/constants/admin.js?v=1.1.109-student-assignment-status-fallback";
 
 export function createRandomFruitPassword() {
   var values = [];

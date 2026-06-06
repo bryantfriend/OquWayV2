@@ -1,4 +1,4 @@
-import { requireStringValidation } from "../../validators.js?v=1.1.108-student-class-alias-merge";
+import { requireStringValidation } from "../../validators.js?v=1.1.109-student-assignment-status-fallback";
 
 export function validateStepTypeRegistered(executionState) {
     const { payload } = executionState;

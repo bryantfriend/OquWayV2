@@ -1,4 +1,4 @@
-import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.108-student-class-alias-merge";
+import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.109-student-assignment-status-fallback";
 
 export function requireCourseAssignmentAdminAuthorization(executionState) {
   var actor = executionState.actor;

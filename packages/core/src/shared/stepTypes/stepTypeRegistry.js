@@ -1,13 +1,13 @@
-import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.108-student-class-alias-merge";
-import { VocabularyStep } from "./VocabularyStep.js?v=1.1.108-student-class-alias-merge";
-import { PhraseStep } from "./PhraseStep.js?v=1.1.108-student-class-alias-merge";
-import { ListeningStep } from "./ListeningStep.js?v=1.1.108-student-class-alias-merge";
-import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.108-student-class-alias-merge";
-import { ReflectionStep } from "./ReflectionStep.js?v=1.1.108-student-class-alias-merge";
-import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.108-student-class-alias-merge";
-import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.108-student-class-alias-merge";
-import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.108-student-class-alias-merge";
-import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.108-student-class-alias-merge";
+import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.109-student-assignment-status-fallback";
+import { VocabularyStep } from "./VocabularyStep.js?v=1.1.109-student-assignment-status-fallback";
+import { PhraseStep } from "./PhraseStep.js?v=1.1.109-student-assignment-status-fallback";
+import { ListeningStep } from "./ListeningStep.js?v=1.1.109-student-assignment-status-fallback";
+import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.109-student-assignment-status-fallback";
+import { ReflectionStep } from "./ReflectionStep.js?v=1.1.109-student-assignment-status-fallback";
+import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.109-student-assignment-status-fallback";
+import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.109-student-assignment-status-fallback";
+import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.109-student-assignment-status-fallback";
+import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.109-student-assignment-status-fallback";
 
 var stepTypes = {
   textBriefing: TextBriefingStep,
