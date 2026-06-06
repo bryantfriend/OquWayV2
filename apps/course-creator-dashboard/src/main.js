@@ -1,3 +1,4 @@
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.86-dev-workflow";
 import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.82-shared-command-center-shell";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.82-shared-command-center-shell";
@@ -7,6 +8,7 @@ import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.82-shar
 import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.82-shared-command-center-shell";
 import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.82-shared-command-center-shell";
 
+console.log("[oquway-build]", OQUWAY_BUILD_VERSION);
 console.warn("[course-creator-build-check] latest build active");
 
 let appInitialized = false;

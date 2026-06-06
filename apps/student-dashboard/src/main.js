@@ -1,4 +1,5 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.86-dev-workflow";
 import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.82-shared-command-center-shell";
 import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.82-shared-command-center-shell";
 import {
@@ -27,6 +28,8 @@ var appElement = document.getElementById("app");
 var authInitialized = false;
 var practiceModePlayer = null;
 var practiceModePlayerSignature = "";
+
+console.log("[oquway-build]", OQUWAY_BUILD_VERSION);
 
 studentDashboardStore.subscribe(function (state) {
   render(state);

@@ -1,3 +1,4 @@
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.86-dev-workflow";
 import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.82-shared-command-center-shell";
 import {
   createEmptyState,
@@ -31,6 +32,8 @@ var state = {
   error: "",
   unauthorized: false
 };
+
+console.log("[oquway-build]", OQUWAY_BUILD_VERSION);
 
 if (app) {
   app.addEventListener("submit", handleSubmit);
