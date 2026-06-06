@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.91-student-auth-persistence";
+import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.92-student-login-race";
 
 export async function processLoadClassesForLocation(executionState) {
   var payload = executionState.payload;

@@ -1,6 +1,6 @@
 // createIntent.js
 
-import { getIntentDefinition } from "./intentRegistry.js?v=1.1.91-student-auth-persistence";
+import { getIntentDefinition } from "./intentRegistry.js?v=1.1.92-student-login-race";
 
 export function createIntent(intentInput) {
   const intentType = readIntentType(intentInput);

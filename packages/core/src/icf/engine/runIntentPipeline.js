@@ -1,7 +1,7 @@
 // runIntentPipeline.js
 
-import { runStageArray } from "./runStageArray.js?v=1.1.91-student-auth-persistence";
-import { buildResult } from "./buildResult.js?v=1.1.91-student-auth-persistence";
+import { runStageArray } from "./runStageArray.js?v=1.1.92-student-login-race";
+import { buildResult } from "./buildResult.js?v=1.1.92-student-login-race";
 
 export async function runIntentPipeline(intentDefinition, executionInput) {
   const executionState = createExecutionState(intentDefinition, executionInput);

@@ -1,4 +1,4 @@
-import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.91-student-auth-persistence";
+import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.92-student-login-race";
 
 export async function callStudentLoginFunction(payload) {
   return callCallableFunction("studentLogin", payload);

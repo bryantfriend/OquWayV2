@@ -1,4 +1,4 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.91-student-auth-persistence";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.92-student-login-race";
 import { createDefaultProgressDocument as createSharedDefaultProgressDocument } from "../../../../../../../domain/progress/index.js";
 
 export function createDefaultProgressDocument(courseId, moduleId, sessionId) {

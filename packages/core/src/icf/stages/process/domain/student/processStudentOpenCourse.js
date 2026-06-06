@@ -1,5 +1,5 @@
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.91-student-auth-persistence";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.91-student-auth-persistence";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.92-student-login-race";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.92-student-login-race";
 
 export async function processStudentOpenCourse(executionState) {
   var payload = executionState.payload || {};

@@ -1,6 +1,6 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.91-student-auth-persistence";
-import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.91-student-auth-persistence";
-import { createDefaultProgressDocument } from "../../../process/domain/student/studentProgressHelpers.js?v=1.1.91-student-auth-persistence";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.92-student-login-race";
+import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.92-student-login-race";
+import { createDefaultProgressDocument } from "../../../process/domain/student/studentProgressHelpers.js?v=1.1.92-student-login-race";
 
 export async function attachStudentOpenCourseContext(executionState) {
   var payload = executionState.payload || {};

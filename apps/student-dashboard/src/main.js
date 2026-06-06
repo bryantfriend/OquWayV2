@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.91-student-auth-persistence";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.91-student-auth-persistence";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.91-student-auth-persistence";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.92-student-login-race";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.92-student-login-race";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.92-student-login-race";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,16 +13,16 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.91-student-auth-persistence";
+} from "../../../packages/domain/progress/index.js?v=1.1.92-student-login-race";
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.91-student-auth-persistence";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.91-student-auth-persistence";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.91-student-auth-persistence";
+} from "../../../packages/ui/index.js?v=1.1.92-student-login-race";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.92-student-login-race";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.92-student-login-race";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;

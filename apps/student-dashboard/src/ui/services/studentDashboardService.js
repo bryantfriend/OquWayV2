@@ -1,7 +1,7 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.91-student-auth-persistence";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.91-student-auth-persistence";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.91-student-auth-persistence";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.91-student-auth-persistence";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.92-student-login-race";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.92-student-login-race";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.92-student-login-race";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.92-student-login-race";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
