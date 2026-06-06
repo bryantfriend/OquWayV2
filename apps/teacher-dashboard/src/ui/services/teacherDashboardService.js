@@ -1,6 +1,6 @@
 import { getIdTokenResult, onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.80-course-module-command-center";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.80-course-module-command-center";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.81-class-command-center";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.81-class-command-center";
 
 var currentTeacherClaims = {};
 

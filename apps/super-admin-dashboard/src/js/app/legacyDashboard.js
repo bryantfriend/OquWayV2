@@ -1,13 +1,13 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth, collection, db, deleteDoc, doc, functions, getDoc, getDocs, httpsCallable, serverTimestamp, setDoc, storage } from "../../../../../packages/firebase/index.js?v=1.1.80-course-module-command-center";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.80-course-module-command-center";
-import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.80-course-module-command-center";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.80-course-module-command-center";
-import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.80-course-module-command-center";
-import { createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.80-course-module-command-center";
+import { auth, collection, db, deleteDoc, doc, functions, getDoc, getDocs, httpsCallable, serverTimestamp, setDoc, storage } from "../../../../../packages/firebase/index.js?v=1.1.81-class-command-center";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.81-class-command-center";
+import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.81-class-command-center";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.81-class-command-center";
+import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.81-class-command-center";
+import { createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.81-class-command-center";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.80";
+var appVersion = "1.1.81";
 var adminCallableFunctions = functions;
 var state = {
   isLoading: true,
@@ -17,6 +17,7 @@ var state = {
   activeLocationId: "",
   locationCreateOpen: false,
   locationCommandCenter: createLocationCommandCenterState(),
+  classCommandCenter: createClassCommandCenterState(),
   userCommandCenter: createUserCommandCenterState(),
   courseCommandCenter: createCourseCommandCenterState(),
   moduleCommandCenter: createModuleCommandCenterState(),
@@ -512,6 +513,7 @@ function buildDashboardView() {
   html += buildActiveTab();
   html += '</main>';
   html += buildResetModal();
+  html += buildClassCommandCenterModal();
   html += buildUserCommandCenterModal();
   html += buildUserEditModal();
   html += buildCourseCommandCenterModal();
@@ -2761,6 +2763,203 @@ function buildLocationCommandDangerTab(location) {
   return '<section class="sa-command-tab-stack"><article class="sa-command-panel sa-command-danger-panel"><div class="sa-command-panel-head"><h3>Danger Zone</h3></div><p>Destructive operations must run through ICF intents. These controls remain disabled until the matching intents are wired.</p><div class="sa-command-danger-actions"><button type="button" class="sa-btn sa-danger-btn" disabled>Archive Location</button><button type="button" class="sa-btn sa-danger-btn" disabled>Disable Location</button><button type="button" class="sa-btn sa-danger-btn" disabled>Transfer Students</button><button type="button" class="sa-btn sa-danger-btn" disabled>Transfer Teachers</button></div><small>Location: ' + escapeHtml(location.name || location.id) + '</small></article></section>';
 }
 
+function buildClassCommandCenterModal() {
+  var command = state.classCommandCenter || createClassCommandCenterState();
+
+  if (!command.isOpen) {
+    return "";
+  }
+
+  var classRecord = findClass(command.classId);
+
+  if (!classRecord) {
+    return buildMissingCommandModal("Class Command Center", "Class not found.", "Return to Classes and open a current class.", "close-class-command-center");
+  }
+
+  var context = readClassCommandContext(classRecord);
+
+  return '<div class="sa-location-command-backdrop sa-class-command-backdrop" role="dialog" aria-modal="true" aria-label="Class Command Center">'
+    + '<section class="sa-location-command-modal sa-class-command-modal">'
+    + buildClassCommandHeader(classRecord, context)
+    + '<div class="sa-location-command-shell sa-class-command-shell">'
+    + buildClassCommandTabs(command.activeTab)
+    + '<main class="sa-location-command-content sa-class-command-content">' + buildClassCommandBody(command.activeTab, classRecord, context) + '</main>'
+    + buildClassCommandSideRail(classRecord, context)
+    + '</div></section></div>';
+}
+
+function buildClassCommandHeader(classRecord, context) {
+  var form = context.form;
+
+  return '<header class="sa-location-command-header sa-class-command-header">'
+    + '<div class="sa-location-command-identity sa-class-command-identity">'
+    + '<span class="sa-class-command-icon sa-class-command-icon-large">' + escapeHtml(readInitials(form.name || form.classId || "CL")) + '</span>'
+    + '<div><div class="sa-location-command-title"><h2>' + escapeHtml(form.name || form.classId || "Untitled class") + '</h2>' + createStatusBadge(form.status, { className: "sa-command-status", statusClassPrefix: "sa-command-status-" }) + '</div>'
+    + '<p>' + escapeHtml(readLocationName(form.locationId) || "No location") + '<span></span>Teacher: ' + escapeHtml(readTeacherName(form.primaryTeacherId)) + '<span></span>Students: ' + context.students.length + '<span></span>Courses: ' + context.courses.length + '<span></span>Last Activity: ' + escapeHtml(readClassLastActivityLabel(context)) + '</p></div>'
+    + '</div><div class="sa-location-command-header-actions sa-class-command-header-actions">'
+    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="class-command-tab" data-id="overview">Edit Class</button>'
+    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="class-command-tab" data-id="assignments">Assign Course</button>'
+    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="class-command-tab" data-id="students">Manage Students</button>'
+    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="class-command-tab" data-id="teachers">Open Teacher View</button>'
+    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="class-command-tab" data-id="danger">More Actions</button>'
+    + '<button type="button" class="sa-location-command-close" data-action="close-class-command-center" aria-label="Close">x</button>'
+    + '</div></header>';
+}
+
+function buildClassCommandTabs(activeTab) {
+  return buildCommandTabs("class-command-tab", activeTab, [
+    ["overview", "Overview", "O"], ["students", "Students", "S"], ["teachers", "Teachers", "T"], ["courses", "Courses", "C"], ["assignments", "Assignments", "A"], ["activity", "Activity", "V"], ["schedule", "Schedule", "D"], ["reports", "Reports", "R"], ["audit", "Audit Log", "L"], ["danger", "Danger Zone", "!"]
+  ], "Class Command Center");
+}
+
+function buildClassCommandBody(activeTab, classRecord, context) {
+  if (activeTab === "students") return buildClassStudentsTab(classRecord, context);
+  if (activeTab === "teachers") return buildClassTeachersTab(classRecord, context);
+  if (activeTab === "courses") return buildClassCoursesTab(classRecord, context);
+  if (activeTab === "assignments") return buildClassAssignmentsTab(classRecord, context);
+  if (activeTab === "activity") return buildClassActivityTab(classRecord, context);
+  if (activeTab === "schedule") return buildClassScheduleTab(classRecord, context);
+  if (activeTab === "reports") return buildClassReportsTab(classRecord, context);
+  if (activeTab === "audit") return buildClassAuditTab(classRecord, context);
+  if (activeTab === "danger") return buildClassDangerTab(classRecord, context);
+  return buildClassOverviewTab(classRecord, context);
+}
+
+function buildClassOverviewTab(classRecord, context) {
+  return '<section class="sa-location-command-overview sa-class-command-overview"><div class="sa-command-kpi-grid sa-class-command-kpis">'
+    + buildUserCommandKpiCard("Students", context.students.length, "students", "blue", "Enrolled learners")
+    + buildUserCommandKpiCard("Teachers", context.teachers.length, "teachers", "green", "Primary and assistants")
+    + buildUserCommandKpiCard("Assigned Courses", context.courses.length, "courses", "purple", "Course assignments")
+    + buildUserCommandKpiCard("Modules Completed", readClassMetricLabel(context, ["modulesCompleted", "completedModules"]), "activity", "sky", "If available")
+    + buildUserCommandKpiCard("Steps Completed", readClassMetricLabel(context, ["stepsCompleted", "completedSteps"]), "activity", "orange", "If available")
+    + buildUserCommandKpiCard("Pending Reviews", countPendingSubmissions(context.submissions), "reports", "rose", "External tasks")
+    + buildUserCommandKpiCard("Attendance", readClassAttendanceLabel(context), "reports", "amber", "If available")
+    + buildUserCommandKpiCard("Activity Score", readClassActivityScoreLabel(context), "activity", "blue", "If available")
+    + '</div><div class="sa-command-grid sa-command-grid-main">'
+    + buildUserCommandChartCard("Class Activity Trend", "Class activity trend data is not connected yet.")
+    + buildUserCommandChartCard("Course Progress Trend", "Course progress trend data is not connected yet.")
+    + buildLocationReviewTrendCard({ pendingReviews: countPendingSubmissions(context.submissions), completedReviews: countReviewedClassSubmissions(context), needsWorkReviews: countNeedsWorkClassSubmissions(context) })
+    + buildUserCommandChartCard("Attendance Trend", "Attendance trend data is not connected yet.")
+    + '</div><article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Edit Class</h3><p>Existing ICF save flow.</p></div>' + buildClassForm(context.form.classId, context.form) + '</article></section>';
+}
+
+function buildClassStudentsTab(classRecord, context) {
+  var html = '<section class="sa-command-tab-stack">';
+
+  if (context.students.length === 0) {
+    return html + createEmptyState("No students in this class.", "Students assigned to this class will appear here.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
+  }
+
+  html += '<div class="sa-command-table sa-class-students-table"><div class="sa-command-table-head"><span>Avatar</span><span>Name</span><span>Status</span><span>Course Progress</span><span>Pending Reviews</span><span>Last Activity</span><span>Login</span></div>';
+  context.students.forEach(function (student) {
+    var safeStudent = getSafeUser(student);
+    html += '<button type="button" class="sa-command-table-row" data-action="edit-user" data-id="' + escapeHtml(safeStudent.id) + '"><span>' + buildAvatar(safeStudent) + '</span><span><strong>' + escapeHtml(readUserCommandName(safeStudent)) + '</strong><small>' + escapeHtml(safeStudent.email || safeStudent.id) + '</small></span><span>' + buildStatusBadge(safeStudent.status) + '</span><span>' + escapeHtml(readClassStudentProgressLabel(safeStudent, context)) + '</span><span>' + countStudentPendingReviews(safeStudent, context) + '</span><span>' + escapeHtml(formatDateTime(readUserLastActive(safeStudent))) + '</span><span>' + escapeHtml(readUserLoginMethod(safeStudent)) + '</span></button>';
+  });
+  html += '</div></section>';
+  return html;
+}
+
+function buildClassTeachersTab(classRecord, context) {
+  var html = '<section class="sa-command-tab-stack">';
+
+  if (context.teachers.length === 0) {
+    return html + createEmptyState("No teachers assigned.", "Assign a primary teacher or assistants from this class command center.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
+  }
+
+  html += '<div class="sa-command-table sa-class-teachers-table"><div class="sa-command-table-head"><span>Avatar</span><span>Name</span><span>Role</span><span>Courses Taught</span><span>Pending Reviews</span><span>Last Activity</span></div>';
+  context.teachers.forEach(function (teacher) {
+    var safeTeacher = getSafeUser(teacher);
+    html += '<button type="button" class="sa-command-table-row" data-action="edit-user" data-id="' + escapeHtml(safeTeacher.id) + '"><span>' + buildAvatar(safeTeacher) + '</span><span><strong>' + escapeHtml(readUserCommandName(safeTeacher)) + '</strong><small>' + escapeHtml(safeTeacher.email || safeTeacher.id) + '</small></span><span>' + escapeHtml(readClassTeacherRole(safeTeacher, context)) + '</span><span>' + countTeacherCoursesForClass(safeTeacher, context) + '</span><span>' + countPendingSubmissions(context.submissions) + '</span><span>' + escapeHtml(formatDateTime(readUserLastActive(safeTeacher))) + '</span></button>';
+  });
+  html += '</div></section>';
+  return html;
+}
+
+function buildClassCoursesTab(classRecord, context) {
+  var html = '<section class="sa-command-tab-stack">';
+
+  if (context.courses.length === 0) {
+    return html + createEmptyState("No courses assigned.", "Class course assignments will appear here after assignment.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
+  }
+
+  html += '<div class="sa-command-table sa-class-courses-table"><div class="sa-command-table-head"><span>Course</span><span>Progress</span><span>Students</span><span>Modules</span><span>Pending Reviews</span><span>Status</span></div>';
+  context.courses.forEach(function (course) {
+    var courseContext = readCourseCommandContext(course);
+    html += '<button type="button" class="sa-command-table-row" data-action="open-course-command-center" data-id="' + escapeHtml(course.id || "") + '"><span><strong>' + escapeHtml(readCourseTitle(course)) + '</strong><small>' + escapeHtml(readCourseDescription(course) || course.id || "") + '</small></span><span>' + escapeHtml(readClassCourseProgressLabel(course, context)) + '</span><span>' + context.students.length + '</span><span>' + courseContext.modules.length + '</span><span>' + countPendingSubmissions(readClassCourseSubmissions(course, context)) + '</span><span>' + buildStatusBadge(readCourseStatus(course)) + '</span></button>';
+  });
+  html += '</div></section>';
+  return html;
+}
+
+function buildClassAssignmentsTab(classRecord, context) {
+  var html = '<section class="sa-command-tab-stack">';
+
+  if (context.assignments.length === 0) {
+    return html + createEmptyState("No class assignments found.", "Use the assignment tools to assign courses to this class.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
+  }
+
+  html += '<div class="sa-command-table"><div class="sa-command-table-head"><span>Course</span><span>Assignment Date</span><span>Assigned By</span><span>Status</span><span>Visibility</span></div>';
+  context.assignments.forEach(function (assignment) {
+    html += '<button type="button" class="sa-command-table-row" data-action="view-assignment" data-id="' + escapeHtml(assignment.id || "") + '"><span><strong>' + escapeHtml(readCourseName(assignment.courseId)) + '</strong><small>' + escapeHtml(assignment.courseId || "") + '</small></span><span>' + escapeHtml(formatDateTime(assignment.assignedAt || assignment.createdAt || assignment.updatedAt)) + '</span><span>' + escapeHtml(readAssignmentActorName(assignment)) + '</span><span>' + buildStatusBadge(assignment.status || "active") + '</span><span>' + escapeHtml(assignment.visibility || "visible") + '</span></button>';
+  });
+  html += '</div></section>';
+  return html;
+}
+
+function buildClassActivityTab(classRecord, context) {
+  var records = context.activity.concat(context.submissions.map(function (submission) {
+    return {
+      type: "External Task",
+      title: submission.stepTitle || submission.title || "External task submission",
+      time: normalizeTimestamp(submission.updatedAt || submission.createdAt),
+      status: submission.reviewStatus || submission.status || "pending"
+    };
+  })).sort(compareByTimeDesc);
+  var html = '<section class="sa-command-tab-stack">';
+
+  if (records.length === 0) {
+    return html + createEmptyState("No class activity yet.", "Module completions, step completions, submissions, reviews, and course opens will appear here when connected.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
+  }
+
+  html += buildSimpleRecordList("Class Activity", records);
+  html += '</section>';
+  return html;
+}
+
+function buildClassScheduleTab(classRecord, context) {
+  var schedule = readClassScheduleRecords(classRecord);
+
+  if (schedule.length === 0) {
+    return '<section class="sa-command-tab-stack">' + createEmptyState("No schedule data yet.", "Class schedule records are not connected to this class yet.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
+  }
+
+  return '<section class="sa-command-tab-stack">' + buildSimpleRecordList("Class Schedule", schedule) + '</section>';
+}
+
+function buildClassReportsTab(classRecord, context) {
+  var reports = ["Attendance", "Course Completion", "External Tasks", "Intention Points", "Activity"];
+  var html = '<section class="sa-command-tab-stack"><div class="sa-command-report-grid">';
+
+  reports.forEach(function (report) {
+    html += '<article class="sa-command-panel"><h3>' + escapeHtml(report) + '</h3>' + createEmptyState(report + " report unavailable", "Connect report data to show this class report.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</article>';
+  });
+
+  html += '</div></section>';
+  return html;
+}
+
+function buildClassAuditTab(classRecord, context) {
+  return '<section class="sa-command-tab-stack">' + (context.audit.length ? buildSimpleRecordList("Audit Log", context.audit) : createEmptyState("No audit log entries yet.", "Audit records will appear here when connected to this class.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" })) + '</section>';
+}
+
+function buildClassDangerTab(classRecord, context) {
+  return '<section class="sa-command-tab-stack"><article class="sa-command-panel sa-command-danger-panel"><div class="sa-command-panel-head"><h3>Danger Zone</h3><span class="sa-user-command-super">ICF Only</span></div><p>Destructive class actions remain disabled unless the matching ICF intent is implemented and explicitly wired.</p><div class="sa-command-danger-actions"><button type="button" class="sa-btn sa-danger-btn" disabled>Archive Class</button><button type="button" class="sa-btn sa-danger-btn" disabled>Restore Class</button><button type="button" class="sa-btn sa-danger-btn" disabled>Transfer Students</button><button type="button" class="sa-btn sa-danger-btn" disabled>Delete Class</button></div><small>Class: ' + escapeHtml(context.form.name || context.form.classId) + '</small></article></section>';
+}
+
+function buildClassCommandSideRail(classRecord, context) {
+  return '<aside class="sa-user-command-rail sa-class-command-rail"><article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Class Staff</h3></div><div class="sa-user-command-quick-list"><button data-action="open-class-teacher-picker" data-id="' + escapeHtml(context.form.classId) + '">Assign Teacher</button><button data-action="open-class-assistant-picker" data-id="' + escapeHtml(context.form.classId) + '">Manage Assistants</button><button data-action="class-command-tab" data-id="students">Manage Students</button><button data-action="class-command-tab" data-id="assignments">Assign Course</button></div></article><article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Class Summary</h3></div><dl class="sa-command-summary-list"><dt>Location</dt><dd>' + escapeHtml(readLocationName(context.form.locationId)) + '</dd><dt>Teacher</dt><dd>' + escapeHtml(readTeacherName(context.form.primaryTeacherId)) + '</dd><dt>Students</dt><dd>' + context.students.length + '</dd><dt>Courses</dt><dd>' + context.courses.length + '</dd><dt>Pending Reviews</dt><dd>' + countPendingSubmissions(context.submissions) + '</dd></dl></article></aside>';
+}
+
 function buildClassesTab() {
   return '<section class="sa-stack">'
     + '<article class="sa-card"><h2>Create Class / Group</h2>' + buildClassForm("new", state.classForm) + '</article>'
@@ -2781,7 +2980,7 @@ function buildClassFilterToolbar() {
 
 function buildClassRows() {
   var classes = readVisibleClasses();
-  var html = '<div class="sa-table">';
+  var html = '<div class="sa-class-command-grid">';
   var index = 0;
 
   if (state.isRefreshing && state.classes.length === 0) {
@@ -2810,18 +3009,25 @@ function buildClassOwnershipRow(classRecord) {
   var form = normalizeClassForm(classRecord);
   var primaryTeacher = findUser(form.primaryTeacherId);
   var assistants = readUsersByIds(form.assistantIds);
+  var context = readClassCommandContext(classRecord);
 
-  return '<div class="sa-row sa-class-row">'
-    + '<div class="sa-class-row-head">'
-    + '<div><strong>' + escapeHtml(form.name || form.classId || "Untitled class") + '</strong><small>' + escapeHtml(readLocationName(form.locationId) || "No location") + '</small></div>'
-    + '<span class="sa-status sa-status-' + escapeHtml(form.status || "active") + '">' + escapeHtml(form.status || "active") + '</span>'
-    + '</div>'
+  return '<article class="sa-row sa-class-row sa-class-command-card">'
+    + '<button type="button" class="sa-class-command-open" data-action="open-class-command-center" data-id="' + escapeHtml(form.classId) + '">'
+    + '<span class="sa-class-command-icon">' + escapeHtml(readInitials(form.name || form.classId || "CL")) + '</span>'
+    + '<span class="sa-class-command-main"><strong>' + escapeHtml(form.name || form.classId || "Untitled class") + '</strong><small>' + escapeHtml(readLocationName(form.locationId) || "No location") + '</small></span>'
+    + '<span><strong>' + escapeHtml(readTeacherName(form.primaryTeacherId)) + '</strong><small>Primary teacher</small></span>'
+    + '<span><strong>' + context.students.length + '</strong><small>Students</small></span>'
+    + '<span><strong>' + context.courses.length + '</strong><small>Courses</small></span>'
+    + '<span><strong>' + countPendingSubmissions(context.submissions) + '</strong><small>Pending reviews</small></span>'
+    + '<span><strong>' + escapeHtml(readClassActivityStatus(context)) + '</strong><small>Activity</small></span>'
+    + '<span>' + buildStatusBadge(form.status || "active") + '<small>Open Command Center</small></span>'
+    + '</button>'
     + '<div class="sa-class-staff-grid">'
     + buildClassStaffPanel("Class Teacher", primaryTeacher ? [primaryTeacher] : [], "No teacher assigned")
     + buildClassStaffPanel("Assistants", assistants, "None")
     + '</div>'
-    + buildClassForm(classRecord.id, form)
-    + '</div>';
+    + '<div class="sa-class-command-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="open-class-command-center" data-id="' + escapeHtml(form.classId) + '"' + disabled(isBusy()) + '>Open Command Center</button><button type="button" class="sa-btn sa-btn-secondary" data-action="open-class-teacher-picker" data-id="' + escapeHtml(form.classId) + '"' + disabled(isBusy()) + '>Assign Teacher</button><button type="button" class="sa-btn sa-btn-secondary" data-action="open-class-assistant-picker" data-id="' + escapeHtml(form.classId) + '"' + disabled(isBusy()) + '>Manage Assistants</button></div>'
+    + '</article>';
 }
 
 function buildClassStaffPanel(label, users, emptyLabel) {
@@ -3618,6 +3824,10 @@ function canRunActionWhileBusy(action) {
     return true;
   }
 
+  if (action === "open-class-command-center" || action === "close-class-command-center" || action === "class-command-tab") {
+    return true;
+  }
+
   if (!state.isSaving && state.isRefreshing && (action === "edit-user" || action === "close-user-command-center" || action === "user-command-tab" || action === "open-user-edit-modal" || action === "close-user-edit-modal")) {
     return true;
   }
@@ -3872,6 +4082,56 @@ function navigateFromLocationCommandCenter(target) {
       messageType: target === "reviews" ? "info" : state.messageType
     });
   }
+}
+
+async function openClassCommandCenter(classId) {
+  var classRecord = findById(state.classes, classId);
+
+  if (!classRecord) {
+    setState({ message: "Class was not found.", messageType: "error" });
+    return;
+  }
+
+  var form = normalizeClassForm(classRecord);
+
+  console.info("[class-command-center:open]", {
+    classId: form.classId,
+    className: form.name || ""
+  });
+
+  try {
+    await runAdminIntent("OpenClassCommandCenterIntent", { classId: form.classId });
+  } catch (error) {
+    console.warn("[class-command-center:intent-warning]", {
+      classId: form.classId,
+      errorMessage: error && error.message ? error.message : String(error)
+    });
+  }
+
+  setState({
+    activeTab: "classes",
+    classCommandCenter: Object.assign(createClassCommandCenterState(), {
+      isOpen: true,
+      classId: form.classId
+    }),
+    message: ""
+  });
+}
+
+function closeClassCommandCenter() {
+  setState({
+    classCommandCenter: createClassCommandCenterState(),
+    message: ""
+  });
+}
+
+function setClassCommandCenterTab(tabKey) {
+  setState({
+    classCommandCenter: Object.assign({}, state.classCommandCenter, {
+      activeTab: readSafeString(tabKey) || "overview"
+    }),
+    message: ""
+  });
 }
 
 async function openUserCommandCenter(userId) {
@@ -4534,6 +4794,12 @@ async function handleAction(action, id) {
     setUserCommandCenterTab(id);
   } else if (action === "user-command-navigate") {
     navigateFromUserCommandCenter(id);
+  } else if (action === "open-class-command-center") {
+    await openClassCommandCenter(id);
+  } else if (action === "close-class-command-center") {
+    closeClassCommandCenter();
+  } else if (action === "class-command-tab") {
+    setClassCommandCenterTab(id);
   } else if (action === "open-course-command-center") {
     await openCourseCommandCenter(id);
   } else if (action === "close-course-command-center") {
@@ -6118,6 +6384,14 @@ function createLocationCommandCenterState() {
     userRoleFilter: "",
     userSearchText: "",
     chartRange: "month"
+  };
+}
+
+function createClassCommandCenterState() {
+  return {
+    isOpen: false,
+    classId: "",
+    activeTab: "overview"
   };
 }
 
@@ -7908,6 +8182,283 @@ function readLocationRecentActivity(locationId) {
 function readLocationLastActivity(locationId) {
   var activity = readLocationRecentActivity(locationId);
   return activity.length > 0 ? activity[0].time : null;
+}
+
+function readClassCommandContext(classRecord) {
+  var form = normalizeClassForm(classRecord || {});
+  var classId = form.classId;
+  var students = readClassCommandStudents(classId);
+  var assignments = readClassCommandAssignments(classId);
+  var courses = readClassCommandCourses(assignments);
+  var teachers = readClassCommandTeachers(form, assignments);
+  var submissions = readClassCommandSubmissions(classId, assignments, students);
+  var activity = readClassCommandActivity(classId, assignments, students);
+  var audit = readClassCommandAudit(classId);
+
+  return {
+    form: form,
+    classRecord: classRecord || {},
+    students: students,
+    assignments: assignments,
+    courses: courses,
+    teachers: teachers,
+    submissions: submissions,
+    activity: activity,
+    audit: audit
+  };
+}
+
+function readClassCommandStudents(classId) {
+  var students = [];
+
+  state.users.map(getSafeUser).forEach(function (user) {
+    if (user.roles.indexOf("student") !== -1 && (user.classId === classId || user.classIds.indexOf(classId) !== -1)) {
+      students.push(user);
+    }
+  });
+
+  state.students.forEach(function (student) {
+    if (studentBelongsToClass(student, classId)) {
+      students.push(Object.assign({}, student, {
+        id: student.id || student.studentId || student.userId,
+        displayName: student.displayName || student.name || student.id,
+        roles: ["student"]
+      }));
+    }
+  });
+
+  return dedupeRecords(students).map(getSafeUser).sort(function (a, b) {
+    return readUserCommandName(a).localeCompare(readUserCommandName(b));
+  });
+}
+
+function readClassCommandAssignments(classId) {
+  return state.assignments.filter(function (assignment) {
+    var targetType = readSafeString(assignment.targetType || (assignment.studentId ? "student" : assignment.classId ? "class" : ""));
+    var targetId = readSafeString(assignment.targetId || assignment.classId);
+
+    return targetType === "class" && targetId === classId || readSafeString(assignment.classId) === classId;
+  }).sort(compareByUpdatedDesc);
+}
+
+function readClassCommandCourses(assignments) {
+  var courses = [];
+
+  assignments.forEach(function (assignment) {
+    var course = findCourse(assignment.courseId);
+
+    if (course) {
+      courses.push(course);
+    }
+  });
+
+  return dedupeRecords(courses).sort(function (a, b) {
+    return readCourseTitle(a).localeCompare(readCourseTitle(b));
+  });
+}
+
+function readClassCommandTeachers(form, assignments) {
+  var teacherIds = normalizeMixedIdList([form.primaryTeacherId, form.assistantIds]);
+  var teachers = [];
+
+  assignments.forEach(function (assignment) {
+    normalizeMixedIdList([assignment.responsibleTeacherId, assignment.assistantIds, assignment.teacherOwnershipIds]).forEach(function (teacherId) {
+      if (teacherIds.indexOf(teacherId) === -1) {
+        teacherIds.push(teacherId);
+      }
+    });
+  });
+
+  teacherIds.forEach(function (teacherId) {
+    var teacher = findUser(teacherId);
+    if (teacher) {
+      teachers.push(teacher);
+    }
+  });
+
+  return dedupeRecords(teachers).map(getSafeUser).sort(function (a, b) {
+    return readUserCommandName(a).localeCompare(readUserCommandName(b));
+  });
+}
+
+function readClassCommandSubmissions(classId, assignments, students) {
+  var submissions = state.overviewData && Array.isArray(state.overviewData.externalTaskSubmissions) ? state.overviewData.externalTaskSubmissions : [];
+  var assignmentIds = assignments.map(function (assignment) { return readSafeString(assignment.id); });
+  var courseIds = assignments.map(function (assignment) { return readSafeString(assignment.courseId); });
+  var studentIds = students.map(function (student) { return readSafeString(student.id || student.studentId || student.userId); });
+
+  return submissions.filter(function (submission) {
+    return readSafeString(submission.classId) === classId
+      || assignmentIds.indexOf(readSafeString(submission.assignmentId)) !== -1
+      || (courseIds.indexOf(readSafeString(submission.courseId)) !== -1 && studentIds.indexOf(readSafeString(submission.studentId || submission.userId)) !== -1);
+  }).sort(compareByUpdatedDesc);
+}
+
+function readClassCommandActivity(classId, assignments, students) {
+  var records = state.overviewData && Array.isArray(state.overviewData.activityLogs) ? state.overviewData.activityLogs : [];
+  var courseIds = assignments.map(function (assignment) { return readSafeString(assignment.courseId); });
+  var studentIds = students.map(function (student) { return readSafeString(student.id || student.studentId || student.userId); });
+
+  return records.filter(function (record) {
+    return readSafeString(record.classId) === classId
+      || courseIds.indexOf(readSafeString(record.courseId || record.catalogCourseId)) !== -1
+      || studentIds.indexOf(readSafeString(record.studentId || record.userId || record.uid)) !== -1;
+  }).map(function (record) {
+    return {
+      type: readSafeString(record.type || record.action || "Activity"),
+      title: readSafeString(record.title || record.message || record.description || "Class activity"),
+      time: normalizeTimestamp(record.createdAt || record.updatedAt || record.time || Date.now())
+    };
+  }).sort(compareByTimeDesc);
+}
+
+function readClassCommandAudit(classId) {
+  var records = state.overviewData && Array.isArray(state.overviewData.auditLogs) ? state.overviewData.auditLogs : [];
+
+  return records.filter(function (record) {
+    return readSafeString(record.classId || record.targetClassId) === classId;
+  }).sort(compareByUpdatedDesc);
+}
+
+function readClassActivityStatus(context) {
+  return context.activity.length > 0 || context.submissions.length > 0 ? "Active" : "Quiet";
+}
+
+function readClassLastActivityLabel(context) {
+  var times = [];
+
+  context.activity.forEach(function (item) { if (item.time) times.push(item.time); });
+  context.submissions.forEach(function (item) { times.push(normalizeTimestamp(item.updatedAt || item.createdAt)); });
+
+  if (times.length === 0) {
+    return "No activity";
+  }
+
+  return formatDateTime(Math.max.apply(Math, times));
+}
+
+function readClassMetricLabel(context, fields) {
+  var index = 0;
+  var source = context.classRecord || {};
+
+  while (index < fields.length) {
+    if (typeof source[fields[index]] === "number" && isFinite(source[fields[index]])) {
+      return source[fields[index]];
+    }
+    index = index + 1;
+  }
+
+  return "No data";
+}
+
+function readClassAttendanceLabel(context) {
+  var value = context.classRecord && (context.classRecord.attendancePercent || context.classRecord.attendancePercentage || context.classRecord.attendanceRate);
+
+  if (typeof value === "number" && isFinite(value)) {
+    return Math.round(value) + "%";
+  }
+
+  return "No data";
+}
+
+function readClassActivityScoreLabel(context) {
+  var value = context.classRecord && (context.classRecord.activityScore || context.classRecord.engagementScore);
+
+  if (typeof value === "number" && isFinite(value)) {
+    return Math.round(value);
+  }
+
+  return context.activity.length > 0 ? context.activity.length : "No data";
+}
+
+function countReviewedClassSubmissions(context) {
+  return countItems(context.submissions, function (submission) {
+    var status = readSafeString(submission.reviewStatus || submission.status);
+    return status === "complete" || status === "completed";
+  });
+}
+
+function countNeedsWorkClassSubmissions(context) {
+  return countItems(context.submissions, function (submission) {
+    var status = readSafeString(submission.reviewStatus || submission.status);
+    return status === "needsWork" || status === "needs-work" || status === "incomplete";
+  });
+}
+
+function readClassStudentProgressLabel(student, context) {
+  var safeStudent = getSafeUser(student);
+  var progress = readUserMetricNumber(safeStudent, ["courseProgress", "progress", "completionPercent"]);
+
+  if (progress) {
+    return progress + "%";
+  }
+
+  return context.courses.length > 0 ? "No progress data" : "No courses";
+}
+
+function countStudentPendingReviews(student, context) {
+  var safeStudent = getSafeUser(student);
+
+  return countItems(context.submissions, function (submission) {
+    var studentId = readSafeString(submission.studentId || submission.userId);
+    var status = readSafeString(submission.reviewStatus || submission.status || "pending");
+    return studentId === safeStudent.id && (status === "pending" || status === "submitted");
+  });
+}
+
+function readClassTeacherRole(teacher, context) {
+  var safeTeacher = getSafeUser(teacher);
+
+  if (safeTeacher.id === context.form.primaryTeacherId) {
+    return "Primary teacher";
+  }
+
+  if (context.form.assistantIds.indexOf(safeTeacher.id) !== -1) {
+    return "Assistant";
+  }
+
+  return safeTeacher.roles.map(readRoleLabel).join(", ") || "Teacher";
+}
+
+function countTeacherCoursesForClass(teacher, context) {
+  var safeTeacher = getSafeUser(teacher);
+
+  return countItems(context.assignments, function (assignment) {
+    return normalizeMixedIdList([assignment.responsibleTeacherId, assignment.assistantIds, assignment.teacherOwnershipIds]).indexOf(safeTeacher.id) !== -1;
+  }) || context.courses.length;
+}
+
+function readClassCourseProgressLabel(course, context) {
+  if (typeof course.progress === "number") {
+    return Math.round(course.progress) + "%";
+  }
+
+  if (typeof course.completionPercent === "number") {
+    return Math.round(course.completionPercent) + "%";
+  }
+
+  return context.students.length > 0 ? "No progress data" : "No students";
+}
+
+function readClassCourseSubmissions(course, context) {
+  return context.submissions.filter(function (submission) {
+    return readSafeString(submission.courseId || submission.catalogCourseId) === readSafeString(course.id);
+  });
+}
+
+function readAssignmentActorName(assignment) {
+  var actorId = readSafeString(assignment.assignedBy || assignment.createdBy || assignment.updatedBy || assignment.actorId);
+  var user = actorId ? findUser(actorId) : null;
+
+  return user ? readUserCommandName(getSafeUser(user)) : actorId || "System";
+}
+
+function readClassScheduleRecords(classRecord) {
+  return collectObjectList([
+    classRecord && classRecord.schedule,
+    classRecord && classRecord.timetable,
+    classRecord && classRecord.sessions
+  ], "schedule");
 }
 
 function readUserCommandContext(user) {

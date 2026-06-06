@@ -1,4 +1,4 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.80-course-module-command-center";
+import { BaseStep } from "./BaseStep.js?v=1.1.81-class-command-center";
 
 export class SpeakingPromptStep extends BaseStep {
   static get type() {

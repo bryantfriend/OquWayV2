@@ -1,4 +1,4 @@
-import { createDefaultLearningContent } from "./learningArchitecture.js?v=1.1.80-course-module-command-center";
+import { createDefaultLearningContent } from "./learningArchitecture.js?v=1.1.81-class-command-center";
 
 export function processLoadLearningContent(executionState) {
   executionState.result = {

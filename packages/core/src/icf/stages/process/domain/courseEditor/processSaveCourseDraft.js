@@ -1,4 +1,4 @@
-import { db, writeBatch, doc, serverTimestamp } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.80-course-module-command-center";
+import { db, writeBatch, doc, serverTimestamp } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.81-class-command-center";
 
 export async function processSaveCourseDraft(executionState) {
     const { payload, context } = executionState;

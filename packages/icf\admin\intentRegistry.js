@@ -1,4 +1,4 @@
-import { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.80-course-module-command-center";
+import { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.81-class-command-center";
 
 var intents = {};
 

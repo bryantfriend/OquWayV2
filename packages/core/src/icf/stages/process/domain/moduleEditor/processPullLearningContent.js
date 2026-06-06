@@ -1,4 +1,4 @@
-import { createPulledStepDraft } from "./learningArchitecture.js?v=1.1.80-course-module-command-center";
+import { createPulledStepDraft } from "./learningArchitecture.js?v=1.1.81-class-command-center";
 
 export function processPullLearningContent(executionState) {
   var learningContent = executionState.context.module && executionState.context.module.learningContent;

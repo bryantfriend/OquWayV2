@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.80-course-module-command-center";
+import * as IntentExports from "../intents/intents.js?v=1.1.81-class-command-center";
 
 const registry = {
   // Demo Verification
@@ -64,6 +64,7 @@ const registry = {
   ListStudentsIntent: IntentExports.ListStudentsIntent,
   LoadClassOwnershipIntent: IntentExports.LoadClassOwnershipIntent,
   LoadAdminProfileIntent: IntentExports.LoadAdminProfileIntent,
+  OpenClassCommandCenterIntent: IntentExports.OpenClassCommandCenterIntent,
   OpenCourseCommandCenterIntent: IntentExports.OpenCourseCommandCenterIntent,
   OpenModuleCommandCenterIntent: IntentExports.OpenModuleCommandCenterIntent,
   OpenUserCommandCenterIntent: IntentExports.OpenUserCommandCenterIntent,

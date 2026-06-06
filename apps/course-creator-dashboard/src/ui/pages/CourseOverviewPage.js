@@ -1,13 +1,13 @@
-import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.80-course-module-command-center';
-import { courseEditorService } from '../services/courseEditorService.js?v=1.1.80-course-module-command-center';
-import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.80-course-module-command-center';
-import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.80-course-module-command-center';
+import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.81-class-command-center';
+import { courseEditorService } from '../services/courseEditorService.js?v=1.1.81-class-command-center';
+import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.81-class-command-center';
+import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.81-class-command-center';
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge
-} from '../../../../../packages/ui/index.js?v=1.1.80-course-module-command-center';
+} from '../../../../../packages/ui/index.js?v=1.1.81-class-command-center';
 
 export class CourseOverviewPage {
   constructor(courseId, options) {

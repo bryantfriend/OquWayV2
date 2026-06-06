@@ -1,4 +1,4 @@
-import { loadCourseAssignments, sortAssignments } from "./courseAssignmentHelpers.js?v=1.1.80-course-module-command-center";
+import { loadCourseAssignments, sortAssignments } from "./courseAssignmentHelpers.js?v=1.1.81-class-command-center";
 
 export async function processListCourseAssignments(executionState) {
   var payload = executionState.payload || {};

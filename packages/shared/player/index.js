@@ -1,1 +1,1 @@
-export { PracticeModePlayer } from "../../core/src/shared/player/PracticeModePlayer.js?v=1.1.80-course-module-command-center";
+export { PracticeModePlayer } from "../../core/src/shared/player/PracticeModePlayer.js?v=1.1.81-class-command-center";

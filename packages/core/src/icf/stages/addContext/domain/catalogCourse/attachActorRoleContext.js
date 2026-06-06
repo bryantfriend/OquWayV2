@@ -1,4 +1,4 @@
-import { readActorRoles, readPrimaryRole } from "../../../authorize/core/roleAuthorization.js?v=1.1.80-course-module-command-center";
+import { readActorRoles, readPrimaryRole } from "../../../authorize/core/roleAuthorization.js?v=1.1.81-class-command-center";
 
 export function attachActorContext(executionState) {
     if (executionState.actor && executionState.actor.id) {

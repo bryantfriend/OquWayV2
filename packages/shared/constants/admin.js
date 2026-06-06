@@ -1,4 +1,4 @@
-export var appVersion = "1.1.80";
+export var appVersion = "1.1.81";
 
 export var COURSE_CREATOR_URL = "../course-creator-dashboard/index.html";
 

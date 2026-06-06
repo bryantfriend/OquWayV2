@@ -1,4 +1,4 @@
-import { collection, db, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.80-course-module-command-center";
+import { collection, db, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.81-class-command-center";
 
 export async function attachLearningModeDocument(executionState) {
   const payload = executionState.payload || {};

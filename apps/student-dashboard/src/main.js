@@ -1,6 +1,6 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.80-course-module-command-center";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.80-course-module-command-center";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.81-class-command-center";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.81-class-command-center";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -12,16 +12,16 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.80-course-module-command-center";
+} from "../../../packages/domain/progress/index.js?v=1.1.81-class-command-center";
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.80-course-module-command-center";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.80-course-module-command-center";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.80-course-module-command-center";
+} from "../../../packages/ui/index.js?v=1.1.81-class-command-center";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.81-class-command-center";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.81-class-command-center";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;

@@ -1,8 +1,8 @@
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.80-course-module-command-center";
-import { attachStepsCollection } from "../../stages/addContext/contexts.js?v=1.1.80-course-module-command-center";
-import { processUpdateStepField } from "../../stages/process/processors.js?v=1.1.80-course-module-command-center";
-import { validateCourseId, validateModuleId, validateStepFieldKey, validateStepId } from "../../stages/validate/validators.js?v=1.1.80-course-module-command-center";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.80-course-module-command-center";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.81-class-command-center";
+import { attachStepsCollection } from "../../stages/addContext/contexts.js?v=1.1.81-class-command-center";
+import { processUpdateStepField } from "../../stages/process/processors.js?v=1.1.81-class-command-center";
+import { validateCourseId, validateModuleId, validateStepFieldKey, validateStepId } from "../../stages/validate/validators.js?v=1.1.81-class-command-center";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.81-class-command-center";
 
 export function UpdateStepFieldIntent() {
     return {

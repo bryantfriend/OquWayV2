@@ -1,4 +1,4 @@
-import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.80-course-module-command-center";
+import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.81-class-command-center";
 
 export function requireCourseCreatorAuthorization(executionState) {
     if (!executionState.actor) {

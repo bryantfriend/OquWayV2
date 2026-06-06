@@ -1,4 +1,4 @@
-import { parseLearningContentText } from "../moduleEditor/learningArchitecture.js?v=1.1.80-course-module-command-center";
+import { parseLearningContentText } from "../moduleEditor/learningArchitecture.js?v=1.1.81-class-command-center";
 
 export function processParseLearningContent(executionState) {
   var payload = executionState.payload || {};

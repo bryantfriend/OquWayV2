@@ -1,4 +1,4 @@
-import { processCreateModule } from "./processCreateModule.js?v=1.1.80-course-module-command-center";
+import { processCreateModule } from "./processCreateModule.js?v=1.1.81-class-command-center";
 
 export async function processCreateModuleFromWizard(executionState) {
   var payload = executionState.payload || {};
