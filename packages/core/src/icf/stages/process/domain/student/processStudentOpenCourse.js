@@ -1,5 +1,5 @@
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.95-student-icf-root";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.95-student-icf-root";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.96-student-session-profile";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.96-student-session-profile";
 
 export async function processStudentOpenCourse(executionState) {
   var payload = executionState.payload || {};

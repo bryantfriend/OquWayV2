@@ -1,10 +1,10 @@
-import { validateAuthenticated, validatePracticeModeKey } from "../../stages/validate/validators.js?v=1.1.95-student-icf-root";
-import { validateStudentProgressPayload } from "../../stages/validate/validators.js?v=1.1.95-student-icf-root";
-import { normalizeStudentProgressPayload } from "../../stages/normalize/normalizers.js?v=1.1.95-student-icf-root";
-import { attachActorContext, attachActorRoleContext, attachStudentSessionContext } from "../../stages/addContext/contexts.js?v=1.1.95-student-icf-root";
-import { requireStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.95-student-icf-root";
-import { processCompletePracticeMode } from "../../stages/process/processors.js?v=1.1.95-student-icf-root";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.95-student-icf-root";
+import { validateAuthenticated, validatePracticeModeKey } from "../../stages/validate/validators.js?v=1.1.96-student-session-profile";
+import { validateStudentProgressPayload } from "../../stages/validate/validators.js?v=1.1.96-student-session-profile";
+import { normalizeStudentProgressPayload } from "../../stages/normalize/normalizers.js?v=1.1.96-student-session-profile";
+import { attachActorContext, attachActorRoleContext, attachStudentSessionContext } from "../../stages/addContext/contexts.js?v=1.1.96-student-session-profile";
+import { requireStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.96-student-session-profile";
+import { processCompletePracticeMode } from "../../stages/process/processors.js?v=1.1.96-student-session-profile";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.96-student-session-profile";
 
 export function CompleteStudentPracticeModeIntent() {
   return {

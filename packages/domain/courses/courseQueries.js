@@ -1,6 +1,6 @@
-import { getActiveAssignmentsForStudent } from "../assignments/index.js?v=1.1.95-student-icf-root";
+import { getActiveAssignmentsForStudent } from "../assignments/index.js?v=1.1.96-student-session-profile";
 
-export { buildStudentAssignmentTargets } from "../assignments/index.js?v=1.1.95-student-icf-root";
+export { buildStudentAssignmentTargets } from "../assignments/index.js?v=1.1.96-student-session-profile";
 
 export async function getAssignedCourses(studentId, studentProfile) {
   var assignmentResult = await getAssignedCourseIds(studentId, studentProfile);

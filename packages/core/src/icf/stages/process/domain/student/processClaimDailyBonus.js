@@ -1,4 +1,4 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.95-student-icf-root";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.96-student-session-profile";
 
 export async function processClaimDailyBonus(executionState) {
   var actor = executionState.actor;

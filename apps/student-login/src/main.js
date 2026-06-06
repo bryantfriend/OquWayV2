@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.95-student-icf-root";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.95-student-icf-root";
-import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.95-student-icf-root";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.96-student-session-profile";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.96-student-session-profile";
+import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.96-student-session-profile";
 
 var appElement = document.getElementById("app");
 var startupMessage = consumeStartupMessage();
@@ -597,7 +597,7 @@ async function submitFruitLogin() {
   }, "guest-student");
 
   if (result && result.emitted && result.emitted.success) {
-    await routeToStudentDashboardAfterSessionStart();
+    await routeToStudentDashboardAfterSessionStart(result.emitted.data ? result.emitted.data.student : null);
     return;
   }
 
@@ -622,7 +622,7 @@ async function submitStandardLogin() {
   }, "guest-student");
 
   if (result && result.emitted && result.emitted.success) {
-    await routeToStudentDashboardAfterSessionStart();
+    await routeToStudentDashboardAfterSessionStart(result.emitted.data ? result.emitted.data.student : null);
     return;
   }
 
@@ -637,7 +637,7 @@ async function verifyCurrentStudent() {
   var result = await runLoginIntent("LoadStudentProfileIntent", {}, auth.currentUser.uid);
 
   if (result && result.emitted && result.emitted.success) {
-    await routeToStudentDashboardAfterSessionStart();
+    await routeToStudentDashboardAfterSessionStart(result.emitted.data ? result.emitted.data.student : null);
     return;
   }
 
@@ -673,25 +673,54 @@ async function startStudentSession() {
   };
 }
 
-async function routeToStudentDashboardAfterSessionStart() {
+async function routeToStudentDashboardAfterSessionStart(studentProfile) {
   var sessionResult = await startStudentSession();
 
   if (sessionResult.success) {
-    markStudentSessionStarted();
+    markStudentSessionStarted(studentProfile);
     window.location.href = buildStudentDashboardUrl();
   }
 }
 
-function markStudentSessionStarted() {
+function markStudentSessionStarted(studentProfile) {
   if (!window.sessionStorage || !auth.currentUser || !auth.currentUser.uid) {
     return;
   }
 
+  var safeProfile = buildSessionStudentProfile(studentProfile);
+
   window.sessionStorage.setItem("oquwayStudentSessionUid", auth.currentUser.uid);
   window.sessionStorage.setItem("oquwayStudentSessionStartedAt", String(Date.now()));
-  window.sessionStorage.setItem("oquwayStudentClassId", state.selectedClassId || "");
-  window.sessionStorage.setItem("oquwayStudentClassName", readClassName(findClass(state.selectedClassId)));
-  window.sessionStorage.setItem("oquwayStudentLocationId", state.selectedLocationId || "");
+  window.sessionStorage.setItem("oquwayStudentClassId", safeProfile.classId || state.selectedClassId || "");
+  window.sessionStorage.setItem("oquwayStudentClassName", safeProfile.className || readClassName(findClass(state.selectedClassId)));
+  window.sessionStorage.setItem("oquwayStudentLocationId", safeProfile.locationId || state.selectedLocationId || "");
+  window.sessionStorage.setItem("oquwayStudentProfile", JSON.stringify(safeProfile));
+}
+
+function buildSessionStudentProfile(studentProfile) {
+  var classItem = findClass(state.selectedClassId);
+  var profile = studentProfile && typeof studentProfile === "object" ? studentProfile : {};
+
+  return {
+    id: readText(profile.id || state.selectedStudentId),
+    uid: readText(profile.uid),
+    authUid: auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : readText(profile.authUid),
+    userId: readText(profile.userId),
+    studentId: readText(profile.studentId || state.selectedStudentId),
+    profileUserId: readText(profile.profileUserId),
+    name: readText(profile.name),
+    displayName: readText(profile.displayName),
+    photoUrl: readText(profile.photoUrl),
+    role: readText(profile.role || "student"),
+    roles: Array.isArray(profile.roles) && profile.roles.length > 0 ? profile.roles.slice() : ["student"],
+    status: readText(profile.status || "active"),
+    isActive: profile.isActive === true,
+    classId: readText(profile.classId || state.selectedClassId),
+    classIds: mergeTextLists(profile.classIds, [state.selectedClassId]),
+    className: readText(profile.className || readClassName(classItem)),
+    locationId: readText(profile.locationId || state.selectedLocationId),
+    locationIds: mergeTextLists(profile.locationIds, [state.selectedLocationId])
+  };
 }
 
 function buildStudentDashboardUrl() {
@@ -862,6 +891,42 @@ function readFruitLabel(fruit) {
   }
 
   return "";
+}
+
+function mergeTextLists(primaryValues, fallbackValues) {
+  var result = [];
+
+  appendTextValues(result, primaryValues);
+  appendTextValues(result, fallbackValues);
+
+  return result;
+}
+
+function appendTextValues(result, value) {
+  if (typeof value === "string") {
+    appendUniqueText(result, value);
+    return;
+  }
+
+  if (!Array.isArray(value)) {
+    return;
+  }
+
+  value.forEach(function (item) {
+    appendTextValues(result, item);
+  });
+}
+
+function appendUniqueText(result, value) {
+  var text = readText(value);
+
+  if (text && result.indexOf(text) === -1) {
+    result.push(text);
+  }
+}
+
+function readText(value) {
+  return typeof value === "string" ? value : "";
 }
 
 function readMessageClass() {

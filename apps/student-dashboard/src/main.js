@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.95-student-icf-root";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.95-student-icf-root";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.95-student-icf-root";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.96-student-session-profile";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.96-student-session-profile";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.96-student-session-profile";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,16 +13,16 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.95-student-icf-root";
+} from "../../../packages/domain/progress/index.js?v=1.1.96-student-session-profile";
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.95-student-icf-root";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.95-student-icf-root";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.95-student-icf-root";
+} from "../../../packages/ui/index.js?v=1.1.96-student-session-profile";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.96-student-session-profile";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.96-student-session-profile";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;

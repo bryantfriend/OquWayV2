@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.95-student-icf-root";
+import * as IntentExports from "../intents/intents.js?v=1.1.96-student-session-profile";
 
 const registry = {
   // Demo Verification

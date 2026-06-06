@@ -1,7 +1,7 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.95-student-icf-root";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.95-student-icf-root";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.95-student-icf-root";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.95-student-icf-root";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.96-student-session-profile";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.96-student-session-profile";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.96-student-session-profile";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.96-student-session-profile";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
@@ -349,7 +349,8 @@ async function getActor() {
       role: "ROLE_STUDENT",
       classId: sessionContext.classId || claimContext.classId,
       className: sessionContext.className || claimContext.className,
-      locationId: sessionContext.locationId || claimContext.locationId
+      locationId: sessionContext.locationId || claimContext.locationId,
+      studentProfile: sessionContext.studentProfile
     };
   }
 
@@ -463,8 +464,29 @@ function readStudentSessionContext() {
   return {
     classId: window.sessionStorage.getItem("oquwayStudentClassId") || "",
     className: window.sessionStorage.getItem("oquwayStudentClassName") || "",
-    locationId: window.sessionStorage.getItem("oquwayStudentLocationId") || ""
+    locationId: window.sessionStorage.getItem("oquwayStudentLocationId") || "",
+    studentProfile: readStoredStudentProfile()
   };
+}
+
+function readStoredStudentProfile() {
+  var value = "";
+
+  if (!window.sessionStorage) {
+    return null;
+  }
+
+  value = window.sessionStorage.getItem("oquwayStudentProfile") || "";
+
+  if (!value) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(value);
+  } catch (error) {
+    return null;
+  }
 }
 
 function logStudentCourseProfileDebug(studentProfile) {

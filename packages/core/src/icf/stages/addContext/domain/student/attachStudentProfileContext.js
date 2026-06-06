@@ -1,4 +1,4 @@
-import { getStudentProfileByAuthUid, readAssignedCourseIds } from "../../../../../../../domain/users/index.js?v=1.1.95-student-icf-root";
+import { getStudentProfileByAuthUid, readAssignedCourseIds } from "../../../../../../../domain/users/index.js?v=1.1.96-student-session-profile";
 
 export async function attachStudentProfileContext(executionState) {
   var actor = executionState.actor;
@@ -14,7 +14,7 @@ export async function attachStudentProfileContext(executionState) {
   }
 
   try {
-    var profile = await getStudentProfileByAuthUid(actor.id);
+    var profile = await loadStudentProfile(actor);
 
     if (!profile) {
       return {
@@ -43,6 +43,14 @@ export async function attachStudentProfileContext(executionState) {
         assignedCourseIds: []
       }
     };
+  }
+}
+
+async function loadStudentProfile(actor) {
+  try {
+    return await getStudentProfileByAuthUid(actor.id);
+  } catch (error) {
+    return actor.studentProfile || null;
   }
 }
 

@@ -1,5 +1,5 @@
-import { getStudentProfileByAuthUid } from "../../../../../../../domain/users/index.js?v=1.1.95-student-icf-root";
-import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.95-student-icf-root";
+import { getStudentProfileByAuthUid } from "../../../../../../../domain/users/index.js?v=1.1.96-student-session-profile";
+import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.96-student-session-profile";
 
 export async function processLoadStudentProfile(executionState) {
   var actor = executionState.actor;
@@ -10,7 +10,7 @@ export async function processLoadStudentProfile(executionState) {
     }
 
     var profilePath = "users/" + actor.id + " or authUid=" + actor.id;
-    var profile = await getStudentProfileByAuthUid(actor.id);
+    var profile = await loadStudentProfile(actor);
 
     if (!profile) {
       logStudentProfileDebug({
@@ -118,6 +118,26 @@ function isDevelopmentHost() {
   return window.location.hostname === "localhost"
     || window.location.hostname === "127.0.0.1"
     || window.location.hostname === "";
+}
+
+async function loadStudentProfile(actor) {
+  try {
+    return await getStudentProfileByAuthUid(actor.id);
+  } catch (error) {
+    logStudentProfileDebug({
+      authUid: actor.id,
+      profilePath: "users/" + actor.id + " or authUid=" + actor.id,
+      profileExists: Boolean(actor.studentProfile),
+      role: actor.studentProfile && actor.studentProfile.role ? actor.studentProfile.role : "",
+      roles: actor.studentProfile && Array.isArray(actor.studentProfile.roles) ? actor.studentProfile.roles : [],
+      status: actor.studentProfile && actor.studentProfile.status ? actor.studentProfile.status : "",
+      classId: actor.studentProfile && actor.studentProfile.classId ? actor.studentProfile.classId : "",
+      locationId: actor.studentProfile && actor.studentProfile.locationId ? actor.studentProfile.locationId : "",
+      reasonRejected: "profile-lookup-failed"
+    });
+
+    return actor.studentProfile || null;
+  }
 }
 
 function isStudentProfileDebugEnabled() {

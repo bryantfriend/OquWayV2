@@ -1,9 +1,9 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.95-student-icf-root";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.95-student-icf-root";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.95-student-icf-root";
-import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.95-student-icf-root";
-import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js?v=1.1.95-student-icf-root";
-import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.95-student-icf-root";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.96-student-session-profile";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.96-student-session-profile";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.96-student-session-profile";
+import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.96-student-session-profile";
+import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js?v=1.1.96-student-session-profile";
+import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.96-student-session-profile";
 
 export async function processLoadStudentCourse(executionState) {
   var actor = executionState.actor;
