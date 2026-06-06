@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.106-student-assignment-error-trace";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.106-student-assignment-error-trace";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.106-student-assignment-error-trace";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.107-student-firebase-auth-chain";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.107-student-firebase-auth-chain";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.107-student-firebase-auth-chain";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,16 +13,16 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.106-student-assignment-error-trace";
+} from "../../../packages/domain/progress/index.js?v=1.1.107-student-firebase-auth-chain";
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.106-student-assignment-error-trace";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.106-student-assignment-error-trace";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.106-student-assignment-error-trace";
+} from "../../../packages/ui/index.js?v=1.1.107-student-firebase-auth-chain";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.107-student-firebase-auth-chain";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.107-student-firebase-auth-chain";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;

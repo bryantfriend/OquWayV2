@@ -1,4 +1,4 @@
-import { isSupportedStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.82-shared-command-center-shell";
+import { isSupportedStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.107-student-firebase-auth-chain";
 
 export function validatePracticeModeStepType(executionState) {
   var payload = executionState.payload;

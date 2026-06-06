@@ -1,1 +1,1 @@
-export { firebaseApp } from "../../core/src/infrastructure/firebase/firebaseApp.js?v=1.1.82-shared-command-center-shell";
+export { firebaseApp } from "../../core/src/infrastructure/firebase/firebaseApp.js?v=1.1.107-student-firebase-auth-chain";

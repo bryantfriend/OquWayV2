@@ -22,4 +22,4 @@ export function getClassLocationId(classRecord) {
 }
 
 export * from "./classQueries.js";
-export * from "./classRepository.js?v=1.1.106-student-assignment-error-trace";
+export * from "./classRepository.js?v=1.1.107-student-firebase-auth-chain";

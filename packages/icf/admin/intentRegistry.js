@@ -1,4 +1,4 @@
-import { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.82-shared-command-center-shell";
+import { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.107-student-firebase-auth-chain";
 
 var intents = {};
 

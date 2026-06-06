@@ -1,4 +1,4 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.107-student-firebase-auth-chain";
 import { canAccessTeacherDashboard } from "../../../../../../../permissions/index.js";
 import {
   getActorClaimRoles,

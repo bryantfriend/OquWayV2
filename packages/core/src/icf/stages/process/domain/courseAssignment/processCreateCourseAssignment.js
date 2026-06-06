@@ -1,7 +1,7 @@
-import { serverTimestamp } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
+import { serverTimestamp } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.107-student-firebase-auth-chain";
 import { createCourseAssignment } from "../../../../../../../domain/assignments/index.js";
-import { createCourseAssignmentId, loadCourseAssignments } from "./courseAssignmentHelpers.js?v=1.1.82-shared-command-center-shell";
-import { buildCourseAssignmentOwnershipFields } from "./courseAssignmentOwnershipHelpers.js?v=1.1.82-shared-command-center-shell";
+import { createCourseAssignmentId, loadCourseAssignments } from "./courseAssignmentHelpers.js?v=1.1.107-student-firebase-auth-chain";
+import { buildCourseAssignmentOwnershipFields } from "./courseAssignmentOwnershipHelpers.js?v=1.1.107-student-firebase-auth-chain";
 
 export async function processCreateCourseAssignment(executionState) {
   var payload = executionState.payload;

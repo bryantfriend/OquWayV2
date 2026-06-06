@@ -1,4 +1,4 @@
-import { canManageUsers, canReviewExternalTask, canSubmitExternalTask, canViewStudentProgress } from "./policies.js?v=1.1.82-shared-command-center-shell";
+import { canManageUsers, canReviewExternalTask, canSubmitExternalTask, canViewStudentProgress } from "./policies.js?v=1.1.107-student-firebase-auth-chain";
 
 export function requireCanManageUsers(userProfile) {
   return createGuardResult(canManageUsers(userProfile), "MANAGE_USERS_REQUIRED", "User management access is required.");

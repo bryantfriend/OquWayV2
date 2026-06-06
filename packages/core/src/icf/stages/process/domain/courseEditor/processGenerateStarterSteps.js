@@ -2,7 +2,7 @@ import {
   createLearningModesForTemplate,
   createStarterStepsForMode,
   normalizeLearningContentPayload
-} from "../moduleEditor/learningArchitecture.js?v=1.1.82-shared-command-center-shell";
+} from "../moduleEditor/learningArchitecture.js?v=1.1.107-student-firebase-auth-chain";
 
 export function processGenerateStarterSteps(executionState) {
   var payload = executionState.payload || {};

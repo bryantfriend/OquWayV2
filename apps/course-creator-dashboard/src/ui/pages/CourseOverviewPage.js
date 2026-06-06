@@ -1,13 +1,13 @@
-import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.82-shared-command-center-shell';
-import { courseEditorService } from '../services/courseEditorService.js?v=1.1.82-shared-command-center-shell';
-import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.82-shared-command-center-shell';
-import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.82-shared-command-center-shell';
+import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.107-student-firebase-auth-chain';
+import { courseEditorService } from '../services/courseEditorService.js?v=1.1.107-student-firebase-auth-chain';
+import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.107-student-firebase-auth-chain';
+import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.107-student-firebase-auth-chain';
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge
-} from '../../../../../packages/ui/index.js?v=1.1.82-shared-command-center-shell';
+} from '../../../../../packages/ui/index.js?v=1.1.107-student-firebase-auth-chain';
 
 export class CourseOverviewPage {
   constructor(courseId, options) {

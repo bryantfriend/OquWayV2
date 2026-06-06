@@ -1,4 +1,4 @@
-import { locationLoginSettingsService } from "../services/locationLoginSettingsService.js?v=1.1.82-shared-command-center-shell";
+import { locationLoginSettingsService } from "../services/locationLoginSettingsService.js?v=1.1.107-student-firebase-auth-chain";
 
 export class LocationLoginSettingsPage {
   constructor() {

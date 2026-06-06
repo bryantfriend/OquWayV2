@@ -1,4 +1,4 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.82-shared-command-center-shell";
+import { BaseStep } from "./BaseStep.js?v=1.1.107-student-firebase-auth-chain";
 
 export class ReflectionStep extends BaseStep {
   static get type() {

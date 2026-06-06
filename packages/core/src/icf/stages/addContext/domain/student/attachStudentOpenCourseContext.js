@@ -1,6 +1,6 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.106-student-assignment-error-trace";
-import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.106-student-assignment-error-trace";
-import { createDefaultProgressDocument } from "../../../process/domain/student/studentProgressHelpers.js?v=1.1.106-student-assignment-error-trace";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.107-student-firebase-auth-chain";
+import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.107-student-firebase-auth-chain";
+import { createDefaultProgressDocument } from "../../../process/domain/student/studentProgressHelpers.js?v=1.1.107-student-firebase-auth-chain";
 
 export async function attachStudentOpenCourseContext(executionState) {
   var payload = executionState.payload || {};

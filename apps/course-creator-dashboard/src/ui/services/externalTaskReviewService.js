@@ -1,6 +1,6 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.82-shared-command-center-shell";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.82-shared-command-center-shell";
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.82-shared-command-center-shell";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.107-student-firebase-auth-chain";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.107-student-firebase-auth-chain";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.107-student-firebase-auth-chain";
 
 export const externalTaskReviewService = {
   loadSubmissions: async function (filters) {

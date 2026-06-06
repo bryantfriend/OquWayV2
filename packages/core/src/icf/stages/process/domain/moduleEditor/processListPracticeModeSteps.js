@@ -1,4 +1,4 @@
-import { normalizePracticeModes } from "./practiceModeShells.js?v=1.1.82-shared-command-center-shell";
+import { normalizePracticeModes } from "./practiceModeShells.js?v=1.1.107-student-firebase-auth-chain";
 
 export function processListPracticeModeSteps(executionState) {
   var payload = executionState.payload;

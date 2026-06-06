@@ -1,8 +1,8 @@
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.82-shared-command-center-shell";
-import { attachStepRegistryDefinitionForStep, attachStepsCollection } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
-import { processAddStep } from "../../stages/process/processors.js?v=1.1.82-shared-command-center-shell";
-import { validateCourseId, validateModuleId, validateStepTypeRegistered } from "../../stages/validate/validators.js?v=1.1.82-shared-command-center-shell";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.82-shared-command-center-shell";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.107-student-firebase-auth-chain";
+import { attachStepRegistryDefinitionForStep, attachStepsCollection } from "../../stages/addContext/contexts.js?v=1.1.107-student-firebase-auth-chain";
+import { processAddStep } from "../../stages/process/processors.js?v=1.1.107-student-firebase-auth-chain";
+import { validateCourseId, validateModuleId, validateStepTypeRegistered } from "../../stages/validate/validators.js?v=1.1.107-student-firebase-auth-chain";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.107-student-firebase-auth-chain";
 
 export function AddStepIntent() {
     return {

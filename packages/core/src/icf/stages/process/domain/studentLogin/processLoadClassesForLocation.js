@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.106-student-assignment-error-trace";
+import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.107-student-firebase-auth-chain";
 
 export async function processLoadClassesForLocation(executionState) {
   var payload = executionState.payload;

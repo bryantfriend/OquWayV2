@@ -1,4 +1,4 @@
-import { isValidPracticeModeKey } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.82-shared-command-center-shell";
+import { isValidPracticeModeKey } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.107-student-firebase-auth-chain";
 
 export function validatePracticeModeKey(executionState) {
   var payload = executionState.payload;

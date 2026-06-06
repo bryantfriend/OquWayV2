@@ -1,5 +1,5 @@
-import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.82-shared-command-center-shell";
-import { collection, db, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
+import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.107-student-firebase-auth-chain";
+import { collection, db, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.107-student-firebase-auth-chain";
 
 export async function processLoadAdminProfile(executionState) {
   var actor = executionState.actor;

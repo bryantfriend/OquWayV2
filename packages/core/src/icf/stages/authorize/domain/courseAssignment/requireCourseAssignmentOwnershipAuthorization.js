@@ -1,4 +1,4 @@
-import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.82-shared-command-center-shell";
+import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.107-student-firebase-auth-chain";
 
 export function requireCourseAssignmentOwnershipAuthorization(executionState) {
   var actor = executionState.actor;

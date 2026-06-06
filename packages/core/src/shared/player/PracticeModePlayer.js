@@ -1,7 +1,7 @@
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../stepTypes/stepTypeRegistry.js?v=1.1.82-shared-command-center-shell";
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.107-student-firebase-auth-chain";
 
 export class PracticeModePlayer {
   constructor(options) {

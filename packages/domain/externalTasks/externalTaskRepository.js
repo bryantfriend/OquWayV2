@@ -1,12 +1,12 @@
 import { db, doc, getDoc, serverTimestamp, setDoc } from "../../firebase/index.js";
-import { getDownloadURL, ref, storage, uploadBytes } from "../../firebase/storage/index.js?v=1.1.82-shared-command-center-shell";
+import { getDownloadURL, ref, storage, uploadBytes } from "../../firebase/storage/index.js?v=1.1.107-student-firebase-auth-chain";
 import { getCourseAssignments } from "../assignments/index.js";
 import {
   canResubmitExternalTaskSubmission,
   normalizeExternalTaskSubmission,
   readExternalTaskAttemptNumber
-} from "./externalTaskModel.js?v=1.1.82-shared-command-center-shell";
-import { getStudentExternalTaskSubmissions, getLatestStudentExternalTaskSubmission } from "./externalTaskQueries.js?v=1.1.82-shared-command-center-shell";
+} from "./externalTaskModel.js?v=1.1.107-student-firebase-auth-chain";
+import { getStudentExternalTaskSubmissions, getLatestStudentExternalTaskSubmission } from "./externalTaskQueries.js?v=1.1.107-student-firebase-auth-chain";
 
 export async function getExternalTaskSubmissionById(submissionId) {
   if (!submissionId) {

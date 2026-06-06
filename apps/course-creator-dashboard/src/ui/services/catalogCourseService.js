@@ -1,6 +1,6 @@
-import { createIntent } from "../../../../../packages/icf/index.js?v=1.1.82-shared-command-center-shell";
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.82-shared-command-center-shell";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.82-shared-command-center-shell";
+import { createIntent } from "../../../../../packages/icf/index.js?v=1.1.107-student-firebase-auth-chain";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.107-student-firebase-auth-chain";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.107-student-firebase-auth-chain";
 
 function getActor() {
     const user = auth.currentUser;

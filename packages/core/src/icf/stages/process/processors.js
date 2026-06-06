@@ -1,33 +1,33 @@
-export { processDemoAction } from "./core/processDemoAction.js?v=1.1.106-student-assignment-error-trace";
-export { catalogCourseArchiveProcessing } from "./domain/catalogCourse/catalogCourseArchiveProcessing.js?v=1.1.106-student-assignment-error-trace";
-export { catalogCourseAddTagProcessing } from "./domain/catalogCourse/catalogCourseAddTagProcessing.js?v=1.1.106-student-assignment-error-trace";
-export { catalogCourseCreateRecordProcessing } from "./domain/catalogCourse/catalogCourseCreateRecordProcessing.js?v=1.1.106-student-assignment-error-trace";
-export { catalogCourseCreateVersionProcessing } from "./domain/catalogCourse/catalogCourseCreateVersionProcessing.js?v=1.1.106-student-assignment-error-trace";
-export { catalogCourseDeleteProcessing } from "./domain/catalogCourse/catalogCourseDeleteProcessing.js?v=1.1.106-student-assignment-error-trace";
-export { catalogCourseFetchAllProcessing } from "./domain/catalogCourse/catalogCourseFetchAllProcessing.js?v=1.1.106-student-assignment-error-trace";
-export { catalogCourseFetchByIdProcessing } from "./domain/catalogCourse/catalogCourseFetchByIdProcessing.js?v=1.1.106-student-assignment-error-trace";
-export { catalogCourseFetchVersionsProcessing } from "./domain/catalogCourse/catalogCourseFetchVersionsProcessing.js?v=1.1.106-student-assignment-error-trace";
-export { catalogCoursePublishVersionProcessing } from "./domain/catalogCourse/catalogCoursePublishVersionProcessing.js?v=1.1.106-student-assignment-error-trace";
-export { catalogCourseRestoreProcessing } from "./domain/catalogCourse/catalogCourseRestoreProcessing.js?v=1.1.106-student-assignment-error-trace";
-export { catalogCourseRevertVersionProcessing } from "./domain/catalogCourse/catalogCourseRevertVersionProcessing.js?v=1.1.106-student-assignment-error-trace";
-export { catalogCourseRemoveTagProcessing } from "./domain/catalogCourse/catalogCourseRemoveTagProcessing.js?v=1.1.106-student-assignment-error-trace";
-export { catalogCourseUpdateMetadataProcessing } from "./domain/catalogCourse/catalogCourseUpdateMetadataProcessing.js?v=1.1.106-student-assignment-error-trace";
-export { catalogModuleCreateProcessing } from "./domain/catalogCourse/catalogModuleCreateProcessing.js?v=1.1.106-student-assignment-error-trace";
-export { catalogModuleDeleteProcessing } from "./domain/catalogCourse/catalogModuleDeleteProcessing.js?v=1.1.106-student-assignment-error-trace";
-export { catalogModuleReorderProcessing } from "./domain/catalogCourse/catalogModuleReorderProcessing.js?v=1.1.106-student-assignment-error-trace";
-export { catalogModuleUpdateProcessing } from "./domain/catalogCourse/catalogModuleUpdateProcessing.js?v=1.1.106-student-assignment-error-trace";
-export { catalogStepCreateProcessing } from "./domain/catalogCourse/catalogStepCreateProcessing.js?v=1.1.106-student-assignment-error-trace";
-export { catalogStepDeleteProcessing } from "./domain/catalogCourse/catalogStepDeleteProcessing.js?v=1.1.106-student-assignment-error-trace";
-export { catalogStepReorderProcessing } from "./domain/catalogCourse/catalogStepReorderProcessing.js?v=1.1.106-student-assignment-error-trace";
-export { catalogStepUpdateProcessing } from "./domain/catalogCourse/catalogStepUpdateProcessing.js?v=1.1.106-student-assignment-error-trace";
-export { processArchiveCourseAssignment } from "./domain/courseAssignment/processArchiveCourseAssignment.js?v=1.1.106-student-assignment-error-trace";
-export { processAssignCourseAssistants, processAssignCourseTeacher, processLoadCourseAssignmentOwnership } from "./domain/courseAssignment/processCourseAssignmentOwnership.js?v=1.1.106-student-assignment-error-trace";
-export { processCreateCourseAssignment } from "./domain/courseAssignment/processCreateCourseAssignment.js?v=1.1.106-student-assignment-error-trace";
-export { processDeleteCourseAssignment } from "./domain/courseAssignment/processDeleteCourseAssignment.js?v=1.1.106-student-assignment-error-trace";
-export { processDisableCourseAssignment } from "./domain/courseAssignment/processDisableCourseAssignment.js?v=1.1.106-student-assignment-error-trace";
-export { processLoadCourseAssignments } from "./domain/courseAssignment/processLoadCourseAssignments.js?v=1.1.106-student-assignment-error-trace";
-export { processListCourseAssignments } from "./domain/courseAssignment/processListCourseAssignments.js?v=1.1.106-student-assignment-error-trace";
-export { processUpdateCourseAssignment } from "./domain/courseAssignment/processUpdateCourseAssignment.js?v=1.1.106-student-assignment-error-trace";
+export { processDemoAction } from "./core/processDemoAction.js?v=1.1.107-student-firebase-auth-chain";
+export { catalogCourseArchiveProcessing } from "./domain/catalogCourse/catalogCourseArchiveProcessing.js?v=1.1.107-student-firebase-auth-chain";
+export { catalogCourseAddTagProcessing } from "./domain/catalogCourse/catalogCourseAddTagProcessing.js?v=1.1.107-student-firebase-auth-chain";
+export { catalogCourseCreateRecordProcessing } from "./domain/catalogCourse/catalogCourseCreateRecordProcessing.js?v=1.1.107-student-firebase-auth-chain";
+export { catalogCourseCreateVersionProcessing } from "./domain/catalogCourse/catalogCourseCreateVersionProcessing.js?v=1.1.107-student-firebase-auth-chain";
+export { catalogCourseDeleteProcessing } from "./domain/catalogCourse/catalogCourseDeleteProcessing.js?v=1.1.107-student-firebase-auth-chain";
+export { catalogCourseFetchAllProcessing } from "./domain/catalogCourse/catalogCourseFetchAllProcessing.js?v=1.1.107-student-firebase-auth-chain";
+export { catalogCourseFetchByIdProcessing } from "./domain/catalogCourse/catalogCourseFetchByIdProcessing.js?v=1.1.107-student-firebase-auth-chain";
+export { catalogCourseFetchVersionsProcessing } from "./domain/catalogCourse/catalogCourseFetchVersionsProcessing.js?v=1.1.107-student-firebase-auth-chain";
+export { catalogCoursePublishVersionProcessing } from "./domain/catalogCourse/catalogCoursePublishVersionProcessing.js?v=1.1.107-student-firebase-auth-chain";
+export { catalogCourseRestoreProcessing } from "./domain/catalogCourse/catalogCourseRestoreProcessing.js?v=1.1.107-student-firebase-auth-chain";
+export { catalogCourseRevertVersionProcessing } from "./domain/catalogCourse/catalogCourseRevertVersionProcessing.js?v=1.1.107-student-firebase-auth-chain";
+export { catalogCourseRemoveTagProcessing } from "./domain/catalogCourse/catalogCourseRemoveTagProcessing.js?v=1.1.107-student-firebase-auth-chain";
+export { catalogCourseUpdateMetadataProcessing } from "./domain/catalogCourse/catalogCourseUpdateMetadataProcessing.js?v=1.1.107-student-firebase-auth-chain";
+export { catalogModuleCreateProcessing } from "./domain/catalogCourse/catalogModuleCreateProcessing.js?v=1.1.107-student-firebase-auth-chain";
+export { catalogModuleDeleteProcessing } from "./domain/catalogCourse/catalogModuleDeleteProcessing.js?v=1.1.107-student-firebase-auth-chain";
+export { catalogModuleReorderProcessing } from "./domain/catalogCourse/catalogModuleReorderProcessing.js?v=1.1.107-student-firebase-auth-chain";
+export { catalogModuleUpdateProcessing } from "./domain/catalogCourse/catalogModuleUpdateProcessing.js?v=1.1.107-student-firebase-auth-chain";
+export { catalogStepCreateProcessing } from "./domain/catalogCourse/catalogStepCreateProcessing.js?v=1.1.107-student-firebase-auth-chain";
+export { catalogStepDeleteProcessing } from "./domain/catalogCourse/catalogStepDeleteProcessing.js?v=1.1.107-student-firebase-auth-chain";
+export { catalogStepReorderProcessing } from "./domain/catalogCourse/catalogStepReorderProcessing.js?v=1.1.107-student-firebase-auth-chain";
+export { catalogStepUpdateProcessing } from "./domain/catalogCourse/catalogStepUpdateProcessing.js?v=1.1.107-student-firebase-auth-chain";
+export { processArchiveCourseAssignment } from "./domain/courseAssignment/processArchiveCourseAssignment.js?v=1.1.107-student-firebase-auth-chain";
+export { processAssignCourseAssistants, processAssignCourseTeacher, processLoadCourseAssignmentOwnership } from "./domain/courseAssignment/processCourseAssignmentOwnership.js?v=1.1.107-student-firebase-auth-chain";
+export { processCreateCourseAssignment } from "./domain/courseAssignment/processCreateCourseAssignment.js?v=1.1.107-student-firebase-auth-chain";
+export { processDeleteCourseAssignment } from "./domain/courseAssignment/processDeleteCourseAssignment.js?v=1.1.107-student-firebase-auth-chain";
+export { processDisableCourseAssignment } from "./domain/courseAssignment/processDisableCourseAssignment.js?v=1.1.107-student-firebase-auth-chain";
+export { processLoadCourseAssignments } from "./domain/courseAssignment/processLoadCourseAssignments.js?v=1.1.107-student-firebase-auth-chain";
+export { processListCourseAssignments } from "./domain/courseAssignment/processListCourseAssignments.js?v=1.1.107-student-firebase-auth-chain";
+export { processUpdateCourseAssignment } from "./domain/courseAssignment/processUpdateCourseAssignment.js?v=1.1.107-student-firebase-auth-chain";
 export {
   processLoadExternalTaskStep,
   processLoadExternalTaskSubmissions,
@@ -35,76 +35,76 @@ export {
   processReviewExternalTaskSubmission,
   processSubmitExternalTask,
   processUploadExternalTaskFile
-} from "./domain/externalTask/externalTaskProcessors.js?v=1.1.106-student-assignment-error-trace";
-export { processListLocations } from "./domain/location/processListLocations.js?v=1.1.106-student-assignment-error-trace";
-export { processResolveLocationBySlug } from "./domain/location/processResolveLocationBySlug.js?v=1.1.106-student-assignment-error-trace";
-export { processUpdateLocationLoginMode } from "./domain/location/processUpdateLocationLoginMode.js?v=1.1.106-student-assignment-error-trace";
-export { processUpdateLocationLoginSlug } from "./domain/location/processUpdateLocationLoginSlug.js?v=1.1.106-student-assignment-error-trace";
-export { processAddModule } from "./domain/courseEditor/processAddModule.js?v=1.1.106-student-assignment-error-trace";
-export { processCreateModule } from "./domain/courseEditor/processCreateModule.js?v=1.1.106-student-assignment-error-trace";
-export { processCreateModuleFromWizard } from "./domain/courseEditor/processCreateModuleFromWizard.js?v=1.1.106-student-assignment-error-trace";
-export { processOpenCreateModuleWizard } from "./domain/courseEditor/processOpenCreateModuleWizard.js?v=1.1.106-student-assignment-error-trace";
-export { processParseLearningContent } from "./domain/courseEditor/processParseLearningContent.js?v=1.1.106-student-assignment-error-trace";
-export { processGenerateModuleSkeleton } from "./domain/courseEditor/processGenerateModuleSkeleton.js?v=1.1.106-student-assignment-error-trace";
-export { processGenerateStarterSteps } from "./domain/courseEditor/processGenerateStarterSteps.js?v=1.1.106-student-assignment-error-trace";
-export { processListModules } from "./domain/courseEditor/processListModules.js?v=1.1.106-student-assignment-error-trace";
-export { processUpdateModule } from "./domain/courseEditor/processUpdateModule.js?v=1.1.106-student-assignment-error-trace";
-export { processDeleteModule } from "./domain/courseEditor/processDeleteModule.js?v=1.1.106-student-assignment-error-trace";
-export { processDuplicateModule } from "./domain/courseEditor/processDuplicateModule.js?v=1.1.106-student-assignment-error-trace";
-export { processLoadCourse } from "./domain/courseEditor/processLoadCourse.js?v=1.1.106-student-assignment-error-trace";
-export { processLoadModules } from "./domain/courseEditor/processLoadModules.js?v=1.1.106-student-assignment-error-trace";
-export { processOpenCourseEditor } from "./domain/courseEditor/processOpenCourseEditor.js?v=1.1.106-student-assignment-error-trace";
-export { processMigrateLegacyModulesToCatalogCourse } from "./domain/courseEditor/migrateLegacyModulesToCatalogCourse.js?v=1.1.106-student-assignment-error-trace";
-export { processPublishCourse } from "./domain/courseEditor/processPublishCourse.js?v=1.1.106-student-assignment-error-trace";
-export { processReorderModules } from "./domain/courseEditor/processReorderModules.js?v=1.1.106-student-assignment-error-trace";
-export { processSaveCourseDraft } from "./domain/courseEditor/processSaveCourseDraft.js?v=1.1.106-student-assignment-error-trace";
-export { processUpdateModuleField } from "./domain/courseEditor/processUpdateModuleField.js?v=1.1.106-student-assignment-error-trace";
-export { processValidateCourseStructure } from "./domain/courseEditor/processValidateCourseStructure.js?v=1.1.106-student-assignment-error-trace";
-export { processUpdateCourseField } from "./domain/courseEditor/updateCourseFieldProcessor.js?v=1.1.106-student-assignment-error-trace";
-export { processPreviewCourse } from "./domain/courseEditor/processPreviewCourse.js?v=1.1.106-student-assignment-error-trace";
-export { processAddStep } from "./domain/moduleEditor/processAddStep.js?v=1.1.106-student-assignment-error-trace";
-export { processAddStepToLearningMode } from "./domain/moduleEditor/processAddStepToLearningMode.js?v=1.1.106-student-assignment-error-trace";
-export { processAddStepToPracticeMode } from "./domain/moduleEditor/processAddStepToPracticeMode.js?v=1.1.106-student-assignment-error-trace";
-export { processCreateSession } from "./domain/moduleEditor/processCreateSession.js?v=1.1.106-student-assignment-error-trace";
-export { processCreatePracticeModeShells } from "./domain/moduleEditor/processCreatePracticeModeShells.js?v=1.1.106-student-assignment-error-trace";
-export { processListSessions } from "./domain/moduleEditor/processListSessions.js?v=1.1.106-student-assignment-error-trace";
-export { processLoadSteps } from "./domain/moduleEditor/processLoadSteps.js?v=1.1.106-student-assignment-error-trace";
-export { processLoadLearningContent } from "./domain/moduleEditor/processLoadLearningContent.js?v=1.1.106-student-assignment-error-trace";
-export { processSaveLearningContent } from "./domain/moduleEditor/processSaveLearningContent.js?v=1.1.106-student-assignment-error-trace";
-export { processLoadLearningModes } from "./domain/moduleEditor/processLoadLearningModes.js?v=1.1.106-student-assignment-error-trace";
-export { processCreateLearningMode } from "./domain/moduleEditor/processCreateLearningMode.js?v=1.1.106-student-assignment-error-trace";
-export { processRenameLearningMode } from "./domain/moduleEditor/processRenameLearningMode.js?v=1.1.106-student-assignment-error-trace";
-export { processDeleteLearningMode } from "./domain/moduleEditor/processDeleteLearningMode.js?v=1.1.106-student-assignment-error-trace";
-export { processDuplicateLearningMode } from "./domain/moduleEditor/processDuplicateLearningMode.js?v=1.1.106-student-assignment-error-trace";
-export { processGenerateModeFromPrimary } from "./domain/moduleEditor/processGenerateModeFromPrimary.js?v=1.1.106-student-assignment-error-trace";
-export { processPullLearningContent } from "./domain/moduleEditor/processPullLearningContent.js?v=1.1.106-student-assignment-error-trace";
-export { processListPracticeModeSteps } from "./domain/moduleEditor/processListPracticeModeSteps.js?v=1.1.106-student-assignment-error-trace";
-export { processOpenModuleEditor } from "./domain/moduleEditor/processOpenModuleEditor.js?v=1.1.106-student-assignment-error-trace";
-export { processPreviewStep } from "./domain/moduleEditor/processPreviewStep.js?v=1.1.106-student-assignment-error-trace";
-export { processUpdateLearningModeStep } from "./domain/moduleEditor/processUpdateLearningModeStep.js?v=1.1.106-student-assignment-error-trace";
-export { processDeletePracticeModeStep } from "./domain/moduleEditor/processDeletePracticeModeStep.js?v=1.1.106-student-assignment-error-trace";
-export { processReorderPracticeModeSteps } from "./domain/moduleEditor/processReorderPracticeModeSteps.js?v=1.1.106-student-assignment-error-trace";
-export { processSaveModuleDraft } from "./domain/moduleEditor/processSaveModuleDraft.js?v=1.1.106-student-assignment-error-trace";
-export { processUpdateSession } from "./domain/moduleEditor/processUpdateSession.js?v=1.1.106-student-assignment-error-trace";
-export { processUpdatePracticeMode } from "./domain/moduleEditor/processUpdatePracticeMode.js?v=1.1.106-student-assignment-error-trace";
-export { processUpdatePracticeModeStep } from "./domain/moduleEditor/processUpdatePracticeModeStep.js?v=1.1.106-student-assignment-error-trace";
-export { processUpdateStepField } from "./domain/moduleEditor/processUpdateStepField.js?v=1.1.106-student-assignment-error-trace";
-export { processUploadStepMedia } from "./domain/moduleEditor/processUploadStepMedia.js?v=1.1.106-student-assignment-error-trace";
-export { processLoadStudentCourse } from "./domain/student/processLoadStudentCourse.js?v=1.1.106-student-assignment-error-trace";
-export { processLoadStudentDashboard } from "./domain/student/processLoadStudentDashboard.js?v=1.1.106-student-assignment-error-trace";
-export { processContinueLearning } from "./domain/student/processContinueLearning.js?v=1.1.106-student-assignment-error-trace";
-export { processStudentOpenCourse } from "./domain/student/processStudentOpenCourse.js?v=1.1.106-student-assignment-error-trace";
-export { processClaimDailyBonus } from "./domain/student/processClaimDailyBonus.js?v=1.1.106-student-assignment-error-trace";
-export { processStartPracticeMode } from "./domain/student/processStartPracticeMode.js?v=1.1.106-student-assignment-error-trace";
-export { processCompleteStep } from "./domain/student/processCompleteStep.js?v=1.1.106-student-assignment-error-trace";
-export { processCompletePracticeMode } from "./domain/student/processCompletePracticeMode.js?v=1.1.106-student-assignment-error-trace";
-export { processSaveStudentProgress } from "./domain/student/processSaveStudentProgress.js?v=1.1.106-student-assignment-error-trace";
-export { processLoadClassesForLocation } from "./domain/studentLogin/processLoadClassesForLocation.js?v=1.1.106-student-assignment-error-trace";
-export { processLoadStudentProfile } from "./domain/studentLogin/processLoadStudentProfile.js?v=1.1.106-student-assignment-error-trace";
-export { processLoadStudentsForClass } from "./domain/studentLogin/processLoadStudentsForClass.js?v=1.1.106-student-assignment-error-trace";
-export { processStudentFruitLogin } from "./domain/studentLogin/processStudentFruitLogin.js?v=1.1.106-student-assignment-error-trace";
-export { processStudentStandardLogin } from "./domain/studentLogin/processStudentStandardLogin.js?v=1.1.106-student-assignment-error-trace";
-export { processStartStudentSession } from "./domain/studentLogin/processStartStudentSession.js?v=1.1.106-student-assignment-error-trace";
+} from "./domain/externalTask/externalTaskProcessors.js?v=1.1.107-student-firebase-auth-chain";
+export { processListLocations } from "./domain/location/processListLocations.js?v=1.1.107-student-firebase-auth-chain";
+export { processResolveLocationBySlug } from "./domain/location/processResolveLocationBySlug.js?v=1.1.107-student-firebase-auth-chain";
+export { processUpdateLocationLoginMode } from "./domain/location/processUpdateLocationLoginMode.js?v=1.1.107-student-firebase-auth-chain";
+export { processUpdateLocationLoginSlug } from "./domain/location/processUpdateLocationLoginSlug.js?v=1.1.107-student-firebase-auth-chain";
+export { processAddModule } from "./domain/courseEditor/processAddModule.js?v=1.1.107-student-firebase-auth-chain";
+export { processCreateModule } from "./domain/courseEditor/processCreateModule.js?v=1.1.107-student-firebase-auth-chain";
+export { processCreateModuleFromWizard } from "./domain/courseEditor/processCreateModuleFromWizard.js?v=1.1.107-student-firebase-auth-chain";
+export { processOpenCreateModuleWizard } from "./domain/courseEditor/processOpenCreateModuleWizard.js?v=1.1.107-student-firebase-auth-chain";
+export { processParseLearningContent } from "./domain/courseEditor/processParseLearningContent.js?v=1.1.107-student-firebase-auth-chain";
+export { processGenerateModuleSkeleton } from "./domain/courseEditor/processGenerateModuleSkeleton.js?v=1.1.107-student-firebase-auth-chain";
+export { processGenerateStarterSteps } from "./domain/courseEditor/processGenerateStarterSteps.js?v=1.1.107-student-firebase-auth-chain";
+export { processListModules } from "./domain/courseEditor/processListModules.js?v=1.1.107-student-firebase-auth-chain";
+export { processUpdateModule } from "./domain/courseEditor/processUpdateModule.js?v=1.1.107-student-firebase-auth-chain";
+export { processDeleteModule } from "./domain/courseEditor/processDeleteModule.js?v=1.1.107-student-firebase-auth-chain";
+export { processDuplicateModule } from "./domain/courseEditor/processDuplicateModule.js?v=1.1.107-student-firebase-auth-chain";
+export { processLoadCourse } from "./domain/courseEditor/processLoadCourse.js?v=1.1.107-student-firebase-auth-chain";
+export { processLoadModules } from "./domain/courseEditor/processLoadModules.js?v=1.1.107-student-firebase-auth-chain";
+export { processOpenCourseEditor } from "./domain/courseEditor/processOpenCourseEditor.js?v=1.1.107-student-firebase-auth-chain";
+export { processMigrateLegacyModulesToCatalogCourse } from "./domain/courseEditor/migrateLegacyModulesToCatalogCourse.js?v=1.1.107-student-firebase-auth-chain";
+export { processPublishCourse } from "./domain/courseEditor/processPublishCourse.js?v=1.1.107-student-firebase-auth-chain";
+export { processReorderModules } from "./domain/courseEditor/processReorderModules.js?v=1.1.107-student-firebase-auth-chain";
+export { processSaveCourseDraft } from "./domain/courseEditor/processSaveCourseDraft.js?v=1.1.107-student-firebase-auth-chain";
+export { processUpdateModuleField } from "./domain/courseEditor/processUpdateModuleField.js?v=1.1.107-student-firebase-auth-chain";
+export { processValidateCourseStructure } from "./domain/courseEditor/processValidateCourseStructure.js?v=1.1.107-student-firebase-auth-chain";
+export { processUpdateCourseField } from "./domain/courseEditor/updateCourseFieldProcessor.js?v=1.1.107-student-firebase-auth-chain";
+export { processPreviewCourse } from "./domain/courseEditor/processPreviewCourse.js?v=1.1.107-student-firebase-auth-chain";
+export { processAddStep } from "./domain/moduleEditor/processAddStep.js?v=1.1.107-student-firebase-auth-chain";
+export { processAddStepToLearningMode } from "./domain/moduleEditor/processAddStepToLearningMode.js?v=1.1.107-student-firebase-auth-chain";
+export { processAddStepToPracticeMode } from "./domain/moduleEditor/processAddStepToPracticeMode.js?v=1.1.107-student-firebase-auth-chain";
+export { processCreateSession } from "./domain/moduleEditor/processCreateSession.js?v=1.1.107-student-firebase-auth-chain";
+export { processCreatePracticeModeShells } from "./domain/moduleEditor/processCreatePracticeModeShells.js?v=1.1.107-student-firebase-auth-chain";
+export { processListSessions } from "./domain/moduleEditor/processListSessions.js?v=1.1.107-student-firebase-auth-chain";
+export { processLoadSteps } from "./domain/moduleEditor/processLoadSteps.js?v=1.1.107-student-firebase-auth-chain";
+export { processLoadLearningContent } from "./domain/moduleEditor/processLoadLearningContent.js?v=1.1.107-student-firebase-auth-chain";
+export { processSaveLearningContent } from "./domain/moduleEditor/processSaveLearningContent.js?v=1.1.107-student-firebase-auth-chain";
+export { processLoadLearningModes } from "./domain/moduleEditor/processLoadLearningModes.js?v=1.1.107-student-firebase-auth-chain";
+export { processCreateLearningMode } from "./domain/moduleEditor/processCreateLearningMode.js?v=1.1.107-student-firebase-auth-chain";
+export { processRenameLearningMode } from "./domain/moduleEditor/processRenameLearningMode.js?v=1.1.107-student-firebase-auth-chain";
+export { processDeleteLearningMode } from "./domain/moduleEditor/processDeleteLearningMode.js?v=1.1.107-student-firebase-auth-chain";
+export { processDuplicateLearningMode } from "./domain/moduleEditor/processDuplicateLearningMode.js?v=1.1.107-student-firebase-auth-chain";
+export { processGenerateModeFromPrimary } from "./domain/moduleEditor/processGenerateModeFromPrimary.js?v=1.1.107-student-firebase-auth-chain";
+export { processPullLearningContent } from "./domain/moduleEditor/processPullLearningContent.js?v=1.1.107-student-firebase-auth-chain";
+export { processListPracticeModeSteps } from "./domain/moduleEditor/processListPracticeModeSteps.js?v=1.1.107-student-firebase-auth-chain";
+export { processOpenModuleEditor } from "./domain/moduleEditor/processOpenModuleEditor.js?v=1.1.107-student-firebase-auth-chain";
+export { processPreviewStep } from "./domain/moduleEditor/processPreviewStep.js?v=1.1.107-student-firebase-auth-chain";
+export { processUpdateLearningModeStep } from "./domain/moduleEditor/processUpdateLearningModeStep.js?v=1.1.107-student-firebase-auth-chain";
+export { processDeletePracticeModeStep } from "./domain/moduleEditor/processDeletePracticeModeStep.js?v=1.1.107-student-firebase-auth-chain";
+export { processReorderPracticeModeSteps } from "./domain/moduleEditor/processReorderPracticeModeSteps.js?v=1.1.107-student-firebase-auth-chain";
+export { processSaveModuleDraft } from "./domain/moduleEditor/processSaveModuleDraft.js?v=1.1.107-student-firebase-auth-chain";
+export { processUpdateSession } from "./domain/moduleEditor/processUpdateSession.js?v=1.1.107-student-firebase-auth-chain";
+export { processUpdatePracticeMode } from "./domain/moduleEditor/processUpdatePracticeMode.js?v=1.1.107-student-firebase-auth-chain";
+export { processUpdatePracticeModeStep } from "./domain/moduleEditor/processUpdatePracticeModeStep.js?v=1.1.107-student-firebase-auth-chain";
+export { processUpdateStepField } from "./domain/moduleEditor/processUpdateStepField.js?v=1.1.107-student-firebase-auth-chain";
+export { processUploadStepMedia } from "./domain/moduleEditor/processUploadStepMedia.js?v=1.1.107-student-firebase-auth-chain";
+export { processLoadStudentCourse } from "./domain/student/processLoadStudentCourse.js?v=1.1.107-student-firebase-auth-chain";
+export { processLoadStudentDashboard } from "./domain/student/processLoadStudentDashboard.js?v=1.1.107-student-firebase-auth-chain";
+export { processContinueLearning } from "./domain/student/processContinueLearning.js?v=1.1.107-student-firebase-auth-chain";
+export { processStudentOpenCourse } from "./domain/student/processStudentOpenCourse.js?v=1.1.107-student-firebase-auth-chain";
+export { processClaimDailyBonus } from "./domain/student/processClaimDailyBonus.js?v=1.1.107-student-firebase-auth-chain";
+export { processStartPracticeMode } from "./domain/student/processStartPracticeMode.js?v=1.1.107-student-firebase-auth-chain";
+export { processCompleteStep } from "./domain/student/processCompleteStep.js?v=1.1.107-student-firebase-auth-chain";
+export { processCompletePracticeMode } from "./domain/student/processCompletePracticeMode.js?v=1.1.107-student-firebase-auth-chain";
+export { processSaveStudentProgress } from "./domain/student/processSaveStudentProgress.js?v=1.1.107-student-firebase-auth-chain";
+export { processLoadClassesForLocation } from "./domain/studentLogin/processLoadClassesForLocation.js?v=1.1.107-student-firebase-auth-chain";
+export { processLoadStudentProfile } from "./domain/studentLogin/processLoadStudentProfile.js?v=1.1.107-student-firebase-auth-chain";
+export { processLoadStudentsForClass } from "./domain/studentLogin/processLoadStudentsForClass.js?v=1.1.107-student-firebase-auth-chain";
+export { processStudentFruitLogin } from "./domain/studentLogin/processStudentFruitLogin.js?v=1.1.107-student-firebase-auth-chain";
+export { processStudentStandardLogin } from "./domain/studentLogin/processStudentStandardLogin.js?v=1.1.107-student-firebase-auth-chain";
+export { processStartStudentSession } from "./domain/studentLogin/processStartStudentSession.js?v=1.1.107-student-firebase-auth-chain";
 export {
   processAssignClassAssistants,
   processAssignClassTeacher,
@@ -121,7 +121,7 @@ export {
   processUpdateLocation,
   processUpdateStudent,
   processVerifySuperAdminAccess
-} from "./domain/superAdmin/superAdminProcessors.js?v=1.1.106-student-assignment-error-trace";
+} from "./domain/superAdmin/superAdminProcessors.js?v=1.1.107-student-firebase-auth-chain";
 export {
   processLoadTeacherClasses,
   processLoadTeacherClassDetail,
@@ -132,6 +132,6 @@ export {
   processLoadTeacherStudents,
   processSendTeacherPasswordReset,
   processTeacherLogin
-} from "./domain/teacher/teacherDashboardProcessors.js?v=1.1.106-student-assignment-error-trace";
+} from "./domain/teacher/teacherDashboardProcessors.js?v=1.1.107-student-firebase-auth-chain";
 
 

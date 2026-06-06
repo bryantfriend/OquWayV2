@@ -1,4 +1,4 @@
-import { requireStringValidation } from "../../validators.js?v=1.1.82-shared-command-center-shell";
+import { requireStringValidation } from "../../validators.js?v=1.1.107-student-firebase-auth-chain";
 
 export function validateStudentProgressPayload(executionState) {
   var payload = executionState.payload;

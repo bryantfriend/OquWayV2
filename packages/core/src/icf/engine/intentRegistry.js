@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.106-student-assignment-error-trace";
+import * as IntentExports from "../intents/intents.js?v=1.1.107-student-firebase-auth-chain";
 
 const registry = {
   // Demo Verification

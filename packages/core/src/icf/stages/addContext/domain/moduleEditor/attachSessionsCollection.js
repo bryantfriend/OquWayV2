@@ -1,5 +1,5 @@
-import { db, collection, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
-import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.82-shared-command-center-shell";
+import { db, collection, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.107-student-firebase-auth-chain";
+import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.107-student-firebase-auth-chain";
 
 export async function attachSessionsCollection(executionState) {
   const payload = executionState.payload;

@@ -1,4 +1,4 @@
-import { requireNonEmptyArrayValidation } from "../../validators.js?v=1.1.82-shared-command-center-shell";
+import { requireNonEmptyArrayValidation } from "../../validators.js?v=1.1.107-student-firebase-auth-chain";
 
 export function validateModuleStepsPayload(executionState) {
     const payload = executionState.payload;

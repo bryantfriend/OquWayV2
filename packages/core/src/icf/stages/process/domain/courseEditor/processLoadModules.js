@@ -1,4 +1,4 @@
-import { db, writeBatch, doc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
+import { db, writeBatch, doc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.107-student-firebase-auth-chain";
 
 export async function processLoadModules(executionState) {
     const { context } = executionState;

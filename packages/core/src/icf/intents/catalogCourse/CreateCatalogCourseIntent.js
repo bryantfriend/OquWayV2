@@ -1,11 +1,11 @@
-import { catalogCourseRequireTitleValidation, catalogCourseRequireLanguagesValidation } from "../../stages/validate/validators.js?v=1.1.82-shared-command-center-shell";
-import { normalizeCourseMetadata } from "../../stages/normalize/normalizers.js?v=1.1.82-shared-command-center-shell";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
-import { attachTenantContext } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
-import { attachTimestampContext, attachCreatedByContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.82-shared-command-center-shell";
-import { catalogCourseCreateRecordProcessing } from "../../stages/process/processors.js?v=1.1.82-shared-command-center-shell";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.82-shared-command-center-shell";
+import { catalogCourseRequireTitleValidation, catalogCourseRequireLanguagesValidation } from "../../stages/validate/validators.js?v=1.1.107-student-firebase-auth-chain";
+import { normalizeCourseMetadata } from "../../stages/normalize/normalizers.js?v=1.1.107-student-firebase-auth-chain";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.107-student-firebase-auth-chain";
+import { attachTenantContext } from "../../stages/addContext/contexts.js?v=1.1.107-student-firebase-auth-chain";
+import { attachTimestampContext, attachCreatedByContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.107-student-firebase-auth-chain";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.107-student-firebase-auth-chain";
+import { catalogCourseCreateRecordProcessing } from "../../stages/process/processors.js?v=1.1.107-student-firebase-auth-chain";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.107-student-firebase-auth-chain";
 
 export function CreateCatalogCourseIntent() {
     return {

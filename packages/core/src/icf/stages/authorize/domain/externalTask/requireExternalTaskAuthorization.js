@@ -1,4 +1,4 @@
-import { canReviewExternalTask, canSubmitExternalTask } from "../../../../../../../permissions/index.js?v=1.1.82-shared-command-center-shell";
+import { canReviewExternalTask, canSubmitExternalTask } from "../../../../../../../permissions/index.js?v=1.1.107-student-firebase-auth-chain";
 
 export function requireExternalTaskStudentAuthorization(executionState) {
   var actor = executionState.actor;

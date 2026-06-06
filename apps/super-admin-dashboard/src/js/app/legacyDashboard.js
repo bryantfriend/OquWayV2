@@ -1,10 +1,10 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth, collection, db, deleteDoc, doc, functions, getDoc, getDocs, httpsCallable, serverTimestamp, setDoc, storage } from "../../../../../packages/firebase/index.js?v=1.1.82-shared-command-center-shell";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.82-shared-command-center-shell";
-import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.82-shared-command-center-shell";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.82-shared-command-center-shell";
-import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.82-shared-command-center-shell";
-import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.82-shared-command-center-shell";
+import { auth, collection, db, deleteDoc, doc, functions, getDoc, getDocs, httpsCallable, serverTimestamp, setDoc, storage } from "../../../../../packages/firebase/index.js?v=1.1.107-student-firebase-auth-chain";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.107-student-firebase-auth-chain";
+import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.107-student-firebase-auth-chain";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.107-student-firebase-auth-chain";
+import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.107-student-firebase-auth-chain";
+import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.107-student-firebase-auth-chain";
 
 var appElement = document.getElementById("app");
 var appVersion = "1.1.82";

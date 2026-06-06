@@ -1,5 +1,5 @@
-import { getStudentProfileByAuthUid } from "../../../../../../../domain/users/index.js?v=1.1.106-student-assignment-error-trace";
-import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.106-student-assignment-error-trace";
+import { getStudentProfileByAuthUid } from "../../../../../../../domain/users/index.js?v=1.1.107-student-firebase-auth-chain";
+import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.107-student-firebase-auth-chain";
 
 export async function processLoadStudentProfile(executionState) {
   var actor = executionState.actor;

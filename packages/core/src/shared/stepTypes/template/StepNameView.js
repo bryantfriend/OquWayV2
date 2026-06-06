@@ -1,5 +1,5 @@
-import { StepNameEngine } from "./StepNameEngine.js?v=1.1.82-shared-command-center-shell";
-import { StepNameIntent } from "./StepNameIntent.js?v=1.1.82-shared-command-center-shell";
+import { StepNameEngine } from "./StepNameEngine.js?v=1.1.107-student-firebase-auth-chain";
+import { StepNameIntent } from "./StepNameIntent.js?v=1.1.107-student-firebase-auth-chain";
 
 export default class StepName {
 

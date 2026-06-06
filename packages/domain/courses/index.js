@@ -24,5 +24,5 @@ export function readCourseTitle(course) {
   return readSafeString(course && (course.name || course.displayName)).trim() || "Untitled Course";
 }
 
-export * from "./courseQueries.js?v=1.1.106-student-assignment-error-trace";
+export * from "./courseQueries.js?v=1.1.107-student-firebase-auth-chain";
 export * from "./courseRepository.js";

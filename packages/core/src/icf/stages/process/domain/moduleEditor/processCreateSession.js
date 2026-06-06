@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
-import { createDefaultPracticeModes } from "./practiceModeShells.js?v=1.1.82-shared-command-center-shell";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.107-student-firebase-auth-chain";
+import { createDefaultPracticeModes } from "./practiceModeShells.js?v=1.1.107-student-firebase-auth-chain";
 
 export async function processCreateSession(executionState) {
   const payload = executionState.payload;

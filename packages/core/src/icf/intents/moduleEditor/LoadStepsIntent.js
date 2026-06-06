@@ -1,8 +1,8 @@
-import { validateAuthenticated, validateCourseId, validateModuleId, validateSessionId, validatePracticeModeKey } from "../../stages/validate/validators.js?v=1.1.82-shared-command-center-shell";
-import { attachActorContext, attachActorRoleContext, attachCourseDocumentForModule, attachModuleDocument, attachSessionDocument } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.82-shared-command-center-shell";
-import { processLoadSteps } from "../../stages/process/processors.js?v=1.1.82-shared-command-center-shell";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.82-shared-command-center-shell";
+import { validateAuthenticated, validateCourseId, validateModuleId, validateSessionId, validatePracticeModeKey } from "../../stages/validate/validators.js?v=1.1.107-student-firebase-auth-chain";
+import { attachActorContext, attachActorRoleContext, attachCourseDocumentForModule, attachModuleDocument, attachSessionDocument } from "../../stages/addContext/contexts.js?v=1.1.107-student-firebase-auth-chain";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.107-student-firebase-auth-chain";
+import { processLoadSteps } from "../../stages/process/processors.js?v=1.1.107-student-firebase-auth-chain";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.107-student-firebase-auth-chain";
 
 export function LoadStepsIntent() {
   return {

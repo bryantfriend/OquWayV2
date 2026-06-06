@@ -1,5 +1,5 @@
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.106-student-assignment-error-trace";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.106-student-assignment-error-trace";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.107-student-firebase-auth-chain";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.107-student-firebase-auth-chain";
 
 export async function processStudentOpenCourse(executionState) {
   var payload = executionState.payload || {};

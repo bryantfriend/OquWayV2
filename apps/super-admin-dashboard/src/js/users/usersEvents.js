@@ -1,4 +1,4 @@
-import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.82-shared-command-center-shell";
+import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.107-student-firebase-auth-chain";
 
 export function bindUsersEvents(rootElement, handlers) {
   rootElement.addEventListener("click", function (event) {

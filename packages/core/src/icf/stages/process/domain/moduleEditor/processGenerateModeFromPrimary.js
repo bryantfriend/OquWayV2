@@ -1,4 +1,4 @@
-import { processDuplicateLearningMode } from "./processDuplicateLearningMode.js?v=1.1.82-shared-command-center-shell";
+import { processDuplicateLearningMode } from "./processDuplicateLearningMode.js?v=1.1.107-student-firebase-auth-chain";
 
 export async function processGenerateModeFromPrimary(executionState) {
   executionState.payload = Object.assign({}, executionState.payload, {

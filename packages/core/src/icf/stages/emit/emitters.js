@@ -1,2 +1,2 @@
-export { emitIntentResult } from "./core/emitIntentResult.js?v=1.1.106-student-assignment-error-trace";
-export { emitDemoResult } from "./core/emitDemoResult.js?v=1.1.106-student-assignment-error-trace";
+export { emitIntentResult } from "./core/emitIntentResult.js?v=1.1.107-student-firebase-auth-chain";
+export { emitDemoResult } from "./core/emitDemoResult.js?v=1.1.107-student-firebase-auth-chain";

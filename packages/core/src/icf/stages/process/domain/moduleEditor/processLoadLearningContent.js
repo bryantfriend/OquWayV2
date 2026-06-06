@@ -1,4 +1,4 @@
-import { createDefaultLearningContent } from "./learningArchitecture.js?v=1.1.82-shared-command-center-shell";
+import { createDefaultLearningContent } from "./learningArchitecture.js?v=1.1.107-student-firebase-auth-chain";
 
 export function processLoadLearningContent(executionState) {
   executionState.result = {

@@ -1,8 +1,8 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.106-student-assignment-error-trace";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.106-student-assignment-error-trace";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.106-student-assignment-error-trace";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.106-student-assignment-error-trace";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.106-student-assignment-error-trace";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.107-student-firebase-auth-chain";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.107-student-firebase-auth-chain";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.107-student-firebase-auth-chain";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.107-student-firebase-auth-chain";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.107-student-firebase-auth-chain";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {

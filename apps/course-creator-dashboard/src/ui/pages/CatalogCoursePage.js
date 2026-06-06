@@ -1,5 +1,5 @@
-import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.82-shared-command-center-shell";
-import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.82-shared-command-center-shell";
+import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.107-student-firebase-auth-chain";
+import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.107-student-firebase-auth-chain";
 
 export class CatalogCoursePage {
   constructor() {

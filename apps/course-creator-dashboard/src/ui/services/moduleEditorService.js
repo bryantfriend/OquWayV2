@@ -1,7 +1,7 @@
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.82-shared-command-center-shell";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.82-shared-command-center-shell";
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.82-shared-command-center-shell";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.82-shared-command-center-shell";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.107-student-firebase-auth-chain";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.107-student-firebase-auth-chain";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.107-student-firebase-auth-chain";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.107-student-firebase-auth-chain";
 
 function getActor() {
   return auth.currentUser ? { id: auth.currentUser.uid, role: "ROLE_COURSE_CREATOR" } : null;

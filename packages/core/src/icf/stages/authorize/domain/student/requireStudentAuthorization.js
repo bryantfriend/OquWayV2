@@ -1,4 +1,4 @@
-import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.82-shared-command-center-shell";
+import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.107-student-firebase-auth-chain";
 import { canAccessStudentDashboard } from "../../../../../../../permissions/index.js";
 
 export function requireStudentAuthorization(executionState) {

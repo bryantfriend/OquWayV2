@@ -377,6 +377,7 @@ service cloud.firestore {
         isPlatformAdmin() ||
         isSchoolAdmin() ||
         isCourseEditor() ||
+        isStudent() ||
         isTeacherOwnedAssignment() ||
         isRelevantCourseAssignment()
       );
@@ -386,6 +387,7 @@ service cloud.firestore {
         isPlatformAdmin() ||
         isSchoolAdmin() ||
         isCourseEditor() ||
+        isStudent() ||
         isTeacherOwnedAssignment() ||
         isRelevantCourseAssignment()
       );

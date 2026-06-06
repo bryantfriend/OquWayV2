@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../../../../packages/firebase/index.js?v=1.1.82-shared-command-center-shell";
+import { collection, db, getDocs, query, where } from "../../../../../packages/firebase/index.js?v=1.1.107-student-firebase-auth-chain";
 
 export async function getTeacherCourseAssignments(teacherId) {
   var safeTeacherId = typeof teacherId === "string" ? teacherId.trim() : "";
