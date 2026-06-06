@@ -3419,6 +3419,98 @@
             border-radius: 8px;
         }
 
+        .sa-course-catalog-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .sa-course-catalog-item {
+            display: grid;
+            grid-template-columns: 82px minmax(220px, 1.5fr) 130px repeat(4, minmax(86px, 0.55fr)) 150px;
+            align-items: center;
+            gap: 14px;
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #dbe5f2;
+            border-radius: 14px;
+            background:
+                radial-gradient(circle at 8% 20%, rgba(124, 58, 237, 0.08), transparent 24%),
+                linear-gradient(135deg, #ffffff, #f8fbff);
+            color: #0f172a;
+            text-align: left;
+            cursor: pointer;
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+            transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+        }
+
+        .sa-course-catalog-item:hover {
+            transform: translateY(-2px);
+            border-color: #93c5fd;
+            box-shadow: 0 22px 48px rgba(37, 99, 235, 0.14);
+        }
+
+        .sa-course-catalog-cover,
+        .sa-course-command-cover,
+        .sa-module-command-cover {
+            display: grid;
+            place-items: center;
+            border-radius: 16px;
+            background:
+                radial-gradient(circle at 35% 24%, rgba(255, 255, 255, 0.18), transparent 24%),
+                linear-gradient(135deg, #172554, #4f46e5 58%, #7c3aed);
+            color: white;
+            font-weight: 1000;
+            letter-spacing: 0.04em;
+            box-shadow: 0 18px 38px rgba(37, 99, 235, 0.22);
+        }
+
+        .sa-course-catalog-cover {
+            width: 72px;
+            height: 72px;
+            font-size: 1.15rem;
+        }
+
+        .sa-course-catalog-main {
+            display: grid;
+            gap: 5px;
+            min-width: 0;
+        }
+
+        .sa-course-catalog-main strong {
+            font-size: 1.05rem;
+        }
+
+        .sa-course-catalog-main small,
+        .sa-course-catalog-main em,
+        .sa-course-catalog-status small,
+        .sa-course-catalog-item > span:not(.sa-course-catalog-cover):not(.sa-course-catalog-main):not(.sa-course-catalog-status):not(.sa-course-catalog-actions) small {
+            color: #64748b;
+            font-size: 0.78rem;
+            font-style: normal;
+            font-weight: 800;
+        }
+
+        .sa-course-catalog-item > span:not(.sa-course-catalog-cover):not(.sa-course-catalog-main):not(.sa-course-catalog-status):not(.sa-course-catalog-actions) {
+            display: grid;
+            gap: 4px;
+        }
+
+        .sa-course-catalog-item > span:not(.sa-course-catalog-cover):not(.sa-course-catalog-main):not(.sa-course-catalog-status):not(.sa-course-catalog-actions) strong {
+            font-size: 1.2rem;
+        }
+
+        .sa-course-catalog-status,
+        .sa-course-catalog-actions {
+            display: grid;
+            gap: 7px;
+        }
+
+        .sa-course-catalog-actions i {
+            color: #2563eb;
+            font-style: normal;
+            font-weight: 900;
+        }
+
         .sa-location-command-backdrop {
             position: fixed;
             inset: 0;
@@ -3814,6 +3906,42 @@
                 linear-gradient(135deg, rgba(248, 250, 252, 0.98), rgba(255, 255, 255, 0.96));
         }
 
+        .sa-course-command-modal,
+        .sa-module-command-modal {
+            background:
+                radial-gradient(circle at 12% 7%, rgba(124, 58, 237, 0.12), transparent 28%),
+                radial-gradient(circle at 86% 14%, rgba(37, 99, 235, 0.1), transparent 30%),
+                linear-gradient(135deg, rgba(248, 250, 252, 0.98), rgba(255, 255, 255, 0.97));
+        }
+
+        .sa-course-command-shell,
+        .sa-module-command-shell {
+            grid-template-columns: 210px minmax(0, 1fr) 280px;
+        }
+
+        .sa-course-command-cover,
+        .sa-module-command-cover {
+            width: 108px;
+            height: 108px;
+            flex: 0 0 auto;
+            font-size: 1.45rem;
+        }
+
+        .sa-module-command-cover {
+            background:
+                radial-gradient(circle at 35% 24%, rgba(255, 255, 255, 0.16), transparent 24%),
+                linear-gradient(135deg, #111827, #2563eb 55%, #14b8a6);
+        }
+
+        .sa-course-modules-table .sa-command-table-head,
+        .sa-course-modules-table .sa-command-table-row {
+            grid-template-columns: minmax(220px, 1.5fr) 0.8fr 0.55fr 0.55fr 0.55fr 0.9fr;
+        }
+
+        .sa-course-command-kpis {
+            grid-template-columns: repeat(4, minmax(150px, 1fr));
+        }
+
         .sa-user-command-shell {
             grid-template-columns: 210px minmax(0, 1fr) 280px;
         }
@@ -4131,7 +4259,7 @@
         <h1>Core System Configuration</h1>
         <p>Managing the heart of the national educational engine...</p>
     </main>
-    <script type="module" src="./src/main.js?v=1.1.79-user-command-center"></script>
+    <script type="module" src="./src/main.js?v=1.1.80-course-module-command-center"></script>
 </body>
 
 </html>

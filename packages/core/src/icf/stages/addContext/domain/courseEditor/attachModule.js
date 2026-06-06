@@ -1,4 +1,4 @@
-import { db, doc, getDoc, collection, getDocs, query, orderBy } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
+import { getModuleById } from "../../../../../../../domain/modules/index.js";
 
 export async function attachModule(executionState) {
     const { payload, context } = executionState;
@@ -19,17 +19,18 @@ export async function attachModule(executionState) {
     if (!payload.courseId || !payload.moduleId) return { valid: true };
 
     try {
-        const docRef = doc(db, readCourseCollectionName(executionState), payload.courseId, "modules", payload.moduleId);
-        const docSnap = await getDoc(docRef);
+        const moduleRecord = await getModuleById(payload.courseId, payload.moduleId, {
+            sources: [readCourseCollectionName(executionState), "catalogCourses", "courses"]
+        });
 
-        if (!docSnap.exists()) {
+        if (!moduleRecord) {
             return {
                 valid: false,
                 errors: [{ message: "Module not found" }]
             };
         }
 
-        return { valid: true, data: { module: { id: docSnap.id, ...docSnap.data() } } };
+        return { valid: true, data: { module: moduleRecord } };
     } catch (err) {
         return {
             valid: false,

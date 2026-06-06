@@ -1,5 +1,5 @@
-import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.79-user-command-center";
-import { collection, db, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.79-user-command-center";
+import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.80-course-module-command-center";
+import { collection, db, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.80-course-module-command-center";
 
 export async function processLoadAdminProfile(executionState) {
   var actor = executionState.actor;

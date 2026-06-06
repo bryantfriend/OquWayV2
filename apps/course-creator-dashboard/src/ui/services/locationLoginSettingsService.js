@@ -1,6 +1,6 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.79-user-command-center";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.79-user-command-center";
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.79-user-command-center";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.80-course-module-command-center";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.80-course-module-command-center";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.80-course-module-command-center";
 
 export const locationLoginSettingsService = {
   listLocations: async function () {

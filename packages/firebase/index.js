@@ -1,5 +1,5 @@
-export { firebaseApp } from "../core/src/infrastructure/firebase/firebaseApp.js?v=1.1.79-user-command-center";
-export { auth } from "../core/src/infrastructure/firebase/auth.js?v=1.1.79-user-command-center";
+export { firebaseApp } from "../core/src/infrastructure/firebase/firebaseApp.js?v=1.1.80-course-module-command-center";
+export { auth } from "../core/src/infrastructure/firebase/auth.js?v=1.1.80-course-module-command-center";
 export {
   collection,
   db,
@@ -11,7 +11,7 @@ export {
   serverTimestamp,
   setDoc,
   where
-} from "../core/src/infrastructure/firebase/firestore.js?v=1.1.79-user-command-center";
-export { functions, httpsCallable } from "../core/src/infrastructure/firebase/functions.js?v=1.1.79-user-command-center";
-export { storage } from "../core/src/infrastructure/firebase/storage.js?v=1.1.79-user-command-center";
+} from "../core/src/infrastructure/firebase/firestore.js?v=1.1.80-course-module-command-center";
+export { functions, httpsCallable } from "../core/src/infrastructure/firebase/functions.js?v=1.1.80-course-module-command-center";
+export { storage } from "../core/src/infrastructure/firebase/storage.js?v=1.1.80-course-module-command-center";
 export { getCurrentUserClaims } from "./claims/index.js";

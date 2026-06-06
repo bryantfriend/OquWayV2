@@ -1,14 +1,13 @@
-import { db, doc, getDoc, collection, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
+import { getCourseById } from "../../../../../../../domain/courses/index.js";
 
 export async function attachCourseDocumentForModule(executionState) {
     const { payload } = executionState;
     if (!payload.courseId) return { valid: true };
 
     try {
-        const courseSnapResult = await readCourseSnap(payload.courseId);
-        const docSnap = courseSnapResult.snap;
+        const course = await getCourseById(payload.courseId, { sources: ["catalogCourses", "courses"] });
 
-        if (!docSnap.exists()) {
+        if (!course) {
             return {
                 valid: false,
                 errors: [{ message: "Course not found: " + payload.courseId }]
@@ -18,8 +17,8 @@ export async function attachCourseDocumentForModule(executionState) {
         return {
             valid: true,
             data: {
-                course: { id: docSnap.id, ...docSnap.data() },
-                courseCollectionName: courseSnapResult.collectionName
+                course: course,
+                courseCollectionName: course.source || "catalogCourses"
             }
         };
     } catch (err) {
@@ -28,31 +27,4 @@ export async function attachCourseDocumentForModule(executionState) {
             errors: [{ message: "Failed to attach course document: " + err.message }]
         };
     }
-}
-
-async function readCourseSnap(courseId) {
-    const collectionNames = ["catalogCourses", "courses"];
-    let index = 0;
-
-    while (index < collectionNames.length) {
-        const docSnap = await getDoc(doc(db, collectionNames[index], courseId));
-
-        if (docSnap.exists()) {
-            return {
-                collectionName: collectionNames[index],
-                snap: docSnap
-            };
-        }
-
-        index = index + 1;
-    }
-
-    return {
-        collectionName: "catalogCourses",
-        snap: {
-            exists: function () {
-                return false;
-            }
-        }
-    };
 }

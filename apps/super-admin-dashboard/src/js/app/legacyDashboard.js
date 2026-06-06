@@ -1,13 +1,13 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth, collection, db, deleteDoc, doc, functions, getDoc, getDocs, httpsCallable, serverTimestamp, setDoc, storage } from "../../../../../packages/firebase/index.js?v=1.1.79-user-command-center";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.79-user-command-center";
-import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.79-user-command-center";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.79-user-command-center";
-import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.79-user-command-center";
-import { createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.79-user-command-center";
+import { auth, collection, db, deleteDoc, doc, functions, getDoc, getDocs, httpsCallable, serverTimestamp, setDoc, storage } from "../../../../../packages/firebase/index.js?v=1.1.80-course-module-command-center";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.80-course-module-command-center";
+import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.80-course-module-command-center";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.80-course-module-command-center";
+import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.80-course-module-command-center";
+import { createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.80-course-module-command-center";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.79";
+var appVersion = "1.1.80";
 var adminCallableFunctions = functions;
 var state = {
   isLoading: true,
@@ -18,6 +18,8 @@ var state = {
   locationCreateOpen: false,
   locationCommandCenter: createLocationCommandCenterState(),
   userCommandCenter: createUserCommandCenterState(),
+  courseCommandCenter: createCourseCommandCenterState(),
+  moduleCommandCenter: createModuleCommandCenterState(),
   authPhase: "checkingAuth",
   needsLogin: false,
   activeTab: "overview",
@@ -512,6 +514,8 @@ function buildDashboardView() {
   html += buildResetModal();
   html += buildUserCommandCenterModal();
   html += buildUserEditModal();
+  html += buildCourseCommandCenterModal();
+  html += buildModuleCommandCenterModal();
   html += buildClassPickerModal();
   html += buildClassStaffPickerModal();
   html += buildAssignmentCoursePickerModal();
@@ -825,8 +829,7 @@ function buildLessonsTab() {
   return '<section class="sa-stack">'
     + '<div class="sa-page-head"><div><p class="sa-eyebrow">Learning Library</p><h2>Courses & Modules</h2><p>Course inventory, module signals, and learning readiness for the ecosystem.</p></div><button type="button" class="sa-btn" data-action="overview-open-course-creator">Open Course Creator</button></div>'
     + renderLearningActivityOverview()
-    + '<section class="sa-overview-grid sa-overview-grid-2">' + renderGrowthChart(state.overviewChartRange) + renderRecentlyCreated() + '</section>'
-    + '<article class="sa-card"><div class="sa-section-title"><div><h2>Course Inventory</h2><p>Loaded from available course collections.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data"' + disabled(isBusy()) + '>' + buildButtonContent("Refresh", "refresh-data") + '</button></div>' + buildCourseInventoryRows() + '</article>'
+    + '<article class="sa-card sa-course-catalog-card"><div class="sa-section-title"><div><h2>Premium Course Catalog</h2><p>Open courses and modules in command-center views for oversight, assignments, and diagnostics.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data"' + disabled(isBusy()) + '>' + buildButtonContent("Refresh", "refresh-data") + '</button></div>' + buildCourseInventoryRows() + '</article>'
     + '</section>';
 }
 
@@ -880,20 +883,36 @@ function buildRoleUserRows(users, emptyMessage) {
 }
 
 function buildCourseInventoryRows() {
-  var html = '<div class="sa-table">';
+  var html = '<div class="sa-course-catalog-grid">';
   var index = 0;
 
   if (state.courses.length === 0) {
     return '<div class="sa-empty"><strong>No courses loaded.</strong><span>Courses will appear here when the course collections are available.</span></div>';
   }
 
-  while (index < state.courses.length && index < 12) {
-    html += '<article class="sa-assignment-row"><div><strong>' + escapeHtml(readCourseTitle(state.courses[index])) + '</strong><small>Course ID: ' + escapeHtml(state.courses[index].id || "") + '</small></div><div><span class="sa-pill">' + escapeHtml(state.courses[index].status || "draft") + '</span><small>' + escapeHtml(state.courses[index].language || state.courses[index].level || "Learning item") + '</small></div><div class="sa-row-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="overview-open-course" data-id="' + escapeHtml(state.courses[index].id || "") + '">Open</button></div></article>';
+  while (index < state.courses.length) {
+    html += buildCourseCatalogCard(state.courses[index]);
     index = index + 1;
   }
 
   html += '</div>';
   return html;
+}
+
+function buildCourseCatalogCard(course) {
+  var context = readCourseCommandContext(course);
+  var status = readCourseStatus(course);
+
+  return '<button type="button" class="sa-course-catalog-item" data-action="open-course-command-center" data-id="' + escapeHtml(course.id || "") + '">'
+    + '<span class="sa-course-catalog-cover">' + escapeHtml(readCourseInitials(course)) + '</span>'
+    + '<span class="sa-course-catalog-main"><strong>' + escapeHtml(readCourseTitle(course)) + '</strong><small>' + escapeHtml(readCourseDescription(course) || course.id || "No description") + '</small><em>Updated ' + escapeHtml(formatDateTime(readCourseUpdatedAt(course))) + '</em></span>'
+    + '<span class="sa-course-catalog-status">' + buildStatusBadge(status) + '<small>' + escapeHtml(readCourseVisibility(course)) + '</small></span>'
+    + '<span><strong>' + context.modules.length + '</strong><small>Modules</small></span>'
+    + '<span><strong>' + context.locations.length + '</strong><small>Locations</small></span>'
+    + '<span><strong>' + context.classes.length + '</strong><small>Classes</small></span>'
+    + '<span><strong>' + context.students.length + '</strong><small>Students</small></span>'
+    + '<span class="sa-course-catalog-actions"><i>Open Command Center</i></span>'
+    + '</button>';
 }
 
 function buildOverviewHeader() {
@@ -1834,6 +1853,343 @@ function buildUserCommandDangerTab(user, context) {
     + '<button type="button" class="sa-btn sa-danger-btn" disabled>Archive User</button>'
     + '<button type="button" class="sa-btn sa-danger-btn" data-action="delete-user" data-id="' + escapeHtml(user.id) + '"' + disabled(!readUserActionCapabilities(user).canDelete) + '>Delete User</button>'
     + '</div><small>User: ' + escapeHtml(readUserCommandName(user)) + ' (' + escapeHtml(user.id) + ')</small></article></section>';
+}
+
+function buildCourseCommandCenterModal() {
+  var command = state.courseCommandCenter || createCourseCommandCenterState();
+
+  if (!command.isOpen) {
+    return "";
+  }
+
+  var course = findCourse(command.courseId);
+
+  if (!course) {
+    return buildMissingCommandModal("Course Command Center", "Course not found.", "Return to Courses & Modules and open a current course.", "close-course-command-center");
+  }
+
+  var context = readCourseCommandContext(course);
+
+  return '<div class="sa-location-command-backdrop sa-course-command-backdrop" role="dialog" aria-modal="true" aria-label="Course Command Center">'
+    + '<section class="sa-location-command-modal sa-course-command-modal">'
+    + buildCourseCommandHeader(course, context)
+    + '<div class="sa-location-command-shell sa-course-command-shell">'
+    + buildCourseCommandTabs(command.activeTab)
+    + '<main class="sa-location-command-content sa-course-command-content">' + buildCourseCommandBody(command.activeTab, course, context) + '</main>'
+    + buildCourseCommandSideRail(course, context)
+    + '</div></section></div>';
+}
+
+function buildModuleCommandCenterModal() {
+  var command = state.moduleCommandCenter || createModuleCommandCenterState();
+
+  if (!command.isOpen) {
+    return "";
+  }
+
+  var course = findCourse(command.courseId);
+  var moduleRecord = findModuleForCourse(command.courseId, command.moduleId);
+
+  if (!moduleRecord) {
+    return buildMissingCommandModal("Module Command Center", "Module not found.", "Open a current module from the Course Command Center modules tab.", "close-module-command-center");
+  }
+
+  var context = readModuleCommandContext(course, moduleRecord);
+
+  return '<div class="sa-location-command-backdrop sa-module-command-backdrop" role="dialog" aria-modal="true" aria-label="Module Command Center">'
+    + '<section class="sa-location-command-modal sa-module-command-modal">'
+    + buildModuleCommandHeader(moduleRecord, context)
+    + '<div class="sa-location-command-shell sa-module-command-shell">'
+    + buildModuleCommandTabs(command.activeTab)
+    + '<main class="sa-location-command-content sa-module-command-content">' + buildModuleCommandBody(command.activeTab, moduleRecord, context) + '</main>'
+    + buildModuleCommandSideRail(moduleRecord, context)
+    + '</div></section></div>';
+}
+
+function buildMissingCommandModal(label, title, message, closeAction) {
+  return '<div class="sa-location-command-backdrop" role="dialog" aria-modal="true" aria-label="' + escapeHtml(label) + '"><section class="sa-location-command-modal sa-course-command-modal">'
+    + createEmptyState(title, message, { className: "sa-command-empty", titleTag: "strong", messageTag: "span" })
+    + '<button type="button" class="sa-location-command-close" data-action="' + escapeHtml(closeAction) + '" aria-label="Close">x</button></section></div>';
+}
+
+function buildCourseCommandHeader(course, context) {
+  return '<header class="sa-location-command-header sa-course-command-header">'
+    + '<div class="sa-location-command-identity sa-course-command-identity">'
+    + '<span class="sa-course-command-cover">' + escapeHtml(readCourseInitials(course)) + '</span>'
+    + '<div><div class="sa-location-command-title"><h2>' + escapeHtml(readCourseTitle(course)) + '</h2><span class="sa-user-command-role-pill">' + escapeHtml(readCourseVersion(course)) + '</span>' + createStatusBadge(readCourseStatus(course), { className: "sa-command-status", statusClassPrefix: "sa-command-status-" }) + '</div>'
+    + '<p>' + escapeHtml(readCourseDescription(course) || "No description") + '</p>'
+    + '<p><small>Language: ' + escapeHtml(readCourseLanguage(course)) + '</small><span></span><small>Created: ' + escapeHtml(formatDateTime(course.createdAt)) + '</small><span></span><small>Last Updated: ' + escapeHtml(formatDateTime(readCourseUpdatedAt(course))) + '</small></p></div>'
+    + '</div><div class="sa-location-command-header-actions sa-course-command-header-actions">'
+    + '<button type="button" class="sa-btn" data-action="open-course-creator-course" data-id="' + escapeHtml(course.id) + '">Open in Course Creator</button>'
+    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="open-course-creator-course" data-id="' + escapeHtml(course.id) + '">Edit Course Info</button>'
+    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="course-command-tab" data-id="assignments">Assign Course</button>'
+    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="export-course-json" data-id="' + escapeHtml(course.id) + '">Export JSON</button>'
+    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="course-command-tab" data-id="danger">More Actions</button>'
+    + '<button type="button" class="sa-location-command-close" data-action="close-course-command-center" aria-label="Close">x</button>'
+    + '</div></header>';
+}
+
+function buildModuleCommandHeader(moduleRecord, context) {
+  return '<header class="sa-location-command-header sa-module-command-header">'
+    + '<div class="sa-location-command-identity sa-course-command-identity">'
+    + '<span class="sa-module-command-cover">' + escapeHtml(readModuleInitials(moduleRecord)) + '</span>'
+    + '<div><div class="sa-location-command-title"><h2>' + escapeHtml(readModuleTitle(moduleRecord)) + '</h2>' + createStatusBadge(readModuleStatus(moduleRecord), { className: "sa-command-status", statusClassPrefix: "sa-command-status-" }) + '</div>'
+    + '<p>Course: ' + escapeHtml(readCourseTitle(context.course)) + '<span></span>Tracks: ' + context.tracks.length + '<span></span>Pages: ' + context.pages.length + '<span></span>Steps: ' + context.steps.length + '</p>'
+    + '<p><small>Last Updated: ' + escapeHtml(formatDateTime(readModuleUpdatedAt(moduleRecord))) + '</small></p></div>'
+    + '</div><div class="sa-location-command-header-actions sa-module-command-header-actions">'
+    + '<button type="button" class="sa-btn" data-action="open-module-editor" data-id="' + escapeHtml(context.courseId + "::" + moduleRecord.id) + '">Open in Module Editor</button>'
+    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="open-module-editor" data-id="' + escapeHtml(context.courseId + "::" + moduleRecord.id) + '">Preview Module</button>'
+    + '<button type="button" class="sa-btn sa-btn-secondary" disabled>Publish Settings</button>'
+    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="module-command-tab" data-id="danger">More Actions</button>'
+    + '<button type="button" class="sa-location-command-close" data-action="close-module-command-center" aria-label="Close">x</button>'
+    + '</div></header>';
+}
+
+function buildCourseCommandTabs(activeTab) {
+  return buildCommandTabs("course-command-tab", activeTab, [
+    ["overview", "Overview", "O"], ["modules", "Modules", "M"], ["assignments", "Assignments", "A"], ["students", "Students", "S"], ["analytics", "Analytics", "N"], ["versions", "Versions", "V"], ["audit", "Audit Log", "L"], ["danger", "Danger Zone", "!"]
+  ], "Course Command Center");
+}
+
+function buildModuleCommandTabs(activeTab) {
+  return buildCommandTabs("module-command-tab", activeTab, [
+    ["overview", "Overview", "O"], ["tracks", "Tracks", "T"], ["pages", "Pages", "P"], ["steps", "Steps", "S"], ["assignments", "Assignments", "A"], ["analytics", "Analytics", "N"], ["preview", "Preview", "V"], ["audit", "Audit Log", "L"], ["danger", "Danger Zone", "!"]
+  ], "Module Command Center");
+}
+
+function buildCommandTabs(action, activeTab, tabs, label) {
+  var html = '<nav class="sa-location-command-tabs sa-course-command-tabs">';
+
+  tabs.forEach(function (tab) {
+    html += '<button type="button" class="' + (activeTab === tab[0] ? "is-active" : "") + '" data-action="' + escapeHtml(action) + '" data-id="' + escapeHtml(tab[0]) + '"><span>' + escapeHtml(tab[2]) + '</span>' + escapeHtml(tab[1]) + '</button>';
+  });
+
+  html += '<small>' + escapeHtml(label) + '</small></nav>';
+  return html;
+}
+
+function buildCourseCommandBody(activeTab, course, context) {
+  if (activeTab === "modules") return buildCourseModulesTab(course, context);
+  if (activeTab === "assignments") return buildCourseAssignmentsTab(course, context);
+  if (activeTab === "students") return buildCourseStudentsTab(course, context);
+  if (activeTab === "analytics") return buildCourseAnalyticsTab(course, context);
+  if (activeTab === "versions") return buildCourseVersionsTab(course, context);
+  if (activeTab === "audit") return buildCourseAuditTab(course, context);
+  if (activeTab === "danger") return buildCourseDangerTab(course, context);
+  return buildCourseOverviewTab(course, context);
+}
+
+function buildModuleCommandBody(activeTab, moduleRecord, context) {
+  if (activeTab === "tracks") return buildModuleTracksTab(moduleRecord, context);
+  if (activeTab === "pages") return buildModulePagesTab(moduleRecord, context);
+  if (activeTab === "steps") return buildModuleStepsTab(moduleRecord, context);
+  if (activeTab === "assignments") return buildModuleAssignmentsTab(moduleRecord, context);
+  if (activeTab === "analytics") return buildModuleAnalyticsTab(moduleRecord, context);
+  if (activeTab === "preview") return buildModulePreviewTab(moduleRecord, context);
+  if (activeTab === "audit") return buildModuleAuditTab(moduleRecord, context);
+  if (activeTab === "danger") return buildModuleDangerTab(moduleRecord, context);
+  return buildModuleOverviewTab(moduleRecord, context);
+}
+
+function buildCourseOverviewTab(course, context) {
+  return '<section class="sa-location-command-overview sa-course-command-overview"><div class="sa-command-kpi-grid sa-course-command-kpis">'
+    + buildUserCommandKpiCard("Modules", context.modules.length, "modules", "blue", context.publishedModules + " published")
+    + buildUserCommandKpiCard("Published Modules", context.publishedModules, "modules", "green", "Ready modules")
+    + buildUserCommandKpiCard("Draft Modules", context.draftModules, "modules", "purple", "In progress")
+    + buildUserCommandKpiCard("Assigned Classes", context.classes.length, "assignments", "sky", "Across assignments")
+    + buildUserCommandKpiCard("Assigned Students", context.students.length, "students", "orange", "Visible students")
+    + buildUserCommandKpiCard("Active Locations", context.locations.length, "assignments", "amber", "Location scope")
+    + buildUserCommandKpiCard("Completion", readCourseCompletionLabel(context), "analytics", "blue", "Operational signal")
+    + buildUserCommandKpiCard("Pending Reviews", countPendingSubmissions(context.submissions), "analytics", "rose", "External tasks")
+    + '</div><div class="sa-command-grid sa-command-grid-main">'
+    + buildUserCommandChartCard("Course Activity Trend", "Course activity trend data is not connected yet.")
+    + buildUserCommandChartCard("Module Completion Trend", "Module completion trend data is not connected yet.")
+    + buildUserCommandChartCard("External Task Review Trend", "External task review trend data is not connected yet.")
+    + buildCourseAtAGlanceCard(course, context)
+    + '</div></section>';
+}
+
+function buildModuleOverviewTab(moduleRecord, context) {
+  return '<section class="sa-location-command-overview sa-module-command-overview"><div class="sa-command-kpi-grid sa-course-command-kpis">'
+    + buildUserCommandKpiCard("Tracks", context.tracks.length, "tracks", "blue", context.tracks.length >= 3 ? "Publish-ready count" : "Minimum 3 recommended")
+    + buildUserCommandKpiCard("Pages", context.pages.length, "pages", "green", "Module pages")
+    + buildUserCommandKpiCard("Steps", context.steps.length, "steps", "purple", "Interactive steps")
+    + buildUserCommandKpiCard("Published Status", readModuleStatus(moduleRecord), "preview", "sky", "Current state")
+    + buildUserCommandKpiCard("Students Started", context.studentsStarted, "analytics", "orange", "Operational signal")
+    + buildUserCommandKpiCard("Students Completed", context.studentsCompleted, "analytics", "blue", "Completion signal")
+    + buildUserCommandKpiCard("Average Progress", readModuleProgressLabel(moduleRecord, context), "analytics", "amber", "If available")
+    + buildUserCommandKpiCard("Pending Reviews", countPendingSubmissions(context.submissions), "analytics", "rose", "External tasks")
+    + '</div><div class="sa-command-grid sa-command-grid-main">'
+    + buildModulePerformanceCard(context)
+    + buildModuleExternalTaskCard(context)
+    + buildUserCommandChartCard("Track Distribution", "Track distribution data is not connected yet.")
+    + buildUserRecentActivityCard({ activity: context.activity, submissions: context.submissions })
+    + '</div></section>';
+}
+
+function buildCourseModulesTab(course, context) {
+  var html = '<section class="sa-command-tab-stack">';
+
+  if (context.modules.length === 0) {
+    return html + createEmptyState("No modules found.", "Modules will appear here when connected to this course.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
+  }
+
+  html += '<div class="sa-command-table sa-course-modules-table"><div class="sa-command-table-head"><span>Module</span><span>Status</span><span>Tracks</span><span>Pages</span><span>Steps</span><span>Updated</span></div>';
+  context.modules.forEach(function (moduleRecord) {
+    var summary = readModuleStructureSummary(moduleRecord);
+    html += '<button type="button" class="sa-command-table-row" data-action="open-module-command-center" data-id="' + escapeHtml(course.id + "::" + moduleRecord.id) + '"><span><strong>' + escapeHtml(readModuleTitle(moduleRecord)) + '</strong><small>' + escapeHtml(readModuleEstimatedTime(moduleRecord)) + '</small></span><span>' + buildStatusBadge(readModuleStatus(moduleRecord)) + '</span><span>' + summary.tracks + '</span><span>' + summary.pages + '</span><span>' + summary.steps + '</span><span>' + escapeHtml(formatDateTime(readModuleUpdatedAt(moduleRecord))) + '</span></button>';
+  });
+  html += '</div></section>';
+  return html;
+}
+
+function buildCourseAssignmentsTab(course, context) {
+  var html = '<section class="sa-command-tab-stack">';
+
+  if (context.assignments.length === 0) {
+    return html + createEmptyState("No assignments found.", "Use existing assignment tools to assign this course to locations, classes, or students.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
+  }
+
+  html += '<div class="sa-command-table"><div class="sa-command-table-head"><span>Assigned To</span><span>Type</span><span>Location</span><span>Class</span><span>Status</span></div>';
+  context.assignments.forEach(function (assignment) {
+    html += '<button type="button" class="sa-command-table-row" data-action="view-assignment" data-id="' + escapeHtml(assignment.id || "") + '"><span><strong>' + escapeHtml(readAssignmentTargetName(assignment)) + '</strong><small>' + escapeHtml(formatDateTime(assignment.assignedAt || assignment.createdAt || assignment.updatedAt)) + '</small></span><span>' + escapeHtml(assignment.targetType || "class") + '</span><span>' + escapeHtml(readLocationName(assignment.locationId || readAssignmentLocationId(assignment))) + '</span><span>' + escapeHtml(readClassName(assignment.classId || assignment.targetId)) + '</span><span>' + buildStatusBadge(assignment.status || "active") + '</span></button>';
+  });
+  html += '</div></section>';
+  return html;
+}
+
+function buildCourseStudentsTab(course, context) {
+  var html = '<section class="sa-command-tab-stack">';
+
+  if (context.students.length === 0) {
+    return html + createEmptyState("No assigned students found.", "Assigned students will appear when course assignments connect to student or class profiles.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
+  }
+
+  html += '<div class="sa-command-table sa-command-users-table"><div class="sa-command-table-head"><span>Avatar</span><span>Name</span><span>Location</span><span>Class</span><span>Status</span></div>';
+  context.students.forEach(function (student) {
+    var safeStudent = getSafeUser(student);
+    html += '<button type="button" class="sa-command-table-row" data-action="edit-user" data-id="' + escapeHtml(safeStudent.id) + '"><span>' + buildAvatar(safeStudent) + '</span><span><strong>' + escapeHtml(readUserCommandName(safeStudent)) + '</strong><small>' + escapeHtml(readCourseProgressLabel(safeStudent, course, {})) + '</small></span><span>' + escapeHtml(readUserLocationSummary(safeStudent)) + '</span><span>' + escapeHtml(readUserClassSummary(safeStudent)) + '</span><span>' + buildStatusBadge(safeStudent.status) + '</span></button>';
+  });
+  html += '</div></section>';
+  return html;
+}
+
+function buildCourseAnalyticsTab(course, context) {
+  return '<section class="sa-command-tab-stack"><div class="sa-command-kpi-grid">'
+    + buildUserCommandKpiCard("Student Activity", context.activity.length, "analytics", "blue", "Activity records")
+    + buildUserCommandKpiCard("Module Completion", context.publishedModules, "modules", "green", "Published modules")
+    + buildUserCommandKpiCard("Step Completion", sumBy(context.modules, function (moduleRecord) { return readModuleStructureSummary(moduleRecord).steps; }), "modules", "purple", "Step inventory")
+    + buildUserCommandKpiCard("External Tasks", context.submissions.length, "analytics", "orange", "Submissions")
+    + buildUserCommandKpiCard("Pending Reviews", countPendingSubmissions(context.submissions), "analytics", "rose", "Review queue")
+    + '</div>' + buildUserCommandChartCard("Operational Analytics", "Detailed course analytics are not connected yet.") + '</section>';
+}
+
+function buildCourseVersionsTab(course, context) {
+  var versions = Array.isArray(course.versions) ? course.versions : [];
+  return '<section class="sa-command-tab-stack">' + (versions.length ? buildSimpleRecordList("Course Versions", versions) : createEmptyState("No course version history yet.", "Version records will appear here when connected.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" })) + '</section>';
+}
+
+function buildCourseAuditTab(course, context) {
+  return '<section class="sa-command-tab-stack">' + (context.audit.length ? buildSimpleRecordList("Audit Log", context.audit) : createEmptyState("No audit log entries yet.", "Audit records will appear here when connected to this course.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" })) + '</section>';
+}
+
+function buildCourseDangerTab(course, context) {
+  return '<section class="sa-command-tab-stack"><article class="sa-command-panel sa-command-danger-panel"><div class="sa-command-panel-head"><h3>Danger Zone</h3><span class="sa-user-command-super">ICF Only</span></div><p>Destructive course actions remain disabled unless an existing ICF intent is explicitly wired.</p><div class="sa-command-danger-actions"><button type="button" class="sa-btn sa-danger-btn" disabled>Archive Course</button><button type="button" class="sa-btn sa-danger-btn" disabled>Restore Course</button><button type="button" class="sa-btn sa-danger-btn" disabled>Delete Course</button></div><small>Course: ' + escapeHtml(readCourseTitle(course)) + '</small></article></section>';
+}
+
+function buildModuleTracksTab(moduleRecord, context) {
+  return buildModuleStructureTable("Tracks", context.tracks, ["Track", "Color", "Pages", "Steps", "Status"], function (track) {
+    return [readSafeString(track.title || track.name || track.id || "Untitled track"), readSafeString(track.color || track.tone || "Default"), countPagesForTrack(context.pages, track), countStepsForTrack(context.steps, track), readSafeString(track.status || "draft")];
+  }, "No tracks found.", "Tracks will appear when module track data is connected.");
+}
+
+function buildModulePagesTab(moduleRecord, context) {
+  return buildModuleStructureTable("Pages", context.pages, ["Page", "Track", "Blocks", "Steps", "Status"], function (page) {
+    return [readSafeString(page.title || page.name || page.id || "Untitled page"), readSafeString(page.trackTitle || page.trackId || "Default"), readBlockCount(page), countStepsForPage(context.steps, page), readSafeString(page.status || "draft")];
+  }, "No pages found.", "Pages will appear when module page data is connected.");
+}
+
+function buildModuleStepsTab(moduleRecord, context) {
+  return buildModuleStructureTable("Steps", context.steps, ["Step", "Type", "Completion Rule", "Status", "Warning"], function (step) {
+    return [readSafeString(step.title || step.name || step.id || "Untitled step"), readSafeString(step.type || step.stepType || step.kind || "Unknown"), readSafeString(step.completionRule || step.requiredForCompletion || "Default"), readSafeString(step.status || "draft"), readStepValidationWarning(step)];
+  }, "No steps found.", "Steps will appear when module step data is connected.");
+}
+
+function buildModuleStructureTable(title, records, headings, rowReader, emptyTitle, emptyMessage) {
+  var html = '<section class="sa-command-tab-stack">';
+
+  if (records.length === 0) {
+    return html + createEmptyState(emptyTitle, emptyMessage, { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
+  }
+
+  html += '<div class="sa-command-table"><div class="sa-command-table-head">';
+  headings.forEach(function (heading) { html += '<span>' + escapeHtml(heading) + '</span>'; });
+  html += '</div>';
+  records.forEach(function (record) {
+    var values = rowReader(record);
+    html += '<div class="sa-command-table-row">';
+    values.forEach(function (value, index) {
+      html += '<span>' + (index === 3 && headings[index] === "Status" ? buildStatusBadge(value) : escapeHtml(String(value))) + '</span>';
+    });
+    html += '</div>';
+  });
+  html += '</div></section>';
+  return html;
+}
+
+function buildModuleAssignmentsTab(moduleRecord, context) {
+  return '<section class="sa-command-tab-stack">' + createEmptyState("This module inherits assignment access from its course.", "Use the Course Command Center assignments tab to inspect access.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
+}
+
+function buildModuleAnalyticsTab(moduleRecord, context) {
+  return '<section class="sa-command-tab-stack"><div class="sa-command-kpi-grid">'
+    + buildUserCommandKpiCard("Started", context.studentsStarted, "analytics", "blue", "Students started")
+    + buildUserCommandKpiCard("Completed", context.studentsCompleted, "analytics", "green", "Students completed")
+    + buildUserCommandKpiCard("Average Time", readModuleEstimatedTime(moduleRecord), "analytics", "purple", "If available")
+    + buildUserCommandKpiCard("External Tasks", context.submissions.length, "analytics", "orange", "Submissions")
+    + '</div>' + buildUserCommandChartCard("Most Active Steps", "Step activity analytics are not connected yet.") + '</section>';
+}
+
+function buildModulePreviewTab(moduleRecord, context) {
+  return '<section class="sa-command-tab-stack"><article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Preview</h3><button type="button" class="sa-btn" data-action="open-module-editor" data-id="' + escapeHtml(context.courseId + "::" + moduleRecord.id) + '">Open Preview</button></div><p>Use the existing Module Editor preview route for student-facing review.</p></article></section>';
+}
+
+function buildModuleAuditTab(moduleRecord, context) {
+  return '<section class="sa-command-tab-stack">' + (context.audit.length ? buildSimpleRecordList("Audit Log", context.audit) : createEmptyState("No audit log entries yet.", "Audit records will appear here when connected to this module.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" })) + '</section>';
+}
+
+function buildModuleDangerTab(moduleRecord, context) {
+  return '<section class="sa-command-tab-stack"><article class="sa-command-panel sa-command-danger-panel"><div class="sa-command-panel-head"><h3>Danger Zone</h3><span class="sa-user-command-super">ICF Only</span></div><p>Destructive module actions remain disabled unless an existing ICF intent is explicitly wired.</p><div class="sa-command-danger-actions"><button type="button" class="sa-btn sa-danger-btn" disabled>Archive Module</button><button type="button" class="sa-btn sa-danger-btn" disabled>Restore Module</button><button type="button" class="sa-btn sa-danger-btn" disabled>Delete Module</button></div><small>Module: ' + escapeHtml(readModuleTitle(moduleRecord)) + '</small></article></section>';
+}
+
+function buildCourseCommandSideRail(course, context) {
+  return '<aside class="sa-user-command-rail sa-course-command-rail"><article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Role Adaptive Views</h3></div><p>This command center adapts around course operations and learning access.</p><div class="sa-user-role-view-list"><button class="is-active" data-action="course-command-tab" data-id="overview"><strong>Course</strong><span>Overview, modules, assignments, analytics.</span><i>Active</i></button><button data-action="course-command-tab" data-id="students"><strong>Student</strong><span>Assigned learners and progress signals.</span><i></i></button><button data-action="course-command-tab" data-id="assignments"><strong>Teacher/Admin</strong><span>Ownership, classes, locations.</span><i></i></button><button data-action="course-command-tab" data-id="danger"><strong>Super Admin Only</strong><span>Audit and danger-zone actions.</span><i></i></button></div></article><article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Quick Actions</h3></div><div class="sa-user-command-quick-list"><button data-action="open-course-creator-course" data-id="' + escapeHtml(course.id) + '">Open in Course Creator</button><button data-action="course-command-tab" data-id="modules">View modules</button><button data-action="course-command-tab" data-id="assignments">View assignments</button><button data-action="export-course-json" data-id="' + escapeHtml(course.id) + '">Export JSON</button></div></article></aside>';
+}
+
+function buildModuleCommandSideRail(moduleRecord, context) {
+  return '<aside class="sa-user-command-rail sa-module-command-rail"><article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Quick Actions</h3></div><div class="sa-user-command-quick-list"><button data-action="open-module-editor" data-id="' + escapeHtml(context.courseId + "::" + moduleRecord.id) + '">Open in Module Editor</button><button data-action="module-command-tab" data-id="tracks">View tracks</button><button data-action="module-command-tab" data-id="steps">View steps</button><button data-action="module-command-tab" data-id="preview">Preview</button></div></article><article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Need Help?</h3></div><p>Module structure is shown from loaded track, page, block, and step fields without changing Step Engine contracts.</p></article></aside>';
+}
+
+function buildCourseAtAGlanceCard(course, context) {
+  return '<article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Course At A Glance</h3><button type="button" class="sa-text-link" data-action="course-command-tab" data-id="analytics">Show more</button></div><dl class="sa-command-summary-list"><dt>Total Steps</dt><dd>' + sumBy(context.modules, function (moduleRecord) { return readModuleStructureSummary(moduleRecord).steps; }) + '</dd><dt>External Tasks</dt><dd>' + context.submissions.length + '</dd><dt>Visibility</dt><dd>' + escapeHtml(readCourseVisibility(course)) + '</dd><dt>Category</dt><dd>' + escapeHtml(readCourseCategory(course)) + '</dd></dl></article>';
+}
+
+function buildModulePerformanceCard(context) {
+  return '<article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Performance Summary</h3></div><dl class="sa-command-summary-list"><dt>Start Rate</dt><dd>' + context.studentsStarted + '</dd><dt>Completion Count</dt><dd>' + context.studentsCompleted + '</dd><dt>Average Progress</dt><dd>' + escapeHtml(readModuleProgressLabel(context.module, context)) + '</dd><dt>Average Time</dt><dd>' + escapeHtml(readModuleEstimatedTime(context.module)) + '</dd></dl></article>';
+}
+
+function buildModuleExternalTaskCard(context) {
+  var completed = countItems(context.submissions, function (item) { return readSafeString(item.reviewStatus || item.status) === "complete"; });
+  return '<article class="sa-command-panel"><div class="sa-command-panel-head"><h3>External Task Status</h3></div><div class="sa-command-review-ring"><strong>' + context.submissions.length + '</strong><span>Total</span></div><div class="sa-command-review-list"><span><i class="complete"></i>Completed <b>' + completed + '</b></span><span><i></i>Pending Review <b>' + countPendingSubmissions(context.submissions) + '</b></span><span><i class="needs"></i>Needs Work <b>' + countItems(context.submissions, function (item) { return readSafeString(item.reviewStatus || item.status) === "needsWork"; }) + '</b></span></div></article>';
+}
+
+function buildSimpleRecordList(title, records) {
+  var html = '<article class="sa-command-panel"><div class="sa-command-panel-head"><h3>' + escapeHtml(title) + '</h3></div><div class="sa-command-activity-list">';
+  records.slice(0, 12).forEach(function (record) {
+    html += '<div><span>' + escapeHtml(record.type || record.action || record.status || "Record") + '</span><strong>' + escapeHtml(record.title || record.name || record.message || record.id || "Untitled") + '</strong><small>' + escapeHtml(formatDateTime(record.createdAt || record.updatedAt || record.time)) + '</small></div>';
+  });
+  html += '</div></article>';
+  return html;
 }
 
 function buildUserEditModal() {
@@ -3258,6 +3614,10 @@ function canRunActionWhileBusy(action) {
     return true;
   }
 
+  if (action === "open-course-command-center" || action === "close-course-command-center" || action === "course-command-tab" || action === "open-module-command-center" || action === "close-module-command-center" || action === "module-command-tab") {
+    return true;
+  }
+
   if (!state.isSaving && state.isRefreshing && (action === "edit-user" || action === "close-user-command-center" || action === "user-command-tab" || action === "open-user-edit-modal" || action === "close-user-edit-modal")) {
     return true;
   }
@@ -3598,6 +3958,119 @@ function navigateFromUserCommandCenter(target) {
       messageType: "info"
     });
   }
+}
+
+async function openCourseCommandCenter(courseId) {
+  var course = findCourse(courseId);
+
+  if (!course || !course.id) {
+    setState({ message: "Course was not found.", messageType: "error" });
+    return;
+  }
+
+  console.info("[course-command-center:open]", {
+    courseId: course.id,
+    title: readCourseTitle(course)
+  });
+
+  try {
+    await runAdminIntent("OpenCourseCommandCenterIntent", { courseId: course.id });
+  } catch (error) {
+    console.warn("[course-command-center:intent-warning]", {
+      courseId: course.id,
+      errorMessage: error && error.message ? error.message : String(error)
+    });
+  }
+
+  setState({
+    activeTab: "lessons",
+    courseCommandCenter: Object.assign(createCourseCommandCenterState(), {
+      isOpen: true,
+      courseId: course.id
+    }),
+    moduleCommandCenter: createModuleCommandCenterState(),
+    message: ""
+  });
+}
+
+function closeCourseCommandCenter() {
+  setState({
+    courseCommandCenter: createCourseCommandCenterState(),
+    moduleCommandCenter: createModuleCommandCenterState(),
+    message: ""
+  });
+}
+
+function setCourseCommandCenterTab(tabKey) {
+  setState({
+    courseCommandCenter: Object.assign({}, state.courseCommandCenter, {
+      activeTab: readSafeString(tabKey) || "overview"
+    }),
+    message: ""
+  });
+}
+
+async function openModuleCommandCenter(value) {
+  var ids = parseCourseModuleActionId(value);
+  var moduleRecord = findModuleForCourse(ids.courseId, ids.moduleId);
+
+  if (!moduleRecord || !moduleRecord.id) {
+    setState({ message: "Module was not found.", messageType: "error" });
+    return;
+  }
+
+  console.info("[module-command-center:open]", {
+    courseId: ids.courseId,
+    moduleId: moduleRecord.id,
+    title: readModuleTitle(moduleRecord)
+  });
+
+  try {
+    await runAdminIntent("OpenModuleCommandCenterIntent", {
+      courseId: ids.courseId,
+      moduleId: moduleRecord.id
+    });
+  } catch (error) {
+    console.warn("[module-command-center:intent-warning]", {
+      courseId: ids.courseId,
+      moduleId: moduleRecord.id,
+      errorMessage: error && error.message ? error.message : String(error)
+    });
+  }
+
+  setState({
+    moduleCommandCenter: Object.assign(createModuleCommandCenterState(), {
+      isOpen: true,
+      courseId: ids.courseId,
+      moduleId: moduleRecord.id
+    }),
+    message: ""
+  });
+}
+
+function closeModuleCommandCenter() {
+  setState({
+    moduleCommandCenter: createModuleCommandCenterState(),
+    message: ""
+  });
+}
+
+function setModuleCommandCenterTab(tabKey) {
+  setState({
+    moduleCommandCenter: Object.assign({}, state.moduleCommandCenter, {
+      activeTab: readSafeString(tabKey) || "overview"
+    }),
+    message: ""
+  });
+}
+
+function parseCourseModuleActionId(value) {
+  var parts = readSafeString(value).split("::");
+
+  return {
+    courseId: parts[0] || "",
+    moduleId: parts[1] || ""
+  };
 }
 
 function updateLoginField(field, value) {
@@ -4061,6 +4534,24 @@ async function handleAction(action, id) {
     setUserCommandCenterTab(id);
   } else if (action === "user-command-navigate") {
     navigateFromUserCommandCenter(id);
+  } else if (action === "open-course-command-center") {
+    await openCourseCommandCenter(id);
+  } else if (action === "close-course-command-center") {
+    closeCourseCommandCenter();
+  } else if (action === "course-command-tab") {
+    setCourseCommandCenterTab(id);
+  } else if (action === "open-module-command-center") {
+    await openModuleCommandCenter(id);
+  } else if (action === "close-module-command-center") {
+    closeModuleCommandCenter();
+  } else if (action === "module-command-tab") {
+    setModuleCommandCenterTab(id);
+  } else if (action === "open-course-creator-course") {
+    openCourseCreatorCourse(id);
+  } else if (action === "open-module-editor") {
+    openCourseCreatorModule(id);
+  } else if (action === "export-course-json") {
+    exportCourseJson(id);
   } else if (action === "open-user-edit-modal") {
     openUserEditModal(id);
   } else if (action === "close-user-edit-modal") {
@@ -4236,7 +4727,7 @@ function handleOverviewAction(action, id) {
   }
 
   if (action === "overview-open-course") {
-    setState({ activeTab: "assignments", assignmentFilters: Object.assign({}, state.assignmentFilters, { courseId: id || "" }), message: "" });
+    openCourseCommandCenter(id || "");
     return;
   }
 
@@ -4289,6 +4780,56 @@ function buildCourseCreatorCourseUrl(courseId) {
   }
 
   return COURSE_CREATOR_URL + "#overview?courseId=" + encodeURIComponent(courseId);
+}
+
+function buildCourseCreatorModuleUrl(courseId, moduleId) {
+  if (!COURSE_CREATOR_URL || !courseId || !moduleId) {
+    return "";
+  }
+
+  return COURSE_CREATOR_URL + "#module-editor?courseId=" + encodeURIComponent(courseId) + "&moduleId=" + encodeURIComponent(moduleId);
+}
+
+function openCourseCreatorCourse(courseId) {
+  var url = buildCourseCreatorCourseUrl(courseId);
+
+  if (!url) {
+    setState({ message: "Course Creator link is not configured for this course.", messageType: "error" });
+    return;
+  }
+
+  window.open(url, "_blank");
+}
+
+function openCourseCreatorModule(value) {
+  var ids = parseCourseModuleActionId(value);
+  var url = buildCourseCreatorModuleUrl(ids.courseId, ids.moduleId);
+
+  if (!url) {
+    setState({ message: "Module Editor link is not configured for this module.", messageType: "error" });
+    return;
+  }
+
+  window.open(url, "_blank");
+}
+
+function exportCourseJson(courseId) {
+  var course = findCourse(courseId);
+
+  if (!course) {
+    setState({ message: "Course was not found.", messageType: "error" });
+    return;
+  }
+
+  var blob = new Blob([JSON.stringify(course, null, 2)], { type: "application/json" });
+  var link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = (readCourseTitle(course).replace(/[^a-z0-9]+/gi, "-").replace(/^-+|-+$/g, "") || "course") + ".json";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(link.href);
+  setState({ message: "Course JSON exported.", messageType: "success" });
 }
 
 async function exportOverviewReport() {
@@ -5584,6 +6125,23 @@ function createUserCommandCenterState() {
   return {
     isOpen: false,
     userId: "",
+    activeTab: "overview"
+  };
+}
+
+function createCourseCommandCenterState() {
+  return {
+    isOpen: false,
+    courseId: "",
+    activeTab: "overview"
+  };
+}
+
+function createModuleCommandCenterState() {
+  return {
+    isOpen: false,
+    courseId: "",
+    moduleId: "",
     activeTab: "overview"
   };
 }
@@ -8406,6 +8964,12 @@ function readCourseModuleCount(course) {
     return 0;
   }
 
+  var context = readCourseCommandContext(course);
+
+  if (context.modules.length > 0) {
+    return context.modules.length;
+  }
+
   if (Array.isArray(course.modules)) {
     return course.modules.length;
   }
@@ -8423,6 +8987,520 @@ function readCourseModuleCount(course) {
 
 function readCourseUpdatedAt(course) {
   return course ? (course.updatedAt || course.modifiedAt || course.createdAt || null) : null;
+}
+
+function readCourseStatus(course) {
+  return readSafeString(course && (course.status || course.lifecycleStatus || (course.published ? "published" : ""))) || "draft";
+}
+
+function readCourseVisibility(course) {
+  return readSafeString(course && (course.visibility || course.audience || course.scope)) || "All locations";
+}
+
+function readCourseVersion(course) {
+  return readSafeString(course && (course.version || course.currentVersion || course.versionLabel)) || "v1.0";
+}
+
+function readCourseLanguage(course) {
+  var languages = normalizeMixedIdList(course && (course.languages || course.languageCodes));
+
+  return readSafeString(course && (course.language || course.primaryLanguage || languages[0])) || "Not set";
+}
+
+function readCourseCategory(course) {
+  return readSafeString(course && (course.category || course.subject || course.track || course.type)) || "Not set";
+}
+
+function readCourseInitials(course) {
+  return readInitials(readCourseTitle(course) || "Course");
+}
+
+function readCourseCompletionLabel(context) {
+  var value = context && context.course && (context.course.completionPercent || context.course.averageCompletion || context.course.progress);
+
+  if (typeof value === "number" && isFinite(value)) {
+    return Math.round(value) + "%";
+  }
+
+  return "No data";
+}
+
+function readCourseCommandContext(course) {
+  var modules = readCourseCommandModules(course);
+  var assignments = readCourseCommandAssignments(course.id);
+  var classes = readCourseCommandClasses(assignments);
+  var locations = readCourseCommandLocations(assignments, classes, course);
+  var students = readCourseCommandStudents(assignments, classes);
+  var submissions = readCourseCommandSubmissions(course, assignments, students);
+  var publishedModules = countItems(modules, function (moduleRecord) { return readModuleStatus(moduleRecord) === "published"; });
+
+  return {
+    course: course,
+    modules: modules,
+    assignments: assignments,
+    classes: classes,
+    locations: locations,
+    students: students,
+    submissions: submissions,
+    publishedModules: publishedModules,
+    draftModules: modules.length - publishedModules,
+    activity: readCourseCommandActivity(course),
+    audit: readCourseCommandAudit(course)
+  };
+}
+
+function readCourseCommandModules(course) {
+  var modules = [];
+  var courseId = readSafeString(course && course.id);
+  var overviewModules = state.overviewData && Array.isArray(state.overviewData.modules) ? state.overviewData.modules : [];
+
+  overviewModules.forEach(function (moduleRecord) {
+    if (moduleBelongsToCourse(moduleRecord, courseId)) {
+      modules.push(moduleRecord);
+    }
+  });
+
+  addEmbeddedCourseModules(modules, course);
+
+  return dedupeRecords(modules).sort(function (a, b) {
+    return readModuleSortOrder(a) - readModuleSortOrder(b) || readModuleTitle(a).localeCompare(readModuleTitle(b));
+  });
+}
+
+function addEmbeddedCourseModules(modules, course) {
+  var index = 0;
+
+  if (!course) {
+    return;
+  }
+
+  if (Array.isArray(course.modules)) {
+    while (index < course.modules.length) {
+      if (typeof course.modules[index] === "string") {
+        modules.push({ id: course.modules[index], title: course.modules[index], courseId: course.id });
+      } else if (course.modules[index]) {
+        modules.push(Object.assign({ courseId: course.id }, course.modules[index]));
+      }
+      index = index + 1;
+    }
+  }
+
+  if (Array.isArray(course.moduleIds)) {
+    course.moduleIds.forEach(function (moduleId, order) {
+      modules.push({ id: moduleId, title: moduleId, courseId: course.id, order: order });
+    });
+  }
+
+  if (Array.isArray(course.moduleOrder)) {
+    course.moduleOrder.forEach(function (moduleId, order) {
+      modules.push({ id: moduleId, title: moduleId, courseId: course.id, order: order });
+    });
+  }
+}
+
+function moduleBelongsToCourse(moduleRecord, courseId) {
+  if (!moduleRecord || !courseId) {
+    return false;
+  }
+
+  return readSafeString(moduleRecord.courseId || moduleRecord.catalogCourseId || moduleRecord.parentCourseId || moduleRecord.courseRefId) === courseId;
+}
+
+function readCourseCommandAssignments(courseId) {
+  return state.assignments.filter(function (assignment) {
+    return readSafeString(assignment.courseId || assignment.catalogCourseId) === courseId;
+  }).sort(compareByUpdatedDesc);
+}
+
+function readCourseCommandClasses(assignments) {
+  var classes = [];
+
+  assignments.forEach(function (assignment) {
+    var classId = readSafeString(assignment.classId || ((assignment.targetType || "class") === "class" ? assignment.targetId : ""));
+    var classRecord = classId ? findClass(classId) : null;
+
+    if (classRecord) {
+      classes.push(classRecord);
+    }
+  });
+
+  return dedupeRecords(classes).sort(function (a, b) {
+    return readClassName(a.id).localeCompare(readClassName(b.id));
+  });
+}
+
+function readCourseCommandLocations(assignments, classes, course) {
+  var locations = [];
+
+  assignments.forEach(function (assignment) {
+    var locationId = readAssignmentLocationId(assignment);
+    var location = locationId ? findLocation(locationId) : null;
+
+    if (location) {
+      locations.push(location);
+    }
+  });
+
+  classes.forEach(function (classRecord) {
+    var classLocationId = readClassLocationId(classRecord);
+    var location = classLocationId ? findLocation(classLocationId) : null;
+
+    if (location) {
+      locations.push(location);
+    }
+  });
+
+  normalizeMixedIdList(course && (course.locationIds || course.assignedLocationIds)).forEach(function (locationId) {
+    var location = findLocation(locationId);
+    if (location) locations.push(location);
+  });
+
+  return dedupeRecords(locations).sort(function (a, b) {
+    return readSafeString(a.name || a.id).localeCompare(readSafeString(b.name || b.id));
+  });
+}
+
+function readCourseCommandStudents(assignments, classes) {
+  var students = [];
+
+  assignments.forEach(function (assignment) {
+    var studentId = readSafeString(assignment.studentId || ((assignment.targetType || "") === "student" ? assignment.targetId : ""));
+    var student = studentId ? (findStudent(studentId) || findUser(studentId)) : null;
+
+    if (student) {
+      students.push(student);
+    }
+  });
+
+  classes.forEach(function (classRecord) {
+    state.users.map(getSafeUser).forEach(function (user) {
+      if (user.roles.indexOf("student") !== -1 && (user.classId === classRecord.id || user.classIds.indexOf(classRecord.id) !== -1)) {
+        students.push(user);
+      }
+    });
+  });
+
+  return dedupeRecords(students).sort(function (a, b) {
+    return readSafeString(a.displayName || a.name || a.id).localeCompare(readSafeString(b.displayName || b.name || b.id));
+  });
+}
+
+function readCourseCommandSubmissions(course, assignments, students) {
+  var submissions = state.overviewData && Array.isArray(state.overviewData.externalTaskSubmissions) ? state.overviewData.externalTaskSubmissions : [];
+  var courseId = readSafeString(course && course.id);
+  var assignmentIds = assignments.map(function (assignment) { return assignment.id; });
+  var studentIds = students.map(function (student) { return readSafeString(student.id || student.studentId || student.userId); });
+
+  return submissions.filter(function (submission) {
+    return readSafeString(submission.courseId || submission.catalogCourseId) === courseId
+      || assignmentIds.indexOf(readSafeString(submission.assignmentId)) !== -1
+      || studentIds.indexOf(readSafeString(submission.studentId || submission.userId)) !== -1;
+  }).sort(compareByUpdatedDesc);
+}
+
+function readCourseCommandActivity(course) {
+  var courseId = readSafeString(course && course.id);
+  var records = state.overviewData && Array.isArray(state.overviewData.activityLogs) ? state.overviewData.activityLogs : [];
+
+  return records.filter(function (record) {
+    return readSafeString(record.courseId || record.catalogCourseId || record.targetCourseId) === courseId;
+  }).map(function (record) {
+    return {
+      type: readSafeString(record.type || record.action || "Activity"),
+      title: readSafeString(record.title || record.message || record.description || "Course activity"),
+      time: normalizeTimestamp(record.createdAt || record.updatedAt || record.time || Date.now())
+    };
+  }).sort(compareByTimeDesc);
+}
+
+function readCourseCommandAudit(course) {
+  var courseId = readSafeString(course && course.id);
+  var records = state.overviewData && Array.isArray(state.overviewData.auditLogs) ? state.overviewData.auditLogs : [];
+
+  return records.filter(function (record) {
+    return readSafeString(record.courseId || record.catalogCourseId || record.targetCourseId) === courseId;
+  }).sort(compareByUpdatedDesc);
+}
+
+function findModuleForCourse(courseId, moduleId) {
+  var course = findCourse(courseId);
+  var modules = course ? readCourseCommandModules(course) : [];
+  var index = 0;
+
+  while (index < modules.length) {
+    if (readSafeString(modules[index].id || modules[index].moduleId) === moduleId) {
+      return modules[index];
+    }
+    index = index + 1;
+  }
+
+  return null;
+}
+
+function readModuleCommandContext(course, moduleRecord) {
+  var steps = readModuleStepList(moduleRecord);
+  var context = course ? readCourseCommandContext(course) : { assignments: [], submissions: [], students: [] };
+  var moduleId = readSafeString(moduleRecord && (moduleRecord.id || moduleRecord.moduleId));
+  var moduleSubmissions = context.submissions.filter(function (submission) {
+    return readSafeString(submission.moduleId) === moduleId || !submission.moduleId;
+  });
+
+  return {
+    course: course || {},
+    courseId: readSafeString(course && course.id),
+    module: moduleRecord,
+    tracks: readModuleTrackList(moduleRecord),
+    pages: readModulePageList(moduleRecord),
+    steps: steps,
+    assignments: context.assignments,
+    students: context.students,
+    submissions: moduleSubmissions,
+    activity: readModuleActivity(moduleRecord, context.activity),
+    audit: readModuleAudit(moduleRecord, context.audit),
+    studentsStarted: readModuleNumericMetric(moduleRecord, ["studentsStarted", "startedCount", "startCount"]),
+    studentsCompleted: readModuleNumericMetric(moduleRecord, ["studentsCompleted", "completedCount", "completionCount"])
+  };
+}
+
+function readModuleTitle(moduleRecord) {
+  if (!moduleRecord) {
+    return "";
+  }
+
+  if (typeof moduleRecord.title === "string" && moduleRecord.title) return moduleRecord.title;
+  if (moduleRecord.title && typeof moduleRecord.title.en === "string" && moduleRecord.title.en) return moduleRecord.title.en;
+  if (typeof moduleRecord.name === "string" && moduleRecord.name) return moduleRecord.name;
+  if (typeof moduleRecord.displayName === "string" && moduleRecord.displayName) return moduleRecord.displayName;
+  return moduleRecord.id || moduleRecord.moduleId || "Untitled module";
+}
+
+function readModuleInitials(moduleRecord) {
+  return readInitials(readModuleTitle(moduleRecord) || "Module");
+}
+
+function readModuleStatus(moduleRecord) {
+  var status = readSafeString(moduleRecord && (moduleRecord.status || moduleRecord.lifecycleStatus || moduleRecord.publishStatus));
+
+  if (status) {
+    return status;
+  }
+
+  if (moduleRecord && moduleRecord.published === true) {
+    return "published";
+  }
+
+  return "draft";
+}
+
+function readModuleUpdatedAt(moduleRecord) {
+  return moduleRecord ? (moduleRecord.updatedAt || moduleRecord.modifiedAt || moduleRecord.createdAt || null) : null;
+}
+
+function readModuleEstimatedTime(moduleRecord) {
+  return readSafeString(moduleRecord && (moduleRecord.estimatedTime || moduleRecord.estimatedDuration || moduleRecord.durationLabel)) || "No time estimate";
+}
+
+function readModuleNumericMetric(moduleRecord, fields) {
+  var index = 0;
+
+  if (!moduleRecord) {
+    return 0;
+  }
+
+  while (index < fields.length) {
+    if (typeof moduleRecord[fields[index]] === "number" && isFinite(moduleRecord[fields[index]])) {
+      return moduleRecord[fields[index]];
+    }
+    index = index + 1;
+  }
+
+  return 0;
+}
+
+function readModuleProgressLabel(moduleRecord, context) {
+  var value = readModuleNumericMetric(moduleRecord || {}, ["averageProgress", "progress", "completionPercent"]);
+
+  if (value) {
+    return Math.round(value) + "%";
+  }
+
+  if (context && context.steps && context.steps.length > 0 && context.studentsCompleted > 0) {
+    return context.studentsCompleted + " completed";
+  }
+
+  return "No data";
+}
+
+function readModuleStructureSummary(moduleRecord) {
+  return {
+    tracks: readModuleTrackList(moduleRecord).length,
+    pages: readModulePageList(moduleRecord).length,
+    steps: readModuleStepList(moduleRecord).length
+  };
+}
+
+function readModuleTrackList(moduleRecord) {
+  var tracks = collectObjectList([
+    moduleRecord && moduleRecord.tracks,
+    moduleRecord && moduleRecord.trackOrder,
+    moduleRecord && moduleRecord.learningTracks,
+    moduleRecord && moduleRecord.learningModes
+  ], "track");
+
+  if (tracks.length === 0 && moduleRecord && (moduleRecord.track || moduleRecord.mode)) {
+    tracks.push({ id: moduleRecord.track || moduleRecord.mode, title: moduleRecord.track || moduleRecord.mode });
+  }
+
+  return dedupeRecords(tracks);
+}
+
+function readModulePageList(moduleRecord) {
+  return dedupeRecords(collectObjectList([
+    moduleRecord && moduleRecord.pages,
+    moduleRecord && moduleRecord.pageOrder,
+    moduleRecord && moduleRecord.learningPages
+  ], "page"));
+}
+
+function readModuleStepList(moduleRecord) {
+  var steps = collectObjectList([
+    moduleRecord && moduleRecord.steps,
+    moduleRecord && moduleRecord.stepOrder,
+    moduleRecord && moduleRecord.learningSteps
+  ], "step");
+
+  collectNestedSteps(steps, moduleRecord && moduleRecord.learningModes);
+  collectNestedSteps(steps, moduleRecord && moduleRecord.tracks);
+  collectNestedSteps(steps, moduleRecord && moduleRecord.pages);
+
+  return dedupeRecords(steps);
+}
+
+function collectNestedSteps(result, value) {
+  collectObjectList([value], "container").forEach(function (record) {
+    collectObjectList([record.steps, record.stepOrder], "step").forEach(function (step) {
+      result.push(Object.assign({}, step, {
+        trackId: step.trackId || record.trackId || record.id,
+        pageId: step.pageId || record.pageId
+      }));
+    });
+  });
+}
+
+function collectObjectList(sources, fallbackPrefix) {
+  var result = [];
+
+  sources.forEach(function (source) {
+    if (Array.isArray(source)) {
+      source.forEach(function (item, index) {
+        if (typeof item === "string") {
+          result.push({ id: item, title: item, order: index });
+        } else if (item) {
+          result.push(Object.assign({ id: item.id || item.moduleId || fallbackPrefix + "-" + index, order: index }, item));
+        }
+      });
+      return;
+    }
+
+    if (source && typeof source === "object") {
+      Object.keys(source).forEach(function (key, index) {
+        var item = source[key];
+        if (item && typeof item === "object") {
+          result.push(Object.assign({ id: key, order: index }, item));
+        }
+      });
+    }
+  });
+
+  return result.sort(function (a, b) {
+    return readModuleSortOrder(a) - readModuleSortOrder(b);
+  });
+}
+
+function readModuleSortOrder(record) {
+  var order = record && (record.order || record.sortOrder || record.position || record.index);
+  return typeof order === "number" ? order : 9999;
+}
+
+function countPagesForTrack(pages, track) {
+  var trackId = readSafeString(track && track.id);
+  return countItems(pages, function (page) {
+    return readSafeString(page.trackId || page.track) === trackId;
+  });
+}
+
+function countStepsForTrack(steps, track) {
+  var trackId = readSafeString(track && track.id);
+  return countItems(steps, function (step) {
+    return readSafeString(step.trackId || step.track) === trackId;
+  });
+}
+
+function countStepsForPage(steps, page) {
+  var pageId = readSafeString(page && page.id);
+  return countItems(steps, function (step) {
+    return readSafeString(step.pageId || step.page) === pageId;
+  });
+}
+
+function readBlockCount(page) {
+  if (!page) {
+    return 0;
+  }
+
+  if (Array.isArray(page.blocks)) {
+    return page.blocks.length;
+  }
+
+  if (Array.isArray(page.blockOrder)) {
+    return page.blockOrder.length;
+  }
+
+  return typeof page.blockCount === "number" ? page.blockCount : 0;
+}
+
+function readStepValidationWarning(step) {
+  if (!readSafeString(step && (step.type || step.stepType || step.kind))) {
+    return "Missing type";
+  }
+
+  if (!readSafeString(step && (step.title || step.name))) {
+    return "Missing title";
+  }
+
+  return "None";
+}
+
+function readModuleActivity(moduleRecord, courseActivity) {
+  var moduleId = readSafeString(moduleRecord && (moduleRecord.id || moduleRecord.moduleId));
+
+  return (courseActivity || []).filter(function (record) {
+    return !record.moduleId || readSafeString(record.moduleId) === moduleId;
+  });
+}
+
+function readModuleAudit(moduleRecord, courseAudit) {
+  var moduleId = readSafeString(moduleRecord && (moduleRecord.id || moduleRecord.moduleId));
+
+  return (courseAudit || []).filter(function (record) {
+    return !record.moduleId || readSafeString(record.moduleId) === moduleId;
+  });
+}
+
+function readAssignmentLocationId(assignment) {
+  if (!assignment) {
+    return "";
+  }
+
+  if (assignment.locationId || assignment.primaryLocationId || assignment.schoolId) {
+    return readSafeString(assignment.locationId || assignment.primaryLocationId || assignment.schoolId);
+  }
+
+  if ((assignment.targetType || "") === "location") {
+    return readSafeString(assignment.targetId);
+  }
+
+  return readClassLocationId(findClass(assignment.classId || assignment.targetId));
 }
 
 function readStudentLocationId(student) {

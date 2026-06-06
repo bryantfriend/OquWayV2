@@ -1,4 +1,12 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.61-assignment-ownership-read";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.80-course-module-command-center";
+import { canAccessTeacherDashboard } from "../../../../../../../permissions/index.js";
+import {
+  getActorClaimRoles,
+  getUserRoles,
+  isActiveUserProfile,
+  isExplicitStudentOrParentProfile as isExplicitStudentOrParentProfileShared,
+  mergeTrustedTeacherDashboardRoles
+} from "../../../../../../../domain/users/index.js";
 
 export function allowTeacherLoginAuthorization() {
   return { valid: true };
@@ -53,7 +61,7 @@ export function requireTeacherDashboardAuthorization(executionState) {
     return createError("TEACHER_ROLE_REQUIRED", "This account is not authorized for the Teacher Dashboard.");
   }
 
-  if (!roles.some(isAllowedTeacherDashboardRole)) {
+  if (!canAccessTeacherDashboard(profile, executionState.actor || {})) {
     console.warn("[teacher-auth] unauthorized", {
       uid: uid,
       roles: roles
@@ -180,46 +188,31 @@ export function readRoles(profile, actor) {
 }
 
 function readProfileRoles(profile) {
-  return readRoles(profile, null);
+  return getUserRoles(profile);
 }
 
 function readActorClaimRoles(actor) {
-  return readRoles(null, actor);
+  return getActorClaimRoles(actor);
 }
 
 function mergeTrustedRoles(claimsRoles, profileRoles) {
-  var roles = [];
-  var profileIsExplicitStudentOrParent = isExplicitStudentOrParentProfile(profileRoles);
-  var source = profileRoles.slice();
-
-  if (!profileIsExplicitStudentOrParent) {
-    claimsRoles.forEach(function (role) {
-      if (isAdminRole(role)) {
-        source.push(role);
-      }
-    });
-  }
-
-  source.forEach(function (role) {
-    if (role && roles.indexOf(role) === -1) {
-      roles.push(role);
-    }
-  });
-
-  return roles;
+  return mergeTrustedTeacherDashboardRoles(claimsRoles, profileRoles);
 }
 
 function isExplicitStudentOrParentProfile(profileRoles) {
-  var hasTeacherOrAdmin = profileRoles.some(isAllowedTeacherDashboardRole);
-
-  return !hasTeacherOrAdmin
-    && (profileRoles.indexOf("student") !== -1 || profileRoles.indexOf("parent") !== -1);
+  return isExplicitStudentOrParentProfileShared(profileRoles);
 }
 
 async function isSubmissionInTeacherOwnershipScope(submission, context, actor) {
   var profile = context.teacherProfile || null;
   var teacherIds = readTeacherOwnershipIds(context, profile, actor);
   var assignmentId = submission.courseAssignmentId || submission.assignmentId || "";
+
+  if (Array.isArray(submission.teacherOwnershipIds) && submission.teacherOwnershipIds.some(function (teacherId) {
+    return teacherIds.indexOf(teacherId) !== -1;
+  })) {
+    return true;
+  }
 
   if (assignmentId && await isOwnedCourseAssignment(assignmentId, teacherIds)) {
     return true;
@@ -260,7 +253,10 @@ async function isOwnedCourseAssignment(assignmentId, teacherIds) {
 
 function recordHasTeacherOwnership(data, teacherIds, primaryFieldName) {
   return data && (
-    (typeof data[primaryFieldName] === "string" && teacherIds.indexOf(data[primaryFieldName]) !== -1)
+    (Array.isArray(data.teacherOwnershipIds) && data.teacherOwnershipIds.some(function (teacherId) {
+      return teacherIds.indexOf(teacherId) !== -1;
+    }))
+    || (typeof data[primaryFieldName] === "string" && teacherIds.indexOf(data[primaryFieldName]) !== -1)
     || (Array.isArray(data.assistantIds) && data.assistantIds.some(function (teacherId) {
       return teacherIds.indexOf(teacherId) !== -1;
     }))
@@ -326,19 +322,7 @@ function normalizeRole(role) {
 }
 
 function isActiveProfile(profile) {
-  if (!profile) {
-    return false;
-  }
-
-  if (profile.isActive === true) {
-    return true;
-  }
-
-  if (!profile.status) {
-    return true;
-  }
-
-  return profile.status === "active" || profile.status === "approved";
+  return isActiveUserProfile(profile);
 }
 
 function createError(code, message) {

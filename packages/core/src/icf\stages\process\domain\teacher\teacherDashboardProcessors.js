@@ -1,6 +1,15 @@
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.61-assignment-ownership-read";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.61-assignment-ownership-read";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.80-course-module-command-center";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.80-course-module-command-center";
+import { getClassesForTeacher } from "../../../../../../../domain/classes/index.js";
+import { getExternalTaskSubmissionsForTeacher } from "../../../../../../../domain/externalTasks/index.js?v=1.1.80-course-module-command-center";
+import {
+  getStudentsForClasses,
+  getUserProfileByAuthUid,
+  getUserRoles,
+  isStudentProfile as isStudentUserProfile,
+  userInClass as userProfileInClass
+} from "../../../../../../../domain/users/index.js";
 
 export async function processTeacherLogin(executionState) {
   var payload = executionState.payload || {};
@@ -145,6 +154,7 @@ export async function processLoadTeacherStudents(executionState) {
       classIds: classIds,
       assignmentIds: scope.assignmentIds,
       courseIds: scope.courseIds,
+      teacherIds: scope.teacherIds,
       reviewStatus: "pending"
     });
     var pendingCounts = countSubmissionsByField(submissions, "studentId");
@@ -170,9 +180,11 @@ export async function processLoadTeacherReviewQueue(executionState) {
       classIds: resolveRequestedClassIds(payload, scope.classIds),
       assignmentIds: scope.assignmentIds,
       courseIds: scope.courseIds,
+      teacherIds: scope.teacherIds,
       reviewStatus: payload.reviewStatus,
       courseId: payload.courseId,
-      moduleId: payload.moduleId
+      moduleId: payload.moduleId,
+      studentSearch: payload.studentSearch
     });
 
     executionState.result = {
@@ -196,6 +208,7 @@ async function buildTeacherDashboardData(executionState) {
     classIds: effectiveClassIds,
     assignmentIds: scope.assignmentIds,
     courseIds: scope.courseIds,
+    teacherIds: scope.teacherIds,
     reviewStatus: (executionState.payload || {}).reviewStatus || "pending"
   });
   var pendingCountsByClass = countSubmissionsByField(submissions, "classId");
@@ -277,28 +290,7 @@ async function loadTeacherOwnershipScope(executionState) {
 }
 
 async function loadTeacherClassesByOwnership(teacherIds, roles) {
-  var classes = [];
-  var index = 0;
-
-  if (teacherIds.length === 0 && isAdminRoleList(roles)) {
-    return [];
-  }
-
-  while (index < teacherIds.length) {
-    await appendClassOwnershipQuery(classes, query(collection(db, "classes"), where("primaryTeacherId", "==", teacherIds[index])), {
-      teacherId: teacherIds[index],
-      ownershipRole: "Primary Teacher",
-      queryShape: "classes where primaryTeacherId == teacherId"
-    });
-    await appendClassOwnershipQuery(classes, query(collection(db, "classes"), where("assistantIds", "array-contains", teacherIds[index])), {
-      teacherId: teacherIds[index],
-      ownershipRole: "Assistant",
-      queryShape: "classes where assistantIds array-contains teacherId"
-    });
-    index = index + 1;
-  }
-
-  return classes.sort(compareByName);
+  return getClassesForTeacher(teacherIds, roles);
 }
 
 async function appendClassOwnershipQuery(classes, classesQuery, details) {
@@ -326,26 +318,7 @@ async function appendClassOwnershipQuery(classes, classesQuery, details) {
 }
 
 async function loadStudentsForClasses(classIds) {
-  var students = [];
-  var classIndex = 0;
-
-  while (classIndex < classIds.length) {
-    await appendStudentQuery(students, query(collection(db, "users"), where("classId", "==", classIds[classIndex])), {
-      classId: classIds[classIndex],
-      queryShape: "users where classId == classId"
-    });
-    await appendStudentQuery(students, query(collection(db, "users"), where("classIds", "array-contains", classIds[classIndex])), {
-      classId: classIds[classIndex],
-      queryShape: "users where classIds array-contains classId"
-    });
-    await appendStudentQuery(students, query(collection(db, "users"), where("assignedClassIds", "array-contains", classIds[classIndex])), {
-      classId: classIds[classIndex],
-      queryShape: "users where assignedClassIds array-contains classId"
-    });
-    classIndex = classIndex + 1;
-  }
-
-  return students.filter(isStudentProfile).sort(compareByName);
+  return getStudentsForClasses(classIds);
 }
 
 async function appendStudentQuery(students, studentsQuery, details) {
@@ -456,121 +429,12 @@ async function readStudentProgressSummary(studentId) {
 }
 
 async function loadScopedSubmissions(filters) {
-  var submissions = [];
-  var classIds = filters.classIds || [];
-  var assignmentIds = filters.assignmentIds || [];
-  var courseIds = filters.courseIds || [];
-  var index = 0;
-
-  while (index < assignmentIds.length) {
-    await appendSubmissionQuery(submissions, buildSubmissionQuery("assignmentId", assignmentIds[index], filters), {
-      classId: "",
-      assignmentId: assignmentIds[index],
-      courseId: "",
-      queryShape: readSubmissionQueryShape("assignmentId", filters)
-    });
-    await appendSubmissionQuery(submissions, buildSubmissionQuery("courseAssignmentId", assignmentIds[index], filters), {
-      classId: "",
-      assignmentId: assignmentIds[index],
-      courseId: "",
-      queryShape: readSubmissionQueryShape("courseAssignmentId", filters)
-    });
-    index = index + 1;
-  }
-
-  index = 0;
-  while (index < classIds.length) {
-    await appendSubmissionQuery(submissions, buildSubmissionQuery("classId", classIds[index], filters), {
-      classId: classIds[index],
-      assignmentId: "",
-      courseId: "",
-      queryShape: readSubmissionQueryShape("classId", filters)
-    });
-    index = index + 1;
-  }
-
-  if (assignmentIds.length === 0 && classIds.length === 0) {
-    index = 0;
-    while (index < courseIds.length) {
-      await appendSubmissionQuery(submissions, buildSubmissionQuery("courseId", courseIds[index], filters), {
-        classId: "",
-        assignmentId: "",
-        courseId: courseIds[index],
-        queryShape: readSubmissionQueryShape("courseId", filters)
-      });
-      index = index + 1;
-    }
-  }
-
-  submissions = submissions.filter(function (submission) {
-    return isSubmissionInOwnedScope(submission, filters)
-      && matchesOptional(submission.reviewStatus, filters.reviewStatus)
-      && matchesOptional(submission.courseId, filters.courseId)
-      && matchesOptional(submission.moduleId, filters.moduleId);
-  });
-
-  submissions.sort(function (a, b) {
-    return readMillis(b.createdAt) - readMillis(a.createdAt);
-  });
-
-  return await enrichSubmissionsWithCourseMetadata(submissions);
-}
-
-function buildSubmissionQuery(scopeField, scopeValue, filters) {
-  if (filters && filters.reviewStatus) {
-    return query(collection(db, "externalTaskSubmissions"), where(scopeField, "==", scopeValue), where("reviewStatus", "==", filters.reviewStatus));
-  }
-
-  return query(collection(db, "externalTaskSubmissions"), where(scopeField, "==", scopeValue));
-}
-
-function readSubmissionQueryShape(scopeField, filters) {
-  return filters && filters.reviewStatus
-    ? "externalTaskSubmissions where " + scopeField + " == scopeValue and reviewStatus == " + filters.reviewStatus
-    : "externalTaskSubmissions where " + scopeField + " == scopeValue";
-}
-
-async function appendSubmissionQuery(submissions, submissionsQuery, details) {
-  console.info("[teacher-dashboard:submissions-query]", {
-    classId: details && details.classId ? details.classId : "",
-    assignmentId: details && details.assignmentId ? details.assignmentId : "",
-    courseId: details && details.courseId ? details.courseId : "",
-    queryShape: details && details.queryShape ? details.queryShape : "externalTaskSubmissions scoped query"
-  });
-
-  try {
-    var snapshot = await getDocs(submissionsQuery);
-    snapshot.forEach(function (submissionSnap) {
-      addUniqueRecord(submissions, Object.assign({ id: submissionSnap.id }, submissionSnap.data() || {}));
-    });
-  } catch (error) {
-    console.warn("[teacher-dashboard:submissions-query-failed]", {
-      classId: details && details.classId ? details.classId : "",
-      assignmentId: details && details.assignmentId ? details.assignmentId : "",
-      courseId: details && details.courseId ? details.courseId : "",
-      queryShape: details && details.queryShape ? details.queryShape : "externalTaskSubmissions scoped query",
-      errorMessage: readErrorMessage(error)
-    });
-  }
+  return await enrichSubmissionsWithCourseMetadata(await getExternalTaskSubmissionsForTeacher(filters));
 }
 
 async function loadUserProfile(uid) {
-  var profileSnap = await getDoc(doc(db, "users", uid));
-
-  if (profileSnap.exists()) {
-    return normalizeTeacherProfileDocument(profileSnap, uid);
-  }
-
-  var authUidSnapshot = await getDocs(query(collection(db, "users"), where("authUid", "==", uid)));
-  var profile = null;
-
-  authUidSnapshot.forEach(function (snap) {
-    if (!profile) {
-      profile = normalizeTeacherProfileDocument(snap, uid);
-    }
-  });
-
-  return profile;
+  var lookup = await getUserProfileByAuthUid(uid);
+  return lookup.profile;
 }
 
 function normalizeTeacherProfileDocument(profileSnap, authUid) {
@@ -838,26 +702,6 @@ function compareAssignmentByTitle(a, b) {
   return readTitle(a.courseTitle || a.title || a.name, "").localeCompare(readTitle(b.courseTitle || b.title || b.name, ""));
 }
 
-function isSubmissionInOwnedScope(submission, filters) {
-  var classIds = filters.classIds || [];
-  var assignmentIds = filters.assignmentIds || [];
-  var courseIds = filters.courseIds || [];
-
-  if (submission.assignmentId && assignmentIds.indexOf(submission.assignmentId) !== -1) {
-    return true;
-  }
-
-  if (submission.courseAssignmentId && assignmentIds.indexOf(submission.courseAssignmentId) !== -1) {
-    return true;
-  }
-
-  if (submission.classId && classIds.indexOf(submission.classId) !== -1) {
-    return true;
-  }
-
-  return assignmentIds.length === 0 && classIds.length === 0 && submission.courseId && courseIds.indexOf(submission.courseId) !== -1;
-}
-
 function countSubmissionsByField(submissions, fieldName) {
   var counts = {};
   var index = 0;
@@ -908,17 +752,7 @@ function resolveRequestedClassIds(payload, teacherClassIds) {
 }
 
 function readTeacherRoles(profile) {
-  var roles = [];
-
-  if (profile && Array.isArray(profile.roles)) {
-    roles = roles.concat(profile.roles.map(normalizeRole));
-  }
-
-  if (profile && profile.role) {
-    roles.push(normalizeRole(profile.role));
-  }
-
-  return roles;
+  return getUserRoles(profile);
 }
 
 function isAdminRoleList(roles) {
@@ -926,17 +760,11 @@ function isAdminRoleList(roles) {
 }
 
 function isStudentProfile(profile) {
-  var roles = readTeacherRoles(profile);
-
-  if (roles.length === 0) {
-    return profile && (profile.classId || Array.isArray(profile.classIds));
-  }
-
-  return roles.indexOf("student") !== -1;
+  return isStudentUserProfile(profile);
 }
 
 function studentInClass(student, classId) {
-  return readTextArray([student.classId, student.classIds, student.assignedClassIds]).indexOf(classId) !== -1;
+  return userProfileInClass(student, classId);
 }
 
 function countUniqueCourseIds(assignments) {

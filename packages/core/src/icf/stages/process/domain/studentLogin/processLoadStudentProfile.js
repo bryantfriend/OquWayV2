@@ -1,5 +1,5 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.79-user-command-center";
-import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.79-user-command-center";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.80-course-module-command-center";
+import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.80-course-module-command-center";
 
 export async function processLoadStudentProfile(executionState) {
   var actor = executionState.actor;

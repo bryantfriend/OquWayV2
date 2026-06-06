@@ -367,6 +367,7 @@
 
     .teacher-form input,
     .teacher-reset-form input,
+    .teacher-filters input,
     .teacher-filters select,
     .teacher-feedback-label textarea {
       width: 100%;
@@ -380,6 +381,7 @@
 
     .teacher-form input:focus,
     .teacher-reset-form input:focus,
+    .teacher-filters input:focus,
     .teacher-filters select:focus,
     .teacher-feedback-label textarea:focus {
       border-color: #2563eb;
@@ -843,9 +845,29 @@
 
     .teacher-filters {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 190px;
+      grid-template-columns: repeat(5, minmax(140px, 1fr));
       gap: 12px;
       margin-bottom: 14px;
+      align-items: end;
+    }
+
+    .teacher-review-loading {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      width: fit-content;
+      margin: 10px 0 4px;
+      padding: 12px 14px;
+      border: 1px solid #bfdbfe;
+      border-radius: 14px;
+      background: #eff6ff;
+      color: #1e40af;
+      box-shadow: 0 14px 34px rgba(37, 99, 235, 0.12);
+    }
+
+    .teacher-review-loading svg {
+      width: 28px;
+      height: 28px;
     }
 
     .teacher-submission-card {
@@ -854,6 +876,10 @@
       padding: 16px;
       position: relative;
       overflow: hidden;
+      border-color: #dbeafe;
+      background:
+        linear-gradient(180deg, rgba(239, 246, 255, 0.72), rgba(255, 255, 255, 0.94)),
+        white;
     }
 
     .teacher-submission-ribbon {
@@ -873,12 +899,35 @@
 
     .teacher-submission-head,
     .teacher-submission-meta,
+    .teacher-quick-actions,
     .teacher-review-actions {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
       flex-wrap: wrap;
+    }
+
+    .teacher-submission-head strong {
+      font-size: 18px;
+    }
+
+    .teacher-submission-head span,
+    .teacher-submission-meta span {
+      color: #64748b;
+      font-weight: 700;
+    }
+
+    .teacher-submission-meta {
+      justify-content: flex-start;
+    }
+
+    .teacher-submission-meta span {
+      border-radius: 999px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 6px 9px;
+      font-size: 12px;
     }
 
     .teacher-proof {
@@ -931,6 +980,43 @@
       color: #334155;
     }
 
+    .teacher-submission-notes {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .teacher-note strong,
+    .teacher-note span {
+      display: block;
+    }
+
+    .teacher-note strong {
+      margin-bottom: 4px;
+      color: #152033;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .teacher-feedback-note {
+      border-left-color: #14b8a6;
+    }
+
+    .teacher-quick-actions {
+      justify-content: flex-start;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 12px;
+    }
+
+    .teacher-open-file-btn,
+    .teacher-secondary-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      text-decoration: none;
+    }
+
     .teacher-review-btn.complete {
       background: #dcfce7;
       color: #166534;
@@ -950,6 +1036,26 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
+    }
+
+    .teacher-status-pill.pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .teacher-status-pill.needsWork {
+      background: #ffedd5;
+      color: #c2410c;
+    }
+
+    .teacher-status-pill.complete {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .teacher-status-pill.incomplete {
+      background: #fee2e2;
+      color: #991b1b;
     }
 
     .teacher-review-icon,
@@ -1039,6 +1145,7 @@
       }
 
       .teacher-reset-form,
+      .teacher-submission-notes,
       .teacher-student-row {
         grid-template-columns: 1fr;
       }
@@ -1084,7 +1191,7 @@
     </main>
   </div>
 
-  <script type="module" src="./src/main.js?v=1.1.61-assignment-ownership-read"></script>
+  <script type="module" src="./src/main.js?v=1.1.80-course-module-command-center"></script>
 </body>
 
 </html>

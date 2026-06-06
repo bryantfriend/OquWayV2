@@ -1,5 +1,3 @@
-import { db, writeBatch, doc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
-
 export async function processOpenCourseEditor(executionState) {
     const { context } = executionState;
     const modules = Array.isArray(context.modules) ? context.modules : [];

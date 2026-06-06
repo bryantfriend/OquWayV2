@@ -30,7 +30,8 @@ export function normalizeTeacherDashboardPayload(executionState) {
       classId: normalizeText(payload.classId),
       courseId: normalizeText(payload.courseId),
       moduleId: normalizeText(payload.moduleId),
-      reviewStatus: normalizeText(payload.reviewStatus || "pending")
+      reviewStatus: Object.prototype.hasOwnProperty.call(payload, "reviewStatus") ? normalizeText(payload.reviewStatus) : "pending",
+      studentSearch: normalizeText(payload.studentSearch || payload.searchStudentName)
     }
   };
 }

@@ -1,8 +1,8 @@
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.79-user-command-center";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.79-user-command-center";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.80-course-module-command-center";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.80-course-module-command-center";
 import { getClassesForTeacher } from "../../../../../../../domain/classes/index.js";
-import { getExternalTaskSubmissionsForTeacher } from "../../../../../../../domain/externalTasks/index.js?v=1.1.79-user-command-center";
+import { getExternalTaskSubmissionsForTeacher } from "../../../../../../../domain/externalTasks/index.js?v=1.1.80-course-module-command-center";
 import {
   getStudentsForClasses,
   getUserProfileByAuthUid,

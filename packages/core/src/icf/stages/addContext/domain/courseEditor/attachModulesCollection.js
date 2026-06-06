@@ -1,11 +1,13 @@
-import { db, doc, getDoc, collection, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
+import { getModuleSourceCheck } from "../../../../../../../domain/modules/index.js";
 
 export async function attachModulesCollection(executionState) {
     const { payload } = executionState;
     if (!payload.courseId) return { valid: true };
 
     try {
-        const sourceCheck = await readModuleSourceCheck(executionState, payload.courseId);
+        const sourceCheck = await getModuleSourceCheck(payload.courseId, {
+            course: executionState.context && executionState.context.course ? executionState.context.course : null
+        });
         const courseContext = sourceCheck.courseContext;
         const modules = sourceCheck.catalogModules.length > 0
             ? sourceCheck.catalogModules.slice()
@@ -38,44 +40,6 @@ export async function attachModulesCollection(executionState) {
             errors: [{ message: "Failed to attach modules collection: " + err.message }]
         };
     }
-}
-
-async function readModuleSourceCheck(executionState, courseId) {
-    const catalogSnap = await getDoc(doc(db, "catalogCourses", courseId));
-    const legacyCourseSnap = await getDoc(doc(db, "courses", courseId));
-    const catalogModulesSnapshot = await getDocs(collection(db, "catalogCourses", courseId, "modules"));
-    const legacyCoursesModulesSnapshot = await getDocs(collection(db, "courses", courseId, "modules"));
-    const catalogCourse = catalogSnap.exists() ? { id: catalogSnap.id, ...catalogSnap.data() } : null;
-    const legacyCourse = legacyCourseSnap.exists() ? { id: legacyCourseSnap.id, ...legacyCourseSnap.data() } : null;
-    const contextCourse = executionState.context && executionState.context.course ? executionState.context.course : null;
-    const course = catalogCourse || contextCourse || legacyCourse || {};
-    const moduleOrder = Array.isArray(course.moduleOrder) ? course.moduleOrder : [];
-    const embeddedModules = Array.isArray(course.modules) ? course.modules : [];
-    const catalogModules = readModulesFromSnapshot(catalogModulesSnapshot);
-    const legacyModules = readModulesFromSnapshot(legacyCoursesModulesSnapshot);
-
-    return {
-        catalogModulesCount: catalogModulesSnapshot.size,
-        legacyCoursesModulesCount: legacyCoursesModulesSnapshot.size,
-        catalogModules: catalogModules,
-        legacyModules: legacyModules,
-        moduleOrder: moduleOrder,
-        embeddedModulesCount: embeddedModules.length,
-        courseContext: {
-            collectionName: "catalogCourses",
-            course: course
-        }
-    };
-}
-
-function readModulesFromSnapshot(snapshot) {
-    const modules = [];
-
-    snapshot.forEach(function (moduleDoc) {
-        modules.push({ id: moduleDoc.id, ...moduleDoc.data() });
-    });
-
-    return modules;
 }
 
 function sortModulesByCourseOrder(modules, moduleOrder) {

@@ -1,4 +1,4 @@
-import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.79-user-command-center";
+import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.80-course-module-command-center";
 
 export function bindUsersEvents(rootElement, handlers) {
   rootElement.addEventListener("click", function (event) {

@@ -1,7 +1,7 @@
-import { requireStringValidation } from "../../validators.js?v=1.1.79-user-command-center";
-import { requireNonEmptyArrayValidation } from "../../validators.js?v=1.1.79-user-command-center";
-import { requireEnumValidation } from "../../validators.js?v=1.1.79-user-command-center";
-import { requireUUIDValidation } from "../../validators.js?v=1.1.79-user-command-center";
+import { requireStringValidation } from "../../validators.js?v=1.1.80-course-module-command-center";
+import { requireNonEmptyArrayValidation } from "../../validators.js?v=1.1.80-course-module-command-center";
+import { requireEnumValidation } from "../../validators.js?v=1.1.80-course-module-command-center";
+import { requireUUIDValidation } from "../../validators.js?v=1.1.80-course-module-command-center";
 
 export function catalogCourseRequireVersionValidation(executionState) {
     const { payload } = executionState;

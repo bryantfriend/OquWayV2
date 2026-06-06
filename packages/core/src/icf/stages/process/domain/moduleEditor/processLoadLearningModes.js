@@ -1,4 +1,4 @@
-import { createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.79-user-command-center";
+import { createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.80-course-module-command-center";
 
 export function processLoadLearningModes(executionState) {
   executionState.result = {

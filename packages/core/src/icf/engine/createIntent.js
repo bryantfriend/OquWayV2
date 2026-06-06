@@ -1,6 +1,6 @@
 // createIntent.js
 
-import { getIntentDefinition } from "./intentRegistry.js?v=1.1.79-user-command-center";
+import { getIntentDefinition } from "./intentRegistry.js?v=1.1.80-course-module-command-center";
 
 export function createIntent(intentInput) {
   const intentType = readIntentType(intentInput);

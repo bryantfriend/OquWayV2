@@ -4,7 +4,7 @@ import {
   ref,
   uploadBytes
 } from "firebase/storage";
-import { firebaseApp } from "./firebaseApp.js?v=1.1.79-user-command-center";
+import { firebaseApp } from "./firebaseApp.js?v=1.1.80-course-module-command-center";
 
 export const storage = getStorage(firebaseApp);
 

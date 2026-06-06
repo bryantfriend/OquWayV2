@@ -1,5 +1,5 @@
-import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.79-user-command-center";
-import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.79-user-command-center";
+import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.80-course-module-command-center";
+import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.80-course-module-command-center";
 
 export class CatalogCoursePage {
   constructor() {

@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.79-user-command-center";
-import { createUpdatedPracticeModes } from "./practiceModeShells.js?v=1.1.79-user-command-center";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.80-course-module-command-center";
+import { createUpdatedPracticeModes } from "./practiceModeShells.js?v=1.1.80-course-module-command-center";
 
 export async function processUpdatePracticeMode(executionState) {
   var payload = executionState.payload;

@@ -1,7 +1,6 @@
 import { getIdTokenResult, onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../../../packages/core/src/infrastructure/firebase/auth.js?v=1.1.61-assignment-ownership-read";
-import { getIntentDefinition } from "../../../../../packages/core/src/icf/engine/intentRegistry.js?v=1.1.61-assignment-ownership-read";
-import { runIntentPipeline } from "../../../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.61-assignment-ownership-read";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.80-course-module-command-center";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.80-course-module-command-center";
 
 var currentTeacherClaims = {};
 

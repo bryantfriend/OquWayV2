@@ -1,4 +1,4 @@
-import { db, collection, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.79-user-command-center";
+import { db, collection, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.80-course-module-command-center";
 
 export async function catalogCourseFetchAllProcessing(executionState) {
 

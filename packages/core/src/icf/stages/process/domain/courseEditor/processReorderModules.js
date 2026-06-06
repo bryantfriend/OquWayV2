@@ -1,4 +1,4 @@
-import { db, writeBatch, doc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.79-user-command-center";
+import { db, writeBatch, doc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.80-course-module-command-center";
 
 export async function processReorderModules(executionState) {
     const { payload, context } = executionState;

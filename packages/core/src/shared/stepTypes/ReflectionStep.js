@@ -1,4 +1,4 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.79-user-command-center";
+import { BaseStep } from "./BaseStep.js?v=1.1.80-course-module-command-center";
 
 export class ReflectionStep extends BaseStep {
   static get type() {

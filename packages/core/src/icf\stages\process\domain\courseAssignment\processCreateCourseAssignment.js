@@ -1,6 +1,7 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.61-assignment-ownership-read";
-import { createCourseAssignmentId, loadCourseAssignments } from "./courseAssignmentHelpers.js?v=1.1.61-assignment-ownership-read";
-import { buildCourseAssignmentOwnershipFields } from "./courseAssignmentOwnershipHelpers.js?v=1.1.61-assignment-ownership-read";
+import { serverTimestamp } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.80-course-module-command-center";
+import { createCourseAssignment } from "../../../../../../../domain/assignments/index.js";
+import { createCourseAssignmentId, loadCourseAssignments } from "./courseAssignmentHelpers.js?v=1.1.80-course-module-command-center";
+import { buildCourseAssignmentOwnershipFields } from "./courseAssignmentOwnershipHelpers.js?v=1.1.80-course-module-command-center";
 
 export async function processCreateCourseAssignment(executionState) {
   var payload = executionState.payload;
@@ -47,8 +48,7 @@ export async function processCreateCourseAssignment(executionState) {
       updatedAt: serverTimestamp()
     });
 
-    await setDoc(doc(db, "courseAssignments", assignmentId), assignmentRecord);
-    executionState.result = assignmentRecord;
+    executionState.result = await createCourseAssignment(assignmentRecord);
     return {
       valid: true,
       data: executionState.result

@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../../../../packages/firebase/index.js?v=1.1.79-user-command-center";
+import { collection, db, getDocs, query, where } from "../../../../../packages/firebase/index.js?v=1.1.80-course-module-command-center";
 
 export async function loadClasses() {
   return [];

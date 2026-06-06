@@ -1,11 +1,10 @@
-import { collection, db, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.61-assignment-ownership-read";
-import { sortAssignments } from "./courseAssignmentHelpers.js?v=1.1.61-assignment-ownership-read";
+import { loadCourseAssignments, sortAssignments } from "./courseAssignmentHelpers.js?v=1.1.80-course-module-command-center";
 
 export async function processLoadCourseAssignments(executionState) {
   var payload = executionState.payload || {};
 
   try {
-    var assignments = filterAssignments(await readAllCourseAssignments(), {
+    var assignments = await loadCourseAssignments({
       courseId: payload.courseId,
       targetType: payload.targetType,
       targetId: payload.targetId,
@@ -31,48 +30,6 @@ export async function processLoadCourseAssignments(executionState) {
       data: executionState.result
     };
   }
-}
-
-async function readAllCourseAssignments() {
-  var assignments = [];
-  var snapshot = await getDocs(collection(db, "courseAssignments"));
-
-  snapshot.forEach(function (assignmentSnap) {
-    assignments.push(Object.assign({ id: assignmentSnap.id }, assignmentSnap.data() || {}));
-  });
-
-  return assignments;
-}
-
-function filterAssignments(assignments, filters) {
-  var safeAssignments = Array.isArray(assignments) ? assignments : [];
-
-  return safeAssignments.filter(function (assignment) {
-    return matchesFilter(assignment, "courseId", filters.courseId)
-      && matchesFilter(assignment, "targetType", filters.targetType)
-      && matchesTargetId(assignment, filters.targetId)
-      && matchesFilter(assignment, "status", filters.status);
-  });
-}
-
-function matchesFilter(assignment, fieldName, expectedValue) {
-  if (!expectedValue) {
-    return true;
-  }
-
-  return assignment && assignment[fieldName] === expectedValue;
-}
-
-function matchesTargetId(assignment, expectedTargetId) {
-  if (!expectedTargetId) {
-    return true;
-  }
-
-  return assignment
-    && (assignment.targetId === expectedTargetId
-      || assignment.classId === expectedTargetId
-      || assignment.studentId === expectedTargetId
-      || assignment.locationId === expectedTargetId);
 }
 
 function pushCourseAssignmentWarning(executionState, error) {

@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateCourseAssignmentPayload } from "../../stages/validate/validators.js?v=1.1.61-assignment-ownership-read";
-import { normalizeCourseAssignmentPayload } from "../../stages/normalize/normalizers.js?v=1.1.61-assignment-ownership-read";
-import { attachActorContext, attachActorRoleContext, attachCourseAssignmentCourseContext } from "../../stages/addContext/contexts.js?v=1.1.61-assignment-ownership-read";
-import { requireCourseAssignmentAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.61-assignment-ownership-read";
-import { processCreateCourseAssignment } from "../../stages/process/processors.js?v=1.1.61-assignment-ownership-read";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.61-assignment-ownership-read";
+import { validateAuthenticated, validateCourseAssignmentPayload } from "../../stages/validate/validators.js?v=1.1.80-course-module-command-center";
+import { normalizeCourseAssignmentPayload } from "../../stages/normalize/normalizers.js?v=1.1.80-course-module-command-center";
+import { attachActorContext, attachActorRoleContext, attachCourseAssignmentCourseContext } from "../../stages/addContext/contexts.js?v=1.1.80-course-module-command-center";
+import { requireCourseAssignmentAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.80-course-module-command-center";
+import { processCreateCourseAssignment } from "../../stages/process/processors.js?v=1.1.80-course-module-command-center";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.80-course-module-command-center";
 
 export function CreateCourseAssignmentIntent() {
   return {

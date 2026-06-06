@@ -1,6 +1,6 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.79-user-command-center";
-import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.79-user-command-center";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.80-course-module-command-center";
+import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.80-course-module-command-center";
 
 var appElement = document.getElementById("app");
 var startupMessage = consumeStartupMessage();

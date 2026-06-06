@@ -1,4 +1,4 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.61-assignment-ownership-read";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.80-course-module-command-center";
 
 export async function buildCourseAssignmentOwnershipFields(payload) {
   var responsibleTeacherId = readText(payload.responsibleTeacherId);

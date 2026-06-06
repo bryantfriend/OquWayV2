@@ -1,9 +1,9 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.79-user-command-center";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.79-user-command-center";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.80-course-module-command-center";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.80-course-module-command-center";
 import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js";
-import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.79-user-command-center";
+import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.80-course-module-command-center";
 import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js";
-import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.79-user-command-center";
+import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.80-course-module-command-center";
 
 export async function processLoadStudentCourse(executionState) {
   var actor = executionState.actor;

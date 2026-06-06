@@ -1,4 +1,4 @@
-import { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.61-assignment-ownership-read";
+import { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.80-course-module-command-center";
 
 var intents = {};
 

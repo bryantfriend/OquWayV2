@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.61-assignment-ownership-read";
+import * as IntentExports from "../intents/intents.js?v=1.1.80-course-module-command-center";
 
 const registry = {
   // Demo Verification
@@ -29,6 +29,7 @@ const registry = {
 
   // External Tasks
   LoadExternalTaskStepIntent: IntentExports.LoadExternalTaskStepIntent,
+  LoadStudentExternalTaskSubmissionIntent: IntentExports.LoadStudentExternalTaskSubmissionIntent,
   SubmitExternalTaskIntent: IntentExports.SubmitExternalTaskIntent,
   UploadExternalTaskFileIntent: IntentExports.UploadExternalTaskFileIntent,
   LoadExternalTaskSubmissionsIntent: IntentExports.LoadExternalTaskSubmissionsIntent,
@@ -63,6 +64,9 @@ const registry = {
   ListStudentsIntent: IntentExports.ListStudentsIntent,
   LoadClassOwnershipIntent: IntentExports.LoadClassOwnershipIntent,
   LoadAdminProfileIntent: IntentExports.LoadAdminProfileIntent,
+  OpenCourseCommandCenterIntent: IntentExports.OpenCourseCommandCenterIntent,
+  OpenModuleCommandCenterIntent: IntentExports.OpenModuleCommandCenterIntent,
+  OpenUserCommandCenterIntent: IntentExports.OpenUserCommandCenterIntent,
   ResetStudentFruitPasswordIntent: IntentExports.ResetStudentFruitPasswordIntent,
   SetStudentStatusIntent: IntentExports.SetStudentStatusIntent,
   UpdateClassIntent: IntentExports.UpdateClassIntent,

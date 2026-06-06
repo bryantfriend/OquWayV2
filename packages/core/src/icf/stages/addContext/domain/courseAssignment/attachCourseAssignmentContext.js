@@ -1,4 +1,4 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.79-user-command-center";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.80-course-module-command-center";
 
 export async function attachCourseAssignmentCourseContext(executionState) {
   var payload = executionState.payload || {};

@@ -1,4 +1,4 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.63-external-task-student-feedback";
+import { getModuleById } from "../../../../../../../domain/modules/index.js";
 
 export async function attachModuleDocument(executionState) {
     const { payload } = executionState;
@@ -31,9 +31,9 @@ export async function attachModuleDocument(executionState) {
     }
 
     try {
-        const lookupResult = await readModuleSnap(executionState, courseId, moduleId);
+        const lookupResult = await readModuleRecord(executionState, courseId, moduleId);
 
-        if (!lookupResult.snap.exists()) {
+        if (!lookupResult.module) {
             if (isDevelopmentLoggingEnabled()) {
                 console.warn("[module-editor:open] module lookup failed", {
                     courseId: courseId,
@@ -51,7 +51,7 @@ export async function attachModuleDocument(executionState) {
         return {
             valid: true,
             data: {
-                module: { id: lookupResult.snap.id, ...lookupResult.snap.data() },
+                module: lookupResult.module,
                 modulePath: lookupResult.path,
                 courseCollectionName: lookupResult.courseCollectionName
             }
@@ -64,48 +64,34 @@ export async function attachModuleDocument(executionState) {
     }
 }
 
-async function readModuleSnap(executionState, courseId, moduleId) {
-    const attemptedPaths = [];
+async function readModuleRecord(executionState, courseId, moduleId) {
     const collectionNames = readCandidateCourseCollections(executionState);
-    let index = 0;
-
-    while (index < collectionNames.length) {
-        const collectionName = collectionNames[index];
-        const path = collectionName + "/" + courseId + "/modules/" + moduleId;
-        const docSnap = await getDoc(doc(db, collectionName, courseId, "modules", moduleId));
-        attemptedPaths.push(path);
-
-        if (docSnap.exists()) {
-            return {
-                courseCollectionName: collectionName,
-                path: path,
-                snap: docSnap,
-                attemptedPaths: attemptedPaths
-            };
-        }
-
-        index = index + 1;
-    }
-
-    const legacyPath = "modules/" + moduleId;
-    const legacySnap = await getDoc(doc(db, "modules", moduleId));
-    attemptedPaths.push(legacyPath);
-
-    if (legacySnap.exists()) {
-        return {
-            courseCollectionName: readCourseCollectionName(executionState),
-            path: legacyPath,
-            snap: legacySnap,
-            attemptedPaths: attemptedPaths
-        };
-    }
+    const attemptedPaths = collectionNames.map(function (collectionName) {
+        return collectionName + "/" + courseId + "/modules/" + moduleId;
+    }).concat(["modules/" + moduleId]);
+    const moduleRecord = await getModuleById(courseId, moduleId, {
+        sources: collectionNames,
+        includeStandaloneLegacy: true
+    });
 
     return {
-        courseCollectionName: readCourseCollectionName(executionState),
-        path: canonicalModulePath(courseId, moduleId),
-        snap: emptyDocumentSnapshot(),
+        courseCollectionName: moduleRecord && moduleRecord.source && moduleRecord.source !== "modules" ? moduleRecord.source : readCourseCollectionName(executionState),
+        path: readModulePath(moduleRecord, courseId, moduleId),
+        module: moduleRecord,
         attemptedPaths: attemptedPaths
     };
+}
+
+function readModulePath(moduleRecord, courseId, moduleId) {
+    if (moduleRecord && moduleRecord.source === "modules") {
+        return "modules/" + moduleId;
+    }
+
+    if (moduleRecord && moduleRecord.source) {
+        return moduleRecord.source + "/" + courseId + "/modules/" + moduleId;
+    }
+
+    return canonicalModulePath(courseId, moduleId);
 }
 
 function readCandidateCourseCollections(executionState) {
@@ -133,14 +119,6 @@ function readCourseCollectionName(executionState) {
 
 function canonicalModulePath(courseId, moduleId) {
     return "catalogCourses/" + courseId + "/modules/" + moduleId;
-}
-
-function emptyDocumentSnapshot() {
-    return {
-        exists: function () {
-            return false;
-        }
-    };
 }
 
 function isDevelopmentLoggingEnabled() {

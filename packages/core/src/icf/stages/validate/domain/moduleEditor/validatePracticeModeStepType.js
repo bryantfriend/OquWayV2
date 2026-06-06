@@ -1,4 +1,4 @@
-import { isSupportedStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.79-user-command-center";
+import { isSupportedStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.80-course-module-command-center";
 
 export function validatePracticeModeStepType(executionState) {
   var payload = executionState.payload;

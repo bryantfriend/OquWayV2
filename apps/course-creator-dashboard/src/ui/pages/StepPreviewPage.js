@@ -1,9 +1,9 @@
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.79-user-command-center";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.79-user-command-center";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.80-course-module-command-center";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.80-course-module-command-center";
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../../../../../packages/domain/steps/index.js?v=1.1.79-user-command-center";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.80-course-module-command-center";
 
 export class StepPreviewPage {
   constructor(courseId, moduleId, modeId, stepId) {
