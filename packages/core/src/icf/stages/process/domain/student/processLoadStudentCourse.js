@@ -1,9 +1,9 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.121-student-dashboard-open-clean";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.121-student-dashboard-open-clean";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.121-student-dashboard-open-clean";
-import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.121-student-dashboard-open-clean";
-import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason, resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.121-student-dashboard-open-clean";
-import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.121-student-dashboard-open-clean";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.124-location-icon-upload";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.124-location-icon-upload";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.124-location-icon-upload";
+import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.124-location-icon-upload";
+import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason, resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.124-location-icon-upload";
+import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.124-location-icon-upload";
 
 export async function processLoadStudentCourse(executionState) {
   var actor = executionState.actor;

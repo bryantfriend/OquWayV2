@@ -1,4 +1,4 @@
-import { hasAnyRole } from "../../authorize/core/roleAuthorization.js?v=1.1.121-student-dashboard-open-clean";
+import { hasAnyRole } from "../../authorize/core/roleAuthorization.js?v=1.1.124-location-icon-upload";
 
 export function requireRoleValidation(actor, requiredRole) {
     if (!actor) {

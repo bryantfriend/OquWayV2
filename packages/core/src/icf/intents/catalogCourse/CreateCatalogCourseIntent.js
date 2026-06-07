@@ -1,11 +1,11 @@
-import { catalogCourseRequireTitleValidation, catalogCourseRequireLanguagesValidation } from "../../stages/validate/validators.js?v=1.1.117-student-identity-binding";
-import { normalizeCourseMetadata } from "../../stages/normalize/normalizers.js?v=1.1.117-student-identity-binding";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.117-student-identity-binding";
-import { attachTenantContext } from "../../stages/addContext/contexts.js?v=1.1.117-student-identity-binding";
-import { attachTimestampContext, attachCreatedByContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.117-student-identity-binding";
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.117-student-identity-binding";
-import { catalogCourseCreateRecordProcessing } from "../../stages/process/processors.js?v=1.1.117-student-identity-binding";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.117-student-identity-binding";
+import { catalogCourseRequireTitleValidation, catalogCourseRequireLanguagesValidation } from "../../stages/validate/validators.js?v=1.1.124-location-icon-upload";
+import { normalizeCourseMetadata } from "../../stages/normalize/normalizers.js?v=1.1.124-location-icon-upload";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.124-location-icon-upload";
+import { attachTenantContext } from "../../stages/addContext/contexts.js?v=1.1.124-location-icon-upload";
+import { attachTimestampContext, attachCreatedByContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.124-location-icon-upload";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.124-location-icon-upload";
+import { catalogCourseCreateRecordProcessing } from "../../stages/process/processors.js?v=1.1.124-location-icon-upload";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.124-location-icon-upload";
 
 export function CreateCatalogCourseIntent() {
     return {
@@ -30,7 +30,7 @@ export function CreateCatalogCourseIntent() {
         ],
         process: [
             catalogCourseCreateRecordProcessing
-        ],
+        ],
         emit: [
             emitIntentResult
         ]

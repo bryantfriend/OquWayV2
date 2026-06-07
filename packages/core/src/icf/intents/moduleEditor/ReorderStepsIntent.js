@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateCourseId, validateModuleId, validatePracticeModeKey, validateSessionId } from "../../stages/validate/validators.js?v=1.1.121-student-dashboard-open-clean";
-import { normalizeCourseId } from "../../stages/normalize/normalizers.js?v=1.1.121-student-dashboard-open-clean";
-import { attachActorContext, attachActorRoleContext, attachCourseDocumentForModule, attachModuleDocument, attachSessionDocument } from "../../stages/addContext/contexts.js?v=1.1.121-student-dashboard-open-clean";
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.121-student-dashboard-open-clean";
-import { processReorderPracticeModeSteps } from "../../stages/process/processors.js?v=1.1.121-student-dashboard-open-clean";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.121-student-dashboard-open-clean";
+import { validateAuthenticated, validateCourseId, validateModuleId, validatePracticeModeKey, validateSessionId } from "../../stages/validate/validators.js?v=1.1.124-location-icon-upload";
+import { normalizeCourseId } from "../../stages/normalize/normalizers.js?v=1.1.124-location-icon-upload";
+import { attachActorContext, attachActorRoleContext, attachCourseDocumentForModule, attachModuleDocument, attachSessionDocument } from "../../stages/addContext/contexts.js?v=1.1.124-location-icon-upload";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.124-location-icon-upload";
+import { processReorderPracticeModeSteps } from "../../stages/process/processors.js?v=1.1.124-location-icon-upload";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.124-location-icon-upload";
 
 export function ReorderStepsIntent() {
   return {

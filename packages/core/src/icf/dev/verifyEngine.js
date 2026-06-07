@@ -3,12 +3,12 @@
 // ICF Engine Verification Runner
 //
 // Usage from browser console:
-//   import("./packages/core/src/icf/dev/verifyEngine.js?v=1.1.121-student-dashboard-open-clean").then(function (m) { m.verifyEngine(); });
+//   import("./packages/core/src/icf/dev/verifyEngine.js?v=1.1.124-location-icon-upload").then(function (m) { m.verifyEngine(); });
 //
 // Or call verifyEngine() after importing this module in your app entry point.
 
-import { createIntent } from "../engine/createIntent.js?v=1.1.121-student-dashboard-open-clean";
-import { runIntentPipeline } from "../engine/runIntentPipeline.js?v=1.1.121-student-dashboard-open-clean";
+import { createIntent } from "../engine/createIntent.js?v=1.1.124-location-icon-upload";
+import { runIntentPipeline } from "../engine/runIntentPipeline.js?v=1.1.124-location-icon-upload";
 
 export async function verifyEngine() {
   console.info("");

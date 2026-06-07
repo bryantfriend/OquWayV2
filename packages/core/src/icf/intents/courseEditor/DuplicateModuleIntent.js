@@ -1,10 +1,10 @@
-import { validateAuthenticated, validateCourseId, validateModuleExists } from "../../stages/validate/validators.js?v=1.1.117-student-identity-binding";
-import { normalizeCourseId } from "../../stages/normalize/normalizers.js?v=1.1.117-student-identity-binding";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.117-student-identity-binding";
-import { attachCourseDocument, attachModulesCollection, attachModule } from "../../stages/addContext/contexts.js?v=1.1.117-student-identity-binding";
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.117-student-identity-binding";
-import { processDuplicateModule } from "../../stages/process/processors.js?v=1.1.117-student-identity-binding";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.117-student-identity-binding";
+import { validateAuthenticated, validateCourseId, validateModuleExists } from "../../stages/validate/validators.js?v=1.1.124-location-icon-upload";
+import { normalizeCourseId } from "../../stages/normalize/normalizers.js?v=1.1.124-location-icon-upload";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.124-location-icon-upload";
+import { attachCourseDocument, attachModulesCollection, attachModule } from "../../stages/addContext/contexts.js?v=1.1.124-location-icon-upload";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.124-location-icon-upload";
+import { processDuplicateModule } from "../../stages/process/processors.js?v=1.1.124-location-icon-upload";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.124-location-icon-upload";
 
 export function DuplicateModuleIntent() {
     return {
@@ -29,7 +29,7 @@ export function DuplicateModuleIntent() {
         ],
         process: [
             processDuplicateModule
-        ],
+        ],
         emit: [
             emitIntentResult
         ]

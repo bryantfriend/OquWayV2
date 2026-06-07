@@ -1,8 +1,8 @@
-import { validateAuthenticated } from "../../stages/validate/validators.js?v=1.1.121-student-dashboard-open-clean";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.121-student-dashboard-open-clean";
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.121-student-dashboard-open-clean";
-import { catalogCourseFetchAllProcessing } from "../../stages/process/processors.js?v=1.1.121-student-dashboard-open-clean";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.121-student-dashboard-open-clean";
+import { validateAuthenticated } from "../../stages/validate/validators.js?v=1.1.124-location-icon-upload";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.124-location-icon-upload";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.124-location-icon-upload";
+import { catalogCourseFetchAllProcessing } from "../../stages/process/processors.js?v=1.1.124-location-icon-upload";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.124-location-icon-upload";
 
 export function ListCoursesIntent() {
   return {

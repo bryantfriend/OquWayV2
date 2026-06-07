@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateCourseAssignmentOwnershipPayload } from "../../stages/validate/validators.js?v=1.1.121-student-dashboard-open-clean";
-import { normalizeCourseAssignmentOwnershipPayload } from "../../stages/normalize/normalizers.js?v=1.1.121-student-dashboard-open-clean";
-import { attachActorContext, attachActorRoleContext, attachCourseAssignmentContext } from "../../stages/addContext/contexts.js?v=1.1.121-student-dashboard-open-clean";
-import { requireCourseAssignmentOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.121-student-dashboard-open-clean";
-import { processAssignCourseAssistants } from "../../stages/process/processors.js?v=1.1.121-student-dashboard-open-clean";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.121-student-dashboard-open-clean";
+import { validateAuthenticated, validateCourseAssignmentOwnershipPayload } from "../../stages/validate/validators.js?v=1.1.124-location-icon-upload";
+import { normalizeCourseAssignmentOwnershipPayload } from "../../stages/normalize/normalizers.js?v=1.1.124-location-icon-upload";
+import { attachActorContext, attachActorRoleContext, attachCourseAssignmentContext } from "../../stages/addContext/contexts.js?v=1.1.124-location-icon-upload";
+import { requireCourseAssignmentOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.124-location-icon-upload";
+import { processAssignCourseAssistants } from "../../stages/process/processors.js?v=1.1.124-location-icon-upload";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.124-location-icon-upload";
 
 export function AssignCourseAssistantsIntent() {
   return {

@@ -1,4 +1,4 @@
-import { db, doc, getDoc, collection, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.121-student-dashboard-open-clean";
+import { db, doc, getDoc, collection, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.124-location-icon-upload";
 
 export async function attachStepRegistryDefinitionForStep(executionState) {
     const { payload } = executionState;

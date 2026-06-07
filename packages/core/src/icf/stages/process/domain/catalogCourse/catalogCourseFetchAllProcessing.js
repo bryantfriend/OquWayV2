@@ -1,4 +1,4 @@
-import { db, collection, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.121-student-dashboard-open-clean";
+import { db, collection, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.124-location-icon-upload";
 
 const COURSE_COUNT_CONCURRENCY = 4;
 const MODULE_COUNT_CONCURRENCY = 4;

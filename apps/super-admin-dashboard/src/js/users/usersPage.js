@@ -1,7 +1,7 @@
-import { updateAppState } from "../app/appState.js?v=1.1.121-student-dashboard-open-clean";
-import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.121-student-dashboard-open-clean";
-import { renderUsersRoleCards, renderUsersTableRows } from "./usersRenderer.js?v=1.1.121-student-dashboard-open-clean";
-import { collectUserRoles } from "../../../../../packages/domain/users/index.js?v=1.1.121-student-dashboard-open-clean";
+import { updateAppState } from "../app/appState.js?v=1.1.124-location-icon-upload";
+import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.124-location-icon-upload";
+import { renderUsersRoleCards, renderUsersTableRows } from "./usersRenderer.js?v=1.1.124-location-icon-upload";
+import { collectUserRoles } from "../../../../../packages/domain/users/index.js?v=1.1.124-location-icon-upload";
 
 export async function loadUsersPage(context) {
   var result = await runAdminIntent("LoadUsersIntent", {}, context || {});

@@ -1,12 +1,12 @@
-import { catalogCourseRequireTagValidation } from "../../stages/validate/validators.js?v=1.1.121-student-dashboard-open-clean";
-import { catalogCourseNormalizeTagNormalization } from "../../stages/normalize/normalizers.js?v=1.1.121-student-dashboard-open-clean";
-import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.121-student-dashboard-open-clean";
-import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.121-student-dashboard-open-clean";
-import { attachExistingCourseContext } from "../../stages/addContext/contexts.js?v=1.1.121-student-dashboard-open-clean";
-import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.121-student-dashboard-open-clean";
-import { preventModificationIfPublishedAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.121-student-dashboard-open-clean";
-import { catalogCourseRemoveTagProcessing, catalogCourseUpdateMetadataProcessing } from "../../stages/process/processors.js?v=1.1.121-student-dashboard-open-clean";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.121-student-dashboard-open-clean";
+import { catalogCourseRequireTagValidation } from "../../stages/validate/validators.js?v=1.1.124-location-icon-upload";
+import { catalogCourseNormalizeTagNormalization } from "../../stages/normalize/normalizers.js?v=1.1.124-location-icon-upload";
+import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.124-location-icon-upload";
+import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.124-location-icon-upload";
+import { attachExistingCourseContext } from "../../stages/addContext/contexts.js?v=1.1.124-location-icon-upload";
+import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.124-location-icon-upload";
+import { preventModificationIfPublishedAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.124-location-icon-upload";
+import { catalogCourseRemoveTagProcessing, catalogCourseUpdateMetadataProcessing } from "../../stages/process/processors.js?v=1.1.124-location-icon-upload";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.124-location-icon-upload";
 
 export function RemoveTagFromCatalogCourseIntent() {
     return {

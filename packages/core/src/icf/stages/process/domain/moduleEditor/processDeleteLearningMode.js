@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.121-student-dashboard-open-clean";
-import { PRIMARY_MODE_ID, createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.121-student-dashboard-open-clean";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.124-location-icon-upload";
+import { PRIMARY_MODE_ID, createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.124-location-icon-upload";
 
 export async function processDeleteLearningMode(executionState) {
   var payload = executionState.payload;

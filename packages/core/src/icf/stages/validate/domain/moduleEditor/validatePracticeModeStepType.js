@@ -1,4 +1,4 @@
-import { isSupportedStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.121-student-dashboard-open-clean";
+import { isSupportedStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.124-location-icon-upload";
 
 export function validatePracticeModeStepType(executionState) {
   var payload = executionState.payload;

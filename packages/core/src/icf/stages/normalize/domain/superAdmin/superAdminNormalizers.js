@@ -2,7 +2,12 @@ export function normalizeLocationPayload(executionState) {
   var payload = executionState.payload || {};
   var normalizedStatus = normalizeStatus(payload.status);
   var normalizedSlug = normalizeLoginSlug(payload.loginSlug);
-  var photoUrl = normalizeText(payload.photoUrl || payload.imageUrl);
+  var iconUrl = normalizeText(payload.iconUrl || payload.schoolIconUrl || payload.logoUrl || (payload.branding && payload.branding.iconUrl));
+  var photoUrl = normalizeText(payload.photoUrl || payload.imageUrl || iconUrl);
+
+  if (!iconUrl) {
+    iconUrl = photoUrl;
+  }
 
   return {
     locationId: normalizeText(payload.locationId),
@@ -14,6 +19,10 @@ export function normalizeLocationPayload(executionState) {
     schoolCode: normalizeText(payload.schoolCode),
     photoUrl: photoUrl,
     imageUrl: photoUrl,
+    iconUrl: iconUrl,
+    iconStoragePath: normalizeText(payload.iconStoragePath),
+    iconUpdatedBy: normalizeText(payload.iconUpdatedBy),
+    iconUploadChanged: payload.iconUploadChanged === true,
     address: normalizeText(payload.address),
     city: normalizeText(payload.city),
     region: normalizeText(payload.region),

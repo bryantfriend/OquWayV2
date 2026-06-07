@@ -1,4 +1,4 @@
-import { processDuplicateLearningMode } from "./processDuplicateLearningMode.js?v=1.1.121-student-dashboard-open-clean";
+import { processDuplicateLearningMode } from "./processDuplicateLearningMode.js?v=1.1.124-location-icon-upload";
 
 export async function processGenerateModeFromPrimary(executionState) {
   executionState.payload = Object.assign({}, executionState.payload, {

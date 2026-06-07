@@ -10,6 +10,7 @@ export function validateLocationPayload(executionState) {
   validateEnum(errors, "loginMode", payload.loginMode, ["fruit", "standard", "hybrid"]);
   validateLoginSlug(errors, payload.loginSlug);
   validateOptionalUrl(errors, "photoUrl", payload.photoUrl || payload.imageUrl);
+  validateOptionalUrl(errors, "iconUrl", payload.iconUrl);
   validateOptionalUrl(errors, "website", payload.website);
   validateOptionalUrl(errors, "twoGisUrl", payload.twoGisUrl);
   validateOptionalUrl(errors, "socialLinks.instagram", payload.socialLinks && payload.socialLinks.instagram);
@@ -41,6 +42,7 @@ export function validateLocationUpdatePayload(executionState) {
   validateEnum(errors, "loginMode", payload.loginMode, ["fruit", "standard", "hybrid"]);
   validateLoginSlug(errors, payload.loginSlug);
   validateOptionalUrl(errors, "photoUrl", payload.photoUrl || payload.imageUrl);
+  validateOptionalUrl(errors, "iconUrl", payload.iconUrl);
   validateOptionalUrl(errors, "website", payload.website);
   validateOptionalUrl(errors, "twoGisUrl", payload.twoGisUrl);
   validateOptionalUrl(errors, "socialLinks.instagram", payload.socialLinks && payload.socialLinks.instagram);

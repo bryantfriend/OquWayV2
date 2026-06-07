@@ -2,7 +2,7 @@ import {
   createLearningModesForTemplate,
   createStarterStepsForMode,
   normalizeLearningContentPayload
-} from "../moduleEditor/learningArchitecture.js?v=1.1.121-student-dashboard-open-clean";
+} from "../moduleEditor/learningArchitecture.js?v=1.1.124-location-icon-upload";
 
 export function processGenerateStarterSteps(executionState) {
   var payload = executionState.payload || {};

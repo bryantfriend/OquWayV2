@@ -102,6 +102,23 @@ service firebase.storage {
       );
     }
 
+    function isAllowedLocationIcon() {
+      return request.resource.size <= 2 * 1024 * 1024
+        && (
+          request.resource.contentType == 'image/png' ||
+          request.resource.contentType == 'image/jpeg' ||
+          request.resource.contentType == 'image/webp'
+        );
+    }
+
+    function canWriteLocationIcon(locationId) {
+      return request.auth != null && (
+        isSchoolAdmin() ||
+        isPlatformAdmin() ||
+        isSuperAdmin()
+      );
+    }
+
     match /external-task-submissions/{courseId}/{moduleId}/{stepId}/{studentId}/{submissionId}/{fileName} {
       allow create: if request.auth != null
         && isSameStudent(studentId)
@@ -131,6 +148,15 @@ service firebase.storage {
         && isAllowedStepMediaImage();
 
       allow delete: if canWriteStepMedia();
+    }
+
+    match /location-icons/{locationId}/{fileName} {
+      allow read: if true;
+
+      allow create, update: if canWriteLocationIcon(locationId)
+        && isAllowedLocationIcon();
+
+      allow delete: if canWriteLocationIcon(locationId);
     }
 
     match /{allPaths=**} {

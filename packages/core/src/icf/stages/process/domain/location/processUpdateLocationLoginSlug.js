@@ -1,4 +1,4 @@
-import { collection, db, doc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.121-student-dashboard-open-clean";
+import { collection, db, doc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.124-location-icon-upload";
 
 export async function processUpdateLocationLoginSlug(executionState) {
   var payload = executionState.payload || {};

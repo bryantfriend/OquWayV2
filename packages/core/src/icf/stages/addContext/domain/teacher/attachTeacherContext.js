@@ -1,4 +1,4 @@
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.121-student-dashboard-open-clean";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.124-location-icon-upload";
 import { getExternalTaskSubmissionById } from "../../../../../../../domain/externalTasks/index.js";
 import { getUserProfileByAuthUid, getUserRoles } from "../../../../../../../domain/users/index.js";
 

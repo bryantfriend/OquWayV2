@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.123-teacher-dashboard-query-optimization";
+import * as IntentExports from "../intents/intents.js?v=1.1.124-location-icon-upload";
 
 const registry = {
   // Demo Verification

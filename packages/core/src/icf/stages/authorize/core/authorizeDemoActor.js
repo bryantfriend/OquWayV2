@@ -1,4 +1,4 @@
-import { hasAnyRole } from "./roleAuthorization.js?v=1.1.121-student-dashboard-open-clean";
+import { hasAnyRole } from "./roleAuthorization.js?v=1.1.124-location-icon-upload";
 
 export function authorizeDemoActor(executionState) {
   if (!executionState.actor || !executionState.actor.id) {

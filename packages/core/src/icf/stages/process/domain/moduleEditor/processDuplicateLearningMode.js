@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.121-student-dashboard-open-clean";
-import { createDefaultLearningModes, createLearningModeRecord, generateLearningModeId } from "./learningArchitecture.js?v=1.1.121-student-dashboard-open-clean";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.124-location-icon-upload";
+import { createDefaultLearningModes, createLearningModeRecord, generateLearningModeId } from "./learningArchitecture.js?v=1.1.124-location-icon-upload";
 
 export async function processDuplicateLearningMode(executionState) {
   var payload = executionState.payload;

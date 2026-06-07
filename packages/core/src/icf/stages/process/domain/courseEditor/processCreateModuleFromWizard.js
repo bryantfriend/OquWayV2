@@ -1,4 +1,4 @@
-import { processCreateModule } from "./processCreateModule.js?v=1.1.121-student-dashboard-open-clean";
+import { processCreateModule } from "./processCreateModule.js?v=1.1.124-location-icon-upload";
 
 export async function processCreateModuleFromWizard(executionState) {
   var payload = executionState.payload || {};

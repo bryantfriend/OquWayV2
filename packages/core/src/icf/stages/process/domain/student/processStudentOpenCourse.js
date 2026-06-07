@@ -1,6 +1,6 @@
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.121-student-dashboard-open-clean";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.121-student-dashboard-open-clean";
-import { resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.121-student-dashboard-open-clean";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.124-location-icon-upload";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.124-location-icon-upload";
+import { resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.124-location-icon-upload";
 
 export async function processStudentOpenCourse(executionState) {
   var payload = executionState.payload || {};

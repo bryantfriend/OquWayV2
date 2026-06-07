@@ -1,4 +1,4 @@
-import { parseLearningContentText } from "../moduleEditor/learningArchitecture.js?v=1.1.121-student-dashboard-open-clean";
+import { parseLearningContentText } from "../moduleEditor/learningArchitecture.js?v=1.1.124-location-icon-upload";
 
 export function processParseLearningContent(executionState) {
   var payload = executionState.payload || {};

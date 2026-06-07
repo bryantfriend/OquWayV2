@@ -1,4 +1,4 @@
-import { createPulledStepDraft } from "./learningArchitecture.js?v=1.1.121-student-dashboard-open-clean";
+import { createPulledStepDraft } from "./learningArchitecture.js?v=1.1.124-location-icon-upload";
 
 export function processPullLearningContent(executionState) {
   var learningContent = executionState.context.module && executionState.context.module.learningContent;

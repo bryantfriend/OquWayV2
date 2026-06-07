@@ -1,13 +1,13 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth, collection, db, deleteDoc, doc, functions, getDoc, getDocs, httpsCallable, serverTimestamp, setDoc, storage } from "../../../../../packages/firebase/index.js?v=1.1.121-student-dashboard-open-clean";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.121-student-dashboard-open-clean";
-import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.121-student-dashboard-open-clean";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.121-student-dashboard-open-clean";
-import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.121-student-dashboard-open-clean";
-import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.121-student-dashboard-open-clean";
+import { auth, collection, db, deleteDoc, deleteObject, doc, functions, getDoc, getDocs, getDownloadURL, httpsCallable, ref, serverTimestamp, setDoc, storage, uploadBytes } from "../../../../../packages/firebase/index.js?v=1.1.124-location-icon-upload";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.124-location-icon-upload";
+import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.124-location-icon-upload";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.124-location-icon-upload";
+import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.124-location-icon-upload";
+import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.124-location-icon-upload";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.82";
+var appVersion = "1.1.124-location-icon-upload";
 var adminCallableFunctions = functions;
 var state = {
   isLoading: true,
@@ -57,6 +57,7 @@ var state = {
     status: ""
   },
   locationForm: createLocationForm(),
+  locationIconDrafts: {},
   userForm: createUserForm(),
   activeUserId: "",
   userCreateOpen: false,
@@ -114,6 +115,8 @@ var state = {
 };
 
 var tabs = ["overview", "locations", "users", "classes", "lessons", "assignments", "loginTools", "analytics", "reports", "settings", "auditLogs"];
+var locationIconAllowedTypes = ["image/png", "image/jpeg", "image/webp"];
+var locationIconMaxBytes = 2 * 1024 * 1024;
 var fruits = ["apple", "watermelon", "banana", "strawberry", "pineapple", "mango", "kiwi", "orange", "cherry"];
 var fruitLabels = {
   apple: "🍎",
@@ -600,6 +603,10 @@ function readOperationDetails() {
   }
 
   if (action.indexOf("create-location") === 0 || action.indexOf("update-location") === 0) {
+    if (state.message === "Uploading icon...") {
+      return { title: "Uploading icon", note: "Saving the image to Firebase Storage before updating the location." };
+    }
+
     return { title: "Saving location", note: "Checking details and updating the location record." };
   }
 
@@ -2377,11 +2384,53 @@ function buildLocationCard(location) {
 }
 
 function buildLocationPhoto(location) {
-  if (location.photoUrl) {
-    return '<img class="sa-location-photo" src="' + escapeHtml(location.photoUrl) + '" alt="">';
+  var imageUrl = readLocationImageUrl(location);
+
+  if (imageUrl) {
+    return '<img class="sa-location-photo" src="' + escapeHtml(imageUrl) + '" alt="">';
   }
 
   return '<div class="sa-location-photo sa-location-photo-fallback">' + escapeHtml(readInitials(location.name || "OQ")) + '</div>';
+}
+
+function buildLocationIconUploadSection(formId, form, isCreate) {
+  var location = getSafeLocation(form || {});
+  var draft = readLocationIconDraft(formId);
+  var previewUrl = draft.previewUrl || readLocationImageUrl(location);
+  var fileName = draft.fileName || readLocationIconFileName(location.iconStoragePath);
+  var disabledAttr = isCreate || isBusy() ? " disabled" : "";
+  var helperText = isCreate ? "Save the location before uploading an icon." : "PNG, JPG, or WEBP. Max 2 MB.";
+  var html = '<section class="sa-location-form-section sa-location-icon-section"><h3>Location Icon</h3>';
+
+  html += '<div class="sa-location-icon-editor">';
+  html += '<div class="sa-location-icon-preview">';
+
+  if (previewUrl) {
+    html += '<img src="' + escapeHtml(previewUrl) + '" alt="">';
+  } else {
+    html += '<span>' + escapeHtml(readInitials(location.name || "OQ")) + '</span>';
+  }
+
+  html += '</div>';
+  html += '<div class="sa-location-icon-controls">';
+  html += '<label class="sa-location-icon-upload"><span>Choose Icon</span><input type="file" data-location-icon-input="true" data-location-id="' + escapeHtml(formId) + '" accept="image/png,image/jpeg,image/webp"' + disabledAttr + '></label>';
+  html += '<p>PNG, JPG, or WEBP. Max 2 MB.</p>';
+  html += '<small>' + escapeHtml(helperText) + '</small>';
+
+  if (fileName) {
+    html += '<small>Selected: ' + escapeHtml(fileName) + '</small>';
+  }
+
+  if (draft.error) {
+    html += '<div class="sa-location-icon-error">' + escapeHtml(draft.error) + '</div>';
+  }
+
+  if (draft.file) {
+    html += '<button type="button" class="sa-text-link" data-action="clear-location-icon-draft" data-id="' + escapeHtml(formId) + '">Clear selected image</button>';
+  }
+
+  html += '</div></div></section>';
+  return html;
 }
 
 function buildStatusBadge(status) {
@@ -2409,6 +2458,8 @@ function buildLocationDetailForm(formId, form, isCreate) {
     + buildTextarea("location", formId, "description", "Description", form.description, "Short internal or public description")
     + buildInput("location", formId, "schoolCode", "School Code", form.schoolCode, "OIS")
     + buildInput("location", formId, "photoUrl", "Photo URL", form.photoUrl, "https://example.com/logo.png", "url"));
+
+  html += buildLocationIconUploadSection(formId, form, isCreate);
 
   html += buildLocationFormSection("Address",
     buildTextarea("location", formId, "address", "Address", form.address, "Street, building, district")
@@ -3981,6 +4032,11 @@ function handleInput(event) {
     return;
   }
 
+  if (target.getAttribute("data-location-icon-input")) {
+    handleLocationIconSelection(target);
+    return;
+  }
+
   if (target.getAttribute("data-field")) {
     updateFormValue(target);
   }
@@ -4038,11 +4094,267 @@ function openLocationCommandCenter(locationId) {
 }
 
 function closeLocationCommandCenter() {
+  var command = state.locationCommandCenter || createLocationCommandCenterState();
+
+  clearLocationIconDraftInPlace(command.locationId || state.activeLocationId);
+
   setState({
     locationCommandCenter: createLocationCommandCenterState(),
     activeLocationId: "",
     message: ""
   });
+}
+
+function readLocationIconDraft(locationId) {
+  var safeLocationId = readSafeString(locationId);
+
+  if (!safeLocationId || !state.locationIconDrafts || !state.locationIconDrafts[safeLocationId]) {
+    return {
+      file: null,
+      previewUrl: "",
+      fileName: "",
+      error: ""
+    };
+  }
+
+  return state.locationIconDrafts[safeLocationId];
+}
+
+function setLocationIconDraft(locationId, draft) {
+  var safeLocationId = readSafeString(locationId);
+  var drafts = Object.assign({}, state.locationIconDrafts || {});
+
+  if (!safeLocationId) {
+    return;
+  }
+
+  drafts[safeLocationId] = Object.assign({
+    file: null,
+    previewUrl: "",
+    fileName: "",
+    error: ""
+  }, draft || {});
+
+  setState({
+    locationIconDrafts: drafts,
+    message: "",
+    messageType: "info"
+  });
+}
+
+function clearSelectedLocationIcon(locationId) {
+  var safeLocationId = readSafeString(locationId);
+  var drafts = Object.assign({}, state.locationIconDrafts || {});
+
+  if (!safeLocationId) {
+    return;
+  }
+
+  delete drafts[safeLocationId];
+  setState({
+    locationIconDrafts: drafts,
+    message: "",
+    messageType: "info"
+  });
+}
+
+function clearLocationIconDraftInPlace(locationId) {
+  var safeLocationId = readSafeString(locationId);
+  var drafts = Object.assign({}, state.locationIconDrafts || {});
+
+  if (!safeLocationId) {
+    return;
+  }
+
+  delete drafts[safeLocationId];
+  state.locationIconDrafts = drafts;
+}
+
+function handleLocationIconSelection(input) {
+  var locationId = readSafeString(input.getAttribute("data-location-id"));
+  var file = input.files && input.files.length > 0 ? input.files[0] : null;
+  var validationError = validateLocationIconFile(file);
+  var reader = null;
+
+  if (!locationId) {
+    return;
+  }
+
+  if (!file) {
+    clearSelectedLocationIcon(locationId);
+    return;
+  }
+
+  if (validationError) {
+    input.value = "";
+    setLocationIconDraft(locationId, {
+      file: null,
+      previewUrl: "",
+      fileName: file.name || "",
+      error: validationError
+    });
+    return;
+  }
+
+  reader = new FileReader();
+  reader.onload = function () {
+    setLocationIconDraft(locationId, {
+      file: file,
+      previewUrl: typeof reader.result === "string" ? reader.result : "",
+      fileName: file.name || "location-icon",
+      error: ""
+    });
+  };
+  reader.onerror = function () {
+    input.value = "";
+    setLocationIconDraft(locationId, {
+      file: null,
+      previewUrl: "",
+      fileName: file.name || "",
+      error: "The selected image could not be previewed. Please choose another file."
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+function validateLocationIconFile(file) {
+  if (!file) {
+    return "";
+  }
+
+  if (locationIconAllowedTypes.indexOf(file.type) === -1) {
+    return "Choose a PNG, JPG, or WEBP image.";
+  }
+
+  if (file.size > locationIconMaxBytes) {
+    return "Icon image must be 2 MB or smaller.";
+  }
+
+  return "";
+}
+
+async function uploadLocationIcon(locationId, file) {
+  var validationError = validateLocationIconFile(file);
+  var safeLocationId = readSafeString(locationId);
+  var storagePath = "";
+  var storageRef = null;
+
+  if (!safeLocationId) {
+    throw new Error("Location ID is required before uploading an icon.");
+  }
+
+  if (validationError) {
+    throw new Error(validationError);
+  }
+
+  storagePath = buildLocationIconStoragePath(safeLocationId, file);
+  storageRef = ref(storage, storagePath);
+
+  await uploadBytes(storageRef, file, {
+    contentType: file.type,
+    customMetadata: {
+      locationId: safeLocationId
+    }
+  });
+
+  return {
+    iconUrl: await getDownloadURL(storageRef),
+    iconStoragePath: storagePath
+  };
+}
+
+function buildLocationIconStoragePath(locationId, file) {
+  return "location-icons/" + normalizeStorageFileNameComponent(locationId) + "/" + Date.now() + "-" + normalizeStorageFileName(file && file.name, file && file.type);
+}
+
+function normalizeStorageFileName(fileName, contentType) {
+  var safeName = readSafeString(fileName).split("\\").pop().split("/").pop().toLowerCase();
+
+  safeName = safeName.replace(/[^a-z0-9._-]+/g, "-");
+  safeName = safeName.replace(/-+/g, "-");
+  safeName = safeName.replace(/^\.+/, "");
+  safeName = safeName.replace(/^-+/, "");
+  safeName = safeName.replace(/-+$/, "");
+
+  if (!safeName) {
+    safeName = "location-icon";
+  }
+
+  if (safeName.indexOf(".") === -1) {
+    safeName += readLocationIconExtension(contentType);
+  }
+
+  return safeName;
+}
+
+function normalizeStorageFileNameComponent(value) {
+  var safeValue = readSafeString(value).toLowerCase();
+
+  safeValue = safeValue.replace(/[^a-z0-9_-]+/g, "-");
+  safeValue = safeValue.replace(/-+/g, "-");
+  safeValue = safeValue.replace(/^-+/, "");
+  safeValue = safeValue.replace(/-+$/, "");
+
+  return safeValue || "location";
+}
+
+function readLocationIconExtension(contentType) {
+  if (contentType === "image/jpeg") {
+    return ".jpg";
+  }
+
+  if (contentType === "image/png") {
+    return ".png";
+  }
+
+  if (contentType === "image/webp") {
+    return ".webp";
+  }
+
+  return "";
+}
+
+async function deletePreviousLocationIcon(previousPath, nextPath) {
+  var safePreviousPath = readSafeString(previousPath);
+  var safeNextPath = readSafeString(nextPath);
+
+  if (!isAllowedLocationIconStoragePath(safePreviousPath) || safePreviousPath === safeNextPath) {
+    return;
+  }
+
+  try {
+    await deleteObject(ref(storage, safePreviousPath));
+  } catch (error) {
+    console.warn("[location-icon-delete-warning]", {
+      iconStoragePath: safePreviousPath,
+      message: error && error.message ? error.message : String(error)
+    });
+  }
+}
+
+function isAllowedLocationIconStoragePath(storagePath) {
+  return /^location-icons\/[^/]+\/[^/]+$/.test(readSafeString(storagePath));
+}
+
+function readLocationImageUrl(location) {
+  var safeLocation = location || {};
+  var branding = safeLocation.branding && typeof safeLocation.branding === "object" ? safeLocation.branding : {};
+
+  return readSafeString(
+    safeLocation.iconUrl ||
+    safeLocation.schoolIconUrl ||
+    safeLocation.logoUrl ||
+    branding.iconUrl ||
+    safeLocation.photoUrl ||
+    safeLocation.imageUrl
+  ).trim();
+}
+
+function readLocationIconFileName(storagePath) {
+  var safePath = readSafeString(storagePath);
+  var parts = safePath.split("/");
+
+  return parts.length > 0 ? parts[parts.length - 1] : "";
 }
 
 function setLocationCommandCenterTab(tabKey) {
@@ -4811,7 +5123,10 @@ async function handleAction(action, id) {
   } else if (action === "location-command-navigate") {
     navigateFromLocationCommandCenter(id);
   } else if (action === "close-location-editor") {
+    clearLocationIconDraftInPlace(id);
     setState({ activeLocationId: "", locationCommandCenter: Object.assign({}, state.locationCommandCenter, { activeTab: "overview" }), message: "" });
+  } else if (action === "clear-location-icon-draft") {
+    clearSelectedLocationIcon(id);
   } else if (action === "create-location") {
     await saveLocation("CreateLocationIntent", state.locationForm, "Location created.", "create-location:new");
   } else if (action === "update-location") {
@@ -5658,6 +5973,11 @@ async function deleteAssignmentWithConfirmation() {
 
 async function saveLocation(intentType, location, successMessage, actionKey) {
   var payload = normalizeLocationForm(location);
+  var iconDraft = readLocationIconDraft(payload.locationId);
+  var previousLocation = getSafeLocation(location || {});
+  var previousIconStoragePath = previousLocation.iconStoragePath;
+  var saveMessage = payload.loginSlug ? "Checking login slug and saving..." : "Saving location...";
+  var uploadedIcon = null;
   var validationError = validateLocationForm(payload);
 
   if (validationError) {
@@ -5670,10 +5990,57 @@ async function saveLocation(intentType, location, successMessage, actionKey) {
     return false;
   }
 
-  setState({ isSaving: true, pendingAction: actionKey, message: payload.loginSlug ? "Checking login slug and saving..." : "Saving location...", messageType: "info" });
+  if (iconDraft.error) {
+    setState({ message: iconDraft.error, messageType: "error" });
+    return false;
+  }
+
+  if (iconDraft.file && !payload.locationId) {
+    setState({ message: "Save the location before uploading an icon.", messageType: "error" });
+    return false;
+  }
+
+  setState({ isSaving: true, pendingAction: actionKey, message: iconDraft.file ? "Uploading icon..." : saveMessage, messageType: "info" });
+
+  if (iconDraft.file) {
+    try {
+      uploadedIcon = await uploadLocationIcon(payload.locationId, iconDraft.file);
+      payload.photoUrl = uploadedIcon.iconUrl;
+      payload.imageUrl = uploadedIcon.iconUrl;
+      payload.iconUrl = uploadedIcon.iconUrl;
+      payload.iconStoragePath = uploadedIcon.iconStoragePath;
+      payload.iconUpdatedBy = state.actor ? state.actor.id : "";
+      payload.iconUploadChanged = true;
+      setState({ isSaving: true, pendingAction: actionKey, message: saveMessage, messageType: "info" });
+    } catch (error) {
+      var drafts = Object.assign({}, state.locationIconDrafts || {});
+
+      drafts[payload.locationId] = Object.assign({}, iconDraft, {
+        error: "Icon upload failed. Please try again."
+      });
+      console.warn("[location-icon-upload-warning]", {
+        locationId: payload.locationId,
+        message: error && error.message ? error.message : String(error)
+      });
+      setState({
+        isSaving: false,
+        pendingAction: "",
+        locationIconDrafts: drafts,
+        message: "Icon upload failed. Please try again.",
+        messageType: "error"
+      });
+      return false;
+    }
+  }
+
   var result = await runAdminIntent(intentType, payload);
 
   if (isSuccess(result)) {
+    if (uploadedIcon) {
+      await deletePreviousLocationIcon(previousIconStoragePath, uploadedIcon.iconStoragePath);
+      clearLocationIconDraftInPlace(payload.locationId);
+    }
+
     state.locationForm = createLocationForm();
     state.locationCreateOpen = false;
     state.activeLocationId = "";
@@ -6333,6 +6700,9 @@ function normalizeLocationForm(location) {
     schoolCode: safeLocation.schoolCode,
     photoUrl: safeLocation.photoUrl,
     imageUrl: safeLocation.photoUrl,
+    iconUrl: safeLocation.iconUrl,
+    iconStoragePath: safeLocation.iconStoragePath,
+    iconUpdatedBy: safeLocation.iconUpdatedBy,
     address: safeLocation.address,
     city: safeLocation.city,
     region: safeLocation.region,
@@ -7535,6 +7905,10 @@ function getDefaultLocation() {
     schoolCode: "",
     photoUrl: "",
     imageUrl: "",
+    iconUrl: "",
+    iconStoragePath: "",
+    iconUpdatedAt: null,
+    iconUpdatedBy: "",
     address: "",
     city: "",
     region: "",
@@ -7577,11 +7951,16 @@ function getSafeLocation(location) {
   var socialLinks = Object.assign({}, defaults.socialLinks, location && location.socialLinks ? location.socialLinks : {});
   var subscription = Object.assign({}, defaults.subscription, location && location.subscription ? location.subscription : {});
   var safeLocation = Object.assign({}, defaults, location || {});
+  var iconUrl = readLocationImageUrl(safeLocation);
 
   safeLocation.status = normalizeLocationStatus(safeLocation);
   safeLocation.isArchived = safeLocation.status === "archived";
-  safeLocation.photoUrl = readSafeString(safeLocation.photoUrl || safeLocation.imageUrl);
+  safeLocation.photoUrl = readSafeString(safeLocation.photoUrl || safeLocation.imageUrl || iconUrl);
   safeLocation.imageUrl = safeLocation.photoUrl;
+  safeLocation.iconUrl = readSafeString(safeLocation.iconUrl || safeLocation.photoUrl);
+  safeLocation.iconStoragePath = readSafeString(safeLocation.iconStoragePath);
+  safeLocation.iconUpdatedAt = safeLocation.iconUpdatedAt || null;
+  safeLocation.iconUpdatedBy = readSafeString(safeLocation.iconUpdatedBy);
   safeLocation.socialLinks = {
     instagram: readSafeString(socialLinks.instagram),
     facebook: readSafeString(socialLinks.facebook),
@@ -10641,5 +11020,3 @@ window.goSuperAdmin = function () {
   state.activeTab = "overview";
   render();
 };
-
-

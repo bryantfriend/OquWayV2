@@ -9,4 +9,4 @@ export {
   serverTimestamp,
   setDoc,
   where
-} from "../../core/src/infrastructure/firebase/firestore.js?v=1.1.121-student-dashboard-open-clean";
+} from "../../core/src/infrastructure/firebase/firestore.js?v=1.1.124-location-icon-upload";

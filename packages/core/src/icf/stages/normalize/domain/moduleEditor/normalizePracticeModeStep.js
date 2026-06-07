@@ -1,4 +1,4 @@
-import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.121-student-dashboard-open-clean";
+import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.124-location-icon-upload";
 
 export function normalizePracticeModeStep(executionState) {
   var payload = executionState.payload;

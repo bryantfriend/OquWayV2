@@ -1,12 +1,12 @@
 import { validateAuthenticated, validateCourseMetadataPayload }
-  from "../../stages/validate/validators.js?v=1.1.121-student-dashboard-open-clean";
-import { normalizeCourseMetadata } from "../../stages/normalize/normalizers.js?v=1.1.121-student-dashboard-open-clean";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.121-student-dashboard-open-clean";
-import { attachTenantContext } from "../../stages/addContext/contexts.js?v=1.1.121-student-dashboard-open-clean";
-import { attachCreatedByContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.121-student-dashboard-open-clean";
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.121-student-dashboard-open-clean";
-import { catalogCourseCreateRecordProcessing } from "../../stages/process/processors.js?v=1.1.121-student-dashboard-open-clean";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.121-student-dashboard-open-clean";
+  from "../../stages/validate/validators.js?v=1.1.124-location-icon-upload";
+import { normalizeCourseMetadata } from "../../stages/normalize/normalizers.js?v=1.1.124-location-icon-upload";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.124-location-icon-upload";
+import { attachTenantContext } from "../../stages/addContext/contexts.js?v=1.1.124-location-icon-upload";
+import { attachCreatedByContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.124-location-icon-upload";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.124-location-icon-upload";
+import { catalogCourseCreateRecordProcessing } from "../../stages/process/processors.js?v=1.1.124-location-icon-upload";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.124-location-icon-upload";
 
 export function CreateCourseIntent() {
   return {

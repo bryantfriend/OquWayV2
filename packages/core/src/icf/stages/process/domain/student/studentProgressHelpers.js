@@ -1,6 +1,6 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.121-student-dashboard-open-clean";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.124-location-icon-upload";
 import { createDefaultProgressDocument as createSharedDefaultProgressDocument } from "../../../../../../../domain/progress/index.js";
-import { resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.121-student-dashboard-open-clean";
+import { resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.124-location-icon-upload";
 
 export function createDefaultProgressDocument(courseId, moduleId, sessionId) {
   return createSharedDefaultProgressDocument(courseId, moduleId, sessionId);

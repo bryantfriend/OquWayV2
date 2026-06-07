@@ -1,8 +1,8 @@
-import { validateTeacherLoginPayload } from "../../stages/validate/validators.js?v=1.1.123-teacher-dashboard-query-optimization";
-import { normalizeTeacherLoginPayload } from "../../stages/normalize/normalizers.js?v=1.1.123-teacher-dashboard-query-optimization";
-import { allowTeacherLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.123-teacher-dashboard-query-optimization";
-import { processTeacherLogin } from "../../stages/process/processors.js?v=1.1.123-teacher-dashboard-query-optimization";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.123-teacher-dashboard-query-optimization";
+import { validateTeacherLoginPayload } from "../../stages/validate/validators.js?v=1.1.124-location-icon-upload";
+import { normalizeTeacherLoginPayload } from "../../stages/normalize/normalizers.js?v=1.1.124-location-icon-upload";
+import { allowTeacherLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.124-location-icon-upload";
+import { processTeacherLogin } from "../../stages/process/processors.js?v=1.1.124-location-icon-upload";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.124-location-icon-upload";
 
 export function TeacherLoginIntent() {
   return {
