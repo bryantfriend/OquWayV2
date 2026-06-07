@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.120-student-course-debug-summary";
-import { createDefaultPracticeModes } from "./practiceModeShells.js?v=1.1.120-student-course-debug-summary";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.121-student-dashboard-open-clean";
+import { createDefaultPracticeModes } from "./practiceModeShells.js?v=1.1.121-student-dashboard-open-clean";
 
 export async function processCreateSession(executionState) {
   const payload = executionState.payload;

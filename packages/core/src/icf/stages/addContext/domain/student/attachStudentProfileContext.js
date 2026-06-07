@@ -1,4 +1,4 @@
-import { getStudentProfileByAuthUid, readAssignedCourseIds, resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.120-student-course-debug-summary";
+import { getStudentProfileByAuthUid, readAssignedCourseIds, resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.121-student-dashboard-open-clean";
 
 export async function attachStudentProfileContext(executionState) {
   var actor = executionState.actor;

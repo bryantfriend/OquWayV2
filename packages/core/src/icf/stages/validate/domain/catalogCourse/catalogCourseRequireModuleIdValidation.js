@@ -1,7 +1,7 @@
-import { requireStringValidation } from "../../validators.js?v=1.1.120-student-course-debug-summary";
-import { requireNonEmptyArrayValidation } from "../../validators.js?v=1.1.120-student-course-debug-summary";
-import { requireEnumValidation } from "../../validators.js?v=1.1.120-student-course-debug-summary";
-import { requireUUIDValidation } from "../../validators.js?v=1.1.120-student-course-debug-summary";
+import { requireStringValidation } from "../../validators.js?v=1.1.121-student-dashboard-open-clean";
+import { requireNonEmptyArrayValidation } from "../../validators.js?v=1.1.121-student-dashboard-open-clean";
+import { requireEnumValidation } from "../../validators.js?v=1.1.121-student-dashboard-open-clean";
+import { requireUUIDValidation } from "../../validators.js?v=1.1.121-student-dashboard-open-clean";
 
 export function catalogCourseRequireModuleIdValidation(executionState) {
     const { payload } = executionState;

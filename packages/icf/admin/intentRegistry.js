@@ -1,4 +1,4 @@
-import { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.120-student-course-debug-summary";
+import { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.121-student-dashboard-open-clean";
 
 var intents = {};
 

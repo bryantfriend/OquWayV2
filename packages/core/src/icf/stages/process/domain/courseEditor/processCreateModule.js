@@ -1,11 +1,11 @@
-import { db, collection, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.120-student-course-debug-summary";
-import { createDefaultPracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.120-student-course-debug-summary";
+import { db, collection, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.121-student-dashboard-open-clean";
+import { createDefaultPracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.121-student-dashboard-open-clean";
 import {
   createDefaultLearningContent,
   createLearningModesForTemplate,
   createStarterStepsForMode,
   normalizeLearningContentPayload
-} from "../moduleEditor/learningArchitecture.js?v=1.1.120-student-course-debug-summary";
+} from "../moduleEditor/learningArchitecture.js?v=1.1.121-student-dashboard-open-clean";
 
 export async function processCreateModule(executionState) {
   const payload = executionState.payload;

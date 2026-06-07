@@ -1,5 +1,5 @@
-import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.120-student-course-debug-summary";
-import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.120-student-course-debug-summary";
+import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.121-student-dashboard-open-clean";
+import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.121-student-dashboard-open-clean";
 
 export class CatalogCoursePage {
   constructor() {

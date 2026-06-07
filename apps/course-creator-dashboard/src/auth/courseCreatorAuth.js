@@ -3,8 +3,8 @@ import {
     getUserProfileByAuthUid,
     getUserRoles,
     normalizeUserRole
-} from "../../../../packages/domain/users/index.js?v=1.1.120-student-course-debug-summary";
-import { canAccessCourseCreator } from "../../../../packages/permissions/index.js?v=1.1.120-student-course-debug-summary";
+} from "../../../../packages/domain/users/index.js?v=1.1.121-student-dashboard-open-clean";
+import { canAccessCourseCreator } from "../../../../packages/permissions/index.js?v=1.1.121-student-dashboard-open-clean";
 
 export const ALLOWED_COURSE_CREATOR_ROLES = [
     "superAdmin",

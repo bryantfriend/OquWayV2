@@ -1,4 +1,4 @@
-import { hasAnyRole } from "./roleAuthorization.js?v=1.1.120-student-course-debug-summary";
+import { hasAnyRole } from "./roleAuthorization.js?v=1.1.121-student-dashboard-open-clean";
 
 export function authorizeDemoActor(executionState) {
   if (!executionState.actor || !executionState.actor.id) {

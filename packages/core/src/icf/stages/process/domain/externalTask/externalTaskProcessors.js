@@ -5,8 +5,8 @@ import {
   getStudentExternalTaskSubmissions,
   updateExternalTaskReview,
   uploadExternalTaskFile
-} from "../../../../../../../domain/externalTasks/index.js?v=1.1.120-student-course-debug-summary";
-import { resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.120-student-course-debug-summary";
+} from "../../../../../../../domain/externalTasks/index.js?v=1.1.121-student-dashboard-open-clean";
+import { resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.121-student-dashboard-open-clean";
 
 export async function processLoadExternalTaskStep(executionState) {
   var payload = executionState.payload || {};

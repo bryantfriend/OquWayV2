@@ -1,5 +1,5 @@
-import { db, doc, getDoc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.120-student-course-debug-summary";
-import { buildCourseAssignmentOwnershipFields, readCourseAssignmentOwnership } from "./courseAssignmentOwnershipHelpers.js?v=1.1.120-student-course-debug-summary";
+import { db, doc, getDoc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.121-student-dashboard-open-clean";
+import { buildCourseAssignmentOwnershipFields, readCourseAssignmentOwnership } from "./courseAssignmentOwnershipHelpers.js?v=1.1.121-student-dashboard-open-clean";
 
 export async function processLoadCourseAssignmentOwnership(executionState) {
   var payload = executionState.payload || {};

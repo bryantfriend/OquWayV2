@@ -3,4 +3,4 @@ export {
   ref,
   storage,
   uploadBytes
-} from "../../core/src/infrastructure/firebase/storage.js?v=1.1.120-student-course-debug-summary";
+} from "../../core/src/infrastructure/firebase/storage.js?v=1.1.121-student-dashboard-open-clean";

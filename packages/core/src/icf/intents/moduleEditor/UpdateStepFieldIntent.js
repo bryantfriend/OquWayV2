@@ -1,8 +1,8 @@
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.120-student-course-debug-summary";
-import { attachStepsCollection } from "../../stages/addContext/contexts.js?v=1.1.120-student-course-debug-summary";
-import { processUpdateStepField } from "../../stages/process/processors.js?v=1.1.120-student-course-debug-summary";
-import { validateCourseId, validateModuleId, validateStepFieldKey, validateStepId } from "../../stages/validate/validators.js?v=1.1.120-student-course-debug-summary";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.120-student-course-debug-summary";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.121-student-dashboard-open-clean";
+import { attachStepsCollection } from "../../stages/addContext/contexts.js?v=1.1.121-student-dashboard-open-clean";
+import { processUpdateStepField } from "../../stages/process/processors.js?v=1.1.121-student-dashboard-open-clean";
+import { validateCourseId, validateModuleId, validateStepFieldKey, validateStepId } from "../../stages/validate/validators.js?v=1.1.121-student-dashboard-open-clean";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.121-student-dashboard-open-clean";
 
 export function UpdateStepFieldIntent() {
     return {

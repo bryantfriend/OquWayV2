@@ -1,4 +1,4 @@
-import { db, doc, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.120-student-course-debug-summary";
+import { db, doc, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.121-student-dashboard-open-clean";
 
 export async function catalogCourseArchiveProcessing(executionState) {
     const { payload, context } = executionState;

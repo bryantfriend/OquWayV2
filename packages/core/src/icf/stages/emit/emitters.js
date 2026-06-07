@@ -1,2 +1,2 @@
-export { emitIntentResult } from "./core/emitIntentResult.js?v=1.1.120-student-course-debug-summary";
-export { emitDemoResult } from "./core/emitDemoResult.js?v=1.1.120-student-course-debug-summary";
+export { emitIntentResult } from "./core/emitIntentResult.js?v=1.1.121-student-dashboard-open-clean";
+export { emitDemoResult } from "./core/emitDemoResult.js?v=1.1.121-student-dashboard-open-clean";

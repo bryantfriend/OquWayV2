@@ -1,4 +1,4 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.120-student-course-debug-summary";
+import { BaseStep } from "./BaseStep.js?v=1.1.121-student-dashboard-open-clean";
 
 export class DragMatchIslandStep extends BaseStep {
   static get type() {

@@ -1,4 +1,4 @@
-import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.120-student-course-debug-summary";
+import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.121-student-dashboard-open-clean";
 
 export function bindUsersEvents(rootElement, handlers) {
   rootElement.addEventListener("click", function (event) {

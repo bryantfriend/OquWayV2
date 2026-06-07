@@ -1,4 +1,4 @@
-import { requireStringValidation } from "../../validators.js?v=1.1.120-student-course-debug-summary";
+import { requireStringValidation } from "../../validators.js?v=1.1.121-student-dashboard-open-clean";
 
 export function validateSessionId(executionState) {
   const payload = executionState.payload;

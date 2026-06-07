@@ -1,5 +1,5 @@
-import { StepNameEngine } from "./StepNameEngine.js?v=1.1.120-student-course-debug-summary";
-import { StepNameIntent } from "./StepNameIntent.js?v=1.1.120-student-course-debug-summary";
+import { StepNameEngine } from "./StepNameEngine.js?v=1.1.121-student-dashboard-open-clean";
+import { StepNameIntent } from "./StepNameIntent.js?v=1.1.121-student-dashboard-open-clean";
 
 export default class StepName {
 

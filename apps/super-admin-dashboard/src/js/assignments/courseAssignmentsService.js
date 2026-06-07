@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../../../../packages/firebase/index.js?v=1.1.120-student-course-debug-summary";
+import { collection, db, getDocs, query, where } from "../../../../../packages/firebase/index.js?v=1.1.121-student-dashboard-open-clean";
 
 export async function getTeacherCourseAssignments(teacherId) {
   var safeTeacherId = typeof teacherId === "string" ? teacherId.trim() : "";

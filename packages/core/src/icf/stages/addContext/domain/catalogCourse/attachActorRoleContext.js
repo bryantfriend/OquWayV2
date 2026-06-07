@@ -1,4 +1,4 @@
-import { readActorRoles, readPrimaryRole } from "../../../authorize/core/roleAuthorization.js?v=1.1.120-student-course-debug-summary";
+import { readActorRoles, readPrimaryRole } from "../../../authorize/core/roleAuthorization.js?v=1.1.121-student-dashboard-open-clean";
 
 export function attachActorContext(executionState) {
     if (executionState.actor && executionState.actor.id) {

@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.120-student-course-debug-summary";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.120-student-course-debug-summary";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.120-student-course-debug-summary";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.121-student-dashboard-open-clean";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.121-student-dashboard-open-clean";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.121-student-dashboard-open-clean";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,16 +13,16 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.120-student-course-debug-summary";
+} from "../../../packages/domain/progress/index.js?v=1.1.121-student-dashboard-open-clean";
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.120-student-course-debug-summary";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.120-student-course-debug-summary";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.120-student-course-debug-summary";
+} from "../../../packages/ui/index.js?v=1.1.121-student-dashboard-open-clean";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.121-student-dashboard-open-clean";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.121-student-dashboard-open-clean";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -833,6 +833,26 @@ function readModuleLastOpenedAt(module) {
   }
 
   return lastOpenedAt;
+}
+
+function readTimestampMillis(value) {
+  if (!value) {
+    return 0;
+  }
+
+  if (typeof value === "number") {
+    return value;
+  }
+
+  if (typeof value.toMillis === "function") {
+    return value.toMillis();
+  }
+
+  if (value.seconds) {
+    return value.seconds * 1000;
+  }
+
+  return 0;
 }
 
 function disabled(value) {

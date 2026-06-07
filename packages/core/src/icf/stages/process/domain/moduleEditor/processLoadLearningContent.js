@@ -1,4 +1,4 @@
-import { createDefaultLearningContent } from "./learningArchitecture.js?v=1.1.120-student-course-debug-summary";
+import { createDefaultLearningContent } from "./learningArchitecture.js?v=1.1.121-student-dashboard-open-clean";
 
 export function processLoadLearningContent(executionState) {
   executionState.result = {

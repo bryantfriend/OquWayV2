@@ -1,8 +1,8 @@
-import { validateResolveLocationSlugPayload } from "../../stages/validate/validators.js?v=1.1.120-student-course-debug-summary";
-import { normalizeResolveLocationSlugPayload } from "../../stages/normalize/normalizers.js?v=1.1.120-student-course-debug-summary";
-import { allowPublicLocationRead } from "../../stages/authorize/authorizers.js?v=1.1.120-student-course-debug-summary";
-import { processResolveLocationBySlug } from "../../stages/process/processors.js?v=1.1.120-student-course-debug-summary";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.120-student-course-debug-summary";
+import { validateResolveLocationSlugPayload } from "../../stages/validate/validators.js?v=1.1.121-student-dashboard-open-clean";
+import { normalizeResolveLocationSlugPayload } from "../../stages/normalize/normalizers.js?v=1.1.121-student-dashboard-open-clean";
+import { allowPublicLocationRead } from "../../stages/authorize/authorizers.js?v=1.1.121-student-dashboard-open-clean";
+import { processResolveLocationBySlug } from "../../stages/process/processors.js?v=1.1.121-student-dashboard-open-clean";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.121-student-dashboard-open-clean";
 
 export function ResolveLocationBySlugIntent() {
   return {
