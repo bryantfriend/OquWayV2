@@ -1,6 +1,6 @@
 // createIntent.js
 
-import { getIntentDefinition } from "./intentRegistry.js?v=1.1.117-student-identity-binding";
+import { getIntentDefinition } from "./intentRegistry.js?v=1.1.118-fruit-login-student-identity";
 
 export function createIntent(intentInput) {
   const intentType = readIntentType(intentInput);

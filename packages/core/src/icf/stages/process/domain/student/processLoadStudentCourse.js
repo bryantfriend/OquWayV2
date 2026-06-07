@@ -1,9 +1,9 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.117-student-identity-binding";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.117-student-identity-binding";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.117-student-identity-binding";
-import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.117-student-identity-binding";
-import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js?v=1.1.117-student-identity-binding";
-import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.117-student-identity-binding";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.118-fruit-login-student-identity";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.118-fruit-login-student-identity";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.118-fruit-login-student-identity";
+import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.118-fruit-login-student-identity";
+import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason, resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.118-fruit-login-student-identity";
+import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.118-fruit-login-student-identity";
 
 export async function processLoadStudentCourse(executionState) {
   var actor = executionState.actor;
@@ -36,10 +36,16 @@ export async function processLoadStudentCourse(executionState) {
 
     var courses = await loadStudentCourses(actor, courseAssignmentResult.courseIds, executionState, courseAssignmentResult.assignmentIdByCourseId);
     logStudentCourseTrace("courses", courses);
+    logStudentCourseLoad({
+      resolvedStudentId: resolveActorStudentId(actor, studentProfile),
+      classIdentifiers: courseAssignmentResult.classIdentifiers || [],
+      assignmentCount: courseAssignmentResult.assignmentCount || 0,
+      loadedCourseCount: courses.length
+    });
 
     logStudentCourseDebug({
       studentId: studentProfile && studentProfile.id ? studentProfile.id : "",
-      uid: actor && actor.id ? actor.id : "",
+      uid: actor && actor.authUid ? actor.authUid : actor && actor.id ? actor.id : "",
       locationId: readFirstProfileLocationId(studentProfile),
       classId: readFirstProfileClassId(studentProfile),
       classIds: readProfileClassIds(studentProfile),
@@ -116,7 +122,7 @@ async function attachExternalTaskSubmissionsToCourse(actor, course) {
 
   try {
     submissions = await getStudentExternalTaskSubmissions({
-      studentId: actor.id,
+      studentId: resolveActorStudentId(actor),
       courseId: course.id,
       assignmentId: course.assignmentId || course.courseAssignmentId || "",
       courseAssignmentId: course.courseAssignmentId || course.assignmentId || ""
@@ -124,13 +130,13 @@ async function attachExternalTaskSubmissionsToCourse(actor, course) {
 
     if (submissions.length === 0 && (course.assignmentId || course.courseAssignmentId)) {
       submissions = await getStudentExternalTaskSubmissions({
-        studentId: actor.id,
+        studentId: resolveActorStudentId(actor),
         courseId: course.id
       });
     }
   } catch (error) {
     console.warn("[student-course:external-task-status-failed]", {
-      studentId: actor.id,
+      studentId: resolveActorStudentId(actor),
       courseId: course.id,
       errorMessage: readErrorMessage(error)
     });
@@ -358,7 +364,7 @@ async function loadCourseSnap(courseId, executionState) {
 async function loadAssignedCourseIds(actor, studentProfile, executionState) {
   var contextCourseIds = executionState && executionState.context ? executionState.context.assignedCourseIds : [];
 
-  return getAssignedCourseIds(actor && actor.id ? actor.id : "", studentProfile, contextCourseIds);
+  return getAssignedCourseIds(resolveActorStudentId(actor, studentProfile), studentProfile, contextCourseIds);
 }
 
 function addUniqueText(values, value) {
@@ -609,6 +615,19 @@ function logStudentCourseTrace(label, value) {
   console.log("[student-course-debug] " + label, JSON.stringify(value));
 }
 
+function logStudentCourseLoad(details) {
+  if (!isStudentCourseDebugEnabled()) {
+    return;
+  }
+
+  console.log("[student-course-load]", JSON.stringify({
+    resolvedStudentId: details.resolvedStudentId,
+    classIdentifiers: details.classIdentifiers,
+    assignmentCount: details.assignmentCount,
+    loadedCourseCount: details.loadedCourseCount
+  }));
+}
+
 function isStudentCourseDebugEnabled() {
   if (typeof window === "undefined" || !window.location) {
     return false;
@@ -739,7 +758,7 @@ async function loadProgress(actor, courseId, moduleId, sessionId) {
   }
 
   try {
-    var progressRef = doc(db, "studentProgress", actor.id, "courses", courseId, "sessions", sessionId);
+    var progressRef = doc(db, "studentProgress", resolveActorStudentId(actor), "courses", courseId, "sessions", sessionId);
     var progressSnap = await getDoc(progressRef);
 
     if (!progressSnap.exists()) {

@@ -1,4 +1,4 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.117-student-identity-binding";
+import { BaseStep } from "./BaseStep.js?v=1.1.118-fruit-login-student-identity";
 
 export class ReflectionStep extends BaseStep {
   static get type() {

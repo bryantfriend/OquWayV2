@@ -1,4 +1,4 @@
-import { collection, db, doc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.117-student-identity-binding";
+import { collection, db, doc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.118-fruit-login-student-identity";
 
 export async function processUpdateLocationLoginSlug(executionState) {
   var payload = executionState.payload || {};

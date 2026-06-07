@@ -1,8 +1,8 @@
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.117-student-identity-binding";
-import { attachStepsCollection } from "../../stages/addContext/contexts.js?v=1.1.117-student-identity-binding";
-import { processUpdateStepField } from "../../stages/process/processors.js?v=1.1.117-student-identity-binding";
-import { validateCourseId, validateModuleId, validateStepFieldKey, validateStepId } from "../../stages/validate/validators.js?v=1.1.117-student-identity-binding";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.117-student-identity-binding";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.118-fruit-login-student-identity";
+import { attachStepsCollection } from "../../stages/addContext/contexts.js?v=1.1.118-fruit-login-student-identity";
+import { processUpdateStepField } from "../../stages/process/processors.js?v=1.1.118-fruit-login-student-identity";
+import { validateCourseId, validateModuleId, validateStepFieldKey, validateStepId } from "../../stages/validate/validators.js?v=1.1.118-fruit-login-student-identity";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.118-fruit-login-student-identity";
 
 export function UpdateStepFieldIntent() {
     return {

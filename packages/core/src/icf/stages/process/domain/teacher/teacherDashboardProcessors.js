@@ -1,8 +1,8 @@
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.117-student-identity-binding";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.117-student-identity-binding";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.118-fruit-login-student-identity";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.118-fruit-login-student-identity";
 import { getClassesForTeacher } from "../../../../../../../domain/classes/index.js";
-import { getExternalTaskSubmissionsForTeacher } from "../../../../../../../domain/externalTasks/index.js?v=1.1.117-student-identity-binding";
+import { getExternalTaskSubmissionsForTeacher } from "../../../../../../../domain/externalTasks/index.js?v=1.1.118-fruit-login-student-identity";
 import {
   getStudentsForClasses,
   getUserProfileByAuthUid,

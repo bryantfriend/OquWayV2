@@ -14,7 +14,7 @@ import {
     writeBatch
 } from "firebase/firestore";
 
-import { firebaseApp } from "./firebaseApp.js?v=1.1.117-student-identity-binding";
+import { firebaseApp } from "./firebaseApp.js?v=1.1.118-fruit-login-student-identity";
 
 export const db = initializeFirestore(firebaseApp, {
     localCache: memoryLocalCache()

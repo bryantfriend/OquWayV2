@@ -1,11 +1,11 @@
-import { db, collection, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.117-student-identity-binding";
-import { createDefaultPracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.117-student-identity-binding";
+import { db, collection, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.118-fruit-login-student-identity";
+import { createDefaultPracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.118-fruit-login-student-identity";
 import {
   createDefaultLearningContent,
   createLearningModesForTemplate,
   createStarterStepsForMode,
   normalizeLearningContentPayload
-} from "../moduleEditor/learningArchitecture.js?v=1.1.117-student-identity-binding";
+} from "../moduleEditor/learningArchitecture.js?v=1.1.118-fruit-login-student-identity";
 
 export async function processCreateModule(executionState) {
   const payload = executionState.payload;

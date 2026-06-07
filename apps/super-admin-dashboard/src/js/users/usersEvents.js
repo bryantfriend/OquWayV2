@@ -1,4 +1,4 @@
-import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.117-student-identity-binding";
+import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.118-fruit-login-student-identity";
 
 export function bindUsersEvents(rootElement, handlers) {
   rootElement.addEventListener("click", function (event) {

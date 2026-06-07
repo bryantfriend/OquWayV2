@@ -1,12 +1,13 @@
 import { db, doc, getDoc, serverTimestamp, setDoc } from "../../firebase/index.js";
-import { getDownloadURL, ref, storage, uploadBytes } from "../../firebase/storage/index.js?v=1.1.117-student-identity-binding";
+import { getDownloadURL, ref, storage, uploadBytes } from "../../firebase/storage/index.js?v=1.1.118-fruit-login-student-identity";
 import { getCourseAssignments } from "../assignments/index.js";
+import { resolveActorStudentId } from "../users/index.js?v=1.1.118-fruit-login-student-identity";
 import {
   canResubmitExternalTaskSubmission,
   normalizeExternalTaskSubmission,
   readExternalTaskAttemptNumber
-} from "./externalTaskModel.js?v=1.1.117-student-identity-binding";
-import { getStudentExternalTaskSubmissions, getLatestStudentExternalTaskSubmission } from "./externalTaskQueries.js?v=1.1.117-student-identity-binding";
+} from "./externalTaskModel.js?v=1.1.118-fruit-login-student-identity";
+import { getStudentExternalTaskSubmissions, getLatestStudentExternalTaskSubmission } from "./externalTaskQueries.js?v=1.1.118-fruit-login-student-identity";
 
 export async function getExternalTaskSubmissionById(submissionId) {
   if (!submissionId) {
@@ -41,12 +42,12 @@ export async function createStudentExternalTaskSubmission(payload, actor, profil
   var files = Array.isArray(safePayload.files) ? safePayload.files : [];
   var uploadedFiles = [];
   var fileIndex = 0;
-  var previousSubmissions = await getStudentExternalTaskSubmissions(createStudentSubmissionFilters(safePayload, safeActor));
+  var previousSubmissions = await getStudentExternalTaskSubmissions(createStudentSubmissionFilters(safePayload, safeActor, safeProfile));
   var attemptNumber = readExternalTaskAttemptNumber(previousSubmissions);
   var assignment = await loadSubmissionAssignment(safePayload, safeActor, safeProfile);
 
   while (fileIndex < files.length) {
-    uploadedFiles.push(await uploadExternalTaskFile(safePayload, safeActor, submissionId, files[fileIndex]));
+    uploadedFiles.push(await uploadExternalTaskFile(safePayload, safeActor, safeProfile, submissionId, files[fileIndex]));
     fileIndex = fileIndex + 1;
   }
 
@@ -65,7 +66,8 @@ export async function createStudentExternalTaskSubmission(payload, actor, profil
 export async function createStudentExternalTaskResubmission(payload, actor, profile) {
   var safePayload = payload || {};
   var safeActor = actor || {};
-  var latestSubmission = await getLatestStudentExternalTaskSubmission(createStudentSubmissionFilters(safePayload, safeActor));
+  var safeProfile = profile || {};
+  var latestSubmission = await getLatestStudentExternalTaskSubmission(createStudentSubmissionFilters(safePayload, safeActor, safeProfile));
 
   if (!latestSubmission) {
     throw new Error("No previous external task submission was found to resubmit.");
@@ -84,10 +86,10 @@ export async function createStudentExternalTaskResubmission(payload, actor, prof
   );
 }
 
-export async function uploadExternalTaskFile(payload, actor, submissionId, file) {
+export async function uploadExternalTaskFile(payload, actor, profile, submissionId, file) {
   validateUploadFile(file, payload);
 
-  var storagePath = buildStoragePath(payload || {}, actor || {}, submissionId, file.name);
+  var storagePath = buildStoragePath(payload || {}, actor || {}, profile || {}, submissionId, file.name);
   var storageRef = ref(storage, storagePath);
   var metadata = {
     contentType: file.type || "application/octet-stream"
@@ -113,14 +115,14 @@ async function writeStudentExternalTaskSubmission(payload, actor, profile, submi
   return normalizeExternalTaskSubmission(Object.assign({ id: submissionId }, record));
 }
 
-function createStudentSubmissionFilters(payload, actor) {
+function createStudentSubmissionFilters(payload, actor, profile) {
   return {
     courseId: payload.courseId,
     assignmentId: payload.assignmentId || payload.courseAssignmentId,
     courseAssignmentId: payload.courseAssignmentId || payload.assignmentId,
     moduleId: payload.moduleId,
     stepId: payload.stepId,
-    studentId: actor && actor.id ? actor.id : ""
+    studentId: resolveActorStudentId(actor, profile, payload)
   };
 }
 
@@ -140,7 +142,7 @@ async function loadSubmissionAssignment(payload, actor, profile) {
     }
   }
 
-  addAssignmentTarget(targets, "student", actor && actor.id ? actor.id : "");
+  addAssignmentTarget(targets, "student", resolveActorStudentId(actor, profile, payload));
   addAssignmentTarget(targets, "student", profile && profile.id ? profile.id : "");
   addAssignmentTarget(targets, "class", payload.classId || (profile ? profile.classId : ""));
   addAssignmentTarget(targets, "location", payload.locationId || (profile ? (profile.locationId || profile.primaryLocationId) : ""));
@@ -178,6 +180,7 @@ function addAssignmentTarget(targets, targetType, targetId) {
 
 function createSubmissionRecord(payload, actor, profile, submissionId, files, attemptNumber, assignment, previousSubmissionId) {
   var assignmentId = payload.assignmentId || payload.courseAssignmentId || (assignment && assignment.id ? assignment.id : "");
+  var studentId = resolveActorStudentId(actor, profile, payload);
 
   return {
     submissionId: submissionId,
@@ -188,8 +191,8 @@ function createSubmissionRecord(payload, actor, profile, submissionId, files, at
     courseId: payload.courseId,
     assignmentId: assignmentId,
     courseAssignmentId: assignmentId,
-    studentId: actor.id || "",
-    studentName: profile.displayName || profile.name || actor.id || "",
+    studentId: studentId,
+    studentName: profile.displayName || profile.name || studentId || "",
     classId: payload.classId || profile.classId || "",
     locationId: payload.locationId || profile.locationId || profile.primaryLocationId || "",
     taskTitle: payload.taskTitle,
@@ -260,12 +263,12 @@ function validateUploadFile(file, payload) {
   }
 }
 
-function buildStoragePath(payload, actor, submissionId, fileName) {
+function buildStoragePath(payload, actor, profile, submissionId, fileName) {
   return "external-task-submissions/"
     + cleanSegment(payload.courseId) + "/"
     + cleanSegment(payload.moduleId) + "/"
     + cleanSegment(payload.stepId) + "/"
-    + cleanSegment(actor.id) + "/"
+    + cleanSegment(resolveActorStudentId(actor, profile, payload)) + "/"
     + cleanSegment(submissionId) + "/"
     + Date.now() + "-" + cleanFileName(fileName);
 }

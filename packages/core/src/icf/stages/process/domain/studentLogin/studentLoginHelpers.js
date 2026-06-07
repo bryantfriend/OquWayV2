@@ -1,4 +1,4 @@
-import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.117-student-identity-binding";
+import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.118-fruit-login-student-identity";
 
 export async function callStudentLoginFunction(payload) {
   return callCallableFunction("studentLogin", payload);
@@ -49,6 +49,11 @@ export function sanitizeProfile(profile) {
 
   return {
     id: readText(profile.id),
+    uid: readText(profile.uid),
+    authUid: readText(profile.authUid),
+    userId: readText(profile.userId),
+    studentId: readText(profile.studentId || profile.id),
+    profileUserId: readText(profile.profileUserId),
     name: readText(profile.name),
     displayName: readText(profile.displayName),
     photoUrl: readText(profile.photoUrl),

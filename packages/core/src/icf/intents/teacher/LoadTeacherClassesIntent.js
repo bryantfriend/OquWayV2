@@ -1,9 +1,9 @@
-import { validateAuthenticated } from "../../stages/validate/validators.js?v=1.1.117-student-identity-binding";
-import { normalizeTeacherDashboardPayload } from "../../stages/normalize/normalizers.js?v=1.1.117-student-identity-binding";
-import { attachActorContext, attachActorRoleContext, attachTeacherProfileContext } from "../../stages/addContext/contexts.js?v=1.1.117-student-identity-binding";
-import { requireTeacherDashboardAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.117-student-identity-binding";
-import { processLoadTeacherClasses } from "../../stages/process/processors.js?v=1.1.117-student-identity-binding";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.117-student-identity-binding";
+import { validateAuthenticated } from "../../stages/validate/validators.js?v=1.1.118-fruit-login-student-identity";
+import { normalizeTeacherDashboardPayload } from "../../stages/normalize/normalizers.js?v=1.1.118-fruit-login-student-identity";
+import { attachActorContext, attachActorRoleContext, attachTeacherProfileContext } from "../../stages/addContext/contexts.js?v=1.1.118-fruit-login-student-identity";
+import { requireTeacherDashboardAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.118-fruit-login-student-identity";
+import { processLoadTeacherClasses } from "../../stages/process/processors.js?v=1.1.118-fruit-login-student-identity";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.118-fruit-login-student-identity";
 
 export function LoadTeacherClassesIntent() {
   return {

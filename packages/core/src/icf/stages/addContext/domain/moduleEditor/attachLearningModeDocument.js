@@ -1,4 +1,4 @@
-import { collection, db, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.117-student-identity-binding";
+import { collection, db, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.118-fruit-login-student-identity";
 
 export async function attachLearningModeDocument(executionState) {
   const payload = executionState.payload || {};

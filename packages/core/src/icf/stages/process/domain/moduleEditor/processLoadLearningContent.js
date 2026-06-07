@@ -1,4 +1,4 @@
-import { createDefaultLearningContent } from "./learningArchitecture.js?v=1.1.117-student-identity-binding";
+import { createDefaultLearningContent } from "./learningArchitecture.js?v=1.1.118-fruit-login-student-identity";
 
 export function processLoadLearningContent(executionState) {
   executionState.result = {

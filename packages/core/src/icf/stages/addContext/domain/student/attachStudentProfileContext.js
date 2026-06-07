@@ -1,4 +1,4 @@
-import { getStudentProfileByAuthUid, readAssignedCourseIds } from "../../../../../../../domain/users/index.js?v=1.1.117-student-identity-binding";
+import { getStudentProfileByAuthUid, readAssignedCourseIds, resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.118-fruit-login-student-identity";
 
 export async function attachStudentProfileContext(executionState) {
   var actor = executionState.actor;
@@ -70,7 +70,7 @@ export async function attachStudentProfileContext(executionState) {
 
 async function loadStudentProfile(actor) {
   try {
-    return await getStudentProfileByAuthUid(actor.id);
+    return await getStudentProfileByAuthUid(resolveActorStudentId(actor) || actor.id);
   } catch (error) {
     return null;
   }

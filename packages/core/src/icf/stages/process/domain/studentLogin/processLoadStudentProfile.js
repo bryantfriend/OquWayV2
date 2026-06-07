@@ -1,5 +1,5 @@
-import { getStudentProfileByAuthUid } from "../../../../../../../domain/users/index.js?v=1.1.117-student-identity-binding";
-import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.117-student-identity-binding";
+import { getStudentProfileByAuthUid, resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.118-fruit-login-student-identity";
+import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.118-fruit-login-student-identity";
 
 export async function processLoadStudentProfile(executionState) {
   var actor = executionState.actor;
@@ -14,12 +14,13 @@ export async function processLoadStudentProfile(executionState) {
       throw new Error("A signed-in student is required.");
     }
 
-    var profilePath = "users/" + actor.id + " or authUid=" + actor.id;
+    var resolvedStudentId = resolveActorStudentId(actor);
+    var profilePath = "users/" + resolvedStudentId + " or authUid=" + (actor.authUid || actor.id);
     var profile = await loadStudentProfile(actor);
 
     if (!profile) {
       logStudentProfileDebug({
-        authUid: actor.id,
+        authUid: actor.authUid || actor.id,
         profilePath: profilePath,
         profileExists: false,
         role: "",
@@ -34,22 +35,22 @@ export async function processLoadStudentProfile(executionState) {
     var sanitizedProfile = sanitizeProfile(contextualProfile);
 
     if (!hasStudentRole(contextualProfile)) {
-      logRejectedProfile(actor.id, profilePath, sanitizedProfile, "not-student-role");
+      logRejectedProfile(actor.authUid || actor.id, profilePath, sanitizedProfile, "not-student-role");
       throw new Error("This account is not a student account.");
     }
 
     if (!isActiveStudentProfile(contextualProfile)) {
-      logRejectedProfile(actor.id, profilePath, sanitizedProfile, "inactive-status");
+      logRejectedProfile(actor.authUid || actor.id, profilePath, sanitizedProfile, "inactive-status");
       throw new Error("This student account is not active.");
     }
 
     if (!sanitizedProfile.classId) {
-      logRejectedProfile(actor.id, profilePath, sanitizedProfile, "missing-class");
+      logRejectedProfile(actor.authUid || actor.id, profilePath, sanitizedProfile, "missing-class");
       throw new Error("This student profile is missing a class.");
     }
 
     if (!sanitizedProfile.locationId) {
-      logRejectedProfile(actor.id, profilePath, sanitizedProfile, "missing-location");
+      logRejectedProfile(actor.authUid || actor.id, profilePath, sanitizedProfile, "missing-location");
       throw new Error("This student profile is missing a location.");
     }
 
@@ -130,13 +131,16 @@ function isDevelopmentHost() {
 async function loadStudentProfile(actor) {
   try {
     var trustedProfile = actor.studentProfile || null;
-    var lookupProfile = await getStudentProfileByAuthUid(actor.id);
+    var resolvedStudentId = resolveActorStudentId(actor);
+    var lookupProfile = await getStudentProfileByAuthUid(resolvedStudentId || actor.id);
 
     return mergeStudentProfiles(lookupProfile, trustedProfile);
   } catch (error) {
+    var fallbackStudentId = resolveActorStudentId(actor) || actor.id;
+
     logStudentProfileDebug({
-      authUid: actor.id,
-      profilePath: "users/" + actor.id + " or authUid=" + actor.id,
+      authUid: actor.authUid || actor.id,
+      profilePath: "users/" + fallbackStudentId + " or authUid=" + (actor.authUid || actor.id),
       profileExists: Boolean(actor.studentProfile),
       role: actor.studentProfile && actor.studentProfile.role ? actor.studentProfile.role : "",
       roles: actor.studentProfile && Array.isArray(actor.studentProfile.roles) ? actor.studentProfile.roles : [],

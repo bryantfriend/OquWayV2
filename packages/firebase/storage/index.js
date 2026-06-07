@@ -3,4 +3,4 @@ export {
   ref,
   storage,
   uploadBytes
-} from "../../core/src/infrastructure/firebase/storage.js?v=1.1.117-student-identity-binding";
+} from "../../core/src/infrastructure/firebase/storage.js?v=1.1.118-fruit-login-student-identity";

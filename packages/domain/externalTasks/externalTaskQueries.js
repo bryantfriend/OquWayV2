@@ -1,5 +1,5 @@
 import { collection, db, getDocs, query, where } from "../../firebase/index.js";
-import { normalizeExternalTaskSubmission } from "./externalTaskModel.js?v=1.1.117-student-identity-binding";
+import { normalizeExternalTaskSubmission } from "./externalTaskModel.js?v=1.1.118-fruit-login-student-identity";
 
 export async function getStudentExternalTaskSubmissions(filters) {
   var safeFilters = filters || {};

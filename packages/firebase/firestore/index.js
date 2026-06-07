@@ -9,4 +9,4 @@ export {
   serverTimestamp,
   setDoc,
   where
-} from "../../core/src/infrastructure/firebase/firestore.js?v=1.1.117-student-identity-binding";
+} from "../../core/src/infrastructure/firebase/firestore.js?v=1.1.118-fruit-login-student-identity";

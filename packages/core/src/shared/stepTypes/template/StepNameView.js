@@ -1,5 +1,5 @@
-import { StepNameEngine } from "./StepNameEngine.js?v=1.1.117-student-identity-binding";
-import { StepNameIntent } from "./StepNameIntent.js?v=1.1.117-student-identity-binding";
+import { StepNameEngine } from "./StepNameEngine.js?v=1.1.118-fruit-login-student-identity";
+import { StepNameIntent } from "./StepNameIntent.js?v=1.1.118-fruit-login-student-identity";
 
 export default class StepName {
 

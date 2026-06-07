@@ -1,8 +1,8 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.117-student-identity-binding";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.117-student-identity-binding";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.117-student-identity-binding";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.117-student-identity-binding";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.117-student-identity-binding";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.118-fruit-login-student-identity";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.118-fruit-login-student-identity";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.118-fruit-login-student-identity";
+import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.118-fruit-login-student-identity";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.118-fruit-login-student-identity";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
@@ -128,13 +128,13 @@ export const studentDashboardService = {
     });
 
     console.info("[student-course-card:click]", {
-      studentId: auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : "preview-student",
+      studentId: readCurrentDashboardStudentId(),
       courseId: courseId
     });
 
     try {
       var result = await runStudentIntent("StudentOpenCourseIntent", {
-        studentId: auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : "preview-student",
+        studentId: readCurrentDashboardStudentId(),
         courseId: courseId
       });
 
@@ -346,20 +346,32 @@ async function getActor(studentProfile) {
   if (auth.currentUser) {
     var sessionContext = readStudentSessionContext();
     var claimContext = await readStudentClaimContext(auth.currentUser);
+    var profile = studentProfile || sessionContext.studentProfile;
+    var identity = resolveFruitLoginStudentIdentity(auth.currentUser, claimContext, profile);
+
+    logStudentIdentityContract(identity);
 
     return {
-      id: auth.currentUser.uid,
+      id: identity.resolvedStudentId || auth.currentUser.uid,
+      authUid: auth.currentUser.uid,
+      uid: auth.currentUser.uid,
+      studentId: identity.resolvedStudentId || auth.currentUser.uid,
+      tokenStudentId: identity.tokenStudentId,
+      tokenClaims: claimContext,
       role: "ROLE_STUDENT",
-      classId: sessionContext.classId || claimContext.classId,
-      className: sessionContext.className || claimContext.className,
-      locationId: sessionContext.locationId || claimContext.locationId,
-      studentProfile: studentProfile || sessionContext.studentProfile
+      classId: sessionContext.classId || identity.classId,
+      className: sessionContext.className || identity.className,
+      locationId: sessionContext.locationId || identity.locationId,
+      studentProfile: profile
     };
   }
 
   if (studentProfile) {
     return {
       id: readStudentProfileActorId(studentProfile),
+      authUid: studentProfile.authUid || "",
+      uid: studentProfile.authUid || studentProfile.uid || "",
+      studentId: readStudentProfileId(studentProfile),
       role: "ROLE_STUDENT",
       classId: studentProfile.classId || "",
       className: studentProfile.className || "",
@@ -379,11 +391,8 @@ function readStudentProfileActorId(studentProfile) {
     return "preview-student";
   }
 
-  return studentProfile.authUid
-    || studentProfile.uid
-    || studentProfile.userId
-    || studentProfile.id
-    || studentProfile.studentId
+  return readStudentProfileId(studentProfile)
+    || studentProfile.authUid
     || "preview-student";
 }
 
@@ -464,13 +473,15 @@ async function readStudentClaimContext(user) {
     return {
       classId: typeof claims.classId === "string" ? claims.classId : "",
       className: typeof claims.className === "string" ? claims.className : "",
-      locationId: typeof claims.locationId === "string" ? claims.locationId : ""
+      locationId: typeof claims.locationId === "string" ? claims.locationId : "",
+      studentId: typeof claims.studentId === "string" ? claims.studentId : ""
     };
   } catch (error) {
     return {
       classId: "",
       className: "",
-      locationId: ""
+      locationId: "",
+      studentId: ""
     };
   }
 }
@@ -553,6 +564,22 @@ function logLoadedCoursesDebug(courses) {
   }));
 }
 
+function logStudentIdentityContract(identity) {
+  if (!isStudentCourseDebugEnabled()) {
+    return;
+  }
+
+  console.log("[student-identity-contract]", JSON.stringify({
+    authUid: identity.authUid,
+    tokenStudentId: identity.tokenStudentId,
+    resolvedStudentId: identity.resolvedStudentId,
+    profileId: identity.profileId,
+    classId: identity.classId,
+    className: identity.className,
+    locationId: identity.locationId
+  }));
+}
+
 function writeStudentDashboardDebugState(data) {
   if (!isStudentCourseDebugEnabled() || typeof window === "undefined") {
     return;
@@ -602,6 +629,13 @@ function readFirstCourseId(courses) {
   }
 
   return null;
+}
+
+function readCurrentDashboardStudentId() {
+  var state = studentDashboardStore.getState();
+  var student = state && state.student ? state.student : readStoredStudentProfile();
+
+  return readStudentProfileId(student) || (auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : "preview-student");
 }
 
 function createEmptyIntentionPoints() {

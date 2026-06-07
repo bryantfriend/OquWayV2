@@ -51,7 +51,18 @@ service firebase.storage {
     function isCourseCreator() { return hasAnyRole('courseCreator', 'ROLE_COURSE_CREATOR'); }
     function isAssistant() { return hasAnyRole('assistant', 'ROLE_ASSISTANT') || profileHasAnyRole('assistant', 'ROLE_ASSISTANT'); }
     function isTeacher() { return hasAnyRole('teacher', 'ROLE_TEACHER') || profileHasAnyRole('teacher', 'ROLE_TEACHER'); }
-    function isStudent() { return hasAnyRole('student', 'ROLE_STUDENT') || profileHasAnyRole('student', 'ROLE_STUDENT'); }
+    function hasStudentToken() {
+      return request.auth != null && request.auth.token.studentId is string;
+    }
+    function isSameStudent(studentId) {
+      return request.auth != null
+        && studentId is string
+        && (
+          request.auth.uid == studentId ||
+          (request.auth.token.studentId is string && request.auth.token.studentId == studentId)
+        );
+    }
+    function isStudent() { return hasAnyRole('student', 'ROLE_STUDENT') || hasStudentToken() || profileHasAnyRole('student', 'ROLE_STUDENT'); }
     function isReviewer() { return isTeacher() || isCourseCreator() || isAssistant() || isSchoolAdmin() || isPlatformAdmin() || isSuperAdmin(); }
 
     function isAllowedExternalTaskFile() {
@@ -93,12 +104,12 @@ service firebase.storage {
 
     match /external-task-submissions/{courseId}/{moduleId}/{stepId}/{studentId}/{submissionId}/{fileName} {
       allow create: if request.auth != null
-        && request.auth.uid == studentId
+        && isSameStudent(studentId)
         && isStudent()
         && isAllowedExternalTaskFile();
 
       allow read: if request.auth != null && (
-        request.auth.uid == studentId ||
+        isSameStudent(studentId) ||
         isReviewer()
       );
 

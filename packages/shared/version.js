@@ -1,1 +1,1 @@
-export const OQUWAY_BUILD_VERSION = "1.1.117-student-identity-binding";
+export const OQUWAY_BUILD_VERSION = "1.1.118-fruit-login-student-identity";

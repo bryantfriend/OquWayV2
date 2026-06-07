@@ -1,4 +1,4 @@
-import { hasAnyRole } from "../../authorize/core/roleAuthorization.js?v=1.1.117-student-identity-binding";
+import { hasAnyRole } from "../../authorize/core/roleAuthorization.js?v=1.1.118-fruit-login-student-identity";
 
 export function requireRoleValidation(actor, requiredRole) {
     if (!actor) {

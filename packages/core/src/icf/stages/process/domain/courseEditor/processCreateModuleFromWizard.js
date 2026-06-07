@@ -1,4 +1,4 @@
-import { processCreateModule } from "./processCreateModule.js?v=1.1.117-student-identity-binding";
+import { processCreateModule } from "./processCreateModule.js?v=1.1.118-fruit-login-student-identity";
 
 export async function processCreateModuleFromWizard(executionState) {
   var payload = executionState.payload || {};

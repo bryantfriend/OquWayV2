@@ -1,13 +1,13 @@
-import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.117-student-identity-binding';
-import { courseEditorService } from '../services/courseEditorService.js?v=1.1.117-student-identity-binding';
-import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.117-student-identity-binding';
-import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.117-student-identity-binding';
+import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.118-fruit-login-student-identity';
+import { courseEditorService } from '../services/courseEditorService.js?v=1.1.118-fruit-login-student-identity';
+import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.118-fruit-login-student-identity';
+import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.118-fruit-login-student-identity';
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge
-} from '../../../../../packages/ui/index.js?v=1.1.117-student-identity-binding';
+} from '../../../../../packages/ui/index.js?v=1.1.118-fruit-login-student-identity';
 
 export class CourseOverviewPage {
   constructor(courseId, options) {

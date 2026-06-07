@@ -1,10 +1,11 @@
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.117-student-identity-binding";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.117-student-identity-binding";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.118-fruit-login-student-identity";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.118-fruit-login-student-identity";
+import { resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.118-fruit-login-student-identity";
 
 export async function processStudentOpenCourse(executionState) {
   var payload = executionState.payload || {};
   var courseId = readText(payload.courseId);
-  var studentId = readText(payload.studentId || (executionState.actor ? executionState.actor.id : ""));
+  var studentId = resolveActorStudentId(executionState.actor, executionState.context.studentProfile, payload);
   var courses = Array.isArray(executionState.context.studentOpenCourses) ? executionState.context.studentOpenCourses : [];
   var assignmentResult = await getAssignedCourseIds(studentId, executionState.context.studentProfile);
   var assignmentId = assignmentResult.assignmentIdByCourseId[courseId] || "";

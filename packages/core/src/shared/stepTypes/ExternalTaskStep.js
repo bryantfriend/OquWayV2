@@ -1,6 +1,6 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.117-student-identity-binding";
-import { canResubmitExternalTaskSubmission } from "../../../../domain/externalTasks/index.js?v=1.1.117-student-identity-binding";
-import { isExternalTaskReviewComplete } from "../../../../domain/progress/index.js?v=1.1.117-student-identity-binding";
+import { BaseStep } from "./BaseStep.js?v=1.1.118-fruit-login-student-identity";
+import { canResubmitExternalTaskSubmission } from "../../../../domain/externalTasks/index.js?v=1.1.118-fruit-login-student-identity";
+import { isExternalTaskReviewComplete } from "../../../../domain/progress/index.js?v=1.1.118-fruit-login-student-identity";
 
 export class ExternalTaskStep extends BaseStep {
   static get type() {

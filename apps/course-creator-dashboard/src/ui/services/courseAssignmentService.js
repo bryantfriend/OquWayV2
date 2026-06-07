@@ -1,6 +1,6 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.117-student-identity-binding";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.117-student-identity-binding";
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.117-student-identity-binding";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.118-fruit-login-student-identity";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.118-fruit-login-student-identity";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.118-fruit-login-student-identity";
 
 export const courseAssignmentService = {
   createCourseAssignment: async function (courseId, targetType, targetId, status) {

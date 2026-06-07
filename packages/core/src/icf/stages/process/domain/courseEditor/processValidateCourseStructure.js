@@ -1,4 +1,4 @@
-import { db, collection, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.117-student-identity-binding";
+import { db, collection, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.118-fruit-login-student-identity";
 
 export async function processValidateCourseStructure(executionState) {
     const { context, payload } = executionState;

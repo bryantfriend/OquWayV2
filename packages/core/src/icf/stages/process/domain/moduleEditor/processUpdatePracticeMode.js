@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.117-student-identity-binding";
-import { createUpdatedPracticeModes } from "./practiceModeShells.js?v=1.1.117-student-identity-binding";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.118-fruit-login-student-identity";
+import { createUpdatedPracticeModes } from "./practiceModeShells.js?v=1.1.118-fruit-login-student-identity";
 
 export async function processUpdatePracticeMode(executionState) {
   var payload = executionState.payload;

@@ -1,1 +1,1 @@
-export { auth } from "../../core/src/infrastructure/firebase/auth.js?v=1.1.117-student-identity-binding";
+export { auth } from "../../core/src/infrastructure/firebase/auth.js?v=1.1.118-fruit-login-student-identity";

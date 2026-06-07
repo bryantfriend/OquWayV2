@@ -1,6 +1,7 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.117-student-identity-binding";
-import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.117-student-identity-binding";
-import { createDefaultProgressDocument } from "../../../process/domain/student/studentProgressHelpers.js?v=1.1.117-student-identity-binding";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.118-fruit-login-student-identity";
+import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.118-fruit-login-student-identity";
+import { createDefaultProgressDocument } from "../../../process/domain/student/studentProgressHelpers.js?v=1.1.118-fruit-login-student-identity";
+import { resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.118-fruit-login-student-identity";
 
 export async function attachStudentSessionContext(executionState) {
   var payload = executionState.payload;
@@ -61,7 +62,7 @@ async function readStudentProgress(actor, payload) {
   }
 
   try {
-    var progressRef = doc(db, "studentProgress", actor.id, "courses", payload.courseId, "sessions", payload.sessionId);
+    var progressRef = doc(db, "studentProgress", resolveActorStudentId(actor), "courses", payload.courseId, "sessions", payload.sessionId);
     var progressSnap = await getDoc(progressRef);
 
     if (!progressSnap.exists()) {

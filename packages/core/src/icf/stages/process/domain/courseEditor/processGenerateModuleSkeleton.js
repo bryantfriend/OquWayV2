@@ -2,7 +2,7 @@ import {
   createLearningModesForTemplate,
   createStarterStepsForMode,
   normalizeLearningContentPayload
-} from "../moduleEditor/learningArchitecture.js?v=1.1.117-student-identity-binding";
+} from "../moduleEditor/learningArchitecture.js?v=1.1.118-fruit-login-student-identity";
 
 export function processGenerateModuleSkeleton(executionState) {
   var payload = executionState.payload || {};

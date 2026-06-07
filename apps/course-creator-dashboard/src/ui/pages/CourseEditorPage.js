@@ -1,12 +1,12 @@
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.117-student-identity-binding";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.117-student-identity-binding";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.118-fruit-login-student-identity";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.118-fruit-login-student-identity";
 import {
   getStepTypeDefinition,
   listStepTypeDefinitions,
   validateStepConfig
-} from "../../../../../packages/domain/steps/index.js?v=1.1.117-student-identity-binding";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.117-student-identity-binding";
-import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.117-student-identity-binding";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.118-fruit-login-student-identity";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.118-fruit-login-student-identity";
+import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.118-fruit-login-student-identity";
 
 export class CourseEditorPage {
   constructor(courseId, moduleId) {

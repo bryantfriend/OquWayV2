@@ -5,7 +5,8 @@ import {
   getStudentExternalTaskSubmissions,
   updateExternalTaskReview,
   uploadExternalTaskFile
-} from "../../../../../../../domain/externalTasks/index.js?v=1.1.117-student-identity-binding";
+} from "../../../../../../../domain/externalTasks/index.js?v=1.1.118-fruit-login-student-identity";
+import { resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.118-fruit-login-student-identity";
 
 export async function processLoadExternalTaskStep(executionState) {
   var payload = executionState.payload || {};
@@ -18,7 +19,7 @@ export async function processLoadExternalTaskStep(executionState) {
       courseAssignmentId: payload.courseAssignmentId || payload.assignmentId,
       moduleId: payload.moduleId,
       stepId: payload.stepId,
-      studentId: actor.id
+      studentId: resolveActorStudentId(actor, executionState.context.studentProfile, payload)
     });
 
     executionState.result = {
@@ -37,7 +38,7 @@ export async function processUploadExternalTaskFile(executionState) {
   var payload = executionState.payload || {};
 
   try {
-    var fileRecord = await uploadExternalTaskFile(payload, executionState.actor || {}, payload.submissionId, payload.file);
+    var fileRecord = await uploadExternalTaskFile(payload, executionState.actor || {}, executionState.context.studentProfile || {}, payload.submissionId, payload.file);
     executionState.result = {
       file: fileRecord
     };

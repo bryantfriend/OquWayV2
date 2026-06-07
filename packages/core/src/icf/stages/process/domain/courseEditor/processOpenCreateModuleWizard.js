@@ -1,4 +1,4 @@
-import { createDefaultLearningContent, readTemplateSpecs } from "../moduleEditor/learningArchitecture.js?v=1.1.117-student-identity-binding";
+import { createDefaultLearningContent, readTemplateSpecs } from "../moduleEditor/learningArchitecture.js?v=1.1.118-fruit-login-student-identity";
 
 export function processOpenCreateModuleWizard(executionState) {
   var payload = executionState.payload || {};

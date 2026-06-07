@@ -3,7 +3,7 @@ service cloud.firestore {
   match /databases/{db}/documents {
 
     // 🔧 Helpers
-  
+
     function hasRole(role) {
       return request.auth != null && (
         request.auth.token.role == role ||
@@ -41,7 +41,7 @@ service cloud.firestore {
         (legacyRole == "ROLE_SUPER_ADMIN" && user().data.ROLE_SUPER_ADMIN == true)
       );
     }
-    
+
     function isSuperAdmin() { return hasAnyRole('superAdmin', 'ROLE_SUPER_ADMIN'); }
     function isPlatformAdmin() { return hasAnyRole('platformAdmin', 'ROLE_PLATFORM_ADMIN'); }
     function isSchoolAdmin() { return hasAnyRole('schoolAdmin', 'ROLE_SCHOOL_ADMIN'); }
@@ -53,9 +53,17 @@ service cloud.firestore {
     function hasStudentToken() {
       return request.auth != null && request.auth.token.studentId is string;
     }
+    function isSameStudent(studentId) {
+      return request.auth != null
+        && studentId is string
+        && (
+          request.auth.uid == studentId ||
+          (request.auth.token.studentId is string && request.auth.token.studentId == studentId)
+        );
+    }
     function hasStudentProfile() {
       return profileIsActive() && (
-        user().data.studentId == request.auth.uid ||
+        isSameStudent(user().data.studentId) ||
         user().data.role == "student" ||
         user().data.role == "Student" ||
         user().data.role == "ROLE_STUDENT" ||
@@ -87,7 +95,8 @@ service cloud.firestore {
         && resource.data.status == "active"
         && (
           (resource.data.targetType == "student"
-            && resource.data.targetId == request.auth.uid)
+            && (resource.data.targetId == request.auth.uid
+              || (request.auth.token.studentId is string && resource.data.targetId == request.auth.token.studentId)))
           || (user() != null
             && resource.data.targetType == "class"
             && resource.data.targetId == user().data.classId)
@@ -290,25 +299,25 @@ service cloud.firestore {
     match /users/{uid} {
       allow read, get, list: if
         // 1. Allow the user to read their own profile (essential for claims)
-        request.auth.uid == uid ||
+        isSameStudent(uid) ||
         (resource.data.authUid is string && resource.data.authUid == request.auth.uid) ||
         // 2. Allow any Accounting Admin to read ANY user document
         isAccountingAdmin() ||
         // 3. Allow Teachers to read students in their classes (existing logic)
-        isStudentInTeacherClass(); 
+        isStudentInTeacherClass();
 
       // Allow admins to create new users and allow both admins and user to update profile
-      allow create: if isAccountingAdmin() || request.auth.uid == uid;
-      allow update: if isAccountingAdmin() || request.auth.uid == uid || (resource.data.authUid is string && resource.data.authUid == request.auth.uid);
-      
-      allow delete: if isSuperAdmin() || isPlatformAdmin(); 
-      
+      allow create: if isAccountingAdmin() || isSameStudent(uid);
+      allow update: if isAccountingAdmin() || isSameStudent(uid) || (resource.data.authUid is string && resource.data.authUid == request.auth.uid);
+
+      allow delete: if isSuperAdmin() || isPlatformAdmin();
+
       match /modules_completed/{moduleId} {
-        allow read: if request.auth.uid == uid
+        allow read: if isSameStudent(uid)
                         || isSuperAdmin()
                         || isPlatformAdmin()
                         || isSchoolAdmin();
-        allow write: if request.auth.uid == uid;
+        allow write: if isSameStudent(uid);
       }
     }
 
@@ -410,12 +419,12 @@ service cloud.firestore {
     match /externalTaskSubmissions/{submissionId} {
       allow create: if request.auth != null
         && isStudent()
-        && request.resource.data.studentId == request.auth.uid
+        && isSameStudent(request.resource.data.studentId)
         && request.resource.data.reviewStatus == "pending"
         && request.resource.data.status == "submitted";
 
       allow read, list: if request.auth != null && (
-        resource.data.studentId == request.auth.uid ||
+        isSameStudent(resource.data.studentId) ||
         isExternalTaskAdminReviewer() ||
         isTeacherInExternalTaskScope()
       );
@@ -423,7 +432,7 @@ service cloud.firestore {
       allow update: if request.auth != null && (
         (
           isStudent()
-          && resource.data.studentId == request.auth.uid
+          && isSameStudent(resource.data.studentId)
           && (resource.data.reviewStatus == "pending" || resource.data.reviewStatus == "needsWork")
           && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
             "reviewStatus",
@@ -447,7 +456,7 @@ service cloud.firestore {
 
       allow delete: if isSuperAdmin() || isPlatformAdmin();
     }
-    
+
     // 📚 CATALOG COURSES (New V2 Core Database)
     match /catalogCourses/{courseId} {
       allow read: if true;
@@ -482,35 +491,35 @@ service cloud.firestore {
     // 🎓 STUDENT PROGRESS
     match /studentProgress/{studentId} {
       allow read: if request.auth != null && (
-        request.auth.uid == studentId ||
+        isSameStudent(studentId) ||
         isUserInTeacherClass(studentId) ||
         isSuperAdmin() ||
         isPlatformAdmin() ||
         isSchoolAdmin()
       );
-      allow create, update: if request.auth != null && request.auth.uid == studentId;
+      allow create, update: if isSameStudent(studentId);
       allow delete: if isSuperAdmin() || isPlatformAdmin();
 
       match /courses/{courseId} {
         allow read: if request.auth != null && (
-          request.auth.uid == studentId ||
+          isSameStudent(studentId) ||
           isUserInTeacherClass(studentId) ||
           isSuperAdmin() ||
           isPlatformAdmin() ||
           isSchoolAdmin()
         );
-        allow create, update: if request.auth != null && request.auth.uid == studentId;
+        allow create, update: if isSameStudent(studentId);
         allow delete: if isSuperAdmin() || isPlatformAdmin();
 
         match /sessions/{sessionId} {
           allow read: if request.auth != null && (
-            request.auth.uid == studentId ||
+            isSameStudent(studentId) ||
             isUserInTeacherClass(studentId) ||
             isSuperAdmin() ||
             isPlatformAdmin() ||
             isSchoolAdmin()
           );
-          allow create, update: if request.auth != null && request.auth.uid == studentId;
+          allow create, update: if isSameStudent(studentId);
           allow delete: if isSuperAdmin() || isPlatformAdmin();
         }
       }
@@ -529,7 +538,7 @@ service cloud.firestore {
       allow read: if true; // students must read steps to run engines
       allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseEditor();
     }
-    
+
     // 🧩 STEP DEFINITIONS FOR CATALOG COURSES (RUNTIME STEPS)
     match /catalogCourses/{courseId}/modules/{moduleId}/steps/{stepId} {
       allow read: if true; // students must read steps to run engines
@@ -544,7 +553,7 @@ service cloud.firestore {
       );
 
       // Optional: allow students to write their own results
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.studentId;
+      allow create: if isSameStudent(request.resource.data.studentId);
 
       // Optional: only admins can delete
       allow delete: if isSuperAdmin() || isPlatformAdmin();
@@ -568,16 +577,16 @@ service cloud.firestore {
       allow read: if request.auth != null;
       allow write: if isAccountingAdmin();
     }
-    
+
     match /settings/{settingId} {
       allow read: if true;
       allow write: if isSuperAdmin() || isPlatformAdmin();
     }
-    
+
     // ---
     // --- ACCOUNTING COLLECTIONS ---
     // ---
-    
+
     // 💰 PAYMENTS
     match /payments/{payId} {
       // Use the accounting helper
@@ -594,7 +603,7 @@ service cloud.firestore {
     match /subscriptions/{subId} {
       allow read, write: if isSuperAdmin() || isAccountant();
     }
-    
+
     // 🏷 STEP METADATA (Tags)
     match /step_metadata/{stepId} {
       allow read: if true;
@@ -622,30 +631,30 @@ service cloud.firestore {
         allow read, write: if isAccountingAdmin();
       }
     }
-    
+
     // 💵 SALARIES
     match /salaries/{salaryId} {
       // Use the same accounting helper
       allow read, list, create, update, delete: if isAccountingAdmin();
     }
-    
+
     // 📋 LESSON LOG
     match /lesson_log/{lessonId} {
       // Allow accountants/admins to read and write lesson logs
       allow read, write: if isAccountingAdmin();
     }
-    
+
     // 🧩 STEP COLLECTION GROUP (for editors, registry, runtime)
     match /{path=**}/steps/{stepId} {
       allow read: if true;
       allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseEditor();
     }
-    
+
     match /stepTypes/{stepTypeId} {
       allow read: if true;
       allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseEditor();
     }
-    
+
     // 🧩 SYSTEM STEP TYPES (Cloud Code)
     match /system_step_types/{stepId} {
       allow read: if true;

@@ -1,4 +1,4 @@
-import { ContinueLearningIntent } from "./ContinueLearningIntent.js?v=1.1.117-student-identity-binding";
+import { ContinueLearningIntent } from "./ContinueLearningIntent.js?v=1.1.118-fruit-login-student-identity";
 
 export function SelectContinueLearningIntent() {
   return Object.assign({}, ContinueLearningIntent(), {

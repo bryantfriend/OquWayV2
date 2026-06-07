@@ -1,4 +1,4 @@
-import { requireStringValidation } from "../../validators.js?v=1.1.117-student-identity-binding";
+import { requireStringValidation } from "../../validators.js?v=1.1.118-fruit-login-student-identity";
 
 export function validateFieldValueType(executionState) {
     const { payload } = executionState;
