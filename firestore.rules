@@ -50,7 +50,10 @@ service cloud.firestore {
     function isCourseEditor() { return isCourseCreator() || isAssistant(); }
     function isAccountant() { return hasAnyRole('accountant', 'ROLE_ACCOUNTANT'); }
     function isTeacher() { return hasAnyRole('teacher', 'ROLE_TEACHER') || profileHasAnyRole('teacher', 'ROLE_TEACHER'); }
-    function isStudent() { return hasAnyRole('student', 'ROLE_STUDENT') || profileHasAnyRole('student', 'ROLE_STUDENT'); }
+    function hasStudentToken() {
+      return request.auth != null && request.auth.token.studentId is string;
+    }
+    function isStudent() { return hasAnyRole('student', 'ROLE_STUDENT') || hasStudentToken() || profileHasAnyRole('student', 'ROLE_STUDENT'); }
 
 
     function user() {
@@ -318,6 +321,7 @@ service cloud.firestore {
       match /classes/{classId} {
           // Allow accountants/admins to read and write classes
           allow read, list: if isAccountingAdmin()
+            || isStudent()
             || (isTeacher() && (classId in teacherClassIds() || locId in teacherLocationIds()))
             || isTeacherAssignedToClass(resource.data, classId);
           allow create, update, delete: if isAccountingAdmin();

@@ -1,8 +1,8 @@
-import { appState, updateAppState } from "./appState.js?v=1.1.112-student-assignment-error-debug";
-import { registerIntentDefinitions, runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.112-student-assignment-error-debug";
-import { createClassesIntentRegistrar, createDashboardIntentRegistrar, createUsersIntentRegistrar } from "../../../../../packages/icf/admin/intents/index.js?v=1.1.112-student-assignment-error-debug";
-import { createUser, deleteUser, disableUser, getUser, getUsers, sendPasswordReset, updateUser } from "../users/usersService.js?v=1.1.112-student-assignment-error-debug";
-import { resetFruitPassword } from "../users/fruitPasswordService.js?v=1.1.112-student-assignment-error-debug";
+import { appState, updateAppState } from "./appState.js?v=1.1.113-student-rules-read";
+import { registerIntentDefinitions, runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.113-student-rules-read";
+import { createClassesIntentRegistrar, createDashboardIntentRegistrar, createUsersIntentRegistrar } from "../../../../../packages/icf/admin/intents/index.js?v=1.1.113-student-rules-read";
+import { createUser, deleteUser, disableUser, getUser, getUsers, sendPasswordReset, updateUser } from "../users/usersService.js?v=1.1.113-student-rules-read";
+import { resetFruitPassword } from "../users/fruitPasswordService.js?v=1.1.113-student-rules-read";
 
 export async function initApp() {
   registerIntentDefinitions([
@@ -25,7 +25,7 @@ export async function initApp() {
     runIntent: runAdminIntent
   };
 
-  await import("./legacyDashboard.js?v=1.1.112-student-assignment-error-debug");
+  await import("./legacyDashboard.js?v=1.1.113-student-rules-read");
   updateAppState({ legacyDashboardLoaded: true });
 }
 

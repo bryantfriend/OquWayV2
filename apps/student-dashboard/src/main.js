@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.112-student-assignment-error-debug";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.112-student-assignment-error-debug";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.112-student-assignment-error-debug";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.113-student-rules-read";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.113-student-rules-read";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.113-student-rules-read";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,16 +13,16 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.112-student-assignment-error-debug";
+} from "../../../packages/domain/progress/index.js?v=1.1.113-student-rules-read";
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.112-student-assignment-error-debug";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.112-student-assignment-error-debug";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.112-student-assignment-error-debug";
+} from "../../../packages/ui/index.js?v=1.1.113-student-rules-read";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.113-student-rules-read";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.113-student-rules-read";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;

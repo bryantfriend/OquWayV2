@@ -1,5 +1,5 @@
-import { db, collection, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.112-student-assignment-error-debug";
-import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.112-student-assignment-error-debug";
+import { db, collection, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.113-student-rules-read";
+import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.113-student-rules-read";
 
 export async function attachSessionsCollection(executionState) {
   const payload = executionState.payload;

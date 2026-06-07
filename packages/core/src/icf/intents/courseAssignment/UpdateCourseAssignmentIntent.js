@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateCourseAssignmentId, validateCourseAssignmentUpdatePayload } from "../../stages/validate/validators.js?v=1.1.112-student-assignment-error-debug";
-import { normalizeCourseAssignmentUpdatePayload } from "../../stages/normalize/normalizers.js?v=1.1.112-student-assignment-error-debug";
-import { attachActorContext, attachActorRoleContext, attachCourseAssignmentContext } from "../../stages/addContext/contexts.js?v=1.1.112-student-assignment-error-debug";
-import { requireCourseAssignmentAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.112-student-assignment-error-debug";
-import { processUpdateCourseAssignment } from "../../stages/process/processors.js?v=1.1.112-student-assignment-error-debug";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.112-student-assignment-error-debug";
+import { validateAuthenticated, validateCourseAssignmentId, validateCourseAssignmentUpdatePayload } from "../../stages/validate/validators.js?v=1.1.113-student-rules-read";
+import { normalizeCourseAssignmentUpdatePayload } from "../../stages/normalize/normalizers.js?v=1.1.113-student-rules-read";
+import { attachActorContext, attachActorRoleContext, attachCourseAssignmentContext } from "../../stages/addContext/contexts.js?v=1.1.113-student-rules-read";
+import { requireCourseAssignmentAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.113-student-rules-read";
+import { processUpdateCourseAssignment } from "../../stages/process/processors.js?v=1.1.113-student-rules-read";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.113-student-rules-read";
 
 export function UpdateCourseAssignmentIntent() {
   return {

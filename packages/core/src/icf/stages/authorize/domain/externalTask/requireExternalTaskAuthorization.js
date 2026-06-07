@@ -1,4 +1,4 @@
-import { canReviewExternalTask, canSubmitExternalTask } from "../../../../../../../permissions/index.js?v=1.1.112-student-assignment-error-debug";
+import { canReviewExternalTask, canSubmitExternalTask } from "../../../../../../../permissions/index.js?v=1.1.113-student-rules-read";
 
 export function requireExternalTaskStudentAuthorization(executionState) {
   var actor = executionState.actor;

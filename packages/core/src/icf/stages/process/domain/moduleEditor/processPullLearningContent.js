@@ -1,4 +1,4 @@
-import { createPulledStepDraft } from "./learningArchitecture.js?v=1.1.112-student-assignment-error-debug";
+import { createPulledStepDraft } from "./learningArchitecture.js?v=1.1.113-student-rules-read";
 
 export function processPullLearningContent(executionState) {
   var learningContent = executionState.context.module && executionState.context.module.learningContent;

@@ -1,4 +1,4 @@
-import { isValidPracticeModeKey } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.112-student-assignment-error-debug";
+import { isValidPracticeModeKey } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.113-student-rules-read";
 
 export function validatePracticeModeKey(executionState) {
   var payload = executionState.payload;

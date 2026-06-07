@@ -1,4 +1,4 @@
-import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.112-student-assignment-error-debug";
+import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.113-student-rules-read";
 
 export function requireLocationAdminAuthorization(executionState) {
   var actor = executionState.actor;

@@ -1,7 +1,7 @@
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../stepTypes/stepTypeRegistry.js?v=1.1.112-student-assignment-error-debug";
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.113-student-rules-read";
 
 export class PracticeModePlayer {
   constructor(options) {

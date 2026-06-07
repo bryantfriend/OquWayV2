@@ -1,11 +1,11 @@
-import { catalogCourseRequireTitleValidation, catalogCourseRequireVersionValidation } from "../../stages/validate/validators.js?v=1.1.112-student-assignment-error-debug";
-import { catalogCourseTrimTitleNormalization } from "../../stages/normalize/normalizers.js?v=1.1.112-student-assignment-error-debug";
-import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.112-student-assignment-error-debug";
-import { attachTimestampContext, attachCreatedByContext } from "../../stages/addContext/contexts.js?v=1.1.112-student-assignment-error-debug";
-import { attachExistingVersionContext } from "../../stages/addContext/contexts.js?v=1.1.112-student-assignment-error-debug";
-import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.112-student-assignment-error-debug";
-import { catalogModuleCreateProcessing } from "../../stages/process/processors.js?v=1.1.112-student-assignment-error-debug";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.112-student-assignment-error-debug";
+import { catalogCourseRequireTitleValidation, catalogCourseRequireVersionValidation } from "../../stages/validate/validators.js?v=1.1.113-student-rules-read";
+import { catalogCourseTrimTitleNormalization } from "../../stages/normalize/normalizers.js?v=1.1.113-student-rules-read";
+import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.113-student-rules-read";
+import { attachTimestampContext, attachCreatedByContext } from "../../stages/addContext/contexts.js?v=1.1.113-student-rules-read";
+import { attachExistingVersionContext } from "../../stages/addContext/contexts.js?v=1.1.113-student-rules-read";
+import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.113-student-rules-read";
+import { catalogModuleCreateProcessing } from "../../stages/process/processors.js?v=1.1.113-student-rules-read";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.113-student-rules-read";
 
 export function CreateCatalogModuleIntent() {
     return {

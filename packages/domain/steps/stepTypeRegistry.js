@@ -3,7 +3,7 @@ import {
   getStepTypeDefinition,
   isSupportedStepType,
   listStepTypeDefinitions
-} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.112-student-assignment-error-debug";
+} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.113-student-rules-read";
 
 export {
   createDefaultStepConfig,

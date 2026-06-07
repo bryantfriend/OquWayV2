@@ -1,6 +1,6 @@
-import { getActiveAssignmentsForStudent } from "../assignments/index.js?v=1.1.112-student-assignment-error-debug";
+import { getActiveAssignmentsForStudent } from "../assignments/index.js?v=1.1.113-student-rules-read";
 
-export { buildStudentAssignmentTargets } from "../assignments/index.js?v=1.1.112-student-assignment-error-debug";
+export { buildStudentAssignmentTargets } from "../assignments/index.js?v=1.1.113-student-rules-read";
 
 export async function getAssignedCourses(studentId, studentProfile) {
   var assignmentResult = await getAssignedCourseIds(studentId, studentProfile);

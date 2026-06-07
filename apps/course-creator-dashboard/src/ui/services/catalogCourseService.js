@@ -1,6 +1,6 @@
-import { createIntent } from "../../../../../packages/icf/index.js?v=1.1.112-student-assignment-error-debug";
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.112-student-assignment-error-debug";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.112-student-assignment-error-debug";
+import { createIntent } from "../../../../../packages/icf/index.js?v=1.1.113-student-rules-read";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.113-student-rules-read";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.113-student-rules-read";
 
 function getActor() {
     const user = auth.currentUser;

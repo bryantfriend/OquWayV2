@@ -1,4 +1,4 @@
-import { locationLoginSettingsService } from "../services/locationLoginSettingsService.js?v=1.1.112-student-assignment-error-debug";
+import { locationLoginSettingsService } from "../services/locationLoginSettingsService.js?v=1.1.113-student-rules-read";
 
 export class LocationLoginSettingsPage {
   constructor() {

@@ -1,4 +1,4 @@
-import { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.112-student-assignment-error-debug";
+import { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.113-student-rules-read";
 
 var intents = {};
 

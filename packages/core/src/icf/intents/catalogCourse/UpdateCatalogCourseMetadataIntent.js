@@ -1,11 +1,11 @@
-import { validateAuthenticated, validateCourseId, validateCourseMetadataPayload } from "../../stages/validate/validators.js?v=1.1.112-student-assignment-error-debug";
-import { normalizeCourseId, normalizeCourseMetadata } from "../../stages/normalize/normalizers.js?v=1.1.112-student-assignment-error-debug";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.112-student-assignment-error-debug";
-import { attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.112-student-assignment-error-debug";
-import { attachCourseDocument } from "../../stages/addContext/contexts.js?v=1.1.112-student-assignment-error-debug";
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.112-student-assignment-error-debug";
-import { catalogCourseUpdateMetadataProcessing } from "../../stages/process/processors.js?v=1.1.112-student-assignment-error-debug";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.112-student-assignment-error-debug";
+import { validateAuthenticated, validateCourseId, validateCourseMetadataPayload } from "../../stages/validate/validators.js?v=1.1.113-student-rules-read";
+import { normalizeCourseId, normalizeCourseMetadata } from "../../stages/normalize/normalizers.js?v=1.1.113-student-rules-read";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.113-student-rules-read";
+import { attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.113-student-rules-read";
+import { attachCourseDocument } from "../../stages/addContext/contexts.js?v=1.1.113-student-rules-read";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.113-student-rules-read";
+import { catalogCourseUpdateMetadataProcessing } from "../../stages/process/processors.js?v=1.1.113-student-rules-read";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.113-student-rules-read";
 
 export function UpdateCatalogCourseMetadataIntent() {
     return {

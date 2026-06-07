@@ -1,4 +1,4 @@
-import { createDefaultLearningContent, readTemplateSpecs } from "../moduleEditor/learningArchitecture.js?v=1.1.112-student-assignment-error-debug";
+import { createDefaultLearningContent, readTemplateSpecs } from "../moduleEditor/learningArchitecture.js?v=1.1.113-student-rules-read";
 
 export function processOpenCreateModuleWizard(executionState) {
   var payload = executionState.payload || {};

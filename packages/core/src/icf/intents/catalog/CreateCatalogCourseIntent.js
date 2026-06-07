@@ -1,9 +1,9 @@
-import { catalogCourseRequireTitleValidation } from "../../stages/validate/validators.js?v=1.1.112-student-assignment-error-debug";
-import { catalogCourseNormalizeTitleNormalization } from "../../stages/normalize/normalizers.js?v=1.1.112-student-assignment-error-debug";
-import { catalogAttachSystemContext } from "../../stages/addContext/contexts.js?v=1.1.112-student-assignment-error-debug";
-import { catalogRequireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.112-student-assignment-error-debug";
-import { catalogCourseCreateRecordProcessing } from "../../stages/process/processors.js?v=1.1.112-student-assignment-error-debug";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.112-student-assignment-error-debug";
+import { catalogCourseRequireTitleValidation } from "../../stages/validate/validators.js?v=1.1.113-student-rules-read";
+import { catalogCourseNormalizeTitleNormalization } from "../../stages/normalize/normalizers.js?v=1.1.113-student-rules-read";
+import { catalogAttachSystemContext } from "../../stages/addContext/contexts.js?v=1.1.113-student-rules-read";
+import { catalogRequireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.113-student-rules-read";
+import { catalogCourseCreateRecordProcessing } from "../../stages/process/processors.js?v=1.1.113-student-rules-read";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.113-student-rules-read";
 
 export function CreateCatalogCourseIntent() {
     return {

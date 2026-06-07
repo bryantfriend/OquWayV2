@@ -1,4 +1,4 @@
-import { parseLearningContentText } from "../moduleEditor/learningArchitecture.js?v=1.1.112-student-assignment-error-debug";
+import { parseLearningContentText } from "../moduleEditor/learningArchitecture.js?v=1.1.113-student-rules-read";
 
 export function processParseLearningContent(executionState) {
   var payload = executionState.payload || {};

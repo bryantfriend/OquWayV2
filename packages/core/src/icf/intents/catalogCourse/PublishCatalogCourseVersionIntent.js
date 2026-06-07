@@ -1,9 +1,9 @@
-import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.112-student-assignment-error-debug";
-import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.112-student-assignment-error-debug";
-import { attachExistingVersionContext } from "../../stages/addContext/contexts.js?v=1.1.112-student-assignment-error-debug";
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.112-student-assignment-error-debug";
-import { catalogCoursePublishVersionProcessing } from "../../stages/process/processors.js?v=1.1.112-student-assignment-error-debug";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.112-student-assignment-error-debug";
+import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.113-student-rules-read";
+import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.113-student-rules-read";
+import { attachExistingVersionContext } from "../../stages/addContext/contexts.js?v=1.1.113-student-rules-read";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.113-student-rules-read";
+import { catalogCoursePublishVersionProcessing } from "../../stages/process/processors.js?v=1.1.113-student-rules-read";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.113-student-rules-read";
 
 export function PublishCatalogCourseVersionIntent() {
     return {

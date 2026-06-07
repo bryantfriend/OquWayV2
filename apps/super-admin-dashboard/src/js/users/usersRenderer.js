@@ -1,7 +1,7 @@
-import { roleFilterCards } from "../../../../../packages/shared/constants/admin.js?v=1.1.112-student-assignment-error-debug";
-import { escapeHtml, formatDateTime } from "../../../../../packages/shared/formatting/index.js?v=1.1.112-student-assignment-error-debug";
-import { collectUserRoles } from "../../../../../packages/domain/users/index.js?v=1.1.112-student-assignment-error-debug";
-import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.112-student-assignment-error-debug";
+import { roleFilterCards } from "../../../../../packages/shared/constants/admin.js?v=1.1.113-student-rules-read";
+import { escapeHtml, formatDateTime } from "../../../../../packages/shared/formatting/index.js?v=1.1.113-student-rules-read";
+import { collectUserRoles } from "../../../../../packages/domain/users/index.js?v=1.1.113-student-rules-read";
+import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.113-student-rules-read";
 
 export function renderUsersRoleCards(users, selectedRoleFilter) {
   var html = '<section class="sa-role-card-grid" aria-label="Role filters">';

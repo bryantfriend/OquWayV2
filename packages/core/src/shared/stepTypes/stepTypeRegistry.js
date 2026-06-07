@@ -1,13 +1,13 @@
-import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.112-student-assignment-error-debug";
-import { VocabularyStep } from "./VocabularyStep.js?v=1.1.112-student-assignment-error-debug";
-import { PhraseStep } from "./PhraseStep.js?v=1.1.112-student-assignment-error-debug";
-import { ListeningStep } from "./ListeningStep.js?v=1.1.112-student-assignment-error-debug";
-import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.112-student-assignment-error-debug";
-import { ReflectionStep } from "./ReflectionStep.js?v=1.1.112-student-assignment-error-debug";
-import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.112-student-assignment-error-debug";
-import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.112-student-assignment-error-debug";
-import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.112-student-assignment-error-debug";
-import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.112-student-assignment-error-debug";
+import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.113-student-rules-read";
+import { VocabularyStep } from "./VocabularyStep.js?v=1.1.113-student-rules-read";
+import { PhraseStep } from "./PhraseStep.js?v=1.1.113-student-rules-read";
+import { ListeningStep } from "./ListeningStep.js?v=1.1.113-student-rules-read";
+import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.113-student-rules-read";
+import { ReflectionStep } from "./ReflectionStep.js?v=1.1.113-student-rules-read";
+import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.113-student-rules-read";
+import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.113-student-rules-read";
+import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.113-student-rules-read";
+import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.113-student-rules-read";
 
 var stepTypes = {
   textBriefing: TextBriefingStep,

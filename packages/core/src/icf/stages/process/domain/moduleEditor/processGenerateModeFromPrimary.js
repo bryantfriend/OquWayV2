@@ -1,4 +1,4 @@
-import { processDuplicateLearningMode } from "./processDuplicateLearningMode.js?v=1.1.112-student-assignment-error-debug";
+import { processDuplicateLearningMode } from "./processDuplicateLearningMode.js?v=1.1.113-student-rules-read";
 
 export async function processGenerateModeFromPrimary(executionState) {
   executionState.payload = Object.assign({}, executionState.payload, {
