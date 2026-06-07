@@ -1,9 +1,9 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.118-fruit-login-student-identity";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.118-fruit-login-student-identity";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.118-fruit-login-student-identity";
-import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.118-fruit-login-student-identity";
-import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason, resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.118-fruit-login-student-identity";
-import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.118-fruit-login-student-identity";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.119-student-dashboard-debug-safe";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.119-student-dashboard-debug-safe";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.119-student-dashboard-debug-safe";
+import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.119-student-dashboard-debug-safe";
+import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason, resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.119-student-dashboard-debug-safe";
+import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.119-student-dashboard-debug-safe";
 
 export async function processLoadStudentCourse(executionState) {
   var actor = executionState.actor;

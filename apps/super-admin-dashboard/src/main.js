@@ -1,5 +1,5 @@
 import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.86-dev-workflow";
-import { initApp } from "./js/app/initApp.js?v=1.1.118-fruit-login-student-identity";
+import { initApp } from "./js/app/initApp.js?v=1.1.119-student-dashboard-debug-safe";
 
 console.log("[oquway-build]", OQUWAY_BUILD_VERSION);
 

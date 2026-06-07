@@ -1,4 +1,4 @@
-import { collection, db, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.118-fruit-login-student-identity";
+import { collection, db, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.119-student-dashboard-debug-safe";
 
 export async function processListLocations(executionState) {
   try {

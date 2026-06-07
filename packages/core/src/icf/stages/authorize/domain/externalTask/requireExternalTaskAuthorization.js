@@ -1,4 +1,4 @@
-import { canReviewExternalTask, canSubmitExternalTask } from "../../../../../../../permissions/index.js?v=1.1.118-fruit-login-student-identity";
+import { canReviewExternalTask, canSubmitExternalTask } from "../../../../../../../permissions/index.js?v=1.1.119-student-dashboard-debug-safe";
 
 export function requireExternalTaskStudentAuthorization(executionState) {
   var actor = executionState.actor;

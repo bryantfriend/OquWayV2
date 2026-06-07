@@ -1,4 +1,4 @@
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.118-fruit-login-student-identity";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.119-student-dashboard-debug-safe";
 import { getExternalTaskSubmissionById } from "../../../../../../../domain/externalTasks/index.js";
 import { getUserProfileByAuthUid, getUserRoles } from "../../../../../../../domain/users/index.js";
 

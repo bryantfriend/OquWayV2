@@ -1,4 +1,4 @@
-import { db, writeBatch, doc, serverTimestamp } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.118-fruit-login-student-identity";
+import { db, writeBatch, doc, serverTimestamp } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.119-student-dashboard-debug-safe";
 
 export async function processSaveCourseDraft(executionState) {
     const { payload, context } = executionState;

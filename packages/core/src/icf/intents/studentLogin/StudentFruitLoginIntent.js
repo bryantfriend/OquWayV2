@@ -1,8 +1,8 @@
-import { validateStudentFruitLoginPayload } from "../../stages/validate/validators.js?v=1.1.118-fruit-login-student-identity";
-import { normalizeStudentFruitLoginPayload } from "../../stages/normalize/normalizers.js?v=1.1.118-fruit-login-student-identity";
-import { allowStudentLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.118-fruit-login-student-identity";
-import { processStudentFruitLogin } from "../../stages/process/processors.js?v=1.1.118-fruit-login-student-identity";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.118-fruit-login-student-identity";
+import { validateStudentFruitLoginPayload } from "../../stages/validate/validators.js?v=1.1.119-student-dashboard-debug-safe";
+import { normalizeStudentFruitLoginPayload } from "../../stages/normalize/normalizers.js?v=1.1.119-student-dashboard-debug-safe";
+import { allowStudentLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.119-student-dashboard-debug-safe";
+import { processStudentFruitLogin } from "../../stages/process/processors.js?v=1.1.119-student-dashboard-debug-safe";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.119-student-dashboard-debug-safe";
 
 export function StudentFruitLoginIntent() {
   return {

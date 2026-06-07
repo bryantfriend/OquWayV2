@@ -1,4 +1,4 @@
-import { db, doc, getDoc, collection, getDocs, query, orderBy } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.118-fruit-login-student-identity";
+import { db, doc, getDoc, collection, getDocs, query, orderBy } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.119-student-dashboard-debug-safe";
 
 export async function attachStepRegistryDefinition(executionState) {
     const { payload } = executionState;

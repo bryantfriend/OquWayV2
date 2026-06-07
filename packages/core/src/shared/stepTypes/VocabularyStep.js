@@ -1,4 +1,4 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.118-fruit-login-student-identity";
+import { BaseStep } from "./BaseStep.js?v=1.1.119-student-dashboard-debug-safe";
 
 export class VocabularyStep extends BaseStep {
   static get type() {

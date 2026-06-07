@@ -1,4 +1,4 @@
-import { createDefaultLearningContent, readTemplateSpecs } from "../moduleEditor/learningArchitecture.js?v=1.1.118-fruit-login-student-identity";
+import { createDefaultLearningContent, readTemplateSpecs } from "../moduleEditor/learningArchitecture.js?v=1.1.119-student-dashboard-debug-safe";
 
 export function processOpenCreateModuleWizard(executionState) {
   var payload = executionState.payload || {};

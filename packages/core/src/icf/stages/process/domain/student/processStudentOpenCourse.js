@@ -1,6 +1,6 @@
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.118-fruit-login-student-identity";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.118-fruit-login-student-identity";
-import { resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.118-fruit-login-student-identity";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.119-student-dashboard-debug-safe";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.119-student-dashboard-debug-safe";
+import { resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.119-student-dashboard-debug-safe";
 
 export async function processStudentOpenCourse(executionState) {
   var payload = executionState.payload || {};

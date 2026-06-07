@@ -1,5 +1,5 @@
-import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.118-fruit-login-student-identity";
-import { collection, db, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.118-fruit-login-student-identity";
+import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.119-student-dashboard-debug-safe";
+import { collection, db, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.119-student-dashboard-debug-safe";
 
 export async function processLoadAdminProfile(executionState) {
   var actor = executionState.actor;

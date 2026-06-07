@@ -1,4 +1,4 @@
-import { loadCourseAssignments, sortAssignments } from "./courseAssignmentHelpers.js?v=1.1.118-fruit-login-student-identity";
+import { loadCourseAssignments, sortAssignments } from "./courseAssignmentHelpers.js?v=1.1.119-student-dashboard-debug-safe";
 
 export async function processListCourseAssignments(executionState) {
   var payload = executionState.payload || {};

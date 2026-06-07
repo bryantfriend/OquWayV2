@@ -1,5 +1,5 @@
-import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.118-fruit-login-student-identity";
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.118-fruit-login-student-identity";
+import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.119-student-dashboard-debug-safe";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.119-student-dashboard-debug-safe";
 import { calculateCourseCompletion, calculateCourseProgressSummary } from "../../../../../../../domain/progress/index.js";
 
 export async function processLoadStudentDashboard(executionState) {
@@ -58,7 +58,30 @@ function logStudentDashboardDebug(label, value) {
     return;
   }
 
-  console.log("[student-dashboard-debug] " + label, JSON.stringify(value));
+  console.log("[student-dashboard-debug] " + label, safeDebugStringify(value));
+}
+
+function safeDebugStringify(value) {
+  var seen = [];
+
+  try {
+    return JSON.stringify(value, function (key, nestedValue) {
+      if (typeof nestedValue !== "object" || nestedValue === null) {
+        return nestedValue;
+      }
+
+      if (seen.indexOf(nestedValue) !== -1) {
+        return "[Circular]";
+      }
+
+      seen.push(nestedValue);
+      return nestedValue;
+    });
+  } catch (error) {
+    return JSON.stringify({
+      debugStringifyError: error && error.message ? error.message : String(error)
+    });
+  }
 }
 
 function isStudentDashboardDebugEnabled() {

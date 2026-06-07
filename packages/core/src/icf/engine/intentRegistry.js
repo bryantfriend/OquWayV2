@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.118-fruit-login-student-identity";
+import * as IntentExports from "../intents/intents.js?v=1.1.119-student-dashboard-debug-safe";
 
 const registry = {
   // Demo Verification

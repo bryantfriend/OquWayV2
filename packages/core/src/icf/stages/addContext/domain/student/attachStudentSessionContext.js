@@ -1,7 +1,7 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.118-fruit-login-student-identity";
-import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.118-fruit-login-student-identity";
-import { createDefaultProgressDocument } from "../../../process/domain/student/studentProgressHelpers.js?v=1.1.118-fruit-login-student-identity";
-import { resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.118-fruit-login-student-identity";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.119-student-dashboard-debug-safe";
+import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.119-student-dashboard-debug-safe";
+import { createDefaultProgressDocument } from "../../../process/domain/student/studentProgressHelpers.js?v=1.1.119-student-dashboard-debug-safe";
+import { resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.119-student-dashboard-debug-safe";
 
 export async function attachStudentSessionContext(executionState) {
   var payload = executionState.payload;

@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.118-fruit-login-student-identity";
-import { createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.118-fruit-login-student-identity";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.119-student-dashboard-debug-safe";
+import { createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.119-student-dashboard-debug-safe";
 
 export async function processRenameLearningMode(executionState) {
   var payload = executionState.payload || {};

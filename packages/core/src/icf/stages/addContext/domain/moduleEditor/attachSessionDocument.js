@@ -1,5 +1,5 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.118-fruit-login-student-identity";
-import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.118-fruit-login-student-identity";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.119-student-dashboard-debug-safe";
+import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.119-student-dashboard-debug-safe";
 
 export async function attachSessionDocument(executionState) {
   var payload = executionState.payload;

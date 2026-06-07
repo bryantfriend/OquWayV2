@@ -1,5 +1,5 @@
-export { firebaseApp } from "../core/src/infrastructure/firebase/firebaseApp.js?v=1.1.118-fruit-login-student-identity";
-export { auth } from "../core/src/infrastructure/firebase/auth.js?v=1.1.118-fruit-login-student-identity";
+export { firebaseApp } from "../core/src/infrastructure/firebase/firebaseApp.js?v=1.1.119-student-dashboard-debug-safe";
+export { auth } from "../core/src/infrastructure/firebase/auth.js?v=1.1.119-student-dashboard-debug-safe";
 export {
   collection,
   db,
@@ -11,7 +11,7 @@ export {
   serverTimestamp,
   setDoc,
   where
-} from "../core/src/infrastructure/firebase/firestore.js?v=1.1.118-fruit-login-student-identity";
-export { functions, httpsCallable } from "../core/src/infrastructure/firebase/functions.js?v=1.1.118-fruit-login-student-identity";
-export { storage } from "../core/src/infrastructure/firebase/storage.js?v=1.1.118-fruit-login-student-identity";
+} from "../core/src/infrastructure/firebase/firestore.js?v=1.1.119-student-dashboard-debug-safe";
+export { functions, httpsCallable } from "../core/src/infrastructure/firebase/functions.js?v=1.1.119-student-dashboard-debug-safe";
+export { storage } from "../core/src/infrastructure/firebase/storage.js?v=1.1.119-student-dashboard-debug-safe";
 export { getCurrentUserClaims } from "./claims/index.js";

@@ -1,12 +1,12 @@
-import { catalogCourseRequireTagValidation } from "../../stages/validate/validators.js?v=1.1.118-fruit-login-student-identity";
-import { catalogCourseNormalizeTagNormalization } from "../../stages/normalize/normalizers.js?v=1.1.118-fruit-login-student-identity";
-import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.118-fruit-login-student-identity";
-import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.118-fruit-login-student-identity";
-import { attachExistingCourseContext } from "../../stages/addContext/contexts.js?v=1.1.118-fruit-login-student-identity";
-import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.118-fruit-login-student-identity";
-import { preventModificationIfPublishedAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.118-fruit-login-student-identity";
-import { catalogCourseRemoveTagProcessing, catalogCourseUpdateMetadataProcessing } from "../../stages/process/processors.js?v=1.1.118-fruit-login-student-identity";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.118-fruit-login-student-identity";
+import { catalogCourseRequireTagValidation } from "../../stages/validate/validators.js?v=1.1.119-student-dashboard-debug-safe";
+import { catalogCourseNormalizeTagNormalization } from "../../stages/normalize/normalizers.js?v=1.1.119-student-dashboard-debug-safe";
+import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.119-student-dashboard-debug-safe";
+import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.119-student-dashboard-debug-safe";
+import { attachExistingCourseContext } from "../../stages/addContext/contexts.js?v=1.1.119-student-dashboard-debug-safe";
+import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.119-student-dashboard-debug-safe";
+import { preventModificationIfPublishedAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.119-student-dashboard-debug-safe";
+import { catalogCourseRemoveTagProcessing, catalogCourseUpdateMetadataProcessing } from "../../stages/process/processors.js?v=1.1.119-student-dashboard-debug-safe";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.119-student-dashboard-debug-safe";
 
 export function RemoveTagFromCatalogCourseIntent() {
     return {

@@ -1,13 +1,13 @@
-import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.118-fruit-login-student-identity";
-import { VocabularyStep } from "./VocabularyStep.js?v=1.1.118-fruit-login-student-identity";
-import { PhraseStep } from "./PhraseStep.js?v=1.1.118-fruit-login-student-identity";
-import { ListeningStep } from "./ListeningStep.js?v=1.1.118-fruit-login-student-identity";
-import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.118-fruit-login-student-identity";
-import { ReflectionStep } from "./ReflectionStep.js?v=1.1.118-fruit-login-student-identity";
-import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.118-fruit-login-student-identity";
-import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.118-fruit-login-student-identity";
-import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.118-fruit-login-student-identity";
-import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.118-fruit-login-student-identity";
+import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.119-student-dashboard-debug-safe";
+import { VocabularyStep } from "./VocabularyStep.js?v=1.1.119-student-dashboard-debug-safe";
+import { PhraseStep } from "./PhraseStep.js?v=1.1.119-student-dashboard-debug-safe";
+import { ListeningStep } from "./ListeningStep.js?v=1.1.119-student-dashboard-debug-safe";
+import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.119-student-dashboard-debug-safe";
+import { ReflectionStep } from "./ReflectionStep.js?v=1.1.119-student-dashboard-debug-safe";
+import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.119-student-dashboard-debug-safe";
+import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.119-student-dashboard-debug-safe";
+import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.119-student-dashboard-debug-safe";
+import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.119-student-dashboard-debug-safe";
 
 var stepTypes = {
   textBriefing: TextBriefingStep,

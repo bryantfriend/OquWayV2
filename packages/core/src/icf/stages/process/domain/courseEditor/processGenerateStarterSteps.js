@@ -2,7 +2,7 @@ import {
   createLearningModesForTemplate,
   createStarterStepsForMode,
   normalizeLearningContentPayload
-} from "../moduleEditor/learningArchitecture.js?v=1.1.118-fruit-login-student-identity";
+} from "../moduleEditor/learningArchitecture.js?v=1.1.119-student-dashboard-debug-safe";
 
 export function processGenerateStarterSteps(executionState) {
   var payload = executionState.payload || {};

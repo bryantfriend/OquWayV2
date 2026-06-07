@@ -1,6 +1,6 @@
-import { createIntent } from "../../../../../packages/icf/index.js?v=1.1.118-fruit-login-student-identity";
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.118-fruit-login-student-identity";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.118-fruit-login-student-identity";
+import { createIntent } from "../../../../../packages/icf/index.js?v=1.1.119-student-dashboard-debug-safe";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.119-student-dashboard-debug-safe";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.119-student-dashboard-debug-safe";
 
 function getActor() {
     const user = auth.currentUser;

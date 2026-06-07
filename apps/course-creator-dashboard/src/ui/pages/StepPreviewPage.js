@@ -1,9 +1,9 @@
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.118-fruit-login-student-identity";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.118-fruit-login-student-identity";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.119-student-dashboard-debug-safe";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.119-student-dashboard-debug-safe";
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../../../../../packages/domain/steps/index.js?v=1.1.118-fruit-login-student-identity";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.119-student-dashboard-debug-safe";
 
 export class StepPreviewPage {
   constructor(courseId, moduleId, modeId, stepId) {

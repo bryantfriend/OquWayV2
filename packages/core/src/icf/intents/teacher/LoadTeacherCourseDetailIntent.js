@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateTeacherReviewQueuePayload } from "../../stages/validate/validators.js?v=1.1.118-fruit-login-student-identity";
-import { normalizeTeacherDashboardPayload } from "../../stages/normalize/normalizers.js?v=1.1.118-fruit-login-student-identity";
-import { attachActorContext, attachActorRoleContext, attachTeacherProfileContext } from "../../stages/addContext/contexts.js?v=1.1.118-fruit-login-student-identity";
-import { requireTeacherDashboardAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.118-fruit-login-student-identity";
-import { processLoadTeacherCourseDetail } from "../../stages/process/processors.js?v=1.1.118-fruit-login-student-identity";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.118-fruit-login-student-identity";
+import { validateAuthenticated, validateTeacherReviewQueuePayload } from "../../stages/validate/validators.js?v=1.1.119-student-dashboard-debug-safe";
+import { normalizeTeacherDashboardPayload } from "../../stages/normalize/normalizers.js?v=1.1.119-student-dashboard-debug-safe";
+import { attachActorContext, attachActorRoleContext, attachTeacherProfileContext } from "../../stages/addContext/contexts.js?v=1.1.119-student-dashboard-debug-safe";
+import { requireTeacherDashboardAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.119-student-dashboard-debug-safe";
+import { processLoadTeacherCourseDetail } from "../../stages/process/processors.js?v=1.1.119-student-dashboard-debug-safe";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.119-student-dashboard-debug-safe";
 
 export function LoadTeacherCourseDetailIntent() {
   return {

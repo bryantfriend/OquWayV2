@@ -1,10 +1,10 @@
-import { validateAuthenticated, validateCourseId, validateLearningModeId, validateModuleId, validatePracticeModeStepType } from "../../stages/validate/validators.js?v=1.1.118-fruit-login-student-identity";
-import { normalizeCourseId, normalizePracticeModeStep } from "../../stages/normalize/normalizers.js?v=1.1.118-fruit-login-student-identity";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.118-fruit-login-student-identity";
-import { attachLearningModeDocument } from "../../stages/addContext/contexts.js?v=1.1.118-fruit-login-student-identity";
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.118-fruit-login-student-identity";
-import { processAddStepToLearningMode } from "../../stages/process/processors.js?v=1.1.118-fruit-login-student-identity";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.118-fruit-login-student-identity";
+import { validateAuthenticated, validateCourseId, validateLearningModeId, validateModuleId, validatePracticeModeStepType } from "../../stages/validate/validators.js?v=1.1.119-student-dashboard-debug-safe";
+import { normalizeCourseId, normalizePracticeModeStep } from "../../stages/normalize/normalizers.js?v=1.1.119-student-dashboard-debug-safe";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.119-student-dashboard-debug-safe";
+import { attachLearningModeDocument } from "../../stages/addContext/contexts.js?v=1.1.119-student-dashboard-debug-safe";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.119-student-dashboard-debug-safe";
+import { processAddStepToLearningMode } from "../../stages/process/processors.js?v=1.1.119-student-dashboard-debug-safe";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.119-student-dashboard-debug-safe";
 
 export function AddStepToLearningModeIntent(intentType) {
   return {

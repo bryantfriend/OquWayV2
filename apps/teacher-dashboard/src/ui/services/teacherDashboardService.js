@@ -1,6 +1,6 @@
 import { getIdTokenResult, onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.118-fruit-login-student-identity";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.118-fruit-login-student-identity";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.119-student-dashboard-debug-safe";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.119-student-dashboard-debug-safe";
 
 var currentTeacherClaims = {};
 

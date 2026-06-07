@@ -1,5 +1,5 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.118-fruit-login-student-identity";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.118-fruit-login-student-identity";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.119-student-dashboard-debug-safe";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.119-student-dashboard-debug-safe";
 
 export async function processPreviewCourse(executionState) {
   var payload = executionState.payload || {};

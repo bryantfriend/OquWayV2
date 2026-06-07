@@ -1,4 +1,4 @@
-import { createDefaultLearningContent, createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.118-fruit-login-student-identity";
+import { createDefaultLearningContent, createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.119-student-dashboard-debug-safe";
 
 export async function processOpenModuleEditor(executionState) {
   const context = executionState.context;
