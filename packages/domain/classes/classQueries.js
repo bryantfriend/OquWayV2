@@ -1,5 +1,7 @@
 import { collection, db, doc, getDoc, getDocs, query, where } from "../../firebase/index.js";
 
+var ARRAY_CONTAINS_ANY_CHUNK_SIZE = 10;
+
 export async function getClassesForTeacher(teacherIds, roles, options) {
   var classes = [];
   var safeTeacherIds = Array.isArray(teacherIds) ? teacherIds : [];
@@ -69,6 +71,36 @@ export async function getClassesForTeacher(teacherIds, roles, options) {
   return classes.sort(compareByName);
 }
 
+export async function getClassesForTeacherScope(teacherScope) {
+  var scope = teacherScope || {};
+  var classes = [];
+  var queryErrors = [];
+  var classIds = readTextArray([scope.classIds]);
+  var teacherProfileIds = readTextArray([scope.teacherProfileIds]);
+  var chunks = chunkValues(teacherProfileIds, ARRAY_CONTAINS_ANY_CHUNK_SIZE);
+  var index = 0;
+
+  while (index < classIds.length) {
+    await appendClassById(classes, classIds[index], queryErrors);
+    index = index + 1;
+  }
+
+  index = 0;
+  while (index < chunks.length) {
+    await appendClassOwnershipQuery(classes, query(collection(db, "classes"), where("teacherOwnershipIds", "array-contains-any", chunks[index])), {
+      teacherId: chunks[index].join(","),
+      ownershipRole: "Assigned",
+      queryShape: "classes where teacherOwnershipIds array-contains-any teacherProfileIds"
+    }, queryErrors);
+    index = index + 1;
+  }
+
+  return {
+    classes: classes.sort(compareByName),
+    queryErrors: queryErrors
+  };
+}
+
 export async function getClassesForLocation(locationId) {
   var classes = [];
 
@@ -84,7 +116,7 @@ export async function getClassesForLocation(locationId) {
   return classes.sort(compareByName);
 }
 
-async function appendClassById(classes, classId) {
+async function appendClassById(classes, classId, queryErrors) {
   if (!classId) {
     return;
   }
@@ -105,6 +137,7 @@ async function appendClassById(classes, classId) {
       }, classSnap.data() || {}));
     }
   } catch (error) {
+    appendQueryError(queryErrors, "classes", "classes/" + classId, error);
     console.warn("[teacher-dashboard:classes-query-failed]", {
       teacherId: "",
       queryShape: "classes/" + classId,
@@ -113,7 +146,7 @@ async function appendClassById(classes, classId) {
   }
 }
 
-async function appendClassOwnershipQuery(classes, classesQuery, details) {
+async function appendClassOwnershipQuery(classes, classesQuery, details, queryErrors) {
   console.info("[teacher-dashboard:classes-query]", {
     teacherId: details && details.teacherId ? details.teacherId : "",
     queryShape: details && details.queryShape ? details.queryShape : "classes ownership query"
@@ -129,6 +162,7 @@ async function appendClassOwnershipQuery(classes, classesQuery, details) {
       }, classSnap.data() || {}));
     });
   } catch (error) {
+    appendQueryError(queryErrors, "classes", details && details.queryShape ? details.queryShape : "classes ownership query", error);
     console.warn("[teacher-dashboard:classes-query-failed]", {
       teacherId: details && details.teacherId ? details.teacherId : "",
       queryShape: details && details.queryShape ? details.queryShape : "classes ownership query",
@@ -174,6 +208,55 @@ function addUniqueRecord(records, record) {
 
   if (!records.some(function (item) { return item.id === record.id; })) {
     records.push(record);
+  }
+}
+
+function appendQueryError(queryErrors, collectionName, queryShape, error) {
+  if (!Array.isArray(queryErrors)) {
+    return;
+  }
+
+  queryErrors.push({
+    collection: collectionName,
+    queryShape: queryShape,
+    errorCode: error && error.code ? error.code : "",
+    errorMessage: readErrorMessage(error)
+  });
+}
+
+function chunkValues(values, chunkSize) {
+  var chunks = [];
+  var index = 0;
+  var safeValues = Array.isArray(values) ? values : [];
+
+  while (index < safeValues.length) {
+    chunks.push(safeValues.slice(index, index + chunkSize));
+    index = index + chunkSize;
+  }
+
+  return chunks;
+}
+
+function readTextArray(values) {
+  var result = [];
+  appendTextValues(result, values);
+  return result;
+}
+
+function appendTextValues(result, value) {
+  if (typeof value === "string" && value.trim() && result.indexOf(value.trim()) === -1) {
+    result.push(value.trim());
+    return;
+  }
+
+  if (!Array.isArray(value)) {
+    return;
+  }
+
+  var index = 0;
+  while (index < value.length) {
+    appendTextValues(result, value[index]);
+    index = index + 1;
   }
 }
 

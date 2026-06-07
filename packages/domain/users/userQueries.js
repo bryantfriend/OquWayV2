@@ -1,6 +1,8 @@
 import { collection, db, getDocs, query, where } from "../../firebase/index.js";
 import { isStudentProfile } from "./roleService.js";
 
+var IN_QUERY_CHUNK_SIZE = 10;
+
 export async function getStudentsForClasses(classIds) {
   var result = await getStudentsForClassScopes((Array.isArray(classIds) ? classIds : []).map(function (classId) {
     return { id: classId };
@@ -18,6 +20,30 @@ export async function getStudentsForClassScopes(classScopes) {
   while (classIndex < safeClassScopes.length) {
     await loadStudentsForClassScope(students, queryErrors, safeClassScopes[classIndex]);
     classIndex = classIndex + 1;
+  }
+
+  return {
+    students: students.filter(isStudentProfile).sort(compareByName),
+    queryErrors: queryErrors
+  };
+}
+
+export async function getStudentsForClassIds(classIds) {
+  var students = [];
+  var queryErrors = [];
+  var chunks = chunkValues(readTextArray([classIds]), IN_QUERY_CHUNK_SIZE);
+  var index = 0;
+
+  while (index < chunks.length) {
+    await appendStudentQuery(students, queryErrors, query(collection(db, "users"), where("classId", "in", chunks[index])), {
+      classId: chunks[index].join(","),
+      queryShape: "users where classId in classIds"
+    });
+    await appendStudentQuery(students, queryErrors, query(collection(db, "users"), where("classIds", "array-contains-any", chunks[index])), {
+      classId: chunks[index].join(","),
+      queryShape: "users where classIds array-contains-any classIds"
+    });
+    index = index + 1;
   }
 
   return {
@@ -205,6 +231,19 @@ function appendTextValues(result, value) {
     appendTextValues(result, value[index]);
     index = index + 1;
   }
+}
+
+function chunkValues(values, chunkSize) {
+  var chunks = [];
+  var index = 0;
+  var safeValues = Array.isArray(values) ? values : [];
+
+  while (index < safeValues.length) {
+    chunks.push(safeValues.slice(index, index + chunkSize));
+    index = index + chunkSize;
+  }
+
+  return chunks;
 }
 
 function readErrorMessage(error) {

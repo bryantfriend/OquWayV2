@@ -1,10 +1,10 @@
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.122-teacher-dashboard-overhaul";
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.122-teacher-dashboard-overhaul";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.123-teacher-dashboard-query-optimization";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.123-teacher-dashboard-query-optimization";
 import {
   createEmptyState,
   createLoadingState,
   createStatusBadge
-} from "../../../packages/ui/index.js?v=1.1.122-teacher-dashboard-overhaul";
+} from "../../../packages/ui/index.js?v=1.1.123-teacher-dashboard-query-optimization";
 
 var app = document.getElementById("app");
 var state = {

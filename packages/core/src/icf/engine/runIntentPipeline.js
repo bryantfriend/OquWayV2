@@ -1,7 +1,7 @@
 // runIntentPipeline.js
 
-import { runStageArray } from "./runStageArray.js?v=1.1.122-teacher-dashboard-overhaul";
-import { buildResult } from "./buildResult.js?v=1.1.122-teacher-dashboard-overhaul";
+import { runStageArray } from "./runStageArray.js?v=1.1.123-teacher-dashboard-query-optimization";
+import { buildResult } from "./buildResult.js?v=1.1.123-teacher-dashboard-query-optimization";
 
 export async function runIntentPipeline(intentDefinition, executionInput) {
   const executionState = createExecutionState(intentDefinition, executionInput);

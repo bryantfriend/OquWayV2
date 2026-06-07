@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateExternalTaskSubmitPayload } from "../../stages/validate/validators.js?v=1.1.122-teacher-dashboard-overhaul";
-import { normalizeExternalTaskPayload } from "../../stages/normalize/normalizers.js?v=1.1.122-teacher-dashboard-overhaul";
-import { attachActorContext, attachActorRoleContext, attachStudentProfileContext } from "../../stages/addContext/contexts.js?v=1.1.122-teacher-dashboard-overhaul";
-import { requireExternalTaskStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.122-teacher-dashboard-overhaul";
-import { processResubmitExternalTask } from "../../stages/process/processors.js?v=1.1.122-teacher-dashboard-overhaul";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.122-teacher-dashboard-overhaul";
+import { validateAuthenticated, validateExternalTaskSubmitPayload } from "../../stages/validate/validators.js?v=1.1.123-teacher-dashboard-query-optimization";
+import { normalizeExternalTaskPayload } from "../../stages/normalize/normalizers.js?v=1.1.123-teacher-dashboard-query-optimization";
+import { attachActorContext, attachActorRoleContext, attachStudentProfileContext } from "../../stages/addContext/contexts.js?v=1.1.123-teacher-dashboard-query-optimization";
+import { requireExternalTaskStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.123-teacher-dashboard-query-optimization";
+import { processResubmitExternalTask } from "../../stages/process/processors.js?v=1.1.123-teacher-dashboard-query-optimization";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.123-teacher-dashboard-query-optimization";
 
 export function ResubmitExternalTaskIntent() {
   return {

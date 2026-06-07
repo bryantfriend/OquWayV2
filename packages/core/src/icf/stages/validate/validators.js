@@ -1,60 +1,60 @@
-export { requireBooleanValidation } from "./core/requireBooleanValidation.js?v=1.1.122-teacher-dashboard-overhaul";
-export { requireEnumValidation } from "./core/requireEnumValidation.js?v=1.1.122-teacher-dashboard-overhaul";
-export { requireNonEmptyArrayValidation } from "./core/requireNonEmptyArrayValidation.js?v=1.1.122-teacher-dashboard-overhaul";
-export { requireRoleValidation } from "./core/requireRoleValidation.js?v=1.1.122-teacher-dashboard-overhaul";
-export { requireStringValidation } from "./core/requireStringValidation.js?v=1.1.122-teacher-dashboard-overhaul";
-export { requireUUIDValidation } from "./core/requireUUIDValidation.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validateDemoPayload } from "./core/validateDemoPayload.js?v=1.1.122-teacher-dashboard-overhaul";
-export { catalogCourseRequireTitleValidation } from "./domain/catalog/catalogCourseRequireTitleValidation.js?v=1.1.122-teacher-dashboard-overhaul";
-export { catalogCoursePreventDuplicateTitleValidation } from "./domain/catalogCourse/catalogCoursePreventDuplicateTitleValidation.js?v=1.1.122-teacher-dashboard-overhaul";
-export { catalogCourseRequireCourseIdValidation } from "./domain/catalogCourse/catalogCourseRequireCourseIdValidation.js?v=1.1.122-teacher-dashboard-overhaul";
-export { catalogCourseRequireLanguagesValidation } from "./domain/catalogCourse/catalogCourseRequireLanguagesValidation.js?v=1.1.122-teacher-dashboard-overhaul";
-export { catalogCourseRequireModuleIdValidation } from "./domain/catalogCourse/catalogCourseRequireModuleIdValidation.js?v=1.1.122-teacher-dashboard-overhaul";
-export { catalogCourseRequireStepIdValidation } from "./domain/catalogCourse/catalogCourseRequireStepIdValidation.js?v=1.1.122-teacher-dashboard-overhaul";
-export { catalogCourseRequireTagValidation } from "./domain/catalogCourse/catalogCourseRequireTagValidation.js?v=1.1.122-teacher-dashboard-overhaul";
-export { catalogCourseRequireVersionValidation } from "./domain/catalogCourse/catalogCourseRequireVersionValidation.js?v=1.1.122-teacher-dashboard-overhaul";
-export { catalogCourseValidateStatusValidation } from "./domain/catalogCourse/catalogCourseValidateStatusValidation.js?v=1.1.122-teacher-dashboard-overhaul";
-export { catalogCourseValidateStepConfigValidation } from "./domain/catalogCourse/catalogCourseValidateStepConfigValidation.js?v=1.1.122-teacher-dashboard-overhaul";
-export { catalogCourseValidateTagsValidation } from "./domain/catalogCourse/catalogCourseValidateTagsValidation.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validateCourseAssignmentOwnershipPayload, validateCourseAssignmentPayload, validateCourseAssignmentId, validateCourseAssignmentUpdatePayload } from "./domain/courseAssignment/validateCourseAssignmentPayload.js?v=1.1.122-teacher-dashboard-overhaul";
+export { requireBooleanValidation } from "./core/requireBooleanValidation.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { requireEnumValidation } from "./core/requireEnumValidation.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { requireNonEmptyArrayValidation } from "./core/requireNonEmptyArrayValidation.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { requireRoleValidation } from "./core/requireRoleValidation.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { requireStringValidation } from "./core/requireStringValidation.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { requireUUIDValidation } from "./core/requireUUIDValidation.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validateDemoPayload } from "./core/validateDemoPayload.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { catalogCourseRequireTitleValidation } from "./domain/catalog/catalogCourseRequireTitleValidation.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { catalogCoursePreventDuplicateTitleValidation } from "./domain/catalogCourse/catalogCoursePreventDuplicateTitleValidation.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { catalogCourseRequireCourseIdValidation } from "./domain/catalogCourse/catalogCourseRequireCourseIdValidation.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { catalogCourseRequireLanguagesValidation } from "./domain/catalogCourse/catalogCourseRequireLanguagesValidation.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { catalogCourseRequireModuleIdValidation } from "./domain/catalogCourse/catalogCourseRequireModuleIdValidation.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { catalogCourseRequireStepIdValidation } from "./domain/catalogCourse/catalogCourseRequireStepIdValidation.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { catalogCourseRequireTagValidation } from "./domain/catalogCourse/catalogCourseRequireTagValidation.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { catalogCourseRequireVersionValidation } from "./domain/catalogCourse/catalogCourseRequireVersionValidation.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { catalogCourseValidateStatusValidation } from "./domain/catalogCourse/catalogCourseValidateStatusValidation.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { catalogCourseValidateStepConfigValidation } from "./domain/catalogCourse/catalogCourseValidateStepConfigValidation.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { catalogCourseValidateTagsValidation } from "./domain/catalogCourse/catalogCourseValidateTagsValidation.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validateCourseAssignmentOwnershipPayload, validateCourseAssignmentPayload, validateCourseAssignmentId, validateCourseAssignmentUpdatePayload } from "./domain/courseAssignment/validateCourseAssignmentPayload.js?v=1.1.123-teacher-dashboard-query-optimization";
 export {
   validateExternalTaskReviewPayload,
   validateExternalTaskStepPayload,
   validateExternalTaskSubmissionsQuery,
   validateExternalTaskSubmitPayload,
   validateExternalTaskUploadPayload
-} from "./domain/externalTask/validateExternalTaskPayloads.js?v=1.1.122-teacher-dashboard-overhaul";
+} from "./domain/externalTask/validateExternalTaskPayloads.js?v=1.1.123-teacher-dashboard-query-optimization";
 export {
   validateLocationId,
   validateLocationLoginModePayload,
   validateLocationLoginSlugPayload,
   validateResolveLocationSlugPayload
-} from "./domain/location/validateLocationLoginModePayload.js?v=1.1.122-teacher-dashboard-overhaul";
-export { courseRequireTitleValidation } from "./domain/course/courseRequireTitleValidation.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validateCourseMetadataPayload } from "./domain/course/validateCourseMetadataPayload.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validateAuthenticated } from "./domain/courseEditor/validateAuthenticated.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validateCourseId } from "./domain/courseEditor/validateCourseId.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validateCoursePublishReady } from "./domain/courseEditor/validateCoursePublishReady.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validateFieldExistsInSchema } from "./domain/courseEditor/validateFieldExistsInSchema.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validateFieldValueType } from "./domain/courseEditor/validateFieldValueType.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validateModuleExists } from "./domain/courseEditor/validateModuleExists.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validateOrderBounds } from "./domain/courseEditor/validateOrderBounds.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validateStepTypeRegistered } from "./domain/courseEditor/validateStepTypeRegistered.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validateUserPermission } from "./domain/courseEditor/validateUserPermission.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validateModuleId } from "./domain/moduleEditor/validateModuleId.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validateLearningModeId } from "./domain/moduleEditor/validateLearningModeId.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validateModuleStepsPayload } from "./domain/moduleEditor/validateModuleStepsPayload.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validatePracticeModeKey } from "./domain/moduleEditor/validatePracticeModeKey.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validatePracticeModeStepId } from "./domain/moduleEditor/validatePracticeModeStepId.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validatePracticeModeStepType } from "./domain/moduleEditor/validatePracticeModeStepType.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validateSessionId } from "./domain/moduleEditor/validateSessionId.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validateStepMediaField } from "./domain/moduleEditor/validateStepMediaField.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validateStepMediaFile } from "./domain/moduleEditor/validateStepMediaFile.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validateStepFieldKey } from "./domain/moduleEditor/validateStepFieldKey.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validateStepId } from "./domain/moduleEditor/validateStepId.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validateStudentProgressPayload } from "./domain/student/validateStudentProgressPayload.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validateCompletedStepIds } from "./domain/student/validateCompletedStepIds.js?v=1.1.122-teacher-dashboard-overhaul";
-export { validateClassLocationPayload, validateStudentsForClassPayload, validateStudentFruitLoginPayload, validateStudentStandardLoginPayload } from "./domain/studentLogin/validateStudentLoginPayloads.js?v=1.1.122-teacher-dashboard-overhaul";
+} from "./domain/location/validateLocationLoginModePayload.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { courseRequireTitleValidation } from "./domain/course/courseRequireTitleValidation.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validateCourseMetadataPayload } from "./domain/course/validateCourseMetadataPayload.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validateAuthenticated } from "./domain/courseEditor/validateAuthenticated.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validateCourseId } from "./domain/courseEditor/validateCourseId.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validateCoursePublishReady } from "./domain/courseEditor/validateCoursePublishReady.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validateFieldExistsInSchema } from "./domain/courseEditor/validateFieldExistsInSchema.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validateFieldValueType } from "./domain/courseEditor/validateFieldValueType.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validateModuleExists } from "./domain/courseEditor/validateModuleExists.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validateOrderBounds } from "./domain/courseEditor/validateOrderBounds.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validateStepTypeRegistered } from "./domain/courseEditor/validateStepTypeRegistered.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validateUserPermission } from "./domain/courseEditor/validateUserPermission.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validateModuleId } from "./domain/moduleEditor/validateModuleId.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validateLearningModeId } from "./domain/moduleEditor/validateLearningModeId.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validateModuleStepsPayload } from "./domain/moduleEditor/validateModuleStepsPayload.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validatePracticeModeKey } from "./domain/moduleEditor/validatePracticeModeKey.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validatePracticeModeStepId } from "./domain/moduleEditor/validatePracticeModeStepId.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validatePracticeModeStepType } from "./domain/moduleEditor/validatePracticeModeStepType.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validateSessionId } from "./domain/moduleEditor/validateSessionId.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validateStepMediaField } from "./domain/moduleEditor/validateStepMediaField.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validateStepMediaFile } from "./domain/moduleEditor/validateStepMediaFile.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validateStepFieldKey } from "./domain/moduleEditor/validateStepFieldKey.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validateStepId } from "./domain/moduleEditor/validateStepId.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validateStudentProgressPayload } from "./domain/student/validateStudentProgressPayload.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validateCompletedStepIds } from "./domain/student/validateCompletedStepIds.js?v=1.1.123-teacher-dashboard-query-optimization";
+export { validateClassLocationPayload, validateStudentsForClassPayload, validateStudentFruitLoginPayload, validateStudentStandardLoginPayload } from "./domain/studentLogin/validateStudentLoginPayloads.js?v=1.1.123-teacher-dashboard-query-optimization";
 export {
   validateClassOwnershipPayload,
   validateClassPayload,
@@ -65,12 +65,12 @@ export {
   validateStudentPayload,
   validateStudentStatusPayload,
   validateStudentUpdatePayload
-} from "./domain/superAdmin/superAdminValidators.js?v=1.1.122-teacher-dashboard-overhaul";
+} from "./domain/superAdmin/superAdminValidators.js?v=1.1.123-teacher-dashboard-query-optimization";
 export {
   validateTeacherClassPayload,
   validateTeacherLoginPayload,
   validateTeacherPasswordResetPayload,
   validateTeacherReviewQueuePayload
-} from "./domain/teacher/validateTeacherPayloads.js?v=1.1.122-teacher-dashboard-overhaul";
+} from "./domain/teacher/validateTeacherPayloads.js?v=1.1.123-teacher-dashboard-query-optimization";
 
 

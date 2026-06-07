@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.122-teacher-dashboard-overhaul";
+import * as IntentExports from "../intents/intents.js?v=1.1.123-teacher-dashboard-query-optimization";
 
 const registry = {
   // Demo Verification
