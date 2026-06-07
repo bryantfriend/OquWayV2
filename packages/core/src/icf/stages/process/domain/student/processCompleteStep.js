@@ -3,7 +3,7 @@ import {
   readPracticeModeProgress,
   readPracticeModeStepIds,
   saveStudentPracticeModeProgress
-} from "./studentProgressHelpers.js?v=1.1.110-student-class-alias-query";
+} from "./studentProgressHelpers.js?v=1.1.111-student-assignment-debug-panel";
 
 export async function processCompleteStep(executionState) {
   var payload = executionState.payload;

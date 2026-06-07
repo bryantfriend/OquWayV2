@@ -1,4 +1,4 @@
-import { normalizePracticeModes } from "./practiceModeShells.js?v=1.1.110-student-class-alias-query";
+import { normalizePracticeModes } from "./practiceModeShells.js?v=1.1.111-student-assignment-debug-panel";
 
 export function processListPracticeModeSteps(executionState) {
   var payload = executionState.payload;

@@ -1,4 +1,4 @@
-import { readActorRoles, readPrimaryRole } from "../../../authorize/core/roleAuthorization.js?v=1.1.110-student-class-alias-query";
+import { readActorRoles, readPrimaryRole } from "../../../authorize/core/roleAuthorization.js?v=1.1.111-student-assignment-debug-panel";
 
 export function attachActorContext(executionState) {
     if (executionState.actor && executionState.actor.id) {

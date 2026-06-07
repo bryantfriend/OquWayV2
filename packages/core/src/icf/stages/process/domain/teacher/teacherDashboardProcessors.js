@@ -1,8 +1,8 @@
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.110-student-class-alias-query";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.110-student-class-alias-query";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.111-student-assignment-debug-panel";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.111-student-assignment-debug-panel";
 import { getClassesForTeacher } from "../../../../../../../domain/classes/index.js";
-import { getExternalTaskSubmissionsForTeacher } from "../../../../../../../domain/externalTasks/index.js?v=1.1.110-student-class-alias-query";
+import { getExternalTaskSubmissionsForTeacher } from "../../../../../../../domain/externalTasks/index.js?v=1.1.111-student-assignment-debug-panel";
 import {
   getStudentsForClasses,
   getUserProfileByAuthUid,

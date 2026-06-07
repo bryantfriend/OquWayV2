@@ -1,4 +1,4 @@
-import { db, collection, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.110-student-class-alias-query";
+import { db, collection, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.111-student-assignment-debug-panel";
 
 export async function catalogCourseFetchVersionsProcessing(executionState) {
     executionState.result = [];

@@ -1,8 +1,8 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.110-student-class-alias-query";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.110-student-class-alias-query";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.110-student-class-alias-query";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.110-student-class-alias-query";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.110-student-class-alias-query";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.111-student-assignment-debug-panel";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.111-student-assignment-debug-panel";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.111-student-assignment-debug-panel";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.111-student-assignment-debug-panel";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.111-student-assignment-debug-panel";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
@@ -76,6 +76,7 @@ export const studentDashboardService = {
           isLoading: false,
           student: result.emitted.data.student,
           courses: courses,
+          assignmentDebug: result.emitted.data.assignmentDebug || null,
           continueLearning: result.emitted.data.continueLearning || null,
           dailyBonus: result.emitted.data.dailyBonus || null,
           intentionPoints: result.emitted.data.intentionPoints || createEmptyIntentionPoints(),

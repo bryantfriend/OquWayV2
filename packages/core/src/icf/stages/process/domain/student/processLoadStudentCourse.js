@@ -1,9 +1,9 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.110-student-class-alias-query";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.110-student-class-alias-query";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.110-student-class-alias-query";
-import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.110-student-class-alias-query";
-import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js?v=1.1.110-student-class-alias-query";
-import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.110-student-class-alias-query";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.111-student-assignment-debug-panel";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.111-student-assignment-debug-panel";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.111-student-assignment-debug-panel";
+import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.111-student-assignment-debug-panel";
+import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js?v=1.1.111-student-assignment-debug-panel";
+import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.111-student-assignment-debug-panel";
 
 export async function processLoadStudentCourse(executionState) {
   var actor = executionState.actor;

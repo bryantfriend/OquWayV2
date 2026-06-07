@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.110-student-class-alias-query";
-import { createUpdatedPracticeModes } from "./practiceModeShells.js?v=1.1.110-student-class-alias-query";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.111-student-assignment-debug-panel";
+import { createUpdatedPracticeModes } from "./practiceModeShells.js?v=1.1.111-student-assignment-debug-panel";
 
 export async function processUpdatePracticeMode(executionState) {
   var payload = executionState.payload;

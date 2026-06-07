@@ -5,7 +5,7 @@ import {
   getStudentExternalTaskSubmissions,
   updateExternalTaskReview,
   uploadExternalTaskFile
-} from "../../../../../../../domain/externalTasks/index.js?v=1.1.110-student-class-alias-query";
+} from "../../../../../../../domain/externalTasks/index.js?v=1.1.111-student-assignment-debug-panel";
 
 export async function processLoadExternalTaskStep(executionState) {
   var payload = executionState.payload || {};

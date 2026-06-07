@@ -1,9 +1,9 @@
-import { validateDemoPayload } from "../../stages/validate/validators.js?v=1.1.110-student-class-alias-query";
-import { normalizeDemoPayload } from "../../stages/normalize/normalizers.js?v=1.1.110-student-class-alias-query";
-import { attachDemoContext } from "../../stages/addContext/contexts.js?v=1.1.110-student-class-alias-query";
-import { authorizeDemoActor } from "../../stages/authorize/authorizers.js?v=1.1.110-student-class-alias-query";
-import { processDemoAction } from "../../stages/process/processors.js?v=1.1.110-student-class-alias-query";
-import { emitDemoResult } from "../../stages/emit/emitters.js?v=1.1.110-student-class-alias-query";
+import { validateDemoPayload } from "../../stages/validate/validators.js?v=1.1.111-student-assignment-debug-panel";
+import { normalizeDemoPayload } from "../../stages/normalize/normalizers.js?v=1.1.111-student-assignment-debug-panel";
+import { attachDemoContext } from "../../stages/addContext/contexts.js?v=1.1.111-student-assignment-debug-panel";
+import { authorizeDemoActor } from "../../stages/authorize/authorizers.js?v=1.1.111-student-assignment-debug-panel";
+import { processDemoAction } from "../../stages/process/processors.js?v=1.1.111-student-assignment-debug-panel";
+import { emitDemoResult } from "../../stages/emit/emitters.js?v=1.1.111-student-assignment-debug-panel";
 
 export function DemoIntent() {
   return {

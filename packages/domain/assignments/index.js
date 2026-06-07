@@ -36,4 +36,4 @@ export function assignmentBelongsToTeacher(assignment, teacherIds) {
     }));
 }
 
-export * from "./assignmentRepository.js?v=1.1.110-student-class-alias-query";
+export * from "./assignmentRepository.js?v=1.1.111-student-assignment-debug-panel";

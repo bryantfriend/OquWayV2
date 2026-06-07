@@ -1,6 +1,6 @@
 // createIntent.js
 
-import { getIntentDefinition } from "./intentRegistry.js?v=1.1.110-student-class-alias-query";
+import { getIntentDefinition } from "./intentRegistry.js?v=1.1.111-student-assignment-debug-panel";
 
 export function createIntent(intentInput) {
   const intentType = readIntentType(intentInput);

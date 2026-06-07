@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.110-student-class-alias-query";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.110-student-class-alias-query";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.110-student-class-alias-query";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.111-student-assignment-debug-panel";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.111-student-assignment-debug-panel";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.111-student-assignment-debug-panel";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,16 +13,16 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.110-student-class-alias-query";
+} from "../../../packages/domain/progress/index.js?v=1.1.111-student-assignment-debug-panel";
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.110-student-class-alias-query";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.110-student-class-alias-query";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.110-student-class-alias-query";
+} from "../../../packages/ui/index.js?v=1.1.111-student-assignment-debug-panel";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.111-student-assignment-debug-panel";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.111-student-assignment-debug-panel";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -534,6 +534,8 @@ function buildDashboardView(state) {
     html += '<div class="student-status">' + escapeHtml(state.statusMessage) + '</div>';
   }
 
+  html += buildStudentDebugPanel(state.assignmentDebug);
+
   if (courses.length === 0) {
     html += createEmptyState("No assigned courses yet", "No courses assigned yet.", {
       className: "student-empty",
@@ -561,6 +563,18 @@ function buildDashboardView(state) {
   html += '</section>';
 
   return html;
+}
+
+function buildStudentDebugPanel(assignmentDebug) {
+  if (!isStudentDebugEnabled()) {
+    return "";
+  }
+
+  return '<pre class="student-debug-panel" data-student-debug="assignment">' + escapeHtml(JSON.stringify(assignmentDebug || {}, null, 2)) + '</pre>';
+}
+
+function isStudentDebugEnabled() {
+  return window.location.search.indexOf("debug=true") !== -1;
 }
 
 function buildCourseCards(courses, selectedCourseId) {

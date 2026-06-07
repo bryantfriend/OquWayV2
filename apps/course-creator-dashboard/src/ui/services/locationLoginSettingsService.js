@@ -1,6 +1,6 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.110-student-class-alias-query";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.110-student-class-alias-query";
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.110-student-class-alias-query";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.111-student-assignment-debug-panel";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.111-student-assignment-debug-panel";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.111-student-assignment-debug-panel";
 
 export const locationLoginSettingsService = {
   listLocations: async function () {

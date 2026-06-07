@@ -49,6 +49,7 @@ function createInitialState() {
     statusMessage: "",
     student: null,
     courses: [],
+    assignmentDebug: null,
     continueLearning: null,
     dailyBonus: null,
     intentionPoints: {

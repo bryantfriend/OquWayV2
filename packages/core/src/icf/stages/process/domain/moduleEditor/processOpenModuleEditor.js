@@ -1,4 +1,4 @@
-import { createDefaultLearningContent, createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.110-student-class-alias-query";
+import { createDefaultLearningContent, createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.111-student-assignment-debug-panel";
 
 export async function processOpenModuleEditor(executionState) {
   const context = executionState.context;

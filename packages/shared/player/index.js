@@ -1,1 +1,1 @@
-export { PracticeModePlayer } from "../../core/src/shared/player/PracticeModePlayer.js?v=1.1.110-student-class-alias-query";
+export { PracticeModePlayer } from "../../core/src/shared/player/PracticeModePlayer.js?v=1.1.111-student-assignment-debug-panel";

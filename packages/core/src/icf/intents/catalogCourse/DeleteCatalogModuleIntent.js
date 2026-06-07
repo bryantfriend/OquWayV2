@@ -1,11 +1,11 @@
-import { catalogCourseRequireModuleIdValidation } from "../../stages/validate/validators.js?v=1.1.110-student-class-alias-query";
-import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.110-student-class-alias-query";
-import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.110-student-class-alias-query";
-import { attachExistingModuleContext } from "../../stages/addContext/contexts.js?v=1.1.110-student-class-alias-query";
-import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.110-student-class-alias-query";
-import { preventModificationIfPublishedAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.110-student-class-alias-query";
-import { catalogModuleDeleteProcessing } from "../../stages/process/processors.js?v=1.1.110-student-class-alias-query";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.110-student-class-alias-query";
+import { catalogCourseRequireModuleIdValidation } from "../../stages/validate/validators.js?v=1.1.111-student-assignment-debug-panel";
+import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.111-student-assignment-debug-panel";
+import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.111-student-assignment-debug-panel";
+import { attachExistingModuleContext } from "../../stages/addContext/contexts.js?v=1.1.111-student-assignment-debug-panel";
+import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.111-student-assignment-debug-panel";
+import { preventModificationIfPublishedAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.111-student-assignment-debug-panel";
+import { catalogModuleDeleteProcessing } from "../../stages/process/processors.js?v=1.1.111-student-assignment-debug-panel";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.111-student-assignment-debug-panel";
 
 export function DeleteCatalogModuleIntent() {
     return {

@@ -1,35 +1,35 @@
-export { attachDemoContext } from "./core/attachDemoContext.js?v=1.1.110-student-class-alias-query";
-export { catalogAttachSystemContext } from "./domain/catalog/catalogAttachSystemContext.js?v=1.1.110-student-class-alias-query";
-export { attachActorContext } from "./domain/catalogCourse/attachActorRoleContext.js?v=1.1.110-student-class-alias-query";
-export { attachActorRoleContext } from "./domain/catalogCourse/attachActorRoleContext.js?v=1.1.110-student-class-alias-query";
-export { attachTimestampContext } from "./domain/catalogCourse/attachCreatedByContext.js?v=1.1.110-student-class-alias-query";
-export { attachCreatedByContext } from "./domain/catalogCourse/attachCreatedByContext.js?v=1.1.110-student-class-alias-query";
-export { attachExistingCourseContext } from "./domain/catalogCourse/attachExistingCourseContext.js?v=1.1.110-student-class-alias-query";
-export { attachExistingModuleContext } from "./domain/catalogCourse/attachExistingModuleContext.js?v=1.1.110-student-class-alias-query";
-export { attachExistingStepContext } from "./domain/catalogCourse/attachExistingStepContext.js?v=1.1.110-student-class-alias-query";
-export { attachExistingVersionContext } from "./domain/catalogCourse/attachExistingVersionContext.js?v=1.1.110-student-class-alias-query";
-export { attachCourseAssignmentCourseContext, attachCourseAssignmentContext } from "./domain/courseAssignment/attachCourseAssignmentContext.js?v=1.1.110-student-class-alias-query";
-export { attachTenantContext } from "./domain/catalogCourse/attachMinistryScopeContext.js?v=1.1.110-student-class-alias-query";
-export { attachMinistryScopeContext } from "./domain/catalogCourse/attachMinistryScopeContext.js?v=1.1.110-student-class-alias-query";
-export { attachUpdatedByContext } from "./domain/catalogCourse/attachUpdatedByContext.js?v=1.1.110-student-class-alias-query";
-export { attachCourseDocument } from "./domain/courseEditor/attachCourseDocument.js?v=1.1.110-student-class-alias-query";
-export { attachModule } from "./domain/courseEditor/attachModule.js?v=1.1.110-student-class-alias-query";
-export { attachModulesCollection } from "./domain/courseEditor/attachModulesCollection.js?v=1.1.110-student-class-alias-query";
-export { attachStepRegistryDefinition } from "./domain/courseEditor/attachStepRegistryDefinition.js?v=1.1.110-student-class-alias-query";
-export { attachCourseDocumentForModule } from "./domain/moduleEditor/attachCourseDocumentForModule.js?v=1.1.110-student-class-alias-query";
-export { attachModuleDocument } from "./domain/moduleEditor/attachModuleDocument.js?v=1.1.110-student-class-alias-query";
-export { attachLearningModeDocument } from "./domain/moduleEditor/attachLearningModeDocument.js?v=1.1.110-student-class-alias-query";
-export { attachSessionDocument } from "./domain/moduleEditor/attachSessionDocument.js?v=1.1.110-student-class-alias-query";
-export { attachSessionsCollection } from "./domain/moduleEditor/attachSessionsCollection.js?v=1.1.110-student-class-alias-query";
-export { attachStepPreviewContext } from "./domain/moduleEditor/attachStepPreviewContext.js?v=1.1.110-student-class-alias-query";
-export { attachStepRegistryDefinitionForStep } from "./domain/moduleEditor/attachStepRegistryDefinitionForStep.js?v=1.1.110-student-class-alias-query";
-export { attachStepsCollection } from "./domain/moduleEditor/attachStepsCollection.js?v=1.1.110-student-class-alias-query";
-export { attachStudentProfileContext } from "./domain/student/attachStudentProfileContext.js?v=1.1.110-student-class-alias-query";
-export { attachStudentSessionContext } from "./domain/student/attachStudentSessionContext.js?v=1.1.110-student-class-alias-query";
-export { attachStudentOpenCourseContext } from "./domain/student/attachStudentOpenCourseContext.js?v=1.1.110-student-class-alias-query";
+export { attachDemoContext } from "./core/attachDemoContext.js?v=1.1.111-student-assignment-debug-panel";
+export { catalogAttachSystemContext } from "./domain/catalog/catalogAttachSystemContext.js?v=1.1.111-student-assignment-debug-panel";
+export { attachActorContext } from "./domain/catalogCourse/attachActorRoleContext.js?v=1.1.111-student-assignment-debug-panel";
+export { attachActorRoleContext } from "./domain/catalogCourse/attachActorRoleContext.js?v=1.1.111-student-assignment-debug-panel";
+export { attachTimestampContext } from "./domain/catalogCourse/attachCreatedByContext.js?v=1.1.111-student-assignment-debug-panel";
+export { attachCreatedByContext } from "./domain/catalogCourse/attachCreatedByContext.js?v=1.1.111-student-assignment-debug-panel";
+export { attachExistingCourseContext } from "./domain/catalogCourse/attachExistingCourseContext.js?v=1.1.111-student-assignment-debug-panel";
+export { attachExistingModuleContext } from "./domain/catalogCourse/attachExistingModuleContext.js?v=1.1.111-student-assignment-debug-panel";
+export { attachExistingStepContext } from "./domain/catalogCourse/attachExistingStepContext.js?v=1.1.111-student-assignment-debug-panel";
+export { attachExistingVersionContext } from "./domain/catalogCourse/attachExistingVersionContext.js?v=1.1.111-student-assignment-debug-panel";
+export { attachCourseAssignmentCourseContext, attachCourseAssignmentContext } from "./domain/courseAssignment/attachCourseAssignmentContext.js?v=1.1.111-student-assignment-debug-panel";
+export { attachTenantContext } from "./domain/catalogCourse/attachMinistryScopeContext.js?v=1.1.111-student-assignment-debug-panel";
+export { attachMinistryScopeContext } from "./domain/catalogCourse/attachMinistryScopeContext.js?v=1.1.111-student-assignment-debug-panel";
+export { attachUpdatedByContext } from "./domain/catalogCourse/attachUpdatedByContext.js?v=1.1.111-student-assignment-debug-panel";
+export { attachCourseDocument } from "./domain/courseEditor/attachCourseDocument.js?v=1.1.111-student-assignment-debug-panel";
+export { attachModule } from "./domain/courseEditor/attachModule.js?v=1.1.111-student-assignment-debug-panel";
+export { attachModulesCollection } from "./domain/courseEditor/attachModulesCollection.js?v=1.1.111-student-assignment-debug-panel";
+export { attachStepRegistryDefinition } from "./domain/courseEditor/attachStepRegistryDefinition.js?v=1.1.111-student-assignment-debug-panel";
+export { attachCourseDocumentForModule } from "./domain/moduleEditor/attachCourseDocumentForModule.js?v=1.1.111-student-assignment-debug-panel";
+export { attachModuleDocument } from "./domain/moduleEditor/attachModuleDocument.js?v=1.1.111-student-assignment-debug-panel";
+export { attachLearningModeDocument } from "./domain/moduleEditor/attachLearningModeDocument.js?v=1.1.111-student-assignment-debug-panel";
+export { attachSessionDocument } from "./domain/moduleEditor/attachSessionDocument.js?v=1.1.111-student-assignment-debug-panel";
+export { attachSessionsCollection } from "./domain/moduleEditor/attachSessionsCollection.js?v=1.1.111-student-assignment-debug-panel";
+export { attachStepPreviewContext } from "./domain/moduleEditor/attachStepPreviewContext.js?v=1.1.111-student-assignment-debug-panel";
+export { attachStepRegistryDefinitionForStep } from "./domain/moduleEditor/attachStepRegistryDefinitionForStep.js?v=1.1.111-student-assignment-debug-panel";
+export { attachStepsCollection } from "./domain/moduleEditor/attachStepsCollection.js?v=1.1.111-student-assignment-debug-panel";
+export { attachStudentProfileContext } from "./domain/student/attachStudentProfileContext.js?v=1.1.111-student-assignment-debug-panel";
+export { attachStudentSessionContext } from "./domain/student/attachStudentSessionContext.js?v=1.1.111-student-assignment-debug-panel";
+export { attachStudentOpenCourseContext } from "./domain/student/attachStudentOpenCourseContext.js?v=1.1.111-student-assignment-debug-panel";
 export {
   attachExternalTaskSubmissionReviewContext,
   attachTeacherProfileContext
-} from "./domain/teacher/attachTeacherContext.js?v=1.1.110-student-class-alias-query";
+} from "./domain/teacher/attachTeacherContext.js?v=1.1.111-student-assignment-debug-panel";
 
 

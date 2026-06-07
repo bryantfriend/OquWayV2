@@ -1,4 +1,4 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.110-student-class-alias-query";
+import { BaseStep } from "./BaseStep.js?v=1.1.111-student-assignment-debug-panel";
 
 export class PhraseStep extends BaseStep {
   static get type() {
