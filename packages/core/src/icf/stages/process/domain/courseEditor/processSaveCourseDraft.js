@@ -1,4 +1,4 @@
-import { db, writeBatch, doc, serverTimestamp } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.113-student-rules-read";
+import { db, writeBatch, doc, serverTimestamp } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.114-student-profile-rules";
 
 export async function processSaveCourseDraft(executionState) {
     const { payload, context } = executionState;

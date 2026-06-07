@@ -1,4 +1,4 @@
-import { db, collection, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.113-student-rules-read";
+import { db, collection, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.114-student-profile-rules";
 
 export async function catalogCourseFetchAllProcessing(executionState) {
 

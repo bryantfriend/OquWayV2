@@ -1,4 +1,4 @@
-import { db, writeBatch, doc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.113-student-rules-read";
+import { db, writeBatch, doc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.114-student-profile-rules";
 
 export async function processLoadModules(executionState) {
     const { context } = executionState;

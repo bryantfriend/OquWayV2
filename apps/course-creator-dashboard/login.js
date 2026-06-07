@@ -1,5 +1,5 @@
-import { auth } from "../../packages/firebase/auth/index.js?v=1.1.113-student-rules-read";
-import { verifyCourseCreatorAccess, normalizeRole } from "./src/auth/courseCreatorAuth.js?v=1.1.113-student-rules-read";
+import { auth } from "../../packages/firebase/auth/index.js?v=1.1.114-student-profile-rules";
+import { verifyCourseCreatorAccess, normalizeRole } from "./src/auth/courseCreatorAuth.js?v=1.1.114-student-profile-rules";
 import {
     signInWithEmailAndPassword,
     onAuthStateChanged,

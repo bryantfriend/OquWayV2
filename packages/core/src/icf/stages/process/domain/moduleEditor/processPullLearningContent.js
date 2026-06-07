@@ -1,4 +1,4 @@
-import { createPulledStepDraft } from "./learningArchitecture.js?v=1.1.113-student-rules-read";
+import { createPulledStepDraft } from "./learningArchitecture.js?v=1.1.114-student-profile-rules";
 
 export function processPullLearningContent(executionState) {
   var learningContent = executionState.context.module && executionState.context.module.learningContent;

@@ -9,4 +9,4 @@ export {
   serverTimestamp,
   setDoc,
   where
-} from "../../core/src/infrastructure/firebase/firestore.js?v=1.1.113-student-rules-read";
+} from "../../core/src/infrastructure/firebase/firestore.js?v=1.1.114-student-profile-rules";

@@ -1,8 +1,8 @@
-import { validateTeacherLoginPayload } from "../../stages/validate/validators.js?v=1.1.113-student-rules-read";
-import { normalizeTeacherLoginPayload } from "../../stages/normalize/normalizers.js?v=1.1.113-student-rules-read";
-import { allowTeacherLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.113-student-rules-read";
-import { processTeacherLogin } from "../../stages/process/processors.js?v=1.1.113-student-rules-read";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.113-student-rules-read";
+import { validateTeacherLoginPayload } from "../../stages/validate/validators.js?v=1.1.114-student-profile-rules";
+import { normalizeTeacherLoginPayload } from "../../stages/normalize/normalizers.js?v=1.1.114-student-profile-rules";
+import { allowTeacherLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.114-student-profile-rules";
+import { processTeacherLogin } from "../../stages/process/processors.js?v=1.1.114-student-profile-rules";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.114-student-profile-rules";
 
 export function TeacherLoginIntent() {
   return {

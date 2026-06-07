@@ -1,4 +1,4 @@
-import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.113-student-rules-read";
+import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.114-student-profile-rules";
 
 export function bindUsersEvents(rootElement, handlers) {
   rootElement.addEventListener("click", function (event) {

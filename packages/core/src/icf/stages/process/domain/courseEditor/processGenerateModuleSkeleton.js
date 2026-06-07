@@ -2,7 +2,7 @@ import {
   createLearningModesForTemplate,
   createStarterStepsForMode,
   normalizeLearningContentPayload
-} from "../moduleEditor/learningArchitecture.js?v=1.1.113-student-rules-read";
+} from "../moduleEditor/learningArchitecture.js?v=1.1.114-student-profile-rules";
 
 export function processGenerateModuleSkeleton(executionState) {
   var payload = executionState.payload || {};

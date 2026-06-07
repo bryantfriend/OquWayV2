@@ -1,10 +1,10 @@
-import { validateAuthenticated, validatePracticeModeKey } from "../../stages/validate/validators.js?v=1.1.113-student-rules-read";
-import { validateCompletedStepIds, validateStudentProgressPayload } from "../../stages/validate/validators.js?v=1.1.113-student-rules-read";
-import { normalizeStudentProgressPayload } from "../../stages/normalize/normalizers.js?v=1.1.113-student-rules-read";
-import { attachActorContext, attachActorRoleContext, attachStudentSessionContext } from "../../stages/addContext/contexts.js?v=1.1.113-student-rules-read";
-import { requireStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.113-student-rules-read";
-import { processSaveStudentProgress } from "../../stages/process/processors.js?v=1.1.113-student-rules-read";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.113-student-rules-read";
+import { validateAuthenticated, validatePracticeModeKey } from "../../stages/validate/validators.js?v=1.1.114-student-profile-rules";
+import { validateCompletedStepIds, validateStudentProgressPayload } from "../../stages/validate/validators.js?v=1.1.114-student-profile-rules";
+import { normalizeStudentProgressPayload } from "../../stages/normalize/normalizers.js?v=1.1.114-student-profile-rules";
+import { attachActorContext, attachActorRoleContext, attachStudentSessionContext } from "../../stages/addContext/contexts.js?v=1.1.114-student-profile-rules";
+import { requireStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.114-student-profile-rules";
+import { processSaveStudentProgress } from "../../stages/process/processors.js?v=1.1.114-student-profile-rules";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.114-student-profile-rules";
 
 export function SaveStudentProgressIntent() {
   return {

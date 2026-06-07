@@ -1,4 +1,4 @@
 import { getAuth } from "firebase/auth";
-import { firebaseApp } from "./firebaseApp.js?v=1.1.113-student-rules-read";
+import { firebaseApp } from "./firebaseApp.js?v=1.1.114-student-profile-rules";
 
 export const auth = getAuth(firebaseApp);

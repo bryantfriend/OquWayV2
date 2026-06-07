@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateTeacherReviewQueuePayload } from "../../stages/validate/validators.js?v=1.1.113-student-rules-read";
-import { normalizeTeacherDashboardPayload } from "../../stages/normalize/normalizers.js?v=1.1.113-student-rules-read";
-import { attachActorContext, attachActorRoleContext, attachTeacherProfileContext } from "../../stages/addContext/contexts.js?v=1.1.113-student-rules-read";
-import { requireTeacherDashboardAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.113-student-rules-read";
-import { processLoadTeacherReviewQueue } from "../../stages/process/processors.js?v=1.1.113-student-rules-read";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.113-student-rules-read";
+import { validateAuthenticated, validateTeacherReviewQueuePayload } from "../../stages/validate/validators.js?v=1.1.114-student-profile-rules";
+import { normalizeTeacherDashboardPayload } from "../../stages/normalize/normalizers.js?v=1.1.114-student-profile-rules";
+import { attachActorContext, attachActorRoleContext, attachTeacherProfileContext } from "../../stages/addContext/contexts.js?v=1.1.114-student-profile-rules";
+import { requireTeacherDashboardAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.114-student-profile-rules";
+import { processLoadTeacherReviewQueue } from "../../stages/process/processors.js?v=1.1.114-student-profile-rules";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.114-student-profile-rules";
 
 export function LoadTeacherReviewQueueIntent() {
   return {

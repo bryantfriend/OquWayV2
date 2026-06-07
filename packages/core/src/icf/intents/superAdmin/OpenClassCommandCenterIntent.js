@@ -1,8 +1,8 @@
-import { validateAuthenticated } from "../../stages/validate/validators.js?v=1.1.113-student-rules-read";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.113-student-rules-read";
-import { requireSuperAdminAccess } from "../../stages/authorize/authorizers.js?v=1.1.113-student-rules-read";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.113-student-rules-read";
-import { db, doc, getDoc } from "../../../infrastructure/firebase/firestore.js?v=1.1.113-student-rules-read";
+import { validateAuthenticated } from "../../stages/validate/validators.js?v=1.1.114-student-profile-rules";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.114-student-profile-rules";
+import { requireSuperAdminAccess } from "../../stages/authorize/authorizers.js?v=1.1.114-student-profile-rules";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.114-student-profile-rules";
+import { db, doc, getDoc } from "../../../infrastructure/firebase/firestore.js?v=1.1.114-student-profile-rules";
 
 export function OpenClassCommandCenterIntent() {
   return {

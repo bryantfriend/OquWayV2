@@ -1,12 +1,12 @@
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.113-student-rules-read";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.113-student-rules-read";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.114-student-profile-rules";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.114-student-profile-rules";
 import {
   getStepTypeDefinition,
   listStepTypeDefinitions,
   validateStepConfig
-} from "../../../../../packages/domain/steps/index.js?v=1.1.113-student-rules-read";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.113-student-rules-read";
-import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.113-student-rules-read";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.114-student-profile-rules";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.114-student-profile-rules";
+import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.114-student-profile-rules";
 
 export class CourseEditorPage {
   constructor(courseId, moduleId) {

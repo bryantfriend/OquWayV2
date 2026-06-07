@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.113-student-rules-read";
+import * as IntentExports from "../intents/intents.js?v=1.1.114-student-profile-rules";
 
 const registry = {
   // Demo Verification

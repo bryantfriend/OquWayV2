@@ -1,7 +1,7 @@
-import { requireStringValidation } from "../../validators.js?v=1.1.113-student-rules-read";
-import { requireNonEmptyArrayValidation } from "../../validators.js?v=1.1.113-student-rules-read";
-import { requireEnumValidation } from "../../validators.js?v=1.1.113-student-rules-read";
-import { requireUUIDValidation } from "../../validators.js?v=1.1.113-student-rules-read";
+import { requireStringValidation } from "../../validators.js?v=1.1.114-student-profile-rules";
+import { requireNonEmptyArrayValidation } from "../../validators.js?v=1.1.114-student-profile-rules";
+import { requireEnumValidation } from "../../validators.js?v=1.1.114-student-profile-rules";
+import { requireUUIDValidation } from "../../validators.js?v=1.1.114-student-profile-rules";
 
 export function catalogCoursePreventDuplicateTitleValidation(executionState) {
     // In a real implementation this would check a datastore or memory cache.

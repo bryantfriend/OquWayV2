@@ -3,4 +3,4 @@ export {
   ref,
   storage,
   uploadBytes
-} from "../../core/src/infrastructure/firebase/storage.js?v=1.1.113-student-rules-read";
+} from "../../core/src/infrastructure/firebase/storage.js?v=1.1.114-student-profile-rules";

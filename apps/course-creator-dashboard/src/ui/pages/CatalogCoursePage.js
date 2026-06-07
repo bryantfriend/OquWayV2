@@ -1,5 +1,5 @@
-import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.113-student-rules-read";
-import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.113-student-rules-read";
+import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.114-student-profile-rules";
+import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.114-student-profile-rules";
 
 export class CatalogCoursePage {
   constructor() {

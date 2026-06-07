@@ -53,7 +53,17 @@ service cloud.firestore {
     function hasStudentToken() {
       return request.auth != null && request.auth.token.studentId is string;
     }
-    function isStudent() { return hasAnyRole('student', 'ROLE_STUDENT') || hasStudentToken() || profileHasAnyRole('student', 'ROLE_STUDENT'); }
+    function hasStudentProfile() {
+      return profileIsActive() && (
+        user().data.studentId == request.auth.uid ||
+        user().data.role == "student" ||
+        user().data.role == "Student" ||
+        user().data.role == "ROLE_STUDENT" ||
+        (user().data.roles is list && ("student" in user().data.roles || "Student" in user().data.roles || "ROLE_STUDENT" in user().data.roles)) ||
+        user().data.ROLE_STUDENT == true
+      );
+    }
+    function isStudent() { return hasAnyRole('student', 'ROLE_STUDENT') || hasStudentToken() || profileHasAnyRole('student', 'ROLE_STUDENT') || hasStudentProfile(); }
 
 
     function user() {

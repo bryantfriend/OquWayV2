@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../../../../packages/firebase/index.js?v=1.1.113-student-rules-read";
+import { collection, db, getDocs, query, where } from "../../../../../packages/firebase/index.js?v=1.1.114-student-profile-rules";
 
 export async function loadClasses() {
   return [];

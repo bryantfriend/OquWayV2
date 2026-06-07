@@ -1,4 +1,4 @@
-import { isSupportedStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.113-student-rules-read";
+import { isSupportedStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.114-student-profile-rules";
 
 export function validatePracticeModeStepType(executionState) {
   var payload = executionState.payload;

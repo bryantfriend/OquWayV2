@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.113-student-rules-read";
-import { normalizeLearningContentPayload } from "./learningArchitecture.js?v=1.1.113-student-rules-read";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.114-student-profile-rules";
+import { normalizeLearningContentPayload } from "./learningArchitecture.js?v=1.1.114-student-profile-rules";
 
 export async function processSaveLearningContent(executionState) {
   var payload = executionState.payload;

@@ -5,7 +5,7 @@ import {
   getStudentExternalTaskSubmissions,
   updateExternalTaskReview,
   uploadExternalTaskFile
-} from "../../../../../../../domain/externalTasks/index.js?v=1.1.113-student-rules-read";
+} from "../../../../../../../domain/externalTasks/index.js?v=1.1.114-student-profile-rules";
 
 export async function processLoadExternalTaskStep(executionState) {
   var payload = executionState.payload || {};

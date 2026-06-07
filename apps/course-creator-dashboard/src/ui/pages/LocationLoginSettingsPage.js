@@ -1,4 +1,4 @@
-import { locationLoginSettingsService } from "../services/locationLoginSettingsService.js?v=1.1.113-student-rules-read";
+import { locationLoginSettingsService } from "../services/locationLoginSettingsService.js?v=1.1.114-student-profile-rules";
 
 export class LocationLoginSettingsPage {
   constructor() {

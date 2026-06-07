@@ -1,8 +1,8 @@
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.113-student-rules-read";
-import { attachStepsCollection } from "../../stages/addContext/contexts.js?v=1.1.113-student-rules-read";
-import { processUpdateStepField } from "../../stages/process/processors.js?v=1.1.113-student-rules-read";
-import { validateCourseId, validateModuleId, validateStepFieldKey, validateStepId } from "../../stages/validate/validators.js?v=1.1.113-student-rules-read";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.113-student-rules-read";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.114-student-profile-rules";
+import { attachStepsCollection } from "../../stages/addContext/contexts.js?v=1.1.114-student-profile-rules";
+import { processUpdateStepField } from "../../stages/process/processors.js?v=1.1.114-student-profile-rules";
+import { validateCourseId, validateModuleId, validateStepFieldKey, validateStepId } from "../../stages/validate/validators.js?v=1.1.114-student-profile-rules";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.114-student-profile-rules";
 
 export function UpdateStepFieldIntent() {
     return {

@@ -1,13 +1,13 @@
-import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.113-student-rules-read';
-import { courseEditorService } from '../services/courseEditorService.js?v=1.1.113-student-rules-read';
-import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.113-student-rules-read';
-import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.113-student-rules-read';
+import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.114-student-profile-rules';
+import { courseEditorService } from '../services/courseEditorService.js?v=1.1.114-student-profile-rules';
+import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.114-student-profile-rules';
+import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.114-student-profile-rules';
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge
-} from '../../../../../packages/ui/index.js?v=1.1.113-student-rules-read';
+} from '../../../../../packages/ui/index.js?v=1.1.114-student-profile-rules';
 
 export class CourseOverviewPage {
   constructor(courseId, options) {

@@ -1,4 +1,4 @@
-import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.113-student-rules-read";
+import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.114-student-profile-rules";
 
 export function requireSuperAdminAccess(executionState) {
   var actor = executionState.actor;

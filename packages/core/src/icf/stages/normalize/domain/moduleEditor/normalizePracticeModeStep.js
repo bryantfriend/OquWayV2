@@ -1,4 +1,4 @@
-import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.113-student-rules-read";
+import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.114-student-profile-rules";
 
 export function normalizePracticeModeStep(executionState) {
   var payload = executionState.payload;

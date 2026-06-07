@@ -36,4 +36,4 @@ export function assignmentBelongsToTeacher(assignment, teacherIds) {
     }));
 }
 
-export * from "./assignmentRepository.js?v=1.1.113-student-rules-read";
+export * from "./assignmentRepository.js?v=1.1.114-student-profile-rules";

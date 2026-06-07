@@ -1,5 +1,5 @@
-import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.113-student-rules-read";
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.113-student-rules-read";
+import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.114-student-profile-rules";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.114-student-profile-rules";
 import { calculateCourseCompletion, calculateCourseProgressSummary } from "../../../../../../../domain/progress/index.js";
 
 export async function processLoadStudentDashboard(executionState) {

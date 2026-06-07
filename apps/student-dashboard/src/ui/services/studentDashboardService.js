@@ -1,8 +1,8 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.113-student-rules-read";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.113-student-rules-read";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.113-student-rules-read";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.113-student-rules-read";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.113-student-rules-read";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.114-student-profile-rules";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.114-student-profile-rules";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.114-student-profile-rules";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.114-student-profile-rules";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.114-student-profile-rules";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {

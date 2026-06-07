@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateClassUpdatePayload } from "../../stages/validate/validators.js?v=1.1.113-student-rules-read";
-import { normalizeClassPayload } from "../../stages/normalize/normalizers.js?v=1.1.113-student-rules-read";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.113-student-rules-read";
-import { requireSuperAdminAccess } from "../../stages/authorize/authorizers.js?v=1.1.113-student-rules-read";
-import { processUpdateClass } from "../../stages/process/processors.js?v=1.1.113-student-rules-read";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.113-student-rules-read";
+import { validateAuthenticated, validateClassUpdatePayload } from "../../stages/validate/validators.js?v=1.1.114-student-profile-rules";
+import { normalizeClassPayload } from "../../stages/normalize/normalizers.js?v=1.1.114-student-profile-rules";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.114-student-profile-rules";
+import { requireSuperAdminAccess } from "../../stages/authorize/authorizers.js?v=1.1.114-student-profile-rules";
+import { processUpdateClass } from "../../stages/process/processors.js?v=1.1.114-student-profile-rules";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.114-student-profile-rules";
 
 export function UpdateClassIntent() {
   return {

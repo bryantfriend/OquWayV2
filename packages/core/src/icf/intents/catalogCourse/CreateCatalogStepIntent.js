@@ -1,11 +1,11 @@
-import { catalogCourseRequireModuleIdValidation, catalogCourseValidateStepConfigValidation } from "../../stages/validate/validators.js?v=1.1.113-student-rules-read";
-import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.113-student-rules-read";
-import { attachTimestampContext, attachCreatedByContext } from "../../stages/addContext/contexts.js?v=1.1.113-student-rules-read";
-import { attachExistingModuleContext } from "../../stages/addContext/contexts.js?v=1.1.113-student-rules-read";
-import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.113-student-rules-read";
-import { preventModificationIfPublishedAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.113-student-rules-read";
-import { catalogStepCreateProcessing } from "../../stages/process/processors.js?v=1.1.113-student-rules-read";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.113-student-rules-read";
+import { catalogCourseRequireModuleIdValidation, catalogCourseValidateStepConfigValidation } from "../../stages/validate/validators.js?v=1.1.114-student-profile-rules";
+import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.114-student-profile-rules";
+import { attachTimestampContext, attachCreatedByContext } from "../../stages/addContext/contexts.js?v=1.1.114-student-profile-rules";
+import { attachExistingModuleContext } from "../../stages/addContext/contexts.js?v=1.1.114-student-profile-rules";
+import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.114-student-profile-rules";
+import { preventModificationIfPublishedAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.114-student-profile-rules";
+import { catalogStepCreateProcessing } from "../../stages/process/processors.js?v=1.1.114-student-profile-rules";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.114-student-profile-rules";
 
 export function CreateCatalogStepIntent() {
     return {
