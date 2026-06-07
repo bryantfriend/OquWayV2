@@ -1,6 +1,6 @@
 import { getIdTokenResult, onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.121-student-dashboard-open-clean";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.121-student-dashboard-open-clean";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.122-teacher-dashboard-overhaul";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.122-teacher-dashboard-overhaul";
 
 var currentTeacherClaims = {};
 
@@ -173,5 +173,4 @@ function readFirstErrorText(error) {
 
   return error.message || error.code || String(error);
 }
-
 

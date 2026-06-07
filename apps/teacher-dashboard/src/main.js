@@ -1,10 +1,10 @@
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.86-dev-workflow";
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.121-student-dashboard-open-clean";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.122-teacher-dashboard-overhaul";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.122-teacher-dashboard-overhaul";
 import {
   createEmptyState,
   createLoadingState,
   createStatusBadge
-} from "../../../packages/ui/index.js?v=1.1.121-student-dashboard-open-clean";
+} from "../../../packages/ui/index.js?v=1.1.122-teacher-dashboard-overhaul";
 
 var app = document.getElementById("app");
 var state = {
@@ -19,9 +19,10 @@ var state = {
   students: [],
   submissions: [],
   summary: null,
+  debug: null,
   selectedClassId: "",
   selectedCourseId: "",
-  activeTab: "classes",
+  activeTab: "overview",
   reviewClassId: "",
   reviewCourseId: "",
   reviewModuleId: "",
@@ -92,6 +93,7 @@ async function loadDashboard() {
       students: data.students || [],
       submissions: data.submissions || [],
       summary: data.summary || null,
+      debug: data.debug || null,
       message: "",
       error: "",
       unauthorized: false
@@ -106,6 +108,7 @@ async function loadDashboard() {
       students: [],
       submissions: [],
       summary: null,
+      debug: null,
       error: error.message,
       message: ""
     });
@@ -131,6 +134,7 @@ async function refreshReviewQueue() {
     setState({
       isReviewQueueLoading: false,
       submissions: data.submissions || [],
+      debug: mergeDashboardDebug(state.debug, data.debug),
       message: "",
       error: ""
     });
@@ -621,15 +625,18 @@ function buildDashboardView() {
     + buildMetrics()
     + buildTeacherTabs()
     + buildActiveTeacherTab()
+    + buildTeacherDebugPanel()
     + '</main>';
 }
 
 function buildHeader() {
   var teacher = state.teacher || {};
+  var locationName = teacher.locationName || teacher.primaryLocationName || teacher.schoolName || "";
 
   return '<header class="teacher-header">'
     + '<div><p>Teacher Dashboard</p><h1>' + escapeHtml(teacher.name || "Teacher") + '</h1>'
-    + '<span>' + escapeHtml(teacher.locationName || "Assigned school") + '</span></div>'
+    + '<span>' + escapeHtml(locationName || "Location not assigned") + '</span>'
+    + '<small class="teacher-today">' + escapeHtml(formatToday()) + '</small></div>'
     + buildHeaderSceneSvg()
     + '<div class="teacher-header-actions"><span class="teacher-role-badge">' + escapeHtml(teacher.roleLabel || "Teacher") + '</span>'
     + '<button type="button" class="teacher-secondary-btn" data-action="refresh">Refresh</button>'
@@ -639,26 +646,36 @@ function buildHeader() {
 
 function buildMetrics() {
   var summary = state.summary || {};
+  var studentFailed = hasStudentQueryErrors() || summary.studentQueryFailed;
+  var submissionFailed = hasSubmissionQueryErrors() || summary.submissionQueryFailed;
 
   return '<section class="teacher-metrics">'
-    + buildMetricCard(summary.classCount || state.classes.length, "My Classes", "classes")
-    + buildMetricCard(summary.courseCount || state.courses.length, "My Courses", "courses")
-    + buildMetricCard(summary.pendingSubmissionsCount || countPending(state.submissions), "Pending Reviews", "reviews")
-    + buildMetricCard(summary.studentCount || state.students.length, "Students", "students")
+    + buildMetricCard(readCount(summary.classCount, state.classes.length), "My Classes", "classes")
+    + buildMetricCard(readCount(summary.courseCount, state.courses.length), "My Courses", "courses")
+    + buildMetricCard(studentFailed ? "!" : readCount(summary.studentCount, state.students.length), "My Students", "students", studentFailed ? "Could not load students" : "")
+    + buildMetricCard(submissionFailed ? "!" : readCount(summary.pendingSubmissionsCount, countByReviewStatus("pending")), "Pending Reviews", "reviews", submissionFailed ? "Could not load review queue" : "")
+    + buildMetricCard(submissionFailed ? "!" : readCount(summary.needsWorkSubmissionsCount, countByReviewStatus("needsWork")), "Needs Work", "reviews", submissionFailed ? "Could not load review queue" : "")
+    + buildMetricCard(submissionFailed ? "!" : readCount(summary.completedSubmissionsCount, countByReviewStatus("complete")), "Completed Reviews", "reviews", submissionFailed ? "Could not load review queue" : "")
     + '</section>';
 }
 
-function buildMetricCard(value, label, tone) {
-  return '<article class="teacher-metric teacher-metric-' + escapeHtml(tone) + '">'
+function buildMetricCard(value, label, tone, warning) {
+  return '<article class="teacher-metric teacher-metric-' + escapeHtml(tone) + (warning ? " teacher-metric-warning" : "") + '">'
     + buildMetricSvg(tone)
-    + '<strong>' + escapeHtml(String(value)) + '</strong><span>' + escapeHtml(label) + '</span></article>';
+    + '<strong>' + escapeHtml(String(value)) + '</strong><span>' + escapeHtml(label) + '</span>'
+    + (warning ? '<small>' + escapeHtml(warning) + '</small>' : "")
+    + '</article>';
 }
 
 function buildTeacherTabs() {
   return '<nav class="teacher-tabs" aria-label="Teacher dashboard sections">'
+    + buildTeacherTabButton("overview", "Overview", "")
     + buildTeacherTabButton("classes", "Classes", state.classes.length)
+    + buildTeacherTabButton("students", "Students", hasStudentQueryErrors() ? "!" : state.students.length)
     + buildTeacherTabButton("courses", "Courses", state.courses.length)
-    + buildTeacherTabButton("reviews", "Reviews", countPending(state.submissions))
+    + buildTeacherTabButton("reviews", "Reviews", hasSubmissionQueryErrors() ? "!" : countPending(state.submissions))
+    + buildTeacherTabButton("activity", "Activity", "")
+    + buildTeacherTabButton("schedule", "Schedule", "")
     + '</nav>';
 }
 
@@ -668,18 +685,132 @@ function buildTeacherTabButton(tabName, label, count) {
 }
 
 function buildActiveTeacherTab() {
+  if (state.activeTab === "overview") {
+    return buildOverviewTab();
+  }
+
   if (state.activeTab === "courses") {
     return buildCourseCards();
+  }
+
+  if (state.activeTab === "students") {
+    return buildStudentsView();
   }
 
   if (state.activeTab === "reviews") {
     return buildReviewQueue();
   }
 
+  if (state.activeTab === "activity") {
+    return buildActivityTab();
+  }
+
+  if (state.activeTab === "schedule") {
+    return buildScheduleTab();
+  }
+
   return '<section class="teacher-grid">'
     + buildClassCards()
     + buildStudentsView()
     + '</section>';
+}
+
+function buildOverviewTab() {
+  var recentSubmissions = getRecentSubmissions(4);
+  var studentsNeedingAttention = (state.students || []).filter(function (student) {
+    return student.pendingSubmissionsCount > 0;
+  }).slice(0, 5);
+
+  return '<section class="teacher-overview-grid">'
+    + buildOverviewPanel("Today\'s classes", buildTodayClassesList())
+    + buildOverviewPanel("Pending reviews", buildPendingReviewsList())
+    + buildOverviewPanel("Students needing attention", buildStudentAttentionList(studentsNeedingAttention))
+    + buildOverviewPanel("Recent submissions", buildRecentSubmissionList(recentSubmissions))
+    + buildOverviewPanel("Course progress summary", buildCourseProgressList())
+    + '</section>';
+}
+
+function buildOverviewPanel(title, bodyHtml) {
+  return '<section class="teacher-card-section teacher-overview-panel">'
+    + '<div class="teacher-section-title compact"><div><h2>' + escapeHtml(title) + '</h2></div></div>'
+    + bodyHtml
+    + '</section>';
+}
+
+function buildTodayClassesList() {
+  if ((state.classes || []).length === 0) {
+    return buildEmptyState("classes", "No classes assigned yet.", "Assigned classroom groups will appear here.");
+  }
+
+  return '<div class="teacher-command-list">' + (state.classes || []).slice(0, 4).map(function (classRecord) {
+    return '<div class="teacher-command-item"><strong>' + escapeHtml(classRecord.name || "Class") + '</strong>'
+      + '<span>' + escapeHtml(classRecord.locationName || "Location not assigned") + '</span>'
+      + '<small>' + escapeHtml(String(classRecord.studentCount || 0)) + ' students | ' + escapeHtml(String(classRecord.pendingSubmissionsCount || 0)) + ' pending</small></div>';
+  }).join("") + '</div>';
+}
+
+function buildPendingReviewsList() {
+  if (hasSubmissionQueryErrors()) {
+    return buildEmptyState("reviews", "Could not load review queue.", "Open ?debug=true for the Firestore query details.");
+  }
+
+  var pending = (state.submissions || []).filter(function (submission) {
+    return (submission.reviewStatus || "pending") === "pending";
+  }).slice(0, 4);
+
+  if (pending.length === 0) {
+    return buildEmptyState("reviews", "No pending reviews.", "Submitted External Task work that needs review will appear here.");
+  }
+
+  return '<div class="teacher-command-list">' + pending.map(function (submission) {
+    return '<div class="teacher-command-item"><strong>' + escapeHtml(submission.studentName || submission.studentId || "Student") + '</strong>'
+      + '<span>' + escapeHtml(submission.taskTitle || submission.stepTitle || "External Task") + '</span>'
+      + '<small>' + escapeHtml(formatDate(submission.createdAt) || "Recently") + '</small></div>';
+  }).join("") + '</div>';
+}
+
+function buildStudentAttentionList(students) {
+  if (hasStudentQueryErrors()) {
+    return buildEmptyState("students", "Could not load students.", "Open ?debug=true for the Firestore query details.");
+  }
+
+  if (students.length === 0) {
+    return buildEmptyState("students", "No students need review right now.", "Students with pending submissions will appear here.");
+  }
+
+  return '<div class="teacher-command-list">' + students.map(function (student) {
+    return '<div class="teacher-command-item"><strong>' + escapeHtml(student.name || "Student") + '</strong>'
+      + '<span>' + escapeHtml(student.currentCourseProgress || "No progress yet") + '</span>'
+      + '<small>' + escapeHtml(String(student.pendingSubmissionsCount || 0)) + ' pending reviews</small></div>';
+  }).join("") + '</div>';
+}
+
+function buildRecentSubmissionList(submissions) {
+  if (hasSubmissionQueryErrors()) {
+    return buildEmptyState("reviews", "Could not load recent submissions.", "Open ?debug=true for the Firestore query details.");
+  }
+
+  if (submissions.length === 0) {
+    return buildEmptyState("reviews", "No recent submissions.", "Recent External Task submissions will appear here.");
+  }
+
+  return '<div class="teacher-command-list">' + submissions.map(function (submission) {
+    return '<div class="teacher-command-item"><strong>' + escapeHtml(submission.studentName || submission.studentId || "Student") + '</strong>'
+      + '<span>' + escapeHtml(formatReviewStatus(submission.reviewStatus || "pending")) + '</span>'
+      + '<small>' + escapeHtml(formatDate(submission.createdAt) || "Recently") + '</small></div>';
+  }).join("") + '</div>';
+}
+
+function buildCourseProgressList() {
+  if ((state.courses || []).length === 0) {
+    return buildEmptyState("courses", "No assigned courses.", "Course assignments will appear here.");
+  }
+
+  return '<div class="teacher-command-list">' + (state.courses || []).slice(0, 4).map(function (course) {
+    return '<div class="teacher-command-item"><strong>' + escapeHtml(course.courseTitle || "Untitled Course") + '</strong>'
+      + '<span>' + escapeHtml(course.targetName || "Assigned target") + '</span>'
+      + '<small>' + escapeHtml(String(course.studentCount || 0)) + ' students | ' + escapeHtml(String(course.pendingSubmissionsCount || 0)) + ' pending</small></div>';
+  }).join("") + '</div>';
 }
 
 function buildClassCards() {
@@ -727,11 +858,63 @@ function buildCourseCards() {
   return html + '</div></section>';
 }
 
+function buildActivityTab() {
+  if (hasSubmissionQueryErrors()) {
+    return '<section class="teacher-card-section teacher-wide-section">'
+      + '<div class="teacher-section-title"><div><h2>Activity</h2><p>Recent classroom signals</p></div>' + buildSectionGlyphSvg("reviews") + '</div>'
+      + buildEmptyState("reviews", "Could not load review activity.", "Open ?debug=true for the Firestore query details.")
+      + '</section>';
+  }
+
+  var recentSubmissions = getRecentSubmissions(8);
+  var completedReviews = (state.submissions || []).filter(function (submission) {
+    return (submission.reviewStatus || "") === "complete";
+  }).slice(0, 8);
+
+  if (recentSubmissions.length === 0 && completedReviews.length === 0) {
+    return '<section class="teacher-card-section teacher-wide-section">'
+      + '<div class="teacher-section-title"><div><h2>Activity</h2><p>Recent classroom signals</p></div>' + buildSectionGlyphSvg("reviews") + '</div>'
+      + buildEmptyState("reviews", "No activity yet.", "Recent submissions, completed reviews, and progress events will appear here.")
+      + '</section>';
+  }
+
+  return '<section class="teacher-overview-grid">'
+    + buildOverviewPanel("Recent submissions", buildRecentSubmissionList(recentSubmissions))
+    + buildOverviewPanel("Reviews completed", buildCompletedReviewList(completedReviews))
+    + buildOverviewPanel("Student course opens", buildEmptyState("students", "No course open activity yet.", "Student course open events are not available in this dashboard data set yet."))
+    + buildOverviewPanel("Module completions", buildEmptyState("courses", "No module completion activity yet.", "Module completion events are not available in this dashboard data set yet."))
+    + '</section>';
+}
+
+function buildCompletedReviewList(submissions) {
+  if (submissions.length === 0) {
+    return buildEmptyState("reviews", "No completed reviews yet.", "Completed External Task reviews will appear here.");
+  }
+
+  return '<div class="teacher-command-list">' + submissions.map(function (submission) {
+    return '<div class="teacher-command-item"><strong>' + escapeHtml(submission.studentName || submission.studentId || "Student") + '</strong>'
+      + '<span>' + escapeHtml(submission.taskTitle || submission.stepTitle || "External Task") + '</span>'
+      + '<small>' + escapeHtml(formatDate(submission.reviewedAt || submission.updatedAt) || "Recently") + '</small></div>';
+  }).join("") + '</div>';
+}
+
+function buildScheduleTab() {
+  return '<section class="teacher-card-section teacher-wide-section">'
+    + '<div class="teacher-section-title"><div><h2>Schedule</h2><p>Class schedule</p></div>' + buildSectionGlyphSvg("classes") + '</div>'
+    + buildEmptyState("classes", "No schedule data yet.", "Scheduled class meetings will appear here when they are available.")
+    + '</section>';
+}
+
 function buildStudentsView() {
   var students = filterStudentsForSelectedClass(state.students || []);
+  var queryErrors = readStudentQueryErrors();
   var html = '<section class="teacher-card-section"><div class="teacher-section-title"><div><h2>Students</h2><p>Progress and review signals</p></div>' + buildSectionGlyphSvg("students") + '</div>';
 
   if (students.length === 0) {
+    if (queryErrors.length > 0) {
+      return html + buildEmptyState("students", "Could not load students.", "A Firestore query failed. Open ?debug=true for query details.") + '</section>';
+    }
+
     return html + buildEmptyState("students", "No students found.", "Students assigned to this class will appear here.") + '</section>';
   }
 
@@ -929,11 +1112,44 @@ function buildStatusOption(value, label) {
 function buildReviewEmptyState() {
   var hasRawSubmissions = (state.submissions || []).length > 0;
 
+  if (!hasRawSubmissions && hasSubmissionQueryErrors()) {
+    return buildEmptyState("reviews", "Could not load review queue.", "Open ?debug=true for the Firestore query details.");
+  }
+
   if (!hasRawSubmissions && state.statusFilter === "pending") {
     return buildEmptyState("reviews", "No pending reviews.", "Submitted External Task work that needs review will appear here.");
   }
 
   return buildEmptyState("reviews", "No submissions match these filters.", "Try a different class, course, status, or student search.");
+}
+
+function buildTeacherDebugPanel() {
+  var debug = state.debug || {};
+  var studentQueryErrors = readStudentQueryErrors();
+  var submissionQueryErrors = readSubmissionQueryErrors();
+
+  if (!isDebugEnabled()) {
+    return "";
+  }
+
+  return '<section class="teacher-card-section teacher-wide-section teacher-debug-panel">'
+    + '<div class="teacher-section-title"><div><h2>Debug</h2><p>Teacher dashboard data contract</p></div></div>'
+    + (studentQueryErrors.length || submissionQueryErrors.length ? '<div class="teacher-debug-warning">One or more teacher-scoped queries failed. Counts with ! are not real zeroes.</div>' : "")
+    + '<pre>' + escapeHtml(JSON.stringify({
+      authUid: readDebugValue(debug, "teacherIdentity.authUid"),
+      userDocId: readDebugValue(debug, "teacherIdentity.userDocId"),
+      teacherProfileId: debug.teacherProfileId || readDebugValue(debug, "teacherIdentity.teacherId") || readDebugValue(debug, "teacherIdentity.userDocId"),
+      teacherProfileIds: debug.teacherProfileIds || [],
+      teacherClassIdentifiers: debug.teacherClassIdentifiers || [],
+      teacherLocationIdentifiers: debug.teacherLocationIdentifiers || [],
+      assignedClassCount: debug.assignedClassCount || 0,
+      assignedCourseCount: debug.assignedCourseCount || 0,
+      studentCount: debug.studentCount || 0,
+      pendingReviewCount: debug.pendingReviewCount || 0,
+      studentQueryErrors: studentQueryErrors,
+      submissionQueryErrors: submissionQueryErrors
+    }, null, 2)) + '</pre>'
+    + '</section>';
 }
 
 function getFilteredReviewSubmissions() {
@@ -1005,6 +1221,66 @@ function readReviewStatusForQuery() {
   return state.statusFilter === "all" ? "" : state.statusFilter;
 }
 
+function readDashboardQueryErrors() {
+  return state.debug && Array.isArray(state.debug.queryErrors) ? state.debug.queryErrors : [];
+}
+
+function readStudentQueryErrors() {
+  if (state.debug && Array.isArray(state.debug.studentQueryErrors)) {
+    return state.debug.studentQueryErrors;
+  }
+
+  return readDashboardQueryErrors().filter(function (error) {
+    return error && (error.collection === "users" || error.type === "students" || error.scope === "students");
+  });
+}
+
+function readSubmissionQueryErrors() {
+  if (state.debug && Array.isArray(state.debug.submissionQueryErrors)) {
+    return state.debug.submissionQueryErrors;
+  }
+
+  return readDashboardQueryErrors().filter(function (error) {
+    return error && (error.collection === "externalTaskSubmissions" || error.type === "submissions" || error.scope === "submissions");
+  });
+}
+
+function hasStudentQueryErrors() {
+  return readStudentQueryErrors().length > 0;
+}
+
+function hasSubmissionQueryErrors() {
+  return readSubmissionQueryErrors().length > 0;
+}
+
+function mergeDashboardDebug(currentDebug, nextDebug) {
+  if (!nextDebug) {
+    return currentDebug || null;
+  }
+
+  return Object.assign({}, currentDebug || {}, nextDebug || {});
+}
+
+function isDebugEnabled() {
+  return window.location && window.location.search.indexOf("debug=true") !== -1;
+}
+
+function readDebugValue(debug, path) {
+  var parts = path.split(".");
+  var value = debug;
+  var index = 0;
+
+  while (index < parts.length) {
+    if (!value || !Object.prototype.hasOwnProperty.call(value, parts[index])) {
+      return "";
+    }
+    value = value[parts[index]];
+    index = index + 1;
+  }
+
+  return value || "";
+}
+
 function buildOpenFileAction(file) {
   if (!file || !file.downloadUrl) {
     return '<button type="button" class="teacher-secondary-btn" disabled>Open file</button>';
@@ -1015,11 +1291,11 @@ function buildOpenFileAction(file) {
 
 function readFeedbackSaveStatus(submission) {
   var status = submission.reviewStatus || "";
-  if (status === "complete" || status === "needsWork" || status === "incomplete") {
+  if (status === "pending" || status === "complete" || status === "needsWork" || status === "incomplete") {
     return status;
   }
 
-  return "needsWork";
+  return "pending";
 }
 
 function buildStatusMessages() {
@@ -1041,8 +1317,40 @@ function filterStudentsForSelectedClass(students) {
     return students;
   }
 
+  var classRecord = getSelectedClassRecord();
+  var identifiers = buildClassIdentifiers(classRecord);
+
   return students.filter(function (student) {
-    return (student.classIds || []).indexOf(state.selectedClassId) !== -1 || student.classId === state.selectedClassId;
+    return identifiers.indexOf(student.classId || "") !== -1
+      || identifiers.indexOf(student.primaryClassId || "") !== -1
+      || identifiers.indexOf(student.className || "") !== -1
+      || identifiers.indexOf(student.classCode || "") !== -1
+      || arraysIntersect(student.classIds || [], identifiers)
+      || arraysIntersect(student.assignedClassIds || [], identifiers);
+  });
+}
+
+function getSelectedClassRecord() {
+  return (state.classes || []).find(function (classRecord) {
+    return classRecord.id === state.selectedClassId;
+  }) || null;
+}
+
+function buildClassIdentifiers(classRecord) {
+  var identifiers = [state.selectedClassId];
+
+  if (classRecord) {
+    identifiers.push(classRecord.id, classRecord.name, classRecord.code, classRecord.classCode);
+  }
+
+  return identifiers.filter(function (value, index, list) {
+    return value && list.indexOf(value) === index;
+  });
+}
+
+function arraysIntersect(values, identifiers) {
+  return (values || []).some(function (value) {
+    return identifiers.indexOf(value) !== -1;
   });
 }
 
@@ -1087,6 +1395,22 @@ function countPending(submissions) {
   }).length;
 }
 
+function countByReviewStatus(status) {
+  return (state.submissions || []).filter(function (submission) {
+    return (submission.reviewStatus || "pending") === status;
+  }).length;
+}
+
+function readCount(primaryValue, fallbackValue) {
+  return typeof primaryValue === "number" ? primaryValue : fallbackValue;
+}
+
+function getRecentSubmissions(limit) {
+  return (state.submissions || []).slice().sort(function (left, right) {
+    return readMillis(right.createdAt || right.updatedAt) - readMillis(left.createdAt || left.updatedAt);
+  }).slice(0, limit);
+}
+
 function formatReviewStatus(status) {
   if (status === "complete") return "Complete";
   if (status === "needsWork") return "Needs Work";
@@ -1102,6 +1426,14 @@ function formatDate(value) {
   }
 
   return new Date(millis).toLocaleString();
+}
+
+function formatToday() {
+  return new Date().toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "short",
+    day: "numeric"
+  });
 }
 
 function readMillis(value) {
@@ -1167,5 +1499,3 @@ function escapeHtml(value) {
 }
 
 render();
-
-

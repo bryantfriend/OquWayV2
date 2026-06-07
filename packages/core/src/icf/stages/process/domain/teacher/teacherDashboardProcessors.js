@@ -1,13 +1,16 @@
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.121-student-dashboard-open-clean";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.121-student-dashboard-open-clean";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.122-teacher-dashboard-overhaul";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.122-teacher-dashboard-overhaul";
 import { getClassesForTeacher } from "../../../../../../../domain/classes/index.js";
-import { getExternalTaskSubmissionsForTeacher } from "../../../../../../../domain/externalTasks/index.js?v=1.1.121-student-dashboard-open-clean";
+import { getExternalTaskSubmissionsForTeacher } from "../../../../../../../domain/externalTasks/index.js?v=1.1.122-teacher-dashboard-overhaul";
 import {
+  buildStudentClassScope,
   getStudentsForClasses,
+  getStudentsForClassScopes,
   getUserProfileByAuthUid,
   getUserRoles,
   isStudentProfile as isStudentUserProfile,
+  resolveTeacherIdentity,
   userInClass as userProfileInClass
 } from "../../../../../../../domain/users/index.js";
 
@@ -148,14 +151,21 @@ export async function processLoadTeacherStudents(executionState) {
     var scope = await loadTeacherOwnershipScope(executionState);
     var profile = scope.profile;
     var classIds = resolveRequestedClassIds(executionState.payload, scope.classIds);
-    var students = await loadStudentsForClasses(classIds);
+    var scopedClasses = scope.classes.filter(function (classRecord) {
+      return classIds.indexOf(classRecord.id) !== -1;
+    });
+    var studentResult = await loadStudentsForClassRecords(scopedClasses);
+    var students = studentResult.students;
     var progress = await loadProgressForStudents(students);
+    var submissionQueryErrors = [];
     var submissions = await loadScopedSubmissions({
       classIds: classIds,
       assignmentIds: scope.assignmentIds,
       courseIds: scope.courseIds,
       teacherIds: scope.teacherIds,
-      reviewStatus: "pending"
+      locationIds: scope.locationIds,
+      reviewStatus: "pending",
+      queryErrors: submissionQueryErrors
     });
     var pendingCounts = countSubmissionsByField(submissions, "studentId");
 
@@ -163,7 +173,11 @@ export async function processLoadTeacherStudents(executionState) {
       teacher: profile,
       students: students.map(function (student) {
         return normalizeStudentCard(student, progress[student.id] || null, pendingCounts[student.id] || 0);
-      })
+      }),
+      debug: {
+        studentQueryErrors: studentResult.queryErrors || [],
+        submissionQueryErrors: submissionQueryErrors
+      }
     };
 
     return { valid: true, data: executionState.result };
@@ -176,19 +190,27 @@ export async function processLoadTeacherReviewQueue(executionState) {
   try {
     var payload = executionState.payload || {};
     var scope = await loadTeacherOwnershipScope(executionState);
+    var submissionQueryErrors = [];
     var submissions = await loadScopedSubmissions({
       classIds: resolveRequestedClassIds(payload, scope.classIds),
       assignmentIds: scope.assignmentIds,
       courseIds: scope.courseIds,
       teacherIds: scope.teacherIds,
+      locationIds: scope.locationIds,
       reviewStatus: payload.reviewStatus,
       courseId: payload.courseId,
       moduleId: payload.moduleId,
-      studentSearch: payload.studentSearch
+      studentSearch: payload.studentSearch,
+      queryErrors: submissionQueryErrors
     });
 
+    logExternalTaskTeacherDebug(executionState, scope, payload, submissions);
+
     executionState.result = {
-      submissions: submissions
+      submissions: submissions,
+      debug: {
+        submissionQueryErrors: submissionQueryErrors
+      }
     };
 
     return { valid: true, data: executionState.result };
@@ -202,14 +224,18 @@ async function buildTeacherDashboardData(executionState) {
   var profile = scope.profile;
   var classes = scope.classes;
   var effectiveClassIds = scope.classIds;
-  var students = await loadStudentsForClasses(effectiveClassIds);
+  var submissionQueryErrors = [];
+  var studentResult = await loadStudentsForClassRecords(classes);
+  var students = studentResult.students;
   var progress = await loadProgressForStudents(students);
   var submissions = await loadScopedSubmissions({
     classIds: effectiveClassIds,
     assignmentIds: scope.assignmentIds,
     courseIds: scope.courseIds,
     teacherIds: scope.teacherIds,
-    reviewStatus: (executionState.payload || {}).reviewStatus || "pending"
+    locationIds: scope.locationIds,
+    reviewStatus: (executionState.payload || {}).reviewStatus || "pending",
+    queryErrors: submissionQueryErrors
   });
   var pendingCountsByClass = countSubmissionsByField(submissions, "classId");
   var pendingCountsByStudent = countSubmissionsByField(submissions, "studentId");
@@ -231,11 +257,12 @@ async function buildTeacherDashboardData(executionState) {
     assignedClassCount: effectiveClassIds.length,
     ownedCourseAssignmentCount: courseCards.length,
     studentCount: studentCards.length,
-    pendingSubmissionsCount: submissions.length
+    pendingSubmissionsCount: submissions.length,
+    teacherIdentity: scope.teacherIdentity
   });
 
   return {
-    teacher: normalizeTeacherProfile(profile),
+    teacher: normalizeTeacherProfile(profile, scope),
     classes: classCards,
     courses: courseCards,
     students: studentCards,
@@ -251,7 +278,32 @@ async function buildTeacherDashboardData(executionState) {
       studentCount: studentCards.length,
       pendingSubmissionsCount: submissions.filter(function (submission) {
         return submission.reviewStatus === "pending";
-      }).length
+      }).length,
+      needsWorkSubmissionsCount: submissions.filter(function (submission) {
+        return submission.reviewStatus === "needsWork";
+      }).length,
+      completedSubmissionsCount: submissions.filter(function (submission) {
+        return submission.reviewStatus === "complete";
+      }).length,
+      studentQueryFailed: (studentResult.queryErrors || []).length > 0,
+      submissionQueryFailed: submissionQueryErrors.length > 0
+    },
+    debug: {
+      teacherIdentity: scope.teacherIdentity,
+      authUid: scope.teacherIdentity.authUid || scope.authUid || "",
+      teacherProfileId: scope.profileUserId || (profile && profile.id ? profile.id : ""),
+      teacherProfileIds: scope.teacherIds,
+      teacherClassIdentifiers: scope.classIdentifiers,
+      teacherLocationIdentifiers: scope.locationIds,
+      assignedClassCount: classCards.length,
+      assignedCourseCount: courseCards.length,
+      studentCount: studentCards.length,
+      pendingReviewCount: submissions.filter(function (submission) {
+        return submission.reviewStatus === "pending";
+      }).length,
+      studentQueryErrors: studentResult.queryErrors || [],
+      submissionQueryErrors: submissionQueryErrors,
+      queryErrors: readQueryErrors([studentResult.queryErrors, submissionQueryErrors])
     }
   };
 }
@@ -259,12 +311,16 @@ async function buildTeacherDashboardData(executionState) {
 async function loadTeacherOwnershipScope(executionState) {
   var context = executionState.context || {};
   var profile = context.teacherProfile || null;
-  var teacherIds = readTeacherOwnershipIds(context, profile, executionState.actor || {});
-  var classes = await loadTeacherClassesByOwnership(teacherIds, readTeacherRoles(profile));
-  var assignments = await loadOwnedCourseAssignments(teacherIds);
+  var teacherIdentity = resolveTeacherIdentity(context, profile, executionState.actor || {});
+  var teacherIds = teacherIdentity.teacherProfileIds;
+  var classes = await loadTeacherClassesByOwnership(teacherIds, readTeacherRoles(profile), teacherIdentity.teacherClassIdentifiers);
+  classes = await enrichClassesWithLocationNames(classes);
+  var classIdentifiers = readClassScopeIdentifiers(classes, teacherIdentity.teacherClassIdentifiers);
+  var assignments = await loadOwnedCourseAssignments(teacherIds, classIdentifiers);
   var classIds = readOwnedClassIds(classes, assignments);
   var assignmentIds = assignments.map(function (assignment) { return assignment.id; });
   var courseIds = readOwnedCourseIds(assignments);
+  var locationIds = readTextArray([teacherIdentity.teacherLocationIdentifiers, readClassLocationIds(classes)]);
 
   console.info("[teacher-dashboard:ownership-scope]", {
     authUid: context.authUid || "",
@@ -273,24 +329,35 @@ async function loadTeacherOwnershipScope(executionState) {
     ownedClassCount: classes.length,
     ownedCourseAssignmentCount: assignments.length,
     ownedClassIds: classIds,
-    ownedCourseIds: courseIds
+    ownedCourseIds: courseIds,
+    locationIds: locationIds
+  });
+
+  logTeacherDashboardDebug(teacherIdentity, {
+    classIdentifiers: classIdentifiers,
+    locationIds: locationIds
   });
 
   return {
     profile: profile,
     authUid: context.authUid || "",
     profileUserId: context.profileUserId || "",
+    teacherIdentity: teacherIdentity,
     teacherIds: teacherIds,
     classes: classes,
     assignments: assignments,
     classIds: classIds,
+    classIdentifiers: classIdentifiers,
+    locationIds: locationIds,
     assignmentIds: assignmentIds,
     courseIds: courseIds
   };
 }
 
-async function loadTeacherClassesByOwnership(teacherIds, roles) {
-  return getClassesForTeacher(teacherIds, roles);
+async function loadTeacherClassesByOwnership(teacherIds, roles, classIdentifiers) {
+  return getClassesForTeacher(teacherIds, roles, {
+    classIdentifiers: classIdentifiers
+  });
 }
 
 async function appendClassOwnershipQuery(classes, classesQuery, details) {
@@ -321,6 +388,10 @@ async function loadStudentsForClasses(classIds) {
   return getStudentsForClasses(classIds);
 }
 
+async function loadStudentsForClassRecords(classes) {
+  return getStudentsForClassScopes((classes || []).map(buildStudentClassScope));
+}
+
 async function appendStudentQuery(students, studentsQuery, details) {
   console.info("[teacher-dashboard:students-query]", {
     classId: details && details.classId ? details.classId : "",
@@ -341,9 +412,10 @@ async function appendStudentQuery(students, studentsQuery, details) {
   }
 }
 
-async function loadOwnedCourseAssignments(teacherIds) {
+async function loadOwnedCourseAssignments(teacherIds, classIdentifiers) {
   var assignments = [];
   var index = 0;
+  var safeClassIdentifiers = Array.isArray(classIdentifiers) ? classIdentifiers : [];
 
   while (index < teacherIds.length) {
     await appendAssignmentOwnershipQuery(assignments, query(collection(db, "courseAssignments"), where("teacherOwnershipIds", "array-contains", teacherIds[index])), {
@@ -360,6 +432,21 @@ async function loadOwnedCourseAssignments(teacherIds) {
       teacherId: teacherIds[index],
       ownershipRole: "Assistant",
       queryShape: "courseAssignments where assistantIds array-contains teacherId"
+    });
+    index = index + 1;
+  }
+
+  index = 0;
+  while (index < safeClassIdentifiers.length) {
+    await appendAssignmentOwnershipQuery(assignments, query(collection(db, "courseAssignments"), where("targetId", "==", safeClassIdentifiers[index])), {
+      teacherId: safeClassIdentifiers[index],
+      ownershipRole: "Class Assignment",
+      queryShape: "courseAssignments where targetId == classIdentifier"
+    });
+    await appendAssignmentOwnershipQuery(assignments, query(collection(db, "courseAssignments"), where("classId", "==", safeClassIdentifiers[index])), {
+      teacherId: safeClassIdentifiers[index],
+      ownershipRole: "Class Assignment",
+      queryShape: "courseAssignments where classId == classIdentifier"
     });
     index = index + 1;
   }
@@ -430,6 +517,90 @@ async function readStudentProgressSummary(studentId) {
 
 async function loadScopedSubmissions(filters) {
   return await enrichSubmissionsWithCourseMetadata(await getExternalTaskSubmissionsForTeacher(filters));
+}
+
+async function enrichClassesWithLocationNames(classes) {
+  var locationCache = {};
+  var result = [];
+  var index = 0;
+
+  while (index < classes.length) {
+    var classRecord = classes[index];
+    var locationId = readClassLocationId(classRecord);
+    var locationName = classRecord.locationName || classRecord.schoolName || "";
+
+    if (!locationName && locationId) {
+      locationName = await readLocationName(locationId, locationCache);
+    }
+
+    result.push(Object.assign({}, classRecord, {
+      locationName: locationName || classRecord.locationName || ""
+    }));
+    index = index + 1;
+  }
+
+  return result;
+}
+
+async function readLocationName(locationId, cache) {
+  if (!locationId) {
+    return "";
+  }
+
+  if (Object.prototype.hasOwnProperty.call(cache, locationId)) {
+    return cache[locationId];
+  }
+
+  try {
+    var locationSnap = await getDoc(doc(db, "locations", locationId));
+    if (!locationSnap.exists()) {
+      cache[locationId] = "";
+      return "";
+    }
+
+    cache[locationId] = readTitleFromRecord(locationSnap.data() || {}, "");
+    return cache[locationId];
+  } catch (error) {
+    cache[locationId] = "";
+    return "";
+  }
+}
+
+function logTeacherDashboardDebug(teacherIdentity, scope) {
+  if (!isExternalTaskDebugEnabled()) {
+    return;
+  }
+
+  console.log("[teacher-dashboard-debug] teacherIdentity", teacherIdentity);
+  console.log("[teacher-dashboard-debug] teacherProfileIds", teacherIdentity.teacherProfileIds || []);
+  console.log("[teacher-dashboard-debug] teacherClassIdentifiers", scope.classIdentifiers || []);
+  console.log("[teacher-dashboard-debug] teacherLocationIdentifiers", scope.locationIds || []);
+}
+
+function logExternalTaskTeacherDebug(executionState, scope, payload, submissions) {
+  if (!isExternalTaskDebugEnabled()) {
+    return;
+  }
+
+  console.log("[external-task-teacher-debug]", {
+    teacherId: scope && scope.profile && scope.profile.id ? scope.profile.id : ((executionState.actor || {}).id || ""),
+    classIds: scope && Array.isArray(scope.classIds) ? scope.classIds.slice() : [],
+    locationIds: scope && Array.isArray(scope.locationIds) ? scope.locationIds.slice() : [],
+    filters: {
+      reviewStatus: payload && payload.reviewStatus ? payload.reviewStatus : "",
+      classId: payload && payload.classId ? payload.classId : "",
+      courseId: payload && payload.courseId ? payload.courseId : "",
+      moduleId: payload && payload.moduleId ? payload.moduleId : "",
+      studentSearch: payload && payload.studentSearch ? payload.studentSearch : ""
+    },
+    submissionCount: Array.isArray(submissions) ? submissions.length : 0
+  });
+}
+
+function isExternalTaskDebugEnabled() {
+  return typeof window !== "undefined"
+    && window.location
+    && window.location.search.indexOf("debug=true") !== -1;
 }
 
 async function loadUserProfile(uid) {
@@ -548,7 +719,9 @@ async function readModuleSummaryFromSource(courseId, moduleId, source) {
   }
 }
 
-function normalizeTeacherProfile(profile) {
+function normalizeTeacherProfile(profile, scope) {
+  var locationName = readTeacherLocationName(profile, scope);
+
   return {
     id: profile && profile.id ? profile.id : "",
     profileUserId: profile && profile.profileUserId ? profile.profileUserId : "",
@@ -558,21 +731,43 @@ function normalizeTeacherProfile(profile) {
     role: readPrimaryRole(profile),
     roleLabel: formatRole(readPrimaryRole(profile)),
     locationId: profile && (profile.locationId || profile.primaryLocationId || profile.schoolId) ? (profile.locationId || profile.primaryLocationId || profile.schoolId) : "",
-    locationName: profile && (profile.locationName || profile.schoolName) ? (profile.locationName || profile.schoolName) : "Assigned school"
+    locationName: locationName || "Assigned school"
   };
 }
 
+function readTeacherLocationName(profile, scope) {
+  var profileLocationName = profile
+    ? (profile.locationName || profile.schoolName || profile.primaryLocationName || profile.assignedSchoolName || "")
+    : "";
+  var classes = scope && Array.isArray(scope.classes) ? scope.classes : [];
+  var index = 0;
+
+  if (profileLocationName) {
+    return profileLocationName;
+  }
+
+  while (index < classes.length) {
+    if (classes[index].locationName || classes[index].schoolName) {
+      return classes[index].locationName || classes[index].schoolName;
+    }
+    index = index + 1;
+  }
+
+  return "";
+}
+
 function normalizeClassCard(classRecord, students, assignments, pendingCount) {
+  var classIdentifiers = readClassIdentifiers(classRecord);
   var classStudents = students.filter(function (student) {
-    return studentInClass(student, classRecord.id);
+    return studentInClass(student, classIdentifiers);
   });
   var classAssignments = assignments.filter(function (assignment) {
-    return assignment.targetId === classRecord.id || assignment.classId === classRecord.id;
+    return classIdentifiers.indexOf(assignment.targetId) !== -1 || classIdentifiers.indexOf(assignment.classId) !== -1;
   });
 
   return {
     id: classRecord.id,
-    name: readName(classRecord, "Class " + classRecord.id),
+    name: readClassName(classRecord, "Class " + classRecord.id),
     locationId: readClassLocationId(classRecord),
     locationName: classRecord.locationName || classRecord.schoolName || classRecord.locationId || "Assigned location",
     studentCount: classStudents.length,
@@ -586,6 +781,7 @@ function normalizeClassCard(classRecord, students, assignments, pendingCount) {
 async function normalizeCourseAssignmentCards(assignments, classes, students, pendingCountsByAssignment) {
   var courseCache = {};
   var cards = [];
+  var cardByCourseId = {};
   var index = 0;
 
   while (index < assignments.length) {
@@ -593,24 +789,38 @@ async function normalizeCourseAssignmentCards(assignments, classes, students, pe
     var course = await loadCourseSummary(assignment.courseId, courseCache);
     var targetClassId = readAssignmentClassId(assignment);
     var targetClass = findById(classes, targetClassId);
+    var targetClassIdentifiers = targetClass ? readClassIdentifiers(targetClass) : [targetClassId];
     var targetStudents = targetClassId
-      ? students.filter(function (student) { return studentInClass(student, targetClassId); })
+      ? students.filter(function (student) { return studentInClass(student, targetClassIdentifiers); })
       : [];
-
-    cards.push({
+    var courseId = assignment.courseId || assignment.id || "";
+    var existing = cardByCourseId[courseId];
+    var card = {
       id: assignment.id,
       assignmentId: assignment.id,
+      courseAssignmentId: assignment.id,
+      assignmentIds: [assignment.id],
+      courseAssignmentIds: [assignment.id],
       courseId: assignment.courseId || "",
       courseTitle: assignment.courseTitle || (course ? course.title : "Untitled Course"),
       targetType: assignment.targetType || (targetClassId ? "class" : ""),
       targetId: assignment.targetId || targetClassId,
       classId: targetClassId,
-      targetName: assignment.targetName || assignment.className || (targetClass ? targetClass.name : targetClassId || "Assigned target"),
+      targetName: assignment.targetName || assignment.className || (targetClass ? readClassName(targetClass, targetClassId) : targetClassId || "Assigned target"),
       ownershipRole: assignment.ownershipRole || "Assigned",
       studentCount: targetStudents.length,
       pendingSubmissionsCount: pendingCountsByAssignment[assignment.id] || 0,
       status: assignment.status || "active"
-    });
+    };
+
+    if (existing) {
+      mergeCourseAssignmentCard(existing, card);
+    } else if (courseId) {
+      cardByCourseId[courseId] = card;
+      cards.push(card);
+    } else {
+      cards.push(card);
+    }
     index = index + 1;
   }
 
@@ -625,12 +835,99 @@ function normalizeStudentCard(student, progress, pendingCount) {
     name: readName(student, "Student " + student.id),
     photoUrl: student.photoUrl || student.avatarUrl || "",
     classId: student.classId || firstArrayValue(student.classIds) || firstArrayValue(student.assignedClassIds),
-    classIds: readTextArray([student.classId, student.classIds, student.assignedClassIds]),
+    classIds: readTextArray([student.classId, student.primaryClassId, student.className, student.classIds, student.assignedClassIds]),
     lastActiveAt: progress ? progress.lastActiveAt : null,
     currentCourseProgress: progress && progress.courseCount > 0 ? progress.courseCount + " course(s) active" : "No progress yet",
     pendingSubmissionsCount: pendingCount,
     status: pendingCount > 0 ? "needsReview" : "steady"
   };
+}
+
+function mergeCourseAssignmentCard(existing, next) {
+  appendTextValues(existing.assignmentIds, next.assignmentIds);
+  appendTextValues(existing.courseAssignmentIds, next.courseAssignmentIds);
+  existing.studentCount = Math.max(existing.studentCount || 0, next.studentCount || 0);
+  existing.pendingSubmissionsCount = (existing.pendingSubmissionsCount || 0) + (next.pendingSubmissionsCount || 0);
+
+  if (next.targetType === "class" && existing.targetType !== "class") {
+    existing.targetType = next.targetType;
+    existing.targetId = next.targetId;
+    existing.classId = next.classId;
+    existing.targetName = next.targetName;
+  }
+}
+
+function readClassScopeIdentifiers(classes, seedIdentifiers) {
+  var identifiers = readTextArray([seedIdentifiers]);
+  var index = 0;
+
+  while (index < classes.length) {
+    appendTextValues(identifiers, readClassIdentifiers(classes[index]));
+    index = index + 1;
+  }
+
+  return identifiers;
+}
+
+function readClassIdentifiers(classRecord) {
+  if (!classRecord) {
+    return [];
+  }
+
+  return readTextArray([
+    classRecord.id,
+    classRecord.classId,
+    classRecord.name,
+    classRecord.subject,
+    classRecord.title,
+    classRecord.displayName,
+    classRecord.classCode,
+    classRecord.code
+  ]);
+}
+
+function readClassLocationIds(classes) {
+  var ids = [];
+  var index = 0;
+
+  while (index < classes.length) {
+    addText(ids, readClassLocationId(classes[index]));
+    index = index + 1;
+  }
+
+  return ids;
+}
+
+function readClassName(classRecord, fallback) {
+  if (!classRecord) {
+    return fallback;
+  }
+
+  return readTitle(classRecord.name || classRecord.subject || classRecord.title || classRecord.displayName, fallback);
+}
+
+function readQueryErrors(values) {
+  var result = [];
+  var index = 0;
+
+  while (index < values.length) {
+    if (Array.isArray(values[index])) {
+      values[index].forEach(function (item) {
+        result.push(item);
+      });
+    }
+    index = index + 1;
+  }
+
+  return result;
+}
+
+function readTitleFromRecord(record, fallback) {
+  if (!record) {
+    return fallback;
+  }
+
+  return readTitle(record.name || record.title || record.displayName || record.schoolName || record.locationName, fallback);
 }
 
 function readTeacherOwnershipIds(context, profile, actor) {
@@ -997,5 +1294,3 @@ function readErrorMessage(error) {
 
   return error.code ? error.code + " " + error.message : error.message || String(error);
 }
-
-

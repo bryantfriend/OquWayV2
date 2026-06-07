@@ -106,5 +106,6 @@ function addRole(roles, role) {
 
 export * from "./roleService.js";
 export * from "./studentIdentity.js";
+export * from "./teacherIdentity.js";
 export * from "./userQueries.js";
 export * from "./userRepository.js";

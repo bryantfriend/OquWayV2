@@ -1,5 +1,5 @@
 import { collection, db, getDocs, query, where } from "../../firebase/index.js";
-import { normalizeExternalTaskSubmission } from "./externalTaskModel.js?v=1.1.121-student-dashboard-open-clean";
+import { normalizeExternalTaskSubmission } from "./externalTaskModel.js?v=1.1.122-teacher-dashboard-overhaul";
 
 export async function getStudentExternalTaskSubmissions(filters) {
   var safeFilters = filters || {};
@@ -77,6 +77,8 @@ export async function getScopedExternalTaskSubmissions(filters) {
   var assignmentIds = safeFilters.assignmentIds || [];
   var courseIds = safeFilters.courseIds || [];
   var teacherIds = safeFilters.teacherIds || [];
+  var locationIds = safeFilters.locationIds || [];
+  var queryErrors = Array.isArray(safeFilters.queryErrors) ? safeFilters.queryErrors : [];
   var index = 0;
 
   while (index < teacherIds.length) {
@@ -84,8 +86,11 @@ export async function getScopedExternalTaskSubmissions(filters) {
       classId: "",
       assignmentId: "",
       courseId: "",
+      locationId: "",
+      scope: "teacherOwnershipIds",
+      filters: readSubmissionDebugFilters(safeFilters),
       queryShape: readSubmissionQueryShape("teacherOwnershipIds", safeFilters)
-    });
+    }, queryErrors);
     index = index + 1;
   }
 
@@ -95,14 +100,20 @@ export async function getScopedExternalTaskSubmissions(filters) {
       classId: "",
       assignmentId: assignmentIds[index],
       courseId: "",
+      locationId: "",
+      scope: "assignmentId",
+      filters: readSubmissionDebugFilters(safeFilters),
       queryShape: readSubmissionQueryShape("assignmentId", safeFilters)
-    });
+    }, queryErrors);
     await appendSubmissionQuery(submissions, buildSubmissionQuery("courseAssignmentId", assignmentIds[index], safeFilters), {
       classId: "",
       assignmentId: assignmentIds[index],
       courseId: "",
+      locationId: "",
+      scope: "courseAssignmentId",
+      filters: readSubmissionDebugFilters(safeFilters),
       queryShape: readSubmissionQueryShape("courseAssignmentId", safeFilters)
-    });
+    }, queryErrors);
     index = index + 1;
   }
 
@@ -112,8 +123,25 @@ export async function getScopedExternalTaskSubmissions(filters) {
       classId: classIds[index],
       assignmentId: "",
       courseId: "",
+      locationId: "",
+      scope: "classId",
+      filters: readSubmissionDebugFilters(safeFilters),
       queryShape: readSubmissionQueryShape("classId", safeFilters)
-    });
+    }, queryErrors);
+    index = index + 1;
+  }
+
+  index = 0;
+  while (index < locationIds.length) {
+    await appendSubmissionQuery(submissions, buildSubmissionQuery("locationId", locationIds[index], safeFilters), {
+      classId: "",
+      assignmentId: "",
+      courseId: "",
+      locationId: locationIds[index],
+      scope: "locationId",
+      filters: readSubmissionDebugFilters(safeFilters),
+      queryShape: readSubmissionQueryShape("locationId", safeFilters)
+    }, queryErrors);
     index = index + 1;
   }
 
@@ -124,8 +152,11 @@ export async function getScopedExternalTaskSubmissions(filters) {
         classId: "",
         assignmentId: "",
         courseId: courseIds[index],
+        locationId: "",
+        scope: "courseId",
+        filters: readSubmissionDebugFilters(safeFilters),
         queryShape: readSubmissionQueryShape("courseId", safeFilters)
-      });
+      }, queryErrors);
       index = index + 1;
     }
   }
@@ -158,6 +189,7 @@ export function isSubmissionInOwnedScope(submission, filters) {
   var assignmentIds = safeFilters.assignmentIds || [];
   var courseIds = safeFilters.courseIds || [];
   var teacherIds = safeFilters.teacherIds || [];
+  var locationIds = safeFilters.locationIds || [];
 
   if (Array.isArray(submission.teacherOwnershipIds) && submission.teacherOwnershipIds.some(function (teacherId) {
     return teacherIds.indexOf(teacherId) !== -1;
@@ -177,7 +209,11 @@ export function isSubmissionInOwnedScope(submission, filters) {
     return true;
   }
 
-  return assignmentIds.length === 0 && classIds.length === 0 && submission.courseId && courseIds.indexOf(submission.courseId) !== -1;
+  if (submission.locationId && locationIds.indexOf(submission.locationId) !== -1) {
+    return true;
+  }
+
+  return assignmentIds.length === 0 && classIds.length === 0 && locationIds.length === 0 && submission.courseId && courseIds.indexOf(submission.courseId) !== -1;
 }
 
 function normalizeTeacherSubmissionFilters(filters) {
@@ -189,6 +225,10 @@ function normalizeTeacherSubmissionFilters(filters) {
 
   if (safeFilters.classId && (!Array.isArray(safeFilters.classIds) || safeFilters.classIds.length === 0)) {
     safeFilters.classIds = [safeFilters.classId];
+  }
+
+  if (safeFilters.locationId && (!Array.isArray(safeFilters.locationIds) || safeFilters.locationIds.length === 0)) {
+    safeFilters.locationIds = [safeFilters.locationId];
   }
 
   return safeFilters;
@@ -226,11 +266,29 @@ function readSubmissionQueryShape(scopeField, filters) {
     : "externalTaskSubmissions where " + scopeField + " " + operatorLabel + " scopeValue";
 }
 
-async function appendSubmissionQuery(submissions, submissionsQuery, details) {
+function readSubmissionDebugFilters(filters) {
+  var safeFilters = filters || {};
+
+  return {
+    reviewStatus: safeFilters.reviewStatus || "",
+    classId: safeFilters.classId || "",
+    courseId: safeFilters.courseId || "",
+    moduleId: safeFilters.moduleId || "",
+    assignmentIds: Array.isArray(safeFilters.assignmentIds) ? safeFilters.assignmentIds.slice() : [],
+    classIds: Array.isArray(safeFilters.classIds) ? safeFilters.classIds.slice() : [],
+    locationIds: Array.isArray(safeFilters.locationIds) ? safeFilters.locationIds.slice() : [],
+    teacherIds: Array.isArray(safeFilters.teacherIds) ? safeFilters.teacherIds.slice() : []
+  };
+}
+
+async function appendSubmissionQuery(submissions, submissionsQuery, details, queryErrors) {
   console.info("[teacher-dashboard:submissions-query]", {
     classId: details && details.classId ? details.classId : "",
     assignmentId: details && details.assignmentId ? details.assignmentId : "",
     courseId: details && details.courseId ? details.courseId : "",
+    locationId: details && details.locationId ? details.locationId : "",
+    scope: details && details.scope ? details.scope : "",
+    filters: details && details.filters ? details.filters : {},
     queryShape: details && details.queryShape ? details.queryShape : "externalTaskSubmissions scoped query"
   });
 
@@ -244,9 +302,23 @@ async function appendSubmissionQuery(submissions, submissionsQuery, details) {
       classId: details && details.classId ? details.classId : "",
       assignmentId: details && details.assignmentId ? details.assignmentId : "",
       courseId: details && details.courseId ? details.courseId : "",
+      locationId: details && details.locationId ? details.locationId : "",
+      scope: details && details.scope ? details.scope : "",
+      filters: details && details.filters ? details.filters : {},
       queryShape: details && details.queryShape ? details.queryShape : "externalTaskSubmissions scoped query",
-      errorMessage: readErrorMessage(error)
+      errorCode: error && error.code ? error.code : "",
+      errorMessage: error && error.message ? error.message : readErrorMessage(error)
     });
+
+    if (Array.isArray(queryErrors)) {
+      queryErrors.push({
+        collection: "externalTaskSubmissions",
+        scope: details && details.queryShape ? details.queryShape : "externalTaskSubmissions scoped query",
+        filters: details && details.filters ? details.filters : {},
+        errorCode: error && error.code ? error.code : "",
+        message: readErrorMessage(error)
+      });
+    }
   }
 }
 

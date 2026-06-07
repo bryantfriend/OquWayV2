@@ -2,36 +2,129 @@ import { collection, db, getDocs, query, where } from "../../firebase/index.js";
 import { isStudentProfile } from "./roleService.js";
 
 export async function getStudentsForClasses(classIds) {
+  var result = await getStudentsForClassScopes((Array.isArray(classIds) ? classIds : []).map(function (classId) {
+    return { id: classId };
+  }));
+
+  return result.students;
+}
+
+export async function getStudentsForClassScopes(classScopes) {
   var students = [];
-  var safeClassIds = Array.isArray(classIds) ? classIds : [];
+  var queryErrors = [];
+  var safeClassScopes = Array.isArray(classScopes) ? classScopes : [];
   var classIndex = 0;
 
-  while (classIndex < safeClassIds.length) {
-    await appendStudentQuery(students, query(collection(db, "users"), where("classId", "==", safeClassIds[classIndex])), {
-      classId: safeClassIds[classIndex],
-      queryShape: "users where classId == classId"
-    });
-    await appendStudentQuery(students, query(collection(db, "users"), where("classIds", "array-contains", safeClassIds[classIndex])), {
-      classId: safeClassIds[classIndex],
-      queryShape: "users where classIds array-contains classId"
-    });
-    await appendStudentQuery(students, query(collection(db, "users"), where("assignedClassIds", "array-contains", safeClassIds[classIndex])), {
-      classId: safeClassIds[classIndex],
-      queryShape: "users where assignedClassIds array-contains classId"
-    });
+  while (classIndex < safeClassScopes.length) {
+    await loadStudentsForClassScope(students, queryErrors, safeClassScopes[classIndex]);
     classIndex = classIndex + 1;
   }
 
-  return students.filter(isStudentProfile).sort(compareByName);
+  return {
+    students: students.filter(isStudentProfile).sort(compareByName),
+    queryErrors: queryErrors
+  };
+}
+
+export function buildStudentClassScope(classRecord) {
+  var scope = {
+    id: readText(classRecord && classRecord.id),
+    identifiers: readTextArray([
+      classRecord && classRecord.id,
+      classRecord && classRecord.classId,
+      classRecord && classRecord.name,
+      classRecord && classRecord.subject,
+      classRecord && classRecord.title,
+      classRecord && classRecord.displayName,
+      classRecord && classRecord.classCode,
+      classRecord && classRecord.code
+    ]),
+    names: readTextArray([
+      classRecord && classRecord.name,
+      classRecord && classRecord.subject,
+      classRecord && classRecord.title,
+      classRecord && classRecord.displayName,
+      classRecord && classRecord.classCode,
+      classRecord && classRecord.code,
+      buildGradeName(classRecord && (classRecord.name || classRecord.subject || classRecord.title))
+    ])
+  };
+
+  return scope;
+}
+
+function buildGradeName(value) {
+  var text = readText(value);
+
+  if (!text || /^grade\s+/i.test(text)) {
+    return "";
+  }
+
+  return "Grade " + text;
+}
+
+async function loadStudentsForClassScope(students, queryErrors, classScope) {
+  var identifiers = classScope && Array.isArray(classScope.identifiers) && classScope.identifiers.length > 0
+    ? classScope.identifiers
+    : readTextArray([classScope && classScope.id]);
+  var names = classScope && Array.isArray(classScope.names) ? classScope.names : [];
+  var index = 0;
+
+  while (index < identifiers.length) {
+    await appendStudentQuery(students, queryErrors, query(collection(db, "users"), where("classId", "==", identifiers[index])), {
+      classId: identifiers[index],
+      queryShape: "users where classId == classId"
+    });
+    await appendStudentQuery(students, queryErrors, query(collection(db, "users"), where("primaryClassId", "==", identifiers[index])), {
+      classId: identifiers[index],
+      queryShape: "users where primaryClassId == classId"
+    });
+    await appendStudentQuery(students, queryErrors, query(collection(db, "users"), where("classIds", "array-contains", identifiers[index])), {
+      classId: identifiers[index],
+      queryShape: "users where classIds array-contains classId"
+    });
+    await appendStudentQuery(students, queryErrors, query(collection(db, "users"), where("assignedClassIds", "array-contains", identifiers[index])), {
+      classId: identifiers[index],
+      queryShape: "users where assignedClassIds array-contains classId"
+    });
+    index = index + 1;
+  }
+
+  index = 0;
+  while (index < names.length) {
+    await appendStudentQuery(students, queryErrors, query(collection(db, "users"), where("className", "==", names[index])), {
+      classId: classScope && classScope.id ? classScope.id : names[index],
+      className: names[index],
+      queryShape: "users where className == class name"
+    });
+    await appendStudentQuery(students, queryErrors, query(collection(db, "users"), where("classCode", "==", names[index])), {
+      classId: classScope && classScope.id ? classScope.id : names[index],
+      className: names[index],
+      queryShape: "users where classCode == class code"
+    });
+    index = index + 1;
+  }
 }
 
 export function userInClass(userProfile, classId) {
-  return readTextArray([userProfile.classId, userProfile.classIds, userProfile.assignedClassIds]).indexOf(classId) !== -1;
+  var identifiers = Array.isArray(classId) ? classId : [classId];
+  var userIdentifiers = readTextArray([
+    userProfile && userProfile.classId,
+    userProfile && userProfile.primaryClassId,
+    userProfile && userProfile.className,
+    userProfile && userProfile.classIds,
+    userProfile && userProfile.assignedClassIds
+  ]);
+
+  return identifiers.some(function (identifier) {
+    return userIdentifiers.indexOf(identifier) !== -1;
+  });
 }
 
-async function appendStudentQuery(students, studentsQuery, details) {
+async function appendStudentQuery(students, queryErrors, studentsQuery, details) {
   console.info("[teacher-dashboard:students-query]", {
     classId: details && details.classId ? details.classId : "",
+    className: details && details.className ? details.className : "",
     queryShape: details && details.queryShape ? details.queryShape : "users scoped query"
   });
 
@@ -41,10 +134,20 @@ async function appendStudentQuery(students, studentsQuery, details) {
       addUniqueRecord(students, Object.assign({ id: studentSnap.id }, studentSnap.data() || {}));
     });
   } catch (error) {
+    queryErrors.push({
+      collection: "users",
+      classId: details && details.classId ? details.classId : "",
+      className: details && details.className ? details.className : "",
+      queryShape: details && details.queryShape ? details.queryShape : "users scoped query",
+      errorCode: error && error.code ? error.code : "",
+      errorMessage: readErrorMessage(error)
+    });
     console.warn("[teacher-dashboard:students-query-failed]", {
       classId: details && details.classId ? details.classId : "",
+      className: details && details.className ? details.className : "",
       queryShape: details && details.queryShape ? details.queryShape : "users scoped query",
-      errorMessage: readErrorMessage(error)
+      errorCode: error && error.code ? error.code : "",
+      errorMessage: error && error.message ? error.message : readErrorMessage(error)
     });
   }
 }
@@ -69,6 +172,10 @@ function addUniqueRecord(records, record) {
   if (!records.some(function (item) { return item.id === record.id; })) {
     records.push(record);
   }
+}
+
+function readText(value) {
+  return typeof value === "string" ? value.trim() : "";
 }
 
 function readTextArray(values) {

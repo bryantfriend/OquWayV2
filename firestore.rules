@@ -174,6 +174,7 @@ service cloud.firestore {
         ? ([request.auth.uid]
           + (user().data.profileUserId is string ? [user().data.profileUserId] : [])
           + (user().data.userId is string ? [user().data.userId] : [])
+          + (user().data.teacherId is string ? [user().data.teacherId] : [])
           + (user().data.authUid is string ? [user().data.authUid] : []))
         : [];
     }
@@ -182,6 +183,8 @@ service cloud.firestore {
       return user() != null
         ? ([request.auth.uid]
           + (user().data.profileUserId is string ? [user().data.profileUserId] : [])
+          + (user().data.userId is string ? [user().data.userId] : [])
+          + (user().data.teacherId is string ? [user().data.teacherId] : [])
           + (user().data.authUid is string ? [user().data.authUid] : []))
         : (request.auth != null ? [request.auth.uid] : []);
     }
@@ -192,7 +195,14 @@ service cloud.firestore {
         && (
           classId in teacherClassIds() ||
           (classData.primaryTeacherId is string && classData.primaryTeacherId in teacherProfileIds()) ||
-          (classData.assistantIds is list && classData.assistantIds.hasAny(teacherProfileIds()))
+          (classData.teacherId is string && classData.teacherId in teacherProfileIds()) ||
+          (classData.responsibleTeacherId is string && classData.responsibleTeacherId in teacherProfileIds()) ||
+          (classData.primaryTeacherAuthUid is string && classData.primaryTeacherAuthUid in teacherProfileIds()) ||
+          (classData.teacherAuthUid is string && classData.teacherAuthUid in teacherProfileIds()) ||
+          (classData.assistantIds is list && classData.assistantIds.hasAny(teacherProfileIds())) ||
+          (classData.teacherOwnershipIds is list && classData.teacherOwnershipIds.hasAny(teacherProfileIds())) ||
+          (classData.teacherIds is list && classData.teacherIds.hasAny(teacherProfileIds())) ||
+          (classData.assignedTeacherIds is list && classData.assignedTeacherIds.hasAny(teacherProfileIds()))
         );
     }
 
@@ -210,7 +220,9 @@ service cloud.firestore {
         && (
           (assignmentData.teacherOwnershipIds is list && assignmentData.teacherOwnershipIds.hasAny(teacherOwnershipIds())) ||
           (assignmentData.responsibleTeacherId is string && assignmentData.responsibleTeacherId in teacherProfileIds()) ||
-          (assignmentData.assistantIds is list && assignmentData.assistantIds.hasAny(teacherProfileIds()))
+          (assignmentData.assistantIds is list && assignmentData.assistantIds.hasAny(teacherProfileIds())) ||
+          (assignmentData.targetType == "class" && assignmentData.targetId is string && isTeacherAssignedToClassId(assignmentData.targetId)) ||
+          (assignmentData.classId is string && isTeacherAssignedToClassId(assignmentData.classId))
         );
     }
 
@@ -220,7 +232,9 @@ service cloud.firestore {
         && (
           (resource.data.teacherOwnershipIds is list && resource.data.teacherOwnershipIds.hasAny(teacherOwnershipIds())) ||
           (resource.data.responsibleTeacherId is string && resource.data.responsibleTeacherId in teacherOwnershipIds()) ||
-          (resource.data.assistantIds is list && resource.data.assistantIds.hasAny(teacherOwnershipIds()))
+          (resource.data.assistantIds is list && resource.data.assistantIds.hasAny(teacherOwnershipIds())) ||
+          (resource.data.targetType == "class" && resource.data.targetId is string && isTeacherAssignedToClassId(resource.data.targetId)) ||
+          (resource.data.classId is string && isTeacherAssignedToClassId(resource.data.classId))
         );
     }
 
@@ -261,7 +275,10 @@ service cloud.firestore {
         && user() != null
         && (
           (resource.data.classId is string && isTeacherAssignedToClassId(resource.data.classId)) ||
+          (resource.data.primaryClassId is string && isTeacherAssignedToClassId(resource.data.primaryClassId)) ||
           (resource.data.classId is string && resource.data.classId in teacherClassIds()) ||
+          (resource.data.primaryClassId is string && resource.data.primaryClassId in teacherClassIds()) ||
+          (resource.data.className is string && resource.data.className in teacherClassIds()) ||
           (resource.data.classIds is list && resource.data.classIds.hasAny(teacherClassIds())) ||
           (resource.data.assignedClassIds is list && resource.data.assignedClassIds.hasAny(teacherClassIds()))
         );
@@ -273,7 +290,15 @@ service cloud.firestore {
         && exists(/databases/$(db)/documents/users/$(uid))
         && (
           (get(/databases/$(db)/documents/users/$(uid)).data.classId is string
+            && isTeacherAssignedToClassId(get(/databases/$(db)/documents/users/$(uid)).data.classId)) ||
+          (get(/databases/$(db)/documents/users/$(uid)).data.primaryClassId is string
+            && isTeacherAssignedToClassId(get(/databases/$(db)/documents/users/$(uid)).data.primaryClassId)) ||
+          (get(/databases/$(db)/documents/users/$(uid)).data.classId is string
             && get(/databases/$(db)/documents/users/$(uid)).data.classId in teacherClassIds()) ||
+          (get(/databases/$(db)/documents/users/$(uid)).data.primaryClassId is string
+            && get(/databases/$(db)/documents/users/$(uid)).data.primaryClassId in teacherClassIds()) ||
+          (get(/databases/$(db)/documents/users/$(uid)).data.className is string
+            && get(/databases/$(db)/documents/users/$(uid)).data.className in teacherClassIds()) ||
           (get(/databases/$(db)/documents/users/$(uid)).data.classIds is list
             && get(/databases/$(db)/documents/users/$(uid)).data.classIds.hasAny(teacherClassIds())) ||
           (get(/databases/$(db)/documents/users/$(uid)).data.assignedClassIds is list

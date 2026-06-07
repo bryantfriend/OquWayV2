@@ -1,5 +1,5 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.121-student-dashboard-open-clean";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.119-external-task-e2e";
 import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.121-student-dashboard-open-clean";
 import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.121-student-dashboard-open-clean";
 import {

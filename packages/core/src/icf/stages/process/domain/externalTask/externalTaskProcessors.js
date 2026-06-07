@@ -6,7 +6,7 @@ import {
   updateExternalTaskReview,
   uploadExternalTaskFile
 } from "../../../../../../../domain/externalTasks/index.js?v=1.1.121-student-dashboard-open-clean";
-import { resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.121-student-dashboard-open-clean";
+import { resolveActorStudentId, resolveActorStudentIdentity } from "../../../../../../../domain/users/index.js?v=1.1.121-student-dashboard-open-clean";
 
 export async function processLoadExternalTaskStep(executionState) {
   var payload = executionState.payload || {};
@@ -22,8 +22,12 @@ export async function processLoadExternalTaskStep(executionState) {
       studentId: resolveActorStudentId(actor, executionState.context.studentProfile, payload)
     });
 
+    var latestSubmission = readLatestSubmission(submissions);
+
+    logExternalTaskStudentDebug(executionState, payload, latestSubmission);
+
     executionState.result = {
-      submission: readLatestSubmission(submissions),
+      submission: latestSubmission,
       submissions: submissions
     };
 
@@ -61,6 +65,8 @@ export async function processSubmitExternalTask(executionState) {
       submission: submission
     };
 
+    logExternalTaskStudentDebug(executionState, executionState.payload || {}, submission);
+
     return { valid: true, data: executionState.result };
   } catch (error) {
     logExternalTaskProcessError("SubmitExternalTaskIntent", executionState, error, "externalTaskSubmissions");
@@ -79,6 +85,8 @@ export async function processResubmitExternalTask(executionState) {
     executionState.result = {
       submission: submission
     };
+
+    logExternalTaskStudentDebug(executionState, executionState.payload || {}, submission);
 
     return { valid: true, data: executionState.result };
   } catch (error) {
@@ -137,6 +145,28 @@ function readLatestSubmission(submissions) {
   return Array.isArray(submissions) && submissions.length > 0 ? submissions[0] : null;
 }
 
+function logExternalTaskStudentDebug(executionState, payload, submission) {
+  if (!isExternalTaskDebugEnabled()) {
+    return;
+  }
+
+  var actor = executionState.actor || {};
+  var identity = resolveActorStudentIdentity(actor, executionState.context.studentProfile, payload);
+
+  console.log("[external-task-student-debug]", {
+    resolvedStudentId: identity.resolvedStudentId || "",
+    authUid: identity.authUid || "",
+    tokenStudentId: identity.tokenStudentId || "",
+    courseId: payload && payload.courseId ? payload.courseId : "",
+    assignmentId: payload && (payload.assignmentId || payload.courseAssignmentId) ? (payload.assignmentId || payload.courseAssignmentId) : "",
+    moduleId: payload && payload.moduleId ? payload.moduleId : "",
+    stepId: payload && payload.stepId ? payload.stepId : "",
+    latestSubmissionId: submission ? (submission.id || submission.submissionId || "") : "",
+    latestReviewStatus: submission ? (submission.reviewStatus || "pending") : "",
+    attemptNumber: submission ? (submission.attemptNumber || 1) : 0
+  });
+}
+
 function createProcessError(code, message) {
   return {
     valid: false,
@@ -161,6 +191,12 @@ function logExternalTaskProcessError(intentName, executionState, error, path) {
     firebaseErrorCode: error && error.code ? error.code : "",
     message: readErrorMessage(error)
   });
+}
+
+function isExternalTaskDebugEnabled() {
+  return typeof window !== "undefined"
+    && window.location
+    && window.location.search.indexOf("debug=true") !== -1;
 }
 
 function isDevelopmentHost() {

@@ -522,6 +522,21 @@
       font-weight: 800;
     }
 
+    .teacher-metric small {
+      position: relative;
+      z-index: 1;
+      display: block;
+      margin-top: 8px;
+      color: #b45309;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .teacher-metric-warning {
+      border-color: #f59e0b;
+      background: #fffbeb;
+    }
+
     .teacher-metric-svg {
       position: absolute;
       right: 12px;
@@ -590,7 +605,7 @@
       position: relative;
       z-index: 1;
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(7, minmax(0, 1fr));
       gap: 10px;
       margin-bottom: 18px;
     }
@@ -642,6 +657,50 @@
 
     .teacher-wide-section {
       margin-bottom: 18px;
+    }
+
+    .teacher-overview-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .teacher-overview-panel {
+      min-height: 220px;
+    }
+
+    .teacher-section-title.compact {
+      margin-bottom: 10px;
+    }
+
+    .teacher-command-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .teacher-command-item {
+      display: grid;
+      gap: 4px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: #fff;
+      padding: 12px;
+    }
+
+    .teacher-command-item strong {
+      color: #0f172a;
+      font-size: 14px;
+    }
+
+    .teacher-command-item span,
+    .teacher-command-item small,
+    .teacher-today {
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 800;
     }
 
     .teacher-section-title {
@@ -1128,10 +1187,35 @@
       margin-bottom: 4px;
     }
 
+    .teacher-debug-panel pre {
+      margin: 0;
+      max-height: 320px;
+      overflow: auto;
+      border-radius: 8px;
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 14px;
+      font-size: 12px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .teacher-debug-warning {
+      margin-bottom: 12px;
+      border: 1px solid #facc15;
+      border-radius: 8px;
+      background: #fefce8;
+      color: #854d0e;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
     @media (max-width: 860px) {
       .teacher-login-shell,
       .teacher-grid,
       .teacher-metrics,
+      .teacher-overview-grid,
       .teacher-tabs,
       .teacher-filters {
         grid-template-columns: 1fr;
@@ -1191,9 +1275,7 @@
     </main>
   </div>
 
-  <script type="module" src="./src/main.js?v=1.1.121-student-dashboard-open-clean"></script>
+  <script type="module" src="./src/main.js?v=1.1.122-teacher-dashboard-overhaul"></script>
 </body>
 
 </html>
-
-

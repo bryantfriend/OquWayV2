@@ -1,13 +1,13 @@
 import { db, doc, getDoc, serverTimestamp, setDoc } from "../../firebase/index.js";
-import { getDownloadURL, ref, storage, uploadBytes } from "../../firebase/storage/index.js?v=1.1.121-student-dashboard-open-clean";
+import { getDownloadURL, ref, storage, uploadBytes } from "../../firebase/storage/index.js?v=1.1.122-teacher-dashboard-overhaul";
 import { getCourseAssignments } from "../assignments/index.js";
-import { resolveActorStudentId } from "../users/index.js?v=1.1.121-student-dashboard-open-clean";
+import { resolveActorStudentId } from "../users/index.js?v=1.1.122-teacher-dashboard-overhaul";
 import {
   canResubmitExternalTaskSubmission,
   normalizeExternalTaskSubmission,
   readExternalTaskAttemptNumber
-} from "./externalTaskModel.js?v=1.1.121-student-dashboard-open-clean";
-import { getStudentExternalTaskSubmissions, getLatestStudentExternalTaskSubmission } from "./externalTaskQueries.js?v=1.1.121-student-dashboard-open-clean";
+} from "./externalTaskModel.js?v=1.1.122-teacher-dashboard-overhaul";
+import { getStudentExternalTaskSubmissions, getLatestStudentExternalTaskSubmission } from "./externalTaskQueries.js?v=1.1.122-teacher-dashboard-overhaul";
 
 export async function getExternalTaskSubmissionById(submissionId) {
   if (!submissionId) {
@@ -90,10 +90,13 @@ export async function uploadExternalTaskFile(payload, actor, profile, submission
   validateUploadFile(file, payload);
 
   var storagePath = buildStoragePath(payload || {}, actor || {}, profile || {}, submissionId, file.name);
+  var studentId = resolveActorStudentId(actor || {}, profile || {}, payload || {});
   var storageRef = ref(storage, storagePath);
   var metadata = {
     contentType: file.type || "application/octet-stream"
   };
+
+  logExternalTaskUploadDebug(storagePath, studentId, payload);
 
   await uploadBytes(storageRef, file, metadata);
 
@@ -301,4 +304,22 @@ function isAllowedContentType(contentType) {
 function readNumber(value, fallback) {
   var numberValue = typeof value === "number" ? value : Number(value);
   return Number.isFinite(numberValue) ? numberValue : fallback;
+}
+
+function logExternalTaskUploadDebug(path, studentId, payload) {
+  if (!isExternalTaskDebugEnabled()) {
+    return;
+  }
+
+  console.log("[external-task-upload-debug]", {
+    path: path,
+    studentId: studentId || "",
+    fileCount: Array.isArray(payload && payload.files) ? payload.files.length : 1
+  });
+}
+
+function isExternalTaskDebugEnabled() {
+  return typeof window !== "undefined"
+    && window.location
+    && window.location.search.indexOf("debug=true") !== -1;
 }

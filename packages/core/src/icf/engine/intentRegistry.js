@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.121-student-dashboard-open-clean";
+import * as IntentExports from "../intents/intents.js?v=1.1.122-teacher-dashboard-overhaul";
 
 const registry = {
   // Demo Verification
