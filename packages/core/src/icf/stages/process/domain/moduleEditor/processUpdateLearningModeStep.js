@@ -1,4 +1,4 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.116-student-token-ready";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.117-student-identity-binding";
 import { createDefaultStepConfig } from "../../../../../../../domain/steps/index.js";
 
 export async function processUpdateLearningModeStep(executionState) {

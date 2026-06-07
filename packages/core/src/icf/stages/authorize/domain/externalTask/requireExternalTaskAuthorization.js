@@ -1,4 +1,4 @@
-import { canReviewExternalTask, canSubmitExternalTask } from "../../../../../../../permissions/index.js?v=1.1.116-student-token-ready";
+import { canReviewExternalTask, canSubmitExternalTask } from "../../../../../../../permissions/index.js?v=1.1.117-student-identity-binding";
 
 export function requireExternalTaskStudentAuthorization(executionState) {
   var actor = executionState.actor;

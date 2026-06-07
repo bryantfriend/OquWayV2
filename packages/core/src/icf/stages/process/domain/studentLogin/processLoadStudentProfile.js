@@ -1,10 +1,15 @@
-import { getStudentProfileByAuthUid } from "../../../../../../../domain/users/index.js?v=1.1.116-student-token-ready";
-import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.116-student-token-ready";
+import { getStudentProfileByAuthUid } from "../../../../../../../domain/users/index.js?v=1.1.117-student-identity-binding";
+import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.117-student-identity-binding";
 
 export async function processLoadStudentProfile(executionState) {
   var actor = executionState.actor;
 
   try {
+    logStudentProfileTrace("actor", executionState.actor);
+    logStudentProfileTrace("payload", executionState.payload);
+    logStudentProfileTrace("contextStudent", executionState.context && executionState.context.studentProfile);
+    logStudentProfileTrace("result", executionState.result);
+
     if (!actor || !actor.id) {
       throw new Error("A signed-in student is required.");
     }
@@ -63,9 +68,11 @@ export async function processLoadStudentProfile(executionState) {
     executionState.result = {
       student: sanitizedProfile
     };
+    logStudentProfileTrace("result", executionState.result);
 
     return { valid: true };
   } catch (error) {
+    console.error("[student-profile-process-error]", error);
     return {
       valid: false,
       errors: [
@@ -122,9 +129,10 @@ function isDevelopmentHost() {
 
 async function loadStudentProfile(actor) {
   try {
-    var profile = await getStudentProfileByAuthUid(actor.id);
+    var trustedProfile = actor.studentProfile || null;
+    var lookupProfile = await getStudentProfileByAuthUid(actor.id);
 
-    return profile || actor.studentProfile || null;
+    return mergeStudentProfiles(lookupProfile, trustedProfile);
   } catch (error) {
     logStudentProfileDebug({
       authUid: actor.id,
@@ -142,6 +150,29 @@ async function loadStudentProfile(actor) {
   }
 }
 
+function mergeStudentProfiles(lookupProfile, trustedProfile) {
+  if (!trustedProfile) {
+    return lookupProfile || null;
+  }
+
+  if (!lookupProfile) {
+    return trustedProfile;
+  }
+
+  return Object.assign({}, lookupProfile, trustedProfile, {
+    id: trustedProfile.id || lookupProfile.id || "",
+    authUid: trustedProfile.authUid || lookupProfile.authUid || "",
+    studentId: trustedProfile.studentId || lookupProfile.studentId || trustedProfile.id || lookupProfile.id || "",
+    name: trustedProfile.name || lookupProfile.name || "",
+    displayName: trustedProfile.displayName || lookupProfile.displayName || trustedProfile.name || lookupProfile.name || "",
+    classId: trustedProfile.classId || lookupProfile.classId || "",
+    className: trustedProfile.className || lookupProfile.className || "",
+    locationId: trustedProfile.locationId || lookupProfile.locationId || lookupProfile.primaryLocationId || "",
+    roles: Array.isArray(trustedProfile.roles) && trustedProfile.roles.length > 0 ? trustedProfile.roles : lookupProfile.roles,
+    linkedProfile: lookupProfile.linkedProfile || trustedProfile.linkedProfile || null
+  });
+}
+
 function isStudentProfileDebugEnabled() {
   if (typeof window === "undefined" || !window.location) {
     return false;
@@ -149,6 +180,14 @@ function isStudentProfileDebugEnabled() {
 
   return window.location.search.indexOf("debug=true") !== -1
     || isDevelopmentHost();
+}
+
+function logStudentProfileTrace(label, value) {
+  if (!isStudentProfileDebugEnabled()) {
+    return;
+  }
+
+  console.log("[student-profile-debug] " + label, JSON.stringify(value || null));
 }
 
 function mergeActorStudentContext(profile, actor) {

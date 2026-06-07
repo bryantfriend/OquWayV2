@@ -1,5 +1,5 @@
-import { auth } from "../../packages/firebase/auth/index.js?v=1.1.116-student-token-ready";
-import { verifyCourseCreatorAccess, normalizeRole } from "./src/auth/courseCreatorAuth.js?v=1.1.116-student-token-ready";
+import { auth } from "../../packages/firebase/auth/index.js?v=1.1.117-student-identity-binding";
+import { verifyCourseCreatorAccess, normalizeRole } from "./src/auth/courseCreatorAuth.js?v=1.1.117-student-identity-binding";
 import {
     signInWithEmailAndPassword,
     onAuthStateChanged,

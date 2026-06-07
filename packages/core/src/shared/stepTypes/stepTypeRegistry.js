@@ -1,13 +1,13 @@
-import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.116-student-token-ready";
-import { VocabularyStep } from "./VocabularyStep.js?v=1.1.116-student-token-ready";
-import { PhraseStep } from "./PhraseStep.js?v=1.1.116-student-token-ready";
-import { ListeningStep } from "./ListeningStep.js?v=1.1.116-student-token-ready";
-import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.116-student-token-ready";
-import { ReflectionStep } from "./ReflectionStep.js?v=1.1.116-student-token-ready";
-import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.116-student-token-ready";
-import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.116-student-token-ready";
-import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.116-student-token-ready";
-import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.116-student-token-ready";
+import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.117-student-identity-binding";
+import { VocabularyStep } from "./VocabularyStep.js?v=1.1.117-student-identity-binding";
+import { PhraseStep } from "./PhraseStep.js?v=1.1.117-student-identity-binding";
+import { ListeningStep } from "./ListeningStep.js?v=1.1.117-student-identity-binding";
+import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.117-student-identity-binding";
+import { ReflectionStep } from "./ReflectionStep.js?v=1.1.117-student-identity-binding";
+import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.117-student-identity-binding";
+import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.117-student-identity-binding";
+import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.117-student-identity-binding";
+import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.117-student-identity-binding";
 
 var stepTypes = {
   textBriefing: TextBriefingStep,

@@ -1,4 +1,4 @@
-import { db, collection, doc, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.116-student-token-ready";
+import { db, collection, doc, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.117-student-identity-binding";
 
 export async function catalogCourseCreateRecordProcessing(executionState) {
     const { payload, context, actor } = executionState;

@@ -1,4 +1,4 @@
-import { ContinueLearningIntent } from "./ContinueLearningIntent.js?v=1.1.116-student-token-ready";
+import { ContinueLearningIntent } from "./ContinueLearningIntent.js?v=1.1.117-student-identity-binding";
 
 export function SelectContinueLearningIntent() {
   return Object.assign({}, ContinueLearningIntent(), {

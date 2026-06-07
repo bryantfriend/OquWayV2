@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.116-student-token-ready";
-import { createDefaultLearningModes, createLearningModeRecord, generateLearningModeId } from "./learningArchitecture.js?v=1.1.116-student-token-ready";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.117-student-identity-binding";
+import { createDefaultLearningModes, createLearningModeRecord, generateLearningModeId } from "./learningArchitecture.js?v=1.1.117-student-identity-binding";
 
 export async function processDuplicateLearningMode(executionState) {
   var payload = executionState.payload;

@@ -3,7 +3,7 @@ import {
   getStepTypeDefinition,
   isSupportedStepType,
   listStepTypeDefinitions
-} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.116-student-token-ready";
+} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.117-student-identity-binding";
 
 export {
   createDefaultStepConfig,

@@ -1,7 +1,7 @@
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../stepTypes/stepTypeRegistry.js?v=1.1.116-student-token-ready";
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.117-student-identity-binding";
 
 export class PracticeModePlayer {
   constructor(options) {

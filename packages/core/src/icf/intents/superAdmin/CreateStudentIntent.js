@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateStudentPayload } from "../../stages/validate/validators.js?v=1.1.116-student-token-ready";
-import { normalizeStudentPayload } from "../../stages/normalize/normalizers.js?v=1.1.116-student-token-ready";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.116-student-token-ready";
-import { requireSuperAdminAccess } from "../../stages/authorize/authorizers.js?v=1.1.116-student-token-ready";
-import { processCreateStudent } from "../../stages/process/processors.js?v=1.1.116-student-token-ready";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.116-student-token-ready";
+import { validateAuthenticated, validateStudentPayload } from "../../stages/validate/validators.js?v=1.1.117-student-identity-binding";
+import { normalizeStudentPayload } from "../../stages/normalize/normalizers.js?v=1.1.117-student-identity-binding";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.117-student-identity-binding";
+import { requireSuperAdminAccess } from "../../stages/authorize/authorizers.js?v=1.1.117-student-identity-binding";
+import { processCreateStudent } from "../../stages/process/processors.js?v=1.1.117-student-identity-binding";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.117-student-identity-binding";
 
 export function CreateStudentIntent() {
   return {

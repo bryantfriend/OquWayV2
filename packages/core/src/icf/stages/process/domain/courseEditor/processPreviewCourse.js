@@ -1,5 +1,5 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.116-student-token-ready";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.116-student-token-ready";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.117-student-identity-binding";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.117-student-identity-binding";
 
 export async function processPreviewCourse(executionState) {
   var payload = executionState.payload || {};

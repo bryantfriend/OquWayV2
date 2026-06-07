@@ -1,6 +1,6 @@
-import { getActiveAssignmentsForStudent } from "../assignments/index.js?v=1.1.116-student-token-ready";
+import { getActiveAssignmentsForStudent } from "../assignments/index.js?v=1.1.117-student-identity-binding";
 
-export { buildStudentAssignmentTargets } from "../assignments/index.js?v=1.1.116-student-token-ready";
+export { buildStudentAssignmentTargets } from "../assignments/index.js?v=1.1.117-student-identity-binding";
 
 export async function getAssignedCourses(studentId, studentProfile) {
   var assignmentResult = await getAssignedCourseIds(studentId, studentProfile);

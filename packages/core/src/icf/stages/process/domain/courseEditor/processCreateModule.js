@@ -1,11 +1,11 @@
-import { db, collection, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.116-student-token-ready";
-import { createDefaultPracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.116-student-token-ready";
+import { db, collection, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.117-student-identity-binding";
+import { createDefaultPracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.117-student-identity-binding";
 import {
   createDefaultLearningContent,
   createLearningModesForTemplate,
   createStarterStepsForMode,
   normalizeLearningContentPayload
-} from "../moduleEditor/learningArchitecture.js?v=1.1.116-student-token-ready";
+} from "../moduleEditor/learningArchitecture.js?v=1.1.117-student-identity-binding";
 
 export async function processCreateModule(executionState) {
   const payload = executionState.payload;

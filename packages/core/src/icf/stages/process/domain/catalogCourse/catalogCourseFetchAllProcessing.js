@@ -1,4 +1,4 @@
-import { db, collection, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.116-student-token-ready";
+import { db, collection, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.117-student-identity-binding";
 
 const COURSE_COUNT_CONCURRENCY = 4;
 const MODULE_COUNT_CONCURRENCY = 4;

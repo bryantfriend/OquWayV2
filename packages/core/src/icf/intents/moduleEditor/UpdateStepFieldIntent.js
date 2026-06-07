@@ -1,8 +1,8 @@
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.116-student-token-ready";
-import { attachStepsCollection } from "../../stages/addContext/contexts.js?v=1.1.116-student-token-ready";
-import { processUpdateStepField } from "../../stages/process/processors.js?v=1.1.116-student-token-ready";
-import { validateCourseId, validateModuleId, validateStepFieldKey, validateStepId } from "../../stages/validate/validators.js?v=1.1.116-student-token-ready";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.116-student-token-ready";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.117-student-identity-binding";
+import { attachStepsCollection } from "../../stages/addContext/contexts.js?v=1.1.117-student-identity-binding";
+import { processUpdateStepField } from "../../stages/process/processors.js?v=1.1.117-student-identity-binding";
+import { validateCourseId, validateModuleId, validateStepFieldKey, validateStepId } from "../../stages/validate/validators.js?v=1.1.117-student-identity-binding";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.117-student-identity-binding";
 
 export function UpdateStepFieldIntent() {
     return {

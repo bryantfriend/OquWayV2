@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.116-student-token-ready";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.116-student-token-ready";
-import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.116-student-token-ready";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.117-student-identity-binding";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.117-student-identity-binding";
+import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.117-student-identity-binding";
 
 var appElement = document.getElementById("app");
 var startupMessage = consumeStartupMessage();
@@ -597,6 +597,7 @@ async function submitFruitLogin() {
   }, "guest-student");
 
   if (result && result.emitted && result.emitted.success) {
+    await logStudentLoginSuccessDebug(result.emitted.data ? result.emitted.data.student : null);
     await routeToStudentDashboardAfterSessionStart(result.emitted.data ? result.emitted.data.student : null);
     return;
   }
@@ -846,6 +847,84 @@ function findClass(classId) {
   }
 
   return null;
+}
+
+function findStudent(studentId) {
+  var studentIndex = 0;
+
+  while (studentIndex < state.students.length) {
+    if (state.students[studentIndex].id === studentId) {
+      return state.students[studentIndex];
+    }
+
+    studentIndex = studentIndex + 1;
+  }
+
+  return null;
+}
+
+async function logStudentLoginSuccessDebug(studentProfile) {
+  if (!isStudentLoginDebugEnabled()) {
+    return;
+  }
+
+  var authUser = auth.currentUser || null;
+  var tokenClaims = {};
+
+  try {
+    var tokenResult = authUser && typeof authUser.getIdTokenResult === "function"
+      ? await authUser.getIdTokenResult(true)
+      : null;
+    tokenClaims = tokenResult && tokenResult.claims ? tokenResult.claims : {};
+  } catch (error) {
+    tokenClaims = {
+      error: error.message || String(error)
+    };
+  }
+
+  console.log("[student-login-debug] selectedStudent", sanitizeDebugStudent(findStudent(state.selectedStudentId)));
+  console.log("[student-login-debug] returnedStudent", sanitizeDebugStudent(studentProfile));
+  console.log("[student-login-debug] authUser", {
+    uid: authUser && authUser.uid ? authUser.uid : "",
+    email: authUser && authUser.email ? authUser.email : ""
+  });
+  console.log("[student-login-debug] tokenClaims", sanitizeDebugClaims(tokenClaims));
+}
+
+function sanitizeDebugStudent(student) {
+  return {
+    id: student && student.id ? student.id : "",
+    uid: student && student.uid ? student.uid : "",
+    authUid: student && student.authUid ? student.authUid : "",
+    studentId: student && student.studentId ? student.studentId : "",
+    name: readStudentName(student),
+    displayName: student && student.displayName ? student.displayName : "",
+    classId: student && student.classId ? student.classId : "",
+    className: student && student.className ? student.className : "",
+    locationId: student && student.locationId ? student.locationId : ""
+  };
+}
+
+function sanitizeDebugClaims(claims) {
+  return {
+    role: claims && claims.role ? claims.role : "",
+    roles: Array.isArray(claims && claims.roles) ? claims.roles : [],
+    studentId: claims && claims.studentId ? claims.studentId : "",
+    classId: claims && claims.classId ? claims.classId : "",
+    className: claims && claims.className ? claims.className : "",
+    locationId: claims && claims.locationId ? claims.locationId : ""
+  };
+}
+
+function isStudentLoginDebugEnabled() {
+  return window.location.search.indexOf("debug=true") !== -1
+    || isDevelopmentHost();
+}
+
+function isDevelopmentHost() {
+  return window.location.hostname === "localhost"
+    || window.location.hostname === "127.0.0.1"
+    || window.location.hostname === "";
 }
 
 function readLoginMode(value) {

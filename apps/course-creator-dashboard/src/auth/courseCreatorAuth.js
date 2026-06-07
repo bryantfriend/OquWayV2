@@ -3,8 +3,8 @@ import {
     getUserProfileByAuthUid,
     getUserRoles,
     normalizeUserRole
-} from "../../../../packages/domain/users/index.js?v=1.1.116-student-token-ready";
-import { canAccessCourseCreator } from "../../../../packages/permissions/index.js?v=1.1.116-student-token-ready";
+} from "../../../../packages/domain/users/index.js?v=1.1.117-student-identity-binding";
+import { canAccessCourseCreator } from "../../../../packages/permissions/index.js?v=1.1.117-student-identity-binding";
 
 export const ALLOWED_COURSE_CREATOR_ROLES = [
     "superAdmin",

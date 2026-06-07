@@ -1,8 +1,8 @@
-import { validateStudentsForClassPayload } from "../../stages/validate/validators.js?v=1.1.116-student-token-ready";
-import { normalizeStudentsForClassPayload } from "../../stages/normalize/normalizers.js?v=1.1.116-student-token-ready";
-import { allowStudentLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.116-student-token-ready";
-import { processLoadStudentsForClass } from "../../stages/process/processors.js?v=1.1.116-student-token-ready";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.116-student-token-ready";
+import { validateStudentsForClassPayload } from "../../stages/validate/validators.js?v=1.1.117-student-identity-binding";
+import { normalizeStudentsForClassPayload } from "../../stages/normalize/normalizers.js?v=1.1.117-student-identity-binding";
+import { allowStudentLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.117-student-identity-binding";
+import { processLoadStudentsForClass } from "../../stages/process/processors.js?v=1.1.117-student-identity-binding";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.117-student-identity-binding";
 
 export function LoadStudentsForClassIntent() {
   return {

@@ -1,13 +1,34 @@
-import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.116-student-token-ready";
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.116-student-token-ready";
+import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.117-student-identity-binding";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.117-student-identity-binding";
 import { calculateCourseCompletion, calculateCourseProgressSummary } from "../../../../../../../domain/progress/index.js";
 
 export async function processLoadStudentDashboard(executionState) {
-  var courseResult = await processLoadStudentCourse(executionState);
-  logStudentDashboardDebug("courseResult", courseResult);
-  logStudentDashboardDebug("executionState.result", executionState.result);
+  var courseResult = null;
+
+  logStudentDashboardDebug("actor", executionState.actor);
+  logStudentDashboardDebug("payload", executionState.payload);
+  logStudentDashboardDebug("contextStudent", executionState.context && executionState.context.studentProfile);
+  logStudentDashboardDebug("resultBeforeProcess", executionState.result);
+
+  try {
+    courseResult = await processLoadStudentCourse(executionState);
+    logStudentDashboardDebug("courseResult", courseResult);
+    logStudentDashboardDebug("executionState.result", executionState.result);
+  } catch (error) {
+    console.error("[student-dashboard-process-error]", error);
+    return {
+      valid: false,
+      errors: [
+        {
+          code: "STUDENT_DASHBOARD_PROCESS_FAILED",
+          message: error.message || String(error)
+        }
+      ]
+    };
+  }
 
   if (courseResult && courseResult.valid === false) {
+    console.error("[student-dashboard-process-error]", courseResult.errors || courseResult);
     return courseResult;
   }
 

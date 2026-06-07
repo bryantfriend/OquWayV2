@@ -1,4 +1,4 @@
-import { db, writeBatch, doc, serverTimestamp } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.116-student-token-ready";
+import { db, writeBatch, doc, serverTimestamp } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.117-student-identity-binding";
 
 export async function processSaveCourseDraft(executionState) {
     const { payload, context } = executionState;

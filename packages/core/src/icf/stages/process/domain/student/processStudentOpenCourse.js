@@ -1,5 +1,5 @@
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.116-student-token-ready";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.116-student-token-ready";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.117-student-identity-binding";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.117-student-identity-binding";
 
 export async function processStudentOpenCourse(executionState) {
   var payload = executionState.payload || {};

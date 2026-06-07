@@ -1,7 +1,7 @@
-import { serverTimestamp } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.116-student-token-ready";
+import { serverTimestamp } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.117-student-identity-binding";
 import { createCourseAssignment } from "../../../../../../../domain/assignments/index.js";
-import { createCourseAssignmentId, loadCourseAssignments } from "./courseAssignmentHelpers.js?v=1.1.116-student-token-ready";
-import { buildCourseAssignmentOwnershipFields } from "./courseAssignmentOwnershipHelpers.js?v=1.1.116-student-token-ready";
+import { createCourseAssignmentId, loadCourseAssignments } from "./courseAssignmentHelpers.js?v=1.1.117-student-identity-binding";
+import { buildCourseAssignmentOwnershipFields } from "./courseAssignmentOwnershipHelpers.js?v=1.1.117-student-identity-binding";
 
 export async function processCreateCourseAssignment(executionState) {
   var payload = executionState.payload;

@@ -1,8 +1,8 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.116-student-token-ready";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.116-student-token-ready";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.116-student-token-ready";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.116-student-token-ready";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.116-student-token-ready";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.117-student-identity-binding";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.117-student-identity-binding";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.117-student-identity-binding";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.117-student-identity-binding";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.117-student-identity-binding";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {

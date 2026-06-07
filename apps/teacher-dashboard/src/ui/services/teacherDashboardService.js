@@ -1,6 +1,6 @@
 import { getIdTokenResult, onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.116-student-token-ready";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.116-student-token-ready";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.117-student-identity-binding";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.117-student-identity-binding";
 
 var currentTeacherClaims = {};
 

@@ -1,7 +1,7 @@
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.116-student-token-ready";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.116-student-token-ready";
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.116-student-token-ready";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.116-student-token-ready";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.117-student-identity-binding";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.117-student-identity-binding";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.117-student-identity-binding";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.117-student-identity-binding";
 
 function getActor() {
   return auth.currentUser ? { id: auth.currentUser.uid, role: "ROLE_COURSE_CREATOR" } : null;

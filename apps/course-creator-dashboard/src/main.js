@@ -1,12 +1,12 @@
 import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.86-dev-workflow";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.116-student-token-ready";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.117-student-identity-binding";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.116-student-token-ready";
-import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.116-student-token-ready";
-import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.116-student-token-ready";
-import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.116-student-token-ready";
-import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.116-student-token-ready";
-import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.116-student-token-ready";
+import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.117-student-identity-binding";
+import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.117-student-identity-binding";
+import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.117-student-identity-binding";
+import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.117-student-identity-binding";
+import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.117-student-identity-binding";
+import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.117-student-identity-binding";
 
 console.log("[oquway-build]", OQUWAY_BUILD_VERSION);
 console.warn("[course-creator-build-check] latest build active");

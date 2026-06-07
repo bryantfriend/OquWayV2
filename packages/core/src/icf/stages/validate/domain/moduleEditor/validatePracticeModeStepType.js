@@ -1,4 +1,4 @@
-import { isSupportedStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.116-student-token-ready";
+import { isSupportedStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.117-student-identity-binding";
 
 export function validatePracticeModeStepType(executionState) {
   var payload = executionState.payload;

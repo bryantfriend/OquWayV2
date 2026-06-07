@@ -1,4 +1,4 @@
-import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.116-student-token-ready";
+import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.117-student-identity-binding";
 
 export function bindUsersEvents(rootElement, handlers) {
   rootElement.addEventListener("click", function (event) {

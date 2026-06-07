@@ -5,7 +5,7 @@ import {
   getStudentExternalTaskSubmissions,
   updateExternalTaskReview,
   uploadExternalTaskFile
-} from "../../../../../../../domain/externalTasks/index.js?v=1.1.116-student-token-ready";
+} from "../../../../../../../domain/externalTasks/index.js?v=1.1.117-student-identity-binding";
 
 export async function processLoadExternalTaskStep(executionState) {
   var payload = executionState.payload || {};

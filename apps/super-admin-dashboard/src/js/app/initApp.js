@@ -1,8 +1,8 @@
-import { appState, updateAppState } from "./appState.js?v=1.1.116-student-token-ready";
-import { registerIntentDefinitions, runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.116-student-token-ready";
-import { createClassesIntentRegistrar, createDashboardIntentRegistrar, createUsersIntentRegistrar } from "../../../../../packages/icf/admin/intents/index.js?v=1.1.116-student-token-ready";
-import { createUser, deleteUser, disableUser, getUser, getUsers, sendPasswordReset, updateUser } from "../users/usersService.js?v=1.1.116-student-token-ready";
-import { resetFruitPassword } from "../users/fruitPasswordService.js?v=1.1.116-student-token-ready";
+import { appState, updateAppState } from "./appState.js?v=1.1.117-student-identity-binding";
+import { registerIntentDefinitions, runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.117-student-identity-binding";
+import { createClassesIntentRegistrar, createDashboardIntentRegistrar, createUsersIntentRegistrar } from "../../../../../packages/icf/admin/intents/index.js?v=1.1.117-student-identity-binding";
+import { createUser, deleteUser, disableUser, getUser, getUsers, sendPasswordReset, updateUser } from "../users/usersService.js?v=1.1.117-student-identity-binding";
+import { resetFruitPassword } from "../users/fruitPasswordService.js?v=1.1.117-student-identity-binding";
 
 export async function initApp() {
   registerIntentDefinitions([
@@ -25,7 +25,7 @@ export async function initApp() {
     runIntent: runAdminIntent
   };
 
-  await import("./legacyDashboard.js?v=1.1.116-student-token-ready");
+  await import("./legacyDashboard.js?v=1.1.117-student-identity-binding");
   updateAppState({ legacyDashboardLoaded: true });
 }
 

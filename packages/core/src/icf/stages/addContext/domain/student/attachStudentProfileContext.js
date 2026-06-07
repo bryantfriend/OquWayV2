@@ -1,4 +1,4 @@
-import { getStudentProfileByAuthUid, readAssignedCourseIds } from "../../../../../../../domain/users/index.js?v=1.1.116-student-token-ready";
+import { getStudentProfileByAuthUid, readAssignedCourseIds } from "../../../../../../../domain/users/index.js?v=1.1.117-student-identity-binding";
 
 export async function attachStudentProfileContext(executionState) {
   var actor = executionState.actor;
@@ -15,14 +15,11 @@ export async function attachStudentProfileContext(executionState) {
 
   try {
     var payloadProfile = executionState.payload && executionState.payload.studentProfile ? executionState.payload.studentProfile : null;
-    var profile = await loadStudentProfile(actor, payloadProfile);
+    var profile = payloadProfile || actor.studentProfile || null;
+    var lookupProfile = await loadStudentProfile(actor);
 
-    if (!profile && payloadProfile) {
-      profile = payloadProfile;
-    }
-
-    if (!profile && actor.studentProfile) {
-      profile = actor.studentProfile;
+    if (lookupProfile) {
+      profile = mergeStudentProfiles(lookupProfile, profile);
     }
 
     if (!profile) {
@@ -45,6 +42,22 @@ export async function attachStudentProfileContext(executionState) {
       }
     };
   } catch (error) {
+    var fallbackProfile = executionState.payload && executionState.payload.studentProfile
+      ? executionState.payload.studentProfile
+      : actor.studentProfile || null;
+
+    if (fallbackProfile) {
+      var fallbackMergedProfile = mergeActorStudentContext(fallbackProfile, actor);
+
+      return {
+        valid: true,
+        data: {
+          studentProfile: fallbackMergedProfile,
+          assignedCourseIds: readAssignedCourseIds(fallbackMergedProfile)
+        }
+      };
+    }
+
     return {
       valid: true,
       data: {
@@ -55,14 +68,32 @@ export async function attachStudentProfileContext(executionState) {
   }
 }
 
-async function loadStudentProfile(actor, payloadProfile) {
+async function loadStudentProfile(actor) {
   try {
-    var profile = await getStudentProfileByAuthUid(actor.id);
-
-    return profile || payloadProfile || actor.studentProfile || null;
+    return await getStudentProfileByAuthUid(actor.id);
   } catch (error) {
-    return payloadProfile || actor.studentProfile || null;
+    return null;
   }
+}
+
+function mergeStudentProfiles(lookupProfile, trustedProfile) {
+  if (!trustedProfile) {
+    return lookupProfile;
+  }
+
+  if (!lookupProfile) {
+    return trustedProfile;
+  }
+
+  return Object.assign({}, lookupProfile, trustedProfile, {
+    name: trustedProfile.name || lookupProfile.name || "",
+    displayName: trustedProfile.displayName || lookupProfile.displayName || trustedProfile.name || lookupProfile.name || "",
+    classId: trustedProfile.classId || lookupProfile.classId || "",
+    className: trustedProfile.className || lookupProfile.className || "",
+    locationId: trustedProfile.locationId || lookupProfile.locationId || lookupProfile.primaryLocationId || "",
+    roles: Array.isArray(trustedProfile.roles) && trustedProfile.roles.length > 0 ? trustedProfile.roles : lookupProfile.roles,
+    linkedProfile: lookupProfile.linkedProfile || trustedProfile.linkedProfile || null
+  });
 }
 
 function mergeActorStudentContext(profile, actor) {

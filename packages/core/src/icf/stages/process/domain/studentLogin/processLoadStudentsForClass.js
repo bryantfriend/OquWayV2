@@ -1,4 +1,4 @@
-import { callGetStudentsForClassFunction } from "./studentLoginHelpers.js?v=1.1.116-student-token-ready";
+import { callGetStudentsForClassFunction } from "./studentLoginHelpers.js?v=1.1.117-student-identity-binding";
 
 export async function processLoadStudentsForClass(executionState) {
   var payload = executionState.payload;

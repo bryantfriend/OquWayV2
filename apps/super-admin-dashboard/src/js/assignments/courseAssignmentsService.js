@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../../../../packages/firebase/index.js?v=1.1.116-student-token-ready";
+import { collection, db, getDocs, query, where } from "../../../../../packages/firebase/index.js?v=1.1.117-student-identity-binding";
 
 export async function getTeacherCourseAssignments(teacherId) {
   var safeTeacherId = typeof teacherId === "string" ? teacherId.trim() : "";

@@ -1,4 +1,4 @@
-import { hasAnyRole } from "../../authorize/core/roleAuthorization.js?v=1.1.116-student-token-ready";
+import { hasAnyRole } from "../../authorize/core/roleAuthorization.js?v=1.1.117-student-identity-binding";
 
 export function requireRoleValidation(actor, requiredRole) {
     if (!actor) {

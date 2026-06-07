@@ -1,5 +1,5 @@
-import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.116-student-token-ready";
-import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.116-student-token-ready";
+import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.117-student-identity-binding";
+import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.117-student-identity-binding";
 
 export class CatalogCoursePage {
   constructor() {

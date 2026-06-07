@@ -1,12 +1,12 @@
 import { db, doc, getDoc, serverTimestamp, setDoc } from "../../firebase/index.js";
-import { getDownloadURL, ref, storage, uploadBytes } from "../../firebase/storage/index.js?v=1.1.116-student-token-ready";
+import { getDownloadURL, ref, storage, uploadBytes } from "../../firebase/storage/index.js?v=1.1.117-student-identity-binding";
 import { getCourseAssignments } from "../assignments/index.js";
 import {
   canResubmitExternalTaskSubmission,
   normalizeExternalTaskSubmission,
   readExternalTaskAttemptNumber
-} from "./externalTaskModel.js?v=1.1.116-student-token-ready";
-import { getStudentExternalTaskSubmissions, getLatestStudentExternalTaskSubmission } from "./externalTaskQueries.js?v=1.1.116-student-token-ready";
+} from "./externalTaskModel.js?v=1.1.117-student-identity-binding";
+import { getStudentExternalTaskSubmissions, getLatestStudentExternalTaskSubmission } from "./externalTaskQueries.js?v=1.1.117-student-identity-binding";
 
 export async function getExternalTaskSubmissionById(submissionId) {
   if (!submissionId) {

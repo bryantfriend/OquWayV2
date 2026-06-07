@@ -1,8 +1,8 @@
-import { validateTeacherPasswordResetPayload } from "../../stages/validate/validators.js?v=1.1.116-student-token-ready";
-import { normalizeTeacherPasswordResetPayload } from "../../stages/normalize/normalizers.js?v=1.1.116-student-token-ready";
-import { allowTeacherLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.116-student-token-ready";
-import { processSendTeacherPasswordReset } from "../../stages/process/processors.js?v=1.1.116-student-token-ready";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.116-student-token-ready";
+import { validateTeacherPasswordResetPayload } from "../../stages/validate/validators.js?v=1.1.117-student-identity-binding";
+import { normalizeTeacherPasswordResetPayload } from "../../stages/normalize/normalizers.js?v=1.1.117-student-identity-binding";
+import { allowTeacherLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.117-student-identity-binding";
+import { processSendTeacherPasswordReset } from "../../stages/process/processors.js?v=1.1.117-student-identity-binding";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.117-student-identity-binding";
 
 export function SendTeacherPasswordResetIntent() {
   return {

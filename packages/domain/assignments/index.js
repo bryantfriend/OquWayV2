@@ -36,4 +36,4 @@ export function assignmentBelongsToTeacher(assignment, teacherIds) {
     }));
 }
 
-export * from "./assignmentRepository.js?v=1.1.116-student-token-ready";
+export * from "./assignmentRepository.js?v=1.1.117-student-identity-binding";

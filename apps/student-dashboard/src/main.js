@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.116-student-token-ready";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.116-student-token-ready";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.116-student-token-ready";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.117-student-identity-binding";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.117-student-identity-binding";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.117-student-identity-binding";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,16 +13,16 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.116-student-token-ready";
+} from "../../../packages/domain/progress/index.js?v=1.1.117-student-identity-binding";
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.116-student-token-ready";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.116-student-token-ready";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.116-student-token-ready";
+} from "../../../packages/ui/index.js?v=1.1.117-student-identity-binding";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.117-student-identity-binding";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.117-student-identity-binding";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -1471,7 +1471,7 @@ function countCourseCompletedSteps(course) {
 
 function readStudentName(student) {
   if (!student || typeof student !== "object") {
-    return "Your practice path";
+    return "Student Dashboard";
   }
 
   if (typeof student.displayName === "string" && student.displayName.length > 0) {
@@ -1486,7 +1486,7 @@ function readStudentName(student) {
     return student.fullName;
   }
 
-  return "Your practice path";
+  return "Student Dashboard";
 }
 
 function readModuleProgressPercent(module) {

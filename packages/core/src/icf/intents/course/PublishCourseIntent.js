@@ -1,4 +1,4 @@
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.116-student-token-ready";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.117-student-identity-binding";
 
 export function PublishCourseIntent() {
   return {

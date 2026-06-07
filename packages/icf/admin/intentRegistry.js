@@ -1,4 +1,4 @@
-import { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.116-student-token-ready";
+import { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.117-student-identity-binding";
 
 var intents = {};
 

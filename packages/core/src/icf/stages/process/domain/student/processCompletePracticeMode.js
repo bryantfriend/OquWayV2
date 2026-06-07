@@ -2,7 +2,7 @@ import {
   readPracticeModeProgress,
   readPracticeModeStepIds,
   saveStudentPracticeModeProgress
-} from "./studentProgressHelpers.js?v=1.1.116-student-token-ready";
+} from "./studentProgressHelpers.js?v=1.1.117-student-identity-binding";
 
 export async function processCompletePracticeMode(executionState) {
   var payload = executionState.payload;

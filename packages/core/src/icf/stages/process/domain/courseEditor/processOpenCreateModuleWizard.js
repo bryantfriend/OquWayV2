@@ -1,4 +1,4 @@
-import { createDefaultLearningContent, readTemplateSpecs } from "../moduleEditor/learningArchitecture.js?v=1.1.116-student-token-ready";
+import { createDefaultLearningContent, readTemplateSpecs } from "../moduleEditor/learningArchitecture.js?v=1.1.117-student-identity-binding";
 
 export function processOpenCreateModuleWizard(executionState) {
   var payload = executionState.payload || {};

@@ -1,6 +1,6 @@
 // createIntent.js
 
-import { getIntentDefinition } from "./intentRegistry.js?v=1.1.116-student-token-ready";
+import { getIntentDefinition } from "./intentRegistry.js?v=1.1.117-student-identity-binding";
 
 export function createIntent(intentInput) {
   const intentType = readIntentType(intentInput);

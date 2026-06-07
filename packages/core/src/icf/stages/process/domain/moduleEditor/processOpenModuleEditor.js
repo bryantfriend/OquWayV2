@@ -1,4 +1,4 @@
-import { createDefaultLearningContent, createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.116-student-token-ready";
+import { createDefaultLearningContent, createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.117-student-identity-binding";
 
 export async function processOpenModuleEditor(executionState) {
   const context = executionState.context;

@@ -1,4 +1,4 @@
-import { loadCourseAssignments, sortAssignments } from "./courseAssignmentHelpers.js?v=1.1.116-student-token-ready";
+import { loadCourseAssignments, sortAssignments } from "./courseAssignmentHelpers.js?v=1.1.117-student-identity-binding";
 
 export async function processLoadCourseAssignments(executionState) {
   var payload = executionState.payload || {};

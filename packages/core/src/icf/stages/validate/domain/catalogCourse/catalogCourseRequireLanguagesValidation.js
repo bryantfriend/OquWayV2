@@ -1,7 +1,7 @@
-import { requireStringValidation } from "../../validators.js?v=1.1.116-student-token-ready";
-import { requireNonEmptyArrayValidation } from "../../validators.js?v=1.1.116-student-token-ready";
-import { requireEnumValidation } from "../../validators.js?v=1.1.116-student-token-ready";
-import { requireUUIDValidation } from "../../validators.js?v=1.1.116-student-token-ready";
+import { requireStringValidation } from "../../validators.js?v=1.1.117-student-identity-binding";
+import { requireNonEmptyArrayValidation } from "../../validators.js?v=1.1.117-student-identity-binding";
+import { requireEnumValidation } from "../../validators.js?v=1.1.117-student-identity-binding";
+import { requireUUIDValidation } from "../../validators.js?v=1.1.117-student-identity-binding";
 
 export function catalogCourseRequireLanguagesValidation(executionState) {
     const { payload } = executionState;

@@ -1,5 +1,5 @@
 import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.86-dev-workflow";
-import { initApp } from "./js/app/initApp.js?v=1.1.116-student-token-ready";
+import { initApp } from "./js/app/initApp.js?v=1.1.117-student-identity-binding";
 
 console.log("[oquway-build]", OQUWAY_BUILD_VERSION);
 

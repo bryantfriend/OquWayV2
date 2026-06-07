@@ -1,4 +1,4 @@
-import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.116-student-token-ready";
+import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.117-student-identity-binding";
 
 export function requireSuperAdminAccess(executionState) {
   var actor = executionState.actor;

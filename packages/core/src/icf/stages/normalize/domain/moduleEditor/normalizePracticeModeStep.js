@@ -1,4 +1,4 @@
-import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.116-student-token-ready";
+import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.117-student-identity-binding";
 
 export function normalizePracticeModeStep(executionState) {
   var payload = executionState.payload;
