@@ -1,4 +1,4 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.109-student-assignment-status-fallback";
+import { BaseStep } from "./BaseStep.js?v=1.1.110-student-class-alias-query";
 
 export class TextBriefingStep extends BaseStep {
   static get type() {

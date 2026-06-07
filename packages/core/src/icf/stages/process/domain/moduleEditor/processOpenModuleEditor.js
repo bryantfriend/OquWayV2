@@ -1,4 +1,4 @@
-import { createDefaultLearningContent, createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.109-student-assignment-status-fallback";
+import { createDefaultLearningContent, createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.110-student-class-alias-query";
 
 export async function processOpenModuleEditor(executionState) {
   const context = executionState.context;

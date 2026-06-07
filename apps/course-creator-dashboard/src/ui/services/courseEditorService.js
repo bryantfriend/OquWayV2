@@ -1,7 +1,7 @@
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.109-student-assignment-status-fallback";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.109-student-assignment-status-fallback";
-import { courseEditorStore } from "../state/courseEditorState.js?v=1.1.109-student-assignment-status-fallback";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.109-student-assignment-status-fallback";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.110-student-class-alias-query";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.110-student-class-alias-query";
+import { courseEditorStore } from "../state/courseEditorState.js?v=1.1.110-student-class-alias-query";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.110-student-class-alias-query";
 
 function getActor() {
   return auth.currentUser ? { id: auth.currentUser.uid, role: "ROLE_COURSE_CREATOR" } : null;

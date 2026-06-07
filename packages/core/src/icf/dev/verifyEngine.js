@@ -3,12 +3,12 @@
 // ICF Engine Verification Runner
 //
 // Usage from browser console:
-//   import("./packages/core/src/icf/dev/verifyEngine.js?v=1.1.109-student-assignment-status-fallback").then(function (m) { m.verifyEngine(); });
+//   import("./packages/core/src/icf/dev/verifyEngine.js?v=1.1.110-student-class-alias-query").then(function (m) { m.verifyEngine(); });
 //
 // Or call verifyEngine() after importing this module in your app entry point.
 
-import { createIntent } from "../engine/createIntent.js?v=1.1.109-student-assignment-status-fallback";
-import { runIntentPipeline } from "../engine/runIntentPipeline.js?v=1.1.109-student-assignment-status-fallback";
+import { createIntent } from "../engine/createIntent.js?v=1.1.110-student-class-alias-query";
+import { runIntentPipeline } from "../engine/runIntentPipeline.js?v=1.1.110-student-class-alias-query";
 
 export async function verifyEngine() {
   console.info("");

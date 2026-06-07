@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../../../../packages/firebase/index.js?v=1.1.109-student-assignment-status-fallback";
+import { collection, db, getDocs, query, where } from "../../../../../packages/firebase/index.js?v=1.1.110-student-class-alias-query";
 
 export async function getTeacherCourseAssignments(teacherId) {
   var safeTeacherId = typeof teacherId === "string" ? teacherId.trim() : "";

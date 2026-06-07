@@ -1,7 +1,7 @@
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../stepTypes/stepTypeRegistry.js?v=1.1.109-student-assignment-status-fallback";
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.110-student-class-alias-query";
 
 export class PracticeModePlayer {
   constructor(options) {

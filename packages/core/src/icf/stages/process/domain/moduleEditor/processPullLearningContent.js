@@ -1,4 +1,4 @@
-import { createPulledStepDraft } from "./learningArchitecture.js?v=1.1.109-student-assignment-status-fallback";
+import { createPulledStepDraft } from "./learningArchitecture.js?v=1.1.110-student-class-alias-query";
 
 export function processPullLearningContent(executionState) {
   var learningContent = executionState.context.module && executionState.context.module.learningContent;

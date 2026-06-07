@@ -1,8 +1,8 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.109-student-assignment-status-fallback";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.109-student-assignment-status-fallback";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.109-student-assignment-status-fallback";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.109-student-assignment-status-fallback";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.109-student-assignment-status-fallback";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.110-student-class-alias-query";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.110-student-class-alias-query";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.110-student-class-alias-query";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.110-student-class-alias-query";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.110-student-class-alias-query";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {

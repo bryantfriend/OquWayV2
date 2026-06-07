@@ -1,5 +1,5 @@
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.109-student-assignment-status-fallback";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.109-student-assignment-status-fallback";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.110-student-class-alias-query";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.110-student-class-alias-query";
 
 export async function processStudentOpenCourse(executionState) {
   var payload = executionState.payload || {};

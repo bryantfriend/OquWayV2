@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.109-student-assignment-status-fallback";
+import * as IntentExports from "../intents/intents.js?v=1.1.110-student-class-alias-query";
 
 const registry = {
   // Demo Verification

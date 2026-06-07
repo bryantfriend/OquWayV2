@@ -1,7 +1,7 @@
-import { roleFilterCards } from "../../../../../packages/shared/constants/admin.js?v=1.1.109-student-assignment-status-fallback";
-import { escapeHtml, formatDateTime } from "../../../../../packages/shared/formatting/index.js?v=1.1.109-student-assignment-status-fallback";
-import { collectUserRoles } from "../../../../../packages/domain/users/index.js?v=1.1.109-student-assignment-status-fallback";
-import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.109-student-assignment-status-fallback";
+import { roleFilterCards } from "../../../../../packages/shared/constants/admin.js?v=1.1.110-student-class-alias-query";
+import { escapeHtml, formatDateTime } from "../../../../../packages/shared/formatting/index.js?v=1.1.110-student-class-alias-query";
+import { collectUserRoles } from "../../../../../packages/domain/users/index.js?v=1.1.110-student-class-alias-query";
+import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.110-student-class-alias-query";
 
 export function renderUsersRoleCards(users, selectedRoleFilter) {
   var html = '<section class="sa-role-card-grid" aria-label="Role filters">';

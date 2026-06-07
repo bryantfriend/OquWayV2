@@ -1,4 +1,4 @@
-import { db, deleteDoc, doc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.109-student-assignment-status-fallback";
+import { db, deleteDoc, doc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.110-student-class-alias-query";
 
 export async function processDeleteCourseAssignment(executionState) {
   var payload = executionState.payload;

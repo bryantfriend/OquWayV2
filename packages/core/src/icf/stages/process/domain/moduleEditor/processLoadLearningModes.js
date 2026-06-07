@@ -1,4 +1,4 @@
-import { createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.109-student-assignment-status-fallback";
+import { createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.110-student-class-alias-query";
 
 export function processLoadLearningModes(executionState) {
   executionState.result = {

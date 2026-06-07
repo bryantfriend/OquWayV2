@@ -1,4 +1,4 @@
-import { db, doc, getDoc } from "../../firebase/index.js";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../firebase/index.js";
 import { normalizeClass } from "./index.js";
 
 export async function getClassById(classId, options) {
@@ -35,14 +35,52 @@ async function getClassByLocationId(classId, locationId) {
 
   var classSnap = await getDoc(doc(db, "locations", locationId, "classes", classId));
 
-  if (!classSnap.exists()) {
-    return null;
+  if (classSnap.exists()) {
+    return normalizeClass(Object.assign({
+      id: classSnap.id,
+      locationId: locationId
+    }, classSnap.data() || {}));
   }
 
-  return normalizeClass(Object.assign({
-    id: classSnap.id,
-    locationId: locationId
-  }, classSnap.data() || {}));
+  return getClassByLocationAlias(classId, locationId);
+}
+
+async function getClassByLocationAlias(classId, locationId) {
+  var aliasFields = ["classId", "name", "code", "classCode", "title", "displayName"];
+  var fieldIndex = 0;
+
+  while (fieldIndex < aliasFields.length) {
+    var classRecord = await getFirstClassByField(
+      collection(db, "locations", locationId, "classes"),
+      aliasFields[fieldIndex],
+      classId,
+      locationId
+    );
+
+    if (classRecord) {
+      return classRecord;
+    }
+
+    fieldIndex = fieldIndex + 1;
+  }
+
+  return null;
+}
+
+async function getFirstClassByField(classesRef, fieldName, value, locationId) {
+  var snapshot = await getDocs(query(classesRef, where(fieldName, "==", value)));
+  var classRecord = null;
+
+  snapshot.forEach(function (classSnap) {
+    if (!classRecord) {
+      classRecord = normalizeClass(Object.assign({
+        id: classSnap.id,
+        locationId: locationId
+      }, classSnap.data() || {}));
+    }
+  });
+
+  return classRecord;
 }
 
 function readLocationIds(options) {

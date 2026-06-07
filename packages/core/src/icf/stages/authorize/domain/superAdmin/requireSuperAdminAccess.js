@@ -1,4 +1,4 @@
-import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.109-student-assignment-status-fallback";
+import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.110-student-class-alias-query";
 
 export function requireSuperAdminAccess(executionState) {
   var actor = executionState.actor;

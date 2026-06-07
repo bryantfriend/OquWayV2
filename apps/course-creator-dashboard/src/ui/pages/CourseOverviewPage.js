@@ -1,13 +1,13 @@
-import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.109-student-assignment-status-fallback';
-import { courseEditorService } from '../services/courseEditorService.js?v=1.1.109-student-assignment-status-fallback';
-import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.109-student-assignment-status-fallback';
-import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.109-student-assignment-status-fallback';
+import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.110-student-class-alias-query';
+import { courseEditorService } from '../services/courseEditorService.js?v=1.1.110-student-class-alias-query';
+import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.110-student-class-alias-query';
+import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.110-student-class-alias-query';
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge
-} from '../../../../../packages/ui/index.js?v=1.1.109-student-assignment-status-fallback';
+} from '../../../../../packages/ui/index.js?v=1.1.110-student-class-alias-query';
 
 export class CourseOverviewPage {
   constructor(courseId, options) {

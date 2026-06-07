@@ -1,4 +1,4 @@
-import { createDefaultLearningContent } from "./learningArchitecture.js?v=1.1.109-student-assignment-status-fallback";
+import { createDefaultLearningContent } from "./learningArchitecture.js?v=1.1.110-student-class-alias-query";
 
 export function processLoadLearningContent(executionState) {
   executionState.result = {

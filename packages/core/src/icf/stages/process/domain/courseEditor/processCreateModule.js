@@ -1,11 +1,11 @@
-import { db, collection, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.109-student-assignment-status-fallback";
-import { createDefaultPracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.109-student-assignment-status-fallback";
+import { db, collection, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.110-student-class-alias-query";
+import { createDefaultPracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.110-student-class-alias-query";
 import {
   createDefaultLearningContent,
   createLearningModesForTemplate,
   createStarterStepsForMode,
   normalizeLearningContentPayload
-} from "../moduleEditor/learningArchitecture.js?v=1.1.109-student-assignment-status-fallback";
+} from "../moduleEditor/learningArchitecture.js?v=1.1.110-student-class-alias-query";
 
 export async function processCreateModule(executionState) {
   const payload = executionState.payload;

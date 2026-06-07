@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.109-student-assignment-status-fallback";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.109-student-assignment-status-fallback";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.109-student-assignment-status-fallback";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.110-student-class-alias-query";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.110-student-class-alias-query";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.110-student-class-alias-query";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,16 +13,16 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.109-student-assignment-status-fallback";
+} from "../../../packages/domain/progress/index.js?v=1.1.110-student-class-alias-query";
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.109-student-assignment-status-fallback";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.109-student-assignment-status-fallback";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.109-student-assignment-status-fallback";
+} from "../../../packages/ui/index.js?v=1.1.110-student-class-alias-query";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.110-student-class-alias-query";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.110-student-class-alias-query";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;

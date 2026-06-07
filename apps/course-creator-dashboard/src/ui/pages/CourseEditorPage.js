@@ -1,12 +1,12 @@
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.109-student-assignment-status-fallback";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.109-student-assignment-status-fallback";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.110-student-class-alias-query";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.110-student-class-alias-query";
 import {
   getStepTypeDefinition,
   listStepTypeDefinitions,
   validateStepConfig
-} from "../../../../../packages/domain/steps/index.js?v=1.1.109-student-assignment-status-fallback";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.109-student-assignment-status-fallback";
-import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.109-student-assignment-status-fallback";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.110-student-class-alias-query";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.110-student-class-alias-query";
+import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.110-student-class-alias-query";
 
 export class CourseEditorPage {
   constructor(courseId, moduleId) {

@@ -1,6 +1,6 @@
-import { createIntent } from "../../../../../packages/icf/index.js?v=1.1.109-student-assignment-status-fallback";
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.109-student-assignment-status-fallback";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.109-student-assignment-status-fallback";
+import { createIntent } from "../../../../../packages/icf/index.js?v=1.1.110-student-class-alias-query";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.110-student-class-alias-query";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.110-student-class-alias-query";
 
 function getActor() {
     const user = auth.currentUser;
