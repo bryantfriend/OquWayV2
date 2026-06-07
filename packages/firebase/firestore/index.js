@@ -9,4 +9,4 @@ export {
   serverTimestamp,
   setDoc,
   where
-} from "../../core/src/infrastructure/firebase/firestore.js?v=1.1.119-student-dashboard-debug-safe";
+} from "../../core/src/infrastructure/firebase/firestore.js?v=1.1.120-student-course-debug-summary";

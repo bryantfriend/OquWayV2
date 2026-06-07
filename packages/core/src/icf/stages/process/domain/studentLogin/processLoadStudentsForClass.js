@@ -1,4 +1,4 @@
-import { callGetStudentsForClassFunction } from "./studentLoginHelpers.js?v=1.1.119-student-dashboard-debug-safe";
+import { callGetStudentsForClassFunction } from "./studentLoginHelpers.js?v=1.1.120-student-course-debug-summary";
 
 export async function processLoadStudentsForClass(executionState) {
   var payload = executionState.payload;

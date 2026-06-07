@@ -1,6 +1,6 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.119-student-dashboard-debug-safe";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.119-student-dashboard-debug-safe";
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.119-student-dashboard-debug-safe";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.120-student-course-debug-summary";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.120-student-course-debug-summary";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.120-student-course-debug-summary";
 
 export const locationLoginSettingsService = {
   listLocations: async function () {

@@ -1,8 +1,8 @@
-import { validateStudentsForClassPayload } from "../../stages/validate/validators.js?v=1.1.119-student-dashboard-debug-safe";
-import { normalizeStudentsForClassPayload } from "../../stages/normalize/normalizers.js?v=1.1.119-student-dashboard-debug-safe";
-import { allowStudentLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.119-student-dashboard-debug-safe";
-import { processLoadStudentsForClass } from "../../stages/process/processors.js?v=1.1.119-student-dashboard-debug-safe";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.119-student-dashboard-debug-safe";
+import { validateStudentsForClassPayload } from "../../stages/validate/validators.js?v=1.1.120-student-course-debug-summary";
+import { normalizeStudentsForClassPayload } from "../../stages/normalize/normalizers.js?v=1.1.120-student-course-debug-summary";
+import { allowStudentLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.120-student-course-debug-summary";
+import { processLoadStudentsForClass } from "../../stages/process/processors.js?v=1.1.120-student-course-debug-summary";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.120-student-course-debug-summary";
 
 export function LoadStudentsForClassIntent() {
   return {

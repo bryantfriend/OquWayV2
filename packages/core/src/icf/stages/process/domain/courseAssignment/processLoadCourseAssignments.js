@@ -1,4 +1,4 @@
-import { loadCourseAssignments, sortAssignments } from "./courseAssignmentHelpers.js?v=1.1.119-student-dashboard-debug-safe";
+import { loadCourseAssignments, sortAssignments } from "./courseAssignmentHelpers.js?v=1.1.120-student-course-debug-summary";
 
 export async function processLoadCourseAssignments(executionState) {
   var payload = executionState.payload || {};

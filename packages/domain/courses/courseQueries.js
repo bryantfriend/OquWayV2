@@ -1,6 +1,6 @@
-import { getActiveAssignmentsForStudent } from "../assignments/index.js?v=1.1.119-student-dashboard-debug-safe";
+import { getActiveAssignmentsForStudent } from "../assignments/index.js?v=1.1.120-student-course-debug-summary";
 
-export { buildStudentAssignmentTargets } from "../assignments/index.js?v=1.1.119-student-dashboard-debug-safe";
+export { buildStudentAssignmentTargets } from "../assignments/index.js?v=1.1.120-student-course-debug-summary";
 
 export async function getAssignedCourses(studentId, studentProfile) {
   var assignmentResult = await getAssignedCourseIds(studentId, studentProfile);

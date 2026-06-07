@@ -1,4 +1,4 @@
-import { saveStudentPracticeModeProgress } from "./studentProgressHelpers.js?v=1.1.119-student-dashboard-debug-safe";
+import { saveStudentPracticeModeProgress } from "./studentProgressHelpers.js?v=1.1.120-student-course-debug-summary";
 
 export async function processSaveStudentProgress(executionState) {
   var payload = executionState.payload;

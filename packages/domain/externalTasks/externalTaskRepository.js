@@ -1,13 +1,13 @@
 import { db, doc, getDoc, serverTimestamp, setDoc } from "../../firebase/index.js";
-import { getDownloadURL, ref, storage, uploadBytes } from "../../firebase/storage/index.js?v=1.1.119-student-dashboard-debug-safe";
+import { getDownloadURL, ref, storage, uploadBytes } from "../../firebase/storage/index.js?v=1.1.120-student-course-debug-summary";
 import { getCourseAssignments } from "../assignments/index.js";
-import { resolveActorStudentId } from "../users/index.js?v=1.1.119-student-dashboard-debug-safe";
+import { resolveActorStudentId } from "../users/index.js?v=1.1.120-student-course-debug-summary";
 import {
   canResubmitExternalTaskSubmission,
   normalizeExternalTaskSubmission,
   readExternalTaskAttemptNumber
-} from "./externalTaskModel.js?v=1.1.119-student-dashboard-debug-safe";
-import { getStudentExternalTaskSubmissions, getLatestStudentExternalTaskSubmission } from "./externalTaskQueries.js?v=1.1.119-student-dashboard-debug-safe";
+} from "./externalTaskModel.js?v=1.1.120-student-course-debug-summary";
+import { getStudentExternalTaskSubmissions, getLatestStudentExternalTaskSubmission } from "./externalTaskQueries.js?v=1.1.120-student-course-debug-summary";
 
 export async function getExternalTaskSubmissionById(submissionId) {
   if (!submissionId) {

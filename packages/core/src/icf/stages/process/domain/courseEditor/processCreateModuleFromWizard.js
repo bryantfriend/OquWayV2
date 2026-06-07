@@ -1,4 +1,4 @@
-import { processCreateModule } from "./processCreateModule.js?v=1.1.119-student-dashboard-debug-safe";
+import { processCreateModule } from "./processCreateModule.js?v=1.1.120-student-course-debug-summary";
 
 export async function processCreateModuleFromWizard(executionState) {
   var payload = executionState.payload || {};

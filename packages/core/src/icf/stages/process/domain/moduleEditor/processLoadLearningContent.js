@@ -1,4 +1,4 @@
-import { createDefaultLearningContent } from "./learningArchitecture.js?v=1.1.119-student-dashboard-debug-safe";
+import { createDefaultLearningContent } from "./learningArchitecture.js?v=1.1.120-student-course-debug-summary";
 
 export function processLoadLearningContent(executionState) {
   executionState.result = {

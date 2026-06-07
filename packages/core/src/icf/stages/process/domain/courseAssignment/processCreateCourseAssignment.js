@@ -1,7 +1,7 @@
-import { serverTimestamp } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.119-student-dashboard-debug-safe";
+import { serverTimestamp } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.120-student-course-debug-summary";
 import { createCourseAssignment } from "../../../../../../../domain/assignments/index.js";
-import { createCourseAssignmentId, loadCourseAssignments } from "./courseAssignmentHelpers.js?v=1.1.119-student-dashboard-debug-safe";
-import { buildCourseAssignmentOwnershipFields } from "./courseAssignmentOwnershipHelpers.js?v=1.1.119-student-dashboard-debug-safe";
+import { createCourseAssignmentId, loadCourseAssignments } from "./courseAssignmentHelpers.js?v=1.1.120-student-course-debug-summary";
+import { buildCourseAssignmentOwnershipFields } from "./courseAssignmentOwnershipHelpers.js?v=1.1.120-student-course-debug-summary";
 
 export async function processCreateCourseAssignment(executionState) {
   var payload = executionState.payload;

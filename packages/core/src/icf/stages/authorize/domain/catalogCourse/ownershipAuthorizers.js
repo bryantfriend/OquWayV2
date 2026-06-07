@@ -1,4 +1,4 @@
-import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.119-student-dashboard-debug-safe";
+import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.120-student-course-debug-summary";
 
 export function requireCourseCreatorOwnershipAuthorization(executionState) {
     const { context, actor } = executionState;

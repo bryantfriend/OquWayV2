@@ -1,10 +1,10 @@
 import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.86-dev-workflow";
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.119-student-dashboard-debug-safe";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.120-student-course-debug-summary";
 import {
   createEmptyState,
   createLoadingState,
   createStatusBadge
-} from "../../../packages/ui/index.js?v=1.1.119-student-dashboard-debug-safe";
+} from "../../../packages/ui/index.js?v=1.1.120-student-course-debug-summary";
 
 var app = document.getElementById("app");
 var state = {

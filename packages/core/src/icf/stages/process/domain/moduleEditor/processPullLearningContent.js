@@ -1,4 +1,4 @@
-import { createPulledStepDraft } from "./learningArchitecture.js?v=1.1.119-student-dashboard-debug-safe";
+import { createPulledStepDraft } from "./learningArchitecture.js?v=1.1.120-student-course-debug-summary";
 
 export function processPullLearningContent(executionState) {
   var learningContent = executionState.context.module && executionState.context.module.learningContent;

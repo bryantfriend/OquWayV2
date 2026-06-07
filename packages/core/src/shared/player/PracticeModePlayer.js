@@ -1,7 +1,7 @@
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../stepTypes/stepTypeRegistry.js?v=1.1.119-student-dashboard-debug-safe";
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.120-student-course-debug-summary";
 
 export class PracticeModePlayer {
   constructor(options) {

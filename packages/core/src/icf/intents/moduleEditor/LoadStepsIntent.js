@@ -1,8 +1,8 @@
-import { validateAuthenticated, validateCourseId, validateModuleId, validateSessionId, validatePracticeModeKey } from "../../stages/validate/validators.js?v=1.1.119-student-dashboard-debug-safe";
-import { attachActorContext, attachActorRoleContext, attachCourseDocumentForModule, attachModuleDocument, attachSessionDocument } from "../../stages/addContext/contexts.js?v=1.1.119-student-dashboard-debug-safe";
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.119-student-dashboard-debug-safe";
-import { processLoadSteps } from "../../stages/process/processors.js?v=1.1.119-student-dashboard-debug-safe";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.119-student-dashboard-debug-safe";
+import { validateAuthenticated, validateCourseId, validateModuleId, validateSessionId, validatePracticeModeKey } from "../../stages/validate/validators.js?v=1.1.120-student-course-debug-summary";
+import { attachActorContext, attachActorRoleContext, attachCourseDocumentForModule, attachModuleDocument, attachSessionDocument } from "../../stages/addContext/contexts.js?v=1.1.120-student-course-debug-summary";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.120-student-course-debug-summary";
+import { processLoadSteps } from "../../stages/process/processors.js?v=1.1.120-student-course-debug-summary";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.120-student-course-debug-summary";
 
 export function LoadStepsIntent() {
   return {

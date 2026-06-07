@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.119-student-dashboard-debug-safe";
-import { deletePracticeModeStep } from "./practiceModeShells.js?v=1.1.119-student-dashboard-debug-safe";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.120-student-course-debug-summary";
+import { deletePracticeModeStep } from "./practiceModeShells.js?v=1.1.120-student-course-debug-summary";
 
 export async function processDeletePracticeModeStep(executionState) {
   var payload = executionState.payload;

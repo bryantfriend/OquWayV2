@@ -1,4 +1,4 @@
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.119-student-dashboard-debug-safe";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.120-student-course-debug-summary";
 
 export function PublishCourseIntent() {
   return {

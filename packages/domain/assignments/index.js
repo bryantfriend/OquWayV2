@@ -36,4 +36,4 @@ export function assignmentBelongsToTeacher(assignment, teacherIds) {
     }));
 }
 
-export * from "./assignmentRepository.js?v=1.1.119-student-dashboard-debug-safe";
+export * from "./assignmentRepository.js?v=1.1.120-student-course-debug-summary";

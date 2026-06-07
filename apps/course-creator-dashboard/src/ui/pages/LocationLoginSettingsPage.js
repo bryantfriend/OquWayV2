@@ -1,4 +1,4 @@
-import { locationLoginSettingsService } from "../services/locationLoginSettingsService.js?v=1.1.119-student-dashboard-debug-safe";
+import { locationLoginSettingsService } from "../services/locationLoginSettingsService.js?v=1.1.120-student-course-debug-summary";
 
 export class LocationLoginSettingsPage {
   constructor() {

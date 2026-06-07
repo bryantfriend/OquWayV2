@@ -3,7 +3,7 @@ import {
   getStepTypeDefinition,
   isSupportedStepType,
   listStepTypeDefinitions
-} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.119-student-dashboard-debug-safe";
+} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.120-student-course-debug-summary";
 
 export {
   createDefaultStepConfig,

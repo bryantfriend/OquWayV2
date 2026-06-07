@@ -1,4 +1,4 @@
-import { normalizePracticeModes } from "./practiceModeShells.js?v=1.1.119-student-dashboard-debug-safe";
+import { normalizePracticeModes } from "./practiceModeShells.js?v=1.1.120-student-course-debug-summary";
 
 export function processListPracticeModeSteps(executionState) {
   var payload = executionState.payload;

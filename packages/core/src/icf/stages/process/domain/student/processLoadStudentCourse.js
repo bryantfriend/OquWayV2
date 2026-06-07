@@ -1,9 +1,9 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.119-student-dashboard-debug-safe";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.119-student-dashboard-debug-safe";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.119-student-dashboard-debug-safe";
-import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.119-student-dashboard-debug-safe";
-import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason, resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.119-student-dashboard-debug-safe";
-import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.119-student-dashboard-debug-safe";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.120-student-course-debug-summary";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.120-student-course-debug-summary";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.120-student-course-debug-summary";
+import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.120-student-course-debug-summary";
+import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason, resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.120-student-course-debug-summary";
+import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.120-student-course-debug-summary";
 
 export async function processLoadStudentCourse(executionState) {
   var actor = executionState.actor;
@@ -826,4 +826,16 @@ function readEnglishTitle(value) {
   }
 
   return "";
+}
+
+function readLocalizedText(value, fallbackValue) {
+  if (typeof value === "string" && value.length > 0) {
+    return value;
+  }
+
+  if (value && typeof value.en === "string" && value.en.length > 0) {
+    return value.en;
+  }
+
+  return fallbackValue;
 }

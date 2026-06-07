@@ -1,4 +1,4 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.119-student-dashboard-debug-safe";
+import { BaseStep } from "./BaseStep.js?v=1.1.120-student-course-debug-summary";
 
 export class TextBriefingStep extends BaseStep {
   static get type() {

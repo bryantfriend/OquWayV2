@@ -1,8 +1,8 @@
-import { validateAuthenticated } from "../../stages/validate/validators.js?v=1.1.119-student-dashboard-debug-safe";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.119-student-dashboard-debug-safe";
-import { requireSuperAdminAccess } from "../../stages/authorize/authorizers.js?v=1.1.119-student-dashboard-debug-safe";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.119-student-dashboard-debug-safe";
-import { db, doc, getDoc } from "../../../infrastructure/firebase/firestore.js?v=1.1.119-student-dashboard-debug-safe";
+import { validateAuthenticated } from "../../stages/validate/validators.js?v=1.1.120-student-course-debug-summary";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.120-student-course-debug-summary";
+import { requireSuperAdminAccess } from "../../stages/authorize/authorizers.js?v=1.1.120-student-course-debug-summary";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.120-student-course-debug-summary";
+import { db, doc, getDoc } from "../../../infrastructure/firebase/firestore.js?v=1.1.120-student-course-debug-summary";
 
 export function OpenModuleCommandCenterIntent() {
   return {
