@@ -1,4 +1,4 @@
-import { db, collection, doc, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.114-student-profile-rules";
+import { db, collection, doc, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.116-student-token-ready";
 
 function generateId() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {

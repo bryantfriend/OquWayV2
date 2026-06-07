@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.114-student-profile-rules";
+import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.116-student-token-ready";
 
 export async function processLoadClassesForLocation(executionState) {
   var payload = executionState.payload;

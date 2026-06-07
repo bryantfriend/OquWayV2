@@ -1,8 +1,8 @@
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.114-student-profile-rules";
-import { attachStepRegistryDefinitionForStep, attachStepsCollection } from "../../stages/addContext/contexts.js?v=1.1.114-student-profile-rules";
-import { processAddStep } from "../../stages/process/processors.js?v=1.1.114-student-profile-rules";
-import { validateCourseId, validateModuleId, validateStepTypeRegistered } from "../../stages/validate/validators.js?v=1.1.114-student-profile-rules";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.114-student-profile-rules";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.116-student-token-ready";
+import { attachStepRegistryDefinitionForStep, attachStepsCollection } from "../../stages/addContext/contexts.js?v=1.1.116-student-token-ready";
+import { processAddStep } from "../../stages/process/processors.js?v=1.1.116-student-token-ready";
+import { validateCourseId, validateModuleId, validateStepTypeRegistered } from "../../stages/validate/validators.js?v=1.1.116-student-token-ready";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.116-student-token-ready";
 
 export function AddStepIntent() {
     return {

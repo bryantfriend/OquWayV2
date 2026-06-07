@@ -1,5 +1,5 @@
 import { collection, db, doc, getDocs, query, serverTimestamp, setDoc, where } from "../../firebase/index.js";
-import { getClassById } from "../classes/index.js?v=1.1.114-student-profile-rules";
+import { getClassById } from "../classes/index.js?v=1.1.116-student-token-ready";
 import { isActiveAssignment, normalizeCourseAssignment } from "./index.js";
 
 export async function getCourseAssignments(filters) {

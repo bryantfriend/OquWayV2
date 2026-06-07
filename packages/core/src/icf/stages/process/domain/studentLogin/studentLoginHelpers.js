@@ -1,4 +1,4 @@
-import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.114-student-profile-rules";
+import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.116-student-token-ready";
 
 export async function callStudentLoginFunction(payload) {
   return callCallableFunction("studentLogin", payload);

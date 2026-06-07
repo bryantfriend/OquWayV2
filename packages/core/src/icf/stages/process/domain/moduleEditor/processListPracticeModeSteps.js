@@ -1,4 +1,4 @@
-import { normalizePracticeModes } from "./practiceModeShells.js?v=1.1.114-student-profile-rules";
+import { normalizePracticeModes } from "./practiceModeShells.js?v=1.1.116-student-token-ready";
 
 export function processListPracticeModeSteps(executionState) {
   var payload = executionState.payload;

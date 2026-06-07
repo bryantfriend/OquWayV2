@@ -1,4 +1,4 @@
-import { requireStringValidation } from "../../validators.js?v=1.1.114-student-profile-rules";
+import { requireStringValidation } from "../../validators.js?v=1.1.116-student-token-ready";
 
 export function validateAuthenticated(executionState) {
     if (!executionState.actor || !executionState.actor.id) {

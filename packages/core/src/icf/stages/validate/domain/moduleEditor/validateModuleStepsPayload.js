@@ -1,4 +1,4 @@
-import { requireNonEmptyArrayValidation } from "../../validators.js?v=1.1.114-student-profile-rules";
+import { requireNonEmptyArrayValidation } from "../../validators.js?v=1.1.116-student-token-ready";
 
 export function validateModuleStepsPayload(executionState) {
     const payload = executionState.payload;

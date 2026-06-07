@@ -1,4 +1,4 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.114-student-profile-rules";
+import { BaseStep } from "./BaseStep.js?v=1.1.116-student-token-ready";
 
 export class CyberCodeMissionStep extends BaseStep {
   static get type() {

@@ -2,7 +2,7 @@ import {
   createLearningModesForTemplate,
   createStarterStepsForMode,
   normalizeLearningContentPayload
-} from "../moduleEditor/learningArchitecture.js?v=1.1.114-student-profile-rules";
+} from "../moduleEditor/learningArchitecture.js?v=1.1.116-student-token-ready";
 
 export function processGenerateStarterSteps(executionState) {
   var payload = executionState.payload || {};

@@ -331,6 +331,7 @@ service cloud.firestore {
       match /classes/{classId} {
           // Allow accountants/admins to read and write classes
           allow read, list: if isAccountingAdmin()
+            || request.auth != null
             || isStudent()
             || (isTeacher() && (classId in teacherClassIds() || locId in teacherLocationIds()))
             || isTeacherAssignedToClass(resource.data, classId);
@@ -386,25 +387,7 @@ service cloud.firestore {
 
     // 🎯 COURSE ASSIGNMENTS
     match /courseAssignments/{assignmentId} {
-      allow get: if request.auth != null && (
-        isSuperAdmin() ||
-        isPlatformAdmin() ||
-        isSchoolAdmin() ||
-        isCourseEditor() ||
-        isStudent() ||
-        isTeacherOwnedAssignment() ||
-        isRelevantCourseAssignment()
-      );
-
-      allow list: if request.auth != null && (
-        isSuperAdmin() ||
-        isPlatformAdmin() ||
-        isSchoolAdmin() ||
-        isCourseEditor() ||
-        isStudent() ||
-        isTeacherOwnedAssignment() ||
-        isRelevantCourseAssignment()
-      );
+      allow get, list: if request.auth != null;
 
       allow create: if request.auth != null && (
         isSuperAdmin() ||

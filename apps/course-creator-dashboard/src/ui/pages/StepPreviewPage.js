@@ -1,9 +1,9 @@
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.114-student-profile-rules";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.114-student-profile-rules";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.116-student-token-ready";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.116-student-token-ready";
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../../../../../packages/domain/steps/index.js?v=1.1.114-student-profile-rules";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.116-student-token-ready";
 
 export class StepPreviewPage {
   constructor(courseId, moduleId, modeId, stepId) {

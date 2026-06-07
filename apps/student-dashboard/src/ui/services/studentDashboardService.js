@@ -1,8 +1,8 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.114-student-profile-rules";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.114-student-profile-rules";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.114-student-profile-rules";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.114-student-profile-rules";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.114-student-profile-rules";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.116-student-token-ready";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.116-student-token-ready";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.116-student-token-ready";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.116-student-token-ready";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.116-student-token-ready";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
@@ -61,6 +61,8 @@ export const studentDashboardService = {
         redirectToStudentLogin("Please log in with your student account first.");
         return null;
       }
+
+      await ensureAuthenticatedFirestoreToken();
 
       var result = await runStudentIntent("LoadStudentDashboardIntent", {
         studentProfile: profile
@@ -609,6 +611,14 @@ function createEmptyIntentionPoints() {
     creative: 0,
     social: 0
   };
+}
+
+async function ensureAuthenticatedFirestoreToken() {
+  if (!auth.currentUser || auth.currentUser.isAnonymous || typeof auth.currentUser.getIdToken !== "function") {
+    return;
+  }
+
+  await auth.currentUser.getIdToken(true);
 }
 
 function summarizeCoursesForContinue(courses) {

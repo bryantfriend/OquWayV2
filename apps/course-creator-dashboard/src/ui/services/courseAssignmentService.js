@@ -1,6 +1,6 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.114-student-profile-rules";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.114-student-profile-rules";
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.114-student-profile-rules";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.116-student-token-ready";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.116-student-token-ready";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.116-student-token-ready";
 
 export const courseAssignmentService = {
   createCourseAssignment: async function (courseId, targetType, targetId, status) {

@@ -1,4 +1,4 @@
-import { canManageUsers, canReviewExternalTask, canSubmitExternalTask, canViewStudentProgress } from "./policies.js?v=1.1.114-student-profile-rules";
+import { canManageUsers, canReviewExternalTask, canSubmitExternalTask, canViewStudentProgress } from "./policies.js?v=1.1.116-student-token-ready";
 
 export function requireCanManageUsers(userProfile) {
   return createGuardResult(canManageUsers(userProfile), "MANAGE_USERS_REQUIRED", "User management access is required.");

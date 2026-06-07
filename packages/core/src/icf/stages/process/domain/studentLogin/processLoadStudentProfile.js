@@ -1,5 +1,5 @@
-import { getStudentProfileByAuthUid } from "../../../../../../../domain/users/index.js?v=1.1.114-student-profile-rules";
-import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.114-student-profile-rules";
+import { getStudentProfileByAuthUid } from "../../../../../../../domain/users/index.js?v=1.1.116-student-token-ready";
+import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.116-student-token-ready";
 
 export async function processLoadStudentProfile(executionState) {
   var actor = executionState.actor;

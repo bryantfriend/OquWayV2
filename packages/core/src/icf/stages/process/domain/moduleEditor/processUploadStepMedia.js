@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.114-student-profile-rules";
-import { getDownloadURL, ref, storage, uploadBytes } from "../../../../../infrastructure/firebase/storage.js?v=1.1.114-student-profile-rules";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.116-student-token-ready";
+import { getDownloadURL, ref, storage, uploadBytes } from "../../../../../infrastructure/firebase/storage.js?v=1.1.116-student-token-ready";
 import { createDefaultStepConfig } from "../../../../../../../domain/steps/index.js";
 
 export async function processUploadStepMedia(executionState) {

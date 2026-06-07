@@ -22,4 +22,4 @@ export function getClassLocationId(classRecord) {
 }
 
 export * from "./classQueries.js";
-export * from "./classRepository.js?v=1.1.114-student-profile-rules";
+export * from "./classRepository.js?v=1.1.116-student-token-ready";

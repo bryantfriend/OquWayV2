@@ -1,4 +1,4 @@
-import { db, deleteDoc, doc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.114-student-profile-rules";
+import { db, deleteDoc, doc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.116-student-token-ready";
 
 export async function processDeleteCourseAssignment(executionState) {
   var payload = executionState.payload;

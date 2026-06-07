@@ -1,6 +1,6 @@
-import { createIntent } from "../../../../../packages/icf/index.js?v=1.1.114-student-profile-rules";
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.114-student-profile-rules";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.114-student-profile-rules";
+import { createIntent } from "../../../../../packages/icf/index.js?v=1.1.116-student-token-ready";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.116-student-token-ready";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.116-student-token-ready";
 
 function getActor() {
     const user = auth.currentUser;

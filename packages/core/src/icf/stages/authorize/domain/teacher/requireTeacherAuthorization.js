@@ -1,4 +1,4 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.114-student-profile-rules";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.116-student-token-ready";
 import { canAccessTeacherDashboard } from "../../../../../../../permissions/index.js";
 import {
   getActorClaimRoles,

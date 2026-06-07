@@ -1,4 +1,4 @@
-import { parseLearningContentText } from "../moduleEditor/learningArchitecture.js?v=1.1.114-student-profile-rules";
+import { parseLearningContentText } from "../moduleEditor/learningArchitecture.js?v=1.1.116-student-token-ready";
 
 export function processParseLearningContent(executionState) {
   var payload = executionState.payload || {};

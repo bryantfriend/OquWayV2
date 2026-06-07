@@ -1,10 +1,10 @@
 import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.86-dev-workflow";
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.114-student-profile-rules";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.116-student-token-ready";
 import {
   createEmptyState,
   createLoadingState,
   createStatusBadge
-} from "../../../packages/ui/index.js?v=1.1.114-student-profile-rules";
+} from "../../../packages/ui/index.js?v=1.1.116-student-token-ready";
 
 var app = document.getElementById("app");
 var state = {

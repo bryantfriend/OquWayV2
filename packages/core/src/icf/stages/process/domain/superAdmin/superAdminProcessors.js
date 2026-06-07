@@ -1,5 +1,5 @@
-import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.114-student-profile-rules";
-import { collection, db, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.114-student-profile-rules";
+import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.116-student-token-ready";
+import { collection, db, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.116-student-token-ready";
 
 export async function processLoadAdminProfile(executionState) {
   var actor = executionState.actor;

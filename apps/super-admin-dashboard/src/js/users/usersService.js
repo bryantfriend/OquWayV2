@@ -1,5 +1,5 @@
 import { sendPasswordResetEmail } from "firebase/auth";
-import { auth, collection, db, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../packages/firebase/index.js?v=1.1.114-student-profile-rules";
+import { auth, collection, db, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../packages/firebase/index.js?v=1.1.116-student-token-ready";
 
 export async function getUsers() {
   var snapshot = await getDocs(collection(db, "users"));

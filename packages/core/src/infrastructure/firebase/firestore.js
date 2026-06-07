@@ -14,7 +14,7 @@ import {
     writeBatch
 } from "firebase/firestore";
 
-import { firebaseApp } from "./firebaseApp.js?v=1.1.114-student-profile-rules";
+import { firebaseApp } from "./firebaseApp.js?v=1.1.116-student-token-ready";
 
 export const db = initializeFirestore(firebaseApp, {
     localCache: memoryLocalCache()

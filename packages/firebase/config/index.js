@@ -1,1 +1,1 @@
-export { firebaseApp } from "../../core/src/infrastructure/firebase/firebaseApp.js?v=1.1.114-student-profile-rules";
+export { firebaseApp } from "../../core/src/infrastructure/firebase/firebaseApp.js?v=1.1.116-student-token-ready";

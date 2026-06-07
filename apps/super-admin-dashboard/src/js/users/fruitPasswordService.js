@@ -1,4 +1,4 @@
-import { fruitOptions } from "../../../../../packages/shared/constants/admin.js?v=1.1.114-student-profile-rules";
+import { fruitOptions } from "../../../../../packages/shared/constants/admin.js?v=1.1.116-student-token-ready";
 
 export function createRandomFruitPassword() {
   var values = [];

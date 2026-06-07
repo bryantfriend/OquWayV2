@@ -1,4 +1,4 @@
-import { processCreateModule } from "./processCreateModule.js?v=1.1.114-student-profile-rules";
+import { processCreateModule } from "./processCreateModule.js?v=1.1.116-student-token-ready";
 
 export async function processCreateModuleFromWizard(executionState) {
   var payload = executionState.payload || {};

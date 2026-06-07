@@ -1,4 +1,4 @@
-import { getStudentProfileByAuthUid, readAssignedCourseIds } from "../../../../../../../domain/users/index.js?v=1.1.114-student-profile-rules";
+import { getStudentProfileByAuthUid, readAssignedCourseIds } from "../../../../../../../domain/users/index.js?v=1.1.116-student-token-ready";
 
 export async function attachStudentProfileContext(executionState) {
   var actor = executionState.actor;

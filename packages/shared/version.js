@@ -1,1 +1,1 @@
-export const OQUWAY_BUILD_VERSION = "1.1.114-student-profile-rules";
+export const OQUWAY_BUILD_VERSION = "1.1.116-student-token-ready";

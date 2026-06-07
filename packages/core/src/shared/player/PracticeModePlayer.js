@@ -1,7 +1,7 @@
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../stepTypes/stepTypeRegistry.js?v=1.1.114-student-profile-rules";
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.116-student-token-ready";
 
 export class PracticeModePlayer {
   constructor(options) {

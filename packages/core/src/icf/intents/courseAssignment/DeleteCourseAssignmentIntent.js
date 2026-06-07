@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateCourseAssignmentId } from "../../stages/validate/validators.js?v=1.1.114-student-profile-rules";
-import { normalizeCourseAssignmentUpdatePayload } from "../../stages/normalize/normalizers.js?v=1.1.114-student-profile-rules";
-import { attachActorContext, attachActorRoleContext, attachCourseAssignmentContext } from "../../stages/addContext/contexts.js?v=1.1.114-student-profile-rules";
-import { requireCourseAssignmentAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.114-student-profile-rules";
-import { processDeleteCourseAssignment } from "../../stages/process/processors.js?v=1.1.114-student-profile-rules";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.114-student-profile-rules";
+import { validateAuthenticated, validateCourseAssignmentId } from "../../stages/validate/validators.js?v=1.1.116-student-token-ready";
+import { normalizeCourseAssignmentUpdatePayload } from "../../stages/normalize/normalizers.js?v=1.1.116-student-token-ready";
+import { attachActorContext, attachActorRoleContext, attachCourseAssignmentContext } from "../../stages/addContext/contexts.js?v=1.1.116-student-token-ready";
+import { requireCourseAssignmentAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.116-student-token-ready";
+import { processDeleteCourseAssignment } from "../../stages/process/processors.js?v=1.1.116-student-token-ready";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.116-student-token-ready";
 
 export function DeleteCourseAssignmentIntent() {
   return {

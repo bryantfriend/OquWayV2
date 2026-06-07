@@ -3,12 +3,12 @@
 // ICF Engine Verification Runner
 //
 // Usage from browser console:
-//   import("./packages/core/src/icf/dev/verifyEngine.js?v=1.1.114-student-profile-rules").then(function (m) { m.verifyEngine(); });
+//   import("./packages/core/src/icf/dev/verifyEngine.js?v=1.1.116-student-token-ready").then(function (m) { m.verifyEngine(); });
 //
 // Or call verifyEngine() after importing this module in your app entry point.
 
-import { createIntent } from "../engine/createIntent.js?v=1.1.114-student-profile-rules";
-import { runIntentPipeline } from "../engine/runIntentPipeline.js?v=1.1.114-student-profile-rules";
+import { createIntent } from "../engine/createIntent.js?v=1.1.116-student-token-ready";
+import { runIntentPipeline } from "../engine/runIntentPipeline.js?v=1.1.116-student-token-ready";
 
 export async function verifyEngine() {
   console.info("");

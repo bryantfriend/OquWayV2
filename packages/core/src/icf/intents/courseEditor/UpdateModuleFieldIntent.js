@@ -1,10 +1,10 @@
-import { validateAuthenticated, validateCourseId, validateModuleExists, validateFieldExistsInSchema, validateFieldValueType } from "../../stages/validate/validators.js?v=1.1.114-student-profile-rules";
-import { normalizeCourseId, normalizeStringTrim, normalizeBoolean, normalizeNumber } from "../../stages/normalize/normalizers.js?v=1.1.114-student-profile-rules";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.114-student-profile-rules";
-import { attachCourseDocument, attachModulesCollection, attachModule } from "../../stages/addContext/contexts.js?v=1.1.114-student-profile-rules";
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.114-student-profile-rules";
-import { processUpdateModuleField } from "../../stages/process/processors.js?v=1.1.114-student-profile-rules";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.114-student-profile-rules";
+import { validateAuthenticated, validateCourseId, validateModuleExists, validateFieldExistsInSchema, validateFieldValueType } from "../../stages/validate/validators.js?v=1.1.116-student-token-ready";
+import { normalizeCourseId, normalizeStringTrim, normalizeBoolean, normalizeNumber } from "../../stages/normalize/normalizers.js?v=1.1.116-student-token-ready";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.116-student-token-ready";
+import { attachCourseDocument, attachModulesCollection, attachModule } from "../../stages/addContext/contexts.js?v=1.1.116-student-token-ready";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.116-student-token-ready";
+import { processUpdateModuleField } from "../../stages/process/processors.js?v=1.1.116-student-token-ready";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.116-student-token-ready";
 
 export function UpdateModuleFieldIntent() {
     return {

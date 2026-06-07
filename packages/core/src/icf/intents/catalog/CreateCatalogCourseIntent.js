@@ -1,9 +1,9 @@
-import { catalogCourseRequireTitleValidation } from "../../stages/validate/validators.js?v=1.1.114-student-profile-rules";
-import { catalogCourseNormalizeTitleNormalization } from "../../stages/normalize/normalizers.js?v=1.1.114-student-profile-rules";
-import { catalogAttachSystemContext } from "../../stages/addContext/contexts.js?v=1.1.114-student-profile-rules";
-import { catalogRequireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.114-student-profile-rules";
-import { catalogCourseCreateRecordProcessing } from "../../stages/process/processors.js?v=1.1.114-student-profile-rules";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.114-student-profile-rules";
+import { catalogCourseRequireTitleValidation } from "../../stages/validate/validators.js?v=1.1.116-student-token-ready";
+import { catalogCourseNormalizeTitleNormalization } from "../../stages/normalize/normalizers.js?v=1.1.116-student-token-ready";
+import { catalogAttachSystemContext } from "../../stages/addContext/contexts.js?v=1.1.116-student-token-ready";
+import { catalogRequireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.116-student-token-ready";
+import { catalogCourseCreateRecordProcessing } from "../../stages/process/processors.js?v=1.1.116-student-token-ready";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.116-student-token-ready";
 
 export function CreateCatalogCourseIntent() {
     return {

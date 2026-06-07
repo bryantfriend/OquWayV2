@@ -1,4 +1,4 @@
-import { processDuplicateLearningMode } from "./processDuplicateLearningMode.js?v=1.1.114-student-profile-rules";
+import { processDuplicateLearningMode } from "./processDuplicateLearningMode.js?v=1.1.116-student-token-ready";
 
 export async function processGenerateModeFromPrimary(executionState) {
   executionState.payload = Object.assign({}, executionState.payload, {

@@ -1,4 +1,4 @@
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.114-student-profile-rules";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.116-student-token-ready";
 import { getExternalTaskSubmissionById } from "../../../../../../../domain/externalTasks/index.js";
 import { getUserProfileByAuthUid, getUserRoles } from "../../../../../../../domain/users/index.js";
 

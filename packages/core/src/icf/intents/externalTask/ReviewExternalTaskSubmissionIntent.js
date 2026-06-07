@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateExternalTaskReviewPayload } from "../../stages/validate/validators.js?v=1.1.114-student-profile-rules";
-import { normalizeExternalTaskReviewPayload } from "../../stages/normalize/normalizers.js?v=1.1.114-student-profile-rules";
-import { attachActorContext, attachActorRoleContext, attachExternalTaskSubmissionReviewContext, attachTeacherProfileContext } from "../../stages/addContext/contexts.js?v=1.1.114-student-profile-rules";
-import { requireTeacherReviewScopeAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.114-student-profile-rules";
-import { processReviewExternalTaskSubmission } from "../../stages/process/processors.js?v=1.1.114-student-profile-rules";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.114-student-profile-rules";
+import { validateAuthenticated, validateExternalTaskReviewPayload } from "../../stages/validate/validators.js?v=1.1.116-student-token-ready";
+import { normalizeExternalTaskReviewPayload } from "../../stages/normalize/normalizers.js?v=1.1.116-student-token-ready";
+import { attachActorContext, attachActorRoleContext, attachExternalTaskSubmissionReviewContext, attachTeacherProfileContext } from "../../stages/addContext/contexts.js?v=1.1.116-student-token-ready";
+import { requireTeacherReviewScopeAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.116-student-token-ready";
+import { processReviewExternalTaskSubmission } from "../../stages/process/processors.js?v=1.1.116-student-token-ready";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.116-student-token-ready";
 
 export function ReviewExternalTaskSubmissionIntent() {
   return {

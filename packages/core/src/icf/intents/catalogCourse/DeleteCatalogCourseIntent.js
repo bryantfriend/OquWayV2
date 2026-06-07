@@ -1,10 +1,10 @@
-import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.114-student-profile-rules";
-import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.114-student-profile-rules";
-import { attachExistingCourseContext } from "../../stages/addContext/contexts.js?v=1.1.114-student-profile-rules";
-import { requireSuperAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.114-student-profile-rules";
-import { preventDeleteIfInUseAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.114-student-profile-rules";
-import { catalogCourseDeleteProcessing } from "../../stages/process/processors.js?v=1.1.114-student-profile-rules";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.114-student-profile-rules";
+import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.116-student-token-ready";
+import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.116-student-token-ready";
+import { attachExistingCourseContext } from "../../stages/addContext/contexts.js?v=1.1.116-student-token-ready";
+import { requireSuperAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.116-student-token-ready";
+import { preventDeleteIfInUseAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.116-student-token-ready";
+import { catalogCourseDeleteProcessing } from "../../stages/process/processors.js?v=1.1.116-student-token-ready";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.116-student-token-ready";
 
 export function DeleteCatalogCourseIntent() {
     return {

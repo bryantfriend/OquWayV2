@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.114-student-profile-rules";
-import { PRIMARY_MODE_ID, createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.114-student-profile-rules";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.116-student-token-ready";
+import { PRIMARY_MODE_ID, createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.116-student-token-ready";
 
 export async function processDeleteLearningMode(executionState) {
   var payload = executionState.payload;

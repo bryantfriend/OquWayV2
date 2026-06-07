@@ -1,4 +1,4 @@
-import { locationLoginSettingsService } from "../services/locationLoginSettingsService.js?v=1.1.114-student-profile-rules";
+import { locationLoginSettingsService } from "../services/locationLoginSettingsService.js?v=1.1.116-student-token-ready";
 
 export class LocationLoginSettingsPage {
   constructor() {
