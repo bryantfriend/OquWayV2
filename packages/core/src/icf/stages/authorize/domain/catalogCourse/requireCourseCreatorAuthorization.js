@@ -1,4 +1,4 @@
-import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.111-student-assignment-debug-panel";
+import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.112-student-assignment-error-debug";
 
 export function requireCourseCreatorAuthorization(executionState) {
     if (!executionState.actor) {

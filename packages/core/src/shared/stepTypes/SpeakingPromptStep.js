@@ -1,4 +1,4 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.111-student-assignment-debug-panel";
+import { BaseStep } from "./BaseStep.js?v=1.1.112-student-assignment-error-debug";
 
 export class SpeakingPromptStep extends BaseStep {
   static get type() {

@@ -1,9 +1,9 @@
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.111-student-assignment-debug-panel";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.111-student-assignment-debug-panel";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.112-student-assignment-error-debug";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.112-student-assignment-error-debug";
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../../../../../packages/domain/steps/index.js?v=1.1.111-student-assignment-debug-panel";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.112-student-assignment-error-debug";
 
 export class StepPreviewPage {
   constructor(courseId, moduleId, modeId, stepId) {

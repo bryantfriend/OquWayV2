@@ -1,4 +1,4 @@
-import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.111-student-assignment-debug-panel";
+import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.112-student-assignment-error-debug";
 
 export function normalizePracticeModeStep(executionState) {
   var payload = executionState.payload;

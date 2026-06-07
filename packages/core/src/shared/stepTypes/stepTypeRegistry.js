@@ -1,13 +1,13 @@
-import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.111-student-assignment-debug-panel";
-import { VocabularyStep } from "./VocabularyStep.js?v=1.1.111-student-assignment-debug-panel";
-import { PhraseStep } from "./PhraseStep.js?v=1.1.111-student-assignment-debug-panel";
-import { ListeningStep } from "./ListeningStep.js?v=1.1.111-student-assignment-debug-panel";
-import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.111-student-assignment-debug-panel";
-import { ReflectionStep } from "./ReflectionStep.js?v=1.1.111-student-assignment-debug-panel";
-import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.111-student-assignment-debug-panel";
-import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.111-student-assignment-debug-panel";
-import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.111-student-assignment-debug-panel";
-import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.111-student-assignment-debug-panel";
+import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.112-student-assignment-error-debug";
+import { VocabularyStep } from "./VocabularyStep.js?v=1.1.112-student-assignment-error-debug";
+import { PhraseStep } from "./PhraseStep.js?v=1.1.112-student-assignment-error-debug";
+import { ListeningStep } from "./ListeningStep.js?v=1.1.112-student-assignment-error-debug";
+import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.112-student-assignment-error-debug";
+import { ReflectionStep } from "./ReflectionStep.js?v=1.1.112-student-assignment-error-debug";
+import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.112-student-assignment-error-debug";
+import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.112-student-assignment-error-debug";
+import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.112-student-assignment-error-debug";
+import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.112-student-assignment-error-debug";
 
 var stepTypes = {
   textBriefing: TextBriefingStep,

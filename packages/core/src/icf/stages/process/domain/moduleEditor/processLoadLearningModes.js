@@ -1,4 +1,4 @@
-import { createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.111-student-assignment-debug-panel";
+import { createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.112-student-assignment-error-debug";
 
 export function processLoadLearningModes(executionState) {
   executionState.result = {

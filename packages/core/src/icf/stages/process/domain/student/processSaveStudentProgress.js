@@ -1,4 +1,4 @@
-import { saveStudentPracticeModeProgress } from "./studentProgressHelpers.js?v=1.1.111-student-assignment-debug-panel";
+import { saveStudentPracticeModeProgress } from "./studentProgressHelpers.js?v=1.1.112-student-assignment-error-debug";
 
 export async function processSaveStudentProgress(executionState) {
   var payload = executionState.payload;

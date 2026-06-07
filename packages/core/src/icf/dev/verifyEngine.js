@@ -3,12 +3,12 @@
 // ICF Engine Verification Runner
 //
 // Usage from browser console:
-//   import("./packages/core/src/icf/dev/verifyEngine.js?v=1.1.111-student-assignment-debug-panel").then(function (m) { m.verifyEngine(); });
+//   import("./packages/core/src/icf/dev/verifyEngine.js?v=1.1.112-student-assignment-error-debug").then(function (m) { m.verifyEngine(); });
 //
 // Or call verifyEngine() after importing this module in your app entry point.
 
-import { createIntent } from "../engine/createIntent.js?v=1.1.111-student-assignment-debug-panel";
-import { runIntentPipeline } from "../engine/runIntentPipeline.js?v=1.1.111-student-assignment-debug-panel";
+import { createIntent } from "../engine/createIntent.js?v=1.1.112-student-assignment-error-debug";
+import { runIntentPipeline } from "../engine/runIntentPipeline.js?v=1.1.112-student-assignment-error-debug";
 
 export async function verifyEngine() {
   console.info("");

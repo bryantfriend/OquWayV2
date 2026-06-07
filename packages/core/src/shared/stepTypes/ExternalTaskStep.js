@@ -1,6 +1,6 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.111-student-assignment-debug-panel";
-import { canResubmitExternalTaskSubmission } from "../../../../domain/externalTasks/index.js?v=1.1.111-student-assignment-debug-panel";
-import { isExternalTaskReviewComplete } from "../../../../domain/progress/index.js?v=1.1.111-student-assignment-debug-panel";
+import { BaseStep } from "./BaseStep.js?v=1.1.112-student-assignment-error-debug";
+import { canResubmitExternalTaskSubmission } from "../../../../domain/externalTasks/index.js?v=1.1.112-student-assignment-error-debug";
+import { isExternalTaskReviewComplete } from "../../../../domain/progress/index.js?v=1.1.112-student-assignment-error-debug";
 
 export class ExternalTaskStep extends BaseStep {
   static get type() {

@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.111-student-assignment-debug-panel";
+import { collection, db, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.112-student-assignment-error-debug";
 
 export async function processResolveLocationBySlug(executionState) {
   var payload = executionState.payload || {};

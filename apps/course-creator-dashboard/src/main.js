@@ -1,12 +1,12 @@
 import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.86-dev-workflow";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.111-student-assignment-debug-panel";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.112-student-assignment-error-debug";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.111-student-assignment-debug-panel";
-import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.111-student-assignment-debug-panel";
-import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.111-student-assignment-debug-panel";
-import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.111-student-assignment-debug-panel";
-import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.111-student-assignment-debug-panel";
-import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.111-student-assignment-debug-panel";
+import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.112-student-assignment-error-debug";
+import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.112-student-assignment-error-debug";
+import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.112-student-assignment-error-debug";
+import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.112-student-assignment-error-debug";
+import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.112-student-assignment-error-debug";
+import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.112-student-assignment-error-debug";
 
 console.log("[oquway-build]", OQUWAY_BUILD_VERSION);
 console.warn("[course-creator-build-check] latest build active");

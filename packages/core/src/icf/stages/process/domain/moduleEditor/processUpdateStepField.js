@@ -1,4 +1,4 @@
-import { db, writeBatch, doc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.111-student-assignment-debug-panel";
+import { db, writeBatch, doc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.112-student-assignment-error-debug";
 
 export async function processUpdateStepField(executionState) {
     const { payload, context } = executionState;

@@ -2,7 +2,7 @@ import {
   createLearningModesForTemplate,
   createStarterStepsForMode,
   normalizeLearningContentPayload
-} from "../moduleEditor/learningArchitecture.js?v=1.1.111-student-assignment-debug-panel";
+} from "../moduleEditor/learningArchitecture.js?v=1.1.112-student-assignment-error-debug";
 
 export function processGenerateStarterSteps(executionState) {
   var payload = executionState.payload || {};

@@ -1,7 +1,7 @@
-import { serverTimestamp } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.111-student-assignment-debug-panel";
+import { serverTimestamp } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.112-student-assignment-error-debug";
 import { createCourseAssignment } from "../../../../../../../domain/assignments/index.js";
-import { createCourseAssignmentId, loadCourseAssignments } from "./courseAssignmentHelpers.js?v=1.1.111-student-assignment-debug-panel";
-import { buildCourseAssignmentOwnershipFields } from "./courseAssignmentOwnershipHelpers.js?v=1.1.111-student-assignment-debug-panel";
+import { createCourseAssignmentId, loadCourseAssignments } from "./courseAssignmentHelpers.js?v=1.1.112-student-assignment-error-debug";
+import { buildCourseAssignmentOwnershipFields } from "./courseAssignmentOwnershipHelpers.js?v=1.1.112-student-assignment-error-debug";
 
 export async function processCreateCourseAssignment(executionState) {
   var payload = executionState.payload;

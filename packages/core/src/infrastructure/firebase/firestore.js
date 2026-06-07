@@ -14,7 +14,7 @@ import {
     writeBatch
 } from "firebase/firestore";
 
-import { firebaseApp } from "./firebaseApp.js?v=1.1.111-student-assignment-debug-panel";
+import { firebaseApp } from "./firebaseApp.js?v=1.1.112-student-assignment-error-debug";
 
 export const db = initializeFirestore(firebaseApp, {
     localCache: memoryLocalCache()

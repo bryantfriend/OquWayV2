@@ -1,7 +1,7 @@
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.111-student-assignment-debug-panel";
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.111-student-assignment-debug-panel";
-import { hasStudentRole, isActiveStudentStatus, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.111-student-assignment-debug-panel";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.112-student-assignment-error-debug";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.112-student-assignment-error-debug";
+import { hasStudentRole, isActiveStudentStatus, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.112-student-assignment-error-debug";
 
 export async function processStudentStandardLogin(executionState) {
   var payload = executionState.payload;

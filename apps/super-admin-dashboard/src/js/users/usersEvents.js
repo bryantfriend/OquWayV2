@@ -1,4 +1,4 @@
-import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.111-student-assignment-debug-panel";
+import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.112-student-assignment-error-debug";
 
 export function bindUsersEvents(rootElement, handlers) {
   rootElement.addEventListener("click", function (event) {

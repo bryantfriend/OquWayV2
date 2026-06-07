@@ -1,5 +1,5 @@
-import { auth } from "../../packages/firebase/auth/index.js?v=1.1.111-student-assignment-debug-panel";
-import { verifyCourseCreatorAccess, normalizeRole } from "./src/auth/courseCreatorAuth.js?v=1.1.111-student-assignment-debug-panel";
+import { auth } from "../../packages/firebase/auth/index.js?v=1.1.112-student-assignment-error-debug";
+import { verifyCourseCreatorAccess, normalizeRole } from "./src/auth/courseCreatorAuth.js?v=1.1.112-student-assignment-error-debug";
 import {
     signInWithEmailAndPassword,
     onAuthStateChanged,

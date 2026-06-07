@@ -1,13 +1,13 @@
-import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.111-student-assignment-debug-panel';
-import { courseEditorService } from '../services/courseEditorService.js?v=1.1.111-student-assignment-debug-panel';
-import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.111-student-assignment-debug-panel';
-import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.111-student-assignment-debug-panel';
+import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.112-student-assignment-error-debug';
+import { courseEditorService } from '../services/courseEditorService.js?v=1.1.112-student-assignment-error-debug';
+import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.112-student-assignment-error-debug';
+import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.112-student-assignment-error-debug';
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge
-} from '../../../../../packages/ui/index.js?v=1.1.111-student-assignment-debug-panel';
+} from '../../../../../packages/ui/index.js?v=1.1.112-student-assignment-error-debug';
 
 export class CourseOverviewPage {
   constructor(courseId, options) {

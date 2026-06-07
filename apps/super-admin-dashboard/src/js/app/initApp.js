@@ -1,8 +1,8 @@
-import { appState, updateAppState } from "./appState.js?v=1.1.111-student-assignment-debug-panel";
-import { registerIntentDefinitions, runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.111-student-assignment-debug-panel";
-import { createClassesIntentRegistrar, createDashboardIntentRegistrar, createUsersIntentRegistrar } from "../../../../../packages/icf/admin/intents/index.js?v=1.1.111-student-assignment-debug-panel";
-import { createUser, deleteUser, disableUser, getUser, getUsers, sendPasswordReset, updateUser } from "../users/usersService.js?v=1.1.111-student-assignment-debug-panel";
-import { resetFruitPassword } from "../users/fruitPasswordService.js?v=1.1.111-student-assignment-debug-panel";
+import { appState, updateAppState } from "./appState.js?v=1.1.112-student-assignment-error-debug";
+import { registerIntentDefinitions, runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.112-student-assignment-error-debug";
+import { createClassesIntentRegistrar, createDashboardIntentRegistrar, createUsersIntentRegistrar } from "../../../../../packages/icf/admin/intents/index.js?v=1.1.112-student-assignment-error-debug";
+import { createUser, deleteUser, disableUser, getUser, getUsers, sendPasswordReset, updateUser } from "../users/usersService.js?v=1.1.112-student-assignment-error-debug";
+import { resetFruitPassword } from "../users/fruitPasswordService.js?v=1.1.112-student-assignment-error-debug";
 
 export async function initApp() {
   registerIntentDefinitions([
@@ -25,7 +25,7 @@ export async function initApp() {
     runIntent: runAdminIntent
   };
 
-  await import("./legacyDashboard.js?v=1.1.111-student-assignment-debug-panel");
+  await import("./legacyDashboard.js?v=1.1.112-student-assignment-error-debug");
   updateAppState({ legacyDashboardLoaded: true });
 }
 

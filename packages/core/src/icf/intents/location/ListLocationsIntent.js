@@ -1,6 +1,6 @@
-import { allowPublicLocationRead } from "../../stages/authorize/authorizers.js?v=1.1.111-student-assignment-debug-panel";
-import { processListLocations } from "../../stages/process/processors.js?v=1.1.111-student-assignment-debug-panel";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.111-student-assignment-debug-panel";
+import { allowPublicLocationRead } from "../../stages/authorize/authorizers.js?v=1.1.112-student-assignment-error-debug";
+import { processListLocations } from "../../stages/process/processors.js?v=1.1.112-student-assignment-error-debug";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.112-student-assignment-error-debug";
 
 export function ListLocationsIntent() {
   return {

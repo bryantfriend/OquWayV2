@@ -1,5 +1,5 @@
-import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.111-student-assignment-debug-panel";
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.111-student-assignment-debug-panel";
+import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.112-student-assignment-error-debug";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.112-student-assignment-error-debug";
 import { calculateCourseCompletion, calculateCourseProgressSummary } from "../../../../../../../domain/progress/index.js";
 
 export async function processLoadStudentDashboard(executionState) {

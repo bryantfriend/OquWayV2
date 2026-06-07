@@ -1,4 +1,4 @@
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.111-student-assignment-debug-panel";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.112-student-assignment-error-debug";
 import { getExternalTaskSubmissionById } from "../../../../../../../domain/externalTasks/index.js";
 import { getUserProfileByAuthUid, getUserRoles } from "../../../../../../../domain/users/index.js";
 

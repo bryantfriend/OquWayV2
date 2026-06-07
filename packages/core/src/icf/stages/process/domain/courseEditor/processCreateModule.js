@@ -1,11 +1,11 @@
-import { db, collection, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.111-student-assignment-debug-panel";
-import { createDefaultPracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.111-student-assignment-debug-panel";
+import { db, collection, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.112-student-assignment-error-debug";
+import { createDefaultPracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.112-student-assignment-error-debug";
 import {
   createDefaultLearningContent,
   createLearningModesForTemplate,
   createStarterStepsForMode,
   normalizeLearningContentPayload
-} from "../moduleEditor/learningArchitecture.js?v=1.1.111-student-assignment-debug-panel";
+} from "../moduleEditor/learningArchitecture.js?v=1.1.112-student-assignment-error-debug";
 
 export async function processCreateModule(executionState) {
   const payload = executionState.payload;

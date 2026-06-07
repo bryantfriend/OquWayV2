@@ -1,6 +1,6 @@
 import { getIdTokenResult, onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.111-student-assignment-debug-panel";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.111-student-assignment-debug-panel";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.112-student-assignment-error-debug";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.112-student-assignment-error-debug";
 
 var currentTeacherClaims = {};
 

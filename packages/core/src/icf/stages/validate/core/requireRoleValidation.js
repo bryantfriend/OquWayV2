@@ -1,4 +1,4 @@
-import { hasAnyRole } from "../../authorize/core/roleAuthorization.js?v=1.1.111-student-assignment-debug-panel";
+import { hasAnyRole } from "../../authorize/core/roleAuthorization.js?v=1.1.112-student-assignment-error-debug";
 
 export function requireRoleValidation(actor, requiredRole) {
     if (!actor) {

@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.111-student-assignment-debug-panel";
-import { normalizeLearningContentPayload } from "./learningArchitecture.js?v=1.1.111-student-assignment-debug-panel";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.112-student-assignment-error-debug";
+import { normalizeLearningContentPayload } from "./learningArchitecture.js?v=1.1.112-student-assignment-error-debug";
 
 export async function processSaveLearningContent(executionState) {
   var payload = executionState.payload;

@@ -1,12 +1,12 @@
-import { catalogCourseRequireVersionValidation } from "../../stages/validate/validators.js?v=1.1.111-student-assignment-debug-panel";
-import { catalogCourseNormalizeModuleOrderNormalization } from "../../stages/normalize/normalizers.js?v=1.1.111-student-assignment-debug-panel";
-import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.111-student-assignment-debug-panel";
-import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.111-student-assignment-debug-panel";
-import { attachExistingVersionContext } from "../../stages/addContext/contexts.js?v=1.1.111-student-assignment-debug-panel";
-import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.111-student-assignment-debug-panel";
-import { preventModificationIfPublishedAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.111-student-assignment-debug-panel";
-import { catalogModuleReorderProcessing } from "../../stages/process/processors.js?v=1.1.111-student-assignment-debug-panel";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.111-student-assignment-debug-panel";
+import { catalogCourseRequireVersionValidation } from "../../stages/validate/validators.js?v=1.1.112-student-assignment-error-debug";
+import { catalogCourseNormalizeModuleOrderNormalization } from "../../stages/normalize/normalizers.js?v=1.1.112-student-assignment-error-debug";
+import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.112-student-assignment-error-debug";
+import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.112-student-assignment-error-debug";
+import { attachExistingVersionContext } from "../../stages/addContext/contexts.js?v=1.1.112-student-assignment-error-debug";
+import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.112-student-assignment-error-debug";
+import { preventModificationIfPublishedAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.112-student-assignment-error-debug";
+import { catalogModuleReorderProcessing } from "../../stages/process/processors.js?v=1.1.112-student-assignment-error-debug";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.112-student-assignment-error-debug";
 
 export function ReorderCatalogModulesIntent() {
     return {

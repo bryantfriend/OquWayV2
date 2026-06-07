@@ -1,6 +1,6 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.111-student-assignment-debug-panel";
-import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.111-student-assignment-debug-panel";
-import { createDefaultProgressDocument } from "../../../process/domain/student/studentProgressHelpers.js?v=1.1.111-student-assignment-debug-panel";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.112-student-assignment-error-debug";
+import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.112-student-assignment-error-debug";
+import { createDefaultProgressDocument } from "../../../process/domain/student/studentProgressHelpers.js?v=1.1.112-student-assignment-error-debug";
 
 export async function attachStudentSessionContext(executionState) {
   var payload = executionState.payload;

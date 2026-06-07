@@ -1,5 +1,5 @@
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.111-student-assignment-debug-panel";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.111-student-assignment-debug-panel";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.112-student-assignment-error-debug";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.112-student-assignment-error-debug";
 
 export async function processStudentOpenCourse(executionState) {
   var payload = executionState.payload || {};

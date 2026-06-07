@@ -1,4 +1,4 @@
-import { collection, db, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.111-student-assignment-debug-panel";
+import { collection, db, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.112-student-assignment-error-debug";
 
 export async function attachLearningModeDocument(executionState) {
   const payload = executionState.payload || {};

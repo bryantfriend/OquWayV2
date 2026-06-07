@@ -1,4 +1,4 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.111-student-assignment-debug-panel";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.112-student-assignment-error-debug";
 
 export async function buildCourseAssignmentOwnershipFields(payload) {
   var responsibleTeacherId = readText(payload.responsibleTeacherId);

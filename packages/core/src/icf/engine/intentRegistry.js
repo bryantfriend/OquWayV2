@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.111-student-assignment-debug-panel";
+import * as IntentExports from "../intents/intents.js?v=1.1.112-student-assignment-error-debug";
 
 const registry = {
   // Demo Verification

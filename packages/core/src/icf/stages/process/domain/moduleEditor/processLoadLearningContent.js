@@ -1,4 +1,4 @@
-import { createDefaultLearningContent } from "./learningArchitecture.js?v=1.1.111-student-assignment-debug-panel";
+import { createDefaultLearningContent } from "./learningArchitecture.js?v=1.1.112-student-assignment-error-debug";
 
 export function processLoadLearningContent(executionState) {
   executionState.result = {

@@ -1,10 +1,10 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth, collection, db, deleteDoc, doc, functions, getDoc, getDocs, httpsCallable, serverTimestamp, setDoc, storage } from "../../../../../packages/firebase/index.js?v=1.1.111-student-assignment-debug-panel";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.111-student-assignment-debug-panel";
-import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.111-student-assignment-debug-panel";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.111-student-assignment-debug-panel";
-import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.111-student-assignment-debug-panel";
-import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.111-student-assignment-debug-panel";
+import { auth, collection, db, deleteDoc, doc, functions, getDoc, getDocs, httpsCallable, serverTimestamp, setDoc, storage } from "../../../../../packages/firebase/index.js?v=1.1.112-student-assignment-error-debug";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.112-student-assignment-error-debug";
+import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.112-student-assignment-error-debug";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.112-student-assignment-error-debug";
+import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.112-student-assignment-error-debug";
+import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.112-student-assignment-error-debug";
 
 var appElement = document.getElementById("app");
 var appVersion = "1.1.82";

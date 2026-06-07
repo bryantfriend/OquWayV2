@@ -1,9 +1,9 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.111-student-assignment-debug-panel";
-import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.111-student-assignment-debug-panel";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.111-student-assignment-debug-panel";
-import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.111-student-assignment-debug-panel";
-import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js?v=1.1.111-student-assignment-debug-panel";
-import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.111-student-assignment-debug-panel";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.112-student-assignment-error-debug";
+import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.112-student-assignment-error-debug";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.112-student-assignment-error-debug";
+import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.112-student-assignment-error-debug";
+import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js?v=1.1.112-student-assignment-error-debug";
+import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.112-student-assignment-error-debug";
 
 export async function processLoadStudentCourse(executionState) {
   var actor = executionState.actor;
@@ -262,6 +262,7 @@ function buildAssignmentDebug(courseAssignmentResult, courses) {
     locationIdentifiers: courseAssignmentResult.locationIdentifiers || [],
     queryPaths: courseAssignmentResult.queryPaths || [],
     rejectionReasons: courseAssignmentResult.rejectionReasons || {},
+    warnings: courseAssignmentResult.warnings || [],
     assignmentCount: courseAssignmentResult.assignmentCount || 0,
     directCount: courseAssignmentResult.directCount || 0,
     classCount: courseAssignmentResult.classCount || 0,

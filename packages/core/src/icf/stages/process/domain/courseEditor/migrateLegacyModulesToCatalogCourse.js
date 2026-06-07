@@ -1,4 +1,4 @@
-import { db, collection, doc, getDoc, getDocs, serverTimestamp, writeBatch } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.111-student-assignment-debug-panel";
+import { db, collection, doc, getDoc, getDocs, serverTimestamp, writeBatch } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.112-student-assignment-error-debug";
 
 export async function migrateLegacyModulesToCatalogCourse(courseId) {
     const legacyModulesSnapshot = await getDocs(collection(db, "courses", courseId, "modules"));

@@ -1,4 +1,4 @@
-import { fruitOptions } from "../../../../../packages/shared/constants/admin.js?v=1.1.111-student-assignment-debug-panel";
+import { fruitOptions } from "../../../../../packages/shared/constants/admin.js?v=1.1.112-student-assignment-error-debug";
 
 export function createRandomFruitPassword() {
   var values = [];

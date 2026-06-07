@@ -1,12 +1,12 @@
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.111-student-assignment-debug-panel";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.111-student-assignment-debug-panel";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.112-student-assignment-error-debug";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.112-student-assignment-error-debug";
 import {
   getStepTypeDefinition,
   listStepTypeDefinitions,
   validateStepConfig
-} from "../../../../../packages/domain/steps/index.js?v=1.1.111-student-assignment-debug-panel";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.111-student-assignment-debug-panel";
-import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.111-student-assignment-debug-panel";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.112-student-assignment-error-debug";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.112-student-assignment-error-debug";
+import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.112-student-assignment-error-debug";
 
 export class CourseEditorPage {
   constructor(courseId, moduleId) {

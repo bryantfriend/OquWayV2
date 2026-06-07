@@ -1,4 +1,4 @@
-import { db, collection, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.111-student-assignment-debug-panel";
+import { db, collection, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.112-student-assignment-error-debug";
 
 const COURSE_COUNT_CONCURRENCY = 4;
 const MODULE_COUNT_CONCURRENCY = 4;

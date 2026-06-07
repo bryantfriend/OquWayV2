@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.111-student-assignment-debug-panel";
-import { reorderPracticeModeSteps } from "./practiceModeShells.js?v=1.1.111-student-assignment-debug-panel";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.112-student-assignment-error-debug";
+import { reorderPracticeModeSteps } from "./practiceModeShells.js?v=1.1.112-student-assignment-error-debug";
 
 export async function processReorderPracticeModeSteps(executionState) {
   var payload = executionState.payload;
