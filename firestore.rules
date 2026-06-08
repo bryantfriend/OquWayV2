@@ -20,18 +20,12 @@ service cloud.firestore {
     }
 
     function profileIsActive() {
-      return user() != null
-        && (
-          user().data.get("status", "") == "" ||
-          user().data.get("status", "") == "active" ||
-          user().data.get("status", "") == "approved"
-        );
+      return user() != null && user().data.get("status", "") in ["", "active", "approved"];
     }
 
     function profileHasAnyRole(role, legacyRole) {
       return profileIsActive() && (
-        user().data.get("role", "") == role ||
-        user().data.get("role", "") == legacyRole ||
+        user().data.get("role", "") in [role, legacyRole] ||
         (user().data.get("roles", []) is list && (role in user().data.get("roles", []) || legacyRole in user().data.get("roles", []))) ||
         (legacyRole == "ROLE_TEACHER" && user().data.get("ROLE_TEACHER", false) == true) ||
         (legacyRole == "ROLE_ASSISTANT" && user().data.get("ROLE_ASSISTANT", false) == true) ||
@@ -52,9 +46,7 @@ service cloud.firestore {
     function isCourseEditor() { return isCourseCreator() || isAssistant(); }
     function isAccountant() { return hasAnyRole('accountant', 'ROLE_ACCOUNTANT'); }
     function isTeacher() { return hasAnyRole('teacher', 'ROLE_TEACHER') || profileHasAnyRole('teacher', 'ROLE_TEACHER'); }
-    function hasStudentToken() {
-      return request.auth != null && request.auth.token.studentId is string;
-    }
+    function hasStudentToken() { return request.auth != null && request.auth.token.studentId is string; }
     function isSameStudent(studentId) {
       return request.auth != null
         && studentId is string
@@ -66,9 +58,7 @@ service cloud.firestore {
     function hasStudentProfile() {
       return profileIsActive() && (
         isSameStudent(user().data.get("studentId", "")) ||
-        user().data.get("role", "") == "student" ||
-        user().data.get("role", "") == "Student" ||
-        user().data.get("role", "") == "ROLE_STUDENT" ||
+        user().data.get("role", "") in ["student", "Student", "ROLE_STUDENT"] ||
         (user().data.get("roles", []) is list && ("student" in user().data.get("roles", []) || "Student" in user().data.get("roles", []) || "ROLE_STUDENT" in user().data.get("roles", []))) ||
         user().data.get("ROLE_STUDENT", false) == true
       );
@@ -84,8 +74,7 @@ service cloud.firestore {
     }
 
     function linkedUser() {
-      return request.auth != null
-        && user() != null
+      return user() != null
         && user().data.get("profileUserId", "") is string
         && user().data.get("profileUserId", "") != ""
         && user().data.get("profileUserId", "") != request.auth.uid
@@ -105,85 +94,72 @@ service cloud.firestore {
 
     // --- ADMIN ROLES HELPER (FOR ACCOUNTING) ---
     function isAccountingAdmin() {
-      return request.auth != null && (
-        isSuperAdmin() ||
-        isPlatformAdmin() ||
-        isSchoolAdmin() ||
-        isAccountant()
-      );
+      return request.auth != null && (isSuperAdmin() || isPlatformAdmin() || isSchoolAdmin() || isAccountant());
     }
 
     function isExternalTaskAdminReviewer() {
-      return request.auth != null && (
-        isCourseEditor() ||
-        isSchoolAdmin() ||
-        isPlatformAdmin() ||
-        isSuperAdmin()
-      );
+      return request.auth != null && (isCourseEditor() || isSchoolAdmin() || isPlatformAdmin() || isSuperAdmin());
     }
 
     function teacherHasClass(classId) {
-      return user() != null && classId is string && (
-        (user().data.get("classIds", []) is list && classId in user().data.get("classIds", [])) ||
-        (user().data.get("assignedClassIds", []) is list && classId in user().data.get("assignedClassIds", [])) ||
-        user().data.get("classId", "") == classId ||
-        (linkedUser() != null && linkedUser().data.get("classIds", []) is list && classId in linkedUser().data.get("classIds", [])) ||
-        (linkedUser() != null && linkedUser().data.get("assignedClassIds", []) is list && classId in linkedUser().data.get("assignedClassIds", [])) ||
-        (linkedUser() != null && linkedUser().data.get("classId", "") == classId)
+      return user() != null && classId is string && classId != "" && (
+        classId == user().data.get("classId", "") ||
+        classId in user().data.get("classIds", []) ||
+        classId in user().data.get("assignedClassIds", []) ||
+        (linkedUser() != null && (
+          classId == linkedUser().data.get("classId", "") ||
+          classId in linkedUser().data.get("classIds", []) ||
+          classId in linkedUser().data.get("assignedClassIds", [])
+        ))
       );
     }
 
     function listHasTeacherClass(classIds) {
-      return classIds is list && user() != null && (
-        (user().data.get("classId", "") is string && classIds.hasAny([user().data.get("classId", "")])) ||
-        (user().data.get("classIds", []) is list && user().data.get("classIds", []).hasAny(classIds)) ||
-        (user().data.get("assignedClassIds", []) is list && user().data.get("assignedClassIds", []).hasAny(classIds)) ||
-        (linkedUser() != null && linkedUser().data.get("classId", "") is string && classIds.hasAny([linkedUser().data.get("classId", "")])) ||
-        (linkedUser() != null && linkedUser().data.get("classIds", []) is list && linkedUser().data.get("classIds", []).hasAny(classIds)) ||
-        (linkedUser() != null && linkedUser().data.get("assignedClassIds", []) is list && linkedUser().data.get("assignedClassIds", []).hasAny(classIds))
+      return classIds is list && classIds.size() > 0 && user() != null && (
+        user().data.get("classId", "") in classIds ||
+        user().data.get("classIds", []).hasAny(classIds) ||
+        user().data.get("assignedClassIds", []).hasAny(classIds) ||
+        (linkedUser() != null && (
+          linkedUser().data.get("classId", "") in classIds ||
+          linkedUser().data.get("classIds", []).hasAny(classIds) ||
+          linkedUser().data.get("assignedClassIds", []).hasAny(classIds)
+        ))
       );
     }
 
     function teacherHasLocation(locationId) {
-      return user() != null && locationId is string && (
-        (user().data.get("locationIds", []) is list && locationId in user().data.get("locationIds", [])) ||
-        (user().data.get("schoolIds", []) is list && locationId in user().data.get("schoolIds", [])) ||
-        user().data.get("locationId", "") == locationId ||
-        user().data.get("primaryLocationId", "") == locationId ||
-        user().data.get("schoolId", "") == locationId ||
-        (linkedUser() != null && linkedUser().data.get("locationIds", []) is list && locationId in linkedUser().data.get("locationIds", [])) ||
-        (linkedUser() != null && linkedUser().data.get("schoolIds", []) is list && locationId in linkedUser().data.get("schoolIds", [])) ||
-        (linkedUser() != null && linkedUser().data.get("locationId", "") == locationId) ||
-        (linkedUser() != null && linkedUser().data.get("primaryLocationId", "") == locationId) ||
-        (linkedUser() != null && linkedUser().data.get("schoolId", "") == locationId)
+      return user() != null && locationId is string && locationId != "" && (
+        locationId in [user().data.get("locationId", ""), user().data.get("primaryLocationId", ""), user().data.get("schoolId", "")] ||
+        locationId in user().data.get("locationIds", []) ||
+        locationId in user().data.get("schoolIds", []) ||
+        (linkedUser() != null && (
+          locationId in [linkedUser().data.get("locationId", ""), linkedUser().data.get("primaryLocationId", ""), linkedUser().data.get("schoolId", "")] ||
+          locationId in linkedUser().data.get("locationIds", []) ||
+          locationId in linkedUser().data.get("schoolIds", [])
+        ))
       );
     }
 
     function teacherHasProfileId(profileId) {
-      return user() != null && profileId is string && (
-        profileId == request.auth.uid ||
-        user().data.get("profileUserId", "") == profileId ||
-        user().data.get("userId", "") == profileId ||
-        user().data.get("teacherId", "") == profileId ||
-        user().data.get("authUid", "") == profileId ||
-        (linkedUser() != null && linkedUser().data.get("profileUserId", "") == profileId) ||
-        (linkedUser() != null && linkedUser().data.get("userId", "") == profileId) ||
-        (linkedUser() != null && linkedUser().data.get("teacherId", "") == profileId) ||
-        (linkedUser() != null && linkedUser().data.get("authUid", "") == profileId)
+      return user() != null && profileId is string && profileId != "" && (
+        profileId in [request.auth.uid, user().data.get("profileUserId", ""), user().data.get("userId", ""), user().data.get("teacherId", ""), user().data.get("authUid", "")] ||
+        (linkedUser() != null && profileId in [linkedUser().data.get("profileUserId", ""), linkedUser().data.get("userId", ""), linkedUser().data.get("teacherId", ""), linkedUser().data.get("authUid", "")])
       );
     }
 
     function listHasTeacherProfileId(profileIds) {
-      return profileIds is list && user() != null && (
-        profileIds.hasAny([request.auth.uid]) ||
-        (user().data.get("profileUserId", "") is string && profileIds.hasAny([user().data.get("profileUserId", "")])) ||
-        (user().data.get("userId", "") is string && profileIds.hasAny([user().data.get("userId", "")])) ||
-        (user().data.get("teacherId", "") is string && profileIds.hasAny([user().data.get("teacherId", "")])) ||
-        (user().data.get("authUid", "") is string && profileIds.hasAny([user().data.get("authUid", "")])) ||
-        (linkedUser() != null && linkedUser().data.get("profileUserId", "") is string && profileIds.hasAny([linkedUser().data.get("profileUserId", "")])) ||
-        (linkedUser() != null && linkedUser().data.get("userId", "") is string && profileIds.hasAny([linkedUser().data.get("userId", "")])) ||
-        (linkedUser() != null && linkedUser().data.get("teacherId", "") is string && profileIds.hasAny([linkedUser().data.get("teacherId", "")])) ||
-        (linkedUser() != null && linkedUser().data.get("authUid", "") is string && profileIds.hasAny([linkedUser().data.get("authUid", "")]))
+      return profileIds is list && profileIds.size() > 0 && user() != null && (
+        request.auth.uid in profileIds ||
+        user().data.get("profileUserId", "") in profileIds ||
+        user().data.get("userId", "") in profileIds ||
+        user().data.get("teacherId", "") in profileIds ||
+        user().data.get("authUid", "") in profileIds ||
+        (linkedUser() != null && (
+          linkedUser().data.get("profileUserId", "") in profileIds ||
+          linkedUser().data.get("userId", "") in profileIds ||
+          linkedUser().data.get("teacherId", "") in profileIds ||
+          linkedUser().data.get("authUid", "") in profileIds
+        ))
       );
     }
 
@@ -192,46 +168,44 @@ service cloud.firestore {
     }
 
     function isTeacherAssignedToClass(classData, classId) {
-      return (isTeacher() || isAssistant())
-        && user() != null
-        && (
-          teacherHasClass(classId) ||
-          teacherHasProfileId(classData.get("primaryTeacherId", "")) ||
-          teacherHasProfileId(classData.get("teacherId", "")) ||
-          teacherHasProfileId(classData.get("responsibleTeacherId", "")) ||
-          teacherHasProfileId(classData.get("primaryTeacherAuthUid", "")) ||
-          teacherHasProfileId(classData.get("teacherAuthUid", "")) ||
-          listHasTeacherProfileId(classData.get("assistantIds", [])) ||
-          listHasTeacherProfileId(classData.get("teacherOwnershipIds", [])) ||
-          listHasTeacherProfileId(classData.get("teacherIds", [])) ||
-          listHasTeacherProfileId(classData.get("assignedTeacherIds", []))
-        );
+      return (isTeacher() || isAssistant()) && user() != null && (
+        teacherHasClass(classId) ||
+        teacherHasProfileId(classData.get("primaryTeacherId", "")) ||
+        teacherHasProfileId(classData.get("teacherId", "")) ||
+        teacherHasProfileId(classData.get("responsibleTeacherId", "")) ||
+        teacherHasProfileId(classData.get("primaryTeacherAuthUid", "")) ||
+        teacherHasProfileId(classData.get("teacherAuthUid", "")) ||
+        listHasTeacherProfileId(classData.get("assistantIds", [])) ||
+        listHasTeacherProfileId(classData.get("teacherOwnershipIds", [])) ||
+        listHasTeacherProfileId(classData.get("teacherIds", [])) ||
+        listHasTeacherProfileId(classData.get("assignedTeacherIds", []))
+      );
     }
 
     function isTeacherAssignedToClassId(classId) {
       return (isTeacher() || isAssistant())
         && user() != null
         && classId is string
+        && classId != ""
         && exists(/databases/$(db)/documents/classes/$(classId))
         && isTeacherAssignedToClass(get(/databases/$(db)/documents/classes/$(classId)).data, classId);
     }
 
     function isTeacherAssignedToCourseAssignment(assignmentData) {
-      return (isTeacher() || isAssistant())
-        && user() != null
-        && (
-          listHasTeacherOwnershipId(assignmentData.get("teacherOwnershipIds", [])) ||
-          teacherHasProfileId(assignmentData.get("responsibleTeacherId", "")) ||
-          listHasTeacherProfileId(assignmentData.get("assistantIds", [])) ||
-          (assignmentData.get("targetType", "") == "class" && isTeacherAssignedToClassId(assignmentData.get("targetId", ""))) ||
-          isTeacherAssignedToClassId(assignmentData.get("classId", ""))
-        );
+      return (isTeacher() || isAssistant()) && user() != null && (
+        listHasTeacherOwnershipId(assignmentData.get("teacherOwnershipIds", [])) ||
+        teacherHasProfileId(assignmentData.get("responsibleTeacherId", "")) ||
+        listHasTeacherProfileId(assignmentData.get("assistantIds", [])) ||
+        (assignmentData.get("targetType", "") == "class" && isTeacherAssignedToClassId(assignmentData.get("targetId", ""))) ||
+        isTeacherAssignedToClassId(assignmentData.get("classId", ""))
+      );
     }
 
     function isTeacherAssignedToCourseAssignmentId(assignmentId) {
       return (isTeacher() || isAssistant())
         && user() != null
         && assignmentId is string
+        && assignmentId != ""
         && exists(/databases/$(db)/documents/courseAssignments/$(assignmentId))
         && isTeacherAssignedToCourseAssignment(get(/databases/$(db)/documents/courseAssignments/$(assignmentId)).data);
     }
@@ -245,14 +219,13 @@ service cloud.firestore {
     }
 
     function courseAssignmentCreateOwnershipAllowed() {
-      return isCourseAssignmentOwnershipAdmin()
-        || (
-          request.resource.data.get("responsibleTeacherId", "") == ""
-          && (!(request.resource.data.get("assistantIds", []) is list) || request.resource.data.get("assistantIds", []).size() == 0)
-          && (!(request.resource.data.get("teacherOwnershipIds", []) is list) || request.resource.data.get("teacherOwnershipIds", []).size() == 0)
-          && request.resource.data.get("responsibleTeacherName", "") == ""
-          && (!(request.resource.data.get("assistantNames", []) is list) || request.resource.data.get("assistantNames", []).size() == 0)
-        );
+      return isCourseAssignmentOwnershipAdmin() || (
+        request.resource.data.get("responsibleTeacherId", "") == "" &&
+        request.resource.data.get("assistantIds", []).size() == 0 &&
+        request.resource.data.get("teacherOwnershipIds", []).size() == 0 &&
+        request.resource.data.get("responsibleTeacherName", "") == "" &&
+        request.resource.data.get("assistantNames", []).size() == 0
+      );
     }
 
     function courseAssignmentUpdateOwnershipAllowed() {
@@ -267,9 +240,7 @@ service cloud.firestore {
     }
 
     function isStudentProfileResource() {
-      return resource.data.get("role", "") == "student" ||
-        resource.data.get("role", "") == "Student" ||
-        resource.data.get("role", "") == "ROLE_STUDENT" ||
+      return resource.data.get("role", "") in ["student", "Student", "ROLE_STUDENT"] ||
         (resource.data.get("roles", []) is list && ("student" in resource.data.get("roles", []) || "Student" in resource.data.get("roles", []) || "ROLE_STUDENT" in resource.data.get("roles", []))) ||
         resource.data.get("ROLE_STUDENT", false) == true ||
         resource.data.get("classId", null) is string ||
@@ -288,6 +259,8 @@ service cloud.firestore {
     function isUserInTeacherClass(uid) {
       return isTeacher()
         && user() != null
+        && uid is string
+        && uid != ""
         && exists(/databases/$(db)/documents/users/$(uid))
         && studentDataHasTeacherClass(get(/databases/$(db)/documents/users/$(uid)).data);
     }
@@ -305,17 +278,14 @@ service cloud.firestore {
     }
 
     function isTeacherInExternalTaskScope() {
-      return request.auth != null
-        && (isTeacher() || isAssistant())
-        && user() != null
-        && (
-          listHasTeacherOwnershipId(resource.data.get("teacherOwnershipIds", [])) ||
-          isTeacherAssignedToCourseAssignmentId(resource.data.get("assignmentId", "")) ||
-          isTeacherAssignedToCourseAssignmentId(resource.data.get("courseAssignmentId", "")) ||
-          isTeacherAssignedToClassId(resource.data.get("classId", "")) ||
-          teacherHasClass(resource.data.get("classId", "")) ||
-          teacherHasLocation(resource.data.get("locationId", ""))
-        );
+      return request.auth != null && (isTeacher() || isAssistant()) && user() != null && (
+        listHasTeacherOwnershipId(resource.data.get("teacherOwnershipIds", [])) ||
+        isTeacherAssignedToCourseAssignmentId(resource.data.get("assignmentId", "")) ||
+        isTeacherAssignedToCourseAssignmentId(resource.data.get("courseAssignmentId", "")) ||
+        isTeacherAssignedToClassId(resource.data.get("classId", "")) ||
+        teacherHasClass(resource.data.get("classId", "")) ||
+        teacherHasLocation(resource.data.get("locationId", ""))
+      );
     }
 
     // 👤 USERS
