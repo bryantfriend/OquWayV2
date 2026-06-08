@@ -1,13 +1,13 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth, collection, db, deleteDoc, deleteObject, doc, functions, getDoc, getDocs, getDownloadURL, httpsCallable, ref, serverTimestamp, setDoc, storage, uploadBytes } from "../../../../../packages/firebase/index.js?v=1.1.124-location-icon-upload";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.124-location-icon-upload";
-import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.124-location-icon-upload";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.124-location-icon-upload";
-import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.124-location-icon-upload";
-import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.124-location-icon-upload";
+import { auth, collection, db, deleteDoc, deleteObject, doc, functions, getDoc, getDocs, getDownloadURL, httpsCallable, ref, serverTimestamp, setDoc, storage, uploadBytes } from "../../../../../packages/firebase/index.js?v=1.1.126-users-search-modal";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.126-users-search-modal";
+import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.126-users-search-modal";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.126-users-search-modal";
+import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.126-users-search-modal";
+import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.126-users-search-modal";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.124-location-icon-upload";
+var appVersion = "1.1.126-users-search-modal";
 var adminCallableFunctions = functions;
 var state = {
   isLoading: true,
@@ -61,6 +61,7 @@ var state = {
   userForm: createUserForm(),
   activeUserId: "",
   userCreateOpen: false,
+  userCreateError: "",
   userEditModal: createUserEditModalState(),
   classForm: createClassForm(),
   studentForm: createStudentForm(),
@@ -135,6 +136,8 @@ if (appElement) {
   appElement.addEventListener("input", handleInput);
   appElement.addEventListener("change", handleInput);
 }
+
+document.addEventListener("keydown", handleKeyDown);
 
 onAuthStateChanged(auth, function (user) {
   initializeDashboard(user);
@@ -517,6 +520,7 @@ function buildDashboardView() {
   html += '</main>';
   html += buildResetModal();
   html += buildClassCommandCenterModal();
+  html += buildUserCreateModal();
   html += buildUserCommandCenterModal();
   html += buildUserEditModal();
   html += buildCourseCommandCenterModal();
@@ -1301,13 +1305,12 @@ function buildUsersTab() {
   return '<section class="sa-stack sa-user-page" aria-busy="' + (state.isRefreshing ? "true" : "false") + '">'
     + buildUsersHeader()
     + buildUserRoleCards()
-    + buildUserCreatePanel()
-    + '<article class="sa-card"><div class="sa-section-title"><div><h2>' + escapeHtml(readActiveUserRoleLabel()) + '</h2><p>Single source of truth for identity, role membership, class scope, login status, and recovery actions.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data"' + disabled(isBusy()) + '>' + buildButtonContent("Refresh", "refresh-data") + '</button></div>' + buildUserFilters() + buildUserRows() + '</article>'
+    + '<article class="sa-card"><div class="sa-section-title"><div><h2>' + escapeHtml(readActiveUserRoleLabel()) + '</h2><p>Single source of truth for identity, role membership, class scope, login status, and recovery actions.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data"' + disabled(isBusy()) + '>' + buildButtonContent("Refresh", "refresh-data") + '</button></div>' + buildUserFilters() + '<div data-user-results="true">' + buildUserRows() + '</div></article>'
     + '</section>';
 }
 
 function buildUsersHeader() {
-  return '<div class="sa-page-head"><div><p class="sa-eyebrow">Identity & Access</p><h2>Users</h2><p>Unified management for students, teachers, parents, admins, and super admins.</p></div><button type="button" class="sa-btn" data-action="toggle-create-user"' + disabled(isBusy()) + '>' + (state.userCreateOpen ? "Close Create" : "Create User Profile") + '</button></div>';
+  return '<div class="sa-page-head"><div><p class="sa-eyebrow">Identity & Access</p><h2>Users</h2><p>Unified management for students, teachers, parents, admins, and super admins.</p></div><button type="button" class="sa-btn" data-action="toggle-create-user"' + disabled(isBusy()) + '>Create User Profile</button></div>';
 }
 
 function buildUserRoleCards() {
@@ -1386,12 +1389,26 @@ function readActiveUserRoleLabel() {
   return card && card.key ? card.label : "All Users";
 }
 
-function buildUserCreatePanel() {
+function buildUserCreateModal() {
   if (!state.userCreateOpen) {
     return "";
   }
 
-  return '<article class="sa-card"><div class="sa-section-title"><div><h2>Create User Profile</h2><p>This creates a Firestore profile only. Firebase Auth accounts are not created from this screen.</p></div></div>' + buildUserForm("new", state.userForm, true) + '</article>';
+  var html = '<div class="sa-modal-backdrop sa-user-create-backdrop" data-user-create-backdrop="true"><section class="sa-modal sa-user-edit-modal sa-user-create-modal" role="dialog" aria-modal="true" aria-label="Create User Profile">';
+
+  html += '<div class="sa-user-edit-hero">';
+  html += '<div class="sa-user-edit-identity"><div class="sa-avatar sa-avatar-fallback">+</div><div><p class="sa-eyebrow">Identity & Access</p><h2>Create User Profile</h2><div class="sa-user-edit-meta"><span>This creates a Firestore profile only.</span></div></div></div>';
+  html += '<button type="button" class="sa-modal-close" data-action="close-user-create-modal" aria-label="Close create user profile">&times;</button>';
+  html += '</div>';
+
+  if (state.userCreateError) {
+    html += '<div class="sa-message sa-message-error">' + escapeHtml(state.userCreateError) + '</div>';
+  }
+
+  html += '<div class="sa-user-edit-body">' + buildUserForm("new", state.userForm, true) + '</div>';
+  html += '</section></div>';
+
+  return html;
 }
 
 function buildUserFilters() {
@@ -3855,6 +3872,11 @@ function handleClick(event) {
   var classStaffPickerButton = event.target.closest("[data-class-staff-picker-id]");
   var assignmentStaffPickerButton = event.target.closest("[data-assignment-staff-picker-id]");
 
+  if (event.target && event.target.getAttribute("data-user-create-backdrop")) {
+    closeUserCreateModal();
+    return;
+  }
+
   if (tabButton) {
     var requestedTab = tabButton.getAttribute("data-tab");
 
@@ -3895,6 +3917,16 @@ function handleClick(event) {
     }
 
     handleAction(actionButton.getAttribute("data-action"), actionButton.getAttribute("data-id"));
+  }
+}
+
+function handleKeyDown(event) {
+  if (!event || event.key !== "Escape") {
+    return;
+  }
+
+  if (state.userCreateOpen) {
+    closeUserCreateModal();
   }
 }
 
@@ -3980,6 +4012,11 @@ function handleInput(event) {
   if (target.getAttribute("data-user-filter")) {
     if (target.getAttribute("data-user-filter") === "role") {
       applyUserRoleFilter(target.value, false);
+      return;
+    }
+
+    if (target.getAttribute("data-user-filter") === "searchText") {
+      updateUserSearchFilter(target.value);
       return;
     }
 
@@ -4432,6 +4469,49 @@ function navigateFromLocationCommandCenter(target) {
   }
 }
 
+function openUserCreateModal() {
+  setState({
+    userCreateOpen: true,
+    activeUserId: "",
+    userCreateError: "",
+    userCommandCenter: createUserCommandCenterState(),
+    userEditModal: createUserEditModalState(),
+    message: ""
+  });
+}
+
+function closeUserCreateModal() {
+  if (isBusy()) {
+    return;
+  }
+
+  setState({
+    userCreateOpen: false,
+    userCreateError: "",
+    message: ""
+  });
+}
+
+function updateUserSearchFilter(value) {
+  state.userFilters = Object.assign({}, state.userFilters, {
+    searchText: value
+  });
+  state.activeUserId = "";
+  state.userEditModal = createUserEditModalState();
+  renderUserResultsOnly();
+}
+
+function renderUserResultsOnly() {
+  var resultsElement = appElement ? appElement.querySelector('[data-user-results="true"]') : null;
+
+  if (!resultsElement || state.activeTab !== "users") {
+    render();
+    return;
+  }
+
+  resultsElement.innerHTML = buildUserRows();
+}
+
 async function openClassCommandCenter(classId) {
   var classRecord = findById(state.classes, classId);
 
@@ -4721,6 +4801,7 @@ function updateFormValue(target) {
     state.studentForm[field] = value;
   } else if (kind === "user" && id === "new") {
     setUserFormValue(state.userForm, field, value);
+    state.userCreateError = "";
     if (shouldRerenderUserFormField(field)) {
       render();
     }
@@ -5136,7 +5217,9 @@ async function handleAction(action, id) {
   } else if (action === "restore-location") {
     await archiveLocation(id, false);
   } else if (action === "toggle-create-user") {
-    setState({ userCreateOpen: !state.userCreateOpen, activeUserId: "", message: "" });
+    openUserCreateModal();
+  } else if (action === "close-user-create-modal") {
+    closeUserCreateModal();
   } else if (action === "edit-user") {
     await openUserCommandCenter(id);
   } else if (action === "close-user-command-center") {
@@ -6093,7 +6176,7 @@ async function saveUserProfile(mode, userId) {
   }
 
   try {
-    setState({ isSaving: true, pendingAction: actionKey, userEditModal: clearUserEditModalError(), message: mode === "create" ? "Creating profile..." : "Saving user...", messageType: "info" });
+    setState({ isSaving: true, pendingAction: actionKey, userCreateError: "", userEditModal: clearUserEditModalError(), message: mode === "create" ? "Creating profile..." : "Saving user...", messageType: "info" });
     var profileRef = mode === "create" && !payload.userId ? doc(collection(db, "users")) : doc(db, "users", payload.userId || userId);
     var record = buildUserProfileRecord(payload, mode === "create");
 
@@ -6102,6 +6185,7 @@ async function saveUserProfile(mode, userId) {
     if (mode === "create") {
       state.userForm = createUserForm();
       state.userCreateOpen = false;
+      state.userCreateError = "";
     }
 
     state.activeUserId = "";
@@ -6120,6 +6204,16 @@ function setUserSaveError(message, mode) {
   if (mode === "update" && state.userEditModal && state.userEditModal.isOpen) {
     setState({
       userEditModal: Object.assign({}, state.userEditModal, { error: message }),
+      message: "",
+      messageType: "error"
+    });
+    return;
+  }
+
+  if (mode === "create") {
+    setState({
+      userCreateError: message,
+      userCreateOpen: true,
       message: "",
       messageType: "error"
     });
@@ -8346,7 +8440,7 @@ function readFilteredUsersForFilters(filters) {
       continue;
     }
 
-    var searchable = [user.displayName, user.email, user.phone, user.id].join(" ").toLowerCase();
+    var searchable = [user.displayName, user.name, user.email, user.phone, user.id].join(" ").toLowerCase();
     var matchesSearch = !query || searchable.indexOf(query) !== -1;
     var matchesRole = userMatchesRoleFilter(user, safeFilters.role);
     var matchesLocation = !safeFilters.locationId || user.locationIds.indexOf(safeFilters.locationId) !== -1 || user.primaryLocationId === safeFilters.locationId;

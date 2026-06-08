@@ -1,8 +1,8 @@
-import { appState, updateAppState } from "./appState.js?v=1.1.124-location-icon-upload";
-import { registerIntentDefinitions, runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.124-location-icon-upload";
-import { createClassesIntentRegistrar, createDashboardIntentRegistrar, createUsersIntentRegistrar } from "../../../../../packages/icf/admin/intents/index.js?v=1.1.124-location-icon-upload";
-import { createUser, deleteUser, disableUser, getUser, getUsers, sendPasswordReset, updateUser } from "../users/usersService.js?v=1.1.124-location-icon-upload";
-import { resetFruitPassword } from "../users/fruitPasswordService.js?v=1.1.124-location-icon-upload";
+import { appState, updateAppState } from "./appState.js?v=1.1.126-users-search-modal";
+import { registerIntentDefinitions, runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.126-users-search-modal";
+import { createClassesIntentRegistrar, createDashboardIntentRegistrar, createUsersIntentRegistrar } from "../../../../../packages/icf/admin/intents/index.js?v=1.1.126-users-search-modal";
+import { createUser, deleteUser, disableUser, getUser, getUsers, sendPasswordReset, updateUser } from "../users/usersService.js?v=1.1.126-users-search-modal";
+import { resetFruitPassword } from "../users/fruitPasswordService.js?v=1.1.126-users-search-modal";
 
 export async function initApp() {
   registerIntentDefinitions([
@@ -25,8 +25,7 @@ export async function initApp() {
     runIntent: runAdminIntent
   };
 
-  await import("./legacyDashboard.js?v=1.1.124-location-icon-upload");
+  await import("./legacyDashboard.js?v=1.1.126-users-search-modal");
   updateAppState({ legacyDashboardLoaded: true });
 }
-
 
