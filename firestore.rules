@@ -164,54 +164,54 @@ service cloud.firestore {
     function teacherClassIds() {
       return user() != null
         ? ((user().data.classIds is list ? user().data.classIds : [])
-          .concat(user().data.assignedClassIds is list ? user().data.assignedClassIds : [])
-          .concat(user().data.classId is string ? [user().data.classId] : [])
-          .concat(linkedUser() != null && linkedUser().data.classIds is list ? linkedUser().data.classIds : [])
-          .concat(linkedUser() != null && linkedUser().data.assignedClassIds is list ? linkedUser().data.assignedClassIds : [])
-          .concat(linkedUser() != null && linkedUser().data.classId is string ? [linkedUser().data.classId] : []))
+          .concat((user().data.assignedClassIds is list) ? user().data.assignedClassIds : [])
+          .concat((user().data.classId is string) ? [user().data.classId] : [])
+          .concat((linkedUser() != null && linkedUser().data.classIds is list) ? linkedUser().data.classIds : [])
+          .concat((linkedUser() != null && linkedUser().data.assignedClassIds is list) ? linkedUser().data.assignedClassIds : [])
+          .concat((linkedUser() != null && linkedUser().data.classId is string) ? [linkedUser().data.classId] : []))
         : [];
     }
 
     function teacherLocationIds() {
       return user() != null
         ? ((user().data.locationIds is list ? user().data.locationIds : [])
-          .concat(user().data.schoolIds is list ? user().data.schoolIds : [])
-          .concat(user().data.locationId is string ? [user().data.locationId] : [])
-          .concat(user().data.primaryLocationId is string ? [user().data.primaryLocationId] : [])
-          .concat(user().data.schoolId is string ? [user().data.schoolId] : [])
-          .concat(linkedUser() != null && linkedUser().data.locationIds is list ? linkedUser().data.locationIds : [])
-          .concat(linkedUser() != null && linkedUser().data.schoolIds is list ? linkedUser().data.schoolIds : [])
-          .concat(linkedUser() != null && linkedUser().data.locationId is string ? [linkedUser().data.locationId] : [])
-          .concat(linkedUser() != null && linkedUser().data.primaryLocationId is string ? [linkedUser().data.primaryLocationId] : [])
-          .concat(linkedUser() != null && linkedUser().data.schoolId is string ? [linkedUser().data.schoolId] : []))
+          .concat((user().data.schoolIds is list) ? user().data.schoolIds : [])
+          .concat((user().data.locationId is string) ? [user().data.locationId] : [])
+          .concat((user().data.primaryLocationId is string) ? [user().data.primaryLocationId] : [])
+          .concat((user().data.schoolId is string) ? [user().data.schoolId] : [])
+          .concat((linkedUser() != null && linkedUser().data.locationIds is list) ? linkedUser().data.locationIds : [])
+          .concat((linkedUser() != null && linkedUser().data.schoolIds is list) ? linkedUser().data.schoolIds : [])
+          .concat((linkedUser() != null && linkedUser().data.locationId is string) ? [linkedUser().data.locationId] : [])
+          .concat((linkedUser() != null && linkedUser().data.primaryLocationId is string) ? [linkedUser().data.primaryLocationId] : [])
+          .concat((linkedUser() != null && linkedUser().data.schoolId is string) ? [linkedUser().data.schoolId] : []))
         : [];
     }
 
     function teacherProfileIds() {
       return user() != null
         ? ([request.auth.uid]
-          .concat(user().data.profileUserId is string ? [user().data.profileUserId] : [])
-          .concat(user().data.userId is string ? [user().data.userId] : [])
-          .concat(user().data.teacherId is string ? [user().data.teacherId] : [])
-          .concat(user().data.authUid is string ? [user().data.authUid] : [])
-          .concat(linkedUser() != null && linkedUser().data.profileUserId is string ? [linkedUser().data.profileUserId] : [])
-          .concat(linkedUser() != null && linkedUser().data.userId is string ? [linkedUser().data.userId] : [])
-          .concat(linkedUser() != null && linkedUser().data.teacherId is string ? [linkedUser().data.teacherId] : [])
-          .concat(linkedUser() != null && linkedUser().data.authUid is string ? [linkedUser().data.authUid] : []))
+          .concat((user().data.profileUserId is string) ? [user().data.profileUserId] : [])
+          .concat((user().data.userId is string) ? [user().data.userId] : [])
+          .concat((user().data.teacherId is string) ? [user().data.teacherId] : [])
+          .concat((user().data.authUid is string) ? [user().data.authUid] : [])
+          .concat((linkedUser() != null && linkedUser().data.profileUserId is string) ? [linkedUser().data.profileUserId] : [])
+          .concat((linkedUser() != null && linkedUser().data.userId is string) ? [linkedUser().data.userId] : [])
+          .concat((linkedUser() != null && linkedUser().data.teacherId is string) ? [linkedUser().data.teacherId] : [])
+          .concat((linkedUser() != null && linkedUser().data.authUid is string) ? [linkedUser().data.authUid] : []))
         : [];
     }
 
     function teacherOwnershipIds() {
       return user() != null
         ? ([request.auth.uid]
-          .concat(user().data.profileUserId is string ? [user().data.profileUserId] : [])
-          .concat(user().data.userId is string ? [user().data.userId] : [])
-          .concat(user().data.teacherId is string ? [user().data.teacherId] : [])
-          .concat(user().data.authUid is string ? [user().data.authUid] : [])
-          .concat(linkedUser() != null && linkedUser().data.profileUserId is string ? [linkedUser().data.profileUserId] : [])
-          .concat(linkedUser() != null && linkedUser().data.userId is string ? [linkedUser().data.userId] : [])
-          .concat(linkedUser() != null && linkedUser().data.teacherId is string ? [linkedUser().data.teacherId] : [])
-          .concat(linkedUser() != null && linkedUser().data.authUid is string ? [linkedUser().data.authUid] : []))
+          .concat((user().data.profileUserId is string) ? [user().data.profileUserId] : [])
+          .concat((user().data.userId is string) ? [user().data.userId] : [])
+          .concat((user().data.teacherId is string) ? [user().data.teacherId] : [])
+          .concat((user().data.authUid is string) ? [user().data.authUid] : [])
+          .concat((linkedUser() != null && linkedUser().data.profileUserId is string) ? [linkedUser().data.profileUserId] : [])
+          .concat((linkedUser() != null && linkedUser().data.userId is string) ? [linkedUser().data.userId] : [])
+          .concat((linkedUser() != null && linkedUser().data.teacherId is string) ? [linkedUser().data.teacherId] : [])
+          .concat((linkedUser() != null && linkedUser().data.authUid is string) ? [linkedUser().data.authUid] : []))
         : (request.auth != null ? [request.auth.uid] : []);
     }
 
