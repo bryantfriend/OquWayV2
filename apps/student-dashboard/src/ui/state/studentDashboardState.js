@@ -59,6 +59,7 @@ function createInitialState() {
       social: 0
     },
     progressSummary: null,
+    courseFocusActive: false,
     selectedCourseId: null,
     selectedModuleId: null,
     selectedSessionId: null,

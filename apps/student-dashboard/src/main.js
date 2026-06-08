@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.119-external-task-e2e";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.121-student-dashboard-open-clean";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.121-student-dashboard-open-clean";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.130-course-focus-mode";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.130-course-focus-mode";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.130-course-focus-mode";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,16 +13,16 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.121-student-dashboard-open-clean";
+} from "../../../packages/domain/progress/index.js?v=1.1.130-course-focus-mode";
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.121-student-dashboard-open-clean";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.121-student-dashboard-open-clean";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.121-student-dashboard-open-clean";
+} from "../../../packages/ui/index.js?v=1.1.130-course-focus-mode";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.130-course-focus-mode";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.130-course-focus-mode";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -182,6 +182,8 @@ function handleAppClick(event) {
   var switchStudentButton = event.target.closest(".student-switch-student-btn");
   var continueButton = event.target.closest(".student-continue-learning-btn");
   var courseActionButton = event.target.closest(".student-course-open-btn");
+  var courseFocusContinueButton = event.target.closest(".course-focus-continue-btn");
+  var courseFocusRetryButton = event.target.closest(".course-focus-retry-btn");
   var bonusButton = event.target.closest(".student-bonus-claim-btn");
 
   if (switchStudentButton) {
@@ -204,13 +206,23 @@ function handleAppClick(event) {
     return;
   }
 
+  if (courseFocusContinueButton) {
+    continueCourseFocus();
+    return;
+  }
+
+  if (courseFocusRetryButton) {
+    openCourseFocusMode(courseFocusRetryButton.getAttribute("data-course-id"));
+    return;
+  }
+
   if (courseActionButton) {
-    openStudentCourse(courseActionButton.getAttribute("data-course-id"));
+    openCourseFocusMode(courseActionButton.getAttribute("data-course-id"));
     return;
   }
 
   if (courseButton) {
-    openStudentCourse(courseButton.getAttribute("data-course-id"));
+    openCourseFocusMode(courseButton.getAttribute("data-course-id"));
     return;
   }
 
@@ -235,12 +247,7 @@ function handleAppClick(event) {
   }
 
   if (backButton) {
-    studentDashboardStore.setState({
-      playerMode: false,
-      currentStepIndex: 0,
-      practiceModeFinished: false,
-      statusMessage: ""
-    });
+    closeCourseFocusMode();
     return;
   }
 
@@ -269,7 +276,7 @@ function selectCourse(courseId) {
   });
 }
 
-async function openStudentCourse(courseId) {
+async function openCourseFocusMode(courseId) {
   var openResult = null;
   var target = null;
 
@@ -289,22 +296,16 @@ async function openStudentCourse(courseId) {
   target = openResult.openTarget || {};
   applyOpenedCourseResult(openResult);
 
-  if (openResult.hasActivity === true && target.moduleId && target.sessionId) {
-    await openPracticeMode(
-      openResult.course.id,
-      target.moduleId,
-      target.sessionId,
-      target.practiceModeKey || "beforeClass"
-    );
-    return;
-  }
-
   studentDashboardStore.setState({
+    courseFocusActive: true,
     isCourseOpening: false,
     playerMode: false,
+    selectedModuleId: target.moduleId || readFirstPlayableModuleId(openResult.course) || readFirstId(openResult.course.modules || []),
+    selectedSessionId: target.sessionId || null,
+    selectedPracticeModeKey: target.practiceModeKey || "beforeClass",
     statusMessage: openResult.emptyCourseState && openResult.emptyCourseState.message
       ? openResult.emptyCourseState.message
-      : "Course opened. Choose an available module to begin."
+      : ""
   });
 }
 
@@ -318,11 +319,42 @@ function applyOpenedCourseResult(openResult) {
     selectedModuleId: target.moduleId || null,
     selectedSessionId: target.sessionId || null,
     selectedPracticeModeKey: target.practiceModeKey || "beforeClass",
+    courseFocusActive: true,
     currentStepIndex: 0,
     practiceModeFinished: false,
     error: null,
     statusMessage: ""
   });
+}
+
+function closeCourseFocusMode() {
+  studentDashboardStore.setState({
+    courseFocusActive: false,
+    playerMode: false,
+    currentStepIndex: 0,
+    practiceModeFinished: false,
+    statusMessage: ""
+  });
+}
+
+async function continueCourseFocus() {
+  var state = studentDashboardStore.getState();
+  var course = readSelectedCourse(state);
+  var nextAction = getNextCourseAction(course);
+
+  if (!nextAction || !nextAction.isPlayable) {
+    studentDashboardStore.setState({
+      statusMessage: nextAction && nextAction.message ? nextAction.message : "This course does not have a playable activity yet."
+    });
+    return;
+  }
+
+  await openPracticeMode(
+    nextAction.courseId,
+    nextAction.moduleId,
+    nextAction.sessionId,
+    nextAction.practiceModeKey
+  );
 }
 
 async function continueLearning() {
@@ -333,13 +365,7 @@ async function continueLearning() {
     return;
   }
 
-  studentDashboardStore.setState({
-    selectedCourseId: recommendation.courseId,
-    selectedModuleId: recommendation.moduleId || null,
-    selectedSessionId: recommendation.sessionId || null,
-    selectedPracticeModeKey: "beforeClass",
-    statusMessage: ""
-  });
+  await openCourseFocusMode(recommendation.courseId);
 }
 
 function selectModule(moduleId) {
@@ -545,6 +571,10 @@ function buildDashboardView(state) {
     return html;
   }
 
+  if (state.courseFocusActive) {
+    return buildCourseFocusView(state);
+  }
+
   html += '<section class="student-dashboard-v2-grid">';
   html += '<div class="student-dashboard-main-stack">';
   html += buildContinueLearningCard(state.continueLearning, selectedCourse);
@@ -552,7 +582,7 @@ function buildDashboardView(state) {
   html += buildCourseCards(courses, state.selectedCourseId);
   html += '</section>';
   html += '<section class="student-panel student-main-panel">';
-  html += buildCourseDetail(selectedCourse, state);
+  html += buildDashboardCourseOverview(courses, selectedCourse);
   html += '</section>';
   html += '</div>';
   html += '<aside class="student-dashboard-side-stack">';
@@ -605,6 +635,24 @@ function buildCourseCards(courses, selectedCourseId) {
   return html;
 }
 
+function buildDashboardCourseOverview(courses, selectedCourse) {
+  var safeCourses = Array.isArray(courses) ? courses : [];
+  var course = selectedCourse || (safeCourses.length > 0 ? safeCourses[0] : null);
+  var progressPercent = course ? readCourseProgressPercent(course) : 0;
+
+  if (!course) {
+    return createEmptyState("Choose a course", "Assigned courses will appear here when your teacher adds them.", {
+      className: "student-empty"
+    });
+  }
+
+  return '<div class="student-course-heading student-dashboard-course-overview">'
+    + '<div><p class="student-eyebrow">Ready to learn</p><h2>' + escapeHtml(readLocalizedText(course.title, "Untitled Course")) + '</h2><p>Open a course to focus on one learning path, see what is next, and choose a module.</p><div class="student-course-detail-meta"><span>' + safeCourses.length + ' assigned course' + (safeCourses.length === 1 ? "" : "s") + '</span><span>' + progressPercent + '% on selected course</span></div></div>'
+    + '<div class="student-big-progress">' + progressPercent + '%</div>'
+    + '<button type="button" class="student-course-open-btn" data-course-id="' + escapeHtml(course.id) + '">Open Course Focus</button>'
+    + '</div>';
+}
+
 function buildContinueLearningCard(continueLearning, selectedCourse) {
   var recommendation = continueLearning || {};
   var courseTitle = recommendation.courseTitle || (selectedCourse ? readLocalizedText(selectedCourse.title, "Untitled Course") : "Start your first course");
@@ -616,6 +664,306 @@ function buildContinueLearningCard(continueLearning, selectedCourse) {
     + '<div class="student-continue-copy"><p class="student-eyebrow">Continue Learning</p><h2>' + escapeHtml(courseTitle) + '</h2><p>' + escapeHtml(moduleTitle) + '</p><small>' + escapeHtml(readLastOpenedLabel(recommendation.lastOpenedAt)) + '</small><div class="student-progress-bar"><span style="width:' + progressPercent + '%"></span></div></div>'
     + '<div class="student-continue-action"><strong>' + progressPercent + '%</strong><button type="button" class="student-continue-learning-btn">' + escapeHtml(actionLabel) + '</button></div>'
     + '</section>';
+}
+
+function buildCourseFocusView(state) {
+  var course = readSelectedCourse(state);
+  var modules = course && Array.isArray(course.modules) ? course.modules : [];
+  var progress = readCourseFocusProgress(course);
+  var nextAction = getNextCourseAction(course);
+  var selectedModule = readSelectedFocusModule(state, course, nextAction);
+  var html = "";
+
+  html += '<main class="course-focus-shell course-focus-active">';
+
+  if (state.error) {
+    html += createErrorState(state.error, "", {
+      className: "student-error",
+      titleTag: "span"
+    });
+  }
+
+  if (state.statusMessage) {
+    html += '<div class="student-status">' + escapeHtml(state.statusMessage) + '</div>';
+  }
+
+  if (!course) {
+    html += '<section class="course-focus-empty student-empty"><h2>Course unavailable</h2><p>We could not find this course in your assigned course list.</p><button type="button" class="student-back-dashboard-btn">Back to Dashboard</button></section>';
+    html += '</main>';
+    return html;
+  }
+
+  html += renderCourseRibbon(course, progress, nextAction);
+  html += '<section class="course-focus-main">';
+  html += '<div class="course-focus-primary">';
+  html += renderCourseHero(course, progress);
+  html += renderNextUpCard(nextAction);
+  html += renderSelectedModulePanel(course, selectedModule, state);
+  html += '</div>';
+  html += '<aside class="course-focus-roadmap-panel">';
+  html += renderModuleRoadmap(modules, state.selectedModuleId);
+  html += '</aside>';
+  html += '</section>';
+  html += '</main>';
+
+  return html;
+}
+
+function renderCourseRibbon(course, progress, nextAction) {
+  var continueDisabled = !nextAction || !nextAction.isPlayable;
+
+  return '<section class="course-focus-ribbon">'
+    + '<button type="button" class="student-back-dashboard-btn course-focus-back-btn">Back to Dashboard</button>'
+    + '<div class="course-focus-ribbon-title"><span>Course Focus Mode</span><strong>' + escapeHtml(readLocalizedText(course.title, "Untitled Course")) + '</strong></div>'
+    + '<div class="course-focus-ribbon-progress"><span>' + progress.percent + '% Complete</span><small>' + progress.completedModules + ' / ' + progress.totalModules + ' modules</small></div>'
+    + '<button type="button" class="course-focus-continue-btn"' + disabled(continueDisabled) + '>' + escapeHtml(nextAction && nextAction.buttonLabel ? nextAction.buttonLabel : "Continue") + '</button>'
+    + '</section>';
+}
+
+function renderCourseHero(course, progress) {
+  var status = readCourseLearningStatus(course);
+
+  return '<section class="course-focus-hero">'
+    + '<div><p class="student-eyebrow">Selected Course</p><h1>' + escapeHtml(readLocalizedText(course.title, "Untitled Course")) + '</h1><p>' + escapeHtml(readLocalizedText(course.description, "Practice activities are ready when your teacher assigns sessions.")) + '</p></div>'
+    + '<div class="course-focus-hero-progress"><strong>' + progress.percent + '%</strong><span>' + escapeHtml(readLearningStatusLabel(status)) + '</span></div>'
+    + '<div class="course-focus-stats">'
+    + '<span><strong>' + progress.completedModules + '</strong> complete modules</span>'
+    + '<span><strong>' + progress.totalModules + '</strong> total modules</span>'
+    + '<span><strong>' + progress.completedSteps + '</strong> / ' + progress.totalSteps + ' steps</span>'
+    + '</div>'
+    + '<div class="student-progress-bar"><span style="width:' + progress.percent + '%"></span></div>'
+    + '</section>';
+}
+
+function renderNextUpCard(nextAction) {
+  if (!nextAction || !nextAction.isPlayable) {
+    return '<section class="course-next-up-card course-next-up-empty"><p class="student-eyebrow">Next Up</p><h2>Not Ready Yet</h2><p>' + escapeHtml(nextAction && nextAction.message ? nextAction.message : "This course does not have a playable activity yet.") + '</p></section>';
+  }
+
+  return '<section class="course-next-up-card">'
+    + '<div><p class="student-eyebrow">Next Up</p><h2>' + escapeHtml(nextAction.moduleTitle) + '</h2><p>' + escapeHtml(nextAction.sessionTitle + " - " + nextAction.practiceModeTitle) + '</p><small>' + escapeHtml(nextAction.reason) + '</small></div>'
+    + '<button type="button" class="course-focus-continue-btn">' + escapeHtml(nextAction.buttonLabel) + '</button>'
+    + '</section>';
+}
+
+function renderModuleRoadmap(modules, selectedModuleId) {
+  var safeModules = Array.isArray(modules) ? modules : [];
+  var html = '<section class="course-roadmap"><div class="student-section-head"><div><p class="student-eyebrow">Roadmap</p><h2>Modules</h2></div><span>' + safeModules.length + '</span></div>';
+  var moduleIndex = 0;
+
+  if (safeModules.length === 0) {
+    return html + '<div class="course-roadmap-empty">This course is not ready yet.</div></section>';
+  }
+
+  while (moduleIndex < safeModules.length) {
+    html += renderModuleRoadmapItem(safeModules[moduleIndex], selectedModuleId);
+    moduleIndex = moduleIndex + 1;
+  }
+
+  html += '</section>';
+  return html;
+}
+
+function renderModuleRoadmapItem(module, selectedModuleId) {
+  var readiness = getModuleReadiness(module);
+  var activeClass = module && module.id === selectedModuleId ? " course-roadmap-item-active" : "";
+  var progressPercent = readModuleProgressPercent(module);
+
+  return '<button type="button" class="course-roadmap-item' + activeClass + '" data-module-id="' + escapeHtml(module.id) + '" aria-label="Open module ' + escapeHtml(readLocalizedText(module.title, "Module")) + '">'
+    + '<span class="course-roadmap-status course-roadmap-status-' + escapeHtml(readiness.status) + '">' + escapeHtml(readiness.label) + '</span>'
+    + '<strong>' + escapeHtml(readLocalizedText(module.title, "Module")) + '</strong>'
+    + '<small>' + readiness.completedSteps + ' / ' + readiness.totalSteps + ' steps - ' + progressPercent + '%</small>'
+    + '</button>';
+}
+
+function renderSelectedModulePanel(course, module, state) {
+  var readiness = getModuleReadiness(module);
+  var html = '<section class="course-module-panel">';
+
+  if (!module) {
+    html += '<div class="student-empty course-focus-empty"><h2>This course is not ready yet</h2><p>Your teacher has not added modules to this course yet.</p></div></section>';
+    return html;
+  }
+
+  html += '<div class="student-section-head"><div><p class="student-eyebrow">Selected Module</p><h2>' + escapeHtml(readLocalizedText(module.title, "Module")) + '</h2></div><span>' + escapeHtml(readiness.label) + '</span></div>';
+  html += '<p class="course-module-summary">' + escapeHtml(readLocalizedText(module.description, "Choose an available practice mode when your teacher has added activities.")) + '</p>';
+  html += '<div class="student-progress-bar"><span style="width:' + readModuleProgressPercent(module) + '%"></span></div>';
+
+  if (readiness.totalSteps === 0) {
+    html += '<div class="student-session-empty">This course has modules, but no playable activities yet.</div>';
+    html += '</section>';
+    return html;
+  }
+
+  html += buildSessions(course, module, state);
+  html += '</section>';
+  return html;
+}
+
+function getNextCourseAction(course) {
+  var modules = course && Array.isArray(course.modules) ? course.modules : [];
+  var playableFallback = null;
+  var moduleIndex = 0;
+
+  if (!course) {
+    return {
+      isPlayable: false,
+      message: "This course could not be loaded."
+    };
+  }
+
+  if (modules.length === 0) {
+    return {
+      isPlayable: false,
+      message: "This course is not ready yet. Your teacher has not added modules."
+    };
+  }
+
+  while (moduleIndex < modules.length) {
+    var action = findNextActionInModule(course, modules[moduleIndex], false);
+
+    if (action) {
+      return action;
+    }
+
+    if (!playableFallback) {
+      playableFallback = findNextActionInModule(course, modules[moduleIndex], true);
+    }
+
+    moduleIndex = moduleIndex + 1;
+  }
+
+  if (playableFallback) {
+    return playableFallback;
+  }
+
+  return {
+    isPlayable: false,
+    message: "This course has modules, but no playable activities yet."
+  };
+}
+
+function findNextActionInModule(course, module, allowComplete) {
+  var sessions = module && Array.isArray(module.sessions) ? module.sessions : [];
+  var keys = createPracticeModeKeys();
+  var sessionIndex = 0;
+
+  while (sessionIndex < sessions.length) {
+    var session = sessions[sessionIndex];
+    var practiceModes = normalizePracticeModes(session.practiceModes);
+    var keyIndex = 0;
+
+    while (keyIndex < keys.length) {
+      var key = keys[keyIndex];
+      var mode = practiceModes[key];
+      var steps = readSortedSteps(mode.steps);
+      var progress = readPracticeModeProgress(session.progress, key);
+      var completedCount = countCompletedSteps(steps, progress.completedStepIds);
+      var isComplete = progress.completed === true || (steps.length > 0 && completedCount >= steps.length);
+
+      if (steps.length > 0 && (allowComplete || !isComplete)) {
+        return {
+          isPlayable: true,
+          courseId: course.id,
+          moduleId: module.id,
+          sessionId: session.id,
+          practiceModeKey: key,
+          moduleTitle: readLocalizedText(module.title, "Module"),
+          sessionTitle: readLocalizedText(session.title, "Session"),
+          practiceModeTitle: readLocalizedText(mode.title, "Practice Mode"),
+          buttonLabel: allowComplete ? "Review" : (completedCount > 0 ? "Continue" : "Start"),
+          reason: completedCount + " / " + steps.length + " steps complete"
+        };
+      }
+
+      keyIndex = keyIndex + 1;
+    }
+
+    sessionIndex = sessionIndex + 1;
+  }
+
+  return null;
+}
+
+function getModuleReadiness(module) {
+  var totalSteps = countModuleSteps(module);
+  var completedSteps = countModuleCompletedSteps(module);
+  var status = readModuleLearningStatus(module);
+
+  if (!module) {
+    return {
+      status: "notReady",
+      label: "Not Ready",
+      completedSteps: 0,
+      totalSteps: 0
+    };
+  }
+
+  if (totalSteps === 0) {
+    return {
+      status: "notReady",
+      label: "Not Ready",
+      completedSteps: 0,
+      totalSteps: 0
+    };
+  }
+
+  if (status === "complete") {
+    return {
+      status: "complete",
+      label: "Complete",
+      completedSteps: completedSteps,
+      totalSteps: totalSteps
+    };
+  }
+
+  if (completedSteps > 0) {
+    return {
+      status: "inProgress",
+      label: "In Progress",
+      completedSteps: completedSteps,
+      totalSteps: totalSteps
+    };
+  }
+
+  return {
+    status: "notStarted",
+    label: "Not Started",
+    completedSteps: completedSteps,
+    totalSteps: totalSteps
+  };
+}
+
+function readCourseFocusProgress(course) {
+  return {
+    percent: readCourseProgressPercent(course),
+    completedModules: countCompletedModules(course),
+    totalModules: readCourseModuleCount(course),
+    completedSteps: countCourseCompletedSteps(course),
+    totalSteps: countCourseSteps(course)
+  };
+}
+
+function readSelectedFocusModule(state, course, nextAction) {
+  var modules = course && Array.isArray(course.modules) ? course.modules : [];
+  var moduleId = state.selectedModuleId || (nextAction && nextAction.moduleId ? nextAction.moduleId : "");
+  var moduleIndex = 0;
+
+  while (moduleIndex < modules.length) {
+    if (modules[moduleIndex].id === moduleId) {
+      return modules[moduleIndex];
+    }
+
+    moduleIndex = moduleIndex + 1;
+  }
+
+  return modules.length > 0 ? modules[0] : null;
+}
+
+function readFirstPlayableModuleId(course) {
+  var action = getNextCourseAction(course);
+
+  return action && action.moduleId ? action.moduleId : null;
 }
 
 function buildProgressCard(progressSummary, overallProgress) {

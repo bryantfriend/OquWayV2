@@ -1,8 +1,8 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.121-student-dashboard-open-clean";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.119-external-task-e2e";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.121-student-dashboard-open-clean";
-import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.121-student-dashboard-open-clean";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.121-student-dashboard-open-clean";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.130-course-focus-mode";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.130-course-focus-mode";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.130-course-focus-mode";
+import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.130-course-focus-mode";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.130-course-focus-mode";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
