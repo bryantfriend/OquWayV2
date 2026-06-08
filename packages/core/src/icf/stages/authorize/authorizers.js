@@ -22,6 +22,6 @@ export {
   allowTeacherLoginAuthorization,
   requireTeacherDashboardAuthorization,
   requireTeacherReviewScopeAuthorization
-} from "./domain/teacher/requireTeacherAuthorization.js?v=1.1.127-teacher-students-scope";
+} from "./domain/teacher/requireTeacherAuthorization.js?v=1.1.128-teacher-query-fallbacks";
 
 

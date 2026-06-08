@@ -1,8 +1,8 @@
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.127-teacher-students-scope";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.127-teacher-students-scope";
-import { getClassesForTeacherScope } from "../../../../../../../domain/classes/index.js?v=1.1.127-teacher-students-scope";
-import { getExternalTaskSubmissionsForTeacher } from "../../../../../../../domain/externalTasks/index.js?v=1.1.127-teacher-students-scope";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.128-teacher-query-fallbacks";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.128-teacher-query-fallbacks";
+import { getClassesForTeacherScope } from "../../../../../../../domain/classes/index.js?v=1.1.128-teacher-query-fallbacks";
+import { getExternalTaskSubmissionsForTeacher } from "../../../../../../../domain/externalTasks/index.js?v=1.1.128-teacher-query-fallbacks";
 import {
   buildStudentClassScope,
   getStudentsForClassRosters,
@@ -12,7 +12,7 @@ import {
   isStudentProfile as isStudentUserProfile,
   resolveTeacherIdentity,
   userInClass as userProfileInClass
-} from "../../../../../../../domain/users/index.js?v=1.1.127-teacher-students-scope";
+} from "../../../../../../../domain/users/index.js?v=1.1.128-teacher-query-fallbacks";
 
 export async function processTeacherLogin(executionState) {
   var payload = executionState.payload || {};
@@ -175,6 +175,7 @@ export async function processLoadTeacherStudents(executionState) {
       }),
       debug: {
         studentQueryErrors: studentResult.queryErrors || [],
+        studentBlockingQueryErrors: studentResult.blockingQueryErrors || [],
         submissionQueryErrors: submissionQueryErrors
       }
     };
@@ -239,6 +240,8 @@ async function buildTeacherDashboardData(executionState) {
   var pendingCountsByClass = countSubmissionsByField(submissions, "classId");
   var pendingCountsByStudent = countSubmissionsByField(submissions, "studentId");
   var pendingCountsByAssignment = countSubmissionsByAssignment(submissions);
+  var studentBlockingQueryErrors = readBlockingQueryErrors(studentResult.queryErrors, students);
+  var submissionBlockingQueryErrors = readBlockingQueryErrors(submissionQueryErrors, submissions);
   var classCards = classes.map(function (classRecord) {
     return normalizeClassCard(classRecord, students, scope.assignments, pendingCountsByClass[classRecord.id] || 0);
   });
@@ -284,8 +287,8 @@ async function buildTeacherDashboardData(executionState) {
       completedSubmissionsCount: submissions.filter(function (submission) {
         return submission.reviewStatus === "complete";
       }).length,
-      studentQueryFailed: (studentResult.queryErrors || []).length > 0,
-      submissionQueryFailed: submissionQueryErrors.length > 0
+      studentQueryFailed: studentBlockingQueryErrors.length > 0,
+      submissionQueryFailed: submissionBlockingQueryErrors.length > 0
     },
     debug: {
       teacherIdentity: scope.teacherIdentity,
@@ -302,7 +305,9 @@ async function buildTeacherDashboardData(executionState) {
         return submission.reviewStatus === "pending";
       }).length,
       studentQueryErrors: studentResult.queryErrors || [],
+      studentBlockingQueryErrors: studentBlockingQueryErrors,
       submissionQueryErrors: submissionQueryErrors,
+      submissionBlockingQueryErrors: submissionBlockingQueryErrors,
       queryErrors: readQueryErrors([scope.queryErrors, studentResult.queryErrors, submissionQueryErrors])
     }
   };
@@ -313,14 +318,19 @@ async function loadStudentsForTeacherClasses(classes) {
   var studentResult = await getStudentsForClassScopes(classScopes);
 
   if (studentResult.students.length > 0 || !studentResult.queryErrors || studentResult.queryErrors.length === 0) {
-    return studentResult;
+    return Object.assign({}, studentResult, {
+      blockingQueryErrors: readBlockingQueryErrors(studentResult.queryErrors, studentResult.students)
+    });
   }
 
   var rosterResult = await getStudentsForClassRosters(classes);
+  var students = rosterResult.students;
+  var queryErrors = readQueryErrors([studentResult.queryErrors, rosterResult.queryErrors]);
 
   return {
-    students: rosterResult.students,
-    queryErrors: readQueryErrors([studentResult.queryErrors, rosterResult.queryErrors])
+    students: students,
+    queryErrors: queryErrors,
+    blockingQueryErrors: readBlockingQueryErrors(queryErrors, students)
   };
 }
 
@@ -901,6 +911,14 @@ function readQueryErrors(values) {
   }
 
   return result;
+}
+
+function readBlockingQueryErrors(queryErrors, records) {
+  if (Array.isArray(records) && records.length > 0) {
+    return [];
+  }
+
+  return Array.isArray(queryErrors) ? queryErrors : [];
 }
 
 function appendQueryError(queryErrors, collectionName, queryShape, error) {

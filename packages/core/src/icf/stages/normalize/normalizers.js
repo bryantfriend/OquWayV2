@@ -40,7 +40,7 @@ export {
   normalizeTeacherDashboardPayload,
   normalizeTeacherLoginPayload,
   normalizeTeacherPasswordResetPayload
-} from "./domain/teacher/normalizeTeacherPayloads.js?v=1.1.127-teacher-students-scope";
+} from "./domain/teacher/normalizeTeacherPayloads.js?v=1.1.128-teacher-query-fallbacks";
 export { normalizeBoolean } from "./domain/courseEditor/normalizeBoolean.js?v=1.1.124-location-icon-upload";
 export { normalizeLanguagesArray } from "./domain/courseEditor/normalizeLanguagesArray.js?v=1.1.124-location-icon-upload";
 export { normalizeModuleOrder } from "./domain/courseEditor/normalizeModuleOrder.js?v=1.1.124-location-icon-upload";

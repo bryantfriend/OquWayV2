@@ -75,15 +75,15 @@ export { ResubmitExternalTaskIntent } from "./externalTask/ResubmitExternalTaskI
 // ----------------------
 // Teacher Dashboard
 // ----------------------
-export { TeacherLoginIntent } from "./teacher/TeacherLoginIntent.js?v=1.1.127-teacher-students-scope";
-export { LoadTeacherClassDetailIntent } from "./teacher/LoadTeacherClassDetailIntent.js?v=1.1.127-teacher-students-scope";
-export { LoadTeacherCourseDetailIntent } from "./teacher/LoadTeacherCourseDetailIntent.js?v=1.1.127-teacher-students-scope";
-export { LoadTeacherCoursesIntent } from "./teacher/LoadTeacherCoursesIntent.js?v=1.1.127-teacher-students-scope";
-export { LoadTeacherDashboardIntent } from "./teacher/LoadTeacherDashboardIntent.js?v=1.1.127-teacher-students-scope";
-export { LoadTeacherClassesIntent } from "./teacher/LoadTeacherClassesIntent.js?v=1.1.127-teacher-students-scope";
-export { LoadTeacherStudentsIntent } from "./teacher/LoadTeacherStudentsIntent.js?v=1.1.127-teacher-students-scope";
-export { LoadTeacherReviewQueueIntent } from "./teacher/LoadTeacherReviewQueueIntent.js?v=1.1.127-teacher-students-scope";
-export { SendTeacherPasswordResetIntent } from "./teacher/SendTeacherPasswordResetIntent.js?v=1.1.127-teacher-students-scope";
+export { TeacherLoginIntent } from "./teacher/TeacherLoginIntent.js?v=1.1.128-teacher-query-fallbacks";
+export { LoadTeacherClassDetailIntent } from "./teacher/LoadTeacherClassDetailIntent.js?v=1.1.128-teacher-query-fallbacks";
+export { LoadTeacherCourseDetailIntent } from "./teacher/LoadTeacherCourseDetailIntent.js?v=1.1.128-teacher-query-fallbacks";
+export { LoadTeacherCoursesIntent } from "./teacher/LoadTeacherCoursesIntent.js?v=1.1.128-teacher-query-fallbacks";
+export { LoadTeacherDashboardIntent } from "./teacher/LoadTeacherDashboardIntent.js?v=1.1.128-teacher-query-fallbacks";
+export { LoadTeacherClassesIntent } from "./teacher/LoadTeacherClassesIntent.js?v=1.1.128-teacher-query-fallbacks";
+export { LoadTeacherStudentsIntent } from "./teacher/LoadTeacherStudentsIntent.js?v=1.1.128-teacher-query-fallbacks";
+export { LoadTeacherReviewQueueIntent } from "./teacher/LoadTeacherReviewQueueIntent.js?v=1.1.128-teacher-query-fallbacks";
+export { SendTeacherPasswordResetIntent } from "./teacher/SendTeacherPasswordResetIntent.js?v=1.1.128-teacher-query-fallbacks";
 
 // ----------------------
 // Locations / Login Settings

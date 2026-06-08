@@ -104,8 +104,8 @@ function addRole(roles, role) {
   }
 }
 
-export * from "./roleService.js?v=1.1.127-teacher-students-scope";
-export * from "./studentIdentity.js?v=1.1.127-teacher-students-scope";
-export * from "./teacherIdentity.js?v=1.1.127-teacher-students-scope";
-export * from "./userQueries.js?v=1.1.127-teacher-students-scope";
-export * from "./userRepository.js?v=1.1.127-teacher-students-scope";
+export * from "./roleService.js?v=1.1.128-teacher-query-fallbacks";
+export * from "./studentIdentity.js?v=1.1.128-teacher-query-fallbacks";
+export * from "./teacherIdentity.js?v=1.1.128-teacher-query-fallbacks";
+export * from "./userQueries.js?v=1.1.128-teacher-query-fallbacks";
+export * from "./userRepository.js?v=1.1.128-teacher-query-fallbacks";

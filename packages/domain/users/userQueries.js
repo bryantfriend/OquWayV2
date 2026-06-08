@@ -112,16 +112,27 @@ async function loadStudentsForClassScope(students, queryErrors, classScope) {
     : readTextArray([classScope && classScope.id]);
   var names = classScope && Array.isArray(classScope.names) ? classScope.names : [];
   var index = 0;
+  var matchedCount = 0;
+  var scopeStartCount = students.length;
 
   while (index < identifiers.length) {
-    await appendStudentQuery(students, queryErrors, query(collection(db, "users"), where("classId", "==", identifiers[index])), {
+    matchedCount = matchedCount + (await appendStudentQuery(students, queryErrors, query(collection(db, "users"), where("classId", "==", identifiers[index])), {
       classId: identifiers[index],
       queryShape: "users where classId == classId"
-    });
-    await appendStudentQuery(students, queryErrors, query(collection(db, "users"), where("primaryClassId", "==", identifiers[index])), {
+    })).count;
+    matchedCount = matchedCount + (await appendStudentQuery(students, queryErrors, query(collection(db, "users"), where("primaryClassId", "==", identifiers[index])), {
       classId: identifiers[index],
       queryShape: "users where primaryClassId == classId"
-    });
+    })).count;
+    index = index + 1;
+  }
+
+  if (matchedCount > 0) {
+    return;
+  }
+
+  index = 0;
+  while (index < identifiers.length) {
     await appendStudentQuery(students, queryErrors, query(collection(db, "users"), where("classIds", "array-contains", identifiers[index])), {
       classId: identifiers[index],
       queryShape: "users where classIds array-contains classId"
@@ -131,6 +142,10 @@ async function loadStudentsForClassScope(students, queryErrors, classScope) {
       queryShape: "users where assignedClassIds array-contains classId"
     });
     index = index + 1;
+  }
+
+  if (students.length > scopeStartCount) {
+    return;
   }
 
   index = 0;
@@ -172,10 +187,15 @@ async function appendStudentQuery(students, queryErrors, studentsQuery, details)
   });
 
   try {
+    var beforeCount = students.length;
     var snapshot = await getDocs(studentsQuery);
     snapshot.forEach(function (studentSnap) {
       addUniqueRecord(students, Object.assign({ id: studentSnap.id }, studentSnap.data() || {}));
     });
+    return {
+      ok: true,
+      count: students.length - beforeCount
+    };
   } catch (error) {
     queryErrors.push({
       collection: "users",
@@ -192,6 +212,10 @@ async function appendStudentQuery(students, queryErrors, studentsQuery, details)
       errorCode: error && error.code ? error.code : "",
       errorMessage: error && error.message ? error.message : readErrorMessage(error)
     });
+    return {
+      ok: false,
+      count: 0
+    };
   }
 }
 

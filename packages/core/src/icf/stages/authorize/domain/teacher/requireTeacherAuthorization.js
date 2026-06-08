@@ -1,4 +1,4 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.127-teacher-students-scope";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.128-teacher-query-fallbacks";
 import { canAccessTeacherDashboard } from "../../../../../../../permissions/index.js";
 import {
   getActorClaimRoles,

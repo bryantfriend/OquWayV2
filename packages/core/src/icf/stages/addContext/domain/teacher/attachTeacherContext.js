@@ -1,6 +1,6 @@
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.127-teacher-students-scope";
-import { getExternalTaskSubmissionById } from "../../../../../../../domain/externalTasks/index.js?v=1.1.127-teacher-students-scope";
-import { getUserProfileByAuthUid, getUserRoles } from "../../../../../../../domain/users/index.js?v=1.1.127-teacher-students-scope";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.128-teacher-query-fallbacks";
+import { getExternalTaskSubmissionById } from "../../../../../../../domain/externalTasks/index.js?v=1.1.128-teacher-query-fallbacks";
+import { getUserProfileByAuthUid, getUserRoles } from "../../../../../../../domain/users/index.js?v=1.1.128-teacher-query-fallbacks";
 
 export async function attachTeacherProfileContext(executionState) {
   var actor = executionState.actor || {};

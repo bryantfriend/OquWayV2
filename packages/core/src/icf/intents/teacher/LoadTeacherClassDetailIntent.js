@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateTeacherReviewQueuePayload } from "../../stages/validate/validators.js?v=1.1.127-teacher-students-scope";
-import { normalizeTeacherDashboardPayload } from "../../stages/normalize/normalizers.js?v=1.1.127-teacher-students-scope";
-import { attachActorContext, attachActorRoleContext, attachTeacherProfileContext } from "../../stages/addContext/contexts.js?v=1.1.127-teacher-students-scope";
-import { requireTeacherDashboardAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.127-teacher-students-scope";
-import { processLoadTeacherClassDetail } from "../../stages/process/processors.js?v=1.1.127-teacher-students-scope";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.127-teacher-students-scope";
+import { validateAuthenticated, validateTeacherReviewQueuePayload } from "../../stages/validate/validators.js?v=1.1.128-teacher-query-fallbacks";
+import { normalizeTeacherDashboardPayload } from "../../stages/normalize/normalizers.js?v=1.1.128-teacher-query-fallbacks";
+import { attachActorContext, attachActorRoleContext, attachTeacherProfileContext } from "../../stages/addContext/contexts.js?v=1.1.128-teacher-query-fallbacks";
+import { requireTeacherDashboardAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.128-teacher-query-fallbacks";
+import { processLoadTeacherClassDetail } from "../../stages/process/processors.js?v=1.1.128-teacher-query-fallbacks";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.128-teacher-query-fallbacks";
 
 export function LoadTeacherClassDetailIntent() {
   return {

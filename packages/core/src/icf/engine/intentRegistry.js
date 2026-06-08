@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.127-teacher-students-scope";
+import * as IntentExports from "../intents/intents.js?v=1.1.128-teacher-query-fallbacks";
 
 const registry = {
   // Demo Verification

@@ -1,5 +1,5 @@
 import { collection, db, getDocs, query, where } from "../../firebase/index.js";
-import { normalizeExternalTaskSubmission } from "./externalTaskModel.js?v=1.1.127-teacher-students-scope";
+import { normalizeExternalTaskSubmission } from "./externalTaskModel.js?v=1.1.128-teacher-query-fallbacks";
 
 var IN_QUERY_CHUNK_SIZE = 10;
 
@@ -82,10 +82,12 @@ export async function getScopedExternalTaskSubmissions(filters) {
   var queryErrors = Array.isArray(safeFilters.queryErrors) ? safeFilters.queryErrors : [];
   var index = 0;
   var chunks = [];
+  var teacherScopeQueryCount = 0;
+  var teacherScopeQueryFailed = false;
 
   chunks = chunkValues(teacherIds, IN_QUERY_CHUNK_SIZE);
   while (index < chunks.length) {
-    await appendSubmissionQuery(submissions, buildSubmissionArrayQuery("teacherOwnershipIds", chunks[index], safeFilters), {
+    var teacherQueryResult = await appendSubmissionQuery(submissions, buildSubmissionArrayQuery("teacherOwnershipIds", chunks[index], safeFilters), {
       classId: "",
       assignmentId: "",
       courseId: "",
@@ -94,7 +96,13 @@ export async function getScopedExternalTaskSubmissions(filters) {
       filters: readSubmissionDebugFilters(safeFilters),
       queryShape: readSubmissionArrayQueryShape("teacherOwnershipIds", safeFilters)
     }, queryErrors);
+    teacherScopeQueryCount = teacherScopeQueryCount + 1;
+    teacherScopeQueryFailed = teacherScopeQueryFailed || !teacherQueryResult.ok;
     index = index + 1;
+  }
+
+  if (teacherScopeQueryCount > 0 && !teacherScopeQueryFailed) {
+    return filterScopedSubmissions(submissions, safeFilters);
   }
 
   index = 0;
@@ -153,12 +161,7 @@ export async function getScopedExternalTaskSubmissions(filters) {
     }
   }
 
-  return submissions.filter(function (submission) {
-    return isSubmissionInOwnedScope(submission, safeFilters)
-      && matchesOptional(submission.reviewStatus, safeFilters.reviewStatus)
-      && matchesOptional(submission.courseId, safeFilters.courseId)
-      && matchesOptional(submission.moduleId, safeFilters.moduleId);
-  }).sort(compareSubmissionByCreatedAt);
+  return filterScopedSubmissions(submissions, safeFilters);
 }
 
 export async function getExternalTaskSubmissionsForTeacher(filters) {
@@ -354,10 +357,15 @@ async function appendSubmissionQuery(submissions, submissionsQuery, details, que
   });
 
   try {
+    var beforeCount = submissions.length;
     var snapshot = await getDocs(submissionsQuery);
     snapshot.forEach(function (submissionSnap) {
       addUniqueRecord(submissions, Object.assign({ id: submissionSnap.id }, submissionSnap.data() || {}));
     });
+    return {
+      ok: true,
+      count: submissions.length - beforeCount
+    };
   } catch (error) {
     console.warn("[teacher-dashboard:submissions-query-failed]", {
       classId: details && details.classId ? details.classId : "",
@@ -380,7 +388,21 @@ async function appendSubmissionQuery(submissions, submissionsQuery, details, que
         message: readErrorMessage(error)
       });
     }
+
+    return {
+      ok: false,
+      count: 0
+    };
   }
+}
+
+function filterScopedSubmissions(submissions, safeFilters) {
+  return submissions.filter(function (submission) {
+    return isSubmissionInOwnedScope(submission, safeFilters)
+      && matchesOptional(submission.reviewStatus, safeFilters.reviewStatus)
+      && matchesOptional(submission.courseId, safeFilters.courseId)
+      && matchesOptional(submission.moduleId, safeFilters.moduleId);
+  }).sort(compareSubmissionByCreatedAt);
 }
 
 function compareSubmissionByCreatedAt(a, b) {

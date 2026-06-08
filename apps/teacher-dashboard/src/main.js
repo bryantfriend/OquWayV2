@@ -1,10 +1,10 @@
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.127-teacher-students-scope";
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.127-teacher-students-scope";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.128-teacher-query-fallbacks";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.128-teacher-query-fallbacks";
 import {
   createEmptyState,
   createLoadingState,
   createStatusBadge
-} from "../../../packages/ui/index.js?v=1.1.127-teacher-students-scope";
+} from "../../../packages/ui/index.js?v=1.1.128-teacher-query-fallbacks";
 
 var app = document.getElementById("app");
 var state = {
@@ -646,8 +646,8 @@ function buildHeader() {
 
 function buildMetrics() {
   var summary = state.summary || {};
-  var studentFailed = hasStudentQueryErrors() || summary.studentQueryFailed;
-  var submissionFailed = hasSubmissionQueryErrors() || summary.submissionQueryFailed;
+  var studentFailed = hasBlockingStudentQueryErrors() || summary.studentQueryFailed;
+  var submissionFailed = hasBlockingSubmissionQueryErrors() || summary.submissionQueryFailed;
 
   return '<section class="teacher-metrics">'
     + buildMetricCard(readCount(summary.classCount, state.classes.length), "My Classes", "classes")
@@ -671,9 +671,9 @@ function buildTeacherTabs() {
   return '<nav class="teacher-tabs" aria-label="Teacher dashboard sections">'
     + buildTeacherTabButton("overview", "Overview", "")
     + buildTeacherTabButton("classes", "Classes", state.classes.length)
-    + buildTeacherTabButton("students", "Students", hasStudentQueryErrors() ? "!" : state.students.length)
+    + buildTeacherTabButton("students", "Students", hasBlockingStudentQueryErrors() ? "!" : state.students.length)
     + buildTeacherTabButton("courses", "Courses", state.courses.length)
-    + buildTeacherTabButton("reviews", "Reviews", hasSubmissionQueryErrors() ? "!" : countPending(state.submissions))
+    + buildTeacherTabButton("reviews", "Reviews", hasBlockingSubmissionQueryErrors() ? "!" : countPending(state.submissions))
     + buildTeacherTabButton("activity", "Activity", "")
     + buildTeacherTabButton("schedule", "Schedule", "")
     + '</nav>';
@@ -750,7 +750,7 @@ function buildTodayClassesList() {
 }
 
 function buildPendingReviewsList() {
-  if (hasSubmissionQueryErrors()) {
+  if (hasBlockingSubmissionQueryErrors()) {
     return buildEmptyState("reviews", "Could not load review queue.", "Open ?debug=true for the Firestore query details.");
   }
 
@@ -770,7 +770,7 @@ function buildPendingReviewsList() {
 }
 
 function buildStudentAttentionList(students) {
-  if (hasStudentQueryErrors()) {
+  if (hasBlockingStudentQueryErrors()) {
     return buildEmptyState("students", "Could not load students.", "Open ?debug=true for the Firestore query details.");
   }
 
@@ -786,7 +786,7 @@ function buildStudentAttentionList(students) {
 }
 
 function buildRecentSubmissionList(submissions) {
-  if (hasSubmissionQueryErrors()) {
+  if (hasBlockingSubmissionQueryErrors()) {
     return buildEmptyState("reviews", "Could not load recent submissions.", "Open ?debug=true for the Firestore query details.");
   }
 
@@ -859,7 +859,7 @@ function buildCourseCards() {
 }
 
 function buildActivityTab() {
-  if (hasSubmissionQueryErrors()) {
+  if (hasBlockingSubmissionQueryErrors()) {
     return '<section class="teacher-card-section teacher-wide-section">'
       + '<div class="teacher-section-title"><div><h2>Activity</h2><p>Recent classroom signals</p></div>' + buildSectionGlyphSvg("reviews") + '</div>'
       + buildEmptyState("reviews", "Could not load review activity.", "Open ?debug=true for the Firestore query details.")
@@ -907,11 +907,10 @@ function buildScheduleTab() {
 
 function buildStudentsView() {
   var students = filterStudentsForSelectedClass(state.students || []);
-  var queryErrors = readStudentQueryErrors();
   var html = '<section class="teacher-card-section"><div class="teacher-section-title"><div><h2>Students</h2><p>Progress and review signals</p></div>' + buildSectionGlyphSvg("students") + '</div>';
 
   if (students.length === 0) {
-    if (queryErrors.length > 0) {
+    if (readStudentBlockingQueryErrors().length > 0) {
       return html + buildEmptyState("students", "Could not load students.", "A Firestore query failed. Open ?debug=true for query details.") + '</section>';
     }
 
@@ -1112,7 +1111,7 @@ function buildStatusOption(value, label) {
 function buildReviewEmptyState() {
   var hasRawSubmissions = (state.submissions || []).length > 0;
 
-  if (!hasRawSubmissions && hasSubmissionQueryErrors()) {
+  if (!hasRawSubmissions && hasBlockingSubmissionQueryErrors()) {
     return buildEmptyState("reviews", "Could not load review queue.", "Open ?debug=true for the Firestore query details.");
   }
 
@@ -1134,7 +1133,7 @@ function buildTeacherDebugPanel() {
 
   return '<section class="teacher-card-section teacher-wide-section teacher-debug-panel">'
     + '<div class="teacher-section-title"><div><h2>Debug</h2><p>Teacher dashboard data contract</p></div></div>'
-    + (studentQueryErrors.length || submissionQueryErrors.length ? '<div class="teacher-debug-warning">One or more teacher-scoped queries failed. Counts with ! are not real zeroes.</div>' : "")
+    + (studentQueryErrors.length || submissionQueryErrors.length ? '<div class="teacher-debug-warning">One or more optional teacher-scoped queries failed. Visible counts use the records that loaded successfully.</div>' : "")
     + '<pre>' + escapeHtml(JSON.stringify({
       authUid: readDebugValue(debug, "teacherIdentity.authUid"),
       userDocId: readDebugValue(debug, "teacherIdentity.userDocId"),
@@ -1147,7 +1146,9 @@ function buildTeacherDebugPanel() {
       studentCount: debug.studentCount || 0,
       pendingReviewCount: debug.pendingReviewCount || 0,
       studentQueryErrors: studentQueryErrors,
-      submissionQueryErrors: submissionQueryErrors
+      studentBlockingQueryErrors: readStudentBlockingQueryErrors(),
+      submissionQueryErrors: submissionQueryErrors,
+      submissionBlockingQueryErrors: readSubmissionBlockingQueryErrors()
     }, null, 2)) + '</pre>'
     + '</section>';
 }
@@ -1235,6 +1236,18 @@ function readStudentQueryErrors() {
   });
 }
 
+function readStudentBlockingQueryErrors() {
+  if (state.debug && Array.isArray(state.debug.studentBlockingQueryErrors)) {
+    return state.debug.studentBlockingQueryErrors;
+  }
+
+  if ((state.students || []).length > 0) {
+    return [];
+  }
+
+  return readStudentQueryErrors();
+}
+
 function readSubmissionQueryErrors() {
   if (state.debug && Array.isArray(state.debug.submissionQueryErrors)) {
     return state.debug.submissionQueryErrors;
@@ -1245,12 +1258,32 @@ function readSubmissionQueryErrors() {
   });
 }
 
+function readSubmissionBlockingQueryErrors() {
+  if (state.debug && Array.isArray(state.debug.submissionBlockingQueryErrors)) {
+    return state.debug.submissionBlockingQueryErrors;
+  }
+
+  if ((state.submissions || []).length > 0) {
+    return [];
+  }
+
+  return readSubmissionQueryErrors();
+}
+
 function hasStudentQueryErrors() {
   return readStudentQueryErrors().length > 0;
 }
 
 function hasSubmissionQueryErrors() {
   return readSubmissionQueryErrors().length > 0;
+}
+
+function hasBlockingStudentQueryErrors() {
+  return readStudentBlockingQueryErrors().length > 0;
+}
+
+function hasBlockingSubmissionQueryErrors() {
+  return readSubmissionBlockingQueryErrors().length > 0;
 }
 
 function mergeDashboardDebug(currentDebug, nextDebug) {
