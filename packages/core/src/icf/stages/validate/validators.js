@@ -71,6 +71,6 @@ export {
   validateTeacherLoginPayload,
   validateTeacherPasswordResetPayload,
   validateTeacherReviewQueuePayload
-} from "./domain/teacher/validateTeacherPayloads.js?v=1.1.128-teacher-query-fallbacks";
+} from "./domain/teacher/validateTeacherPayloads.js?v=1.1.129-teacher-query-noise";
 
 

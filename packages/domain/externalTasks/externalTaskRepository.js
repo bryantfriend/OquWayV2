@@ -1,13 +1,13 @@
 import { db, doc, getDoc, serverTimestamp, setDoc } from "../../firebase/index.js";
-import { getDownloadURL, ref, storage, uploadBytes } from "../../firebase/storage/index.js?v=1.1.128-teacher-query-fallbacks";
+import { getDownloadURL, ref, storage, uploadBytes } from "../../firebase/storage/index.js?v=1.1.129-teacher-query-noise";
 import { getCourseAssignments } from "../assignments/index.js";
-import { resolveActorStudentId } from "../users/index.js?v=1.1.128-teacher-query-fallbacks";
+import { resolveActorStudentId } from "../users/index.js?v=1.1.129-teacher-query-noise";
 import {
   canResubmitExternalTaskSubmission,
   normalizeExternalTaskSubmission,
   readExternalTaskAttemptNumber
-} from "./externalTaskModel.js?v=1.1.128-teacher-query-fallbacks";
-import { getStudentExternalTaskSubmissions, getLatestStudentExternalTaskSubmission } from "./externalTaskQueries.js?v=1.1.128-teacher-query-fallbacks";
+} from "./externalTaskModel.js?v=1.1.129-teacher-query-noise";
+import { getStudentExternalTaskSubmissions, getLatestStudentExternalTaskSubmission } from "./externalTaskQueries.js?v=1.1.129-teacher-query-noise";
 
 export async function getExternalTaskSubmissionById(submissionId) {
   if (!submissionId) {

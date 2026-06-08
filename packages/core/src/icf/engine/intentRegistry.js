@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.128-teacher-query-fallbacks";
+import * as IntentExports from "../intents/intents.js?v=1.1.129-teacher-query-noise";
 
 const registry = {
   // Demo Verification

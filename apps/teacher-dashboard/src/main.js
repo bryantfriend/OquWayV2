@@ -1,10 +1,10 @@
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.128-teacher-query-fallbacks";
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.128-teacher-query-fallbacks";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.129-teacher-query-noise";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.129-teacher-query-noise";
 import {
   createEmptyState,
   createLoadingState,
   createStatusBadge
-} from "../../../packages/ui/index.js?v=1.1.128-teacher-query-fallbacks";
+} from "../../../packages/ui/index.js?v=1.1.129-teacher-query-noise";
 
 var app = document.getElementById("app");
 var state = {

@@ -21,5 +21,5 @@ export function getClassLocationId(classRecord) {
   return readSafeString(classRecord && (classRecord.locationId || classRecord.locId || classRecord.schoolId || classRecord.primaryLocationId)).trim();
 }
 
-export * from "./classQueries.js?v=1.1.128-teacher-query-fallbacks";
-export * from "./classRepository.js?v=1.1.128-teacher-query-fallbacks";
+export * from "./classQueries.js?v=1.1.129-teacher-query-noise";
+export * from "./classRepository.js?v=1.1.129-teacher-query-noise";

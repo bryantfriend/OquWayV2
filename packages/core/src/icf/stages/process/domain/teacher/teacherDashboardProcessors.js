@@ -1,8 +1,8 @@
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.128-teacher-query-fallbacks";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.128-teacher-query-fallbacks";
-import { getClassesForTeacherScope } from "../../../../../../../domain/classes/index.js?v=1.1.128-teacher-query-fallbacks";
-import { getExternalTaskSubmissionsForTeacher } from "../../../../../../../domain/externalTasks/index.js?v=1.1.128-teacher-query-fallbacks";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.129-teacher-query-noise";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.129-teacher-query-noise";
+import { getClassesForTeacherScope } from "../../../../../../../domain/classes/index.js?v=1.1.129-teacher-query-noise";
+import { getExternalTaskSubmissionsForTeacher } from "../../../../../../../domain/externalTasks/index.js?v=1.1.129-teacher-query-noise";
 import {
   buildStudentClassScope,
   getStudentsForClassRosters,
@@ -12,7 +12,7 @@ import {
   isStudentProfile as isStudentUserProfile,
   resolveTeacherIdentity,
   userInClass as userProfileInClass
-} from "../../../../../../../domain/users/index.js?v=1.1.128-teacher-query-fallbacks";
+} from "../../../../../../../domain/users/index.js?v=1.1.129-teacher-query-noise";
 
 export async function processTeacherLogin(executionState) {
   var payload = executionState.payload || {};

@@ -22,6 +22,6 @@ export {
   allowTeacherLoginAuthorization,
   requireTeacherDashboardAuthorization,
   requireTeacherReviewScopeAuthorization
-} from "./domain/teacher/requireTeacherAuthorization.js?v=1.1.128-teacher-query-fallbacks";
+} from "./domain/teacher/requireTeacherAuthorization.js?v=1.1.129-teacher-query-noise";
 
 

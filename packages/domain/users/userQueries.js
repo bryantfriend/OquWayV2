@@ -112,35 +112,49 @@ async function loadStudentsForClassScope(students, queryErrors, classScope) {
     : readTextArray([classScope && classScope.id]);
   var names = classScope && Array.isArray(classScope.names) ? classScope.names : [];
   var index = 0;
-  var matchedCount = 0;
   var scopeStartCount = students.length;
+  var queryResult = null;
 
   while (index < identifiers.length) {
-    matchedCount = matchedCount + (await appendStudentQuery(students, queryErrors, query(collection(db, "users"), where("classId", "==", identifiers[index])), {
+    queryResult = await appendStudentQuery(students, queryErrors, query(collection(db, "users"), where("classId", "==", identifiers[index])), {
       classId: identifiers[index],
       queryShape: "users where classId == classId"
-    })).count;
-    matchedCount = matchedCount + (await appendStudentQuery(students, queryErrors, query(collection(db, "users"), where("primaryClassId", "==", identifiers[index])), {
+    });
+    if (queryResult.count > 0) {
+      return;
+    }
+
+    queryResult = await appendStudentQuery(students, queryErrors, query(collection(db, "users"), where("primaryClassId", "==", identifiers[index])), {
       classId: identifiers[index],
       queryShape: "users where primaryClassId == classId"
-    })).count;
+    });
+    if (queryResult.count > 0) {
+      return;
+    }
     index = index + 1;
   }
 
-  if (matchedCount > 0) {
+  if (students.length > scopeStartCount) {
     return;
   }
 
   index = 0;
   while (index < identifiers.length) {
-    await appendStudentQuery(students, queryErrors, query(collection(db, "users"), where("classIds", "array-contains", identifiers[index])), {
+    queryResult = await appendStudentQuery(students, queryErrors, query(collection(db, "users"), where("classIds", "array-contains", identifiers[index])), {
       classId: identifiers[index],
       queryShape: "users where classIds array-contains classId"
     });
-    await appendStudentQuery(students, queryErrors, query(collection(db, "users"), where("assignedClassIds", "array-contains", identifiers[index])), {
+    if (queryResult.count > 0) {
+      return;
+    }
+
+    queryResult = await appendStudentQuery(students, queryErrors, query(collection(db, "users"), where("assignedClassIds", "array-contains", identifiers[index])), {
       classId: identifiers[index],
       queryShape: "users where assignedClassIds array-contains classId"
     });
+    if (queryResult.count > 0) {
+      return;
+    }
     index = index + 1;
   }
 

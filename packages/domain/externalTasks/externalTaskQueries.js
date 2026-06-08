@@ -1,5 +1,5 @@
 import { collection, db, getDocs, query, where } from "../../firebase/index.js";
-import { normalizeExternalTaskSubmission } from "./externalTaskModel.js?v=1.1.128-teacher-query-fallbacks";
+import { normalizeExternalTaskSubmission } from "./externalTaskModel.js?v=1.1.129-teacher-query-noise";
 
 var IN_QUERY_CHUNK_SIZE = 10;
 
@@ -83,11 +83,10 @@ export async function getScopedExternalTaskSubmissions(filters) {
   var index = 0;
   var chunks = [];
   var teacherScopeQueryCount = 0;
-  var teacherScopeQueryFailed = false;
 
   chunks = chunkValues(teacherIds, IN_QUERY_CHUNK_SIZE);
   while (index < chunks.length) {
-    var teacherQueryResult = await appendSubmissionQuery(submissions, buildSubmissionArrayQuery("teacherOwnershipIds", chunks[index], safeFilters), {
+    await appendSubmissionQuery(submissions, buildSubmissionArrayQuery("teacherOwnershipIds", chunks[index], safeFilters), {
       classId: "",
       assignmentId: "",
       courseId: "",
@@ -97,11 +96,10 @@ export async function getScopedExternalTaskSubmissions(filters) {
       queryShape: readSubmissionArrayQueryShape("teacherOwnershipIds", safeFilters)
     }, queryErrors);
     teacherScopeQueryCount = teacherScopeQueryCount + 1;
-    teacherScopeQueryFailed = teacherScopeQueryFailed || !teacherQueryResult.ok;
     index = index + 1;
   }
 
-  if (teacherScopeQueryCount > 0 && !teacherScopeQueryFailed) {
+  if (teacherScopeQueryCount > 0) {
     return filterScopedSubmissions(submissions, safeFilters);
   }
 
