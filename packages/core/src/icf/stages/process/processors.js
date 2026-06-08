@@ -132,6 +132,6 @@ export {
   processLoadTeacherStudents,
   processSendTeacherPasswordReset,
   processTeacherLogin
-} from "./domain/teacher/teacherDashboardProcessors.js?v=1.1.125-teacher-dashboard-login";
+} from "./domain/teacher/teacherDashboardProcessors.js?v=1.1.127-teacher-students-scope";
 
 

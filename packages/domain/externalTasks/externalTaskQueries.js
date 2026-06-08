@@ -1,5 +1,5 @@
 import { collection, db, getDocs, query, where } from "../../firebase/index.js";
-import { normalizeExternalTaskSubmission } from "./externalTaskModel.js?v=1.1.123-teacher-dashboard-query-optimization";
+import { normalizeExternalTaskSubmission } from "./externalTaskModel.js?v=1.1.127-teacher-students-scope";
 
 var IN_QUERY_CHUNK_SIZE = 10;
 
@@ -78,10 +78,26 @@ export async function getScopedExternalTaskSubmissions(filters) {
   var classIds = readTextArray([safeFilters.classIds]);
   var assignmentIds = readTextArray([safeFilters.assignmentIds, safeFilters.courseAssignmentIds]);
   var courseIds = readTextArray([safeFilters.courseIds]);
+  var teacherIds = readTextArray([safeFilters.teacherIds]);
   var queryErrors = Array.isArray(safeFilters.queryErrors) ? safeFilters.queryErrors : [];
   var index = 0;
   var chunks = [];
 
+  chunks = chunkValues(teacherIds, IN_QUERY_CHUNK_SIZE);
+  while (index < chunks.length) {
+    await appendSubmissionQuery(submissions, buildSubmissionArrayQuery("teacherOwnershipIds", chunks[index], safeFilters), {
+      classId: "",
+      assignmentId: "",
+      courseId: "",
+      locationId: "",
+      scope: "teacherOwnershipIds",
+      filters: readSubmissionDebugFilters(safeFilters),
+      queryShape: readSubmissionArrayQueryShape("teacherOwnershipIds", safeFilters)
+    }, queryErrors);
+    index = index + 1;
+  }
+
+  index = 0;
   chunks = chunkValues(assignmentIds, IN_QUERY_CHUNK_SIZE);
   while (index < chunks.length) {
     await appendSubmissionQuery(submissions, buildSubmissionBatchQuery("assignmentId", chunks[index], safeFilters), {
@@ -244,6 +260,16 @@ function buildSubmissionBatchQuery(scopeField, scopeValues, filters) {
   return query(collection(db, "externalTaskSubmissions"), ...constraints);
 }
 
+function buildSubmissionArrayQuery(scopeField, scopeValues, filters) {
+  var constraints = [where(scopeField, "array-contains-any", scopeValues)];
+
+  if (filters && filters.reviewStatus) {
+    constraints.push(where("reviewStatus", "==", filters.reviewStatus));
+  }
+
+  return query(collection(db, "externalTaskSubmissions"), ...constraints);
+}
+
 function readSubmissionQueryShape(scopeField, filters) {
   var operatorLabel = scopeField === "teacherOwnershipIds" ? "array-contains" : "==";
 
@@ -256,6 +282,12 @@ function readSubmissionBatchQueryShape(scopeField, filters) {
   return filters && filters.reviewStatus
     ? "externalTaskSubmissions where " + scopeField + " in scopeValues and reviewStatus == " + filters.reviewStatus
     : "externalTaskSubmissions where " + scopeField + " in scopeValues";
+}
+
+function readSubmissionArrayQueryShape(scopeField, filters) {
+  return filters && filters.reviewStatus
+    ? "externalTaskSubmissions where " + scopeField + " array-contains-any scopeValues and reviewStatus == " + filters.reviewStatus
+    : "externalTaskSubmissions where " + scopeField + " array-contains-any scopeValues";
 }
 
 function readSubmissionDebugFilters(filters) {

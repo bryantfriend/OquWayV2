@@ -30,6 +30,6 @@ export { attachStudentOpenCourseContext } from "./domain/student/attachStudentOp
 export {
   attachExternalTaskSubmissionReviewContext,
   attachTeacherProfileContext
-} from "./domain/teacher/attachTeacherContext.js?v=1.1.124-location-icon-upload";
+} from "./domain/teacher/attachTeacherContext.js?v=1.1.127-teacher-students-scope";
 
 

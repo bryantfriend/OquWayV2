@@ -1,6 +1,6 @@
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.124-location-icon-upload";
-import { getExternalTaskSubmissionById } from "../../../../../../../domain/externalTasks/index.js";
-import { getUserProfileByAuthUid, getUserRoles } from "../../../../../../../domain/users/index.js";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.127-teacher-students-scope";
+import { getExternalTaskSubmissionById } from "../../../../../../../domain/externalTasks/index.js?v=1.1.127-teacher-students-scope";
+import { getUserProfileByAuthUid, getUserRoles } from "../../../../../../../domain/users/index.js?v=1.1.127-teacher-students-scope";
 
 export async function attachTeacherProfileContext(executionState) {
   var actor = executionState.actor || {};
@@ -229,5 +229,4 @@ function readErrorMessage(error) {
 
   return error.code ? error.code + " " + error.message : error.message || String(error);
 }
-
 

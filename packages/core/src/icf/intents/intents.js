@@ -75,15 +75,15 @@ export { ResubmitExternalTaskIntent } from "./externalTask/ResubmitExternalTaskI
 // ----------------------
 // Teacher Dashboard
 // ----------------------
-export { TeacherLoginIntent } from "./teacher/TeacherLoginIntent.js?v=1.1.125-teacher-dashboard-login";
-export { LoadTeacherClassDetailIntent } from "./teacher/LoadTeacherClassDetailIntent.js?v=1.1.125-teacher-dashboard-login";
-export { LoadTeacherCourseDetailIntent } from "./teacher/LoadTeacherCourseDetailIntent.js?v=1.1.125-teacher-dashboard-login";
-export { LoadTeacherCoursesIntent } from "./teacher/LoadTeacherCoursesIntent.js?v=1.1.125-teacher-dashboard-login";
-export { LoadTeacherDashboardIntent } from "./teacher/LoadTeacherDashboardIntent.js?v=1.1.125-teacher-dashboard-login";
-export { LoadTeacherClassesIntent } from "./teacher/LoadTeacherClassesIntent.js?v=1.1.125-teacher-dashboard-login";
-export { LoadTeacherStudentsIntent } from "./teacher/LoadTeacherStudentsIntent.js?v=1.1.125-teacher-dashboard-login";
-export { LoadTeacherReviewQueueIntent } from "./teacher/LoadTeacherReviewQueueIntent.js?v=1.1.125-teacher-dashboard-login";
-export { SendTeacherPasswordResetIntent } from "./teacher/SendTeacherPasswordResetIntent.js?v=1.1.125-teacher-dashboard-login";
+export { TeacherLoginIntent } from "./teacher/TeacherLoginIntent.js?v=1.1.127-teacher-students-scope";
+export { LoadTeacherClassDetailIntent } from "./teacher/LoadTeacherClassDetailIntent.js?v=1.1.127-teacher-students-scope";
+export { LoadTeacherCourseDetailIntent } from "./teacher/LoadTeacherCourseDetailIntent.js?v=1.1.127-teacher-students-scope";
+export { LoadTeacherCoursesIntent } from "./teacher/LoadTeacherCoursesIntent.js?v=1.1.127-teacher-students-scope";
+export { LoadTeacherDashboardIntent } from "./teacher/LoadTeacherDashboardIntent.js?v=1.1.127-teacher-students-scope";
+export { LoadTeacherClassesIntent } from "./teacher/LoadTeacherClassesIntent.js?v=1.1.127-teacher-students-scope";
+export { LoadTeacherStudentsIntent } from "./teacher/LoadTeacherStudentsIntent.js?v=1.1.127-teacher-students-scope";
+export { LoadTeacherReviewQueueIntent } from "./teacher/LoadTeacherReviewQueueIntent.js?v=1.1.127-teacher-students-scope";
+export { SendTeacherPasswordResetIntent } from "./teacher/SendTeacherPasswordResetIntent.js?v=1.1.127-teacher-students-scope";
 
 // ----------------------
 // Locations / Login Settings
@@ -204,5 +204,4 @@ export { CompleteStudentStepIntent } from "./student/CompleteStudentStepIntent.j
 export { CompletePracticeModeIntent } from "./student/CompletePracticeModeIntent.js?v=1.1.124-location-icon-upload";
 export { CompleteStudentPracticeModeIntent } from "./student/CompleteStudentPracticeModeIntent.js?v=1.1.124-location-icon-upload";
 export { SaveStudentProgressIntent } from "./student/SaveStudentProgressIntent.js?v=1.1.124-location-icon-upload";
-
 

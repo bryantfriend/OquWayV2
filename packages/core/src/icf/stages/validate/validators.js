@@ -71,6 +71,6 @@ export {
   validateTeacherLoginPayload,
   validateTeacherPasswordResetPayload,
   validateTeacherReviewQueuePayload
-} from "./domain/teacher/validateTeacherPayloads.js?v=1.1.124-location-icon-upload";
+} from "./domain/teacher/validateTeacherPayloads.js?v=1.1.127-teacher-students-scope";
 
 

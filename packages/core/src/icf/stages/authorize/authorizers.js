@@ -22,6 +22,6 @@ export {
   allowTeacherLoginAuthorization,
   requireTeacherDashboardAuthorization,
   requireTeacherReviewScopeAuthorization
-} from "./domain/teacher/requireTeacherAuthorization.js?v=1.1.124-location-icon-upload";
+} from "./domain/teacher/requireTeacherAuthorization.js?v=1.1.127-teacher-students-scope";
 
 

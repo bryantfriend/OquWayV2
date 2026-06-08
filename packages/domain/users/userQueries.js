@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../firebase/index.js";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../firebase/index.js";
 import { isStudentProfile } from "./roleService.js";
 
 var IN_QUERY_CHUNK_SIZE = 10;
@@ -43,6 +43,23 @@ export async function getStudentsForClassIds(classIds) {
       classId: chunks[index].join(","),
       queryShape: "users where classIds array-contains-any classIds"
     });
+    index = index + 1;
+  }
+
+  return {
+    students: students.filter(isStudentProfile).sort(compareByName),
+    queryErrors: queryErrors
+  };
+}
+
+export async function getStudentsForClassRosters(classRecords) {
+  var students = [];
+  var queryErrors = [];
+  var studentIds = readRosterStudentIds(classRecords);
+  var index = 0;
+
+  while (index < studentIds.length) {
+    await appendStudentDoc(students, queryErrors, studentIds[index]);
     index = index + 1;
   }
 
@@ -178,6 +195,36 @@ async function appendStudentQuery(students, queryErrors, studentsQuery, details)
   }
 }
 
+async function appendStudentDoc(students, queryErrors, studentId) {
+  console.info("[teacher-dashboard:students-query]", {
+    classId: "",
+    className: "",
+    queryShape: "users/" + studentId
+  });
+
+  try {
+    var studentSnap = await getDoc(doc(db, "users", studentId));
+
+    if (studentSnap.exists()) {
+      addUniqueRecord(students, Object.assign({ id: studentSnap.id }, studentSnap.data() || {}));
+    }
+  } catch (error) {
+    queryErrors.push({
+      collection: "users",
+      studentId: studentId,
+      queryShape: "users/" + studentId,
+      errorCode: error && error.code ? error.code : "",
+      errorMessage: readErrorMessage(error)
+    });
+    console.warn("[teacher-dashboard:students-query-failed]", {
+      studentId: studentId,
+      queryShape: "users/" + studentId,
+      errorCode: error && error.code ? error.code : "",
+      errorMessage: error && error.message ? error.message : readErrorMessage(error)
+    });
+  }
+}
+
 function compareByName(a, b) {
   return readName(a, "").localeCompare(readName(b, ""));
 }
@@ -244,6 +291,41 @@ function chunkValues(values, chunkSize) {
   }
 
   return chunks;
+}
+
+function readRosterStudentIds(classRecords) {
+  var ids = [];
+  var records = Array.isArray(classRecords) ? classRecords : [];
+  var index = 0;
+
+  while (index < records.length) {
+    appendTextValues(ids, records[index] && records[index].studentIds);
+    appendTextValues(ids, records[index] && records[index].assignedStudentIds);
+    appendTextValues(ids, records[index] && records[index].enrolledStudentIds);
+    appendTextValues(ids, records[index] && records[index].learnerIds);
+    appendTextValues(ids, records[index] && records[index].memberIds);
+    appendRecordIds(ids, records[index] && records[index].students);
+    appendRecordIds(ids, records[index] && records[index].assignedStudents);
+    appendRecordIds(ids, records[index] && records[index].roster);
+    appendRecordIds(ids, records[index] && records[index].studentRefs);
+    index = index + 1;
+  }
+
+  return ids;
+}
+
+function appendRecordIds(result, values) {
+  var records = Array.isArray(values) ? values : [];
+  var index = 0;
+
+  while (index < records.length) {
+    if (typeof records[index] === "string") {
+      appendTextValues(result, records[index]);
+    } else if (records[index] && typeof records[index] === "object") {
+      appendTextValues(result, records[index].id || records[index].studentId || records[index].userId || records[index].uid || records[index].refId);
+    }
+    index = index + 1;
+  }
 }
 
 function readErrorMessage(error) {

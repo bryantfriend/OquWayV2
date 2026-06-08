@@ -21,5 +21,5 @@ export function getClassLocationId(classRecord) {
   return readSafeString(classRecord && (classRecord.locationId || classRecord.locId || classRecord.schoolId || classRecord.primaryLocationId)).trim();
 }
 
-export * from "./classQueries.js";
-export * from "./classRepository.js?v=1.1.121-student-dashboard-open-clean";
+export * from "./classQueries.js?v=1.1.127-teacher-students-scope";
+export * from "./classRepository.js?v=1.1.127-teacher-students-scope";

@@ -1,10 +1,10 @@
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.125-teacher-dashboard-login";
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.125-teacher-dashboard-login";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.127-teacher-students-scope";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.127-teacher-students-scope";
 import {
   createEmptyState,
   createLoadingState,
   createStatusBadge
-} from "../../../packages/ui/index.js?v=1.1.125-teacher-dashboard-login";
+} from "../../../packages/ui/index.js?v=1.1.127-teacher-students-scope";
 
 var app = document.getElementById("app");
 var state = {

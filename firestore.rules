@@ -310,6 +310,31 @@ service cloud.firestore {
         );
     }
 
+    function isStudentProfileResource() {
+      return resource.data.role == "student" ||
+        resource.data.role == "Student" ||
+        resource.data.role == "ROLE_STUDENT" ||
+        (resource.data.roles is list && ("student" in resource.data.roles || "Student" in resource.data.roles || "ROLE_STUDENT" in resource.data.roles)) ||
+        resource.data.ROLE_STUDENT == true ||
+        resource.data.classId is string ||
+        resource.data.primaryClassId is string ||
+        resource.data.classIds is list ||
+        resource.data.assignedClassIds is list;
+    }
+
+    function isStudentInTeacherListedClass() {
+      return isTeacher()
+        && user() != null
+        && isStudentProfileResource()
+        && (
+          (resource.data.classId is string && resource.data.classId in teacherClassIds()) ||
+          (resource.data.primaryClassId is string && resource.data.primaryClassId in teacherClassIds()) ||
+          (resource.data.className is string && resource.data.className in teacherClassIds()) ||
+          (resource.data.classIds is list && resource.data.classIds.hasAny(teacherClassIds())) ||
+          (resource.data.assignedClassIds is list && resource.data.assignedClassIds.hasAny(teacherClassIds()))
+        );
+    }
+
     function isUserInTeacherClass(uid) {
       return isTeacher()
         && user() != null
@@ -348,7 +373,7 @@ service cloud.firestore {
 
     // 👤 USERS
     match /users/{uid} {
-      allow read, get, list: if
+      allow get: if
         // 1. Allow the user to read their own profile (essential for claims)
         isSameStudent(uid) ||
         (resource.data.authUid is string && resource.data.authUid == request.auth.uid) ||
@@ -356,6 +381,11 @@ service cloud.firestore {
         isAccountingAdmin() ||
         // 3. Allow Teachers to read students in their classes (existing logic)
         isStudentInTeacherClass();
+
+      allow list: if
+        (resource.data.authUid is string && resource.data.authUid == request.auth.uid) ||
+        isAccountingAdmin() ||
+        isStudentInTeacherListedClass();
 
       // Allow admins to create new users and allow both admins and user to update profile
       allow create: if isAccountingAdmin() || isSameStudent(uid);

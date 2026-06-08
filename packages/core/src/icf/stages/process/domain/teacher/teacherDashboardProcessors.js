@@ -1,16 +1,18 @@
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.125-teacher-dashboard-login";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.125-teacher-dashboard-login";
-import { getClassesForTeacherScope } from "../../../../../../../domain/classes/index.js";
-import { getExternalTaskSubmissionsForTeacher } from "../../../../../../../domain/externalTasks/index.js?v=1.1.125-teacher-dashboard-login";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.127-teacher-students-scope";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.127-teacher-students-scope";
+import { getClassesForTeacherScope } from "../../../../../../../domain/classes/index.js?v=1.1.127-teacher-students-scope";
+import { getExternalTaskSubmissionsForTeacher } from "../../../../../../../domain/externalTasks/index.js?v=1.1.127-teacher-students-scope";
 import {
-  getStudentsForClassIds,
+  buildStudentClassScope,
+  getStudentsForClassRosters,
+  getStudentsForClassScopes,
   getUserProfileByAuthUid,
   getUserRoles,
   isStudentProfile as isStudentUserProfile,
   resolveTeacherIdentity,
   userInClass as userProfileInClass
-} from "../../../../../../../domain/users/index.js";
+} from "../../../../../../../domain/users/index.js?v=1.1.127-teacher-students-scope";
 
 export async function processTeacherLogin(executionState) {
   var payload = executionState.payload || {};
@@ -149,7 +151,9 @@ export async function processLoadTeacherStudents(executionState) {
     var scope = await loadTeacherOwnershipScope(executionState);
     var profile = scope.profile;
     var classIds = resolveRequestedClassIds(executionState.payload, scope.classIds);
-    var studentResult = await getStudentsForClassIds(classIds);
+    var studentResult = await loadStudentsForTeacherClasses(scope.classes.filter(function (classRecord) {
+      return classIds.indexOf(classRecord.id) !== -1;
+    }));
     var students = studentResult.students;
     var progress = await loadProgressForStudents(students);
     var submissionQueryErrors = [];
@@ -220,7 +224,7 @@ async function buildTeacherDashboardData(executionState) {
   var classes = scope.classes;
   var effectiveClassIds = scope.classIds;
   var submissionQueryErrors = [];
-  var studentResult = await getStudentsForClassIds(effectiveClassIds);
+  var studentResult = await loadStudentsForTeacherClasses(classes);
   var students = studentResult.students;
   var progress = await loadProgressForStudents(students);
   var submissions = await loadScopedSubmissions({
@@ -301,6 +305,22 @@ async function buildTeacherDashboardData(executionState) {
       submissionQueryErrors: submissionQueryErrors,
       queryErrors: readQueryErrors([scope.queryErrors, studentResult.queryErrors, submissionQueryErrors])
     }
+  };
+}
+
+async function loadStudentsForTeacherClasses(classes) {
+  var classScopes = (Array.isArray(classes) ? classes : []).map(buildStudentClassScope);
+  var studentResult = await getStudentsForClassScopes(classScopes);
+
+  if (studentResult.students.length > 0 || !studentResult.queryErrors || studentResult.queryErrors.length === 0) {
+    return studentResult;
+  }
+
+  var rosterResult = await getStudentsForClassRosters(classes);
+
+  return {
+    students: rosterResult.students,
+    queryErrors: readQueryErrors([studentResult.queryErrors, rosterResult.queryErrors])
   };
 }
 
