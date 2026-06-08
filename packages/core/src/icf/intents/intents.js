@@ -75,15 +75,15 @@ export { ResubmitExternalTaskIntent } from "./externalTask/ResubmitExternalTaskI
 // ----------------------
 // Teacher Dashboard
 // ----------------------
-export { TeacherLoginIntent } from "./teacher/TeacherLoginIntent.js?v=1.1.124-location-icon-upload";
-export { LoadTeacherClassDetailIntent } from "./teacher/LoadTeacherClassDetailIntent.js?v=1.1.124-location-icon-upload";
-export { LoadTeacherCourseDetailIntent } from "./teacher/LoadTeacherCourseDetailIntent.js?v=1.1.124-location-icon-upload";
-export { LoadTeacherCoursesIntent } from "./teacher/LoadTeacherCoursesIntent.js?v=1.1.124-location-icon-upload";
-export { LoadTeacherDashboardIntent } from "./teacher/LoadTeacherDashboardIntent.js?v=1.1.124-location-icon-upload";
-export { LoadTeacherClassesIntent } from "./teacher/LoadTeacherClassesIntent.js?v=1.1.124-location-icon-upload";
-export { LoadTeacherStudentsIntent } from "./teacher/LoadTeacherStudentsIntent.js?v=1.1.124-location-icon-upload";
-export { LoadTeacherReviewQueueIntent } from "./teacher/LoadTeacherReviewQueueIntent.js?v=1.1.124-location-icon-upload";
-export { SendTeacherPasswordResetIntent } from "./teacher/SendTeacherPasswordResetIntent.js?v=1.1.124-location-icon-upload";
+export { TeacherLoginIntent } from "./teacher/TeacherLoginIntent.js?v=1.1.125-teacher-dashboard-login";
+export { LoadTeacherClassDetailIntent } from "./teacher/LoadTeacherClassDetailIntent.js?v=1.1.125-teacher-dashboard-login";
+export { LoadTeacherCourseDetailIntent } from "./teacher/LoadTeacherCourseDetailIntent.js?v=1.1.125-teacher-dashboard-login";
+export { LoadTeacherCoursesIntent } from "./teacher/LoadTeacherCoursesIntent.js?v=1.1.125-teacher-dashboard-login";
+export { LoadTeacherDashboardIntent } from "./teacher/LoadTeacherDashboardIntent.js?v=1.1.125-teacher-dashboard-login";
+export { LoadTeacherClassesIntent } from "./teacher/LoadTeacherClassesIntent.js?v=1.1.125-teacher-dashboard-login";
+export { LoadTeacherStudentsIntent } from "./teacher/LoadTeacherStudentsIntent.js?v=1.1.125-teacher-dashboard-login";
+export { LoadTeacherReviewQueueIntent } from "./teacher/LoadTeacherReviewQueueIntent.js?v=1.1.125-teacher-dashboard-login";
+export { SendTeacherPasswordResetIntent } from "./teacher/SendTeacherPasswordResetIntent.js?v=1.1.125-teacher-dashboard-login";
 
 // ----------------------
 // Locations / Login Settings

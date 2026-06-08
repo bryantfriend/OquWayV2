@@ -1,8 +1,8 @@
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.124-location-icon-upload";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.124-location-icon-upload";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.125-teacher-dashboard-login";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.125-teacher-dashboard-login";
 import { getClassesForTeacherScope } from "../../../../../../../domain/classes/index.js";
-import { getExternalTaskSubmissionsForTeacher } from "../../../../../../../domain/externalTasks/index.js?v=1.1.124-location-icon-upload";
+import { getExternalTaskSubmissionsForTeacher } from "../../../../../../../domain/externalTasks/index.js?v=1.1.125-teacher-dashboard-login";
 import {
   getStudentsForClassIds,
   getUserProfileByAuthUid,
@@ -149,7 +149,7 @@ export async function processLoadTeacherStudents(executionState) {
     var scope = await loadTeacherOwnershipScope(executionState);
     var profile = scope.profile;
     var classIds = resolveRequestedClassIds(executionState.payload, scope.classIds);
-    var studentResult = await loadStudentsForClassIds(classIds);
+    var studentResult = await getStudentsForClassIds(classIds);
     var students = studentResult.students;
     var progress = await loadProgressForStudents(students);
     var submissionQueryErrors = [];
@@ -220,7 +220,7 @@ async function buildTeacherDashboardData(executionState) {
   var classes = scope.classes;
   var effectiveClassIds = scope.classIds;
   var submissionQueryErrors = [];
-  var studentResult = await loadStudentsForClassIds(effectiveClassIds);
+  var studentResult = await getStudentsForClassIds(effectiveClassIds);
   var students = studentResult.students;
   var progress = await loadProgressForStudents(students);
   var submissions = await loadScopedSubmissions({
