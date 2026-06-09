@@ -1,4 +1,4 @@
-import { getStepTypeDefinition } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.137-emotional-preview-editor";
+import { getStepTypeDefinition } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.150-emotional-checkin-step";
 
 export async function attachStepRegistryDefinitionForStep(executionState) {
     const { payload } = executionState;

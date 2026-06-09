@@ -1,7 +1,7 @@
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../stepTypes/stepTypeRegistry.js?v=1.1.137-emotional-preview-editor";
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.150-emotional-checkin-step";
 
 export class PracticeModePlayer {
   constructor(options) {
@@ -548,13 +548,14 @@ function createSafeCompletionResult(completionResult) {
   var score = readNumber(safeResult.score, 100);
   var data = readObject(safeResult.data);
   var mood = readString(safeResult.mood || data.mood, "");
+  var result = Object.assign({}, safeResult);
 
-  return {
-    success: safeResult.success === false ? false : true,
-    score: score,
-    mood: mood,
-    data: data
-  };
+  result.success = safeResult.success === false ? false : true;
+  result.score = score;
+  result.mood = mood;
+  result.data = data;
+
+  return result;
 }
 
 function calculateProgressPercent(stepIndex, stepCount, isComplete) {

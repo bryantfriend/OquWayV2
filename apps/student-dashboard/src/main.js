@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.149-student-course-metadata";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.150-emotional-checkin-step";
 import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.149-student-course-metadata";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.149-student-course-metadata";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.150-emotional-checkin-step";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,

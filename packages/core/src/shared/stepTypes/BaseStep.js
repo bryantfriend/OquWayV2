@@ -64,6 +64,14 @@ export class BaseStep {
     this.attachCompletionHandler(container, callbacks);
   }
 
+  static assertRenderArgs(args) {
+    var safeArgs = args && typeof args === "object" ? args : {};
+
+    if (!safeArgs.container) {
+      throw new Error("Step render requires a container.");
+    }
+  }
+
   static renderShell(config) {
     return '<div class="rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-600">'
       + this.label
@@ -100,6 +108,14 @@ export class BaseStep {
 
   static createCompletionGuard(container, callbacks) {
     var hasCompleted = false;
+    var safeCallbacks = callbacks;
+
+    if (typeof container === "function" && !callbacks) {
+      safeCallbacks = {
+        onComplete: container
+      };
+      container = true;
+    }
 
     return {
       complete: function (completionResult) {
@@ -107,12 +123,12 @@ export class BaseStep {
           return false;
         }
 
-        if (!container || !callbacks || typeof callbacks.onComplete !== "function") {
+        if (!container || !safeCallbacks || typeof safeCallbacks.onComplete !== "function") {
           return false;
         }
 
         hasCompleted = true;
-        callbacks.onComplete(createGuardedCompletionResult(completionResult));
+        safeCallbacks.onComplete(createGuardedCompletionResult(completionResult));
         return true;
       }
     };
@@ -152,15 +168,16 @@ function createGuardedCompletionResult(completionResult) {
   var score = typeof safeResult.score === "number" && Number.isFinite(safeResult.score)
     ? safeResult.score
     : 1;
+  var result = Object.assign({}, safeResult);
 
-  return {
-    success: safeResult.success === false ? false : true,
-    score: score,
-    mood: typeof safeResult.mood === "string" ? safeResult.mood : "",
-    data: safeResult.data && typeof safeResult.data === "object" && !Array.isArray(safeResult.data)
-      ? safeResult.data
-      : {}
-  };
+  result.success = safeResult.success === false ? false : true;
+  result.score = score;
+  result.mood = typeof safeResult.mood === "string" ? safeResult.mood : "";
+  result.data = safeResult.data && typeof safeResult.data === "object" && !Array.isArray(safeResult.data)
+    ? safeResult.data
+    : {};
+
+  return result;
 }
 
 if (typeof window !== "undefined") {

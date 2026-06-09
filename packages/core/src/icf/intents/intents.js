@@ -165,9 +165,9 @@ export { DeleteLearningModeIntent } from "./moduleEditor/DeleteLearningModeInten
 export { DuplicateLearningModeIntent } from "./moduleEditor/DuplicateLearningModeIntent.js?v=1.1.141-user-command-context-data";
 export { GenerateModeFromPrimaryIntent } from "./moduleEditor/GenerateModeFromPrimaryIntent.js?v=1.1.141-user-command-context-data";
 export { PullLearningContentIntent } from "./moduleEditor/PullLearningContentIntent.js?v=1.1.141-user-command-context-data";
-export { PreviewStepIntent } from "./moduleEditor/PreviewStepIntent.js?v=1.1.141-user-command-context-data";
-export { AddStepToLearningModeIntent } from "./moduleEditor/AddStepToLearningModeIntent.js?v=1.1.141-user-command-context-data";
-export { UpdateLearningModeStepIntent } from "./moduleEditor/UpdateLearningModeStepIntent.js?v=1.1.141-user-command-context-data";
+export { PreviewStepIntent } from "./moduleEditor/PreviewStepIntent.js?v=1.1.150-emotional-checkin-step";
+export { AddStepToLearningModeIntent } from "./moduleEditor/AddStepToLearningModeIntent.js?v=1.1.150-emotional-checkin-step";
+export { UpdateLearningModeStepIntent } from "./moduleEditor/UpdateLearningModeStepIntent.js?v=1.1.150-emotional-checkin-step";
 export { AddStepToPracticeModeIntent } from "./moduleEditor/AddStepToPracticeModeIntent.js?v=1.1.141-user-command-context-data";
 export { CreatePracticeModeShellsIntent } from "./moduleEditor/CreatePracticeModeShellsIntent.js?v=1.1.141-user-command-context-data";
 export { CreateSessionIntent } from "./moduleEditor/CreateSessionIntent.js?v=1.1.141-user-command-context-data";
@@ -184,7 +184,7 @@ export { UpdatePracticeModeIntent } from "./moduleEditor/UpdatePracticeModeInten
 export { UpdatePracticeModeStepIntent } from "./moduleEditor/UpdatePracticeModeStepIntent.js?v=1.1.141-user-command-context-data";
 export { UploadStepMediaIntent } from "./moduleEditor/UploadStepMediaIntent.js?v=1.1.141-user-command-context-data";
 export { UpdateSessionIntent } from "./moduleEditor/UpdateSessionIntent.js?v=1.1.141-user-command-context-data";
-export { AddStepIntent } from "./moduleEditor/AddStepIntent.js?v=1.1.141-user-command-context-data";
+export { AddStepIntent } from "./moduleEditor/AddStepIntent.js?v=1.1.150-emotional-checkin-step";
 export { UpdateStepFieldIntent } from "./moduleEditor/UpdateStepFieldIntent.js?v=1.1.141-user-command-context-data";
 export { SaveModuleDraftIntent } from "./moduleEditor/SaveModuleDraftIntent.js?v=1.1.141-user-command-context-data";
 

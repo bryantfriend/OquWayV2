@@ -1,9 +1,9 @@
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.145-dual-source-archive";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.150-emotional-checkin-step";
 import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.145-dual-source-archive";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.145-dual-source-archive";
-import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.145-dual-source-archive";
-import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.145-dual-source-archive";
+import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.150-emotional-checkin-step";
+import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.150-emotional-checkin-step";
 import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.145-dual-source-archive";
 import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.145-dual-source-archive";
 import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.145-dual-source-archive";

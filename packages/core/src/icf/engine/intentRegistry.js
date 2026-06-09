@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.149-student-course-metadata";
+import * as IntentExports from "../intents/intents.js?v=1.1.150-emotional-checkin-step";
 
 const registry = {
   // Demo Verification

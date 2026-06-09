@@ -1,11 +1,11 @@
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.138-course-overview-title";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.138-course-overview-title";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.150-emotional-checkin-step";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.150-emotional-checkin-step";
 import {
   getStepTypeDefinition,
   listStepTypeDefinitions,
   validateStepConfig
-} from "../../../../../packages/domain/steps/index.js?v=1.1.138-course-overview-title";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.138-course-overview-title";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.150-emotional-checkin-step";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.150-emotional-checkin-step";
 import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.138-course-overview-title";
 
 export class CourseEditorPage {
@@ -2442,7 +2442,7 @@ function createStepTypeCard(StepTypeDefinition) {
 }
 
 function createStepCategoryOrder() {
-  return ["Basic", "Media", "Games", "Coding", "Speaking", "Assessment", "Custom"];
+  return ["Basic", "Reflection", "Media", "Games", "Coding", "Speaking", "Assessment", "Custom"];
 }
 
 function buildUnsupportedStudentPreview(step) {
@@ -3069,7 +3069,7 @@ function readStepTypeIcon(stepType) {
   if (stepType === "listening") { return "🎧"; }
   if (stepType === "speakingPrompt") { return "🎤"; }
   if (stepType === "reflection") { return "💡"; }
-  if (stepType === "emotionalCheckIn") { return "🙂"; }
+  if (stepType === "emotional-check-in" || stepType === "emotionalCheckIn") { return "💙"; }
   if (stepType === "customExperience") { return "✦"; }
   if (stepType === "cyberCodeMission") { return "⌨"; }
   if (stepType === "dragMatchIsland") { return "🏝"; }
@@ -3106,7 +3106,7 @@ function readStepDefinitionIcon(stepType) {
   if (stepType === "listening") { return "fa-solid fa-headphones"; }
   if (stepType === "speakingPrompt") { return "fa-solid fa-microphone"; }
   if (stepType === "reflection") { return "fa-solid fa-lightbulb"; }
-  if (stepType === "emotionalCheckIn") { return "fa-regular fa-face-smile"; }
+  if (stepType === "emotional-check-in" || stepType === "emotionalCheckIn") { return "fa-regular fa-face-smile"; }
   if (stepType === "customExperience") { return "fa-solid fa-shapes"; }
   if (stepType === "cyberCodeMission") { return "fa-solid fa-code"; }
   if (stepType === "dragMatchIsland") { return "fa-solid fa-gamepad"; }
