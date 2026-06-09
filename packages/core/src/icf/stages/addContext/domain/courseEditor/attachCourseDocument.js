@@ -1,4 +1,4 @@
-import { getCourseById } from "../../../../../../../domain/courses/index.js";
+import { getCourseById } from "../../../../../../../domain/courses/index.js?v=1.1.138-course-overview-title";
 
 export async function attachCourseDocument(executionState) {
     const { payload } = executionState;

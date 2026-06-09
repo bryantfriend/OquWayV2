@@ -4,5 +4,5 @@ export {
   registerIntent,
   registerIntentDefinitions,
   runAdminIntent
-} from "./intentRegistry.js?v=1.1.124-location-icon-upload";
-export { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.124-location-icon-upload";
+} from "./intentRegistry.js?v=1.1.138-course-overview-title";
+export { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.138-course-overview-title";

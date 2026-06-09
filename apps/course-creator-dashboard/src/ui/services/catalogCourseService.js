@@ -1,6 +1,6 @@
-import { createIntent } from "../../../../../packages/icf/index.js?v=1.1.137-emotional-preview-editor";
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.137-emotional-preview-editor";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.137-emotional-preview-editor";
+import { createIntent } from "../../../../../packages/icf/index.js?v=1.1.138-course-overview-title";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.138-course-overview-title";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.138-course-overview-title";
 
 function getActor() {
     const user = auth.currentUser;

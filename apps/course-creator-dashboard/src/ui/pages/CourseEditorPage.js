@@ -1,12 +1,12 @@
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.137-emotional-preview-editor";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.137-emotional-preview-editor";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.138-course-overview-title";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.138-course-overview-title";
 import {
   getStepTypeDefinition,
   listStepTypeDefinitions,
   validateStepConfig
-} from "../../../../../packages/domain/steps/index.js?v=1.1.137-emotional-preview-editor";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.137-emotional-preview-editor";
-import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.137-emotional-preview-editor";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.138-course-overview-title";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.138-course-overview-title";
+import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.138-course-overview-title";
 
 export class CourseEditorPage {
   constructor(courseId, moduleId) {

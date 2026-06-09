@@ -1,12 +1,12 @@
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.137-emotional-preview-editor";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.137-emotional-preview-editor";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.138-course-overview-title";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.138-course-overview-title";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.137-emotional-preview-editor";
-import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.137-emotional-preview-editor";
-import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.137-emotional-preview-editor";
-import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.137-emotional-preview-editor";
-import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.137-emotional-preview-editor";
-import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.137-emotional-preview-editor";
+import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.138-course-overview-title";
+import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.138-course-overview-title";
+import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.138-course-overview-title";
+import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.138-course-overview-title";
+import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.138-course-overview-title";
+import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.138-course-overview-title";
 
 console.log("[oquway-build]", OQUWAY_BUILD_VERSION);
 console.warn("[course-creator-build-check] latest build active");

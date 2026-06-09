@@ -25,4 +25,4 @@ export function readCourseTitle(course) {
 }
 
 export * from "./courseQueries.js?v=1.1.121-student-dashboard-open-clean";
-export * from "./courseRepository.js";
+export * from "./courseRepository.js?v=1.1.138-course-overview-title";

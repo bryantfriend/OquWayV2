@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.137-emotional-preview-editor";
+import * as IntentExports from "../intents/intents.js?v=1.1.138-course-overview-title";
 
 const registry = {
   // Demo Verification

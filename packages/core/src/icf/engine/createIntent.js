@@ -1,6 +1,6 @@
 // createIntent.js
 
-import { getIntentDefinition } from "./intentRegistry.js?v=1.1.124-location-icon-upload";
+import { getIntentDefinition } from "./intentRegistry.js?v=1.1.138-course-overview-title";
 
 export function createIntent(intentInput) {
   const intentType = readIntentType(intentInput);

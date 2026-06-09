@@ -1,7 +1,7 @@
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.137-emotional-preview-editor";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.137-emotional-preview-editor";
-import { courseEditorStore } from "../state/courseEditorState.js?v=1.1.137-emotional-preview-editor";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.137-emotional-preview-editor";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.138-course-overview-title";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.138-course-overview-title";
+import { courseEditorStore } from "../state/courseEditorState.js?v=1.1.138-course-overview-title";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.138-course-overview-title";
 
 function getActor() {
   return auth.currentUser ? { id: auth.currentUser.uid, role: "ROLE_COURSE_CREATOR" } : null;
