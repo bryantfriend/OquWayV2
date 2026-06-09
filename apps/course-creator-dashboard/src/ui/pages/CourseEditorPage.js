@@ -1,5 +1,5 @@
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.154-emotional-check-in-prototype";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.154-emotional-check-in-prototype";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.160-lesson-paths";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.160-lesson-paths";
 import {
   getStepTypeDefinition,
   listStepTypeDefinitions,
@@ -50,7 +50,7 @@ export class CourseEditorPage {
 
         <div id="editorTabBar" class="bg-white border-b border-gray-100 px-6 py-2 flex items-center gap-2 shrink-0">
           <button type="button" class="editor-tab-btn oqu-editor-tab-active" data-tab="learningContent"><i class="fa-solid fa-layer-group"></i> Learning Content</button>
-          <button type="button" class="editor-tab-btn" data-tab="learningModes"><i class="fa-solid fa-route"></i> Learning Modes</button>
+          <button type="button" class="editor-tab-btn" data-tab="learningModes"><i class="fa-solid fa-route"></i> Lesson Paths</button>
           <button type="button" class="editor-tab-btn" data-tab="steps"><i class="fa-solid fa-shapes"></i> Steps</button>
         </div>
 
@@ -65,20 +65,20 @@ export class CourseEditorPage {
                   <i class="fa-solid fa-diagram-project text-gray-300"></i>
                   Module Structure
                 </div>
-                <div class="text-[10px] font-black text-gray-400 uppercase tracking-wide mb-2">Learning Modes</div>
+                <div class="text-[10px] font-black text-gray-400 uppercase tracking-wide mb-2">Lesson Paths</div>
                 <div id="sessionCreateStatusBanner" style="display:none" class="oqu-status-banner mb-2"></div>
                 <button id="addSessionBtn" class="w-full border border-dashed border-gray-300 bg-white hover:bg-blue-50 hover:border-blue-300 text-gray-600 hover:text-blue-700 py-2 rounded-lg font-semibold transition flex items-center justify-center gap-2 text-xs">
-                  <i class="fa-solid fa-plus text-xs"></i> Add Mode
+                  <i class="fa-solid fa-plus text-xs"></i> Add Path
                 </button>
               </div>
               <div id="sessionList" class="shrink-0 max-h-[34%] overflow-y-auto p-2.5 space-y-1">
                 ${buildSessionSkeletonCards(3)}
               </div>
               <div id="moduleStructureDetails" class="flex-1 overflow-y-auto border-t border-gray-100 p-2.5 min-h-0">
-                <div class="text-xs text-gray-400 text-center py-8">Select a learning mode to see tracks and steps.</div>
+                <div class="text-xs text-gray-400 text-center py-8">Select a path, then edit its steps.</div>
               </div>
               <div class="px-4 py-2.5 bg-gray-50 border-t border-gray-100 rounded-b-xl shrink-0">
-                <div id="sessionCountText" class="text-[9px] font-bold text-gray-400 uppercase tracking-wide">0 Modes</div>
+                <div id="sessionCountText" class="text-[9px] font-bold text-gray-400 uppercase tracking-wide">0 Paths</div>
               </div>
             </div>
           </div>
@@ -113,7 +113,7 @@ export class CourseEditorPage {
                 </div>
               </div>
               <div id="configEditorPane" class="flex-1 overflow-y-auto p-5 min-h-0">
-                <div class="text-xs text-gray-400 text-center py-10">Select a mode or content section.</div>
+                <div class="text-xs text-gray-400 text-center py-10">Select a path or content section.</div>
               </div>
             </div>
           </div>
@@ -146,26 +146,26 @@ export class CourseEditorPage {
       self.updateUi(moduleEditorStore.getState());
     });
 
-    // ── Add Learning Mode ───────────────────────────────────────────────
+    // ── Add Lesson Path ───────────────────────────────────────────────
     document.getElementById("addSessionBtn").addEventListener("click", function () {
       var btn = document.getElementById("addSessionBtn");
       var banner = document.getElementById("sessionCreateStatusBanner");
-      showSessionBtnPending(btn, "Creating mode\u2026");
-      showSessionBanner(banner, "creating", '<span class="oqu-spinner oqu-spinner-blue"></span> Creating learning mode\u2026');
+      showSessionBtnPending(btn, "Creating path\u2026");
+      showSessionBanner(banner, "creating", '<span class="oqu-spinner oqu-spinner-blue"></span> Creating lesson path\u2026');
       moduleEditorService.createLearningMode(self.courseId, self.moduleId, {
-        title: "Custom Mode",
-        purpose: "A custom learning experience for this module.",
+        title: "Custom Path",
+        purpose: "A custom step sequence inside this module.",
         modeType: "custom"
       }).then(function () {
         self.activeEditorTab = "learningModes";
-        showSessionBanner(banner, "success", '<span class="oqu-success-icon">&#10003;</span> Mode created!');
-        restoreSessionBtn(btn, '<i class="fa-solid fa-plus text-xs"></i> Add Mode');
+        showSessionBanner(banner, "success", '<span class="oqu-success-icon">&#10003;</span> Path created!');
+        restoreSessionBtn(btn, '<i class="fa-solid fa-plus text-xs"></i> Add Path');
         setTimeout(function () {
           banner.style.display = "none";
         }, 2000);
       }).catch(function (err) {
         showSessionBanner(banner, "error", "&#9888; Failed: " + err.message);
-        restoreSessionBtn(btn, '<i class="fa-solid fa-plus text-xs"></i> Add Mode');
+        restoreSessionBtn(btn, '<i class="fa-solid fa-plus text-xs"></i> Add Path');
       });
     });
 
@@ -253,12 +253,47 @@ export class CourseEditorPage {
       return;
     }
 
+    var editPathStepsBtn = event.target.closest(".edit-learning-path-steps-btn");
+    if (editPathStepsBtn) {
+      self.activeEditorTab = "steps";
+      moduleEditorService.selectLearningMode(editPathStepsBtn.getAttribute("data-mode-id"));
+      return;
+    }
+
+    var createPathOptionBtn = event.target.closest(".create-learning-path-option-btn");
+    if (createPathOptionBtn) {
+      var pathType = createPathOptionBtn.getAttribute("data-path-type") || "custom";
+      var pathMeta = readLearningPathOption(pathType);
+      var originalPathOptionHtml = createPathOptionBtn.innerHTML;
+
+      if (createPathOptionBtn.disabled || pathMeta.exists) {
+        return;
+      }
+
+      createPathOptionBtn.disabled = true;
+      createPathOptionBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Creating';
+      moduleEditorService.createLearningMode(self.courseId, self.moduleId, {
+        title: pathMeta.title,
+        purpose: pathMeta.purpose,
+        modeType: pathMeta.modeType
+      }).then(function () {
+        self.activeEditorTab = "learningModes";
+        self.updateUi(moduleEditorStore.getState());
+      }).catch(function (error) {
+        alert("Create path failed: " + error.message);
+      }).finally(function () {
+        createPathOptionBtn.disabled = false;
+        createPathOptionBtn.innerHTML = originalPathOptionHtml;
+      });
+      return;
+    }
+
     var duplicateModeBtn = event.target.closest(".duplicate-learning-mode-btn");
     if (duplicateModeBtn) {
       moduleEditorService.duplicateLearningMode(this.courseId, this.moduleId, duplicateModeBtn.getAttribute("data-mode-id")).then(function () {
         self.updateUi(moduleEditorStore.getState());
       }).catch(function (error) {
-        alert("Duplicate mode failed: " + error.message);
+        alert("Duplicate path failed: " + error.message);
       });
       return;
     }
@@ -267,27 +302,27 @@ export class CourseEditorPage {
     if (renameModeBtn) {
       var renameModeId = renameModeBtn.getAttribute("data-mode-id");
       var currentMode = moduleEditorStore.getState().learningModes[renameModeId] || {};
-      var nextTitle = prompt("Rename learning mode", currentMode.title || "Learning Mode");
+      var nextTitle = prompt("Rename lesson path", readLearningPathTitle(currentMode, "Custom Path"));
       if (!nextTitle) {
         return;
       }
       moduleEditorService.renameLearningMode(this.courseId, this.moduleId, renameModeId, nextTitle, currentMode.purpose || "").then(function () {
         self.updateUi(moduleEditorStore.getState());
       }).catch(function (error) {
-        alert("Rename mode failed: " + error.message);
+        alert("Rename path failed: " + error.message);
       });
       return;
     }
 
     var deleteModeBtn = event.target.closest(".delete-learning-mode-btn");
     if (deleteModeBtn) {
-      if (!confirm("Delete this learning mode? Existing legacy step data will be kept for migration safety.")) {
+      if (!confirm("Delete this optional lesson path? Existing legacy step data will be kept for migration safety.")) {
         return;
       }
       moduleEditorService.deleteLearningMode(this.courseId, this.moduleId, deleteModeBtn.getAttribute("data-mode-id")).then(function () {
         self.updateUi(moduleEditorStore.getState());
       }).catch(function (error) {
-        alert("Delete mode failed: " + error.message);
+        alert("Delete path failed: " + error.message);
       });
       return;
     }
@@ -297,7 +332,7 @@ export class CourseEditorPage {
       moduleEditorService.generateModeFromPrimary(this.courseId, this.moduleId).then(function () {
         self.updateUi(moduleEditorStore.getState());
       }).catch(function (error) {
-        alert("Generate mode failed: " + error.message);
+        alert("Generate path failed: " + error.message);
       });
       return;
     }
@@ -538,7 +573,7 @@ export class CourseEditorPage {
       var originalStepOptionHtml = stepOption.innerHTML;
 
       if (!courseContext.courseId || !courseContext.moduleId || !courseContext.modeId || !stepType) {
-        alert("Cannot add step because course, module, or learning mode is missing.");
+        alert("Cannot add step because course, module, or lesson path is missing.");
         return;
       }
 
@@ -608,6 +643,41 @@ export class CourseEditorPage {
     var session = self.findSelectedSession(state);
     var propsPane = document.getElementById("configEditorPane");
 
+    // Save lesson path details
+    var savePathBtn = event.target.closest(".save-learning-path-btn");
+    if (savePathBtn) {
+      var selectedPathId = savePathBtn.getAttribute("data-mode-id") || readSelectedModeId(state);
+      var titleInput = propsPane ? propsPane.querySelector(".inspector-path-title") : null;
+      var purposeInput = propsPane ? propsPane.querySelector(".inspector-path-purpose") : null;
+      var title = titleInput ? titleInput.value.trim() : "";
+      var purpose = purposeInput ? purposeInput.value.trim() : "";
+
+      if (!selectedPathId || !title) {
+        alert("Add a path title before saving.");
+        return;
+      }
+
+      savePathBtn.textContent = "Saving\u2026";
+      savePathBtn.disabled = true;
+      self.showEditorSaveStatus("saving", "Saving...");
+      moduleEditorService.renameLearningMode(
+        self.courseId, self.moduleId, selectedPathId, title, purpose
+      ).then(function () {
+        self.showEditorSaveStatus("success", "Saved");
+        savePathBtn.textContent = "Saved \u2713";
+        setTimeout(function () {
+          savePathBtn.textContent = "Save Path Details";
+          savePathBtn.disabled = false;
+        }, 1400);
+      }).catch(function (error) {
+        self.showEditorSaveStatus("error", "Could not save changes");
+        savePathBtn.textContent = "Save Path Details";
+        savePathBtn.disabled = false;
+        alert("Failed to save path: " + error.message);
+      });
+      return;
+    }
+
     // Save practice mode
     var saveModeBtn = event.target.closest(".save-practice-mode-btn");
     if (saveModeBtn && session) {
@@ -622,12 +692,12 @@ export class CourseEditorPage {
         self.showEditorSaveStatus("success", "Saved");
         saveModeBtn.textContent = "Saved \u2713";
         setTimeout(function () {
-          saveModeBtn.textContent = "Save Practice Mode";
+          saveModeBtn.textContent = "Save Step Sequence";
           saveModeBtn.disabled = false;
         }, 1400);
       }).catch(function (error) {
         self.showEditorSaveStatus("error", "Could not save changes");
-        saveModeBtn.textContent = "Save Practice Mode";
+        saveModeBtn.textContent = "Save Step Sequence";
         saveModeBtn.disabled = false;
         alert("Failed to save practice mode: " + error.message);
       });
@@ -821,7 +891,7 @@ export class CourseEditorPage {
 
     if (!state.course && state.isFetching) {
       document.getElementById("headerCourseTitle").innerHTML =
-        'Loading\u2026 <span class="text-gray-300 mx-1">/</span> Learning Modes';
+        'Loading\u2026 <span class="text-gray-300 mx-1">/</span> Lesson Paths';
       document.getElementById("sessionList").innerHTML = buildSessionSkeletonCards(3);
       return;
     }
@@ -903,7 +973,7 @@ export class CourseEditorPage {
     var selectedModeId = readSelectedModeId(state);
     var countEl = document.getElementById("sessionCountText");
     if (countEl) {
-      countEl.textContent = learningModes.length + " Mode" + (learningModes.length === 1 ? "" : "s");
+      countEl.textContent = learningModes.length + " Path" + (learningModes.length === 1 ? "" : "s");
     }
     if (learningModes.length === 0) {
       el.innerHTML = buildListEmptyState();
@@ -914,7 +984,7 @@ export class CourseEditorPage {
     while (i < learningModes.length) {
       var mode = learningModes[i];
       var isSelected = selectedModeId === mode.id;
-      var title = readLocalizedText(mode.title, "Learning Mode");
+      var title = readLearningPathTitle(mode, "Lesson Path");
       var status = readString(mode.status, "draft");
       var wrapperClass = isSelected
         ? "border-emerald-300 bg-emerald-50 ring-1 ring-emerald-300 shadow-sm"
@@ -942,7 +1012,7 @@ export class CourseEditorPage {
 
     if (this.activeEditorTab === "learningContent") {
       if (structurePane) {
-        structurePane.innerHTML = buildModuleStructureIdleHtml("Open Steps to edit tracks and activities.");
+        structurePane.innerHTML = buildModuleStructureIdleHtml("Open Steps to edit this module's path activities.");
       }
       workspace.innerHTML = buildLearningContentWorkspace(state.learningContent);
       propsPane.innerHTML = buildLearningContentInspector(state.learningContent);
@@ -951,7 +1021,7 @@ export class CourseEditorPage {
 
     if (this.activeEditorTab === "learningModes") {
       if (structurePane) {
-        structurePane.innerHTML = buildModuleStructureIdleHtml("Choose a learning mode, then open Steps.");
+        structurePane.innerHTML = buildModuleStructureIdleHtml("Choose a lesson path, then edit its steps.");
       }
       workspace.innerHTML = buildLearningModesWorkspace(state.learningModes, state.sessions, readSelectedModeId(state));
       propsPane.innerHTML = selectedLearningMode
@@ -962,12 +1032,12 @@ export class CourseEditorPage {
 
     if (!session) {
       if (structurePane) {
-        structurePane.innerHTML = buildModuleStructureIdleHtml("Create or select a learning mode to add steps.");
+        structurePane.innerHTML = buildModuleStructureIdleHtml("Create or select a lesson path to add steps.");
       }
       workspace.innerHTML = '<div class="flex items-center justify-center min-h-full p-12">' + buildModeReadyEmptyHtml(selectedLearningMode) + '</div>';
       propsPane.innerHTML = selectedLearningMode
         ? buildSelectedLearningModeInspector(selectedLearningMode, this.activeEditorTab)
-        : '<div class="text-xs text-gray-400 text-center py-10">Select a learning mode to inspect properties.</div>';
+        : '<div class="text-xs text-gray-400 text-center py-10">Select a lesson path to inspect properties.</div>';
       return;
     }
 
@@ -1041,7 +1111,7 @@ export class CourseEditorPage {
     // ── Sticky session header ────────────────────────────────────────
     html += '<div class="oqu-workspace-sticky px-5 py-3.5 flex items-center gap-3">';
     html += '<div class="flex-1 min-w-0">';
-    html += '<div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Learning Mode ' + (sessionIndex + 1) + '</div>';
+    html += '<div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Lesson Path ' + (sessionIndex + 1) + '</div>';
     html += '<div class="text-sm font-bold text-gray-900 truncate">' + escapeHtml(title) + '</div>';
     html += '</div>';
     html += buildStatusPill(status);
@@ -1077,12 +1147,12 @@ export class CourseEditorPage {
 
     html += '<div class="space-y-3">';
     html += '<div>';
-    html += '<div class="text-[10px] font-black text-gray-400 uppercase tracking-wide mb-2">Step Tracks</div>';
+    html += '<div class="text-[10px] font-black text-gray-400 uppercase tracking-wide mb-2">Step Sequences</div>';
     html += '<div class="space-y-1.5">';
 
     while (keyIndex < keys.length) {
       var mode = practiceModes[keys[keyIndex]];
-      var modeTitle = readLocalizedText(mode.title, "Practice Mode");
+      var modeTitle = readLocalizedText(mode.title, "Step Sequence");
       var stepCount = readStepCount(mode);
       var modeStatus = readString(mode.status, "shell");
       var isActive = selectedPracticeModeKey === mode.key;
@@ -1113,7 +1183,7 @@ export class CourseEditorPage {
   buildStructureStepList(mode, effectiveStepId, practiceModeKey) {
     var safeMode = mode || {};
     var steps = readSortedSteps(safeMode.steps);
-    var modeTitle = readLocalizedText(safeMode.title, "Practice Mode");
+    var modeTitle = readLocalizedText(safeMode.title, "Step Sequence");
     var html = "";
     var stepIndex = 0;
 
@@ -1169,7 +1239,7 @@ export class CourseEditorPage {
 
   buildStepNavigationArea(mode, effectiveStepId, practiceModeKey) {
     var steps = readSortedSteps(mode.steps);
-    var modeTitle = readLocalizedText(mode.title, "Practice Mode");
+    var modeTitle = readLocalizedText(mode.title, "Step Sequence");
     var html = "";
 
     html += '<div class="px-5 pb-2">';
@@ -1537,7 +1607,7 @@ export class CourseEditorPage {
     var practiceModes = readPracticeModes(session);
     var mode = practiceModes[practiceModeKey];
     var step = findPracticeModeStep(session, practiceModeKey, stepId);
-    var modeTitle = readLocalizedText(mode.title, "Practice Mode");
+    var modeTitle = readLocalizedText(mode.title, "Step Sequence");
     var stepTitle = readLocalizedText(step.title, "Selected Step");
     var stepType = readStepTypeLabel(readStepType(step));
     var html = "";
@@ -1547,7 +1617,7 @@ export class CourseEditorPage {
     html += '<div class="text-xs font-bold text-blue-900 mb-1">Previewing one selected step</div>';
     html += '<div class="text-[11px] text-blue-700 leading-relaxed">Editor controls are hidden in the center canvas. Use Back to Editor to return to editing.</div>';
     html += '</div>';
-    html += '<div class="oqu-inspector-readonly-label">Practice Mode</div>';
+    html += '<div class="oqu-inspector-readonly-label">Step Sequence</div>';
     html += '<div class="oqu-inspector-readonly-value mb-3">' + escapeHtml(modeTitle) + '</div>';
     html += '<div class="oqu-inspector-readonly-label">Step</div>';
     html += '<div class="oqu-inspector-readonly-value mb-3">' + escapeHtml(stepTitle) + '</div>';
@@ -1572,7 +1642,7 @@ export class CourseEditorPage {
     html += '<div class="oqu-student-preview-topbar oqu-playtest-topbar">';
     html += '<button type="button" class="back-to-editor-btn oqu-back-editor-btn">Back to Editor</button>';
     html += '<div class="min-w-0">';
-    html += '<div class="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Practice Mode Playtest</div>';
+    html += '<div class="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Step Sequence Playtest</div>';
     html += '<div class="text-sm font-bold text-gray-900 truncate">' + escapeHtml(modeTitle) + '</div>';
     html += '</div>';
     html += '</div>';
@@ -1596,7 +1666,7 @@ export class CourseEditorPage {
     html += '<div class="oqu-student-preview-topbar oqu-playtest-topbar">';
     html += '<button type="button" class="back-to-editor-btn oqu-back-editor-btn">Back to Editor</button>';
     html += '<div class="min-w-0 flex-1">';
-    html += '<div class="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Practice Mode Playtest</div>';
+    html += '<div class="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Step Sequence Playtest</div>';
     html += '<div class="text-sm font-bold text-gray-900 truncate">' + escapeHtml(modeTitle) + '</div>';
     html += '</div>';
     html += '<div class="oqu-playtest-progress-label">' + stepCount + ' step' + (stepCount === 1 ? "" : "s") + ' tested</div>';
@@ -1681,7 +1751,7 @@ export class CourseEditorPage {
       mode = practiceModes.beforeClass;
     }
     var steps = readSortedSteps(mode.steps);
-    var modeTitle = readLocalizedText(mode.title, "Practice Mode");
+    var modeTitle = readLocalizedText(mode.title, "Step Sequence");
     var snapshot = this.practiceModePlayerSnapshot;
     var currentStepIndex = snapshot && typeof snapshot.currentStepIndex === "number" ? snapshot.currentStepIndex : 0;
     var currentStepTitle = "No step selected";
@@ -1701,7 +1771,7 @@ export class CourseEditorPage {
     html += '<div class="text-xs font-bold text-emerald-900 mb-1">Previewing the full practice mode</div>';
     html += '<div class="text-[11px] text-emerald-700 leading-relaxed">This is editor-only. It does not save student progress.</div>';
     html += '</div>';
-    html += '<div class="oqu-inspector-readonly-label">Practice Mode</div>';
+    html += '<div class="oqu-inspector-readonly-label">Step Sequence</div>';
     html += '<div class="oqu-inspector-readonly-value mb-3">' + escapeHtml(modeTitle) + '</div>';
     html += '<div class="oqu-inspector-readonly-label">Steps</div>';
     html += '<div class="oqu-inspector-readonly-value mb-3">' + steps.length + '</div>';
@@ -1827,11 +1897,11 @@ export class CourseEditorPage {
   }
 
   buildPracticeModeInspector(mode, session, practiceModeKey) {
-    var title = readLocalizedText(mode.title, "Practice Mode");
+    var title = readLocalizedText(mode.title, "Step Sequence");
     var status = readString(mode.status, "shell");
     var html = "";
 
-    html += '<div class="oqu-inspector-section">Practice Mode</div>';
+    html += '<div class="oqu-inspector-section">Step Sequence</div>';
 
     // Title
     html += '<div class="oqu-inspector-field">';
@@ -1865,13 +1935,13 @@ export class CourseEditorPage {
     html += '</label>';
     html += '</div>';
 
-    html += '<button type="button" class="save-practice-mode-btn w-full bg-gray-900 hover:bg-black text-white font-bold py-2 rounded-lg text-xs transition mt-1">Save Step Track</button>';
+    html += '<button type="button" class="save-practice-mode-btn w-full bg-gray-900 hover:bg-black text-white font-bold py-2 rounded-lg text-xs transition mt-1">Save Step Sequence</button>';
 
     // Legacy shell context remains visible during migration.
     html += '<div class="oqu-inspector-divider" style="margin-top:20px"></div>';
-    html += '<div class="oqu-inspector-section">Mode Shell</div>';
+    html += '<div class="oqu-inspector-section">Path Shell</div>';
 
-    var sessionTitle = readLocalizedText(session.title, "Learning Mode");
+    var sessionTitle = readLocalizedText(session.title, "Lesson Path");
     var sessionStatus = readString(session.status, "draft");
     html += '<div class="flex items-center justify-between">';
     html += '<div class="oqu-inspector-readonly-value">' + escapeHtml(sessionTitle) + '</div>';
@@ -2275,7 +2345,7 @@ function calculateProgress(mode) {
 function buildEmptyNoSessionHtml() {
   return '<div class="text-center max-w-[220px]">'
     + '<div class="text-4xl mb-3">📚</div>'
-    + '<div class="text-sm font-bold text-gray-700 mb-1">No learning mode selected</div>'
+    + '<div class="text-sm font-bold text-gray-700 mb-1">No lesson path selected</div>'
     + '<div class="text-xs text-gray-400 leading-relaxed">Click a mode on the left to start designing its activities.</div>'
     + '</div>';
 }
@@ -2287,7 +2357,7 @@ function buildModeReadyEmptyHtml(mode) {
 
   var title = readLocalizedText(mode.title, "Learning Mode");
   var isPrimary = mode.id === "primary" || mode.modeType === "primary";
-  var headline = isPrimary ? "Primary Mode is ready. Add your first step." : title + " is ready. Add your first step.";
+  var headline = isPrimary ? "Main Path is ready. Add your first step." : title + " is ready. Add your first step.";
 
   return '<div class="text-center max-w-[280px]">'
     + '<div class="text-4xl mb-3">📚</div>'
@@ -2499,8 +2569,8 @@ function buildUnsupportedStudentPreview(step) {
 
 function buildModuleStructureIdleHtml(message) {
   return '<div class="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-3 text-center">'
-    + '<div class="text-xs font-bold text-gray-600 mb-1">Tracks and steps</div>'
-    + '<div class="text-[10px] text-gray-400 leading-relaxed">' + escapeHtml(message || "Select a learning mode to see tracks and steps.") + '</div>'
+    + '<div class="text-xs font-bold text-gray-600 mb-1">Select a path, then edit its steps</div>'
+    + '<div class="text-[10px] text-gray-400 leading-relaxed">' + escapeHtml(message || "Select a lesson path, then edit its steps.") + '</div>'
     + '</div>';
 }
 
@@ -3298,39 +3368,70 @@ function buildLearningContentInspector(learningContent) {
 
 function buildLearningModesWorkspace(learningModes, sessions, selectedModeId) {
   var modes = createLearningModeList(learningModes, sessions);
+  var existingTypes = createExistingPathTypeMap(modes);
+  var pathOptions = createLearningPathOptions(existingTypes);
   var html = "";
 
-  html += '<div class="p-6 space-y-5">';
-  html += '<div class="rounded-3xl border border-violet-100 bg-gradient-to-br from-violet-50 via-sky-50 to-white p-5 shadow-sm">';
-  html += '<div class="flex items-start justify-between gap-4">';
+  html += '<div class="p-6 space-y-5 bg-slate-50/60 min-h-full">';
+  html += '<div class="rounded-[28px] border border-emerald-100 bg-gradient-to-br from-emerald-50 via-sky-50 to-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">';
+  html += '<div class="flex items-start justify-between gap-5">';
   html += '<div>';
-  html += '<div class="text-[10px] font-black uppercase tracking-[0.18em] text-violet-600">Module Experiences</div>';
-  html += '<h2 class="mt-2 text-2xl font-black text-slate-950">Learning Modes</h2>';
-  html += '<p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Modes replace the old session terminology for authoring. Primary Mode is required; review, practice, assessment, and custom modes can be layered in safely.</p>';
+  html += '<div class="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-600">Course → Modules → Lesson Paths → Steps</div>';
+  html += '<h2 class="mt-2 text-3xl font-black text-slate-950">Lesson Paths</h2>';
+  html += '<p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Paths let you offer review, challenge, or support versions of the same module without creating duplicate modules.</p>';
   html += '</div>';
-  html += '<button type="button" class="generate-mode-from-primary-btn rounded-2xl border border-violet-200 bg-white px-4 py-2 text-xs font-black text-violet-700 shadow-sm hover:bg-violet-50"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate From Primary</button>';
+  html += '<button type="button" class="generate-mode-from-primary-btn rounded-2xl border border-emerald-200 bg-white px-4 py-2 text-xs font-black text-emerald-700 shadow-sm hover:bg-emerald-50"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate From Main Path</button>';
+  html += '</div>';
+  html += '<div class="mt-5 grid grid-cols-5 gap-3">';
+  pathOptions.forEach(function (option) {
+    var disabled = option.required || option.exists ? " disabled" : "";
+    var stateLabel = option.required ? "Required" : (option.exists ? "Added" : "Add");
+    var optionClass = option.required
+      ? "border-emerald-200 bg-white text-emerald-800"
+      : option.exists
+        ? "border-slate-200 bg-white text-slate-500"
+        : "border-slate-200 bg-white text-slate-700 hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md";
+    html += '<button type="button" class="create-learning-path-option-btn rounded-2xl border p-3 text-left transition ' + optionClass + '" data-path-type="' + escapeHtml(option.pathType) + '"' + disabled + '>';
+    html += '<div class="flex items-center justify-between gap-2">';
+    html += '<span class="grid h-9 w-9 place-items-center rounded-2xl ' + escapeHtml(option.iconBg) + '"><i class="' + escapeHtml(option.icon) + '"></i></span>';
+    html += '<span class="rounded-full bg-slate-100 px-2 py-1 text-[9px] font-black uppercase tracking-wide text-slate-500">' + stateLabel + '</span>';
+    html += '</div>';
+    html += '<div class="mt-3 text-xs font-black text-slate-950">' + escapeHtml(option.title) + '</div>';
+    html += '<div class="mt-1 text-[10px] leading-4 text-slate-500">' + escapeHtml(option.shortPurpose) + '</div>';
+    html += '</button>';
+  });
   html += '</div>';
   html += '</div>';
 
   html += '<div class="grid grid-cols-2 gap-4">';
   modes.forEach(function (mode) {
-    var selected = selectedModeId === mode.id ? " ring-2 ring-emerald-300 border-emerald-200" : " border-slate-100";
-    html += '<div class="learning-mode-card rounded-3xl bg-white p-5 shadow-sm border cursor-pointer hover:-translate-y-0.5 hover:shadow-md transition' + selected + '" data-mode-id="' + mode.id + '">';
-  html += '<div class="flex items-start gap-4">';
-    html += '<img src="' + readLearningModeAsset(mode) + '" alt="" class="h-16 w-20 rounded-2xl object-cover bg-slate-50">';
+    var meta = readLearningPathMeta(mode);
+    var title = readLearningPathTitle(mode, meta.title);
+    var purpose = readLearningPathPurpose(mode, meta.purpose);
+    var stepCount = readLearningPathStepCount(mode);
+    var selected = selectedModeId === mode.id ? " ring-2 ring-emerald-300 border-emerald-200 shadow-[0_16px_38px_rgba(16,185,129,0.18)]" : " border-slate-100 shadow-sm";
+    html += '<div class="learning-mode-card rounded-[26px] bg-white p-5 border cursor-pointer hover:-translate-y-0.5 hover:shadow-lg transition' + selected + '" data-mode-id="' + escapeHtml(mode.id) + '">';
+    html += '<div class="flex items-start gap-4">';
+    html += '<div class="grid h-16 w-16 shrink-0 place-items-center rounded-3xl ' + escapeHtml(meta.iconBg) + ' text-xl"><i class="' + escapeHtml(meta.icon) + '"></i></div>';
     html += '<div class="min-w-0 flex-1">';
-    html += '<div class="flex items-center gap-2 flex-wrap">' + buildStatusPill(mode.status) + (mode.required ? '<span class="rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-black uppercase text-emerald-700">Required</span>' : '') + '</div>';
-    html += '<h3 class="mt-3 text-lg font-black text-slate-950 truncate">' + escapeHtml(mode.title) + '</h3>';
-    html += '<p class="mt-1 text-xs leading-5 text-slate-500">' + escapeHtml(mode.purpose || "Custom learning experience.") + '</p>';
+    html += '<div class="flex items-center gap-2 flex-wrap">' + buildStatusPill(mode.status) + (mode.required ? '<span class="rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-black uppercase text-emerald-700">Required</span>' : '<span class="rounded-full bg-sky-100 px-2 py-1 text-[10px] font-black uppercase text-sky-700">Optional</span>') + '</div>';
+    html += '<h3 class="mt-3 text-xl font-black text-slate-950 truncate">' + escapeHtml(title) + '</h3>';
+    html += '<p class="mt-1 min-h-[40px] text-xs leading-5 text-slate-500">' + escapeHtml(purpose) + '</p>';
     html += '</div>';
+    html += '</div>';
+    html += '<div class="mt-5 grid grid-cols-3 gap-2">';
+    html += '<div class="rounded-2xl border border-slate-100 bg-slate-50 p-3"><div class="text-[9px] font-black uppercase tracking-widest text-slate-400">Path Type</div><div class="mt-1 text-xs font-black text-slate-800">' + escapeHtml(meta.title) + '</div></div>';
+    html += '<div class="rounded-2xl border border-slate-100 bg-slate-50 p-3"><div class="text-[9px] font-black uppercase tracking-widest text-slate-400">Steps</div><div class="mt-1 text-xs font-black text-slate-800">' + stepCount + '</div></div>';
+    html += '<div class="rounded-2xl border border-slate-100 bg-slate-50 p-3"><div class="text-[9px] font-black uppercase tracking-widest text-slate-400">Status</div><div class="mt-1 text-xs font-black text-slate-800">' + escapeHtml(readString(mode.status, "draft")) + '</div></div>';
     html += '</div>';
     html += '<div class="mt-4 flex items-center justify-between gap-2">';
-    html += '<span class="text-[10px] font-black uppercase tracking-widest text-slate-400">' + escapeHtml(mode.modeType || "custom") + '</span>';
+    html += '<span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Alternate route inside this module</span>';
     html += '<div class="flex gap-2">';
-    html += '<button type="button" class="rename-learning-mode-btn rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-black text-slate-600 hover:bg-slate-50" data-mode-id="' + mode.id + '">Rename</button>';
-    html += '<button type="button" class="duplicate-learning-mode-btn rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-black text-slate-600 hover:bg-slate-50" data-mode-id="' + mode.id + '">Duplicate</button>';
+    html += '<button type="button" class="edit-learning-path-steps-btn rounded-xl bg-emerald-600 px-3 py-1.5 text-[10px] font-black text-white hover:bg-emerald-700" data-mode-id="' + escapeHtml(mode.id) + '">Edit Steps</button>';
+    html += '<button type="button" class="rename-learning-mode-btn rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-black text-slate-600 hover:bg-slate-50" data-mode-id="' + escapeHtml(mode.id) + '">Rename</button>';
+    html += '<button type="button" class="duplicate-learning-mode-btn rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-black text-slate-600 hover:bg-slate-50" data-mode-id="' + escapeHtml(mode.id) + '">Duplicate</button>';
     if (!mode.required) {
-      html += '<button type="button" class="delete-learning-mode-btn rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[10px] font-black text-rose-600 hover:bg-rose-100" data-mode-id="' + mode.id + '">Delete</button>';
+      html += '<button type="button" class="delete-learning-mode-btn rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[10px] font-black text-rose-600 hover:bg-rose-100" data-mode-id="' + escapeHtml(mode.id) + '">Delete</button>';
     }
     html += '</div>';
     html += '</div>';
@@ -3338,9 +3439,9 @@ function buildLearningModesWorkspace(learningModes, sessions, selectedModeId) {
   });
   html += '</div>';
 
-  html += '<div class="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">';
-  html += '<div class="text-sm font-black text-slate-900">Compatibility Layer</div>';
-  html += '<p class="mt-2 text-xs leading-5 text-slate-500">Each learning mode can point at a legacy session shell while migration is in progress. The existing Step System continues to run from those shells.</p>';
+  html += '<div class="rounded-3xl border border-sky-100 bg-white p-5 shadow-sm">';
+  html += '<div class="text-sm font-black text-slate-900">How Lesson Paths Work</div>';
+  html += '<p class="mt-2 text-xs leading-5 text-slate-500">Main Path is required. Review, Challenge, Support, and Custom paths are optional alternate step sequences inside the same module. Existing internal mode fields stay in place for compatibility.</p>';
   html += '</div>';
   html += '</div>';
 
@@ -3350,13 +3451,18 @@ function buildLearningModesWorkspace(learningModes, sessions, selectedModeId) {
 function buildLearningModesInspector() {
   var html = "";
   html += '<div class="space-y-4">';
-  html += '<div class="rounded-2xl border border-slate-100 p-4">';
-  html += '<div class="text-xs font-black text-slate-900">Templates</div>';
-  html += '<div class="mt-2 text-xs leading-5 text-slate-500">School: Primary + Review. Education Center: Primary only. Intensive: Primary + Review + Practice + Assessment. Custom: Primary only.</div>';
+  html += '<div class="rounded-3xl border border-emerald-100 bg-emerald-50 p-4">';
+  html += '<div class="text-xs font-black text-emerald-900">Lesson Path Basics</div>';
+  html += '<div class="mt-2 text-xs leading-5 text-emerald-800">Main Path is required. Add optional paths when students need review, challenge, or support routes through the same module.</div>';
   html += '</div>';
   html += '<div class="rounded-2xl border border-slate-100 p-4">';
-  html += '<div class="text-xs font-black text-slate-900">Student Language</div>';
-  html += '<div class="mt-2 text-xs leading-5 text-slate-500">Do not expose mode names to students. They only see Continue Learning.</div>';
+  html += '<div class="text-xs font-black text-slate-900">Path Types</div>';
+  html += '<div class="mt-2 space-y-2 text-xs leading-5 text-slate-500">';
+  html += '<div><strong class="text-slate-700">Main:</strong> required core lesson sequence.</div>';
+  html += '<div><strong class="text-slate-700">Review:</strong> reinforce the same module.</div>';
+  html += '<div><strong class="text-slate-700">Challenge:</strong> extend confident students.</div>';
+  html += '<div><strong class="text-slate-700">Support:</strong> slower guided version.</div>';
+  html += '</div>';
   html += '</div>';
   html += '</div>';
   return html;
@@ -3368,22 +3474,45 @@ function buildSelectedLearningModeInspector(mode, tab) {
   }
 
   var html = "";
+  var meta = readLearningPathMeta(mode);
+  var title = readLearningPathTitle(mode, meta.title);
+  var purpose = readLearningPathPurpose(mode, meta.purpose);
+  var stepCount = readLearningPathStepCount(mode);
+
   html += '<div class="space-y-4">';
   html += '<div class="rounded-3xl bg-gradient-to-br from-emerald-50 to-sky-50 p-4 border border-emerald-100">';
-  html += '<div class="text-[10px] font-black uppercase tracking-widest text-emerald-600">Selected Mode</div>';
-  html += '<div class="mt-2 text-lg font-black text-slate-950">' + escapeHtml(readLocalizedText(mode.title, "Learning Mode")) + '</div>';
-  html += '<div class="mt-1 text-xs font-semibold text-slate-500">' + escapeHtml(readString(mode.purpose, "Learning experience.")) + '</div>';
+  html += '<div class="flex items-center gap-3">';
+  html += '<div class="grid h-11 w-11 place-items-center rounded-2xl ' + escapeHtml(meta.iconBg) + '"><i class="' + escapeHtml(meta.icon) + '"></i></div>';
+  html += '<div>';
+  html += '<div class="text-[10px] font-black uppercase tracking-widest text-emerald-600">Selected Path</div>';
+  html += '<div class="mt-1 text-lg font-black text-slate-950">' + escapeHtml(title) + '</div>';
+  html += '</div>';
+  html += '</div>';
+  html += '<div class="mt-3 text-xs font-semibold leading-5 text-slate-500">' + escapeHtml(purpose) + '</div>';
+  html += '</div>';
+  html += '<div class="rounded-2xl border border-slate-100 p-4" data-inspector-mode="lesson-path">';
+  html += '<div class="oqu-inspector-field">';
+  html += '<label class="oqu-inspector-label">Path title</label>';
+  html += '<input type="text" class="oqu-inspector-input inspector-path-title" value="' + escapeHtml(title) + '" placeholder="Path title">';
+  html += '</div>';
+  html += '<div class="oqu-inspector-field">';
+  html += '<label class="oqu-inspector-label">Purpose</label>';
+  html += '<textarea class="oqu-inspector-textarea inspector-path-purpose" placeholder="Explain when a teacher should use this path.">' + escapeHtml(purpose) + '</textarea>';
+  html += '</div>';
+  html += '<button type="button" class="save-learning-path-btn w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs transition mt-1" data-mode-id="' + escapeHtml(readString(mode.id, "primary")) + '">Save Path Details</button>';
   html += '</div>';
   html += '<div class="rounded-2xl border border-slate-100 p-4">';
-  html += '<div class="oqu-inspector-readonly-label">Mode ID</div>';
+  html += '<div class="oqu-inspector-readonly-label">Path ID</div>';
   html += '<div class="oqu-inspector-readonly-value mb-3">' + escapeHtml(readString(mode.id, "primary")) + '</div>';
-  html += '<div class="oqu-inspector-readonly-label">Type</div>';
-  html += '<div class="oqu-inspector-readonly-value mb-3">' + escapeHtml(readString(mode.modeType, "primary")) + '</div>';
+  html += '<div class="oqu-inspector-readonly-label">Path type</div>';
+  html += '<div class="oqu-inspector-readonly-value mb-3">' + escapeHtml(meta.title) + '</div>';
+  html += '<div class="oqu-inspector-readonly-label">Steps</div>';
+  html += '<div class="oqu-inspector-readonly-value mb-3">' + stepCount + '</div>';
   html += '<div class="oqu-inspector-readonly-label">Status</div>';
   html += '<div class="mt-1">' + buildStatusPill(readString(mode.status, "draft")) + '</div>';
   html += '</div>';
   html += '<div class="rounded-2xl border border-slate-100 p-4 text-xs leading-5 text-slate-500">';
-  html += tab === "learningModes" ? 'Click the Steps tab to edit activities for this mode.' : 'The main panel and inspector are synced to this selected mode.';
+  html += tab === "learningModes" ? 'Click Edit Steps to build the step sequence for this path.' : 'The main panel and inspector are synced to this selected path.';
   html += '</div>';
   html += '</div>';
   return html;
@@ -3525,11 +3654,167 @@ function isDevelopmentLoggingEnabled() {
     window.location.search.indexOf("debug") !== -1;
 }
 
+function createExistingPathTypeMap(modes) {
+  var map = {};
+  var list = Array.isArray(modes) ? modes : [];
+
+  list.forEach(function (mode) {
+    var meta = readLearningPathMeta(mode);
+    map[meta.pathType] = true;
+  });
+
+  return map;
+}
+
+function createLearningPathOptions(existingTypes) {
+  var existing = existingTypes || {};
+  return [
+    Object.assign(readLearningPathOption("main"), {
+      required: true,
+      exists: true
+    }),
+    Object.assign(readLearningPathOption("review"), {
+      exists: existing.review === true
+    }),
+    Object.assign(readLearningPathOption("challenge"), {
+      exists: existing.challenge === true
+    }),
+    Object.assign(readLearningPathOption("support"), {
+      exists: existing.support === true
+    }),
+    Object.assign(readLearningPathOption("custom"), {
+      exists: false
+    })
+  ];
+}
+
+function readLearningPathOption(pathType) {
+  if (pathType === "main" || pathType === "primary") {
+    return {
+      pathType: "main",
+      modeType: "primary",
+      title: "Main Path",
+      purpose: "The required core step sequence for this module.",
+      shortPurpose: "Required core sequence.",
+      icon: "fa-solid fa-star text-emerald-700",
+      iconBg: "bg-emerald-100 text-emerald-700"
+    };
+  }
+
+  if (pathType === "review") {
+    return {
+      pathType: "review",
+      modeType: "review",
+      title: "Review Path",
+      purpose: "Reinforce the same module with a lighter review sequence.",
+      shortPurpose: "Reinforce key ideas.",
+      icon: "fa-solid fa-rotate text-sky-700",
+      iconBg: "bg-sky-100 text-sky-700"
+    };
+  }
+
+  if (pathType === "challenge" || pathType === "practice") {
+    return {
+      pathType: "challenge",
+      modeType: "practice",
+      title: "Challenge Path",
+      purpose: "Extend confident students with deeper practice and challenge steps.",
+      shortPurpose: "Stretch ready learners.",
+      icon: "fa-solid fa-bolt text-violet-700",
+      iconBg: "bg-violet-100 text-violet-700"
+    };
+  }
+
+  if (pathType === "support" || pathType === "assessment") {
+    return {
+      pathType: "support",
+      modeType: "assessment",
+      title: "Support Path",
+      purpose: "Offer a slower guided route through the same module.",
+      shortPurpose: "Guide extra support.",
+      icon: "fa-solid fa-hands-holding-child text-amber-700",
+      iconBg: "bg-amber-100 text-amber-700"
+    };
+  }
+
+  return {
+    pathType: "custom",
+    modeType: "custom",
+    title: "Custom Path",
+    purpose: "A custom step sequence inside this module.",
+    shortPurpose: "Design your own route.",
+    icon: "fa-solid fa-route text-slate-700",
+    iconBg: "bg-slate-100 text-slate-700"
+  };
+}
+
+function readLearningPathMeta(mode) {
+  var type = mode && typeof mode.modeType === "string" ? mode.modeType : "";
+  if (mode && mode.id === "primary") {
+    return readLearningPathOption("main");
+  }
+
+  if (type === "primary") return readLearningPathOption("main");
+  if (type === "review") return readLearningPathOption("review");
+  if (type === "practice") return readLearningPathOption("challenge");
+  if (type === "assessment") return readLearningPathOption("support");
+  return readLearningPathOption("custom");
+}
+
+function readLearningPathTitle(mode, fallbackTitle) {
+  var title = readLocalizedText(mode && mode.title, fallbackTitle || "Lesson Path");
+  var meta = readLearningPathMeta(mode);
+
+  if (title === "Primary Mode" || title === "Learning Mode") {
+    return meta.title;
+  }
+
+  if (title === "Review Mode") {
+    return "Review Path";
+  }
+
+  if (title === "Practice Mode") {
+    return "Challenge Path";
+  }
+
+  if (title === "Assessment Mode") {
+    return "Support Path";
+  }
+
+  if (title === "Legacy Mode") {
+    return "Legacy Path";
+  }
+
+  return title;
+}
+
+function readLearningPathPurpose(mode, fallbackPurpose) {
+  var purpose = readString(mode && mode.purpose, fallbackPurpose || "");
+
+  if (purpose.indexOf("mode") !== -1 || purpose.indexOf("Mode") !== -1 || purpose.length === 0) {
+    return readLearningPathMeta(mode).purpose;
+  }
+
+  return purpose;
+}
+
+function readLearningPathStepCount(mode) {
+  if (mode && typeof mode.stepCount === "number") {
+    return mode.stepCount;
+  }
+
+  if (mode && Array.isArray(mode.steps)) {
+    return mode.steps.length;
+  }
+
+  return 0;
+}
+
 function readLearningModeIcon(mode) {
   if (mode && mode.modeType === "primary") return '<i class="fa-solid fa-star"></i>';
   if (mode && mode.modeType === "review") return '<i class="fa-solid fa-rotate"></i>';
-  if (mode && mode.modeType === "practice") return '<i class="fa-solid fa-dumbbell"></i>';
-  if (mode && mode.modeType === "assessment") return '<i class="fa-solid fa-clipboard-check"></i>';
+  if (mode && mode.modeType === "practice") return '<i class="fa-solid fa-bolt"></i>';
+  if (mode && mode.modeType === "assessment") return '<i class="fa-solid fa-hands-holding-child"></i>';
   return '<i class="fa-solid fa-route"></i>';
 }
 

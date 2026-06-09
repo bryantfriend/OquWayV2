@@ -1,6 +1,6 @@
 import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.154-emotional-check-in-prototype";
 import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.154-emotional-check-in-prototype";
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.154-emotional-check-in-prototype";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.160-lesson-paths";
 import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.138-course-overview-title";
 
 function getActor() {
@@ -210,7 +210,7 @@ export const moduleEditorService = {
       payload: {
         courseId: courseId,
         moduleId: moduleId,
-        title: "Generated Review Mode"
+        title: "Generated Review Path"
       },
       actor: getActor()
     });
@@ -295,7 +295,7 @@ export const moduleEditorService = {
     };
 
     if (!payload.courseId || !payload.moduleId || !payload.modeId || !payload.stepTypeId) {
-      throw new Error("Cannot add step because course, module, or learning mode is missing.");
+      throw new Error("Cannot add step because course, module, or lesson path is missing.");
     }
 
     logStepAddPayload(payload);

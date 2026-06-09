@@ -824,7 +824,7 @@ export class CourseOverviewPage {
     var messages = [
       'Creating module...',
       'Building Learning Content...',
-      'Creating Primary Mode...',
+      'Creating Main Path...',
       'Preparing starter steps...',
       'Almost ready...'
     ];
@@ -2025,7 +2025,7 @@ export class CourseOverviewPage {
         + '</label>'
         + '<span class="module-icon-upload-status text-[10px] font-black text-gray-400"></span>'
         + '<button data-id="' + escapeHtml(moduleDisplay.id) + '" class="open-module-btn border border-gray-200 bg-white hover:bg-gray-50 text-blue-600 hover:text-blue-700 px-3 py-1.5 rounded text-sm font-bold transition shadow-sm items-center gap-1 inline-flex">'
-        + 'Edit Learning Modes <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>'
+        + 'Edit Lesson Paths <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>'
         + '</button>'
         + '</div>'
         + '</td>'
