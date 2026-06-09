@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.151-student-loading-practice-context";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.151-student-loading-practice-context";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.151-student-loading-practice-context";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.153-student-course-journey-polish";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.153-student-course-journey-polish";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.153-student-course-journey-polish";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,15 +13,15 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.151-student-loading-practice-context";
+} from "../../../packages/domain/progress/index.js?v=1.1.153-student-course-journey-polish";
 import {
   createEmptyState,
   createErrorState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.151-student-loading-practice-context";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.151-student-loading-practice-context";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.151-student-loading-practice-context";
+} from "../../../packages/ui/index.js?v=1.1.153-student-course-journey-polish";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.153-student-course-journey-polish";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.153-student-course-journey-polish";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -191,6 +191,8 @@ function handleAppClick(event) {
   var courseFocusContinueButton = event.target.closest(".course-focus-continue-btn");
   var courseFocusRetryButton = event.target.closest(".course-focus-retry-btn");
   var courseJourneyButton = event.target.closest(".course-journey-node");
+  var journeyScrollButton = event.target.closest(".course-journey-scroll-btn");
+  var activityScrollButton = event.target.closest(".course-activity-scroll-btn");
   var bonusButton = event.target.closest(".student-bonus-claim-btn");
 
   if (switchStudentButton) {
@@ -235,6 +237,16 @@ function handleAppClick(event) {
 
   if (courseJourneyButton) {
     selectModule(courseJourneyButton.getAttribute("data-module-id"));
+    return;
+  }
+
+  if (journeyScrollButton) {
+    scrollNearestCourseStrip(journeyScrollButton, ".course-journey-track");
+    return;
+  }
+
+  if (activityScrollButton) {
+    scrollNearestCourseStrip(activityScrollButton, ".course-activity-strip");
     return;
   }
 
@@ -738,12 +750,12 @@ function renderCourseFocusSidebar(state, course, progress) {
   var courseCount = Array.isArray(state.courses) ? state.courses.length : 0;
 
   return '<aside class="course-focus-sidebar">'
-    + '<div class="course-focus-brand"><span>OQ</span><strong>OquWay</strong></div>'
+    + '<div class="course-focus-brand"><span>' + renderSvgIcon("oquway") + '</span><strong>OquWay</strong></div>'
     + '<nav class="course-focus-nav" aria-label="Course focus navigation">'
-    + '<span class="course-focus-nav-item">Home</span>'
-    + '<span class="course-focus-nav-item course-focus-nav-item-active">Courses</span>'
-    + '<span class="course-focus-nav-item">Achievements</span>'
-    + '<span class="course-focus-nav-item">Rewards</span>'
+    + '<span class="course-focus-nav-item">' + renderSvgIcon("home") + '<span>Home</span></span>'
+    + '<span class="course-focus-nav-item course-focus-nav-item-active">' + renderSvgIcon("book") + '<span>Courses</span></span>'
+    + '<span class="course-focus-nav-item">' + renderSvgIcon("trophy") + '<span>Achievements</span></span>'
+    + '<span class="course-focus-nav-item">' + renderSvgIcon("gift") + '<span>Rewards</span></span>'
     + '</nav>'
     + '<div class="course-focus-profile">'
     + buildStudentAvatar(state.student, studentName)
@@ -760,62 +772,69 @@ function renderCourseRibbon(course, progress, nextAction) {
   var continueDisabled = !nextAction || !nextAction.isPlayable;
 
   return '<section class="course-focus-ribbon">'
-    + '<button type="button" class="student-back-dashboard-btn course-focus-back-btn">Back</button>'
-    + '<div class="course-focus-ribbon-title"><span class="course-focus-course-icon">PC</span><strong>' + escapeHtml(readLocalizedText(course.title, "Untitled Course")) + '</strong><span class="course-focus-course-caret">v</span></div>'
-    + '<div class="course-focus-ribbon-stat"><strong>' + progress.percent + '%</strong><span>Course Progress</span></div>'
-    + '<div class="course-focus-ribbon-stat"><strong>' + progress.completedModules + ' / ' + progress.totalModules + '</strong><span>Milestones</span></div>'
-    + '<div class="course-focus-ribbon-stat"><strong>' + progress.completedSteps + ' / ' + progress.totalSteps + '</strong><span>Steps</span></div>'
-    + '<button type="button" class="course-focus-continue-btn"' + disabled(continueDisabled) + '>' + escapeHtml(nextAction && nextAction.buttonLabel ? nextAction.buttonLabel : "Continue") + '<span>></span></button>'
+    + '<button type="button" class="student-back-dashboard-btn course-focus-back-btn">' + renderSvgIcon("arrowLeft") + '<span>Back</span></button>'
+    + '<div class="course-focus-ribbon-title">' + renderCourseIcon(course, "course-focus-course-icon") + '<strong>' + escapeHtml(readLocalizedText(course.title, "Untitled Course")) + '</strong><span class="course-focus-course-caret">v</span></div>'
+    + '<div class="course-focus-ribbon-stat">' + renderSvgIcon("star") + '<strong>' + progress.percent + '%</strong><span>Course Progress</span></div>'
+    + '<div class="course-focus-ribbon-stat">' + renderSvgIcon("check") + '<strong>' + progress.completedModules + ' / ' + progress.totalModules + '</strong><span>Milestones</span></div>'
+    + '<div class="course-focus-ribbon-stat">' + renderSvgIcon("steps") + '<strong>' + progress.completedSteps + ' / ' + progress.totalSteps + '</strong><span>Steps</span></div>'
+    + '<button type="button" class="course-focus-continue-btn"' + disabled(continueDisabled) + '>' + escapeHtml(nextAction && nextAction.buttonLabel ? nextAction.buttonLabel : "Continue") + '<span>' + renderSvgIcon("arrowRight") + '</span></button>'
     + '</section>';
 }
 
 function renderCourseHero(course, progress) {
-  var status = readCourseLearningStatus(course);
+  var xpEarned = readCourseXpEarned(course, progress);
+  var badgesEarned = readCourseBadgesEarned(course, progress);
+  var heroImage = readImageUrl(course && course.heroImageUrl);
+  var heroArt = heroImage
+    ? '<img class="course-focus-hero-image" src="' + escapeHtml(heroImage) + '" alt="">'
+    : '<div class="course-focus-bot" aria-hidden="true">' + renderSvgIcon("robot") + '</div>';
 
-  return '<section class="course-focus-hero">'
+  return '<section class="course-focus-hero" style="' + escapeHtml(readCourseThemeStyle(course)) + '">'
     + '<div class="course-focus-hero-copy"><p class="course-focus-pill">Course</p><h1>' + escapeHtml(readLocalizedText(course.title, "Untitled Course")) + '</h1><p>' + escapeHtml(readLocalizedText(course.description, "Build the skills you need for school and beyond.")) + '</p></div>'
-    + '<div class="course-focus-bot" aria-hidden="true"><span class="course-focus-bot-head">:) </span><span class="course-focus-bot-body"></span></div>'
+    + heroArt
     + '<div class="course-focus-hero-progress" style="--course-progress:' + progress.percent + '%"><strong>' + progress.percent + '%</strong><span>Course Progress</span></div>'
     + '<div class="course-focus-stats">'
-    + '<span><strong>' + progress.completedModules + '</strong>Modules Completed</span>'
-    + '<span><strong>' + progress.completedSteps + ' / ' + progress.totalSteps + '</strong>Steps Completed</span>'
-    + '<span><strong>' + progress.totalSteps + '</strong>Activities Ready</span>'
-    + '<span><strong>' + escapeHtml(readLearningStatusLabel(status)) + '</strong>Status</span>'
+    + '<span>' + renderSvgIcon("check") + '<strong>' + progress.completedModules + '</strong>Modules Completed</span>'
+    + '<span>' + renderSvgIcon("steps") + '<strong>' + progress.completedSteps + ' / ' + progress.totalSteps + '</strong>Steps Completed</span>'
+    + '<span>' + renderSvgIcon("star") + '<strong>' + xpEarned + '</strong>XP Earned</span>'
+    + '<span>' + renderSvgIcon("gem") + '<strong>' + badgesEarned + '</strong>Badges Earned</span>'
     + '</div>'
     + '</section>';
 }
 
 function renderNextUpCard(nextAction) {
   if (!nextAction || !nextAction.isPlayable) {
-    return '<section class="course-next-up-card course-next-up-empty"><p class="student-eyebrow">Next Up</p><div class="course-next-up-art">Start</div><h2>Not Ready Yet</h2><p>' + escapeHtml(nextAction && nextAction.message ? nextAction.message : "This course does not have a playable activity yet.") + '</p></section>';
+    return '<section class="course-next-up-card course-next-up-empty"><p class="student-eyebrow">Next Up</p><div class="course-next-up-art">' + renderSvgIcon("rocket") + '</div><h2>Not Ready Yet</h2><p>' + escapeHtml(nextAction && nextAction.message ? nextAction.message : "This course does not have a playable activity yet.") + '</p></section>';
   }
 
   return '<section class="course-next-up-card">'
     + '<p class="student-eyebrow">Next Up</p>'
-    + '<div class="course-next-up-art">Go</div>'
+    + '<div class="course-next-up-art">' + renderSvgIcon("rocket") + '</div>'
     + '<small>' + escapeHtml(nextAction.moduleTitle) + '</small>'
     + '<h2>' + escapeHtml(nextAction.sessionTitle) + '</h2>'
     + '<p>' + escapeHtml(nextAction.practiceModeTitle) + ' - ' + escapeHtml(nextAction.reason) + '</p>'
-    + '<button type="button" class="course-focus-continue-btn">' + escapeHtml(nextAction.buttonLabel) + '</button>'
+    + '<div class="course-next-up-time">' + renderSvgIcon("clock") + '<span>' + escapeHtml(nextAction.estimatedMinutes || "About 20 min") + '</span></div>'
+    + '<button type="button" class="course-focus-continue-btn">' + escapeHtml(nextAction.buttonLabel) + '<span>' + renderSvgIcon("play") + '</span></button>'
     + '</section>';
 }
 
 function renderModuleRoadmap(modules, selectedModuleId) {
-  var safeModules = Array.isArray(modules) ? modules : [];
-  var html = '<section class="course-roadmap"><div class="student-section-head course-journey-head"><div><h2>Course Journey</h2></div><div class="course-journey-legend"><span>Main Path</span><span>Bonus Path</span><span>Extra Quest</span></div></div>';
+  var safeModules = sortModulesForJourney(Array.isArray(modules) ? modules : []);
+  var html = '<section class="course-roadmap"><div class="student-section-head course-journey-head"><div><h2>Course Journey</h2></div><div class="course-journey-legend"><span><b></b>Main Path</span><span><b></b>Bonus Path</span><span><b></b>Extra Quest</span></div></div>';
   var moduleIndex = 0;
 
   if (safeModules.length === 0) {
     return html + '<div class="course-roadmap-empty">This course is not ready yet.</div></section>';
   }
 
-  html += '<div class="course-journey-track">';
+  html += '<div class="course-journey-scroller"><button type="button" class="course-journey-scroll-btn" aria-label="Scroll course journey left">' + renderSvgIcon("arrowLeft") + '</button><div class="course-journey-track" tabindex="0">';
   while (moduleIndex < safeModules.length) {
     html += renderModuleRoadmapItem(safeModules[moduleIndex], selectedModuleId, moduleIndex);
     moduleIndex = moduleIndex + 1;
   }
   html += '<span class="course-journey-finish">' + safeModules.length + '+</span>';
-  html += '</div>';
+  html += '</div><button type="button" class="course-journey-scroll-btn" aria-label="Scroll course journey right">' + renderSvgIcon("arrowRight") + '</button></div>';
+  html += '<div class="course-journey-scrub" aria-hidden="true"><span style="width:' + calculatePercent(countJourneyCompleteModules(safeModules), safeModules.length) + '%"></span></div>';
 
   html += '</section>';
   return html;
@@ -826,10 +845,13 @@ function renderModuleRoadmapItem(module, selectedModuleId, moduleIndex) {
   var activeClass = module && module.id === selectedModuleId ? " course-roadmap-item-active" : "";
   var progressPercent = readModuleProgressPercent(module);
   var moduleNumber = moduleIndex + 1;
-  var icon = readiness.status === "complete" ? "OK" : (readiness.status === "inProgress" ? "PC" : "M");
+  var pathType = readModulePathType(module);
+  var lockedClass = isModuleLocked(module) ? " course-roadmap-item-locked" : "";
+  var pathClass = " course-roadmap-path-" + pathType;
+  var icon = renderModuleIcon(module, readiness.status);
 
-  return '<button type="button" class="course-roadmap-item course-journey-node' + activeClass + '" data-module-id="' + escapeHtml(module.id) + '" aria-label="Open module ' + escapeHtml(readLocalizedText(module.title, "Module")) + '">'
-    + '<span class="course-journey-node-icon">' + escapeHtml(icon) + '</span>'
+  return '<button type="button" class="course-roadmap-item course-journey-node' + activeClass + lockedClass + pathClass + '" data-module-id="' + escapeHtml(module.id) + '" aria-label="Open module ' + escapeHtml(readLocalizedText(module.title, "Module")) + '">'
+    + '<span class="course-journey-node-icon">' + icon + '</span>'
     + '<span class="course-journey-node-number">' + moduleNumber + '</span>'
     + '<span class="course-roadmap-status course-roadmap-status-' + escapeHtml(readiness.status) + '">' + escapeHtml(readiness.label) + '</span>'
     + '<strong>' + escapeHtml(readLocalizedText(module.title, "Module")) + '</strong>'
@@ -847,12 +869,12 @@ function renderModuleActivities(course, module, state) {
     return html + '<div class="course-activity-empty">No playable activities are ready in this module yet.</div></section>';
   }
 
-  html += '<div class="course-activity-strip">';
+  html += '<div class="course-activity-carousel"><button type="button" class="course-activity-scroll-btn" aria-label="Scroll activities left">' + renderSvgIcon("arrowLeft") + '</button><div class="course-activity-strip" tabindex="0">';
   while (activityIndex < activities.length) {
     html += renderModuleActivityCard(activities[activityIndex], state);
     activityIndex = activityIndex + 1;
   }
-  html += '</div>';
+  html += '</div><button type="button" class="course-activity-scroll-btn" aria-label="Scroll activities right">' + renderSvgIcon("arrowRight") + '</button></div>';
   html += '<div class="course-module-mini-progress"><span>' + readiness.completedSteps + ' / ' + readiness.totalSteps + ' steps complete</span><div class="student-progress-bar"><span style="width:' + readModuleProgressPercent(module) + '%"></span></div></div>';
   html += '</section>';
 
@@ -885,6 +907,7 @@ function readModuleActivities(course, module) {
           practiceModeKey: key,
           title: readLocalizedText(mode.title, "Practice Mode"),
           sessionTitle: readLocalizedText(session.title, "Session"),
+          stepType: readPrimaryActivityStepType(steps, key),
           completedCount: completedCount,
           totalSteps: steps.length,
           completed: progress.completed === true || completedCount >= steps.length
@@ -906,16 +929,18 @@ function renderModuleActivityCard(activity, state) {
     : "";
   var completeClass = activity.completed ? " course-activity-card-complete" : "";
   var actionLabel = activity.completed ? "Review" : (activity.completedCount > 0 ? "Continue" : "Start");
+  var statusText = activity.completed ? "Completed" : (activity.completedCount > 0 ? "In Progress" : "Not Started");
 
   return '<button type="button" class="student-practice-mode-card course-activity-card' + activeClass + completeClass + '"'
     + ' data-course-id="' + escapeHtml(activity.courseId) + '"'
     + ' data-module-id="' + escapeHtml(activity.moduleId) + '"'
     + ' data-session-id="' + escapeHtml(activity.sessionId) + '"'
     + ' data-practice-mode-key="' + escapeHtml(activity.practiceModeKey) + '">'
-    + '<span class="course-activity-icon">' + escapeHtml(readActivityIconLabel(activity.practiceModeKey)) + '</span>'
+    + '<span class="course-activity-icon">' + renderSvgIcon(readActivityIconKey(activity.stepType, activity.practiceModeKey)) + '</span>'
     + '<strong>' + escapeHtml(activity.title) + '</strong>'
-    + '<span>' + escapeHtml(activity.sessionTitle) + '</span>'
+    + '<span>' + escapeHtml(readActivityIconLabel(activity.practiceModeKey)) + '</span>'
     + '<small>' + escapeHtml(actionLabel) + ' - ' + activity.completedCount + ' / ' + activity.totalSteps + '</small>'
+    + '<em>' + escapeHtml(statusText) + '</em>'
     + '</button>';
 }
 
@@ -935,17 +960,301 @@ function readActivityIconLabel(practiceModeKey) {
   return "Do";
 }
 
+function scrollNearestCourseStrip(button, stripSelector) {
+  var panel = button ? button.closest(".course-roadmap, .course-activities-panel") : null;
+  var strip = panel ? panel.querySelector(stripSelector) : null;
+  var direction = button && button.nextElementSibling ? -1 : 1;
+
+  if (!strip || typeof strip.scrollBy !== "function") {
+    return;
+  }
+
+  strip.scrollBy({
+    left: Math.max(240, strip.clientWidth * 0.7) * direction,
+    behavior: "smooth"
+  });
+}
+
+function renderCourseIcon(course, className) {
+  var iconUrl = readImageUrl(course && course.iconUrl);
+
+  if (iconUrl) {
+    return '<span class="' + escapeHtml(className || "course-focus-course-icon") + '"><img src="' + escapeHtml(iconUrl) + '" alt=""></span>';
+  }
+
+  return '<span class="' + escapeHtml(className || "course-focus-course-icon") + '">' + renderSvgIcon("computer") + '</span>';
+}
+
+function renderModuleIcon(module, readinessStatus) {
+  var iconUrl = readImageUrl(module && module.iconUrl);
+
+  if (iconUrl) {
+    return '<img class="course-module-icon-img" src="' + escapeHtml(iconUrl) + '" alt="">';
+  }
+
+  if (readinessStatus === "complete") {
+    return renderSvgIcon("check");
+  }
+
+  if (readModulePathType(module) === "bonus") {
+    return renderSvgIcon("trophy");
+  }
+
+  if (readModulePathType(module) === "extra") {
+    return renderSvgIcon("rocket");
+  }
+
+  if (isModuleLocked(module)) {
+    return renderSvgIcon("lock");
+  }
+
+  return renderSvgIcon("folder");
+}
+
+function readImageUrl(value) {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  return value.trim();
+}
+
+function readCourseThemeStyle(course) {
+  var themeColor = readSafeCssColor(course && course.themeColor, "#047c70");
+  var accentColor = readSafeCssColor(course && course.accentColor, "#22c55e");
+
+  return "--course-theme:" + themeColor + ";--course-accent:" + accentColor + ";";
+}
+
+function readSafeCssColor(value, fallback) {
+  var color = typeof value === "string" ? value.trim() : "";
+
+  if (/^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(color)) {
+    return color;
+  }
+
+  if (/^rgba?\([0-9,\s.]+\)$/.test(color)) {
+    return color;
+  }
+
+  if (/^[a-zA-Z]+$/.test(color)) {
+    return color;
+  }
+
+  return fallback;
+}
+
+function readCourseXpEarned(course, progress) {
+  if (course && typeof course.xpEarned === "number") {
+    return Math.max(0, course.xpEarned);
+  }
+
+  if (course && course.progress && typeof course.progress.xpEarned === "number") {
+    return Math.max(0, course.progress.xpEarned);
+  }
+
+  return Math.max(0, progress.completedSteps * 10);
+}
+
+function readCourseBadgesEarned(course, progress) {
+  if (course && typeof course.badgesEarned === "number") {
+    return Math.max(0, course.badgesEarned);
+  }
+
+  if (course && Array.isArray(course.badges)) {
+    return course.badges.length;
+  }
+
+  return Math.floor(progress.completedModules / 3);
+}
+
+function readEstimatedMinutesLabel(module, session, mode) {
+  var value = readFirstNumber([
+    mode ? mode.estimatedMinutes : null,
+    session ? session.estimatedMinutes : null,
+    module ? module.estimatedMinutes : null,
+    module ? module.durationMinutes : null
+  ]);
+
+  if (!value) {
+    return "About 20 min";
+  }
+
+  return value + " min";
+}
+
+function readFirstNumber(values) {
+  var index = 0;
+
+  while (index < values.length) {
+    if (typeof values[index] === "number" && values[index] > 0) {
+      return Math.round(values[index]);
+    }
+
+    if (typeof values[index] === "string" && values[index].trim() && !Number.isNaN(Number(values[index]))) {
+      return Math.round(Number(values[index]));
+    }
+
+    index = index + 1;
+  }
+
+  return 0;
+}
+
+function sortModulesForJourney(modules) {
+  var sortedModules = Array.isArray(modules) ? modules.slice() : [];
+
+  sortedModules.sort(function (left, right) {
+    var leftOrder = readModulePathOrder(left);
+    var rightOrder = readModulePathOrder(right);
+
+    if (leftOrder !== rightOrder) {
+      return leftOrder - rightOrder;
+    }
+
+    return 0;
+  });
+
+  return sortedModules;
+}
+
+function readModulePathOrder(module) {
+  if (module && typeof module.pathOrder === "number") {
+    return module.pathOrder;
+  }
+
+  if (module && typeof module.order === "number") {
+    return module.order;
+  }
+
+  return 0;
+}
+
+function readModulePathType(module) {
+  var pathType = module && typeof module.pathType === "string" ? module.pathType : "main";
+
+  if (pathType === "bonus" || pathType === "extra") {
+    return pathType;
+  }
+
+  return "main";
+}
+
+function isModuleLocked(module) {
+  if (!module) {
+    return true;
+  }
+
+  return module.locked === true || module.isLocked === true || module.status === "locked" || module.visibility === "locked";
+}
+
+function countJourneyCompleteModules(modules) {
+  var count = 0;
+  var moduleIndex = 0;
+
+  while (moduleIndex < modules.length) {
+    if (getModuleReadiness(modules[moduleIndex]).status === "complete") {
+      count = count + 1;
+    }
+
+    moduleIndex = moduleIndex + 1;
+  }
+
+  return count;
+}
+
+function readPrimaryActivityStepType(steps, practiceModeKey) {
+  var firstStep = Array.isArray(steps) && steps.length > 0 ? steps[0] : null;
+  var stepType = readStepType(firstStep);
+
+  if (stepType) {
+    return stepType;
+  }
+
+  return practiceModeKey || "";
+}
+
+function readActivityIconKey(stepType, practiceModeKey) {
+  var normalized = String(stepType || "").toLowerCase();
+
+  if (normalized.indexOf("video") !== -1 || practiceModeKey === "beforeClass") {
+    return "video";
+  }
+
+  if (normalized.indexOf("quiz") !== -1) {
+    return "quiz";
+  }
+
+  if (normalized.indexOf("external") !== -1 || normalized.indexOf("project") !== -1) {
+    return "project";
+  }
+
+  if (normalized.indexOf("emotional") !== -1 || normalized.indexOf("check-in") !== -1) {
+    return "heart";
+  }
+
+  if (normalized.indexOf("review") !== -1) {
+    return "review";
+  }
+
+  if (normalized.indexOf("reward") !== -1) {
+    return "gift";
+  }
+
+  if (practiceModeKey === "afterClass") {
+    return "quiz";
+  }
+
+  if (practiceModeKey === "inClass") {
+    return "code";
+  }
+
+  return "book";
+}
+
+function renderSvgIcon(name) {
+  var icons = {
+    arrowLeft: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/><path d="M20 12H9"/></svg>',
+    arrowRight: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/><path d="M4 12h11"/></svg>',
+    book: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 5.5v16"/><path d="M8 7h7M8 11h5"/></svg>',
+    check: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16.5 9"/></svg>',
+    clock: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    code: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 9l-4 3 4 3"/><path d="M16 9l4 3-4 3"/><path d="M14 5l-4 14"/></svg>',
+    computer: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="M7 8h10"/></svg>',
+    folder: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2h6.5A2.5 2.5 0 0 1 21 9.5v7A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5z"/></svg>',
+    gem: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12l4 6-10 10L2 10z"/><path d="M2 10h20M8 4l4 16 4-16"/></svg>',
+    gift: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16v10H4z"/><path d="M3 7h18v3H3z"/><path d="M12 7v13"/><path d="M12 7c-3-4-7-1-4 0M12 7c3-4 7-1 4 0"/></svg>',
+    heart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-8-4.5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 9c0 6.5-8 11-8 11z"/></svg>',
+    home: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg>',
+    lock: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>',
+    oquway: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 6a18 18 0 1 0 18 18h-8a10 10 0 1 1-10-10z"/><circle cx="24" cy="24" r="6"/><path d="M30 4l6 6-6 6"/></svg>',
+    play: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z"/></svg>',
+    project: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5h6v2"/><path d="M3 12h18"/></svg>',
+    quiz: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3 2.45c-.9.28-1.5.85-1.5 1.8"/><path d="M12 17h.01"/></svg>',
+    review: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4v6h-6"/></svg>',
+    robot: '<svg viewBox="0 0 220 180" aria-hidden="true"><path fill="#fff" d="M88 46h50a34 34 0 0 1 34 34v26a34 34 0 0 1-34 34H88a34 34 0 0 1-34-34V80a34 34 0 0 1 34-34z"/><path fill="#dbeafe" d="M68 78a24 24 0 0 1 24-24h42a24 24 0 0 1 24 24v22a24 24 0 0 1-24 24H92a24 24 0 0 1-24-24z"/><path fill="#0f172a" d="M80 80a18 18 0 0 1 18-18h30a18 18 0 0 1 18 18v18a18 18 0 0 1-18 18H98a18 18 0 0 1-18-18z"/><path fill="none" stroke="#22d3ee" stroke-width="5" stroke-linecap="round" d="M96 90c4 8 10 8 14 0M118 90c4 8 10 8 14 0"/><path fill="#fff" d="M72 134h82l18 32H54z"/><path fill="#334155" d="M68 136h90a8 8 0 0 1 8 8v28H60v-28a8 8 0 0 1 8-8z"/><circle cx="45" cy="96" r="15" fill="#fff"/><circle cx="181" cy="96" r="15" fill="#fff"/><path fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round" d="M58 122c-22 0-28-22-18-38M166 122c22 0 28-22 18-38"/><path fill="#22c55e" d="M168 54a11 11 0 1 1-22 0 11 11 0 0 1 22 0z"/></svg>',
+    rocket: '<svg viewBox="0 0 120 90" aria-hidden="true"><path fill="#bfdbfe" d="M18 60c7-14 23-16 34-6l-20 20c-5-2-10-6-14-14z"/><path fill="#fdba74" d="M45 70c5 2 13 7 12 16-8-1-14-7-17-12z"/><path fill="#f97316" d="M51 59c7-24 24-39 51-47-7 27-23 44-47 51z"/><path fill="#fff7ed" d="M64 49l12-12 9 9-12 12z"/><circle cx="82" cy="32" r="8" fill="#38bdf8"/><path fill="#fb923c" d="M43 55l-13 3 17-17z"/><path fill="#facc15" d="M33 75l-12 6 6-12z"/></svg>',
+    star: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z"/></svg>',
+    steps: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18h.01M10 13h.01M13 8h.01M17 5h.01"/><path d="M6 18c4-1 6-4 7-10"/><path d="M14 16c1 1 3 2 5 1"/></svg>',
+    trophy: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H4v2a4 4 0 0 0 4 4M16 6h4v2a4 4 0 0 1-4 4"/><path d="M12 13v5M8 20h8"/></svg>',
+    video: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="M17 10l4-3v10l-4-3z"/><path d="M9 9l4 3-4 3z"/></svg>'
+  };
+
+  return icons[name] || icons.book;
+}
+
 function renderClassChatPanel(state) {
   var studentName = readStudentName(state.student);
 
+  // TODO: Replace this placeholder with a real-time class chat service when chat storage rules and moderation are ready.
   return '<section class="course-chat-card">'
-    + '<div class="student-section-head"><div><h2>Class Chat</h2></div><span>Preview</span></div>'
+    + '<div class="student-section-head"><div><h2>Class Chat</h2></div><span>Coming soon</span></div>'
     + '<div class="course-chat-thread">'
     + '<div class="course-chat-message"><span>M</span><p>Nice work getting into the course path.</p></div>'
     + '<div class="course-chat-message"><span>R</span><p>The next practice card is ready when you are.</p></div>'
     + '<div class="course-chat-message course-chat-message-me"><span>' + escapeHtml(readInitials(studentName)) + '</span><p>' + escapeHtml(studentName) + ', you are on the main path.</p></div>'
     + '</div>'
-    + '<div class="course-chat-input">Type a message...</div>'
+    + '<div class="course-chat-input" aria-disabled="true">Class Chat coming soon</div>'
     + '</section>';
 }
 
@@ -1045,7 +1354,8 @@ function findNextActionInModule(course, module, allowComplete) {
           sessionTitle: readLocalizedText(session.title, "Session"),
           practiceModeTitle: readLocalizedText(mode.title, "Practice Mode"),
           buttonLabel: allowComplete ? "Review" : (completedCount > 0 ? "Continue" : "Start"),
-          reason: completedCount + " / " + steps.length + " steps complete"
+          reason: completedCount + " / " + steps.length + " steps complete",
+          estimatedMinutes: readEstimatedMinutesLabel(module, session, mode)
         };
       }
 
@@ -1175,7 +1485,11 @@ function buildStudentAvatar(student, studentName) {
     return '<img class="student-avatar-img" src="' + escapeHtml(imageUrl) + '" alt="">';
   }
 
-  return '<div class="student-avatar-fallback">' + escapeHtml(readInitials(studentName)) + '</div>';
+  return '<div class="student-avatar-fallback">' + renderFriendlyAvatarSvg(readInitials(studentName)) + '</div>';
+}
+
+function renderFriendlyAvatarSvg(initials) {
+  return '<svg viewBox="0 0 80 80" aria-hidden="true"><defs><linearGradient id="studentAvatarGradient" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#60a5fa"/><stop offset="1" stop-color="#34d399"/></linearGradient></defs><circle cx="40" cy="40" r="38" fill="url(#studentAvatarGradient)"/><circle cx="40" cy="34" r="16" fill="#fef3c7"/><path fill="#172033" d="M22 32c2-14 14-19 25-14 9 3 13 11 11 22-9-6-22-4-36-8z"/><path fill="#fff" d="M18 68c4-14 15-22 22-22s18 8 22 22z"/><text x="40" y="66" text-anchor="middle" font-size="15" font-weight="900" fill="#172033">' + escapeHtml(initials) + '</text></svg>';
 }
 
 function readStudentAvatarUrl(student) {

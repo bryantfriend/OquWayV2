@@ -1,13 +1,13 @@
-import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.152-course-builder-loading-timeout';
-import { courseEditorService } from '../services/courseEditorService.js?v=1.1.152-course-builder-loading-timeout';
-import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.152-course-builder-loading-timeout';
-import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.152-course-builder-loading-timeout';
+import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.153-student-course-journey-polish';
+import { courseEditorService } from '../services/courseEditorService.js?v=1.1.153-student-course-journey-polish';
+import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.153-student-course-journey-polish';
+import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.153-student-course-journey-polish';
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge
-} from '../../../../../packages/ui/index.js?v=1.1.152-course-builder-loading-timeout';
+} from '../../../../../packages/ui/index.js?v=1.1.153-student-course-journey-polish';
 
 export class CourseOverviewPage {
   constructor(courseId, options) {
@@ -121,6 +121,17 @@ export class CourseOverviewPage {
                 <div>
                   <label class="block text-xs font-semibold text-gray-700 mb-1">Course Description</label>
                   <textarea id="courseDescriptionInput" class="course-meta-input w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[88px]" data-field="description" placeholder="Short course description..."></textarea>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-gray-700 mb-1">Course Icon</label>
+                  <div class="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
+                    <div id="courseIconPreview" class="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-gray-200 bg-white grid place-items-center text-xs font-black text-gray-400">Icon</div>
+                    <div class="min-w-0 flex-1">
+                      <input type="file" id="courseIconUploadInput" accept="image/*" class="w-full text-xs font-semibold text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-xs file:font-black file:text-blue-700 hover:file:bg-blue-100">
+                      <p id="courseIconUploadStatus" class="mt-1 hidden text-xs font-semibold"></p>
+                    </div>
+                  </div>
                 </div>
 
                 <div>
@@ -990,6 +1001,11 @@ export class CourseOverviewPage {
       self.archiveCourse();
     });
 
+    document.getElementById('courseIconUploadInput').addEventListener('change', function (event) {
+      var file = event.target.files && event.target.files[0] ? event.target.files[0] : null;
+      self.uploadCourseIcon(file, event.target);
+    });
+
     document.getElementById('closeCoursePreviewBtn').addEventListener('click', function () {
       document.getElementById('coursePreviewModal').classList.add('hidden');
     });
@@ -1053,6 +1069,13 @@ export class CourseOverviewPage {
       if (titleBtn) {
         var moduleId = titleBtn.getAttribute('data-id');
         self.openModuleTitleModal(moduleId);
+      }
+    });
+
+    tbody.addEventListener('change', function (e) {
+      var iconInput = e.target.closest('.module-icon-upload-input');
+      if (iconInput) {
+        self.uploadModuleIcon(iconInput.getAttribute('data-id'), iconInput.files && iconInput.files[0] ? iconInput.files[0] : null, iconInput);
       }
     });
 
@@ -1196,7 +1219,11 @@ export class CourseOverviewPage {
         status: status,
         tags: self.localTags.slice(),
         languages: langs.length ? langs : ['en'],
-        defaultLanguage: defaultLang || 'en'
+        defaultLanguage: defaultLang || 'en',
+        iconUrl: course.iconUrl || '',
+        heroImageUrl: course.heroImageUrl || '',
+        themeColor: course.themeColor || '',
+        accentColor: course.accentColor || ''
       }).then(function (result) {
         btn.disabled = false;
         btn.classList.remove('oqu-btn-pending');
@@ -1342,6 +1369,102 @@ export class CourseOverviewPage {
     }
   }
 
+  uploadCourseIcon(file, input) {
+    var self = this;
+
+    if (!file) {
+      return;
+    }
+
+    this.setCourseIconUploadStatus('Uploading icon...', 'loading');
+    if (input) {
+      input.disabled = true;
+    }
+
+    courseEditorService.uploadCourseIcon(this.courseId, file).then(function (result) {
+      if (!result || !result.emitted || !result.emitted.success) {
+        throw new Error(self.readResultErrorMessage(result));
+      }
+
+      self.setCourseIconUploadStatus('Course icon saved.', 'success');
+    }).catch(function (error) {
+      self.setCourseIconUploadStatus(error.message, 'error');
+    }).finally(function () {
+      if (input) {
+        input.disabled = false;
+        input.value = '';
+      }
+    });
+  }
+
+  uploadModuleIcon(moduleId, file, input) {
+    var row = input ? input.closest('tr') : null;
+    var status = row ? row.querySelector('.module-icon-upload-status') : null;
+    var self = this;
+
+    if (!moduleId || !file) {
+      return;
+    }
+
+    if (input) {
+      input.disabled = true;
+    }
+
+    if (status) {
+      status.className = 'module-icon-upload-status text-[10px] font-black text-blue-600';
+      status.textContent = 'Uploading...';
+    }
+
+    courseEditorService.uploadModuleIcon(this.courseId, moduleId, file).then(function (result) {
+      if (!result || !result.emitted || !result.emitted.success) {
+        throw new Error(self.readResultErrorMessage(result));
+      }
+
+      if (status) {
+        status.className = 'module-icon-upload-status text-[10px] font-black text-green-600';
+        status.textContent = 'Saved';
+      }
+    }).catch(function (error) {
+      if (status) {
+        status.className = 'module-icon-upload-status text-[10px] font-black text-red-600';
+        status.textContent = error.message;
+      }
+    }).finally(function () {
+      if (input) {
+        input.disabled = false;
+        input.value = '';
+      }
+    });
+  }
+
+  setCourseIconUploadStatus(message, type) {
+    var status = document.getElementById('courseIconUploadStatus');
+
+    if (!status) {
+      return;
+    }
+
+    status.className = 'mt-1 text-xs font-semibold ' + readUploadStatusClass(type);
+    status.textContent = message || '';
+    status.classList.toggle('hidden', !message);
+  }
+
+  renderCourseIconPreview(course) {
+    var preview = document.getElementById('courseIconPreview');
+    var iconUrl = course && typeof course.iconUrl === 'string' ? course.iconUrl.trim() : '';
+
+    if (!preview) {
+      return;
+    }
+
+    if (iconUrl) {
+      preview.innerHTML = '<img src="' + escapeHtml(iconUrl) + '" alt="" class="h-full w-full object-cover">';
+      return;
+    }
+
+    preview.textContent = 'Icon';
+  }
+
   updateUI(state) {
     if (state.error && !state.course) {
       document.getElementById('headerContextualTitle').textContent = 'Could not load course';
@@ -1382,6 +1505,7 @@ export class CourseOverviewPage {
 
         document.getElementById('courseSubjectInput').value = course.subject || '';
         document.getElementById('courseLevelInput').value = course.level || '';
+        this.renderCourseIconPreview(course);
 
         this.localTags = (course.tags || []).slice();
         this.renderTags();
@@ -1394,6 +1518,7 @@ export class CourseOverviewPage {
         this.renderDefaultLangSelect(dLangSelect, supportedLangs, course.defaultLanguage || 'en');
       }
 
+      this.renderCourseIconPreview(course);
       document.getElementById('courseVersionText').textContent = course.version || 1;
       document.getElementById('courseStatusText').textContent = course.status || 'draft';
       this.renderCourseSummary(course, state);
@@ -1877,6 +2002,7 @@ export class CourseOverviewPage {
         + '</td>'
         + '<td class="py-4 px-6 border-b border-gray-100 font-semibold text-gray-900 pointer-events-none">'
         + '<div class="flex items-center gap-3">'
+        + renderModuleIconPreview(moduleDisplay)
         + '<span class="text-base">' + escapeHtml(moduleDisplay.title) + '</span>'
         + '<button data-id="' + escapeHtml(moduleDisplay.id) + '" class="edit-module-name-btn hidden group-hover:flex bg-white hover:bg-gray-100 border border-gray-200 text-gray-500 hover:text-blue-600 transition w-6 h-6 items-center justify-center rounded-md shadow-sm opacity-0 group-hover:opacity-100 pointer-events-auto"><i class="fa-solid fa-pen text-[10px]"></i></button>'
         + dirtyDot
@@ -1892,9 +2018,16 @@ export class CourseOverviewPage {
         + escapeHtml(formatCourseDate(moduleDisplay.updatedAt))
         + '</td>'
         + '<td class="py-4 px-6 border-b border-gray-100 text-right">'
+        + '<div class="flex flex-col items-end gap-2">'
+        + '<label class="pointer-events-auto inline-flex cursor-pointer items-center gap-1 rounded border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-xs font-black text-emerald-700 hover:bg-emerald-100">'
+        + '<i class="fa-solid fa-image"></i> Icon'
+        + '<input data-id="' + escapeHtml(moduleDisplay.id) + '" class="module-icon-upload-input hidden" type="file" accept="image/*">'
+        + '</label>'
+        + '<span class="module-icon-upload-status text-[10px] font-black text-gray-400"></span>'
         + '<button data-id="' + escapeHtml(moduleDisplay.id) + '" class="open-module-btn border border-gray-200 bg-white hover:bg-gray-50 text-blue-600 hover:text-blue-700 px-3 py-1.5 rounded text-sm font-bold transition shadow-sm items-center gap-1 inline-flex">'
         + 'Edit Learning Modes <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>'
         + '</button>'
+        + '</div>'
         + '</td>'
         + '</tr>';
     }).join('');
@@ -2689,10 +2822,33 @@ function normalizeModuleDisplay(module, index) {
     statusLabel: readModuleStatusLabel(status),
     statusClass: readModuleStatusClass(status),
     stepCount: countModuleSteps(module),
+    iconUrl: module && typeof module.iconUrl === 'string' ? module.iconUrl : '',
     updatedAt: module ? module.updatedAt || module.modifiedAt || module.createdAt || null : null,
     isDirty: Boolean(module && module.isDirty),
     index: index
   };
+}
+
+function renderModuleIconPreview(moduleDisplay) {
+  var iconUrl = moduleDisplay && typeof moduleDisplay.iconUrl === 'string' ? moduleDisplay.iconUrl.trim() : '';
+
+  if (iconUrl) {
+    return '<span class="h-10 w-10 shrink-0 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"><img src="' + escapeHtml(iconUrl) + '" alt="" class="h-full w-full object-cover"></span>';
+  }
+
+  return '<span class="h-10 w-10 shrink-0 rounded-xl border border-blue-100 bg-blue-50 text-blue-600 grid place-items-center shadow-sm"><i class="fa-solid fa-folder-open"></i></span>';
+}
+
+function readUploadStatusClass(type) {
+  if (type === 'error') {
+    return 'text-red-600';
+  }
+
+  if (type === 'success') {
+    return 'text-green-600';
+  }
+
+  return 'text-blue-600';
 }
 
 function readModuleDisplayText(values, fallback) {

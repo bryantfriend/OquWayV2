@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.152-course-builder-loading-timeout";
+import * as IntentExports from "../intents/intents.js?v=1.1.153-student-course-journey-polish";
 
 const registry = {
   // Demo Verification

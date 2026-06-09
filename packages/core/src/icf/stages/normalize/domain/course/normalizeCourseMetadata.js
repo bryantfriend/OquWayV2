@@ -2,22 +2,43 @@ export function normalizeCourseMetadata(executionState) {
   const payload = readPayload(executionState);
   const defaultLanguage = normalizeDefaultLanguage(payload.defaultLanguage);
   const languages = normalizeLanguages(payload.languages, defaultLanguage);
+  const courseData = {
+    title: normalizeLocalizedText(payload.title, defaultLanguage),
+    description: normalizeLocalizedText(payload.description, defaultLanguage),
+    subject: normalizeTextValue(payload.subject),
+    level: normalizeTextValue(payload.level),
+    language: normalizeLanguage(payload.language, defaultLanguage),
+    status: normalizeStatus(payload.status),
+    defaultLanguage: defaultLanguage,
+    languages: languages,
+    tags: normalizeTags(payload.tags),
+    slug: normalizeSlug(payload.title, defaultLanguage)
+  };
+
+  appendOptionalVisualFields(courseData, payload);
 
   return {
     valid: true,
-    data: {
-      title: normalizeLocalizedText(payload.title, defaultLanguage),
-      description: normalizeLocalizedText(payload.description, defaultLanguage),
-      subject: normalizeTextValue(payload.subject),
-      level: normalizeTextValue(payload.level),
-      language: normalizeLanguage(payload.language, defaultLanguage),
-      status: normalizeStatus(payload.status),
-      defaultLanguage: defaultLanguage,
-      languages: languages,
-      tags: normalizeTags(payload.tags),
-      slug: normalizeSlug(payload.title, defaultLanguage)
-    }
+    data: courseData
   };
+}
+
+function appendOptionalVisualFields(courseData, payload) {
+  if ("iconUrl" in payload) {
+    courseData.iconUrl = normalizeTextValue(payload.iconUrl);
+  }
+
+  if ("heroImageUrl" in payload) {
+    courseData.heroImageUrl = normalizeTextValue(payload.heroImageUrl);
+  }
+
+  if ("themeColor" in payload) {
+    courseData.themeColor = normalizeTextValue(payload.themeColor);
+  }
+
+  if ("accentColor" in payload) {
+    courseData.accentColor = normalizeTextValue(payload.accentColor);
+  }
 }
 
 function readPayload(executionState) {

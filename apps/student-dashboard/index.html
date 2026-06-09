@@ -1653,6 +1653,343 @@
             background: #fff;
         }
 
+        .course-focus-shell svg {
+            width: 1.2em;
+            height: 1.2em;
+            display: block;
+        }
+
+        .course-focus-shell svg path,
+        .course-focus-shell svg circle,
+        .course-focus-shell svg rect {
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .course-focus-brand span svg {
+            width: 44px;
+            height: 44px;
+            color: #0ea5e9;
+        }
+
+        .course-focus-nav-item {
+            gap: 0.55rem;
+        }
+
+        .course-focus-nav-item svg {
+            width: 20px;
+            height: 20px;
+            color: currentColor;
+            flex: 0 0 auto;
+        }
+
+        .course-focus-profile .student-avatar-fallback {
+            overflow: hidden;
+            background: transparent;
+            color: #172033;
+            font-size: 0;
+        }
+
+        .course-focus-profile .student-avatar-fallback svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .course-focus-ribbon {
+            grid-template-columns: auto minmax(220px, 1fr) repeat(3, minmax(94px, auto)) auto;
+        }
+
+        .course-focus-back-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .course-focus-back-btn svg,
+        .course-focus-continue-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .course-focus-course-icon {
+            overflow: hidden;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .course-focus-course-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .course-focus-course-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .course-focus-ribbon-stat {
+            grid-template-columns: 28px minmax(0, auto);
+            align-items: center;
+            column-gap: 0.45rem;
+        }
+
+        .course-focus-ribbon-stat svg {
+            grid-row: span 2;
+            width: 26px;
+            height: 26px;
+            color: #16a34a;
+            filter: drop-shadow(0 8px 12px rgba(22,163,74,0.16));
+        }
+
+        .course-focus-ribbon-stat:first-of-type svg {
+            color: #f59e0b;
+        }
+
+        .course-focus-ribbon-stat:last-of-type svg {
+            color: #2563eb;
+        }
+
+        .course-focus-hero {
+            background:
+                radial-gradient(circle at 84% 18%, rgba(255,255,255,0.34), transparent 17%),
+                radial-gradient(circle at 53% 10%, rgba(250,204,21,0.2), transparent 12%),
+                linear-gradient(135deg, var(--course-theme, #047c70) 0%, var(--course-accent, #22c55e) 100%);
+            border-radius: 28px;
+            min-height: 275px;
+        }
+
+        .course-focus-hero-image {
+            position: relative;
+            z-index: 1;
+            width: 154px;
+            height: 154px;
+            border-radius: 34px;
+            object-fit: cover;
+            background: rgba(255,255,255,0.9);
+            border: 8px solid rgba(255,255,255,0.48);
+            box-shadow: 0 22px 42px rgba(15,23,42,0.18);
+        }
+
+        .course-focus-bot {
+            width: 172px;
+            height: 150px;
+            align-self: end;
+        }
+
+        .course-focus-bot svg {
+            width: 220px;
+            height: 180px;
+            transform: translateX(-22px);
+            color: transparent;
+            filter: drop-shadow(0 20px 28px rgba(15,23,42,0.18));
+        }
+
+        .course-focus-hero-progress {
+            background:
+                radial-gradient(circle, #fff 0 58%, transparent 59%),
+                conic-gradient(#16a34a var(--course-progress), rgba(255,255,255,0.34) 0);
+            border: 12px solid rgba(255,255,255,0.36);
+        }
+
+        .course-focus-stats span {
+            display: grid;
+            grid-template-columns: 38px minmax(0, 1fr);
+            align-items: center;
+            column-gap: 0.65rem;
+        }
+
+        .course-focus-stats span svg {
+            grid-row: span 2;
+            width: 30px;
+            height: 30px;
+            color: #16a34a;
+        }
+
+        .course-focus-stats span:nth-child(3) svg {
+            color: #f59e0b;
+        }
+
+        .course-focus-stats span:nth-child(4) svg {
+            color: #9333ea;
+        }
+
+        .course-next-up-card {
+            border-radius: 28px;
+            padding: 1.5rem;
+        }
+
+        .course-next-up-art {
+            width: 156px;
+            height: 108px;
+            background:
+                radial-gradient(circle at 78% 22%, rgba(255,255,255,0.55), transparent 22%),
+                linear-gradient(135deg, rgba(255,237,213,0.9), rgba(255,255,255,0.9));
+            color: #f97316;
+            box-shadow: none;
+        }
+
+        .course-next-up-art svg {
+            width: 148px;
+            height: 112px;
+        }
+
+        .course-next-up-time {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: #64748b;
+            font-size: 0.78rem;
+            font-weight: 900;
+        }
+
+        .course-next-up-time svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .course-journey-legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .course-journey-legend b {
+            width: 24px;
+            height: 3px;
+            border-radius: 999px;
+            background: #22c55e;
+            display: inline-block;
+        }
+
+        .course-journey-legend span:nth-child(2) b {
+            background: repeating-linear-gradient(90deg, #8b5cf6 0 6px, transparent 6px 10px);
+        }
+
+        .course-journey-legend span:nth-child(3) b {
+            background: repeating-linear-gradient(90deg, #f97316 0 6px, transparent 6px 10px);
+        }
+
+        .course-journey-scroller,
+        .course-activity-carousel {
+            display: grid;
+            grid-template-columns: 38px minmax(0, 1fr) 38px;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .course-journey-scroll-btn,
+        .course-activity-scroll-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 999px;
+            border: 1px solid rgba(191,219,254,0.9);
+            background: #fff;
+            color: #1d4ed8;
+            display: grid;
+            place-items: center;
+            box-shadow: 0 10px 24px rgba(15,23,42,0.08);
+        }
+
+        .course-journey-scroll-btn svg,
+        .course-activity-scroll-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .course-journey-track {
+            grid-auto-columns: 108px;
+            min-height: 188px;
+            scroll-snap-type: x proximity;
+            scrollbar-width: thin;
+        }
+
+        .course-roadmap-item {
+            scroll-snap-align: center;
+        }
+
+        .course-roadmap-path-bonus {
+            transform: translateY(-26px);
+            border-color: rgba(139,92,246,0.32);
+            background: #faf5ff;
+        }
+
+        .course-roadmap-path-extra {
+            transform: translateY(26px);
+            border-color: rgba(249,115,22,0.32);
+            background: #fff7ed;
+        }
+
+        .course-roadmap-path-bonus.course-roadmap-item-active,
+        .course-roadmap-path-extra.course-roadmap-item-active {
+            transform: translateY(0);
+        }
+
+        .course-roadmap-item-locked {
+            opacity: 0.58;
+            filter: grayscale(0.4);
+        }
+
+        .course-journey-node-icon svg,
+        .course-activity-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .course-module-icon-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+
+        .course-journey-scrub {
+            height: 8px;
+            border-radius: 999px;
+            background: #e2e8f0;
+            overflow: hidden;
+        }
+
+        .course-journey-scrub span {
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #16a34a, #0ea5e9);
+        }
+
+        .course-activity-strip {
+            grid-auto-columns: 132px;
+            scroll-snap-type: x proximity;
+            scrollbar-width: thin;
+        }
+
+        .course-activity-card {
+            min-height: 138px;
+            scroll-snap-align: center;
+            position: relative;
+        }
+
+        .course-activity-card em {
+            position: absolute;
+            right: 0.5rem;
+            top: 0.5rem;
+            border-radius: 999px;
+            background: #eff6ff;
+            color: #2563eb;
+            font-size: 0.58rem;
+            font-style: normal;
+            font-weight: 950;
+            padding: 0.18rem 0.42rem;
+        }
+
+        .course-activity-card-complete em {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
         .course-module-panel .student-session-list {
             margin-left: 0;
         }
@@ -2663,7 +3000,7 @@
         <h1>Welcome to your Studies</h1>
         <p>Your educational journey continues here...</p>
     </main>
-    <script type="module" src="./src/main.js?v=1.1.151-student-loading-practice-context"></script>
+    <script type="module" src="./src/main.js?v=1.1.153-student-course-journey-polish"></script>
 </body>
 
 </html>

@@ -1,8 +1,8 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.151-student-loading-practice-context";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.151-student-loading-practice-context";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.151-student-loading-practice-context";
-import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.151-student-loading-practice-context";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.151-student-loading-practice-context";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.153-student-course-journey-polish";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.153-student-course-journey-polish";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.153-student-course-journey-polish";
+import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.153-student-course-journey-polish";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.153-student-course-journey-polish";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {

@@ -1,12 +1,12 @@
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.152-course-builder-loading-timeout";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.152-course-builder-loading-timeout";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.153-student-course-journey-polish";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.153-student-course-journey-polish";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.152-course-builder-loading-timeout";
-import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.152-course-builder-loading-timeout";
-import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.152-course-builder-loading-timeout";
-import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.152-course-builder-loading-timeout";
-import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.152-course-builder-loading-timeout";
-import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.152-course-builder-loading-timeout";
+import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.153-student-course-journey-polish";
+import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.153-student-course-journey-polish";
+import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.153-student-course-journey-polish";
+import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.153-student-course-journey-polish";
+import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.153-student-course-journey-polish";
+import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.153-student-course-journey-polish";
 
 console.log("[oquway-build]", OQUWAY_BUILD_VERSION);
 console.warn("[course-creator-build-check] latest build active");

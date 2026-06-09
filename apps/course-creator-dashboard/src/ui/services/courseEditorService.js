@@ -1,7 +1,8 @@
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.152-course-builder-loading-timeout";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.152-course-builder-loading-timeout";
-import { courseEditorStore } from "../state/courseEditorState.js?v=1.1.152-course-builder-loading-timeout";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.152-course-builder-loading-timeout";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.153-student-course-journey-polish";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.153-student-course-journey-polish";
+import { courseEditorStore } from "../state/courseEditorState.js?v=1.1.153-student-course-journey-polish";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.153-student-course-journey-polish";
+import { getDownloadURL, ref, storage, uploadBytes } from "../../../../../packages/firebase/storage/index.js?v=1.1.153-student-course-journey-polish";
 
 var openCourseRequestId = 0;
 var OPEN_COURSE_TIMEOUT_MS = 20000;
@@ -244,6 +245,28 @@ export const courseEditorService = {
     }
   },
 
+  uploadCourseIcon: async function (courseId, file) {
+    var state = courseEditorStore.getState();
+    var course = state.course || {};
+    var iconUrl = await uploadEditorImageFile("course-icons/" + courseId, file);
+
+    return await this.updateCourseMetadata(courseId, {
+      title: course.title,
+      description: course.description,
+      subject: course.subject || "",
+      level: course.level || "",
+      language: course.language || course.defaultLanguage || "en",
+      status: course.status || "draft",
+      tags: Array.isArray(course.tags) ? course.tags.slice() : [],
+      languages: Array.isArray(course.languages) ? course.languages.slice() : ["en"],
+      defaultLanguage: course.defaultLanguage || "en",
+      iconUrl: iconUrl,
+      heroImageUrl: course.heroImageUrl || "",
+      themeColor: course.themeColor || "",
+      accentColor: course.accentColor || ""
+    });
+  },
+
   updateModuleField: async function (courseId, moduleId, fieldKey, value) {
     try {
       var state = courseEditorStore.getState();
@@ -311,6 +334,24 @@ export const courseEditorService = {
         }
       };
     }
+  },
+
+  uploadModuleIcon: async function (courseId, moduleId, file) {
+    var state = courseEditorStore.getState();
+    var modules = Array.isArray(state.modules) ? state.modules : [];
+    var module = findModuleById(modules, moduleId) || {};
+    var iconUrl = await uploadEditorImageFile("module-icons/" + courseId + "/" + moduleId, file);
+
+    return await this.updateModule(courseId, moduleId, {
+      title: module.title || { en: "Untitled Module", ru: "", ky: "" },
+      description: module.description || { en: "", ru: "", ky: "" },
+      status: module.status || "draft",
+      iconUrl: iconUrl,
+      pathType: module.pathType || "main",
+      pathGroup: module.pathGroup || "",
+      pathOrder: typeof module.pathOrder === "number" ? module.pathOrder : module.order,
+      parentModuleId: module.parentModuleId || ""
+    });
   },
 
   selectModule: function (moduleId) {
@@ -539,6 +580,51 @@ function readModuleId(module) {
   }
 
   return module.id || module.moduleId || "";
+}
+
+function findModuleById(modules, moduleId) {
+  var safeModules = Array.isArray(modules) ? modules : [];
+  var index = 0;
+
+  while (index < safeModules.length) {
+    if (readModuleId(safeModules[index]) === moduleId) {
+      return safeModules[index];
+    }
+
+    index = index + 1;
+  }
+
+  return null;
+}
+
+async function uploadEditorImageFile(folderPath, file) {
+  var safeFile = validateEditorImageFile(file);
+  var fileName = Date.now() + "-" + sanitizeStorageFileName(safeFile.name || "image");
+  var fileRef = ref(storage, folderPath + "/" + fileName);
+  var snapshot = await uploadBytes(fileRef, safeFile, {
+    contentType: safeFile.type || "image/png"
+  });
+
+  return await getDownloadURL(snapshot.ref);
+}
+
+function validateEditorImageFile(file) {
+  if (!file) {
+    throw new Error("Choose an image before uploading.");
+  }
+
+  if (typeof file.type === "string" && file.type.indexOf("image/") !== 0) {
+    throw new Error("Only image files can be uploaded.");
+  }
+
+  return file;
+}
+
+function sanitizeStorageFileName(fileName) {
+  return String(fileName || "image")
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/(^-|-$)+/g, "") || "image";
 }
 
 function findClearlyInvalidModuleSteps(modules) {

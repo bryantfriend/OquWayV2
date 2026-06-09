@@ -24,12 +24,32 @@ export async function processUpdateModule(executionState) {
 }
 
 function createModuleUpdate(payload) {
-  return {
+  const moduleUpdate = {
     title: payload.title,
     description: payload.description,
     status: payload.status,
     updatedAt: serverTimestamp()
   };
+
+  appendOptionalModuleVisualFields(moduleUpdate, payload);
+  return moduleUpdate;
+}
+
+function appendOptionalModuleVisualFields(moduleUpdate, payload) {
+  appendOptionalString(moduleUpdate, payload, "iconUrl");
+  appendOptionalString(moduleUpdate, payload, "pathType");
+  appendOptionalString(moduleUpdate, payload, "pathGroup");
+  appendOptionalString(moduleUpdate, payload, "parentModuleId");
+
+  if (typeof payload.pathOrder === "number") {
+    moduleUpdate.pathOrder = payload.pathOrder;
+  }
+}
+
+function appendOptionalString(target, source, fieldName) {
+  if (typeof source[fieldName] === "string") {
+    target[fieldName] = source[fieldName];
+  }
 }
 
 function readCourseCollectionName() {

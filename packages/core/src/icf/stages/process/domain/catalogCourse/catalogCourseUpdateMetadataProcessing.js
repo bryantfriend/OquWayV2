@@ -43,7 +43,7 @@ function readExistingCourse(context) {
 }
 
 function createMetadataUpdate(payload, context) {
-    return {
+    const metadataUpdate = {
         title: readLocalizedText(payload.title),
         description: readLocalizedText(payload.description),
         subject: readText(payload.subject),
@@ -58,6 +58,22 @@ function createMetadataUpdate(payload, context) {
         updatedBy: readText(context.updatedBy),
         updatedByName: readText(context.updatedByName)
     };
+
+    appendOptionalVisualFields(metadataUpdate, payload);
+    return metadataUpdate;
+}
+
+function appendOptionalVisualFields(metadataUpdate, payload) {
+    appendOptionalText(metadataUpdate, payload, "iconUrl");
+    appendOptionalText(metadataUpdate, payload, "heroImageUrl");
+    appendOptionalText(metadataUpdate, payload, "themeColor");
+    appendOptionalText(metadataUpdate, payload, "accentColor");
+}
+
+function appendOptionalText(target, source, fieldName) {
+    if (typeof source[fieldName] === "string") {
+        target[fieldName] = readText(source[fieldName]);
+    }
 }
 
 function readLocalizedText(value) {
@@ -141,4 +157,3 @@ function readDefaultLanguage(defaultLanguage) {
 
     return "en";
 }
-
