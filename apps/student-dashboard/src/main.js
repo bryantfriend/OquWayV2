@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.157-student-journey-path";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.157-student-journey-path";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.157-student-journey-path";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.158-student-home-shell";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.158-student-home-shell";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.158-student-home-shell";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,15 +13,15 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.157-student-journey-path";
+} from "../../../packages/domain/progress/index.js?v=1.1.158-student-home-shell";
 import {
   createEmptyState,
   createErrorState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.157-student-journey-path";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.157-student-journey-path";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.157-student-journey-path";
+} from "../../../packages/ui/index.js?v=1.1.158-student-home-shell";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.158-student-home-shell";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.158-student-home-shell";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -565,6 +565,13 @@ function buildDashboardView(state) {
     : readOverallProgressPercent(courses);
   var html = "";
 
+  if (state.courseFocusActive) {
+    return buildCourseFocusView(state);
+  }
+
+  html += '<main class="student-home-shell">';
+  html += renderStudentHomeSidebar(state, courses, overallProgress);
+  html += '<section class="student-home-workspace">';
   html += '<section class="student-hero student-hero-v2">';
   html += '<div class="student-avatar-wrap">' + buildStudentAvatar(state.student, studentName) + '</div>';
   html += '<div class="student-hero-copy">';
@@ -573,6 +580,7 @@ function buildDashboardView(state) {
   html += '<p>' + escapeHtml(readMotivationalMessage(overallProgress)) + '</p>';
   html += '<div class="student-profile-meta"><span>' + escapeHtml(readStudentClassLabel(state.student)) + '</span><span>' + escapeHtml(readStudentLocationLabel(state.student)) + '</span></div>';
   html += '</div>';
+  html += '<div class="student-hero-mascot" aria-hidden="true">' + renderSvgIcon("robot") + '</div>';
   html += '<div class="student-hero-actions"><div class="student-hero-progress">' + overallProgress + '% complete</div><button type="button" class="student-reload-btn">Refresh</button><button type="button" class="student-switch-student-btn">Switch Student</button></div>';
   html += '</section>';
 
@@ -594,16 +602,18 @@ function buildDashboardView(state) {
   html += buildStudentDebugPanel(state.assignmentDebug);
 
   if (courses.length === 0) {
+    html += '<section class="student-dashboard-v2-grid student-dashboard-empty-grid">';
+    html += '<div class="student-dashboard-main-stack">';
     html += createEmptyState("No assigned courses yet", "No courses assigned yet.", {
-      className: "student-empty",
-      beforeHtml: '<img class="student-empty-illustration" src="./src/assets/empty-courses.svg" alt="">',
-      afterHtml: buildDailyBonusCard(state.dailyBonus, true) + buildIntentionPoints(state.intentionPoints)
+      className: "student-empty student-home-empty",
+      beforeHtml: '<div class="student-empty-illustration student-empty-svg">' + renderSvgIcon("book") + '</div>'
     });
+    html += '</div><aside class="student-dashboard-side-stack">';
+    html += buildProgressCard(state.progressSummary, overallProgress);
+    html += buildDailyBonusCard(state.dailyBonus, false);
+    html += buildIntentionPoints(state.intentionPoints);
+    html += '</aside></section></section></main>';
     return html;
-  }
-
-  if (state.courseFocusActive) {
-    return buildCourseFocusView(state);
   }
 
   html += '<section class="student-dashboard-v2-grid">';
@@ -612,18 +622,41 @@ function buildDashboardView(state) {
   html += '<section class="student-panel student-my-courses-panel"><div class="student-section-head"><div><p class="student-eyebrow">My Courses</p><h2>Assigned Courses</h2></div><span>' + courses.length + ' course' + (courses.length === 1 ? "" : "s") + '</span></div>';
   html += buildCourseCards(courses, state.selectedCourseId);
   html += '</section>';
-  html += '<section class="student-panel student-main-panel">';
-  html += buildDashboardCourseOverview(courses, selectedCourse);
-  html += '</section>';
   html += '</div>';
   html += '<aside class="student-dashboard-side-stack">';
+  html += buildUpcomingActivityCard(state.continueLearning, selectedCourse);
   html += buildProgressCard(state.progressSummary, overallProgress);
   html += buildDailyBonusCard(state.dailyBonus, false);
   html += buildIntentionPoints(state.intentionPoints);
   html += '</aside>';
   html += '</section>';
+  html += '</section></main>';
 
   return html;
+}
+
+function renderStudentHomeSidebar(state, courses, overallProgress) {
+  var studentName = readStudentName(state.student);
+  var courseCount = Array.isArray(courses) ? courses.length : 0;
+
+  return '<aside class="course-focus-sidebar student-home-sidebar">'
+    + '<div class="course-focus-brand"><span>' + renderSvgIcon("oquway") + '</span><strong>OquWay</strong></div>'
+    + '<nav class="course-focus-nav" aria-label="Student dashboard navigation">'
+    + '<span class="course-focus-nav-item course-focus-nav-item-active">' + renderSvgIcon("home") + '<span>Home</span></span>'
+    + '<span class="course-focus-nav-item">' + renderSvgIcon("book") + '<span>Courses</span></span>'
+    + '<span class="course-focus-nav-item">' + renderSvgIcon("trophy") + '<span>Achievements</span></span>'
+    + '<span class="course-focus-nav-item">' + renderSvgIcon("gift") + '<span>Rewards</span></span>'
+    + '<span class="course-focus-nav-item">' + renderSvgIcon("calendar") + '<span>Calendar</span></span>'
+    + '</nav>'
+    + '<div class="course-focus-profile student-home-profile">'
+    + buildStudentAvatar(state.student, studentName)
+    + '<strong>' + escapeHtml(studentName) + '</strong>'
+    + '<span>' + escapeHtml(readStudentClassLabel(state.student)) + '</span>'
+    + '<div class="student-progress-bar"><span style="width:' + overallProgress + '%"></span></div>'
+    + '<small>' + overallProgress + '% overall</small>'
+    + '<small>' + courseCount + ' assigned course' + (courseCount === 1 ? "" : "s") + '</small>'
+    + '</div>'
+    + '</aside>';
 }
 
 function buildStudentDebugPanel(assignmentDebug) {
@@ -653,7 +686,7 @@ function buildCourseCards(courses, selectedCourseId) {
     var status = readCourseLearningStatus(course);
     var title = readLocalizedText(course.title, "Untitled Course");
     html += '<article class="student-course-card' + activeClass + '" data-course-id="' + escapeHtml(course.id) + '">';
-    html += '<div class="student-course-art"><img src="./src/assets/course-illustration.svg" alt=""></div>';
+    html += renderDashboardCourseArt(course, "student-course-art");
     html += '<div class="student-course-card-copy">' + buildStudentStatusBadge(status) + '<strong>' + escapeHtml(title) + '</strong><p>' + escapeHtml(readLocalizedText(course.description, "Practice activities are ready when your teacher assigns sessions.")) + '</p></div>';
     html += '<div class="student-course-meta"><span>' + completedModuleCount + ' / ' + moduleCount + ' modules</span><span>' + progressPercent + '% complete</span></div>';
     html += '<div class="student-progress-bar"><span style="width:' + progressPercent + '%"></span></div>';
@@ -664,6 +697,16 @@ function buildCourseCards(courses, selectedCourseId) {
 
   html += '</div>';
   return html;
+}
+
+function renderDashboardCourseArt(course, className) {
+  var imageUrl = readImageUrl(course && (course.heroImageUrl || course.iconUrl || course.imageUrl || course.thumbnailUrl));
+
+  if (imageUrl) {
+    return '<div class="' + escapeHtml(className || "student-course-art") + '"><img src="' + escapeHtml(imageUrl) + '" alt=""></div>';
+  }
+
+  return '<div class="' + escapeHtml(className || "student-course-art") + ' student-course-art-fallback">' + renderSvgIcon("computer") + '</div>';
 }
 
 function buildDashboardCourseOverview(courses, selectedCourse) {
@@ -692,8 +735,24 @@ function buildContinueLearningCard(continueLearning, selectedCourse) {
   var actionLabel = recommendation.actionLabel || (progressPercent > 0 ? "Continue" : "Start Learning");
 
   return '<section class="student-continue-card">'
+    + renderDashboardCourseArt(selectedCourse, "student-continue-art")
     + '<div class="student-continue-copy"><p class="student-eyebrow">Continue Learning</p><h2>' + escapeHtml(courseTitle) + '</h2><p>' + escapeHtml(moduleTitle) + '</p><small>' + escapeHtml(readLastOpenedLabel(recommendation.lastOpenedAt)) + '</small><div class="student-progress-bar"><span style="width:' + progressPercent + '%"></span></div></div>'
     + '<div class="student-continue-action"><strong>' + progressPercent + '%</strong><button type="button" class="student-continue-learning-btn">' + escapeHtml(actionLabel) + '</button></div>'
+    + '</section>';
+}
+
+function buildUpcomingActivityCard(continueLearning, selectedCourse) {
+  var recommendation = continueLearning || {};
+  var courseTitle = recommendation.courseTitle || (selectedCourse ? readLocalizedText(selectedCourse.title, "Course") : "");
+  var moduleTitle = recommendation.moduleTitle || "";
+
+  if (!courseTitle && !moduleTitle) {
+    return "";
+  }
+
+  return '<section class="student-panel student-upcoming-card">'
+    + '<div class="student-upcoming-icon">' + renderSvgIcon("calendar") + '</div>'
+    + '<div><p class="student-eyebrow">Next Activity</p><h2>' + escapeHtml(moduleTitle || "Ready to learn") + '</h2><p>' + escapeHtml(courseTitle) + '</p><small>' + escapeHtml(readLastOpenedLabel(recommendation.lastOpenedAt)) + '</small></div>'
     + '</section>';
 }
 
@@ -1297,6 +1356,7 @@ function renderSvgIcon(name) {
     arrowLeft: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/><path d="M20 12H9"/></svg>',
     arrowRight: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/><path d="M4 12h11"/></svg>',
     book: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 5.5v16"/><path d="M8 7h7M8 11h5"/></svg>',
+    calendar: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01"/></svg>',
     check: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16.5 9"/></svg>',
     clock: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
     code: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 9l-4 3 4 3"/><path d="M16 9l4 3-4 3"/><path d="M14 5l-4 14"/></svg>',

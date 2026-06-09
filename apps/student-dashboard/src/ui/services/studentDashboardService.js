@@ -1,8 +1,8 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.157-student-journey-path";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.157-student-journey-path";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.157-student-journey-path";
-import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.157-student-journey-path";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.157-student-journey-path";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.158-student-home-shell";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.158-student-home-shell";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.158-student-home-shell";
+import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.158-student-home-shell";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.158-student-home-shell";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {

@@ -878,6 +878,400 @@
             color: var(--purple);
         }
 
+        body:has(.student-home-shell) .header {
+            display: none;
+        }
+
+        main:has(.student-home-shell) {
+            max-width: none;
+            padding: 0.65rem 0.75rem 1.4rem;
+        }
+
+        .student-home-shell {
+            display: grid;
+            grid-template-columns: 178px minmax(0, 1fr);
+            gap: 1.25rem;
+            width: min(1840px, calc(100vw - 1.25rem));
+            max-width: none;
+            margin: 0 auto;
+            align-items: start;
+        }
+
+        .student-home-workspace {
+            display: grid;
+            gap: 0.9rem;
+            min-width: 0;
+        }
+
+        .student-home-sidebar {
+            min-height: calc(100vh - 1.3rem);
+            padding: 1.2rem 0.9rem;
+            gap: 1.1rem;
+            border-radius: 0 30px 30px 0;
+        }
+
+        .student-home-sidebar .course-focus-nav {
+            gap: 0.68rem;
+        }
+
+        .student-home-sidebar .course-focus-nav-item {
+            min-height: 50px;
+            border-radius: 17px;
+        }
+
+        .student-home-sidebar .course-focus-brand span svg {
+            width: 44px;
+            height: 44px;
+            color: #0ea5e9;
+        }
+
+        .student-home-sidebar .course-focus-nav-item svg,
+        .student-upcoming-icon svg,
+        .student-course-art-fallback svg,
+        .student-empty-svg svg {
+            display: block;
+        }
+
+        .student-home-sidebar .course-focus-nav-item svg path,
+        .student-home-sidebar .course-focus-nav-item svg circle,
+        .student-home-sidebar .course-focus-nav-item svg rect,
+        .student-upcoming-icon svg path,
+        .student-upcoming-icon svg circle,
+        .student-upcoming-icon svg rect,
+        .student-course-art-fallback svg path,
+        .student-course-art-fallback svg circle,
+        .student-course-art-fallback svg rect,
+        .student-empty-svg svg path,
+        .student-empty-svg svg circle,
+        .student-empty-svg svg rect {
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .student-home-profile .student-avatar-img,
+        .student-home-profile .student-avatar-fallback {
+            width: 82px;
+            height: 82px;
+        }
+
+        .student-home-shell .student-hero-v2 {
+            display: grid;
+            grid-template-columns: 108px minmax(0, 1fr) minmax(150px, 210px) auto;
+            align-items: center;
+            gap: 1rem;
+            min-height: 208px;
+            padding: 1.35rem 1.45rem;
+            background:
+                radial-gradient(circle at 62% 14%, rgba(250,204,21,0.13), transparent 18%),
+                linear-gradient(135deg, rgba(255,255,255,0.96), rgba(236,253,245,0.88));
+            border-radius: 30px;
+        }
+
+        .student-home-shell .student-hero-v2::after {
+            right: -54px;
+            top: -72px;
+            width: 205px;
+            height: 205px;
+            background: linear-gradient(135deg, rgba(14,165,233,0.14), rgba(34,197,94,0.12));
+        }
+
+        .student-home-shell .student-avatar-wrap {
+            width: 96px;
+            height: 96px;
+            flex-basis: 96px;
+            border-radius: 28px;
+        }
+
+        .student-home-shell .student-avatar-wrap .student-avatar-fallback {
+            width: 74px;
+            height: 74px;
+        }
+
+        .student-home-shell .student-hero h1 {
+            display: -webkit-box;
+            max-width: 900px;
+            overflow: hidden;
+            font-size: clamp(2.35rem, 3.15vw, 4rem);
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+        }
+
+        .student-home-shell .student-hero-copy > p:not(.student-eyebrow) {
+            display: -webkit-box;
+            max-width: 760px;
+            overflow: hidden;
+            font-weight: 800;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+        }
+
+        .student-hero-mascot {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            place-items: center;
+            min-width: 0;
+        }
+
+        .student-hero-mascot svg {
+            width: 210px;
+            height: 172px;
+            color: transparent;
+            filter: drop-shadow(0 18px 26px rgba(15,23,42,0.14));
+        }
+
+        .student-home-shell .student-hero-actions {
+            align-items: stretch;
+            min-width: 142px;
+        }
+
+        .student-home-shell .student-hero-progress {
+            text-align: center;
+            padding: 0.7rem 0.85rem;
+        }
+
+        .student-home-shell .student-reload-btn,
+        .student-home-shell .student-switch-student-btn {
+            min-height: 42px;
+            padding: 0.65rem 0.9rem;
+        }
+
+        .student-home-shell .student-dashboard-v2-grid {
+            grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+            gap: 0.95rem;
+            margin-top: 0;
+        }
+
+        .student-home-shell .student-dashboard-main-stack,
+        .student-home-shell .student-dashboard-side-stack {
+            gap: 0.85rem;
+        }
+
+        .student-home-shell .student-panel {
+            border-radius: 28px;
+            background: rgba(255,255,255,0.9);
+            box-shadow: 0 22px 54px rgba(23,32,51,0.08);
+            padding: 1rem;
+        }
+
+        .student-home-shell .student-continue-card {
+            grid-template-columns: 176px minmax(0, 1fr) 150px;
+            min-height: 230px;
+            padding: 1.25rem;
+            gap: 1rem;
+            align-items: stretch;
+            background:
+                radial-gradient(circle at 78% 12%, rgba(34,197,94,0.18), transparent 22%),
+                linear-gradient(135deg, #ffffff, #ecfdf5 68%, #eff6ff);
+        }
+
+        .student-continue-art,
+        .student-course-art {
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+            background: linear-gradient(135deg, #eff6ff, #ecfdf5);
+        }
+
+        .student-continue-art {
+            border-radius: 26px;
+            min-height: 100%;
+        }
+
+        .student-continue-art img,
+        .student-course-art img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .student-course-art-fallback svg,
+        .student-continue-art.student-course-art-fallback svg {
+            width: 64px;
+            height: 64px;
+            color: var(--blue);
+        }
+
+        .student-home-shell .student-continue-copy {
+            align-content: center;
+        }
+
+        .student-home-shell .student-continue-copy h2 {
+            display: -webkit-box;
+            overflow: hidden;
+            font-size: clamp(1.8rem, 2.6vw, 3rem);
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+        }
+
+        .student-home-shell .student-continue-action {
+            min-width: 0;
+            border-radius: 24px;
+        }
+
+        .student-home-shell .student-my-courses-panel {
+            padding: 1rem 1rem 1.1rem;
+        }
+
+        .student-home-shell .student-section-head {
+            margin-bottom: 0.7rem;
+        }
+
+        .student-home-shell .student-course-grid {
+            display: grid;
+            grid-auto-flow: column;
+            grid-auto-columns: minmax(310px, 360px);
+            grid-template-columns: none;
+            gap: 0.95rem;
+            overflow-x: auto;
+            padding: 0.1rem 0.15rem 0.55rem;
+            scroll-snap-type: x proximity;
+            scrollbar-width: thin;
+        }
+
+        .student-home-shell .student-course-grid:has(.student-course-card:only-child) {
+            grid-auto-flow: row;
+            grid-template-columns: minmax(320px, 420px);
+            justify-content: center;
+            overflow-x: visible;
+        }
+
+        .student-home-shell .student-course-grid .student-course-card {
+            min-height: 285px;
+            border-radius: 26px;
+            padding: 1rem;
+            scroll-snap-align: start;
+        }
+
+        .student-home-shell .student-course-art {
+            height: 122px;
+            border-radius: 22px;
+            color: var(--blue);
+        }
+
+        .student-home-shell .student-course-card-copy strong {
+            display: -webkit-box;
+            overflow: hidden;
+            font-size: 1.1rem;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+        }
+
+        .student-home-shell .student-course-card-copy p {
+            display: -webkit-box;
+            overflow: hidden;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+        }
+
+        .student-home-shell .student-course-open-btn,
+        .student-home-shell .student-continue-learning-btn {
+            min-height: 46px;
+        }
+
+        .student-upcoming-card {
+            display: grid;
+            grid-template-columns: 58px minmax(0, 1fr);
+            align-items: center;
+            gap: 0.8rem;
+            background: linear-gradient(145deg, #ffffff, #eff6ff);
+        }
+
+        .student-upcoming-card h2 {
+            margin: 0.1rem 0;
+            font-size: 1.1rem;
+        }
+
+        .student-upcoming-card p,
+        .student-upcoming-card small {
+            margin: 0;
+            color: var(--muted);
+            font-weight: 800;
+        }
+
+        .student-upcoming-icon {
+            width: 58px;
+            height: 58px;
+            border-radius: 18px;
+            display: grid;
+            place-items: center;
+            background: var(--soft-blue);
+            color: var(--blue);
+        }
+
+        .student-upcoming-icon svg {
+            width: 30px;
+            height: 30px;
+        }
+
+        .student-home-shell .student-progress-card h2 {
+            font-size: 2rem;
+        }
+
+        .student-home-shell .student-progress-ring {
+            width: 112px;
+            height: 112px;
+            margin: 0.65rem auto;
+        }
+
+        .student-home-shell .student-progress-ring span {
+            width: 78px;
+            height: 78px;
+            font-size: 1rem;
+        }
+
+        .student-home-shell .student-daily-bonus {
+            grid-template-columns: 64px minmax(0, 1fr);
+            gap: 0.7rem;
+        }
+
+        .student-home-shell .student-daily-bonus img {
+            width: 64px;
+            height: 64px;
+        }
+
+        .student-home-shell .student-bonus-claim-btn {
+            min-height: 42px;
+            padding: 0.62rem 0.85rem;
+        }
+
+        .student-home-shell .student-points-grid {
+            gap: 0.5rem;
+        }
+
+        .student-home-shell .student-point-balance {
+            border-radius: 16px;
+            padding: 0.62rem;
+        }
+
+        .student-home-shell .student-point-balance strong {
+            font-size: 1.35rem;
+        }
+
+        .student-home-empty {
+            min-height: 440px;
+            display: grid;
+            place-items: center;
+        }
+
+        .student-empty-svg {
+            width: 128px;
+            height: 128px;
+            border-radius: 34px;
+            background: linear-gradient(135deg, #eff6ff, #ecfdf5);
+            display: grid;
+            place-items: center;
+            margin: 0 auto 1rem;
+            color: var(--blue);
+        }
+
+        .student-empty-svg svg {
+            width: 68px;
+            height: 68px;
+        }
+
         .student-empty-illustration {
             width: min(280px, 82%);
             height: auto;
@@ -3553,6 +3947,45 @@
                 grid-template-columns: 1fr;
             }
 
+            .student-home-shell {
+                grid-template-columns: 1fr;
+                width: min(100% - 1rem, 1220px);
+            }
+
+            .student-home-sidebar {
+                position: static;
+                min-height: auto;
+                grid-template-columns: auto minmax(0, 1fr);
+                align-items: center;
+                border-radius: 28px;
+            }
+
+            .student-home-sidebar .course-focus-nav {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                grid-column: 1 / -1;
+            }
+
+            .student-home-profile {
+                display: none;
+            }
+
+            .student-home-shell .student-hero-v2,
+            .student-home-shell .student-dashboard-v2-grid,
+            .student-home-shell .student-continue-card {
+                grid-template-columns: 1fr;
+            }
+
+            .student-hero-mascot {
+                display: none;
+            }
+
+            .student-home-shell .student-course-grid {
+                grid-auto-flow: row;
+                grid-auto-columns: auto;
+                grid-template-columns: 1fr;
+                overflow-x: visible;
+            }
+
             .student-hero,
             .student-course-heading,
             .student-player-topbar {
@@ -3668,7 +4101,7 @@
         <h1>Welcome to your Studies</h1>
         <p>Your educational journey continues here...</p>
     </main>
-    <script type="module" src="./src/main.js?v=1.1.157-student-journey-path"></script>
+    <script type="module" src="./src/main.js?v=1.1.158-student-home-shell"></script>
 </body>
 
 </html>
