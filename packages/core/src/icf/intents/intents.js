@@ -191,15 +191,15 @@ export { SaveModuleDraftIntent } from "./moduleEditor/SaveModuleDraftIntent.js?v
 // ----------------------
 // Student Dashboard / Player
 // ----------------------
-export { LoadStudentCourseIntent } from "./student/LoadStudentCourseIntent.js?v=1.1.146-student-catalog-source";
-export { LoadStudentDashboardIntent } from "./student/LoadStudentDashboardIntent.js?v=1.1.146-student-catalog-source";
+export { LoadStudentCourseIntent } from "./student/LoadStudentCourseIntent.js?v=1.1.147-student-course-shell";
+export { LoadStudentDashboardIntent } from "./student/LoadStudentDashboardIntent.js?v=1.1.147-student-course-shell";
 export { LoadStudentCoursesIntent } from "./student/LoadStudentCoursesIntent.js?v=1.1.141-user-command-context-data";
 export { LoadStudentCourseStructureIntent } from "./student/LoadStudentCourseStructureIntent.js?v=1.1.141-user-command-context-data";
 export { LoadStudentProgressIntent } from "./student/LoadStudentProgressIntent.js?v=1.1.141-user-command-context-data";
 export { ClaimDailyBonusIntent } from "./student/ClaimDailyBonusIntent.js?v=1.1.141-user-command-context-data";
 export { ContinueLearningIntent } from "./student/ContinueLearningIntent.js?v=1.1.141-user-command-context-data";
 export { SelectContinueLearningIntent } from "./student/SelectContinueLearningIntent.js?v=1.1.141-user-command-context-data";
-export { StudentOpenCourseIntent } from "./student/StudentOpenCourseIntent.js?v=1.1.146-student-catalog-source";
+export { StudentOpenCourseIntent } from "./student/StudentOpenCourseIntent.js?v=1.1.147-student-course-shell";
 export { StartPracticeModeIntent } from "./student/StartPracticeModeIntent.js?v=1.1.141-user-command-context-data";
 export { CompleteStepIntent } from "./student/CompleteStepIntent.js?v=1.1.141-user-command-context-data";
 export { CompleteStudentStepIntent } from "./student/CompleteStudentStepIntent.js?v=1.1.141-user-command-context-data";

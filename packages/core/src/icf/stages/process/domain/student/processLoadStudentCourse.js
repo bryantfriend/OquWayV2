@@ -101,16 +101,45 @@ async function loadStudentCourses(actor, assignedCourseIds, executionState, assi
   }
 
   while (courseIndex < courseSnaps.length) {
-    var course = attachAssignmentIdToCourse(
-      await buildCourseTree(actor, courseSnaps[courseIndex]),
-      assignmentIdByCourseId || {}
-    );
-    courses.push(await attachExternalTaskSubmissionsToCourse(actor, course));
+    courses.push(await loadStudentCourseRecord(actor, courseSnaps[courseIndex], executionState, assignmentIdByCourseId || {}));
     courseIndex = courseIndex + 1;
   }
 
   courses.sort(compareByOrderThenTitle);
   return courses;
+}
+
+async function loadStudentCourseRecord(actor, courseSnap, executionState, assignmentIdByCourseId) {
+  var courseShell = attachAssignmentIdToCourse(buildCourseShell(courseSnap), assignmentIdByCourseId);
+
+  try {
+    var course = attachAssignmentIdToCourse(
+      await withTimeout(buildCourseTree(actor, courseSnap), 15000, "STUDENT_COURSE_TREE_LOAD_TIMEOUT"),
+      assignmentIdByCourseId
+    );
+
+    return await withTimeout(attachExternalTaskSubmissionsToCourse(actor, course), 10000, "STUDENT_COURSE_SUBMISSIONS_LOAD_TIMEOUT");
+  } catch (error) {
+    appendStudentCourseLoadWarning(executionState, courseShell.id, error);
+    logStudentCourseLoadWarning(courseShell.id, error);
+    return Object.assign({}, courseShell, {
+      courseTreeLoadWarning: readErrorMessage(error)
+    });
+  }
+}
+
+function buildCourseShell(courseSnap) {
+  var source = readCourseCollectionName(courseSnap);
+  var course = Object.assign({ id: courseSnap.id }, courseSnap.data() || {}, {
+    id: courseSnap.id,
+    courseRecordSource: source
+  });
+
+  if (!Array.isArray(course.modules)) {
+    course.modules = [];
+  }
+
+  return course;
 }
 
 async function attachExternalTaskSubmissionsToCourse(actor, course) {
@@ -429,6 +458,13 @@ function appendWarnings(executionState, warnings) {
   }
 }
 
+function appendStudentCourseLoadWarning(executionState, courseId, error) {
+  executionState.warnings.push({
+    code: "STUDENT_ASSIGNED_COURSE_TREE_LOAD_FAILED",
+    message: "Assigned course shell was loaded, but course details were not ready for " + courseId + ": " + readErrorMessage(error)
+  });
+}
+
 function isPreviewActor(actor) {
   return actor && actor.id === "preview-student";
 }
@@ -647,6 +683,17 @@ function logStudentCourseLoad(details) {
   }));
 }
 
+function logStudentCourseLoadWarning(courseId, error) {
+  if (!isStudentCourseDebugEnabled()) {
+    return;
+  }
+
+  console.warn("[student-course-debug] course tree fallback", JSON.stringify({
+    courseId: courseId,
+    error: readErrorMessage(error)
+  }));
+}
+
 function isStudentCourseDebugEnabled() {
   if (typeof window === "undefined" || !window.location) {
     return false;
@@ -654,6 +701,17 @@ function isStudentCourseDebugEnabled() {
 
   return window.location.search.indexOf("debug=true") !== -1
     || isDevelopmentHost();
+}
+
+function withTimeout(promise, timeoutMs, code) {
+  return Promise.race([
+    promise,
+    new Promise(function (_resolve, reject) {
+      setTimeout(function () {
+        reject(new Error(code));
+      }, timeoutMs);
+    })
+  ]);
 }
 
 function readRecordList(values, targetType) {
