@@ -1,13 +1,13 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth, collection, db, deleteDoc, deleteObject, doc, functions, getDoc, getDocs, getDownloadURL, httpsCallable, ref, serverTimestamp, setDoc, storage, uploadBytes } from "../../../../../packages/firebase/index.js?v=1.1.141-user-command-context-data";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.141-user-command-context-data";
-import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.141-user-command-context-data";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.141-user-command-context-data";
-import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.141-user-command-context-data";
-import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.141-user-command-context-data";
+import { auth, collection, db, deleteDoc, deleteObject, doc, functions, getDoc, getDocs, getDownloadURL, httpsCallable, ref, serverTimestamp, setDoc, storage, uploadBytes } from "../../../../../packages/firebase/index.js?v=1.1.142-admin-modal-pickers";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.142-admin-modal-pickers";
+import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.142-admin-modal-pickers";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.142-admin-modal-pickers";
+import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.142-admin-modal-pickers";
+import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.142-admin-modal-pickers";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.141-user-command-context-data";
+var appVersion = "1.1.142-admin-modal-pickers";
 var adminCallableFunctions = functions;
 var state = {
   isLoading: true,
@@ -104,6 +104,13 @@ var state = {
     mode: "primary",
     searchText: "",
     includeAllLocations: false,
+    selectedIds: []
+  },
+  userLocationPicker: {
+    isOpen: false,
+    formId: "",
+    mode: "scope",
+    searchText: "",
     selectedIds: []
   },
   classStaffPicker: {
@@ -526,6 +533,7 @@ function buildDashboardView() {
   html += buildCourseCommandCenterModal();
   html += buildModuleCommandCenterModal();
   html += buildClassPickerModal();
+  html += buildUserLocationPickerModal();
   html += buildClassStaffPickerModal();
   html += buildAssignmentCoursePickerModal();
   html += buildAssignmentTargetPickerModal();
@@ -2282,20 +2290,17 @@ function buildRoleMultiSelect(formId, selectedRoles) {
 }
 
 function buildLocationMultiSelect(formId, selectedLocationIds) {
-  var html = '<label>Locations<select multiple size="6" data-field-kind="user" data-field-id="' + escapeHtml(formId) + '" data-field="locationIds">';
-  var index = 0;
+  var ids = normalizeIdList(selectedLocationIds);
+  var label = ids.length > 0 ? ids.map(readLocationName).join(", ") : "No locations selected";
 
-  while (index < state.locations.length) {
-    html += '<option value="' + escapeHtml(state.locations[index].id) + '"' + selected(selectedLocationIds.indexOf(state.locations[index].id) !== -1 ? state.locations[index].id : "", state.locations[index].id) + '>' + escapeHtml(state.locations[index].name || state.locations[index].id) + '</option>';
-    index = index + 1;
-  }
-
-  html += '</select></label>';
-  return html;
+  return '<label>Locations<div class="sa-login-link-preview sa-picker-summary"><strong>' + escapeHtml(ids.length + " selected") + '</strong><span>' + escapeHtml(label) + '</span></div><button type="button" class="sa-btn sa-btn-secondary" data-action="open-user-location-picker" data-id="' + escapeHtml(formId) + '">Choose Locations</button></label>';
 }
 
 function buildPrimaryLocationSelect(formId, selectedValue) {
-  return '<label>Primary Location' + buildOptionsSelect('data-field-kind="user" data-field-id="' + escapeHtml(formId) + '" data-field="primaryLocationId"', selectedValue, state.locations, "None") + '</label>';
+  var label = selectedValue ? readLocationName(selectedValue) : "None selected";
+  var note = selectedValue ? "Used as the profile default location" : "Choose a default location";
+
+  return '<label>Primary Location<div class="sa-login-link-preview sa-picker-summary"><strong>' + escapeHtml(label) + '</strong><span>' + escapeHtml(note) + '</span></div><button type="button" class="sa-btn sa-btn-secondary" data-action="open-user-primary-location-picker" data-id="' + escapeHtml(formId) + '">Choose Primary Location</button></label>';
 }
 
 function buildRelationshipHints(formId, form) {
@@ -3685,6 +3690,47 @@ function buildClassPickerModal() {
   return html;
 }
 
+function buildUserLocationPickerModal() {
+  var picker = state.userLocationPicker;
+
+  if (!picker || !picker.isOpen) {
+    return "";
+  }
+
+  var isPrimary = picker.mode === "primary";
+  var title = isPrimary ? "Choose Primary Location" : "Choose Locations";
+  var locations = readUserLocationPickerLocations(picker);
+  var html = '<div class="sa-modal-backdrop sa-user-location-picker-backdrop" data-user-location-picker-backdrop="true"><section class="sa-modal sa-user-location-picker-modal" role="dialog" aria-modal="true" aria-label="' + escapeHtml(title) + '">';
+
+  html += '<div class="sa-section-title"><div><p class="sa-eyebrow">Identity & Access</p><h2>' + escapeHtml(title) + '</h2><p>Search locations without scrolling through a long select list.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="close-user-location-picker">Close</button></div>';
+  html += '<div class="sa-form"><label>Search<input type="search" data-user-location-picker-search="true" value="' + escapeHtml(picker.searchText) + '" placeholder="Search location name or ID"></label></div>';
+  html += '<div class="sa-picker-list sa-user-location-picker-list">';
+
+  if (locations.length === 0) {
+    html += '<div class="sa-empty"><strong>No locations found.</strong><span>Try a different search.</span></div>';
+  } else {
+    locations.forEach(function (location) {
+      var safeLocation = getSafeLocation(location);
+      var isSelected = picker.selectedIds.indexOf(safeLocation.id) !== -1;
+      html += '<button type="button" class="sa-picker-row' + (isSelected ? ' sa-picker-row-selected' : '') + '" data-user-location-picker-id="' + escapeHtml(safeLocation.id) + '">'
+        + '<strong>' + escapeHtml(safeLocation.name || safeLocation.id) + '</strong>'
+        + '<span>' + escapeHtml(safeLocation.city || safeLocation.region || safeLocation.type || "Location") + '</span>'
+        + '<small>' + escapeHtml(safeLocation.id) + '</small>'
+        + '<em>' + (isSelected ? "Selected" : (isPrimary ? "Choose" : "Add")) + '</em>'
+        + '</button>';
+    });
+  }
+
+  html += '</div><div class="sa-modal-actions">';
+
+  if (isPrimary) {
+    html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="clear-user-primary-location-picker">Clear Primary</button>';
+  }
+
+  html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="close-user-location-picker">Cancel</button><button type="button" class="sa-btn" data-action="save-user-location-picker"' + disabled(isPrimary && picker.selectedIds.length > 1) + '>' + escapeHtml(isPrimary ? "Save Primary Location" : "Save Locations") + '</button></div></section></div>';
+  return html;
+}
+
 function buildClassStaffPickerModal() {
   var picker = state.classStaffPicker;
 
@@ -3869,11 +3915,17 @@ function handleClick(event) {
   var fruitButton = event.target.closest("[data-fruit]");
   var fruitActionButton = event.target.closest("[data-fruit-action]");
   var classPickerButton = event.target.closest("[data-class-picker-id]");
+  var userLocationPickerButton = event.target.closest("[data-user-location-picker-id]");
   var classStaffPickerButton = event.target.closest("[data-class-staff-picker-id]");
   var assignmentStaffPickerButton = event.target.closest("[data-assignment-staff-picker-id]");
 
   if (event.target && event.target.getAttribute("data-user-create-backdrop")) {
     closeUserCreateModal();
+    return;
+  }
+
+  if (event.target && event.target.getAttribute("data-user-location-picker-backdrop")) {
+    closeUserLocationPicker();
     return;
   }
 
@@ -3901,6 +3953,11 @@ function handleClick(event) {
     return;
   }
 
+  if (userLocationPickerButton) {
+    toggleUserLocationPickerSelection(userLocationPickerButton.getAttribute("data-user-location-picker-id"));
+    return;
+  }
+
   if (classStaffPickerButton) {
     toggleClassStaffSelection(classStaffPickerButton.getAttribute("data-class-staff-picker-id"));
     return;
@@ -3925,8 +3982,14 @@ function handleKeyDown(event) {
     return;
   }
 
+  if (state.userLocationPicker && state.userLocationPicker.isOpen) {
+    closeUserLocationPicker();
+    return;
+  }
+
   if (state.userCreateOpen) {
     closeUserCreateModal();
+    return;
   }
 }
 
@@ -3935,7 +3998,7 @@ function canRunActionWhileBusy(action) {
     return true;
   }
 
-  if (action === "edit-user" || action === "close-user-command-center" || action === "user-command-tab" || action === "open-user-edit-modal" || action === "close-user-edit-modal") {
+  if (action === "edit-user" || action === "close-user-command-center" || action === "user-command-tab" || action === "open-user-edit-modal" || action === "close-user-edit-modal" || action === "open-user-location-picker" || action === "open-user-primary-location-picker" || action === "close-user-location-picker" || action === "save-user-location-picker" || action === "clear-user-primary-location-picker") {
     return true;
   }
 
@@ -4060,6 +4123,13 @@ function handleInput(event) {
   if (target.getAttribute("data-class-picker-all-locations")) {
     state.classPicker.includeAllLocations = target.checked;
     render();
+    return;
+  }
+
+  if (target.getAttribute("data-user-location-picker-search")) {
+    state.userLocationPicker.searchText = target.value;
+    render();
+    focusInputAfterRender('[data-user-location-picker-search="true"]', target.value.length);
     return;
   }
 
@@ -4994,6 +5064,100 @@ function closeClassPicker() {
   render();
 }
 
+function openUserLocationPicker(formId, mode) {
+  var form = readUserFormDraft(formId);
+  var isPrimary = mode === "primary";
+  var selectedIds = isPrimary
+    ? (form.primaryLocationId ? [form.primaryLocationId] : [])
+    : normalizeIdList(form.locationIds);
+
+  state.userLocationPicker = {
+    isOpen: true,
+    formId: formId,
+    mode: isPrimary ? "primary" : "scope",
+    searchText: "",
+    selectedIds: selectedIds
+  };
+  render();
+}
+
+function closeUserLocationPicker() {
+  state.userLocationPicker = {
+    isOpen: false,
+    formId: "",
+    mode: "scope",
+    searchText: "",
+    selectedIds: []
+  };
+  render();
+}
+
+function clearUserPrimaryLocationPicker() {
+  var picker = state.userLocationPicker || {};
+
+  if (picker.mode !== "primary") {
+    return;
+  }
+
+  state.userLocationPicker = Object.assign({}, picker, { selectedIds: [] });
+  render();
+}
+
+function toggleUserLocationPickerSelection(locationId) {
+  var picker = state.userLocationPicker;
+  var selectedIds = picker.selectedIds.slice();
+  var index = selectedIds.indexOf(locationId);
+
+  if (picker.mode === "primary") {
+    selectedIds = index === -1 ? [locationId] : [];
+  } else if (index === -1) {
+    selectedIds.push(locationId);
+  } else {
+    selectedIds.splice(index, 1);
+  }
+
+  state.userLocationPicker = Object.assign({}, picker, { selectedIds: selectedIds });
+  render();
+}
+
+function saveUserLocationPicker() {
+  var picker = state.userLocationPicker;
+  var form = readMutableUserFormDraft(picker.formId);
+
+  if (!form) {
+    closeUserLocationPicker();
+    return;
+  }
+
+  if (picker.mode === "primary") {
+    setUserFormValue(form, "primaryLocationId", picker.selectedIds[0] || "");
+  } else {
+    setUserFormValue(form, "locationIds", picker.selectedIds);
+  }
+
+  closeUserLocationPicker();
+}
+
+function readUserLocationPickerLocations(picker) {
+  var query = readSafeString(picker.searchText).toLowerCase();
+
+  return state.locations.filter(function (location) {
+    var safeLocation = getSafeLocation(location);
+    var text = [
+      safeLocation.name,
+      safeLocation.id,
+      safeLocation.city,
+      safeLocation.region,
+      safeLocation.type,
+      safeLocation.loginSlug
+    ].join(" ").toLowerCase();
+
+    return !query || text.indexOf(query) !== -1;
+  }).sort(function (a, b) {
+    return readSafeString(a.name || a.id).localeCompare(readSafeString(b.name || b.id));
+  });
+}
+
 function openClassStaffPicker(classId, mode) {
   var classRecord = findClass(classId);
   var form = normalizeClassForm(classRecord);
@@ -5296,6 +5460,16 @@ async function handleAction(action, id) {
     closeClassPicker();
   } else if (action === "save-class-picker") {
     saveClassPicker();
+  } else if (action === "open-user-location-picker") {
+    openUserLocationPicker(id, "scope");
+  } else if (action === "open-user-primary-location-picker") {
+    openUserLocationPicker(id, "primary");
+  } else if (action === "close-user-location-picker") {
+    closeUserLocationPicker();
+  } else if (action === "clear-user-primary-location-picker") {
+    clearUserPrimaryLocationPicker();
+  } else if (action === "save-user-location-picker") {
+    saveUserLocationPicker();
   } else if (action === "reset-fruit-user") {
     openFruitPasswordReset(id);
   } else if (action === "authorize-teacher-login") {
@@ -6731,6 +6905,22 @@ function readIntentError(result) {
 function setState(changes) {
   state = Object.assign({}, state, changes);
   render();
+}
+
+function focusInputAfterRender(selector, cursorPosition) {
+  window.setTimeout(function () {
+    var input = document.querySelector(selector);
+
+    if (!input) {
+      return;
+    }
+
+    input.focus();
+
+    if (input.setSelectionRange) {
+      input.setSelectionRange(cursorPosition, cursorPosition);
+    }
+  }, 0);
 }
 
 function createLocationForm() {
