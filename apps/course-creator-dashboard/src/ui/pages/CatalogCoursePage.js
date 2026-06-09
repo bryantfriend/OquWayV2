@@ -1,5 +1,5 @@
-import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.138-course-overview-title";
-import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.138-course-overview-title";
+import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.144-archive-list-reload";
+import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.144-archive-list-reload";
 
 export class CatalogCoursePage {
   constructor() {
@@ -114,6 +114,7 @@ export class CatalogCoursePage {
           archivePendingCourseId: "",
           restorePendingCourseId: "",
           permanentDeletePendingCourseId: "",
+          isArchivedListReloading: false,
           error: null
         });
         return;
@@ -123,6 +124,7 @@ export class CatalogCoursePage {
     } catch (error) {
       courseCreatorStore.setState({
         isFetching: false,
+        isArchivedListReloading: false,
         error: error.message
       });
     }
@@ -254,6 +256,11 @@ export class CatalogCoursePage {
     }
 
     modal.classList.toggle("hidden", state.isArchivedModalOpen !== true);
+
+    if (state.isArchivedListReloading) {
+      list.innerHTML = buildArchivedReloadingState();
+      return;
+    }
 
     if (state.isFetching) {
       list.innerHTML = buildArchivedSkeletonRows(3);
@@ -402,11 +409,20 @@ export class CatalogCoursePage {
         throw new Error(self.readResultErrorMessage(result));
       }
 
-      showArchivedStatus("success", "Course permanently deleted.");
-      self.loadData();
+      showArchivedStatus("loading", "Refreshing archived courses...");
+      courseCreatorStore.setState({
+        permanentDeletePendingCourseId: "",
+        isArchivedListReloading: true
+      });
+      window.setTimeout(function () {
+        self.loadData();
+      }, 500);
     }).catch(function (error) {
       showArchivedStatus("error", error.message);
-      courseCreatorStore.setState({ permanentDeletePendingCourseId: "" });
+      courseCreatorStore.setState({
+        permanentDeletePendingCourseId: "",
+        isArchivedListReloading: false
+      });
     });
   }
 
@@ -582,6 +598,10 @@ function buildArchivedCourseRow(course, state) {
 
 function buildArchivedEmptyState() {
   return '<section class="builder-empty builder-archive-empty"><img src="./src/assets/empty-course.svg" alt=""><h2>No archived courses</h2><p>Archived courses will appear here after they are removed from the active builder list.</p></section>';
+}
+
+function buildArchivedReloadingState() {
+  return '<section class="builder-archive-reloading" aria-live="polite" aria-busy="true"><div><span class="oqu-spinner oqu-spinner-blue"></span><strong>Reloading archived courses...</strong><small>Updating the list after permanent delete.</small></div>' + buildArchivedSkeletonRows(3) + '</section>';
 }
 
 function buildArchivedSkeletonRows(count) {

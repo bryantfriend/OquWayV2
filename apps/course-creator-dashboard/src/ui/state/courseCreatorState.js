@@ -10,6 +10,7 @@ let state = {
     archivePendingCourseId: "",
     restorePendingCourseId: "",
     permanentDeletePendingCourseId: "",
+    isArchivedListReloading: false,
     error: null
 };
 

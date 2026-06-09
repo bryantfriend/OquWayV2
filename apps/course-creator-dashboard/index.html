@@ -402,6 +402,39 @@
       margin: 0.5rem 0 1rem;
     }
 
+    .builder-archive-reloading {
+      display: grid;
+      gap: 0.85rem;
+    }
+
+    .builder-archive-reloading > div {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      border: 1px solid #bfdbfe;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #eff6ff, #ffffff);
+      color: #1d4ed8;
+      padding: 1rem;
+      box-shadow: 0 16px 36px rgba(37,99,235,0.12);
+      animation: builderArchiveReloadPulse 0.9s ease-in-out infinite alternate;
+    }
+
+    .builder-archive-reloading strong,
+    .builder-archive-reloading small {
+      display: block;
+    }
+
+    .builder-archive-reloading strong {
+      font-weight: 950;
+    }
+
+    .builder-archive-reloading small {
+      color: #64748b;
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+
     .builder-archive-row {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
@@ -459,6 +492,17 @@
 
     .builder-archive-empty {
       min-height: 260px;
+    }
+
+    @keyframes builderArchiveReloadPulse {
+      from {
+        opacity: 0.82;
+        transform: translateY(0);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(-1px);
+      }
     }
 
     .builder-form-grid {
@@ -2971,7 +3015,7 @@
       <p class="mt-2 text-slate-600">Loading catalog, module, and lesson tools...</p>
     </section>
   </div>
-  <script type="module" src="./src/main.js?v=1.1.138-course-overview-title"></script>
+  <script type="module" src="./src/main.js?v=1.1.144-archive-list-reload"></script>
 </body>
 
 </html>
