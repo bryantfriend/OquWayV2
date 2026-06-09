@@ -135,6 +135,8 @@ function buildCourseShell(courseSnap) {
     courseRecordSource: source
   });
 
+  course = normalizeStudentCourse(course);
+
   if (!Array.isArray(course.modules)) {
     course.modules = [];
   }
@@ -794,9 +796,40 @@ function isArchivedCourseData(courseData) {
 }
 
 async function buildCourseTree(actor, courseSnap) {
-  var course = Object.assign({ id: courseSnap.id }, courseSnap.data());
+  var course = normalizeStudentCourse(Object.assign({ id: courseSnap.id }, courseSnap.data()));
   course.modules = await loadModules(actor, readCourseCollectionName(courseSnap), course.id);
   return course;
+}
+
+function normalizeStudentCourse(course) {
+  var normalizedCourse = Object.assign({}, course || {});
+
+  if (!normalizedCourse.title || readLocalizedText(normalizedCourse.title, "") === "") {
+    normalizedCourse.title = readCourseDisplayTitle(normalizedCourse);
+  }
+
+  if (!normalizedCourse.description || readLocalizedText(normalizedCourse.description, "") === "") {
+    normalizedCourse.description = readCourseDescription(normalizedCourse);
+  }
+
+  return normalizedCourse;
+}
+
+function readCourseDisplayTitle(course) {
+  return readLocalizedText(course && course.title, "")
+    || readTextValue(course && course.courseTitle)
+    || readTextValue(course && course.courseName)
+    || readTextValue(course && course.name)
+    || readTextValue(course && course.displayName)
+    || readTextValue(course && course.titleText)
+    || "Untitled Course";
+}
+
+function readCourseDescription(course) {
+  return readLocalizedText(course && course.description, "")
+    || readTextValue(course && course.courseDescription)
+    || readTextValue(course && course.shortDescription)
+    || readTextValue(course && course.summary);
 }
 
 function readCourseCollectionName(courseSnap) {

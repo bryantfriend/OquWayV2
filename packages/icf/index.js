@@ -1,3 +1,3 @@
-export { createIntent } from "../core/src/icf/engine/createIntent.js?v=1.1.147-student-course-shell";
-export { runIntentPipeline } from "../core/src/icf/engine/runIntentPipeline.js?v=1.1.147-student-course-shell";
-export { getIntentDefinition } from "../core/src/icf/engine/intentRegistry.js?v=1.1.147-student-course-shell";
+export { createIntent } from "../core/src/icf/engine/createIntent.js?v=1.1.148-student-course-title";
+export { runIntentPipeline } from "../core/src/icf/engine/runIntentPipeline.js?v=1.1.148-student-course-title";
+export { getIntentDefinition } from "../core/src/icf/engine/intentRegistry.js?v=1.1.148-student-course-title";
