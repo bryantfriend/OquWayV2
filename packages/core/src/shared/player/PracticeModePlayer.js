@@ -1,7 +1,7 @@
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../stepTypes/stepTypeRegistry.js?v=1.1.121-student-dashboard-open-clean";
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.136-emotional-check-in";
 
 export class PracticeModePlayer {
   constructor(options) {
@@ -547,10 +547,12 @@ function createSafeCompletionResult(completionResult) {
   var safeResult = completionResult && typeof completionResult === "object" ? completionResult : {};
   var score = readNumber(safeResult.score, 100);
   var data = readObject(safeResult.data);
+  var mood = readString(safeResult.mood || data.mood, "");
 
   return {
     success: safeResult.success === false ? false : true,
     score: score,
+    mood: mood,
     data: data
   };
 }

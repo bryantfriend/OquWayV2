@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.135-builder-archived-modal";
+import * as IntentExports from "../intents/intents.js?v=1.1.136-emotional-check-in";
 
 const registry = {
   // Demo Verification

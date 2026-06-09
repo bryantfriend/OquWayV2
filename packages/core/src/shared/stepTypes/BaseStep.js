@@ -98,6 +98,26 @@ export class BaseStep {
     }
   }
 
+  static createCompletionGuard(container, callbacks) {
+    var hasCompleted = false;
+
+    return {
+      complete: function (completionResult) {
+        if (hasCompleted) {
+          return false;
+        }
+
+        if (!container || !callbacks || typeof callbacks.onComplete !== "function") {
+          return false;
+        }
+
+        hasCompleted = true;
+        callbacks.onComplete(createGuardedCompletionResult(completionResult));
+        return true;
+      }
+    };
+  }
+
   static escapeHtml(value) {
     if (typeof value !== "string") {
       return "";
@@ -125,4 +145,25 @@ export class BaseStep {
 
     return fallbackNumber;
   }
+}
+
+function createGuardedCompletionResult(completionResult) {
+  var safeResult = completionResult && typeof completionResult === "object" ? completionResult : {};
+  var score = typeof safeResult.score === "number" && Number.isFinite(safeResult.score)
+    ? safeResult.score
+    : 1;
+
+  return {
+    success: safeResult.success === false ? false : true,
+    score: score,
+    mood: typeof safeResult.mood === "string" ? safeResult.mood : "",
+    data: safeResult.data && typeof safeResult.data === "object" && !Array.isArray(safeResult.data)
+      ? safeResult.data
+      : {}
+  };
+}
+
+if (typeof window !== "undefined") {
+  window.CourseEngine = window.CourseEngine || {};
+  window.CourseEngine.BaseStep = BaseStep;
 }

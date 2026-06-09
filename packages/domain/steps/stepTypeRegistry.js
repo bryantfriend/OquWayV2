@@ -3,7 +3,7 @@ import {
   getStepTypeDefinition,
   isSupportedStepType,
   listStepTypeDefinitions
-} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.121-student-dashboard-open-clean";
+} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.136-emotional-check-in";
 
 export {
   createDefaultStepConfig,

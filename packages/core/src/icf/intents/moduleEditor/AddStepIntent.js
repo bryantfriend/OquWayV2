@@ -1,7 +1,7 @@
 import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.124-location-icon-upload";
-import { attachStepRegistryDefinitionForStep, attachStepsCollection } from "../../stages/addContext/contexts.js?v=1.1.124-location-icon-upload";
-import { processAddStep } from "../../stages/process/processors.js?v=1.1.124-location-icon-upload";
-import { validateCourseId, validateModuleId, validateStepTypeRegistered } from "../../stages/validate/validators.js?v=1.1.124-location-icon-upload";
+import { attachStepRegistryDefinitionForStep, attachStepsCollection } from "../../stages/addContext/contexts.js?v=1.1.136-emotional-check-in";
+import { processAddStep } from "../../stages/process/processors.js?v=1.1.136-emotional-check-in";
+import { validateCourseId, validateModuleId, validateStepTypeRegistered } from "../../stages/validate/validators.js?v=1.1.136-emotional-check-in";
 import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.124-location-icon-upload";
 
 export function AddStepIntent() {

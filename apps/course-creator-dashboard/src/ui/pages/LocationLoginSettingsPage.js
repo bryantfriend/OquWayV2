@@ -1,4 +1,4 @@
-import { locationLoginSettingsService } from "../services/locationLoginSettingsService.js?v=1.1.135-builder-archived-modal";
+import { locationLoginSettingsService } from "../services/locationLoginSettingsService.js?v=1.1.136-emotional-check-in";
 
 export class LocationLoginSettingsPage {
   constructor() {

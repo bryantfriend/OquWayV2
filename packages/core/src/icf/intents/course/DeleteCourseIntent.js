@@ -2,7 +2,7 @@ import { validateAuthenticated, validateCourseId } from "../../stages/validate/v
 import { normalizeCourseId } from "../../stages/normalize/normalizers.js?v=1.1.124-location-icon-upload";
 import { attachActorContext, attachActorRoleContext, attachTimestampContext, attachUpdatedByContext, attachCourseDocument } from "../../stages/addContext/contexts.js?v=1.1.124-location-icon-upload";
 import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.124-location-icon-upload";
-import { catalogCourseDeleteProcessing } from "../../stages/process/processors.js?v=1.1.135-builder-archived-modal";
+import { catalogCourseDeleteProcessing } from "../../stages/process/processors.js?v=1.1.136-emotional-check-in";
 import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.124-location-icon-upload";
 
 export function DeleteCourseIntent() {

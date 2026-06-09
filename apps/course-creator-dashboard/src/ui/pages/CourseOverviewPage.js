@@ -1,13 +1,13 @@
-import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.135-builder-archived-modal';
-import { courseEditorService } from '../services/courseEditorService.js?v=1.1.135-builder-archived-modal';
-import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.135-builder-archived-modal';
-import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.135-builder-archived-modal';
+import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.136-emotional-check-in';
+import { courseEditorService } from '../services/courseEditorService.js?v=1.1.136-emotional-check-in';
+import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.136-emotional-check-in';
+import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.136-emotional-check-in';
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge
-} from '../../../../../packages/ui/index.js?v=1.1.135-builder-archived-modal';
+} from '../../../../../packages/ui/index.js?v=1.1.136-emotional-check-in';
 
 export class CourseOverviewPage {
   constructor(courseId, options) {

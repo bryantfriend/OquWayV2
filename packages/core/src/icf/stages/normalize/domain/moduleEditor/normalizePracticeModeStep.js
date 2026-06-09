@@ -1,4 +1,4 @@
-import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.124-location-icon-upload";
+import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.136-emotional-check-in";
 
 export function normalizePracticeModeStep(executionState) {
   var payload = executionState.payload;
