@@ -1880,11 +1880,27 @@
             overflow: auto;
         }
 
+        .sa-assignment-course-picker-modal {
+            width: min(1440px, calc(100vw - 40px));
+            height: min(900px, calc(100vh - 40px));
+            display: grid;
+            grid-template-rows: auto auto minmax(0, 1fr);
+            overflow: hidden;
+        }
+
         .sa-picker-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 12px;
             margin-top: 14px;
+        }
+
+        .sa-assignment-course-grid {
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            align-content: start;
+            min-height: 0;
+            overflow: auto;
+            padding: 2px 6px 6px 2px;
         }
 
         .sa-picker-card {
@@ -1911,6 +1927,13 @@
             color: var(--muted);
             font-weight: 750;
             line-height: 1.4;
+        }
+
+        .sa-assignment-course-grid .sa-picker-card p {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .sa-picker-meta {
@@ -4477,7 +4500,7 @@
         <h1>Core System Configuration</h1>
         <p>Managing the heart of the national educational engine...</p>
     </main>
-    <script type="module" src="./src/main.js?v=1.1.142-admin-modal-pickers"></script>
+    <script type="module" src="./src/main.js?v=1.1.143-assignment-course-picker-scroll"></script>
 </body>
 
 </html>

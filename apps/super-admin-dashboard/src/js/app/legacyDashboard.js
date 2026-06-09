@@ -1,13 +1,13 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth, collection, db, deleteDoc, deleteObject, doc, functions, getDoc, getDocs, getDownloadURL, httpsCallable, ref, serverTimestamp, setDoc, storage, uploadBytes } from "../../../../../packages/firebase/index.js?v=1.1.142-admin-modal-pickers";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.142-admin-modal-pickers";
-import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.142-admin-modal-pickers";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.142-admin-modal-pickers";
-import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.142-admin-modal-pickers";
-import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.142-admin-modal-pickers";
+import { auth, collection, db, deleteDoc, deleteObject, doc, functions, getDoc, getDocs, getDownloadURL, httpsCallable, ref, serverTimestamp, setDoc, storage, uploadBytes } from "../../../../../packages/firebase/index.js?v=1.1.143-assignment-course-picker-scroll";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.143-assignment-course-picker-scroll";
+import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.143-assignment-course-picker-scroll";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.143-assignment-course-picker-scroll";
+import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.143-assignment-course-picker-scroll";
+import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.143-assignment-course-picker-scroll";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.142-admin-modal-pickers";
+var appVersion = "1.1.143-assignment-course-picker-scroll";
 var adminCallableFunctions = functions;
 var state = {
   isLoading: true,
@@ -3775,9 +3775,9 @@ function buildAssignmentCoursePickerModal() {
   }
 
   var courses = readAssignmentPickerCourses();
-  var html = '<div class="sa-modal-backdrop"><section class="sa-modal sa-assignment-picker-modal"><div class="sa-section-title"><div><p class="sa-eyebrow">Course Assignment</p><h2>Select Course</h2><p>Search courses and choose the learning program to assign.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="close-assignment-course-picker">Close</button></div>';
+  var html = '<div class="sa-modal-backdrop"><section class="sa-modal sa-assignment-picker-modal sa-assignment-course-picker-modal"><div class="sa-section-title"><div><p class="sa-eyebrow">Course Assignment</p><h2>Select Course</h2><p>Search courses and choose the learning program to assign.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="close-assignment-course-picker">Close</button></div>';
   html += '<div class="sa-form sa-form-2"><label>Search<input type="search" data-assignment-course-picker-field="searchText" value="' + escapeHtml(picker.searchText) + '" placeholder="Search title or description"></label><label>Status<select data-assignment-course-picker-field="statusFilter"><option value="">All</option><option value="published"' + selected(picker.statusFilter, "published") + '>Published</option><option value="draft"' + selected(picker.statusFilter, "draft") + '>Draft</option><option value="archived"' + selected(picker.statusFilter, "archived") + '>Archived</option></select></label></div>';
-  html += '<div class="sa-picker-grid">';
+  html += '<div class="sa-picker-grid sa-assignment-course-grid">';
 
   if (picker.isLoading) {
     html += buildInlineLoadingState("Loading courses...", "Preparing the course picker.", "courses");
@@ -4958,6 +4958,10 @@ function updateAssignmentFormValue(field, value) {
 function updateAssignmentCoursePicker(field, value) {
   state.assignmentCoursePicker[field] = value;
   render();
+
+  if (field === "searchText") {
+    focusInputAfterRender('[data-assignment-course-picker-field="searchText"]', value.length);
+  }
 }
 
 function updateAssignmentTargetPicker(field, value) {
