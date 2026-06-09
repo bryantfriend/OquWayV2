@@ -1,4 +1,4 @@
-import { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.139-user-command-context";
+import { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.140-user-command-open-first";
 
 var intents = {};
 

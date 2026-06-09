@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.139-user-command-context";
+import * as IntentExports from "../intents/intents.js?v=1.1.140-user-command-open-first";
 
 const registry = {
   // Demo Verification

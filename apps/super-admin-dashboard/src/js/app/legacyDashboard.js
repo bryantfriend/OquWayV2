@@ -1,13 +1,13 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth, collection, db, deleteDoc, deleteObject, doc, functions, getDoc, getDocs, getDownloadURL, httpsCallable, ref, serverTimestamp, setDoc, storage, uploadBytes } from "../../../../../packages/firebase/index.js?v=1.1.139-user-command-context";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.139-user-command-context";
-import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.139-user-command-context";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.139-user-command-context";
-import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.139-user-command-context";
-import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.139-user-command-context";
+import { auth, collection, db, deleteDoc, deleteObject, doc, functions, getDoc, getDocs, getDownloadURL, httpsCallable, ref, serverTimestamp, setDoc, storage, uploadBytes } from "../../../../../packages/firebase/index.js?v=1.1.140-user-command-open-first";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.140-user-command-open-first";
+import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.140-user-command-open-first";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.140-user-command-open-first";
+import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.140-user-command-open-first";
+import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.140-user-command-open-first";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.139-user-command-context";
+var appVersion = "1.1.140-user-command-open-first";
 var adminCallableFunctions = functions;
 var state = {
   isLoading: true,
@@ -4579,16 +4579,6 @@ async function openUserCommandCenter(userId) {
     roles: getSafeUser(user).roles
   });
 
-  try {
-    await runAdminIntent("OpenUserCommandCenterIntent", { userId: commandUserId });
-  } catch (error) {
-    console.warn("[user-command-center:intent-warning]", {
-      userId: user.id,
-      commandUserId: commandUserId,
-      errorMessage: error && error.message ? error.message : String(error)
-    });
-  }
-
   setState({
     activeUserId: user.id,
     userCreateOpen: false,
@@ -4598,14 +4588,30 @@ async function openUserCommandCenter(userId) {
     }),
     message: ""
   });
+
+  runAdminIntent("OpenUserCommandCenterIntent", { userId: commandUserId }).then(function (result) {
+    if (!result || !result.emitted || result.emitted.success !== true) {
+      console.warn("[user-command-center:intent-warning]", {
+        userId: user.id,
+        commandUserId: commandUserId,
+        result: result
+      });
+    }
+  }).catch(function (error) {
+    console.warn("[user-command-center:intent-warning]", {
+      userId: user.id,
+      commandUserId: commandUserId,
+      errorMessage: error && error.message ? error.message : String(error)
+    });
+  });
 }
 
 function readUserCommandProfileId(user) {
   var safeUser = user || {};
 
-  return readSafeString(safeUser.profileUserId)
+  return readSafeString(safeUser.id)
+    || readSafeString(safeUser.profileUserId)
     || readSafeString(safeUser.userId)
-    || readSafeString(safeUser.id)
     || readSafeString(safeUser.authUid)
     || readSafeString(safeUser.uid)
     || readSafeString(safeUser.studentId);

@@ -1,6 +1,6 @@
 // createIntent.js
 
-import { getIntentDefinition } from "./intentRegistry.js?v=1.1.139-user-command-context";
+import { getIntentDefinition } from "./intentRegistry.js?v=1.1.140-user-command-open-first";
 
 export function createIntent(intentInput) {
   const intentType = readIntentType(intentInput);

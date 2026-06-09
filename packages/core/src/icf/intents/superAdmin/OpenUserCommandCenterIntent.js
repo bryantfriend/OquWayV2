@@ -1,8 +1,8 @@
-import { validateAuthenticated } from "../../stages/validate/validators.js?v=1.1.139-user-command-context";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.139-user-command-context";
-import { requireSuperAdminAccess } from "../../stages/authorize/authorizers.js?v=1.1.139-user-command-context";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.139-user-command-context";
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../infrastructure/firebase/firestore.js?v=1.1.139-user-command-context";
+import { validateAuthenticated } from "../../stages/validate/validators.js?v=1.1.140-user-command-open-first";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.140-user-command-open-first";
+import { requireSuperAdminAccess } from "../../stages/authorize/authorizers.js?v=1.1.140-user-command-open-first";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.140-user-command-open-first";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../infrastructure/firebase/firestore.js?v=1.1.140-user-command-open-first";
 
 export function OpenUserCommandCenterIntent() {
   return {
@@ -21,13 +21,17 @@ async function attachUserCommandCenterContext(executionState) {
     var userSnapshot = await resolveUserSnapshot(executionState.payload.userId);
 
     if (!userSnapshot) {
+      executionState.context.selectedUserProfile = {
+        id: executionState.payload.userId,
+        contextResolutionWarning: "Selected user profile was not resolved by addContext."
+      };
+
+      console.warn("[user-command-center:profile-not-resolved]", {
+        userId: executionState.payload.userId
+      });
+
       return {
-        valid: false,
-        errors: [{
-          code: "USER_PROFILE_NOT_FOUND",
-          field: "userId",
-          message: "The selected user profile was not found."
-        }]
+        valid: true
       };
     }
 
@@ -37,12 +41,19 @@ async function attachUserCommandCenterContext(executionState) {
 
     return { valid: true };
   } catch (error) {
+    executionState.context.selectedUserProfile = {
+      id: executionState.payload.userId,
+      contextResolutionWarning: error && error.message ? error.message : "Could not load selected user context."
+    };
+
+    console.warn("[user-command-center:context-warning]", {
+      userId: executionState.payload.userId,
+      errorCode: error && error.code ? error.code : "",
+      errorMessage: error && error.message ? error.message : String(error)
+    });
+
     return {
-      valid: false,
-      errors: [{
-        code: "USER_COMMAND_CONTEXT_FAILED",
-        message: error && error.message ? error.message : "Could not load selected user context."
-      }]
+      valid: true
     };
   }
 }
@@ -62,7 +73,7 @@ async function findUserSnapshotByIdentifier(userId) {
   var fieldIndex = 0;
 
   while (fieldIndex < lookupFields.length) {
-    var snapshot = await getDocs(query(collection(db, "users"), where(lookupFields[fieldIndex], "==", userId)));
+    var snapshot = await safelyQueryUsersByField(lookupFields[fieldIndex], userId);
     var resolvedSnapshot = readFirstSnapshot(snapshot);
 
     if (resolvedSnapshot) {
@@ -78,6 +89,23 @@ async function findUserSnapshotByIdentifier(userId) {
   }
 
   return null;
+}
+
+async function safelyQueryUsersByField(fieldName, userId) {
+  try {
+    return await getDocs(query(collection(db, "users"), where(fieldName, "==", userId)));
+  } catch (error) {
+    console.warn("[user-command-center:lookup-skipped]", {
+      fieldName: fieldName,
+      userId: userId,
+      errorCode: error && error.code ? error.code : "",
+      errorMessage: error && error.message ? error.message : String(error)
+    });
+
+    return {
+      forEach: function () {}
+    };
+  }
 }
 
 function readFirstSnapshot(snapshot) {
