@@ -1,8 +1,8 @@
-import { validateAuthenticated } from "../../stages/validate/validators.js?v=1.1.140-user-command-open-first";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.140-user-command-open-first";
-import { requireSuperAdminAccess } from "../../stages/authorize/authorizers.js?v=1.1.140-user-command-open-first";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.140-user-command-open-first";
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../infrastructure/firebase/firestore.js?v=1.1.140-user-command-open-first";
+import { validateAuthenticated } from "../../stages/validate/validators.js?v=1.1.141-user-command-context-data";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.141-user-command-context-data";
+import { requireSuperAdminAccess } from "../../stages/authorize/authorizers.js?v=1.1.141-user-command-context-data";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.141-user-command-context-data";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../infrastructure/firebase/firestore.js?v=1.1.141-user-command-context-data";
 
 export function OpenUserCommandCenterIntent() {
   return {
@@ -21,7 +21,7 @@ async function attachUserCommandCenterContext(executionState) {
     var userSnapshot = await resolveUserSnapshot(executionState.payload.userId);
 
     if (!userSnapshot) {
-      executionState.context.selectedUserProfile = {
+      var unresolvedProfile = {
         id: executionState.payload.userId,
         contextResolutionWarning: "Selected user profile was not resolved by addContext."
       };
@@ -31,17 +31,23 @@ async function attachUserCommandCenterContext(executionState) {
       });
 
       return {
-        valid: true
+        valid: true,
+        data: {
+          selectedUserProfile: unresolvedProfile
+        }
       };
     }
 
-    executionState.context.selectedUserProfile = Object.assign({
+    return {
+      valid: true,
+      data: {
+        selectedUserProfile: Object.assign({
       id: userSnapshot.id
-    }, userSnapshot.data() || {});
-
-    return { valid: true };
+        }, userSnapshot.data() || {})
+      }
+    };
   } catch (error) {
-    executionState.context.selectedUserProfile = {
+    var fallbackProfile = {
       id: executionState.payload.userId,
       contextResolutionWarning: error && error.message ? error.message : "Could not load selected user context."
     };
@@ -53,7 +59,10 @@ async function attachUserCommandCenterContext(executionState) {
     });
 
     return {
-      valid: true
+      valid: true,
+      data: {
+        selectedUserProfile: fallbackProfile
+      }
     };
   }
 }

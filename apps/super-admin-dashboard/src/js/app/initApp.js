@@ -1,8 +1,8 @@
-import { appState, updateAppState } from "./appState.js?v=1.1.140-user-command-open-first";
-import { registerIntentDefinitions, runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.140-user-command-open-first";
-import { createClassesIntentRegistrar, createDashboardIntentRegistrar, createUsersIntentRegistrar } from "../../../../../packages/icf/admin/intents/index.js?v=1.1.140-user-command-open-first";
-import { createUser, deleteUser, disableUser, getUser, getUsers, sendPasswordReset, updateUser } from "../users/usersService.js?v=1.1.140-user-command-open-first";
-import { resetFruitPassword } from "../users/fruitPasswordService.js?v=1.1.140-user-command-open-first";
+import { appState, updateAppState } from "./appState.js?v=1.1.141-user-command-context-data";
+import { registerIntentDefinitions, runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.141-user-command-context-data";
+import { createClassesIntentRegistrar, createDashboardIntentRegistrar, createUsersIntentRegistrar } from "../../../../../packages/icf/admin/intents/index.js?v=1.1.141-user-command-context-data";
+import { createUser, deleteUser, disableUser, getUser, getUsers, sendPasswordReset, updateUser } from "../users/usersService.js?v=1.1.141-user-command-context-data";
+import { resetFruitPassword } from "../users/fruitPasswordService.js?v=1.1.141-user-command-context-data";
 
 export async function initApp() {
   registerIntentDefinitions([
@@ -25,7 +25,7 @@ export async function initApp() {
     runIntent: runAdminIntent
   };
 
-  await import("./legacyDashboard.js?v=1.1.140-user-command-open-first");
+  await import("./legacyDashboard.js?v=1.1.141-user-command-context-data");
   updateAppState({ legacyDashboardLoaded: true });
 }
 
