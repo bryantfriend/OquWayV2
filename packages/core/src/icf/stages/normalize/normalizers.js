@@ -16,6 +16,7 @@ export {
   normalizeExternalTaskPayload,
   normalizeExternalTaskReviewPayload
 } from "./domain/externalTask/normalizeExternalTaskPayloads.js?v=1.1.154-emotional-check-in-prototype";
+export { normalizeEmotionalCheckInPayload } from "./domain/emotionalCheckIn/normalizeEmotionalCheckInPayload.js?v=1.1.161-universal-check-in";
 export {
   normalizeLocationLoginModePayload,
   normalizeLocationLoginSlugPayload,

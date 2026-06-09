@@ -37,6 +37,7 @@ export {
   processSubmitExternalTask,
   processUploadExternalTaskFile
 } from "./domain/externalTask/externalTaskProcessors.js?v=1.1.153-student-course-journey-polish";
+export { processRecordEmotionalCheckIn } from "./domain/emotionalCheckIn/processRecordEmotionalCheckIn.js?v=1.1.161-universal-check-in";
 export { processListLocations } from "./domain/location/processListLocations.js?v=1.1.153-student-course-journey-polish";
 export { processResolveLocationBySlug } from "./domain/location/processResolveLocationBySlug.js?v=1.1.153-student-course-journey-polish";
 export { processUpdateLocationLoginMode } from "./domain/location/processUpdateLocationLoginMode.js?v=1.1.153-student-course-journey-polish";

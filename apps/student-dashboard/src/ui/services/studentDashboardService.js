@@ -1,8 +1,8 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.159-emotional-regulation";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.159-emotional-regulation";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.159-emotional-regulation";
-import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.159-emotional-regulation";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.159-emotional-regulation";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.161-universal-check-in";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.161-universal-check-in";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.161-universal-check-in";
+import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.161-universal-check-in";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.161-universal-check-in";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {

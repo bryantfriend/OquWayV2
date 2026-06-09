@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.154-emotional-check-in-prototype";
+import * as IntentExports from "../intents/intents.js?v=1.1.161-universal-check-in";
 
 const registry = {
   // Demo Verification
@@ -37,6 +37,9 @@ const registry = {
   LoadExternalTaskSubmissionsIntent: IntentExports.LoadExternalTaskSubmissionsIntent,
   ReviewExternalTaskSubmissionIntent: IntentExports.ReviewExternalTaskSubmissionIntent,
   ResubmitExternalTaskIntent: IntentExports.ResubmitExternalTaskIntent,
+
+  // Emotional Check-Ins
+  RecordEmotionalCheckInIntent: IntentExports.RecordEmotionalCheckInIntent,
 
   // Teacher Dashboard
   TeacherLoginIntent: IntentExports.TeacherLoginIntent,

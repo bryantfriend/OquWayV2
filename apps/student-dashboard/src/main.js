@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.159-emotional-regulation";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.159-emotional-regulation";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.159-emotional-regulation";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.161-universal-check-in";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.161-universal-check-in";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.161-universal-check-in";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,15 +13,17 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.159-emotional-regulation";
+} from "../../../packages/domain/progress/index.js?v=1.1.161-universal-check-in";
 import {
   createEmptyState,
   createErrorState,
   createStatusBadge,
-  formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.159-emotional-regulation";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.159-emotional-regulation";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.159-emotional-regulation";
+  formatStatusLabel,
+  renderEmotionalCheckInGate
+} from "../../../packages/ui/index.js?v=1.1.161-universal-check-in";
+import { emotionalCheckInService } from "../../../packages/shared/emotionalCheckIns/index.js?v=1.1.161-universal-check-in";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.161-universal-check-in";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.161-universal-check-in";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -302,7 +304,6 @@ function selectCourse(courseId) {
 
 async function openCourseFocusMode(courseId) {
   var openResult = null;
-  var target = null;
 
   if (!courseId) {
     studentDashboardStore.setState({
@@ -317,7 +318,18 @@ async function openCourseFocusMode(courseId) {
     return;
   }
 
-  target = openResult.openTarget || {};
+  if (await runStudentCourseCheckInGate(openResult, function () {
+    enterCourseFocusMode(openResult);
+  })) {
+    return;
+  }
+
+  enterCourseFocusMode(openResult);
+}
+
+function enterCourseFocusMode(openResult) {
+  var target = openResult.openTarget || {};
+
   applyOpenedCourseResult(openResult);
 
   studentDashboardStore.setState({
@@ -331,6 +343,135 @@ async function openCourseFocusMode(courseId) {
       ? openResult.emptyCourseState.message
       : ""
   });
+}
+
+async function runStudentCourseCheckInGate(openResult, onContinue) {
+  var checkInContext = buildStudentCourseCheckInContext(openResult);
+  var visibility = null;
+
+  if (isPreviewMode() || !checkInContext) {
+    return false;
+  }
+
+  try {
+    visibility = await emotionalCheckInService.shouldShowCheckIn(checkInContext);
+
+    if (!visibility || visibility.shouldShow !== true) {
+      return false;
+    }
+
+    showStudentCourseCheckInGate(checkInContext, openResult, onContinue, "");
+    return true;
+  } catch (error) {
+    showStudentCourseCheckInGate(
+      checkInContext,
+      openResult,
+      onContinue,
+      "We could not check whether you already checked in. You can try again or continue without checking in."
+    );
+    return true;
+  }
+}
+
+function showStudentCourseCheckInGate(checkInContext, openResult, onContinue, initialError) {
+  var gateController = null;
+
+  studentDashboardStore.setState({
+    isCourseOpening: false,
+    statusMessage: "",
+    error: null
+  });
+
+  gateController = renderEmotionalCheckInGate(appElement, checkInContext, {
+    initialError: initialError,
+    onSave: function (emotionKey) {
+      return emotionalCheckInService.recordCheckIn(checkInContext, emotionKey);
+    },
+    onContinue: onContinue,
+    onContinueWithoutCheckIn: onContinue,
+    onRetry: function () {
+      if (gateController && typeof gateController.destroy === "function") {
+        gateController.destroy();
+      }
+
+      runStudentCourseCheckInGate(openResult, onContinue).then(function (handled) {
+        if (!handled && typeof onContinue === "function") {
+          onContinue();
+        }
+      });
+    }
+  });
+}
+
+function buildStudentCourseCheckInContext(openResult) {
+  var state = studentDashboardStore.getState();
+  var student = openResult.student || state.student || {};
+  var course = openResult.course || {};
+  var target = openResult.openTarget || {};
+  var participantUserId = readStudentAuthId(student);
+  var programId = readText(course.id || openResult.courseId);
+  var classId = readText(student.classId || student.primaryClassId || course.classId);
+
+  if (!participantUserId || !programId) {
+    return null;
+  }
+
+  // TODO: Reuse this context builder for teacher, admin, monitor, practice, and adult program entry points.
+  return emotionalCheckInService.buildContext({
+    participantUserId: participantUserId,
+    participantProfileId: readText(student.id || student.studentId || student.userId || participantUserId),
+    participantRole: "student",
+    schoolId: readText(student.schoolId || student.locationId || student.primaryLocationId),
+    locationId: readText(student.locationId || student.primaryLocationId),
+    classId: classId,
+    primaryClassId: readText(student.primaryClassId),
+    className: readText(student.className),
+    timezone: readText(student.timezone || student.locationTimezone || student.schoolTimezone)
+  }, {
+    schoolId: readText(student.schoolId || student.locationId || student.primaryLocationId),
+    locationId: readText(student.locationId || student.primaryLocationId),
+    programId: programId,
+    programType: "course",
+    programName: readLocalizedText(course.title || course.name, "Course"),
+    classId: classId,
+    className: readText(course.className || student.className),
+    courseId: programId,
+    courseName: readLocalizedText(course.title || course.name, "Course"),
+    moduleId: readText(target.moduleId),
+    moduleName: readSelectedTargetModuleName(course, target.moduleId),
+    classSessionId: readText(course.classSessionId || target.classSessionId),
+    programSessionId: readText(course.programSessionId || target.programSessionId),
+    scheduledLessonId: readText(course.scheduledLessonId || target.scheduledLessonId),
+    courseSessionId: readText(course.courseSessionId || target.courseSessionId),
+    contextScope: classId ? "class-session" : "course-entry",
+    checkInSource: "student-dashboard-course-entry",
+    timezone: readText(student.timezone || student.locationTimezone || student.schoolTimezone || course.timezone)
+  });
+}
+
+function readStudentAuthId(student) {
+  var currentUser = auth.currentUser;
+
+  if (currentUser && currentUser.uid) {
+    return currentUser.uid;
+  }
+
+  return readText(student.authUid || student.uid || student.userId || student.id || student.studentId);
+}
+
+function readSelectedTargetModuleName(course, moduleId) {
+  var modules = course && Array.isArray(course.modules) ? course.modules : [];
+  var index = 0;
+
+  while (index < modules.length) {
+    if (modules[index] && modules[index].id === moduleId) {
+      return readLocalizedText(modules[index].title || modules[index].name, "");
+    }
+
+    index += 1;
+  }
+
+  return "";
 }
 
 function applyOpenedCourseResult(openResult) {
@@ -2794,6 +2935,10 @@ function readLocalizedText(value, fallbackText) {
   }
 
   return fallbackText;
+}
+
+function readText(value) {
+  return typeof value === "string" || typeof value === "number" ? String(value).trim() : "";
 }
 
 function escapeHtml(value) {

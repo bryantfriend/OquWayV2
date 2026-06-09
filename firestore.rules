@@ -454,6 +454,18 @@ service cloud.firestore {
       allow delete: if isSuperAdmin() || isPlatformAdmin();
     }
 
+    // 💬 EMOTIONAL CHECK-INS
+    match /emotionalCheckIns/{checkInId} {
+      allow create: if request.auth != null
+        && checkInId.matches(".*_" + request.auth.uid)
+        && request.resource.data.participantUserId == request.auth.uid
+        && request.resource.data.version == "1.0.0"
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow get: if request.auth != null && checkInId.matches(".*_" + request.auth.uid);
+      allow list: if request.auth != null && resource.data.participantUserId == request.auth.uid;
+      allow update, delete: if false;
+    }
     // 📚 CATALOG COURSES (New V2 Core Database)
     match /catalogCourses/{courseId} {
       allow read: if true;

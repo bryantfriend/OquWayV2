@@ -10,6 +10,7 @@ export {
   requireExternalTaskReviewerAuthorization,
   requireExternalTaskStudentAuthorization
 } from "./domain/externalTask/requireExternalTaskAuthorization.js?v=1.1.124-location-icon-upload";
+export { requireEmotionalCheckInAuthorization } from "./domain/emotionalCheckIn/requireEmotionalCheckInAuthorization.js?v=1.1.161-universal-check-in";
 export { requireCourseCreatorAuthorization } from "./domain/catalogCourse/requireCourseCreatorAuthorization.js?v=1.1.124-location-icon-upload";
 export { requireLocationAdminAuthorization, allowPublicLocationRead } from "./domain/location/requireLocationAdminAuthorization.js?v=1.1.124-location-icon-upload";
 export { requirePlatformAdminAuthorization } from "./domain/catalogCourse/requirePlatformAdminAuthorization.js?v=1.1.124-location-icon-upload";
@@ -23,5 +24,4 @@ export {
   requireTeacherDashboardAuthorization,
   requireTeacherReviewScopeAuthorization
 } from "./domain/teacher/requireTeacherAuthorization.js?v=1.1.129-teacher-query-noise";
-
 

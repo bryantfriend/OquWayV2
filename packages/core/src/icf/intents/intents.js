@@ -75,6 +75,11 @@ export { ReviewExternalTaskSubmissionIntent } from "./externalTask/ReviewExterna
 export { ResubmitExternalTaskIntent } from "./externalTask/ResubmitExternalTaskIntent.js?v=1.1.154-emotional-check-in-prototype";
 
 // ----------------------
+// Emotional Check-Ins
+// ----------------------
+export { RecordEmotionalCheckInIntent } from "./emotionalCheckIn/RecordEmotionalCheckInIntent.js?v=1.1.161-universal-check-in";
+
+// ----------------------
 // Teacher Dashboard
 // ----------------------
 export { TeacherLoginIntent } from "./teacher/TeacherLoginIntent.js?v=1.1.129-teacher-query-noise";

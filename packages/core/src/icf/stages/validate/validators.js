@@ -24,6 +24,7 @@ export {
   validateExternalTaskSubmitPayload,
   validateExternalTaskUploadPayload
 } from "./domain/externalTask/validateExternalTaskPayloads.js?v=1.1.124-location-icon-upload";
+export { validateEmotionalCheckInPayload } from "./domain/emotionalCheckIn/validateEmotionalCheckInPayload.js?v=1.1.161-universal-check-in";
 export {
   validateLocationId,
   validateLocationLoginModePayload,
