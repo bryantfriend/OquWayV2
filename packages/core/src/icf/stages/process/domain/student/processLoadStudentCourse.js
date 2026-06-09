@@ -333,7 +333,8 @@ async function loadAssignedCourseSnaps(courseIds, executionState) {
 }
 
 async function loadCourseSnap(courseId, executionState) {
-  var sources = ["courses", "catalogCourses"];
+  var sources = ["catalogCourses", "courses"];
+  var archivedSources = [];
   var sourceIndex = 0;
 
   while (sourceIndex < sources.length) {
@@ -342,11 +343,13 @@ async function loadCourseSnap(courseId, executionState) {
 
       if (courseSnap.exists()) {
         if (isArchivedCourseData(courseSnap.data())) {
+          archivedSources.push(sources[sourceIndex]);
           executionState.warnings.push({
             code: "ASSIGNED_COURSE_ARCHIVED",
-            message: "Assigned course was skipped because it is archived: " + courseId
+            message: "Assigned course source was archived and a fallback source will be checked: " + sources[sourceIndex] + "/" + courseId
           });
-          return null;
+          sourceIndex = sourceIndex + 1;
+          continue;
         }
 
         return courseSnap;
@@ -359,6 +362,14 @@ async function loadCourseSnap(courseId, executionState) {
     }
 
     sourceIndex = sourceIndex + 1;
+  }
+
+  if (archivedSources.length > 0) {
+    executionState.warnings.push({
+      code: "ASSIGNED_COURSE_ARCHIVED",
+      message: "Assigned course was skipped because every readable source was archived: " + courseId + " (" + archivedSources.join(", ") + ")"
+    });
+    return null;
   }
 
   executionState.warnings.push({

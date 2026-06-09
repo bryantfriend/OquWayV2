@@ -1,1 +1,1 @@
-export const OQUWAY_BUILD_VERSION = "1.1.145-dual-source-archive";
+export const OQUWAY_BUILD_VERSION = "1.1.146-student-catalog-source";
