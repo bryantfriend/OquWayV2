@@ -4,8 +4,8 @@ import {
   getStepTypeDefinition,
   listStepTypeDefinitions,
   validateStepConfig
-} from "../../../../../packages/domain/steps/index.js?v=1.1.154-emotional-check-in-prototype";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.154-emotional-check-in-prototype";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.159-emotional-regulation";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.159-emotional-regulation";
 import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.138-course-overview-title";
 
 export class CourseEditorPage {
