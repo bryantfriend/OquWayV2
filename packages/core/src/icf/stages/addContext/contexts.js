@@ -22,7 +22,7 @@ export { attachLearningModeDocument } from "./domain/moduleEditor/attachLearning
 export { attachSessionDocument } from "./domain/moduleEditor/attachSessionDocument.js?v=1.1.124-location-icon-upload";
 export { attachSessionsCollection } from "./domain/moduleEditor/attachSessionsCollection.js?v=1.1.124-location-icon-upload";
 export { attachStepPreviewContext } from "./domain/moduleEditor/attachStepPreviewContext.js?v=1.1.124-location-icon-upload";
-export { attachStepRegistryDefinitionForStep } from "./domain/moduleEditor/attachStepRegistryDefinitionForStep.js?v=1.1.136-emotional-check-in";
+export { attachStepRegistryDefinitionForStep } from "./domain/moduleEditor/attachStepRegistryDefinitionForStep.js?v=1.1.137-emotional-preview-editor";
 export { attachStepsCollection } from "./domain/moduleEditor/attachStepsCollection.js?v=1.1.124-location-icon-upload";
 export { attachStudentProfileContext } from "./domain/student/attachStudentProfileContext.js?v=1.1.124-location-icon-upload";
 export { attachStudentSessionContext } from "./domain/student/attachStudentSessionContext.js?v=1.1.124-location-icon-upload";

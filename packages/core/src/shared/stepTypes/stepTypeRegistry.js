@@ -1,11 +1,11 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.136-emotional-check-in";
+import { BaseStep } from "./BaseStep.js?v=1.1.137-emotional-preview-editor";
 import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.121-student-dashboard-open-clean";
 import { VocabularyStep } from "./VocabularyStep.js?v=1.1.121-student-dashboard-open-clean";
 import { PhraseStep } from "./PhraseStep.js?v=1.1.121-student-dashboard-open-clean";
 import { ListeningStep } from "./ListeningStep.js?v=1.1.121-student-dashboard-open-clean";
 import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.121-student-dashboard-open-clean";
 import { ReflectionStep } from "./ReflectionStep.js?v=1.1.121-student-dashboard-open-clean";
-import { EmotionalCheckInStep } from "./EmotionalCheckInStep.js?v=1.1.136-emotional-check-in";
+import { EmotionalCheckInStep } from "./EmotionalCheckInStep.js?v=1.1.137-emotional-preview-editor";
 import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.121-student-dashboard-open-clean";
 import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.121-student-dashboard-open-clean";
 import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.121-student-dashboard-open-clean";

@@ -39,15 +39,15 @@ export { FetchCatalogCourseVersionsIntent } from "./catalogCourse/FetchCatalogCo
 // ----------------------
 // Course Sandbox
 // ----------------------
-export { CreateCourseIntent } from "./course/CreateCourseIntent.js?v=1.1.136-emotional-check-in";
-export { LoadCoursesIntent } from "./course/LoadCoursesIntent.js?v=1.1.136-emotional-check-in";
+export { CreateCourseIntent } from "./course/CreateCourseIntent.js?v=1.1.137-emotional-preview-editor";
+export { LoadCoursesIntent } from "./course/LoadCoursesIntent.js?v=1.1.137-emotional-preview-editor";
 export { ListCoursesIntent } from "./course/ListCoursesIntent.js?v=1.1.124-location-icon-upload";
 export { UpdateCourseIntent } from "./course/UpdateCourseIntent.js?v=1.1.124-location-icon-upload";
 export { UpdateCourseMetadataIntent } from "./course/UpdateCourseMetadataIntent.js?v=1.1.124-location-icon-upload";
-export { DeleteCourseIntent } from "./course/DeleteCourseIntent.js?v=1.1.136-emotional-check-in";
-export { ArchiveCourseIntent } from "./course/ArchiveCourseIntent.js?v=1.1.136-emotional-check-in";
-export { RestoreCourseIntent } from "./course/RestoreCourseIntent.js?v=1.1.136-emotional-check-in";
-export { PermanentlyDeleteCourseIntent } from "./course/PermanentlyDeleteCourseIntent.js?v=1.1.136-emotional-check-in";
+export { DeleteCourseIntent } from "./course/DeleteCourseIntent.js?v=1.1.137-emotional-preview-editor";
+export { ArchiveCourseIntent } from "./course/ArchiveCourseIntent.js?v=1.1.137-emotional-preview-editor";
+export { RestoreCourseIntent } from "./course/RestoreCourseIntent.js?v=1.1.137-emotional-preview-editor";
+export { PermanentlyDeleteCourseIntent } from "./course/PermanentlyDeleteCourseIntent.js?v=1.1.137-emotional-preview-editor";
 
 // ----------------------
 // Course Assignments
@@ -184,7 +184,7 @@ export { UpdatePracticeModeIntent } from "./moduleEditor/UpdatePracticeModeInten
 export { UpdatePracticeModeStepIntent } from "./moduleEditor/UpdatePracticeModeStepIntent.js?v=1.1.124-location-icon-upload";
 export { UploadStepMediaIntent } from "./moduleEditor/UploadStepMediaIntent.js?v=1.1.124-location-icon-upload";
 export { UpdateSessionIntent } from "./moduleEditor/UpdateSessionIntent.js?v=1.1.124-location-icon-upload";
-export { AddStepIntent } from "./moduleEditor/AddStepIntent.js?v=1.1.136-emotional-check-in";
+export { AddStepIntent } from "./moduleEditor/AddStepIntent.js?v=1.1.137-emotional-preview-editor";
 export { UpdateStepFieldIntent } from "./moduleEditor/UpdateStepFieldIntent.js?v=1.1.124-location-icon-upload";
 export { SaveModuleDraftIntent } from "./moduleEditor/SaveModuleDraftIntent.js?v=1.1.124-location-icon-upload";
 

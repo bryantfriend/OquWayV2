@@ -1,8 +1,8 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.136-emotional-check-in";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.136-emotional-check-in";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.136-emotional-check-in";
-import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.136-emotional-check-in";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.136-emotional-check-in";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.137-emotional-preview-editor";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.137-emotional-preview-editor";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.137-emotional-preview-editor";
+import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.137-emotional-preview-editor";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.137-emotional-preview-editor";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {

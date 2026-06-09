@@ -1,5 +1,5 @@
-import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.136-emotional-check-in";
-import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.136-emotional-check-in";
+import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.137-emotional-preview-editor";
+import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.137-emotional-preview-editor";
 
 export class CatalogCoursePage {
   constructor() {

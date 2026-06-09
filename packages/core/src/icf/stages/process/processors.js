@@ -4,12 +4,12 @@ export { catalogCourseAddTagProcessing } from "./domain/catalogCourse/catalogCou
 export { catalogCourseCreateRecordProcessing } from "./domain/catalogCourse/catalogCourseCreateRecordProcessing.js?v=1.1.124-location-icon-upload";
 export { catalogCourseCreateVersionProcessing } from "./domain/catalogCourse/catalogCourseCreateVersionProcessing.js?v=1.1.124-location-icon-upload";
 export { catalogCourseDeleteProcessing } from "./domain/catalogCourse/catalogCourseDeleteProcessing.js?v=1.1.124-location-icon-upload";
-export { catalogCoursePermanentDeleteProcessing } from "./domain/catalogCourse/catalogCoursePermanentDeleteProcessing.js?v=1.1.136-emotional-check-in";
+export { catalogCoursePermanentDeleteProcessing } from "./domain/catalogCourse/catalogCoursePermanentDeleteProcessing.js?v=1.1.137-emotional-preview-editor";
 export { catalogCourseFetchAllProcessing } from "./domain/catalogCourse/catalogCourseFetchAllProcessing.js?v=1.1.124-location-icon-upload";
 export { catalogCourseFetchByIdProcessing } from "./domain/catalogCourse/catalogCourseFetchByIdProcessing.js?v=1.1.124-location-icon-upload";
 export { catalogCourseFetchVersionsProcessing } from "./domain/catalogCourse/catalogCourseFetchVersionsProcessing.js?v=1.1.124-location-icon-upload";
 export { catalogCoursePublishVersionProcessing } from "./domain/catalogCourse/catalogCoursePublishVersionProcessing.js?v=1.1.124-location-icon-upload";
-export { catalogCourseRestoreProcessing } from "./domain/catalogCourse/catalogCourseRestoreProcessing.js?v=1.1.136-emotional-check-in";
+export { catalogCourseRestoreProcessing } from "./domain/catalogCourse/catalogCourseRestoreProcessing.js?v=1.1.137-emotional-preview-editor";
 export { catalogCourseRevertVersionProcessing } from "./domain/catalogCourse/catalogCourseRevertVersionProcessing.js?v=1.1.124-location-icon-upload";
 export { catalogCourseRemoveTagProcessing } from "./domain/catalogCourse/catalogCourseRemoveTagProcessing.js?v=1.1.124-location-icon-upload";
 export { catalogCourseUpdateMetadataProcessing } from "./domain/catalogCourse/catalogCourseUpdateMetadataProcessing.js?v=1.1.124-location-icon-upload";
@@ -63,7 +63,7 @@ export { processUpdateModuleField } from "./domain/courseEditor/processUpdateMod
 export { processValidateCourseStructure } from "./domain/courseEditor/processValidateCourseStructure.js?v=1.1.124-location-icon-upload";
 export { processUpdateCourseField } from "./domain/courseEditor/updateCourseFieldProcessor.js?v=1.1.124-location-icon-upload";
 export { processPreviewCourse } from "./domain/courseEditor/processPreviewCourse.js?v=1.1.124-location-icon-upload";
-export { processAddStep } from "./domain/moduleEditor/processAddStep.js?v=1.1.136-emotional-check-in";
+export { processAddStep } from "./domain/moduleEditor/processAddStep.js?v=1.1.137-emotional-preview-editor";
 export { processAddStepToLearningMode } from "./domain/moduleEditor/processAddStepToLearningMode.js?v=1.1.124-location-icon-upload";
 export { processAddStepToPracticeMode } from "./domain/moduleEditor/processAddStepToPracticeMode.js?v=1.1.124-location-icon-upload";
 export { processCreateSession } from "./domain/moduleEditor/processCreateSession.js?v=1.1.124-location-icon-upload";

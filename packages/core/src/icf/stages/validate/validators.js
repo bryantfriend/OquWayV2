@@ -46,7 +46,7 @@ export { validateLearningModeId } from "./domain/moduleEditor/validateLearningMo
 export { validateModuleStepsPayload } from "./domain/moduleEditor/validateModuleStepsPayload.js?v=1.1.124-location-icon-upload";
 export { validatePracticeModeKey } from "./domain/moduleEditor/validatePracticeModeKey.js?v=1.1.124-location-icon-upload";
 export { validatePracticeModeStepId } from "./domain/moduleEditor/validatePracticeModeStepId.js?v=1.1.124-location-icon-upload";
-export { validatePracticeModeStepType } from "./domain/moduleEditor/validatePracticeModeStepType.js?v=1.1.136-emotional-check-in";
+export { validatePracticeModeStepType } from "./domain/moduleEditor/validatePracticeModeStepType.js?v=1.1.137-emotional-preview-editor";
 export { validateSessionId } from "./domain/moduleEditor/validateSessionId.js?v=1.1.124-location-icon-upload";
 export { validateStepMediaField } from "./domain/moduleEditor/validateStepMediaField.js?v=1.1.124-location-icon-upload";
 export { validateStepMediaFile } from "./domain/moduleEditor/validateStepMediaFile.js?v=1.1.124-location-icon-upload";

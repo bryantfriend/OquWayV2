@@ -1,5 +1,5 @@
-import { auth } from "../../packages/firebase/auth/index.js?v=1.1.136-emotional-check-in";
-import { verifyCourseCreatorAccess, normalizeRole } from "./src/auth/courseCreatorAuth.js?v=1.1.136-emotional-check-in";
+import { auth } from "../../packages/firebase/auth/index.js?v=1.1.137-emotional-preview-editor";
+import { verifyCourseCreatorAccess, normalizeRole } from "./src/auth/courseCreatorAuth.js?v=1.1.137-emotional-preview-editor";
 import {
     signInWithEmailAndPassword,
     onAuthStateChanged,

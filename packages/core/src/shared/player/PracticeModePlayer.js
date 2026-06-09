@@ -1,7 +1,7 @@
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../stepTypes/stepTypeRegistry.js?v=1.1.136-emotional-check-in";
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.137-emotional-preview-editor";
 
 export class PracticeModePlayer {
   constructor(options) {
@@ -134,7 +134,7 @@ export class PracticeModePlayer {
       }
     }
 
-    target.innerHTML = this.buildFallbackStepHtml(step, "This step type cannot be played yet, but it is safely stored.");
+    target.innerHTML = this.buildFallbackStepHtml(step, "This step type is not registered with the preview renderer.");
   }
 
   handleClick(event) {
@@ -436,7 +436,7 @@ export class PracticeModePlayer {
 
     html += '<article class="oqu-player-step course-player-fallback-step">';
     html += '<h2>' + escapeHtml(title) + '</h2>';
-    html += '<div class="course-player-fallback-label">Unsupported step type</div>';
+    html += '<div class="course-player-fallback-label">Preview renderer missing</div>';
     html += '<p>' + escapeHtml(message) + '</p>';
     html += '<div class="course-player-fallback-type">Type: ' + escapeHtml(safeType) + '</div>';
     html += '</article>';

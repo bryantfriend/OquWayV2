@@ -1,4 +1,4 @@
-import { isSupportedStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.136-emotional-check-in";
+import { isSupportedStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.137-emotional-preview-editor";
 
 export function validatePracticeModeStepType(executionState) {
   var payload = executionState.payload;
