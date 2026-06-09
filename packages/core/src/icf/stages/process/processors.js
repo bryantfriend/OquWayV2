@@ -1,5 +1,5 @@
 export { processDemoAction } from "./core/processDemoAction.js?v=1.1.138-course-overview-title";
-export { catalogCourseArchiveProcessing } from "./domain/catalogCourse/catalogCourseArchiveProcessing.js?v=1.1.134-archive-course-assignments";
+export { catalogCourseArchiveProcessing } from "./domain/catalogCourse/catalogCourseArchiveProcessing.js?v=1.1.145-dual-source-archive";
 export { catalogCourseAddTagProcessing } from "./domain/catalogCourse/catalogCourseAddTagProcessing.js?v=1.1.138-course-overview-title";
 export { catalogCourseCreateRecordProcessing } from "./domain/catalogCourse/catalogCourseCreateRecordProcessing.js?v=1.1.138-course-overview-title";
 export { catalogCourseCreateVersionProcessing } from "./domain/catalogCourse/catalogCourseCreateVersionProcessing.js?v=1.1.138-course-overview-title";

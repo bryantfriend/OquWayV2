@@ -45,7 +45,7 @@ export { ListCoursesIntent } from "./course/ListCoursesIntent.js?v=1.1.141-user-
 export { UpdateCourseIntent } from "./course/UpdateCourseIntent.js?v=1.1.141-user-command-context-data";
 export { UpdateCourseMetadataIntent } from "./course/UpdateCourseMetadataIntent.js?v=1.1.141-user-command-context-data";
 export { DeleteCourseIntent } from "./course/DeleteCourseIntent.js?v=1.1.141-user-command-context-data";
-export { ArchiveCourseIntent } from "./course/ArchiveCourseIntent.js?v=1.1.141-user-command-context-data";
+export { ArchiveCourseIntent } from "./course/ArchiveCourseIntent.js?v=1.1.145-dual-source-archive";
 export { RestoreCourseIntent } from "./course/RestoreCourseIntent.js?v=1.1.141-user-command-context-data";
 export { PermanentlyDeleteCourseIntent } from "./course/PermanentlyDeleteCourseIntent.js?v=1.1.141-user-command-context-data";
 

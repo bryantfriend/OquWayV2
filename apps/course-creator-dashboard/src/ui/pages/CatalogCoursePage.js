@@ -1,5 +1,5 @@
-import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.144-archive-list-reload";
-import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.144-archive-list-reload";
+import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.145-dual-source-archive";
+import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.145-dual-source-archive";
 
 export class CatalogCoursePage {
   constructor() {

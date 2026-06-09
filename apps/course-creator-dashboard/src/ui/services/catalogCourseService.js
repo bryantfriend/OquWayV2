@@ -1,6 +1,6 @@
-import { createIntent } from "../../../../../packages/icf/index.js?v=1.1.138-course-overview-title";
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.138-course-overview-title";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.138-course-overview-title";
+import { createIntent } from "../../../../../packages/icf/index.js?v=1.1.145-dual-source-archive";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.145-dual-source-archive";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.145-dual-source-archive";
 
 function getActor() {
     const user = auth.currentUser;
