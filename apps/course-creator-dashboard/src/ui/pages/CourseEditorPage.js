@@ -1,12 +1,12 @@
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.121-student-dashboard-open-clean";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.121-student-dashboard-open-clean";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.132-course-creator-functions-map";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.132-course-creator-functions-map";
 import {
   getStepTypeDefinition,
   listStepTypeDefinitions,
   validateStepConfig
-} from "../../../../../packages/domain/steps/index.js?v=1.1.121-student-dashboard-open-clean";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.121-student-dashboard-open-clean";
-import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.121-student-dashboard-open-clean";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.132-course-creator-functions-map";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.132-course-creator-functions-map";
+import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.132-course-creator-functions-map";
 
 export class CourseEditorPage {
   constructor(courseId, moduleId) {

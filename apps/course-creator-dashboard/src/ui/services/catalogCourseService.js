@@ -1,6 +1,6 @@
-import { createIntent } from "../../../../../packages/icf/index.js?v=1.1.121-student-dashboard-open-clean";
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.121-student-dashboard-open-clean";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.121-student-dashboard-open-clean";
+import { createIntent } from "../../../../../packages/icf/index.js?v=1.1.132-course-creator-functions-map";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.132-course-creator-functions-map";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.132-course-creator-functions-map";
 
 function getActor() {
     const user = auth.currentUser;

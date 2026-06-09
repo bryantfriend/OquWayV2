@@ -1,12 +1,12 @@
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.86-dev-workflow";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.121-student-dashboard-open-clean";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.132-course-creator-functions-map";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.132-course-creator-functions-map";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.121-student-dashboard-open-clean";
-import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.121-student-dashboard-open-clean";
-import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.121-student-dashboard-open-clean";
-import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.121-student-dashboard-open-clean";
-import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.121-student-dashboard-open-clean";
-import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.121-student-dashboard-open-clean";
+import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.132-course-creator-functions-map";
+import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.132-course-creator-functions-map";
+import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.132-course-creator-functions-map";
+import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.132-course-creator-functions-map";
+import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.132-course-creator-functions-map";
+import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.132-course-creator-functions-map";
 
 console.log("[oquway-build]", OQUWAY_BUILD_VERSION);
 console.warn("[course-creator-build-check] latest build active");

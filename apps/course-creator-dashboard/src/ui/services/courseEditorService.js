@@ -1,7 +1,7 @@
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.121-student-dashboard-open-clean";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.121-student-dashboard-open-clean";
-import { courseEditorStore } from "../state/courseEditorState.js?v=1.1.121-student-dashboard-open-clean";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.121-student-dashboard-open-clean";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.132-course-creator-functions-map";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.132-course-creator-functions-map";
+import { courseEditorStore } from "../state/courseEditorState.js?v=1.1.132-course-creator-functions-map";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.132-course-creator-functions-map";
 
 function getActor() {
   return auth.currentUser ? { id: auth.currentUser.uid, role: "ROLE_COURSE_CREATOR" } : null;
