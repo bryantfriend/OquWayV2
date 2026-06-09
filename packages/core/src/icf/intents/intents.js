@@ -39,13 +39,15 @@ export { FetchCatalogCourseVersionsIntent } from "./catalogCourse/FetchCatalogCo
 // ----------------------
 // Course Sandbox
 // ----------------------
-export { CreateCourseIntent } from "./course/CreateCourseIntent.js?v=1.1.124-location-icon-upload";
-export { LoadCoursesIntent } from "./course/LoadCoursesIntent.js?v=1.1.124-location-icon-upload";
+export { CreateCourseIntent } from "./course/CreateCourseIntent.js?v=1.1.135-builder-archived-modal";
+export { LoadCoursesIntent } from "./course/LoadCoursesIntent.js?v=1.1.135-builder-archived-modal";
 export { ListCoursesIntent } from "./course/ListCoursesIntent.js?v=1.1.124-location-icon-upload";
 export { UpdateCourseIntent } from "./course/UpdateCourseIntent.js?v=1.1.124-location-icon-upload";
 export { UpdateCourseMetadataIntent } from "./course/UpdateCourseMetadataIntent.js?v=1.1.124-location-icon-upload";
-export { DeleteCourseIntent } from "./course/DeleteCourseIntent.js?v=1.1.124-location-icon-upload";
-export { ArchiveCourseIntent } from "./course/ArchiveCourseIntent.js?v=1.1.124-location-icon-upload";
+export { DeleteCourseIntent } from "./course/DeleteCourseIntent.js?v=1.1.135-builder-archived-modal";
+export { ArchiveCourseIntent } from "./course/ArchiveCourseIntent.js?v=1.1.135-builder-archived-modal";
+export { RestoreCourseIntent } from "./course/RestoreCourseIntent.js?v=1.1.135-builder-archived-modal";
+export { PermanentlyDeleteCourseIntent } from "./course/PermanentlyDeleteCourseIntent.js?v=1.1.135-builder-archived-modal";
 
 // ----------------------
 // Course Assignments

@@ -370,10 +370,16 @@
 
     .builder-modal-panel {
       width: min(720px, 100%);
+      max-height: min(86vh, 820px);
+      overflow: auto;
       background: #fff;
       border-radius: 30px;
       box-shadow: 0 30px 80px rgba(15,23,42,0.24);
       padding: 1.2rem;
+    }
+
+    .builder-modal-panel-wide {
+      width: min(980px, 100%);
     }
 
     .builder-modal-head {
@@ -388,6 +394,71 @@
       margin: 0.15rem 0 0;
       font-size: 1.6rem;
       font-weight: 900;
+    }
+
+    .builder-archive-list {
+      display: grid;
+      gap: 0.85rem;
+      margin: 0.5rem 0 1rem;
+    }
+
+    .builder-archive-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 1rem;
+      align-items: center;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      background: #f8fafc;
+      padding: 1rem;
+    }
+
+    .builder-archive-row h3 {
+      margin: 0.55rem 0 0.3rem;
+      font-size: 1rem;
+      font-weight: 900;
+      color: #172033;
+    }
+
+    .builder-archive-row p {
+      margin: 0 0 0.7rem;
+      color: #64748b;
+      font-size: 0.86rem;
+      font-weight: 650;
+      line-height: 1.45;
+    }
+
+    .builder-archive-row-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 0.55rem;
+      min-width: 260px;
+    }
+
+    .builder-archive-row-actions button {
+      border: 1px solid #bfdbfe;
+      border-radius: 999px;
+      background: #fff;
+      color: #2563eb;
+      padding: 0.72rem 0.9rem;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .builder-archive-row-actions .builder-danger-btn {
+      border-color: #fecaca;
+      background: #fef2f2;
+      color: #dc2626;
+    }
+
+    .builder-archive-row-actions button:disabled {
+      opacity: 0.58;
+      cursor: not-allowed;
+    }
+
+    .builder-archive-empty {
+      min-height: 260px;
     }
 
     .builder-form-grid {
@@ -450,6 +521,15 @@
       .builder-course-grid,
       .builder-form-grid {
         grid-template-columns: 1fr;
+      }
+
+      .builder-archive-row {
+        grid-template-columns: 1fr;
+      }
+
+      .builder-archive-row-actions {
+        justify-content: flex-start;
+        min-width: 0;
       }
 
       .builder-hero,
@@ -2823,7 +2903,7 @@
       <p class="mt-2 text-slate-600">Loading catalog, module, and lesson tools...</p>
     </section>
   </div>
-  <script type="module" src="./src/main.js?v=1.1.134-archive-course-assignments"></script>
+  <script type="module" src="./src/main.js?v=1.1.135-builder-archived-modal"></script>
 </body>
 
 </html>

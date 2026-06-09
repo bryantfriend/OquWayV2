@@ -1,7 +1,7 @@
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.134-archive-course-assignments";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.134-archive-course-assignments";
-import { courseEditorStore } from "../state/courseEditorState.js?v=1.1.134-archive-course-assignments";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.134-archive-course-assignments";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.135-builder-archived-modal";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.135-builder-archived-modal";
+import { courseEditorStore } from "../state/courseEditorState.js?v=1.1.135-builder-archived-modal";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.135-builder-archived-modal";
 
 function getActor() {
   return auth.currentUser ? { id: auth.currentUser.uid, role: "ROLE_COURSE_CREATOR" } : null;

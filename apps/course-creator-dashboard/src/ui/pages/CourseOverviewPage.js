@@ -1,13 +1,13 @@
-import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.134-archive-course-assignments';
-import { courseEditorService } from '../services/courseEditorService.js?v=1.1.134-archive-course-assignments';
-import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.134-archive-course-assignments';
-import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.134-archive-course-assignments';
+import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.135-builder-archived-modal';
+import { courseEditorService } from '../services/courseEditorService.js?v=1.1.135-builder-archived-modal';
+import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.135-builder-archived-modal';
+import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.135-builder-archived-modal';
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge
-} from '../../../../../packages/ui/index.js?v=1.1.134-archive-course-assignments';
+} from '../../../../../packages/ui/index.js?v=1.1.135-builder-archived-modal';
 
 export class CourseOverviewPage {
   constructor(courseId, options) {

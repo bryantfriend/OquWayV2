@@ -1,6 +1,6 @@
-import { createIntent } from "../../../../../packages/icf/index.js?v=1.1.134-archive-course-assignments";
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.134-archive-course-assignments";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.134-archive-course-assignments";
+import { createIntent } from "../../../../../packages/icf/index.js?v=1.1.135-builder-archived-modal";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.135-builder-archived-modal";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.135-builder-archived-modal";
 
 function getActor() {
     const user = auth.currentUser;
@@ -46,6 +46,14 @@ export const catalogCourseService = {
 
     async archiveCourse(courseId) {
         return runNamedIntent("ArchiveCourseIntent", { courseId: courseId });
+    },
+
+    async restoreCourse(courseId) {
+        return runNamedIntent("RestoreCourseIntent", { courseId: courseId });
+    },
+
+    async permanentlyDeleteCourse(courseId) {
+        return runNamedIntent("PermanentlyDeleteCourseIntent", { courseId: courseId });
     },
 
     async deleteCourse(courseId) {

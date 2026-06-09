@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.134-archive-course-assignments";
+import * as IntentExports from "../intents/intents.js?v=1.1.135-builder-archived-modal";
 
 const registry = {
   // Demo Verification
@@ -14,6 +14,8 @@ const registry = {
   UpdateCourseMetadataIntent: IntentExports.UpdateCourseMetadataIntent,
   DeleteCourseIntent: IntentExports.DeleteCourseIntent,
   ArchiveCourseIntent: IntentExports.ArchiveCourseIntent,
+  RestoreCourseIntent: IntentExports.RestoreCourseIntent,
+  PermanentlyDeleteCourseIntent: IntentExports.PermanentlyDeleteCourseIntent,
 
   // Course Assignments
   AssignCourseAssistantsIntent: IntentExports.AssignCourseAssistantsIntent,
@@ -244,4 +246,3 @@ export function hasIntent(intentType) {
 export function listIntents() {
   return Object.keys(registry);
 }
-

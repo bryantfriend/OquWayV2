@@ -1,6 +1,6 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.134-archive-course-assignments";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.134-archive-course-assignments";
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.134-archive-course-assignments";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.135-builder-archived-modal";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.135-builder-archived-modal";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.135-builder-archived-modal";
 
 export const courseAssignmentService = {
   createCourseAssignment: async function (courseId, targetType, targetId, status) {

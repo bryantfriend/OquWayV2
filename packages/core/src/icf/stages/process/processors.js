@@ -4,11 +4,12 @@ export { catalogCourseAddTagProcessing } from "./domain/catalogCourse/catalogCou
 export { catalogCourseCreateRecordProcessing } from "./domain/catalogCourse/catalogCourseCreateRecordProcessing.js?v=1.1.124-location-icon-upload";
 export { catalogCourseCreateVersionProcessing } from "./domain/catalogCourse/catalogCourseCreateVersionProcessing.js?v=1.1.124-location-icon-upload";
 export { catalogCourseDeleteProcessing } from "./domain/catalogCourse/catalogCourseDeleteProcessing.js?v=1.1.124-location-icon-upload";
+export { catalogCoursePermanentDeleteProcessing } from "./domain/catalogCourse/catalogCoursePermanentDeleteProcessing.js?v=1.1.135-builder-archived-modal";
 export { catalogCourseFetchAllProcessing } from "./domain/catalogCourse/catalogCourseFetchAllProcessing.js?v=1.1.124-location-icon-upload";
 export { catalogCourseFetchByIdProcessing } from "./domain/catalogCourse/catalogCourseFetchByIdProcessing.js?v=1.1.124-location-icon-upload";
 export { catalogCourseFetchVersionsProcessing } from "./domain/catalogCourse/catalogCourseFetchVersionsProcessing.js?v=1.1.124-location-icon-upload";
 export { catalogCoursePublishVersionProcessing } from "./domain/catalogCourse/catalogCoursePublishVersionProcessing.js?v=1.1.124-location-icon-upload";
-export { catalogCourseRestoreProcessing } from "./domain/catalogCourse/catalogCourseRestoreProcessing.js?v=1.1.124-location-icon-upload";
+export { catalogCourseRestoreProcessing } from "./domain/catalogCourse/catalogCourseRestoreProcessing.js?v=1.1.135-builder-archived-modal";
 export { catalogCourseRevertVersionProcessing } from "./domain/catalogCourse/catalogCourseRevertVersionProcessing.js?v=1.1.124-location-icon-upload";
 export { catalogCourseRemoveTagProcessing } from "./domain/catalogCourse/catalogCourseRemoveTagProcessing.js?v=1.1.124-location-icon-upload";
 export { catalogCourseUpdateMetadataProcessing } from "./domain/catalogCourse/catalogCourseUpdateMetadataProcessing.js?v=1.1.124-location-icon-upload";
@@ -133,4 +134,3 @@ export {
   processSendTeacherPasswordReset,
   processTeacherLogin
 } from "./domain/teacher/teacherDashboardProcessors.js?v=1.1.129-teacher-query-noise";
-
