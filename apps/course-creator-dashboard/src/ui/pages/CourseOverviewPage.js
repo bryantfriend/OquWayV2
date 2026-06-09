@@ -1,13 +1,13 @@
-import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.145-dual-source-archive';
-import { courseEditorService } from '../services/courseEditorService.js?v=1.1.145-dual-source-archive';
-import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.138-course-overview-title';
-import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.138-course-overview-title';
+import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.152-course-builder-loading-timeout';
+import { courseEditorService } from '../services/courseEditorService.js?v=1.1.152-course-builder-loading-timeout';
+import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.152-course-builder-loading-timeout';
+import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.152-course-builder-loading-timeout';
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge
-} from '../../../../../packages/ui/index.js?v=1.1.138-course-overview-title';
+} from '../../../../../packages/ui/index.js?v=1.1.152-course-builder-loading-timeout';
 
 export class CourseOverviewPage {
   constructor(courseId, options) {

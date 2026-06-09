@@ -39,15 +39,15 @@ export { FetchCatalogCourseVersionsIntent } from "./catalogCourse/FetchCatalogCo
 // ----------------------
 // Course Sandbox
 // ----------------------
-export { CreateCourseIntent } from "./course/CreateCourseIntent.js?v=1.1.141-user-command-context-data";
-export { LoadCoursesIntent } from "./course/LoadCoursesIntent.js?v=1.1.141-user-command-context-data";
+export { CreateCourseIntent } from "./course/CreateCourseIntent.js?v=1.1.152-course-builder-loading-timeout";
+export { LoadCoursesIntent } from "./course/LoadCoursesIntent.js?v=1.1.152-course-builder-loading-timeout";
 export { ListCoursesIntent } from "./course/ListCoursesIntent.js?v=1.1.141-user-command-context-data";
 export { UpdateCourseIntent } from "./course/UpdateCourseIntent.js?v=1.1.141-user-command-context-data";
 export { UpdateCourseMetadataIntent } from "./course/UpdateCourseMetadataIntent.js?v=1.1.141-user-command-context-data";
 export { DeleteCourseIntent } from "./course/DeleteCourseIntent.js?v=1.1.141-user-command-context-data";
-export { ArchiveCourseIntent } from "./course/ArchiveCourseIntent.js?v=1.1.145-dual-source-archive";
-export { RestoreCourseIntent } from "./course/RestoreCourseIntent.js?v=1.1.141-user-command-context-data";
-export { PermanentlyDeleteCourseIntent } from "./course/PermanentlyDeleteCourseIntent.js?v=1.1.141-user-command-context-data";
+export { ArchiveCourseIntent } from "./course/ArchiveCourseIntent.js?v=1.1.152-course-builder-loading-timeout";
+export { RestoreCourseIntent } from "./course/RestoreCourseIntent.js?v=1.1.152-course-builder-loading-timeout";
+export { PermanentlyDeleteCourseIntent } from "./course/PermanentlyDeleteCourseIntent.js?v=1.1.152-course-builder-loading-timeout";
 
 // ----------------------
 // Course Assignments
@@ -128,7 +128,7 @@ export { VerifySuperAdminAccessIntent } from "./superAdmin/VerifySuperAdminAcces
 // ----------------------
 // Course Editor (Phase 2 UI Intents)
 // ----------------------
-export { OpenCourseEditorIntent } from "./courseEditor/OpenCourseEditorIntent.js?v=1.1.141-user-command-context-data";
+export { OpenCourseEditorIntent } from "./courseEditor/OpenCourseEditorIntent.js?v=1.1.152-course-builder-loading-timeout";
 export { LoadCourseIntent } from "./courseEditor/LoadCourseIntent.js?v=1.1.141-user-command-context-data";
 export { LoadModulesIntent } from "./courseEditor/LoadModulesIntent.js?v=1.1.141-user-command-context-data";
 export { LoadCourseModulesIntent } from "./courseEditor/LoadCourseModulesIntent.js?v=1.1.141-user-command-context-data";

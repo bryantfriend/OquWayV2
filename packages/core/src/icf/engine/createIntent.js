@@ -1,6 +1,6 @@
 // createIntent.js
 
-import { getIntentDefinition } from "./intentRegistry.js?v=1.1.145-dual-source-archive";
+import { getIntentDefinition } from "./intentRegistry.js?v=1.1.152-course-builder-loading-timeout";
 
 export function createIntent(intentInput) {
   const intentType = readIntentType(intentInput);

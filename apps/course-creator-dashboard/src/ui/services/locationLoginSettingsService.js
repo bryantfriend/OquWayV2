@@ -1,6 +1,6 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.138-course-overview-title";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.138-course-overview-title";
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.138-course-overview-title";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.152-course-builder-loading-timeout";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.152-course-builder-loading-timeout";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.152-course-builder-loading-timeout";
 
 export const locationLoginSettingsService = {
   listLocations: async function () {

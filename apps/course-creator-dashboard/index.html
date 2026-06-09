@@ -21,6 +21,144 @@
       color: #172033;
     }
 
+    .course-builder-boot {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 32px;
+      background:
+        radial-gradient(circle at 16% 18%, rgba(37, 99, 235, 0.18), transparent 30%),
+        radial-gradient(circle at 86% 20%, rgba(16, 185, 129, 0.16), transparent 28%),
+        linear-gradient(135deg, #f8fbff 0%, #ecfdf5 58%, #fff7ed 100%);
+    }
+
+    .course-builder-boot-card {
+      width: min(520px, 100%);
+      display: grid;
+      justify-items: center;
+      gap: 12px;
+      padding: 34px;
+      border: 1px solid rgba(219, 229, 242, 0.95);
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 28px 90px rgba(23, 32, 51, 0.14);
+      text-align: center;
+    }
+
+    .course-builder-boot-orbit {
+      position: relative;
+      width: 84px;
+      height: 84px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #eff6ff, #ecfdf5);
+      box-shadow: inset 0 0 0 1px #dbeafe;
+    }
+
+    .course-builder-boot-orbit::before {
+      content: "";
+      position: absolute;
+      inset: -7px;
+      border: 4px solid rgba(37, 99, 235, 0.14);
+      border-top-color: #2563eb;
+      border-right-color: #10b981;
+      border-radius: 50%;
+      animation: courseBuilderBootSpin 1.1s linear infinite;
+    }
+
+    .course-builder-boot-orbit span {
+      position: relative;
+      z-index: 1;
+      width: 54px;
+      height: 54px;
+      display: grid;
+      place-items: center;
+      border-radius: 18px;
+      color: #2563eb;
+      background: white;
+      box-shadow: 0 12px 30px rgba(37, 99, 235, 0.16);
+      animation: courseBuilderBootFloat 1.8s ease-in-out infinite;
+    }
+
+    .course-builder-boot-card p {
+      margin: 10px 0 0;
+      color: #059669;
+      font-size: 0.76rem;
+      font-weight: 900;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .course-builder-boot-card h1 {
+      margin: 0;
+      color: #172033;
+      font-size: clamp(1.7rem, 5vw, 2.6rem);
+      line-height: 1.08;
+    }
+
+    .course-builder-boot-card small {
+      max-width: 360px;
+      color: #64748b;
+      font-size: 0.95rem;
+      font-weight: 750;
+      line-height: 1.5;
+    }
+
+    .course-builder-boot-card button {
+      margin-top: 10px;
+      border: 0;
+      border-radius: 14px;
+      padding: 11px 18px;
+      color: white;
+      background: #2563eb;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .course-builder-boot-steps {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .course-builder-boot-steps span {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: #2563eb;
+      animation: courseBuilderBootPulse 1.2s ease-in-out infinite;
+    }
+
+    .course-builder-boot-steps span:nth-child(2) {
+      background: #10b981;
+      animation-delay: 0.15s;
+    }
+
+    .course-builder-boot-steps span:nth-child(3) {
+      background: #f97316;
+      animation-delay: 0.3s;
+    }
+
+    .course-builder-boot-error .course-builder-boot-orbit::before {
+      border-top-color: #f97316;
+      border-right-color: #dc2626;
+    }
+
+    @keyframes courseBuilderBootSpin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes courseBuilderBootFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    @keyframes courseBuilderBootPulse {
+      0%, 100% { transform: translateY(0); opacity: 0.45; }
+      50% { transform: translateY(-4px); opacity: 1; }
+    }
+
     .builder-nav {
       position: sticky;
       top: 0;
@@ -3008,14 +3146,18 @@
 </head>
 
 <body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
-  <div id="app" class="p-6">
-    <section class="rounded-xl border border-blue-100 bg-white p-6 shadow-sm">
-      <p class="text-xs font-bold uppercase tracking-widest text-blue-600">Course Creator</p>
-      <h1 class="mt-2 text-3xl font-bold text-slate-900">Course Creator Dashboard</h1>
-      <p class="mt-2 text-slate-600">Loading catalog, module, and lesson tools...</p>
+  <div id="app">
+    <section class="course-builder-boot" role="status" aria-live="polite">
+      <div class="course-builder-boot-card">
+        <div class="course-builder-boot-orbit" aria-hidden="true"><span><i class="fa-solid fa-wand-magic-sparkles"></i></span></div>
+        <p>Course Builder launch pad</p>
+        <h1>Loading Course Builder...</h1>
+        <small>Gathering catalog, modules, lessons, and publishing tools.</small>
+        <div class="course-builder-boot-steps" aria-hidden="true"><span></span><span></span><span></span></div>
+      </div>
     </section>
   </div>
-  <script type="module" src="./src/main.js?v=1.1.150-emotional-checkin-step"></script>
+  <script type="module" src="./src/main.js?v=1.1.152-course-builder-loading-timeout"></script>
 </body>
 
 </html>

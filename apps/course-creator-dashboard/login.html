@@ -17,7 +17,7 @@
     }
   </script>
 
-    <script type="module" src="./login.js"></script>
+    <script type="module" src="./login.js?v=1.1.152-course-builder-loading-timeout"></script>
     <style>
         :root {
             --ink: #172033;
@@ -186,6 +186,68 @@
         .status.error {
             color: var(--danger);
         }
+
+        .login-loading-panel {
+            display: none;
+            margin-top: 18px;
+            padding: 16px;
+            border: 1px solid #bfdbfe;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #eff6ff 0%, #ecfdf5 55%, #fff7ed 100%);
+        }
+
+        .login-loading-panel.is-visible {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .login-loading-orbit {
+            position: relative;
+            width: 48px;
+            height: 48px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: white;
+            box-shadow: inset 0 0 0 1px #dbeafe, 0 12px 28px rgba(37, 99, 235, 0.14);
+        }
+
+        .login-loading-orbit::before {
+            content: "";
+            position: absolute;
+            inset: -5px;
+            border: 3px solid rgba(37, 99, 235, 0.15);
+            border-top-color: #2563eb;
+            border-right-color: #10b981;
+            border-radius: 50%;
+            animation: loginSpin 1.05s linear infinite;
+        }
+
+        .login-loading-orbit span {
+            font-size: 22px;
+        }
+
+        .login-loading-copy strong {
+            display: block;
+            color: #172033;
+            font-size: 0.95rem;
+        }
+
+        .login-loading-copy small {
+            display: block;
+            margin-top: 3px;
+            color: #64748b;
+            font-weight: 800;
+            line-height: 1.35;
+        }
+
+        @keyframes loginSpin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
 
@@ -204,6 +266,13 @@
         <button id="loginBtn">Login</button>
 
         <div class="error" id="error"></div>
+        <div class="login-loading-panel" id="loginLoadingPanel" aria-live="polite" aria-busy="true">
+            <div class="login-loading-orbit" aria-hidden="true"><span>✨</span></div>
+            <div class="login-loading-copy">
+                <strong id="loginLoadingTitle">Opening Course Builder...</strong>
+                <small id="loginLoadingNote">Checking your staff access and loading the course catalog.</small>
+            </div>
+        </div>
     </div>
 
     <div class="reset-modal-backdrop" id="resetModal" hidden>

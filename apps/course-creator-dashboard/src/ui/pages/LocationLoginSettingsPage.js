@@ -1,4 +1,4 @@
-import { locationLoginSettingsService } from "../services/locationLoginSettingsService.js?v=1.1.138-course-overview-title";
+import { locationLoginSettingsService } from "../services/locationLoginSettingsService.js?v=1.1.152-course-builder-loading-timeout";
 
 export class LocationLoginSettingsPage {
   constructor() {

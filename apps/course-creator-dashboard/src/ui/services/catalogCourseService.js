@@ -1,6 +1,6 @@
-import { createIntent } from "../../../../../packages/icf/index.js?v=1.1.145-dual-source-archive";
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.145-dual-source-archive";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.145-dual-source-archive";
+import { createIntent } from "../../../../../packages/icf/index.js?v=1.1.152-course-builder-loading-timeout";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.152-course-builder-loading-timeout";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.152-course-builder-loading-timeout";
 
 function getActor() {
     const user = auth.currentUser;

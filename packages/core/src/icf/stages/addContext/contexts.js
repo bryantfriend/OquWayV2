@@ -12,9 +12,9 @@ export { attachCourseAssignmentCourseContext, attachCourseAssignmentContext } fr
 export { attachTenantContext } from "./domain/catalogCourse/attachMinistryScopeContext.js?v=1.1.138-course-overview-title";
 export { attachMinistryScopeContext } from "./domain/catalogCourse/attachMinistryScopeContext.js?v=1.1.138-course-overview-title";
 export { attachUpdatedByContext } from "./domain/catalogCourse/attachUpdatedByContext.js?v=1.1.138-course-overview-title";
-export { attachCourseDocument } from "./domain/courseEditor/attachCourseDocument.js?v=1.1.138-course-overview-title";
+export { attachCourseDocument } from "./domain/courseEditor/attachCourseDocument.js?v=1.1.152-course-builder-loading-timeout";
 export { attachModule } from "./domain/courseEditor/attachModule.js?v=1.1.138-course-overview-title";
-export { attachModulesCollection } from "./domain/courseEditor/attachModulesCollection.js?v=1.1.138-course-overview-title";
+export { attachModulesCollection } from "./domain/courseEditor/attachModulesCollection.js?v=1.1.152-course-builder-loading-timeout";
 export { attachStepRegistryDefinition } from "./domain/courseEditor/attachStepRegistryDefinition.js?v=1.1.138-course-overview-title";
 export { attachCourseDocumentForModule } from "./domain/moduleEditor/attachCourseDocumentForModule.js?v=1.1.138-course-overview-title";
 export { attachModuleDocument } from "./domain/moduleEditor/attachModuleDocument.js?v=1.1.138-course-overview-title";

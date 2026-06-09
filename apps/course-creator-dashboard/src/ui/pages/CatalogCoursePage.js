@@ -1,5 +1,5 @@
-import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.145-dual-source-archive";
-import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.145-dual-source-archive";
+import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.152-course-builder-loading-timeout";
+import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.152-course-builder-loading-timeout";
 
 export class CatalogCoursePage {
   constructor() {

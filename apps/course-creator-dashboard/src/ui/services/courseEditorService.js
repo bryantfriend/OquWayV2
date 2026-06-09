@@ -1,7 +1,10 @@
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.145-dual-source-archive";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.145-dual-source-archive";
-import { courseEditorStore } from "../state/courseEditorState.js?v=1.1.138-course-overview-title";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.145-dual-source-archive";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.152-course-builder-loading-timeout";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.152-course-builder-loading-timeout";
+import { courseEditorStore } from "../state/courseEditorState.js?v=1.1.152-course-builder-loading-timeout";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.152-course-builder-loading-timeout";
+
+var openCourseRequestId = 0;
+var OPEN_COURSE_TIMEOUT_MS = 20000;
 
 function getActor() {
   return auth.currentUser ? { id: auth.currentUser.uid, role: "ROLE_COURSE_CREATOR" } : null;
@@ -9,9 +12,19 @@ function getActor() {
 
 export const courseEditorService = {
   openCourseEditor: async function (courseId) {
+    var requestId = openCourseRequestId + 1;
+    openCourseRequestId = requestId;
     courseEditorStore.setState({ isFetching: true, error: null });
     try {
-      var result = await runIntentPipeline(getIntentDefinition("OpenCourseEditorIntent"), { payload: { courseId: courseId }, actor: getActor() });
+      var result = await withTimeout(
+        runIntentPipeline(getIntentDefinition("OpenCourseEditorIntent"), { payload: { courseId: courseId }, actor: getActor() }),
+        OPEN_COURSE_TIMEOUT_MS,
+        "Course loading timed out. The course may still be reachable, but the builder did not receive the module data in time."
+      );
+
+      if (requestId !== openCourseRequestId) {
+        return;
+      }
 
       if (result && result.emitted && result.emitted.success) {
         var openData = result.emitted.data || {};
@@ -56,7 +69,9 @@ export const courseEditorService = {
         courseEditorStore.setState({ error: errMsg, isFetching: false });
       }
     } catch (error) {
-      courseEditorStore.setState({ error: error.message, isFetching: false });
+      if (requestId === openCourseRequestId) {
+        courseEditorStore.setState({ error: error.message, isFetching: false });
+      }
     }
   },
 
@@ -500,6 +515,22 @@ function readIntentErrorMessage(result) {
   }
 
   return "Unknown course metadata error";
+}
+
+function withTimeout(promise, timeoutMs, message) {
+  return new Promise(function (resolve, reject) {
+    var timerId = window.setTimeout(function () {
+      reject(new Error(message || "Request timed out."));
+    }, timeoutMs);
+
+    promise.then(function (value) {
+      window.clearTimeout(timerId);
+      resolve(value);
+    }).catch(function (error) {
+      window.clearTimeout(timerId);
+      reject(error);
+    });
+  });
 }
 
 function readModuleId(module) {
