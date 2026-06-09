@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.148-student-course-title";
+import * as IntentExports from "../intents/intents.js?v=1.1.149-student-course-metadata";
 
 const registry = {
   // Demo Verification

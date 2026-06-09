@@ -1,8 +1,8 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.148-student-course-title";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.148-student-course-title";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.148-student-course-title";
-import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.148-student-course-title";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.148-student-course-title";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.149-student-course-metadata";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.149-student-course-metadata";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.149-student-course-metadata";
+import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.149-student-course-metadata";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.149-student-course-metadata";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {

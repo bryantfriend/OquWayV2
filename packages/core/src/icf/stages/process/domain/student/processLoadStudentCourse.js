@@ -366,6 +366,7 @@ async function loadAssignedCourseSnaps(courseIds, executionState) {
 async function loadCourseSnap(courseId, executionState) {
   var sources = ["catalogCourses", "courses"];
   var archivedSources = [];
+  var courseSnaps = [];
   var sourceIndex = 0;
 
   while (sourceIndex < sources.length) {
@@ -383,7 +384,7 @@ async function loadCourseSnap(courseId, executionState) {
           continue;
         }
 
-        return courseSnap;
+        courseSnaps.push(courseSnap);
       }
     } catch (error) {
       executionState.warnings.push({
@@ -393,6 +394,10 @@ async function loadCourseSnap(courseId, executionState) {
     }
 
     sourceIndex = sourceIndex + 1;
+  }
+
+  if (courseSnaps.length > 0) {
+    return chooseCourseSnap(courseSnaps);
   }
 
   if (archivedSources.length > 0) {
@@ -409,6 +414,47 @@ async function loadCourseSnap(courseId, executionState) {
   });
 
   return null;
+}
+
+function chooseCourseSnap(courseSnaps) {
+  var primarySnap = courseSnaps[0];
+  var titleSnap = findCourseSnapWithDisplayTitle(courseSnaps);
+
+  if (!titleSnap || titleSnap === primarySnap) {
+    return primarySnap;
+  }
+
+  return createMergedCourseSnap(primarySnap, titleSnap);
+}
+
+function findCourseSnapWithDisplayTitle(courseSnaps) {
+  var snapIndex = 0;
+
+  while (snapIndex < courseSnaps.length) {
+    if (hasCourseDisplayTitle(courseSnaps[snapIndex].data())) {
+      return courseSnaps[snapIndex];
+    }
+
+    snapIndex = snapIndex + 1;
+  }
+
+  return null;
+}
+
+function hasCourseDisplayTitle(courseData) {
+  return readCourseDisplayTitle(courseData) !== "Untitled Course";
+}
+
+function createMergedCourseSnap(primarySnap, metadataSnap) {
+  var mergedData = Object.assign({}, metadataSnap.data() || {}, primarySnap.data() || {});
+
+  return {
+    id: primarySnap.id,
+    ref: primarySnap.ref,
+    data: function () {
+      return mergedData;
+    }
+  };
 }
 
 async function loadAssignedCourseIds(actor, studentProfile, executionState) {
