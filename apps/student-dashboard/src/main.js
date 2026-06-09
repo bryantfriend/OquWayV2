@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.155-student-course-player-layout";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.155-student-course-player-layout";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.155-student-course-player-layout";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.156-student-course-fold-balance";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.156-student-course-fold-balance";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.156-student-course-fold-balance";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,15 +13,15 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.155-student-course-player-layout";
+} from "../../../packages/domain/progress/index.js?v=1.1.156-student-course-fold-balance";
 import {
   createEmptyState,
   createErrorState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.155-student-course-player-layout";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.155-student-course-player-layout";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.155-student-course-player-layout";
+} from "../../../packages/ui/index.js?v=1.1.156-student-course-fold-balance";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.156-student-course-fold-balance";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.156-student-course-fold-balance";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -814,7 +814,6 @@ function renderNextUpCard(nextAction) {
     + '<h2>' + escapeHtml(nextAction.sessionTitle) + '</h2>'
     + '<p>' + escapeHtml(nextAction.practiceModeTitle) + ' - ' + escapeHtml(nextAction.reason) + '</p>'
     + '<div class="course-next-up-time">' + renderSvgIcon("clock") + '<span>' + escapeHtml(nextAction.estimatedMinutes || "About 20 min") + '</span></div>'
-    + '<button type="button" class="course-focus-continue-btn">' + escapeHtml(nextAction.buttonLabel) + '<span>' + renderSvgIcon("play") + '</span></button>'
     + '</section>';
 }
 
@@ -1233,7 +1232,7 @@ function renderSvgIcon(name) {
     quiz: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3 2.45c-.9.28-1.5.85-1.5 1.8"/><path d="M12 17h.01"/></svg>',
     review: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4v6h-6"/></svg>',
     robot: '<svg viewBox="0 0 220 180" aria-hidden="true"><path fill="#fff" d="M88 46h50a34 34 0 0 1 34 34v26a34 34 0 0 1-34 34H88a34 34 0 0 1-34-34V80a34 34 0 0 1 34-34z"/><path fill="#dbeafe" d="M68 78a24 24 0 0 1 24-24h42a24 24 0 0 1 24 24v22a24 24 0 0 1-24 24H92a24 24 0 0 1-24-24z"/><path fill="#0f172a" d="M80 80a18 18 0 0 1 18-18h30a18 18 0 0 1 18 18v18a18 18 0 0 1-18 18H98a18 18 0 0 1-18-18z"/><path fill="none" stroke="#22d3ee" stroke-width="5" stroke-linecap="round" d="M96 90c4 8 10 8 14 0M118 90c4 8 10 8 14 0"/><path fill="#fff" d="M72 134h82l18 32H54z"/><path fill="#334155" d="M68 136h90a8 8 0 0 1 8 8v28H60v-28a8 8 0 0 1 8-8z"/><circle cx="45" cy="96" r="15" fill="#fff"/><circle cx="181" cy="96" r="15" fill="#fff"/><path fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round" d="M58 122c-22 0-28-22-18-38M166 122c22 0 28-22 18-38"/><path fill="#22c55e" d="M168 54a11 11 0 1 1-22 0 11 11 0 0 1 22 0z"/></svg>',
-    rocket: '<svg viewBox="0 0 120 90" aria-hidden="true"><path fill="#bfdbfe" d="M18 60c7-14 23-16 34-6l-20 20c-5-2-10-6-14-14z"/><path fill="#fdba74" d="M45 70c5 2 13 7 12 16-8-1-14-7-17-12z"/><path fill="#f97316" d="M51 59c7-24 24-39 51-47-7 27-23 44-47 51z"/><path fill="#fff7ed" d="M64 49l12-12 9 9-12 12z"/><circle cx="82" cy="32" r="8" fill="#38bdf8"/><path fill="#fb923c" d="M43 55l-13 3 17-17z"/><path fill="#facc15" d="M33 75l-12 6 6-12z"/></svg>',
+    rocket: '<svg viewBox="0 0 120 90" aria-hidden="true"><path fill="#fed7aa" d="M30 62c-9 4-14 11-16 20 10-2 17-7 21-16z"/><path fill="#fb923c" d="M48 68c2 8 8 14 18 17-1-10-6-17-14-21z"/><path fill="#f97316" d="M39 57c11-27 31-43 64-51-8 33-24 53-51 64z"/><path fill="#fff7ed" d="M47 53c8-18 23-31 45-38-7 22-20 37-38 45z"/><path fill="#ea580c" d="M38 58l-16 2 22-22z"/><path fill="#fb923c" d="M51 70l-2 16 22-22z"/><circle cx="77" cy="31" r="9" fill="#0ea5e9"/><circle cx="77" cy="31" r="5" fill="#e0f2fe"/><path fill="#facc15" d="M28 70c8 1 15 8 16 16-9-1-16-8-16-16z"/></svg>',
     star: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z"/></svg>',
     steps: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18h.01M10 13h.01M13 8h.01M17 5h.01"/><path d="M6 18c4-1 6-4 7-10"/><path d="M14 16c1 1 3 2 5 1"/></svg>',
     trophy: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H4v2a4 4 0 0 0 4 4M16 6h4v2a4 4 0 0 1-4 4"/><path d="M12 13v5M8 20h8"/></svg>',
