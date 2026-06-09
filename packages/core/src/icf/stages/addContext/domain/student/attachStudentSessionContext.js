@@ -6,34 +6,25 @@ import { resolveActorStudentId } from "../../../../../../../domain/users/index.j
 export async function attachStudentSessionContext(executionState) {
   var payload = executionState.payload;
   var actor = executionState.actor;
+  var contextResult = null;
 
   if (!payload.courseId || !payload.moduleId || !payload.sessionId) {
     return { valid: true };
   }
 
   try {
-    var courseSnap = await getDoc(doc(db, "courses", payload.courseId));
-    var moduleSnap = await getDoc(doc(db, "courses", payload.courseId, "modules", payload.moduleId));
-    var sessionSnap = await getDoc(doc(db, "courses", payload.courseId, "modules", payload.moduleId, "sessions", payload.sessionId));
+    contextResult = await readStudentSessionFromSources(payload);
 
-    if (!courseSnap.exists()) {
-      return createMissingContextError("STUDENT_COURSE_NOT_FOUND", "Course not found: " + payload.courseId);
-    }
-
-    if (!moduleSnap.exists()) {
-      return createMissingContextError("STUDENT_MODULE_NOT_FOUND", "Module not found: " + payload.moduleId);
-    }
-
-    if (!sessionSnap.exists()) {
-      return createMissingContextError("STUDENT_SESSION_NOT_FOUND", "Session not found: " + payload.sessionId);
+    if (!contextResult.valid) {
+      return contextResult;
     }
 
     return {
       valid: true,
       data: {
-        course: Object.assign({ id: courseSnap.id }, courseSnap.data()),
-        module: Object.assign({ id: moduleSnap.id }, moduleSnap.data()),
-        session: normalizeSession(sessionSnap.id, sessionSnap.data()),
+        course: contextResult.course,
+        module: contextResult.module,
+        session: normalizeSession(contextResult.session.id, contextResult.session),
         progress: await readStudentProgress(actor, payload)
       }
     };
@@ -47,6 +38,76 @@ export async function attachStudentSessionContext(executionState) {
         }
       ]
     };
+  }
+}
+
+async function readStudentSessionFromSources(payload) {
+  var sources = createCourseSources(payload);
+  var sourceIndex = 0;
+  var sawCourse = false;
+  var sawModule = false;
+
+  while (sourceIndex < sources.length) {
+    var source = sources[sourceIndex];
+    var courseSnap = await getDoc(doc(db, source, payload.courseId));
+
+    if (!courseSnap.exists()) {
+      sourceIndex = sourceIndex + 1;
+      continue;
+    }
+
+    sawCourse = true;
+
+    var moduleSnap = await getDoc(doc(db, source, payload.courseId, "modules", payload.moduleId));
+    if (!moduleSnap.exists()) {
+      sourceIndex = sourceIndex + 1;
+      continue;
+    }
+
+    sawModule = true;
+
+    var sessionSnap = await getDoc(doc(db, source, payload.courseId, "modules", payload.moduleId, "sessions", payload.sessionId));
+    if (!sessionSnap.exists()) {
+      sourceIndex = sourceIndex + 1;
+      continue;
+    }
+
+    return {
+      valid: true,
+      source: source,
+      course: Object.assign({ id: courseSnap.id, courseRecordSource: source }, courseSnap.data()),
+      module: Object.assign({ id: moduleSnap.id, courseRecordSource: source }, moduleSnap.data()),
+      session: Object.assign({ id: sessionSnap.id, courseRecordSource: source }, sessionSnap.data())
+    };
+  }
+
+  if (!sawCourse) {
+    return createMissingContextError("STUDENT_COURSE_NOT_FOUND", "Course not found: " + payload.courseId);
+  }
+
+  if (!sawModule) {
+    return createMissingContextError("STUDENT_MODULE_NOT_FOUND", "Module not found: " + payload.moduleId);
+  }
+
+  return createMissingContextError("STUDENT_SESSION_NOT_FOUND", "Session not found: " + payload.sessionId);
+}
+
+function createCourseSources(payload) {
+  var sources = [];
+
+  appendSource(sources, payload.courseCollectionName);
+  appendSource(sources, payload.courseRecordSource);
+  appendSource(sources, "catalogCourses");
+  appendSource(sources, "courses");
+
+  return sources;
+}
+
+function appendSource(sources, value) {
+  var source = typeof value === "string" ? value.trim() : "";
+
+  if ((source === "catalogCourses" || source === "courses") && sources.indexOf(source) === -1) {
+    sources.push(source);
   }
 }
 

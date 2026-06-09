@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.149-student-course-metadata";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.149-student-course-metadata";
-import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.149-student-course-metadata";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.151-student-loading-practice-context";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.151-student-loading-practice-context";
+import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.151-student-loading-practice-context";
 
 var appElement = document.getElementById("app");
 var startupMessage = consumeStartupMessage();
@@ -44,6 +44,8 @@ if (appElement) {
   appElement.addEventListener("change", handleChange);
   appElement.addEventListener("submit", handleSubmit);
 }
+
+render();
 
 onAuthStateChanged(auth, function (user) {
   if (user) {
@@ -93,6 +95,14 @@ function buildView() {
   var hasDirectLocation = state.directLocationLocked && selectedLocation;
   var html = "";
 
+  if (state.isLoading) {
+    return buildLoginLoading("Opening student login...", "Getting locations, classes, and student cards ready.", "🎒");
+  }
+
+  if (state.isBusy) {
+    return buildLoginLoading(readBusyTitle(), state.message || "Preparing the next step.", "🍉");
+  }
+
   html += '<section class="login-hero">';
   if (hasDirectLocation) {
     html += '<div><h1>Welcome to ' + escapeHtml(readLocationName(selectedLocation)) + '</h1><p>Choose your class, pick your name card, and sign in with the method your teacher prepared.</p></div>';
@@ -118,9 +128,7 @@ function buildView() {
   html += '</aside>';
   html += '<section class="login-panel">';
 
-  if (state.isLoading) {
-    html += '<div class="login-empty">Loading login options...</div>';
-  } else if (state.locations.length === 0) {
+  if (state.locations.length === 0) {
     html += '<div class="login-empty">No active locations found yet.</div>';
   } else if (!state.selectedLocationId) {
     html += '<div class="login-empty">Choose your location to begin.</div>';
@@ -133,6 +141,38 @@ function buildView() {
   html += '</section>';
   html += '</section>';
   return html;
+}
+
+function buildLoginLoading(title, note, icon) {
+  return '<section class="login-loading-screen" role="status" aria-live="polite">'
+    + '<div class="login-loading-card">'
+    + '<div class="login-loading-orbit" aria-hidden="true"><span>' + escapeHtml(icon) + '</span><i></i><b></b></div>'
+    + '<p class="login-loading-kicker">OquWay launch pad</p>'
+    + '<h1>' + escapeHtml(title) + '</h1>'
+    + '<p>' + escapeHtml(note) + '</p>'
+    + '<div class="login-loading-dots" aria-hidden="true"><span></span><span></span><span></span></div>'
+    + '</div>'
+    + '</section>';
+}
+
+function readBusyTitle() {
+  if (state.message && state.message.indexOf("fruits") !== -1) {
+    return "Checking your fruit code...";
+  }
+
+  if (state.message && state.message.indexOf("students") !== -1) {
+    return "Gathering student cards...";
+  }
+
+  if (state.message && state.message.indexOf("classes") !== -1) {
+    return "Finding your classes...";
+  }
+
+  if (state.message && state.message.indexOf("Signing") !== -1) {
+    return "Signing you in...";
+  }
+
+  return "Getting things ready...";
 }
 
 function buildLocationCards() {

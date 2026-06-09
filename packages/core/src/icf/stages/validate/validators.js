@@ -52,7 +52,7 @@ export { validateStepMediaField } from "./domain/moduleEditor/validateStepMediaF
 export { validateStepMediaFile } from "./domain/moduleEditor/validateStepMediaFile.js?v=1.1.124-location-icon-upload";
 export { validateStepFieldKey } from "./domain/moduleEditor/validateStepFieldKey.js?v=1.1.124-location-icon-upload";
 export { validateStepId } from "./domain/moduleEditor/validateStepId.js?v=1.1.124-location-icon-upload";
-export { validateStudentProgressPayload } from "./domain/student/validateStudentProgressPayload.js?v=1.1.124-location-icon-upload";
+export { validateStudentProgressPayload } from "./domain/student/validateStudentProgressPayload.js?v=1.1.151-student-loading-practice-context";
 export { validateCompletedStepIds } from "./domain/student/validateCompletedStepIds.js?v=1.1.124-location-icon-upload";
 export { validateClassLocationPayload, validateStudentsForClassPayload, validateStudentFruitLoginPayload, validateStudentStandardLoginPayload } from "./domain/studentLogin/validateStudentLoginPayloads.js?v=1.1.124-location-icon-upload";
 export {

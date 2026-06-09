@@ -27,7 +27,7 @@ export { normalizePracticeModeMetadata } from "./domain/moduleEditor/normalizePr
 export { normalizePracticeModeStep } from "./domain/moduleEditor/normalizePracticeModeStep.js?v=1.1.150-emotional-checkin-step";
 export { normalizeSessionShell } from "./domain/moduleEditor/normalizeSessionShell.js?v=1.1.124-location-icon-upload";
 export { normalizeStepMediaUpload } from "./domain/moduleEditor/normalizeStepMediaUpload.js?v=1.1.124-location-icon-upload";
-export { normalizeStudentProgressPayload } from "./domain/student/normalizeStudentProgressPayload.js?v=1.1.124-location-icon-upload";
+export { normalizeStudentProgressPayload } from "./domain/student/normalizeStudentProgressPayload.js?v=1.1.151-student-loading-practice-context";
 export { normalizeClassLocationPayload, normalizeStudentsForClassPayload, normalizeStudentFruitLoginPayload, normalizeStudentStandardLoginPayload } from "./domain/studentLogin/normalizeStudentLoginPayloads.js?v=1.1.124-location-icon-upload";
 export {
   normalizeClassOwnershipPayload,

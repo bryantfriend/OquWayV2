@@ -191,18 +191,18 @@ export { SaveModuleDraftIntent } from "./moduleEditor/SaveModuleDraftIntent.js?v
 // ----------------------
 // Student Dashboard / Player
 // ----------------------
-export { LoadStudentCourseIntent } from "./student/LoadStudentCourseIntent.js?v=1.1.149-student-course-metadata";
-export { LoadStudentDashboardIntent } from "./student/LoadStudentDashboardIntent.js?v=1.1.149-student-course-metadata";
-export { LoadStudentCoursesIntent } from "./student/LoadStudentCoursesIntent.js?v=1.1.141-user-command-context-data";
-export { LoadStudentCourseStructureIntent } from "./student/LoadStudentCourseStructureIntent.js?v=1.1.141-user-command-context-data";
-export { LoadStudentProgressIntent } from "./student/LoadStudentProgressIntent.js?v=1.1.141-user-command-context-data";
+export { LoadStudentCourseIntent } from "./student/LoadStudentCourseIntent.js?v=1.1.151-student-loading-practice-context";
+export { LoadStudentDashboardIntent } from "./student/LoadStudentDashboardIntent.js?v=1.1.151-student-loading-practice-context";
+export { LoadStudentCoursesIntent } from "./student/LoadStudentCoursesIntent.js?v=1.1.151-student-loading-practice-context";
+export { LoadStudentCourseStructureIntent } from "./student/LoadStudentCourseStructureIntent.js?v=1.1.151-student-loading-practice-context";
+export { LoadStudentProgressIntent } from "./student/LoadStudentProgressIntent.js?v=1.1.151-student-loading-practice-context";
 export { ClaimDailyBonusIntent } from "./student/ClaimDailyBonusIntent.js?v=1.1.141-user-command-context-data";
 export { ContinueLearningIntent } from "./student/ContinueLearningIntent.js?v=1.1.141-user-command-context-data";
 export { SelectContinueLearningIntent } from "./student/SelectContinueLearningIntent.js?v=1.1.141-user-command-context-data";
-export { StudentOpenCourseIntent } from "./student/StudentOpenCourseIntent.js?v=1.1.149-student-course-metadata";
-export { StartPracticeModeIntent } from "./student/StartPracticeModeIntent.js?v=1.1.141-user-command-context-data";
-export { CompleteStepIntent } from "./student/CompleteStepIntent.js?v=1.1.141-user-command-context-data";
-export { CompleteStudentStepIntent } from "./student/CompleteStudentStepIntent.js?v=1.1.141-user-command-context-data";
-export { CompletePracticeModeIntent } from "./student/CompletePracticeModeIntent.js?v=1.1.141-user-command-context-data";
-export { CompleteStudentPracticeModeIntent } from "./student/CompleteStudentPracticeModeIntent.js?v=1.1.141-user-command-context-data";
-export { SaveStudentProgressIntent } from "./student/SaveStudentProgressIntent.js?v=1.1.141-user-command-context-data";
+export { StudentOpenCourseIntent } from "./student/StudentOpenCourseIntent.js?v=1.1.151-student-loading-practice-context";
+export { StartPracticeModeIntent } from "./student/StartPracticeModeIntent.js?v=1.1.151-student-loading-practice-context";
+export { CompleteStepIntent } from "./student/CompleteStepIntent.js?v=1.1.151-student-loading-practice-context";
+export { CompleteStudentStepIntent } from "./student/CompleteStudentStepIntent.js?v=1.1.151-student-loading-practice-context";
+export { CompletePracticeModeIntent } from "./student/CompletePracticeModeIntent.js?v=1.1.151-student-loading-practice-context";
+export { CompleteStudentPracticeModeIntent } from "./student/CompleteStudentPracticeModeIntent.js?v=1.1.151-student-loading-practice-context";
+export { SaveStudentProgressIntent } from "./student/SaveStudentProgressIntent.js?v=1.1.151-student-loading-practice-context";

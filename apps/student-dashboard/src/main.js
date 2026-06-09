@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.150-emotional-checkin-step";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.149-student-course-metadata";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.150-emotional-checkin-step";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.151-student-loading-practice-context";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.151-student-loading-practice-context";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.151-student-loading-practice-context";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,16 +13,15 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.149-student-course-metadata";
+} from "../../../packages/domain/progress/index.js?v=1.1.151-student-loading-practice-context";
 import {
   createEmptyState,
   createErrorState,
-  createLoadingState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.149-student-course-metadata";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.149-student-course-metadata";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.149-student-course-metadata";
+} from "../../../packages/ui/index.js?v=1.1.151-student-loading-practice-context";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.151-student-loading-practice-context";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.151-student-loading-practice-context";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -34,6 +33,8 @@ console.log("[oquway-build]", OQUWAY_BUILD_VERSION);
 studentDashboardStore.subscribe(function (state) {
   render(state);
 });
+
+render(studentDashboardStore.getState());
 
 if (appElement) {
   appElement.addEventListener("click", handleAppClick);
@@ -155,6 +156,11 @@ function render(state) {
 
   if (state.isCourseOpening) {
     appElement.innerHTML = buildCourseOpeningView();
+    return;
+  }
+
+  if (state.isPlayerLoading) {
+    appElement.innerHTML = buildActivityLoadingView();
     return;
   }
 
@@ -393,7 +399,8 @@ function selectSession(moduleId, sessionId) {
 }
 
 async function openPracticeMode(courseId, moduleId, sessionId, practiceModeKey) {
-  var result = await studentDashboardService.startPracticeMode(courseId, moduleId, sessionId, practiceModeKey);
+  var course = readCourseById(studentDashboardStore.getState().courses || [], courseId);
+  var result = await studentDashboardService.startPracticeMode(courseId, moduleId, sessionId, practiceModeKey, course ? course.courseRecordSource : "");
 
   if (!result) {
     return;
@@ -514,21 +521,27 @@ function mergeOpenedCourse(courses, openedCourse) {
 }
 
 function buildLoadingView() {
-  return createLoadingState("Loading courses...", {
-    className: "student-loading-card",
-    titleTag: "h1",
-    beforeHtml: '<div class="student-spinner"></div>',
-    note: "Preparing your classroom learning path."
-  });
+  return buildStudentLaunchLoading("Loading courses...", "Preparing your classroom learning path.", "📚");
 }
 
 function buildCourseOpeningView() {
-  return createLoadingState("Loading course...", {
-    className: "student-loading-card",
-    titleTag: "h1",
-    beforeHtml: '<div class="student-spinner"></div>',
-    note: "Finding your next activity."
-  });
+  return buildStudentLaunchLoading("Opening course...", "Finding your next activity.", "🚀");
+}
+
+function buildActivityLoadingView() {
+  return buildStudentLaunchLoading("Launching activity...", "Warming up your learning workspace.", "⭐");
+}
+
+function buildStudentLaunchLoading(title, note, icon) {
+  return '<section class="student-launch-loading" role="status" aria-live="polite">'
+    + '<div class="student-launch-card">'
+    + '<div class="student-launch-orbit" aria-hidden="true"><span>' + escapeHtml(icon) + '</span><i></i><b></b></div>'
+    + '<p class="student-eyebrow">OquWay is getting ready</p>'
+    + '<h1>' + escapeHtml(title) + '</h1>'
+    + '<p>' + escapeHtml(note) + '</p>'
+    + '<div class="student-launch-dots" aria-hidden="true"><span></span><span></span><span></span></div>'
+    + '</div>'
+    + '</section>';
 }
 
 function buildDashboardView(state) {
@@ -1856,11 +1869,16 @@ function updateSessionProgressEntry(session, progressResult) {
 function readSelectedCourse(state) {
   var courses = state.courses || [];
   var courseId = state.selectedCourseId || readFirstId(courses);
+  return readCourseById(courses, courseId);
+}
+
+function readCourseById(courses, courseId) {
+  var safeCourses = Array.isArray(courses) ? courses : [];
   var courseIndex = 0;
 
-  while (courseIndex < courses.length) {
-    if (courses[courseIndex].id === courseId) {
-      return courses[courseIndex];
+  while (courseIndex < safeCourses.length) {
+    if (safeCourses[courseIndex].id === courseId) {
+      return safeCourses[courseIndex];
     }
 
     courseIndex = courseIndex + 1;

@@ -1,8 +1,8 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.149-student-course-metadata";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.149-student-course-metadata";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.149-student-course-metadata";
-import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.149-student-course-metadata";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.149-student-course-metadata";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.151-student-loading-practice-context";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.151-student-loading-practice-context";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.151-student-loading-practice-context";
+import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.151-student-loading-practice-context";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.151-student-loading-practice-context";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
@@ -187,7 +187,7 @@ export const studentDashboardService = {
     }
   },
 
-  startPracticeMode: async function (courseId, moduleId, sessionId, practiceModeKey) {
+  startPracticeMode: async function (courseId, moduleId, sessionId, practiceModeKey, courseRecordSource) {
     studentDashboardStore.setState({
       isPlayerLoading: true,
       error: null,
@@ -199,7 +199,8 @@ export const studentDashboardService = {
         courseId: courseId,
         moduleId: moduleId,
         sessionId: sessionId,
-        practiceModeKey: practiceModeKey
+        practiceModeKey: practiceModeKey,
+        courseRecordSource: courseRecordSource || ""
       });
 
       if (result && result.emitted && result.emitted.success) {

@@ -25,10 +25,9 @@ export { attachStepPreviewContext } from "./domain/moduleEditor/attachStepPrevie
 export { attachStepRegistryDefinitionForStep } from "./domain/moduleEditor/attachStepRegistryDefinitionForStep.js?v=1.1.138-course-overview-title";
 export { attachStepsCollection } from "./domain/moduleEditor/attachStepsCollection.js?v=1.1.138-course-overview-title";
 export { attachStudentProfileContext } from "./domain/student/attachStudentProfileContext.js?v=1.1.138-course-overview-title";
-export { attachStudentSessionContext } from "./domain/student/attachStudentSessionContext.js?v=1.1.138-course-overview-title";
+export { attachStudentSessionContext } from "./domain/student/attachStudentSessionContext.js?v=1.1.151-student-loading-practice-context";
 export { attachStudentOpenCourseContext } from "./domain/student/attachStudentOpenCourseContext.js?v=1.1.138-course-overview-title";
 export {
   attachExternalTaskSubmissionReviewContext,
   attachTeacherProfileContext
 } from "./domain/teacher/attachTeacherContext.js?v=1.1.129-teacher-query-noise";
-
