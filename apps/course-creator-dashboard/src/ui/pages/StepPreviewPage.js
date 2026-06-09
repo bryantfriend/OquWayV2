@@ -1,9 +1,9 @@
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.150-emotional-checkin-step";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.150-emotional-checkin-step";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.154-emotional-check-in-prototype";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.154-emotional-check-in-prototype";
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../../../../../packages/domain/steps/index.js?v=1.1.150-emotional-checkin-step";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.154-emotional-check-in-prototype";
 
 export class StepPreviewPage {
   constructor(courseId, moduleId, modeId, stepId) {

@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.153-student-course-journey-polish";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.153-student-course-journey-polish";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.153-student-course-journey-polish";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.154-emotional-check-in-prototype";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.154-emotional-check-in-prototype";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.154-emotional-check-in-prototype";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,15 +13,15 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.153-student-course-journey-polish";
+} from "../../../packages/domain/progress/index.js?v=1.1.154-emotional-check-in-prototype";
 import {
   createEmptyState,
   createErrorState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.153-student-course-journey-polish";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.153-student-course-journey-polish";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.153-student-course-journey-polish";
+} from "../../../packages/ui/index.js?v=1.1.154-emotional-check-in-prototype";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.154-emotional-check-in-prototype";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.154-emotional-check-in-prototype";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;

@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.153-student-course-journey-polish";
+import * as IntentExports from "../intents/intents.js?v=1.1.154-emotional-check-in-prototype";
 
 const registry = {
   // Demo Verification

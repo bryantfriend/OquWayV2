@@ -3,7 +3,7 @@ import {
   getStepTypeDefinition,
   isSupportedStepType,
   listStepTypeDefinitions
-} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.150-emotional-checkin-step";
+} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.154-emotional-check-in-prototype";
 
 export {
   createDefaultStepConfig,

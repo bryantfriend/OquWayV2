@@ -1,1 +1,1 @@
-export const OQUWAY_BUILD_VERSION = "1.1.153-student-course-journey-polish";
+export const OQUWAY_BUILD_VERSION = "1.1.154-emotional-check-in-prototype";

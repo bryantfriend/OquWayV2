@@ -1,11 +1,11 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.150-emotional-checkin-step";
+import { BaseStep } from "./BaseStep.js?v=1.1.154-emotional-check-in-prototype";
 import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.121-student-dashboard-open-clean";
 import { VocabularyStep } from "./VocabularyStep.js?v=1.1.121-student-dashboard-open-clean";
 import { PhraseStep } from "./PhraseStep.js?v=1.1.121-student-dashboard-open-clean";
 import { ListeningStep } from "./ListeningStep.js?v=1.1.121-student-dashboard-open-clean";
 import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.121-student-dashboard-open-clean";
 import { ReflectionStep } from "./ReflectionStep.js?v=1.1.121-student-dashboard-open-clean";
-import { EmotionalCheckInStep } from "./EmotionalCheckInStep.js?v=1.1.150-emotional-checkin-step";
+import { EmotionalCheckInStep } from "./EmotionalCheckInStep.js?v=1.1.154-emotional-check-in-prototype";
 import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.121-student-dashboard-open-clean";
 import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.121-student-dashboard-open-clean";
 import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.121-student-dashboard-open-clean";
@@ -13,7 +13,10 @@ import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.121-student-dashbo
 
 var stepTypes = {
   "emotional-check-in": EmotionalCheckInStep,
+  "mood-reset": EmotionalCheckInStep,
+  emotionalcheckin: EmotionalCheckInStep,
   emotionalCheckIn: EmotionalCheckInStep,
+  EmotionalCheckIn: EmotionalCheckInStep,
   textBriefing: TextBriefingStep,
   vocabulary: VocabularyStep,
   phrase: PhraseStep,

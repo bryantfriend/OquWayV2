@@ -1,11 +1,11 @@
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.150-emotional-checkin-step";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.150-emotional-checkin-step";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.154-emotional-check-in-prototype";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.154-emotional-check-in-prototype";
 import {
   getStepTypeDefinition,
   listStepTypeDefinitions,
   validateStepConfig
-} from "../../../../../packages/domain/steps/index.js?v=1.1.150-emotional-checkin-step";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.150-emotional-checkin-step";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.154-emotional-check-in-prototype";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.154-emotional-check-in-prototype";
 import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.138-course-overview-title";
 
 export class CourseEditorPage {
@@ -2431,14 +2431,50 @@ function createPrimerStepTypeCard() {
 }
 
 function createStepTypeCard(StepTypeDefinition) {
+  var stepType = readStepDefinitionText(StepTypeDefinition, "type", "");
+
   return {
-    type: readStepDefinitionText(StepTypeDefinition, "type", "unknown"),
+    type: stepType || "unknown",
     label: readStepDefinitionText(StepTypeDefinition, "label", "Unknown Step"),
-    icon: readStepDefinitionIcon(readStepDefinitionText(StepTypeDefinition, "type", "")),
+    icon: readStepDefinitionIcon(stepType),
     description: readStepDefinitionText(StepTypeDefinition, "description", "Reusable learning activity."),
-    category: readStepDefinitionText(StepTypeDefinition, "category", "Custom"),
+    category: normalizeStepPickerCategory(readStepDefinitionText(StepTypeDefinition, "category", "Custom")),
     complexity: readStepDefinitionText(StepTypeDefinition, "complexity", "Easy")
   };
+}
+
+function normalizeStepPickerCategory(category) {
+  var normalizedCategory = typeof category === "string" ? category.trim().toLowerCase() : "";
+
+  if (normalizedCategory === "basic") {
+    return "Basic";
+  }
+
+  if (normalizedCategory === "reflection") {
+    return "Reflection";
+  }
+
+  if (normalizedCategory === "media") {
+    return "Media";
+  }
+
+  if (normalizedCategory === "games") {
+    return "Games";
+  }
+
+  if (normalizedCategory === "coding") {
+    return "Coding";
+  }
+
+  if (normalizedCategory === "speaking") {
+    return "Speaking";
+  }
+
+  if (normalizedCategory === "assessment") {
+    return "Assessment";
+  }
+
+  return category || "Custom";
 }
 
 function createStepCategoryOrder() {
@@ -2454,7 +2490,7 @@ function buildUnsupportedStudentPreview(step) {
   html += '<div class="oqu-preview-card oqu-preview-unsupported">';
   html += '<div class="oqu-preview-type-badge">🔷 ' + escapeHtml(safeType) + '</div>';
   html += '<div class="text-xs font-bold text-amber-700 mb-2">Preview renderer missing</div>';
-  html += '<div class="text-xs text-gray-500 mb-4">This step type is not registered with the preview renderer.</div>';
+  html += '<div class="text-xs text-gray-500 mb-4">Step type ' + escapeHtml(safeType) + ' is not registered with the preview renderer.</div>';
   html += '<div class="oqu-preview-title">' + escapeHtml(title) + '</div>';
   html += '</div>';
 
@@ -3069,7 +3105,7 @@ function readStepTypeIcon(stepType) {
   if (stepType === "listening") { return "🎧"; }
   if (stepType === "speakingPrompt") { return "🎤"; }
   if (stepType === "reflection") { return "💡"; }
-  if (stepType === "emotional-check-in" || stepType === "emotionalCheckIn") { return "💙"; }
+  if (isEmotionalCheckInStepType(stepType)) { return "💙"; }
   if (stepType === "customExperience") { return "✦"; }
   if (stepType === "cyberCodeMission") { return "⌨"; }
   if (stepType === "dragMatchIsland") { return "🏝"; }
@@ -3106,12 +3142,20 @@ function readStepDefinitionIcon(stepType) {
   if (stepType === "listening") { return "fa-solid fa-headphones"; }
   if (stepType === "speakingPrompt") { return "fa-solid fa-microphone"; }
   if (stepType === "reflection") { return "fa-solid fa-lightbulb"; }
-  if (stepType === "emotional-check-in" || stepType === "emotionalCheckIn") { return "fa-regular fa-face-smile"; }
+  if (isEmotionalCheckInStepType(stepType)) { return "fa-regular fa-face-smile"; }
   if (stepType === "customExperience") { return "fa-solid fa-shapes"; }
   if (stepType === "cyberCodeMission") { return "fa-solid fa-code"; }
   if (stepType === "dragMatchIsland") { return "fa-solid fa-gamepad"; }
   if (stepType === "externalTask") { return "fa-solid fa-clipboard-check"; }
   return "fa-solid fa-puzzle-piece";
+}
+
+function isEmotionalCheckInStepType(stepType) {
+  return stepType === "emotional-check-in" ||
+    stepType === "mood-reset" ||
+    stepType === "emotionalcheckin" ||
+    stepType === "emotionalCheckIn" ||
+    stepType === "EmotionalCheckIn";
 }
 
 function supportsLearningContentPull(stepType) {

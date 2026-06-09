@@ -1,8 +1,8 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.153-student-course-journey-polish";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.153-student-course-journey-polish";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.153-student-course-journey-polish";
-import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.153-student-course-journey-polish";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.153-student-course-journey-polish";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.154-emotional-check-in-prototype";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.154-emotional-check-in-prototype";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.154-emotional-check-in-prototype";
+import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.154-emotional-check-in-prototype";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.154-emotional-check-in-prototype";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {

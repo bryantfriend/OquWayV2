@@ -1,20 +1,32 @@
 const BaseStep = window.CourseEngine.BaseStep;
 
-export class EmotionalCheckInStep extends BaseStep {
-  static get type() {
+export default class EmotionalCheckInStep extends BaseStep {
+  static get id() {
     return "emotional-check-in";
   }
 
-  static get label() {
+  static get version() {
+    return "1.0.0";
+  }
+
+  static get displayName() {
     return "Emotional Check-In";
   }
 
+  static get type() {
+    return this.id;
+  }
+
+  static get label() {
+    return this.displayName;
+  }
+
   static get description() {
-    return "Students choose a session-scoped status and complete a short readiness activity.";
+    return "Students choose their current status and complete a short reset activity before learning.";
   }
 
   static get category() {
-    return "Reflection";
+    return "reflection";
   }
 
   static get complexity() {
@@ -65,6 +77,7 @@ export class EmotionalCheckInStep extends BaseStep {
     bugCount: 15,
     sequenceCount: 12,
     defragBlockCount: 15,
+    showSuccessView: "true",
     theme: "system"
   };
 
@@ -131,6 +144,21 @@ export class EmotionalCheckInStep extends BaseStep {
         type: "number"
       },
       {
+        key: "showSuccessView",
+        label: "Show success view",
+        type: "select",
+        options: [
+          {
+            value: "true",
+            label: "Yes"
+          },
+          {
+            value: "false",
+            label: "No"
+          }
+        ]
+      },
+      {
         key: "theme",
         label: "Theme",
         type: "select",
@@ -160,6 +188,7 @@ export class EmotionalCheckInStep extends BaseStep {
     baseConfig.bugCount = clampInteger(baseConfig.bugCount, 3, 25, this.defaultConfig.bugCount);
     baseConfig.sequenceCount = clampInteger(baseConfig.sequenceCount, 3, 15, this.defaultConfig.sequenceCount);
     baseConfig.defragBlockCount = clampInteger(baseConfig.defragBlockCount, 3, 25, this.defaultConfig.defragBlockCount);
+    baseConfig.showSuccessView = baseConfig.showSuccessView === "false" ? "false" : "true";
     baseConfig.theme = baseConfig.theme === "system" ? "system" : this.defaultConfig.theme;
 
     return baseConfig;
@@ -613,10 +642,10 @@ function startMalwareActivity(container, state) {
     }
     bugEl.disabled = true;
     bugEl.classList.add("is-destroyed");
-    drawLaser(fieldEl, bugEl);
+    drawLaser(fieldEl, bugEl, state);
     destroyed += 1;
     updateProgress(progress, "Malware Destroyed: " + destroyed + " / " + count);
-    setTimeout(function () {
+    scheduleTimeout(state, function () {
       if (bugEl && bugEl.parentNode) {
         bugEl.parentNode.removeChild(bugEl);
       }
@@ -681,7 +710,7 @@ function startSequenceActivity(container, state) {
     var value = Number(node.getAttribute("data-eci-sequence-node"));
     if (value !== next) {
       updateStatus(container, "Wrong order! Resetting...");
-      resetTimeout = setTimeout(function () {
+      resetTimeout = scheduleTimeout(state, function () {
         resetSequence(field);
         next = 1;
         updateStatus(container, "");
@@ -859,7 +888,7 @@ function startHandshakeActivity(container, state) {
     if (hand) {
       hand.textContent = step >= 5 ? "💥" : "👊";
       hand.classList.add("is-pulsing");
-      setTimeout(function () {
+      scheduleTimeout(state, function () {
         if (hand) hand.classList.remove("is-pulsing");
       }, 220);
     }
@@ -923,6 +952,29 @@ function updateStatus(container, text) {
   }
 }
 
+function scheduleTimeout(state, callback, delay) {
+  var timeoutId = null;
+  var cleanup = function () {
+    clearTimeout(timeoutId);
+  };
+
+  timeoutId = setTimeout(function () {
+    removeCleanup(state, cleanup);
+    callback();
+  }, delay);
+
+  state.cleanup.push(cleanup);
+  return timeoutId;
+}
+
+function removeCleanup(state, cleanup) {
+  var index = state && Array.isArray(state.cleanup) ? state.cleanup.indexOf(cleanup) : -1;
+
+  if (index !== -1) {
+    state.cleanup.splice(index, 1);
+  }
+}
+
 function createBugButton(index) {
   var button = document.createElement("button");
   button.type = "button";
@@ -946,7 +998,7 @@ function moveBugs(field) {
   }
 }
 
-function drawLaser(field, target) {
+function drawLaser(field, target, state) {
   var laser = document.createElement("span");
   var rect = target.getBoundingClientRect();
   var fieldRect = field.getBoundingClientRect();
@@ -954,7 +1006,7 @@ function drawLaser(field, target) {
   laser.style.left = ((rect.left - fieldRect.left) + rect.width / 2) + "px";
   laser.style.top = ((rect.top - fieldRect.top) + rect.height / 2) + "px";
   field.appendChild(laser);
-  setTimeout(function () {
+  scheduleTimeout(state, function () {
     if (laser.parentNode) {
       laser.parentNode.removeChild(laser);
     }
@@ -1170,3 +1222,5 @@ function buildScopedStyles() {
     + '.eci-root{width:100%;box-sizing:border-box;color:#eef7ff;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.eci-root *{box-sizing:border-box}.eci-shell{width:min(860px,100%);margin:0 auto;border:1px solid rgba(125,211,252,.28);border-radius:24px;padding:24px;background:radial-gradient(circle at 18% 12%,rgba(45,212,191,.24),transparent 30%),linear-gradient(145deg,#09111f,#121a2f 55%,#08111f);box-shadow:0 24px 70px rgba(2,6,23,.32);overflow:hidden}.eci-header{text-align:center;margin-bottom:20px}.eci-kicker{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(103,232,249,.22);border-radius:999px;padding:6px 10px;background:rgba(8,47,73,.52);color:#67e8f9;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.12em}.eci-header h2,.eci-activity-top h3,.eci-success-card h3{margin:12px 0 6px;font-size:clamp(28px,4vw,46px);line-height:1.02;font-weight:900;letter-spacing:0}.eci-header p,.eci-activity-top p,.eci-success-card p{margin:0;color:#b7c7da;line-height:1.5}.eci-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.eci-mood-card{min-height:132px;border:1px solid rgba(148,163,184,.24);border-radius:20px;background:linear-gradient(180deg,rgba(15,23,42,.84),rgba(30,41,59,.72));color:#fff;padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.05);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}.eci-mood-card:hover,.eci-mood-card:focus-visible{transform:translateY(-4px);border-color:#22d3ee;box-shadow:0 16px 34px rgba(34,211,238,.18);outline:none}.eci-mood-emoji{font-size:34px}.eci-mood-label{font-size:15px;font-weight:900}.eci-mood-action{font-size:11px;color:#93c5fd;text-transform:uppercase;font-weight:800;letter-spacing:.08em}.eci-activity-card{border:1px solid rgba(148,163,184,.22);border-radius:22px;padding:18px;background:rgba(15,23,42,.62)}.eci-activity-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.eci-activity-top h3{font-size:28px}.eci-back-btn,.eci-final-btn,.eci-success-btn,.eci-generate-btn{border:0;border-radius:14px;padding:12px 16px;font-weight:900;cursor:pointer}.eci-back-btn{background:rgba(148,163,184,.14);color:#cbd5e1;border:1px solid rgba(148,163,184,.24)}.eci-final-btn,.eci-success-btn{width:100%;margin-top:14px;background:linear-gradient(135deg,#10b981,#22c55e);color:#052e16;box-shadow:0 14px 28px rgba(34,197,94,.24)}.eci-final-btn:disabled{cursor:not-allowed;opacity:.42;box-shadow:none}.eci-activity-area{position:relative;min-height:270px;margin-top:16px;border-radius:20px;border:1px solid rgba(59,130,246,.18);background:linear-gradient(145deg,rgba(15,23,42,.78),rgba(8,47,73,.42));overflow:hidden}.eci-progress{margin-top:12px;color:#a7f3d0;font-weight:900}.eci-status{min-height:24px;margin-top:6px;color:#fef08a;font-weight:900}.eci-breathing{min-height:270px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px}.eci-breathing-orb{width:132px;height:132px;border-radius:999px;background:radial-gradient(circle,#e0f2fe,#22d3ee 46%,#0f766e 78%);box-shadow:0 0 38px rgba(34,211,238,.62);transform:scale(1);transition:transform .8s ease}.eci-breathing-orb.is-breathe-out{transform:scale(.64)}.eci-breathing-text{font-size:24px;font-weight:900;color:#f8fafc}.eci-battery-wrap{min-height:270px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px}.eci-battery{position:relative;width:min(340px,78%);height:88px;border:4px solid #dbeafe;border-radius:18px;padding:8px;background:rgba(15,23,42,.88)}.eci-battery:after{content:"";position:absolute;right:-20px;top:24px;width:14px;height:32px;border-radius:0 9px 9px 0;background:#dbeafe}.eci-battery-fill{height:100%;width:0;border-radius:10px;background:#f59e0b;transition:width .12s linear,background .2s ease}.eci-generate-btn{background:#facc15;color:#422006;box-shadow:0 14px 32px rgba(250,204,21,.24)}.eci-malware-field,.eci-sequence-field,.eci-defrag-field{position:relative;width:100%;height:270px}.eci-ship{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);font-size:34px;filter:drop-shadow(0 0 14px rgba(96,165,250,.7))}.eci-bug,.eci-sequence-node,.eci-block{position:absolute;transform:translate(-50%,-50%);border:0;cursor:pointer}.eci-bug{width:42px;height:42px;border-radius:14px;background:rgba(239,68,68,.16);font-size:25px}.eci-bug:focus-visible,.eci-sequence-node:focus-visible,.eci-block:focus-visible,.eci-handshake:focus-visible{outline:3px solid #67e8f9;outline-offset:3px}.eci-bug.is-destroyed{opacity:0;transform:translate(-50%,-50%) scale(1.8);transition:all .22s ease}.eci-laser{position:absolute;width:12px;height:12px;border-radius:999px;background:#fef08a;box-shadow:0 0 22px #facc15;pointer-events:none;animation:eci-pop .22s ease forwards}.eci-sequence-node{width:46px;height:46px;border-radius:999px;background:#eff6ff;color:#0f172a;font-weight:900;box-shadow:0 10px 20px rgba(15,23,42,.18)}.eci-sequence-node.is-complete{background:#22c55e;color:#052e16}.eci-rack{position:absolute;left:16px;right:16px;bottom:14px;min-height:58px;border:1px dashed rgba(196,181,253,.48);border-radius:16px;background:rgba(88,28,135,.18);display:flex;align-items:center;gap:6px;padding:8px;z-index:2}.eci-block{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#c084fc,#7c3aed);box-shadow:0 10px 22px rgba(124,58,237,.24)}.eci-block.is-sorted{position:static;transform:none;opacity:.9;transition:opacity .2s ease}.eci-defrag-field.is-complete .eci-block{animation:eci-fade .5s ease forwards}.eci-handshake{min-height:270px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;touch-action:none}.eci-handshake-hand{font-size:76px;filter:drop-shadow(0 0 24px rgba(45,212,191,.32));transition:transform .18s ease}.eci-handshake-hand.is-pulsing{transform:scale(1.22) rotate(-8deg)}.eci-handshake-instruction{font-size:18px;font-weight:900;color:#dbeafe}.eci-success-card{text-align:center;border-radius:22px;padding:30px;background:linear-gradient(145deg,rgba(20,184,166,.18),rgba(37,99,235,.14));border:1px solid rgba(125,211,252,.28)}.eci-success-orb{width:86px;height:86px;margin:0 auto 14px;border-radius:999px;display:grid;place-items:center;background:#22c55e;color:#052e16;font-size:42px;font-weight:900;box-shadow:0 0 34px rgba(34,197,94,.36)}@keyframes eci-pop{to{opacity:0;transform:scale(3)}}@keyframes eci-fade{to{opacity:0;transform:scale(.8)}}@media (max-width:720px){.eci-shell{padding:16px;border-radius:18px}.eci-grid{grid-template-columns:1fr}.eci-activity-top{flex-direction:column}.eci-back-btn{width:100%}.eci-header h2{font-size:32px}}'
     + '</style>';
 }
+
+export { EmotionalCheckInStep };

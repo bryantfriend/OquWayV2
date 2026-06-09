@@ -1,7 +1,7 @@
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../stepTypes/stepTypeRegistry.js?v=1.1.150-emotional-checkin-step";
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.154-emotional-check-in-prototype";
 
 export class PracticeModePlayer {
   constructor(options) {
