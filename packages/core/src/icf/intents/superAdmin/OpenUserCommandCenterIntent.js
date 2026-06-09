@@ -1,8 +1,8 @@
-import { validateAuthenticated } from "../../stages/validate/validators.js?v=1.1.124-location-icon-upload";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.124-location-icon-upload";
-import { requireSuperAdminAccess } from "../../stages/authorize/authorizers.js?v=1.1.124-location-icon-upload";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.124-location-icon-upload";
-import { db, doc, getDoc } from "../../../infrastructure/firebase/firestore.js?v=1.1.124-location-icon-upload";
+import { validateAuthenticated } from "../../stages/validate/validators.js?v=1.1.139-user-command-context";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.139-user-command-context";
+import { requireSuperAdminAccess } from "../../stages/authorize/authorizers.js?v=1.1.139-user-command-context";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.139-user-command-context";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../infrastructure/firebase/firestore.js?v=1.1.139-user-command-context";
 
 export function OpenUserCommandCenterIntent() {
   return {
@@ -18,10 +18,9 @@ export function OpenUserCommandCenterIntent() {
 
 async function attachUserCommandCenterContext(executionState) {
   try {
-    var userRef = doc(db, "users", executionState.payload.userId);
-    var userSnapshot = await getDoc(userRef);
+    var userSnapshot = await resolveUserSnapshot(executionState.payload.userId);
 
-    if (!userSnapshot.exists()) {
+    if (!userSnapshot) {
       return {
         valid: false,
         errors: [{
@@ -46,6 +45,51 @@ async function attachUserCommandCenterContext(executionState) {
       }]
     };
   }
+}
+
+async function resolveUserSnapshot(userId) {
+  var directSnapshot = await getDoc(doc(db, "users", userId));
+
+  if (directSnapshot.exists()) {
+    return directSnapshot;
+  }
+
+  return await findUserSnapshotByIdentifier(userId);
+}
+
+async function findUserSnapshotByIdentifier(userId) {
+  var lookupFields = ["authUid", "uid", "userId", "studentId", "profileUserId"];
+  var fieldIndex = 0;
+
+  while (fieldIndex < lookupFields.length) {
+    var snapshot = await getDocs(query(collection(db, "users"), where(lookupFields[fieldIndex], "==", userId)));
+    var resolvedSnapshot = readFirstSnapshot(snapshot);
+
+    if (resolvedSnapshot) {
+      console.info("[user-command-center:resolved-user]", {
+        requestedUserId: userId,
+        matchedField: lookupFields[fieldIndex],
+        resolvedUserId: resolvedSnapshot.id
+      });
+      return resolvedSnapshot;
+    }
+
+    fieldIndex = fieldIndex + 1;
+  }
+
+  return null;
+}
+
+function readFirstSnapshot(snapshot) {
+  var resolvedSnapshot = null;
+
+  snapshot.forEach(function (candidateSnapshot) {
+    if (!resolvedSnapshot) {
+      resolvedSnapshot = candidateSnapshot;
+    }
+  });
+
+  return resolvedSnapshot;
 }
 
 function validateUserCommandCenterPayload(executionState) {

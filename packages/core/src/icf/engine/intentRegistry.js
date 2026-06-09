@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.138-course-overview-title";
+import * as IntentExports from "../intents/intents.js?v=1.1.139-user-command-context";
 
 const registry = {
   // Demo Verification

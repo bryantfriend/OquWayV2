@@ -1,13 +1,13 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth, collection, db, deleteDoc, deleteObject, doc, functions, getDoc, getDocs, getDownloadURL, httpsCallable, ref, serverTimestamp, setDoc, storage, uploadBytes } from "../../../../../packages/firebase/index.js?v=1.1.126-users-search-modal";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.126-users-search-modal";
-import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.126-users-search-modal";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.126-users-search-modal";
-import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.126-users-search-modal";
-import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.126-users-search-modal";
+import { auth, collection, db, deleteDoc, deleteObject, doc, functions, getDoc, getDocs, getDownloadURL, httpsCallable, ref, serverTimestamp, setDoc, storage, uploadBytes } from "../../../../../packages/firebase/index.js?v=1.1.139-user-command-context";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.139-user-command-context";
+import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.139-user-command-context";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.139-user-command-context";
+import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.139-user-command-context";
+import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.139-user-command-context";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.126-users-search-modal";
+var appVersion = "1.1.139-user-command-context";
 var adminCallableFunctions = functions;
 var state = {
   isLoading: true,
@@ -4564,22 +4564,27 @@ function setClassCommandCenterTab(tabKey) {
 
 async function openUserCommandCenter(userId) {
   var user = findUser(userId);
+  var commandUserId = "";
 
   if (!user || !user.id) {
     setState({ message: "User was not found.", messageType: "error" });
     return;
   }
 
+  commandUserId = readUserCommandProfileId(user);
+
   console.info("[user-command-center:open]", {
     userId: user.id,
+    commandUserId: commandUserId,
     roles: getSafeUser(user).roles
   });
 
   try {
-    await runAdminIntent("OpenUserCommandCenterIntent", { userId: user.id });
+    await runAdminIntent("OpenUserCommandCenterIntent", { userId: commandUserId });
   } catch (error) {
     console.warn("[user-command-center:intent-warning]", {
       userId: user.id,
+      commandUserId: commandUserId,
       errorMessage: error && error.message ? error.message : String(error)
     });
   }
@@ -4593,6 +4598,17 @@ async function openUserCommandCenter(userId) {
     }),
     message: ""
   });
+}
+
+function readUserCommandProfileId(user) {
+  var safeUser = user || {};
+
+  return readSafeString(safeUser.profileUserId)
+    || readSafeString(safeUser.userId)
+    || readSafeString(safeUser.id)
+    || readSafeString(safeUser.authUid)
+    || readSafeString(safeUser.uid)
+    || readSafeString(safeUser.studentId);
 }
 
 function closeUserCommandCenter() {

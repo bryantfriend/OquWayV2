@@ -1,3 +1,3 @@
-export { createIntent } from "../core/src/icf/engine/createIntent.js?v=1.1.138-course-overview-title";
-export { runIntentPipeline } from "../core/src/icf/engine/runIntentPipeline.js?v=1.1.138-course-overview-title";
-export { getIntentDefinition } from "../core/src/icf/engine/intentRegistry.js?v=1.1.138-course-overview-title";
+export { createIntent } from "../core/src/icf/engine/createIntent.js?v=1.1.139-user-command-context";
+export { runIntentPipeline } from "../core/src/icf/engine/runIntentPipeline.js?v=1.1.139-user-command-context";
+export { getIntentDefinition } from "../core/src/icf/engine/intentRegistry.js?v=1.1.139-user-command-context";
