@@ -341,6 +341,14 @@ async function loadCourseSnap(courseId, executionState) {
       var courseSnap = await getDoc(doc(db, sources[sourceIndex], courseId));
 
       if (courseSnap.exists()) {
+        if (isArchivedCourseData(courseSnap.data())) {
+          executionState.warnings.push({
+            code: "ASSIGNED_COURSE_ARCHIVED",
+            message: "Assigned course was skipped because it is archived: " + courseId
+          });
+          return null;
+        }
+
         return courseSnap;
       }
     } catch (error) {
@@ -688,6 +696,10 @@ async function loadAllCourseSnaps() {
 }
 
 function isStudentVisibleCourse(courseData) {
+  if (isArchivedCourseData(courseData)) {
+    return false;
+  }
+
   if (!courseData || typeof courseData.status !== "string") {
     return true;
   }
@@ -696,6 +708,20 @@ function isStudentVisibleCourse(courseData) {
     || courseData.status === "draft"
     || courseData.status === "published"
     || courseData.status === "ready";
+}
+
+function isArchivedCourseData(courseData) {
+  var status = readTextValue(courseData && courseData.status).toLowerCase();
+
+  return Boolean(
+    courseData
+      && (
+        courseData.isArchived === true
+        || status === "archived"
+        || status === "disabled"
+        || status === "deleted"
+      )
+  );
 }
 
 async function buildCourseTree(actor, courseSnap) {

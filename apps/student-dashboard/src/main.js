@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.131-course-focus-concept";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.131-course-focus-concept";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.131-course-focus-concept";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.134-archive-course-assignments";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.134-archive-course-assignments";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.134-archive-course-assignments";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,16 +13,16 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.131-course-focus-concept";
+} from "../../../packages/domain/progress/index.js?v=1.1.134-archive-course-assignments";
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.131-course-focus-concept";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.131-course-focus-concept";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.131-course-focus-concept";
+} from "../../../packages/ui/index.js?v=1.1.134-archive-course-assignments";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.134-archive-course-assignments";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.134-archive-course-assignments";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;

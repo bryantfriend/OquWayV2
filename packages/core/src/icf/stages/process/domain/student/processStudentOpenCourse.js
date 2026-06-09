@@ -24,6 +24,18 @@ export async function processStudentOpenCourse(executionState) {
     };
   }
 
+  if (isArchivedCourse(course) && !isPreviewActor(executionState.actor)) {
+    return {
+      valid: false,
+      errors: [
+        {
+          code: "STUDENT_COURSE_ARCHIVED",
+          message: "This course is no longer active."
+        }
+      ]
+    };
+  }
+
   course = attachAssignmentId(course, assignmentId);
   courses = [course];
 
@@ -197,4 +209,18 @@ function createModuleOnlyTarget(course, module) {
 
 function readText(value) {
   return typeof value === "string" ? value : "";
+}
+
+function isArchivedCourse(course) {
+  var status = readText(course && course.status).toLowerCase();
+
+  return Boolean(
+    course
+      && (
+        course.isArchived === true
+        || status === "archived"
+        || status === "disabled"
+        || status === "deleted"
+      )
+  );
 }

@@ -1,1 +1,1 @@
-export const OQUWAY_BUILD_VERSION = "1.1.133-course-archive-pending";
+export const OQUWAY_BUILD_VERSION = "1.1.134-archive-course-assignments";

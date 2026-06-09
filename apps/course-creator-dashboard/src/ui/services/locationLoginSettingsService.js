@@ -1,6 +1,6 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.133-course-archive-pending";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.133-course-archive-pending";
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.133-course-archive-pending";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.134-archive-course-assignments";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.134-archive-course-assignments";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.134-archive-course-assignments";
 
 export const locationLoginSettingsService = {
   listLocations: async function () {

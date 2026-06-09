@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.129-teacher-query-noise";
+import * as IntentExports from "../intents/intents.js?v=1.1.134-archive-course-assignments";
 
 const registry = {
   // Demo Verification
@@ -244,5 +244,4 @@ export function hasIntent(intentType) {
 export function listIntents() {
   return Object.keys(registry);
 }
-
 

@@ -11,7 +11,7 @@ export { DemoIntent } from "./demo/DemoIntent.js?v=1.1.124-location-icon-upload"
 // ----------------------
 export { CreateCatalogCourseIntent } from "./catalogCourse/CreateCatalogCourseIntent.js?v=1.1.124-location-icon-upload";
 export { UpdateCatalogCourseMetadataIntent } from "./catalogCourse/UpdateCatalogCourseMetadataIntent.js?v=1.1.124-location-icon-upload";
-export { ArchiveCatalogCourseIntent } from "./catalogCourse/ArchiveCatalogCourseIntent.js?v=1.1.124-location-icon-upload";
+export { ArchiveCatalogCourseIntent } from "./catalogCourse/ArchiveCatalogCourseIntent.js?v=1.1.134-archive-course-assignments";
 export { RestoreCatalogCourseIntent } from "./catalogCourse/RestoreCatalogCourseIntent.js?v=1.1.124-location-icon-upload";
 export { DeleteCatalogCourseIntent } from "./catalogCourse/DeleteCatalogCourseIntent.js?v=1.1.124-location-icon-upload";
 
@@ -189,19 +189,18 @@ export { SaveModuleDraftIntent } from "./moduleEditor/SaveModuleDraftIntent.js?v
 // ----------------------
 // Student Dashboard / Player
 // ----------------------
-export { LoadStudentCourseIntent } from "./student/LoadStudentCourseIntent.js?v=1.1.124-location-icon-upload";
-export { LoadStudentDashboardIntent } from "./student/LoadStudentDashboardIntent.js?v=1.1.124-location-icon-upload";
+export { LoadStudentCourseIntent } from "./student/LoadStudentCourseIntent.js?v=1.1.134-archive-course-assignments";
+export { LoadStudentDashboardIntent } from "./student/LoadStudentDashboardIntent.js?v=1.1.134-archive-course-assignments";
 export { LoadStudentCoursesIntent } from "./student/LoadStudentCoursesIntent.js?v=1.1.124-location-icon-upload";
 export { LoadStudentCourseStructureIntent } from "./student/LoadStudentCourseStructureIntent.js?v=1.1.124-location-icon-upload";
 export { LoadStudentProgressIntent } from "./student/LoadStudentProgressIntent.js?v=1.1.124-location-icon-upload";
 export { ClaimDailyBonusIntent } from "./student/ClaimDailyBonusIntent.js?v=1.1.124-location-icon-upload";
 export { ContinueLearningIntent } from "./student/ContinueLearningIntent.js?v=1.1.124-location-icon-upload";
 export { SelectContinueLearningIntent } from "./student/SelectContinueLearningIntent.js?v=1.1.124-location-icon-upload";
-export { StudentOpenCourseIntent } from "./student/StudentOpenCourseIntent.js?v=1.1.124-location-icon-upload";
+export { StudentOpenCourseIntent } from "./student/StudentOpenCourseIntent.js?v=1.1.134-archive-course-assignments";
 export { StartPracticeModeIntent } from "./student/StartPracticeModeIntent.js?v=1.1.124-location-icon-upload";
 export { CompleteStepIntent } from "./student/CompleteStepIntent.js?v=1.1.124-location-icon-upload";
 export { CompleteStudentStepIntent } from "./student/CompleteStudentStepIntent.js?v=1.1.124-location-icon-upload";
 export { CompletePracticeModeIntent } from "./student/CompletePracticeModeIntent.js?v=1.1.124-location-icon-upload";
 export { CompleteStudentPracticeModeIntent } from "./student/CompleteStudentPracticeModeIntent.js?v=1.1.124-location-icon-upload";
 export { SaveStudentProgressIntent } from "./student/SaveStudentProgressIntent.js?v=1.1.124-location-icon-upload";
-

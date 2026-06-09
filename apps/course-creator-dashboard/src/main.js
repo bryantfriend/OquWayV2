@@ -1,12 +1,12 @@
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.133-course-archive-pending";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.133-course-archive-pending";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.134-archive-course-assignments";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.134-archive-course-assignments";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.133-course-archive-pending";
-import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.133-course-archive-pending";
-import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.133-course-archive-pending";
-import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.133-course-archive-pending";
-import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.133-course-archive-pending";
-import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.133-course-archive-pending";
+import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.134-archive-course-assignments";
+import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.134-archive-course-assignments";
+import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.134-archive-course-assignments";
+import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.134-archive-course-assignments";
+import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.134-archive-course-assignments";
+import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.134-archive-course-assignments";
 
 console.log("[oquway-build]", OQUWAY_BUILD_VERSION);
 console.warn("[course-creator-build-check] latest build active");

@@ -1,5 +1,5 @@
 export { processDemoAction } from "./core/processDemoAction.js?v=1.1.124-location-icon-upload";
-export { catalogCourseArchiveProcessing } from "./domain/catalogCourse/catalogCourseArchiveProcessing.js?v=1.1.124-location-icon-upload";
+export { catalogCourseArchiveProcessing } from "./domain/catalogCourse/catalogCourseArchiveProcessing.js?v=1.1.134-archive-course-assignments";
 export { catalogCourseAddTagProcessing } from "./domain/catalogCourse/catalogCourseAddTagProcessing.js?v=1.1.124-location-icon-upload";
 export { catalogCourseCreateRecordProcessing } from "./domain/catalogCourse/catalogCourseCreateRecordProcessing.js?v=1.1.124-location-icon-upload";
 export { catalogCourseCreateVersionProcessing } from "./domain/catalogCourse/catalogCourseCreateVersionProcessing.js?v=1.1.124-location-icon-upload";
@@ -90,10 +90,10 @@ export { processUpdatePracticeMode } from "./domain/moduleEditor/processUpdatePr
 export { processUpdatePracticeModeStep } from "./domain/moduleEditor/processUpdatePracticeModeStep.js?v=1.1.124-location-icon-upload";
 export { processUpdateStepField } from "./domain/moduleEditor/processUpdateStepField.js?v=1.1.124-location-icon-upload";
 export { processUploadStepMedia } from "./domain/moduleEditor/processUploadStepMedia.js?v=1.1.124-location-icon-upload";
-export { processLoadStudentCourse } from "./domain/student/processLoadStudentCourse.js?v=1.1.124-location-icon-upload";
-export { processLoadStudentDashboard } from "./domain/student/processLoadStudentDashboard.js?v=1.1.124-location-icon-upload";
+export { processLoadStudentCourse } from "./domain/student/processLoadStudentCourse.js?v=1.1.134-archive-course-assignments";
+export { processLoadStudentDashboard } from "./domain/student/processLoadStudentDashboard.js?v=1.1.134-archive-course-assignments";
 export { processContinueLearning } from "./domain/student/processContinueLearning.js?v=1.1.124-location-icon-upload";
-export { processStudentOpenCourse } from "./domain/student/processStudentOpenCourse.js?v=1.1.124-location-icon-upload";
+export { processStudentOpenCourse } from "./domain/student/processStudentOpenCourse.js?v=1.1.134-archive-course-assignments";
 export { processClaimDailyBonus } from "./domain/student/processClaimDailyBonus.js?v=1.1.124-location-icon-upload";
 export { processStartPracticeMode } from "./domain/student/processStartPracticeMode.js?v=1.1.124-location-icon-upload";
 export { processCompleteStep } from "./domain/student/processCompleteStep.js?v=1.1.124-location-icon-upload";
@@ -133,5 +133,4 @@ export {
   processSendTeacherPasswordReset,
   processTeacherLogin
 } from "./domain/teacher/teacherDashboardProcessors.js?v=1.1.129-teacher-query-noise";
-
 

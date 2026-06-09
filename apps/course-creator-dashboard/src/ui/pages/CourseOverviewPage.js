@@ -1,13 +1,13 @@
-import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.133-course-archive-pending';
-import { courseEditorService } from '../services/courseEditorService.js?v=1.1.133-course-archive-pending';
-import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.133-course-archive-pending';
-import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.133-course-archive-pending';
+import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.134-archive-course-assignments';
+import { courseEditorService } from '../services/courseEditorService.js?v=1.1.134-archive-course-assignments';
+import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.134-archive-course-assignments';
+import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.134-archive-course-assignments';
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge
-} from '../../../../../packages/ui/index.js?v=1.1.133-course-archive-pending';
+} from '../../../../../packages/ui/index.js?v=1.1.134-archive-course-assignments';
 
 export class CourseOverviewPage {
   constructor(courseId, options) {

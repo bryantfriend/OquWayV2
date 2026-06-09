@@ -1,4 +1,4 @@
-import { locationLoginSettingsService } from "../services/locationLoginSettingsService.js?v=1.1.133-course-archive-pending";
+import { locationLoginSettingsService } from "../services/locationLoginSettingsService.js?v=1.1.134-archive-course-assignments";
 
 export class LocationLoginSettingsPage {
   constructor() {

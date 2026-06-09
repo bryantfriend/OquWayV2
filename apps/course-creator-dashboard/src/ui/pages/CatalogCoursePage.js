@@ -1,5 +1,5 @@
-import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.133-course-archive-pending";
-import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.133-course-archive-pending";
+import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.134-archive-course-assignments";
+import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.134-archive-course-assignments";
 
 export class CatalogCoursePage {
   constructor() {

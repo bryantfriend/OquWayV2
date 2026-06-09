@@ -1,12 +1,12 @@
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.133-course-archive-pending";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.133-course-archive-pending";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.134-archive-course-assignments";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.134-archive-course-assignments";
 import {
   getStepTypeDefinition,
   listStepTypeDefinitions,
   validateStepConfig
-} from "../../../../../packages/domain/steps/index.js?v=1.1.133-course-archive-pending";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.133-course-archive-pending";
-import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.133-course-archive-pending";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.134-archive-course-assignments";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.134-archive-course-assignments";
+import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.134-archive-course-assignments";
 
 export class CourseEditorPage {
   constructor(courseId, moduleId) {
