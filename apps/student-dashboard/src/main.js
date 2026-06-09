@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.154-emotional-check-in-prototype";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.154-emotional-check-in-prototype";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.154-emotional-check-in-prototype";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.155-student-course-player-layout";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.155-student-course-player-layout";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.155-student-course-player-layout";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,15 +13,15 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.154-emotional-check-in-prototype";
+} from "../../../packages/domain/progress/index.js?v=1.1.155-student-course-player-layout";
 import {
   createEmptyState,
   createErrorState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.154-emotional-check-in-prototype";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.154-emotional-check-in-prototype";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.154-emotional-check-in-prototype";
+} from "../../../packages/ui/index.js?v=1.1.155-student-course-player-layout";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.155-student-course-player-layout";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.155-student-course-player-layout";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -1260,25 +1260,27 @@ function renderClassChatPanel(state) {
 
 function renderSelectedModulePanel(course, module, state) {
   var readiness = getModuleReadiness(module);
-  var html = '<section class="course-module-panel">';
+  var html = '<details class="course-module-panel course-module-panel-collapsed">';
 
   if (!module) {
-    html += '<div class="student-empty course-focus-empty"><h2>This course is not ready yet</h2><p>Your teacher has not added modules to this course yet.</p></div></section>';
+    html += '<summary class="course-module-summary-toggle"><span>Course Details</span><strong>This course is not ready yet</strong></summary>';
+    html += '<div class="student-empty course-focus-empty"><h2>This course is not ready yet</h2><p>Your teacher has not added modules to this course yet.</p></div></details>';
     return html;
   }
 
-  html += '<div class="student-section-head"><div><p class="student-eyebrow">Selected Module</p><h2>' + escapeHtml(readLocalizedText(module.title, "Module")) + '</h2></div><span>' + escapeHtml(readiness.label) + '</span></div>';
+  html += '<summary class="course-module-summary-toggle"><span>Selected Module Details</span><strong>' + escapeHtml(readLocalizedText(module.title, "Module")) + '</strong><em>' + escapeHtml(readiness.label) + '</em></summary>';
+  html += '<div class="course-module-secondary-content">';
   html += '<p class="course-module-summary">' + escapeHtml(readLocalizedText(module.description, "Choose an available practice mode when your teacher has added activities.")) + '</p>';
   html += '<div class="student-progress-bar"><span style="width:' + readModuleProgressPercent(module) + '%"></span></div>';
 
   if (readiness.totalSteps === 0) {
     html += '<div class="student-session-empty">This course has modules, but no playable activities yet.</div>';
-    html += '</section>';
+    html += '</div></details>';
     return html;
   }
 
   html += buildSessions(course, module, state);
-  html += '</section>';
+  html += '</div></details>';
   return html;
 }
 
