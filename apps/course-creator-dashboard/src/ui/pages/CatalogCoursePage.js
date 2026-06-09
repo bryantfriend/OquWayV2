@@ -1,5 +1,5 @@
-import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.132-course-creator-functions-map";
-import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.132-course-creator-functions-map";
+import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.133-course-archive-pending";
+import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.133-course-archive-pending";
 
 export class CatalogCoursePage {
   constructor() {
@@ -94,6 +94,7 @@ export class CatalogCoursePage {
         courseCreatorStore.setState({
           courses: result.emitted.data || [],
           isFetching: false,
+          archivePendingCourseId: "",
           error: null
         });
         return;
@@ -137,7 +138,9 @@ export class CatalogCoursePage {
     }
 
     hideStatus(status);
-    grid.innerHTML = courses.map(buildCourseCard.bind(this)).join("");
+    grid.innerHTML = courses.map(function (course) {
+      return buildCourseCard(course, state);
+    }).join("");
   }
 
   attachEvents() {
@@ -213,6 +216,13 @@ export class CatalogCoursePage {
 
   archiveCourse(courseId) {
     var self = this;
+    var currentState = courseCreatorStore.getState();
+
+    if (currentState.archivePendingCourseId) {
+      return;
+    }
+
+    courseCreatorStore.setState({ archivePendingCourseId: courseId });
     showPageStatus("loading", "Archiving course...");
     catalogCourseService.archiveCourse(courseId).then(function (result) {
       if (!result || !result.emitted || !result.emitted.success) {
@@ -222,6 +232,7 @@ export class CatalogCoursePage {
       self.loadData();
     }).catch(function (error) {
       showPageStatus("error", error.message);
+      courseCreatorStore.setState({ archivePendingCourseId: "" });
     });
   }
 
@@ -307,10 +318,18 @@ export class CatalogCoursePage {
   }
 }
 
-function buildCourseCard(course) {
+function buildCourseCard(course, state) {
   var title = readLocalizedText(course.title, course.defaultLanguage) || "Untitled Course";
   var description = readLocalizedText(course.description, course.defaultLanguage) || "Add a description before publishing.";
   var status = readCourseStatus(course);
+  var isArchivePending = state && state.archivePendingCourseId === course.id;
+  var isAnyArchivePending = Boolean(state && state.archivePendingCourseId);
+  var cardClass = isArchivePending ? " builder-course-card-archiving" : "";
+  var actionDisabled = isArchivePending ? " disabled" : "";
+  var archiveDisabled = isAnyArchivePending || status === "archived" ? " disabled" : "";
+  var archiveLabel = isArchivePending
+    ? '<span class="oqu-spinner oqu-spinner-blue"></span> Archiving...'
+    : (status === "archived" ? "Archived" : "Archive");
   var moduleCount = readVerifiedCount(course, "moduleCount");
   var stepCount = readVerifiedCount(course, "stepCount");
   var countSource = course.countSource || course.moduleCountSource || "catalogCourses";
@@ -319,11 +338,12 @@ function buildCourseCard(course) {
   var legacySourceLabel = countSource === "courses" ? '<span class="builder-count-source">Legacy source</span>' : "";
 
   return `
-    <article class="builder-course-card">
+    <article class="builder-course-card${cardClass}" aria-busy="${isArchivePending ? "true" : "false"}">
       <div class="builder-course-card-top">
         <img src="./src/assets/module-stack.svg" alt="">
         <span class="builder-badge builder-badge-${escapeHtml(status)}">${escapeHtml(status)}</span>
       </div>
+      ${isArchivePending ? '<div class="builder-archive-overlay"><span class="oqu-spinner oqu-spinner-blue"></span><strong>Archiving course...</strong></div>' : ''}
       <h2>${escapeHtml(title)}</h2>
       <p>${escapeHtml(description)}</p>
       <div class="builder-course-meta">
@@ -333,11 +353,11 @@ function buildCourseCard(course) {
         <span>${escapeHtml(readUpdatedLabel(course.updatedAt || course.createdAt))}</span>
       </div>
       <div class="builder-card-actions">
-        <button data-course-action="edit" data-id="${escapeHtml(course.id)}">Edit</button>
-        <button data-course-action="preview" data-id="${escapeHtml(course.id)}">Preview</button>
-        <button data-course-action="publish" data-id="${escapeHtml(course.id)}">Publish</button>
-        <button data-course-action="assign" data-id="${escapeHtml(course.id)}">Assign</button>
-        <button data-course-action="archive" data-id="${escapeHtml(course.id)}">Archive</button>
+        <button data-course-action="edit" data-id="${escapeHtml(course.id)}"${actionDisabled}>Edit</button>
+        <button data-course-action="preview" data-id="${escapeHtml(course.id)}"${actionDisabled}>Preview</button>
+        <button data-course-action="publish" data-id="${escapeHtml(course.id)}"${actionDisabled}>Publish</button>
+        <button data-course-action="assign" data-id="${escapeHtml(course.id)}"${actionDisabled}>Assign</button>
+        <button class="${isArchivePending ? "builder-archive-btn-pending" : ""}" data-course-action="archive" data-id="${escapeHtml(course.id)}"${archiveDisabled}>${archiveLabel}</button>
       </div>
     </article>
   `;

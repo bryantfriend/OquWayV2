@@ -7,6 +7,7 @@ let state = {
     showArchived: false,
     isCreateModalOpen: false,
     isFetching: false,
+    archivePendingCourseId: "",
     error: null
 };
 

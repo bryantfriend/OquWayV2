@@ -1,5 +1,5 @@
-import { auth } from "../../packages/firebase/auth/index.js?v=1.1.132-course-creator-functions-map";
-import { verifyCourseCreatorAccess, normalizeRole } from "./src/auth/courseCreatorAuth.js?v=1.1.132-course-creator-functions-map";
+import { auth } from "../../packages/firebase/auth/index.js?v=1.1.133-course-archive-pending";
+import { verifyCourseCreatorAccess, normalizeRole } from "./src/auth/courseCreatorAuth.js?v=1.1.133-course-archive-pending";
 import {
     signInWithEmailAndPassword,
     onAuthStateChanged,

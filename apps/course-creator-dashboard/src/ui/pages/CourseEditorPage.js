@@ -1,12 +1,12 @@
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.132-course-creator-functions-map";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.132-course-creator-functions-map";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.133-course-archive-pending";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.133-course-archive-pending";
 import {
   getStepTypeDefinition,
   listStepTypeDefinitions,
   validateStepConfig
-} from "../../../../../packages/domain/steps/index.js?v=1.1.132-course-creator-functions-map";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.132-course-creator-functions-map";
-import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.132-course-creator-functions-map";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.133-course-archive-pending";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.133-course-archive-pending";
+import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.133-course-archive-pending";
 
 export class CourseEditorPage {
   constructor(courseId, moduleId) {

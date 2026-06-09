@@ -1,13 +1,13 @@
-import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.132-course-creator-functions-map';
-import { courseEditorService } from '../services/courseEditorService.js?v=1.1.132-course-creator-functions-map';
-import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.132-course-creator-functions-map';
-import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.132-course-creator-functions-map';
+import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.133-course-archive-pending';
+import { courseEditorService } from '../services/courseEditorService.js?v=1.1.133-course-archive-pending';
+import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.133-course-archive-pending';
+import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.133-course-archive-pending';
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge
-} from '../../../../../packages/ui/index.js?v=1.1.132-course-creator-functions-map';
+} from '../../../../../packages/ui/index.js?v=1.1.133-course-archive-pending';
 
 export class CourseOverviewPage {
   constructor(courseId, options) {
@@ -29,6 +29,7 @@ export class CourseOverviewPage {
     this.externalTaskLoading = false;
     this.externalTaskPendingId = "";
     this.externalTaskStatusFilter = "pending";
+    this.courseArchivePending = false;
     this.ALL_LANGUAGES = [
       { code: 'en', name: 'English (en)' },
       { code: 'ru', name: 'Russian (ru)' },
@@ -57,6 +58,7 @@ export class CourseOverviewPage {
             <button id="archiveCourseBtn" class="border border-orange-200 bg-orange-50 hover:bg-orange-100 text-orange-700 px-4 py-2 rounded-lg font-medium shadow-sm transition flex items-center gap-2">
               <i class="fa-solid fa-box-archive"></i> Archive
             </button>
+            <span id="archiveCourseStatus" class="hidden rounded-full border px-3 py-2 text-xs font-black"></span>
             <button id="publishCourseBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition flex items-center gap-2">
               <i class="fa-solid fa-arrow-up-from-bracket"></i> Publish Update
             </button>
@@ -985,14 +987,7 @@ export class CourseOverviewPage {
     });
 
     document.getElementById('archiveCourseBtn').addEventListener('click', function () {
-      courseEditorService.archiveCourse(self.courseId).then(function (result) {
-        if (!result || !result.emitted || !result.emitted.success) {
-          alert('Archive failed: ' + self.readResultErrorMessage(result));
-          return;
-        }
-        alert('Course archived.');
-        courseEditorService.openCourseEditor(self.courseId);
-      });
+      self.archiveCourse();
     });
 
     document.getElementById('closeCoursePreviewBtn').addEventListener('click', function () {
@@ -1259,6 +1254,94 @@ export class CourseOverviewPage {
     });
   }
 
+  archiveCourse() {
+    var self = this;
+
+    if (this.courseArchivePending) {
+      return;
+    }
+
+    this.setCourseArchivePendingState(true, 'Archiving course...', 'loading');
+
+    courseEditorService.archiveCourse(this.courseId).then(function (result) {
+      if (!result || !result.emitted || !result.emitted.success) {
+        throw new Error(self.readResultErrorMessage(result));
+      }
+
+      self.setCourseArchivePendingState(false, 'Course archived.', 'success');
+      self.refreshCourseArchiveControls({ status: 'archived', isArchived: true });
+      courseEditorService.openCourseEditor(self.courseId);
+    }).catch(function (error) {
+      self.setCourseArchivePendingState(false, error.message, 'error');
+    });
+  }
+
+  setCourseArchivePendingState(isPending, message, type) {
+    var archiveBtn = document.getElementById('archiveCourseBtn');
+    var controlsToLock = ['previewCourseBtn', 'publishCourseBtn', 'saveMetadataBtn'];
+
+    this.courseArchivePending = isPending;
+
+    if (archiveBtn) {
+      archiveBtn.disabled = isPending;
+      archiveBtn.classList.toggle('oqu-btn-pending', isPending);
+      archiveBtn.innerHTML = isPending
+        ? '<span class="oqu-spinner oqu-spinner-blue"></span> Archiving...'
+        : '<i class="fa-solid fa-box-archive"></i> Archive';
+    }
+
+    controlsToLock.forEach(function (id) {
+      var element = document.getElementById(id);
+      if (element) {
+        element.disabled = isPending;
+        element.classList.toggle('opacity-60', isPending);
+        element.classList.toggle('cursor-not-allowed', isPending);
+      }
+    });
+
+    this.setCourseArchiveStatus(message, type || (isPending ? 'loading' : ''));
+  }
+
+  setCourseArchiveStatus(message, type) {
+    var status = document.getElementById('archiveCourseStatus');
+
+    if (!status) {
+      return;
+    }
+
+    if (!message) {
+      status.textContent = '';
+      status.className = 'hidden rounded-full border px-3 py-2 text-xs font-black';
+      return;
+    }
+
+    status.className = readCourseArchiveStatusClass(type);
+    status.innerHTML = type === 'loading'
+      ? '<span class="oqu-spinner oqu-spinner-blue"></span> ' + escapeHtml(message)
+      : escapeHtml(message);
+  }
+
+  refreshCourseArchiveControls(course) {
+    var archiveBtn = document.getElementById('archiveCourseBtn');
+    var isArchived = Boolean(course && (course.isArchived || course.status === 'archived'));
+
+    if (!archiveBtn || this.courseArchivePending) {
+      return;
+    }
+
+    archiveBtn.disabled = isArchived;
+    archiveBtn.classList.toggle('oqu-btn-pending', false);
+    archiveBtn.classList.toggle('opacity-60', isArchived);
+    archiveBtn.classList.toggle('cursor-not-allowed', isArchived);
+    archiveBtn.innerHTML = isArchived
+      ? '<i class="fa-solid fa-box-archive"></i> Archived'
+      : '<i class="fa-solid fa-box-archive"></i> Archive';
+
+    if (isArchived) {
+      this.setCourseArchiveStatus('This course is archived.', 'success');
+    }
+  }
+
   updateUI(state) {
     if (state.error && !state.course) {
       document.getElementById('headerContextualTitle').textContent = 'Could not load course';
@@ -1314,10 +1397,12 @@ export class CourseOverviewPage {
       document.getElementById('courseVersionText').textContent = course.version || 1;
       document.getElementById('courseStatusText').textContent = course.status || 'draft';
       this.renderCourseSummary(course, state);
+      this.refreshCourseArchiveControls(course);
     } else {
       this.logCourseHeaderRender(state, null, 'Untitled Course');
       document.getElementById('headerContextualTitle').textContent = 'Course not found';
       this.renderCourseSummary(null, state);
+      this.refreshCourseArchiveControls(null);
     }
 
     var saveIndicator = document.getElementById('saveStatusIndicator');
@@ -2066,6 +2151,18 @@ function restoreModuleBtn(btn, html) {
   btn.innerHTML = html;
   btn.disabled = false;
   btn.classList.remove('oqu-btn-pending');
+}
+
+function readCourseArchiveStatusClass(type) {
+  if (type === 'success') {
+    return 'rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700';
+  }
+
+  if (type === 'error') {
+    return 'rounded-full border border-red-200 bg-red-50 px-3 py-2 text-xs font-black text-red-700';
+  }
+
+  return 'inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-black text-blue-700';
 }
 
 function setModuleWizardControlsDisabled(isDisabled) {

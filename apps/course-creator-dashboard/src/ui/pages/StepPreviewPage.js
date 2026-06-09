@@ -1,9 +1,9 @@
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.132-course-creator-functions-map";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.132-course-creator-functions-map";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.133-course-archive-pending";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.133-course-archive-pending";
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../../../../../packages/domain/steps/index.js?v=1.1.132-course-creator-functions-map";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.133-course-archive-pending";
 
 export class StepPreviewPage {
   constructor(courseId, moduleId, modeId, stepId) {
