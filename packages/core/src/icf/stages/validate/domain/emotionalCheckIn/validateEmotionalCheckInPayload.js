@@ -1,4 +1,4 @@
-import { isKnownEmotionalCheckInOption } from "../../../../../../../domain/emotionalCheckIns/index.js?v=1.1.161-universal-check-in";
+import { isKnownEmotionalCheckInOption } from "../../../../../../../domain/emotionalCheckIns/index.js?v=1.1.162-modal-stack";
 
 export function validateEmotionalCheckInPayload(executionState) {
   var payload = executionState.payload || {};

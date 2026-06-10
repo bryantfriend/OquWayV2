@@ -1,8 +1,8 @@
-import { validateStudentFruitLoginPayload } from "../../stages/validate/validators.js?v=1.1.124-location-icon-upload";
-import { normalizeStudentFruitLoginPayload } from "../../stages/normalize/normalizers.js?v=1.1.124-location-icon-upload";
-import { allowStudentLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.124-location-icon-upload";
-import { processStudentFruitLogin } from "../../stages/process/processors.js?v=1.1.124-location-icon-upload";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.124-location-icon-upload";
+import { validateStudentFruitLoginPayload } from "../../stages/validate/validators.js?v=1.1.162-modal-stack";
+import { normalizeStudentFruitLoginPayload } from "../../stages/normalize/normalizers.js?v=1.1.162-modal-stack";
+import { allowStudentLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.162-modal-stack";
+import { processStudentFruitLogin } from "../../stages/process/processors.js?v=1.1.162-modal-stack";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.162-modal-stack";
 
 export function StudentFruitLoginIntent() {
   return {

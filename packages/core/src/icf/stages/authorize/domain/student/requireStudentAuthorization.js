@@ -1,4 +1,4 @@
-import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.124-location-icon-upload";
+import { hasAnyRole } from "../../core/roleAuthorization.js?v=1.1.162-modal-stack";
 import { canAccessStudentDashboard } from "../../../../../../../permissions/index.js";
 
 export function requireStudentAuthorization(executionState) {

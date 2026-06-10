@@ -5,8 +5,8 @@ import {
   getStudentExternalTaskSubmissions,
   updateExternalTaskReview,
   uploadExternalTaskFile
-} from "../../../../../../../domain/externalTasks/index.js?v=1.1.124-location-icon-upload";
-import { resolveActorStudentId, resolveActorStudentIdentity } from "../../../../../../../domain/users/index.js?v=1.1.124-location-icon-upload";
+} from "../../../../../../../domain/externalTasks/index.js?v=1.1.162-modal-stack";
+import { resolveActorStudentId, resolveActorStudentIdentity } from "../../../../../../../domain/users/index.js?v=1.1.162-modal-stack";
 
 export async function processLoadExternalTaskStep(executionState) {
   var payload = executionState.payload || {};

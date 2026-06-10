@@ -1,4 +1,4 @@
-import { getEmotionalCheckInOption, normalizeEmotionKey } from "./options.js?v=1.1.161-universal-check-in";
+import { getEmotionalCheckInOption, normalizeEmotionKey } from "./options.js?v=1.1.162-modal-stack";
 
 export function buildEmotionalCheckInContext(userContext, programContext) {
   var user = userContext && typeof userContext === "object" ? userContext : {};

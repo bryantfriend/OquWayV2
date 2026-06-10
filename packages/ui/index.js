@@ -16,4 +16,4 @@ export {
   createCommandCenterTabs
 } from "./commandCenter/index.js";
 export { createEmptyState, createErrorState, createLoadingState } from "./states/index.js";
-export { renderEmotionalCheckInGate } from "./emotionalCheckInGate.js?v=1.1.161-universal-check-in";
+export { renderEmotionalCheckInGate } from "./emotionalCheckInGate.js?v=1.1.162-modal-stack";

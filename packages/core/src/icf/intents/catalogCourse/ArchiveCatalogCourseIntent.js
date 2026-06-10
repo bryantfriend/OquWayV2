@@ -1,9 +1,9 @@
-import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.124-location-icon-upload";
-import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.124-location-icon-upload";
-import { attachExistingCourseContext } from "../../stages/addContext/contexts.js?v=1.1.124-location-icon-upload";
-import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.124-location-icon-upload";
-import { catalogCourseArchiveProcessing } from "../../stages/process/processors.js?v=1.1.134-archive-course-assignments";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.124-location-icon-upload";
+import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
+import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
+import { attachExistingCourseContext } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
+import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.162-modal-stack";
+import { catalogCourseArchiveProcessing } from "../../stages/process/processors.js?v=1.1.162-modal-stack";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.162-modal-stack";
 
 export function ArchiveCatalogCourseIntent() {
     return {

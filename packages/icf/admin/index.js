@@ -4,5 +4,5 @@ export {
   registerIntent,
   registerIntentDefinitions,
   runAdminIntent
-} from "./intentRegistry.js?v=1.1.141-user-command-context-data";
-export { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.141-user-command-context-data";
+} from "./intentRegistry.js?v=1.1.162-modal-stack";
+export { runIntentPipeline } from "./runIntentPipeline.js?v=1.1.162-modal-stack";

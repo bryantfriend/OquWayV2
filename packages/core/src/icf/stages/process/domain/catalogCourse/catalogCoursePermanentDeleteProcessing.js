@@ -1,4 +1,4 @@
-import { db, deleteDoc, doc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.124-location-icon-upload";
+import { db, deleteDoc, doc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
 
 export async function catalogCoursePermanentDeleteProcessing(executionState) {
     const { payload, context } = executionState;

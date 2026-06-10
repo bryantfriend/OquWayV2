@@ -1,8 +1,8 @@
-import { validateTeacherPasswordResetPayload } from "../../stages/validate/validators.js?v=1.1.129-teacher-query-noise";
-import { normalizeTeacherPasswordResetPayload } from "../../stages/normalize/normalizers.js?v=1.1.129-teacher-query-noise";
-import { allowTeacherLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.129-teacher-query-noise";
-import { processSendTeacherPasswordReset } from "../../stages/process/processors.js?v=1.1.129-teacher-query-noise";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.129-teacher-query-noise";
+import { validateTeacherPasswordResetPayload } from "../../stages/validate/validators.js?v=1.1.162-modal-stack";
+import { normalizeTeacherPasswordResetPayload } from "../../stages/normalize/normalizers.js?v=1.1.162-modal-stack";
+import { allowTeacherLoginAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.162-modal-stack";
+import { processSendTeacherPasswordReset } from "../../stages/process/processors.js?v=1.1.162-modal-stack";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.162-modal-stack";
 
 export function SendTeacherPasswordResetIntent() {
   return {

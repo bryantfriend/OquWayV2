@@ -1,11 +1,11 @@
-import { catalogCourseRequireModuleIdValidation, catalogCourseValidateStepConfigValidation } from "../../stages/validate/validators.js?v=1.1.124-location-icon-upload";
-import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.124-location-icon-upload";
-import { attachTimestampContext, attachCreatedByContext } from "../../stages/addContext/contexts.js?v=1.1.124-location-icon-upload";
-import { attachExistingModuleContext } from "../../stages/addContext/contexts.js?v=1.1.124-location-icon-upload";
-import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.124-location-icon-upload";
-import { preventModificationIfPublishedAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.124-location-icon-upload";
-import { catalogStepCreateProcessing } from "../../stages/process/processors.js?v=1.1.124-location-icon-upload";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.124-location-icon-upload";
+import { catalogCourseRequireModuleIdValidation, catalogCourseValidateStepConfigValidation } from "../../stages/validate/validators.js?v=1.1.162-modal-stack";
+import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
+import { attachTimestampContext, attachCreatedByContext } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
+import { attachExistingModuleContext } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
+import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.162-modal-stack";
+import { preventModificationIfPublishedAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.162-modal-stack";
+import { catalogStepCreateProcessing } from "../../stages/process/processors.js?v=1.1.162-modal-stack";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.162-modal-stack";
 
 export function CreateCatalogStepIntent() {
     return {

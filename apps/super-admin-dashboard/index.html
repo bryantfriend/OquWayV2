@@ -27,6 +27,7 @@
             --green: #059669;
             --red: #dc2626;
             --sand: #fff7ed;
+            --sa-modal-stack-base: 1000;
         }
 
         body {
@@ -788,7 +789,6 @@
 
         .sa-class-staff-backdrop,
         .sa-assignment-staff-backdrop {
-            z-index: 120;
         }
 
         .sa-staff-picker-list {
@@ -2146,7 +2146,7 @@
         .sa-modal-backdrop {
             position: fixed;
             inset: 0;
-            z-index: 30;
+            z-index: var(--sa-modal-stack-base);
             background: rgba(15,23,42,0.52);
             display: flex;
             align-items: center;
@@ -2278,7 +2278,6 @@
         }
 
         .sa-user-edit-backdrop {
-            z-index: 120;
             align-items: stretch;
             overflow-y: auto;
             padding: 28px;
@@ -2308,7 +2307,6 @@
         }
 
         .sa-user-location-picker-backdrop {
-            z-index: 140;
         }
 
         .sa-user-location-picker-modal {
@@ -3732,7 +3730,7 @@
         .sa-location-command-backdrop {
             position: fixed;
             inset: 0;
-            z-index: 80;
+            z-index: var(--sa-modal-stack-base);
             padding: 22px;
             background: rgba(15, 23, 42, 0.72);
             backdrop-filter: blur(10px);
@@ -4500,7 +4498,7 @@
         <h1>Core System Configuration</h1>
         <p>Managing the heart of the national educational engine...</p>
     </main>
-    <script type="module" src="./src/main.js?v=1.1.143-assignment-course-picker-scroll"></script>
+    <script type="module" src="./src/main.js?v=1.1.162-modal-stack"></script>
 </body>
 
 </html>

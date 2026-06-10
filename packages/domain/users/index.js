@@ -104,8 +104,8 @@ function addRole(roles, role) {
   }
 }
 
-export * from "./roleService.js?v=1.1.129-teacher-query-noise";
-export * from "./studentIdentity.js?v=1.1.129-teacher-query-noise";
-export * from "./teacherIdentity.js?v=1.1.129-teacher-query-noise";
-export * from "./userQueries.js?v=1.1.129-teacher-query-noise";
-export * from "./userRepository.js?v=1.1.129-teacher-query-noise";
+export * from "./roleService.js?v=1.1.162-modal-stack";
+export * from "./studentIdentity.js?v=1.1.162-modal-stack";
+export * from "./teacherIdentity.js?v=1.1.162-modal-stack";
+export * from "./userQueries.js?v=1.1.162-modal-stack";
+export * from "./userRepository.js?v=1.1.162-modal-stack";

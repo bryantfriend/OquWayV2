@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.161-universal-check-in";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.161-universal-check-in";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.161-universal-check-in";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.162-modal-stack";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.162-modal-stack";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.162-modal-stack";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,17 +13,17 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.161-universal-check-in";
+} from "../../../packages/domain/progress/index.js?v=1.1.162-modal-stack";
 import {
   createEmptyState,
   createErrorState,
   createStatusBadge,
   formatStatusLabel,
   renderEmotionalCheckInGate
-} from "../../../packages/ui/index.js?v=1.1.161-universal-check-in";
-import { emotionalCheckInService } from "../../../packages/shared/emotionalCheckIns/index.js?v=1.1.161-universal-check-in";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.161-universal-check-in";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.161-universal-check-in";
+} from "../../../packages/ui/index.js?v=1.1.162-modal-stack";
+import { emotionalCheckInService } from "../../../packages/shared/emotionalCheckIns/index.js?v=1.1.162-modal-stack";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.162-modal-stack";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.162-modal-stack";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;

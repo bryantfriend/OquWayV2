@@ -1,5 +1,5 @@
-import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.149-student-course-metadata";
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.124-location-icon-upload";
+import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.162-modal-stack";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.162-modal-stack";
 import { calculateCourseCompletion, calculateCourseProgressSummary } from "../../../../../../../domain/progress/index.js";
 
 export async function processLoadStudentDashboard(executionState) {

@@ -1,4 +1,4 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.124-location-icon-upload";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
 import { createDefaultStepConfig } from "../../../../../../../domain/steps/index.js";
 
 export async function processUpdateLearningModeStep(executionState) {

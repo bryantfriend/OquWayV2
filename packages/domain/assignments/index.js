@@ -36,4 +36,4 @@ export function assignmentBelongsToTeacher(assignment, teacherIds) {
     }));
 }
 
-export * from "./assignmentRepository.js?v=1.1.121-student-dashboard-open-clean";
+export * from "./assignmentRepository.js?v=1.1.162-modal-stack";

@@ -1,13 +1,14 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth, collection, db, deleteDoc, deleteObject, doc, functions, getDoc, getDocs, getDownloadURL, httpsCallable, ref, serverTimestamp, setDoc, storage, uploadBytes } from "../../../../../packages/firebase/index.js?v=1.1.143-assignment-course-picker-scroll";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.143-assignment-course-picker-scroll";
-import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.143-assignment-course-picker-scroll";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.143-assignment-course-picker-scroll";
-import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.143-assignment-course-picker-scroll";
-import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.143-assignment-course-picker-scroll";
+import { auth, collection, db, deleteDoc, deleteObject, doc, functions, getDoc, getDocs, getDownloadURL, httpsCallable, ref, serverTimestamp, setDoc, storage, uploadBytes } from "../../../../../packages/firebase/index.js?v=1.1.162-modal-stack";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.162-modal-stack";
+import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.162-modal-stack";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.162-modal-stack";
+import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.162-modal-stack";
+import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.162-modal-stack";
+import { installModalStacking, syncModalStack } from "./modalStack.js?v=1.1.162-modal-stack";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.143-assignment-course-picker-scroll";
+var appVersion = "1.1.162-modal-stack";
 var adminCallableFunctions = functions;
 var state = {
   isLoading: true,
@@ -142,6 +143,7 @@ if (appElement) {
   appElement.addEventListener("click", handleClick);
   appElement.addEventListener("input", handleInput);
   appElement.addEventListener("change", handleInput);
+  installModalStacking(appElement);
 }
 
 document.addEventListener("keydown", handleKeyDown);
@@ -472,20 +474,24 @@ function render() {
 
   if (state.isLoading || state.authPhase === "checkingAuth" || state.authPhase === "profileLoading") {
     appElement.innerHTML = buildLoadingView();
+    syncModalStack(appElement);
     return;
   }
 
   if (state.needsLogin) {
     appElement.innerHTML = buildLoginView();
+    syncModalStack(appElement);
     return;
   }
 
   if (!state.actor || !actorHasSuperAdminRole(state.actor)) {
     appElement.innerHTML = buildAccessDeniedView();
+    syncModalStack(appElement);
     return;
   }
 
   appElement.innerHTML = buildDashboardView();
+  syncModalStack(appElement);
 }
 
 function buildLoadingView() {
@@ -1402,7 +1408,7 @@ function buildUserCreateModal() {
     return "";
   }
 
-  var html = '<div class="sa-modal-backdrop sa-user-create-backdrop" data-user-create-backdrop="true"><section class="sa-modal sa-user-edit-modal sa-user-create-modal" role="dialog" aria-modal="true" aria-label="Create User Profile">';
+  var html = '<div class="sa-modal-backdrop sa-user-create-backdrop"' + buildModalStackAttributes("user-create") + ' data-user-create-backdrop="true"><section class="sa-modal sa-user-edit-modal sa-user-create-modal" role="dialog" aria-modal="true" aria-label="Create User Profile">';
 
   html += '<div class="sa-user-edit-hero">';
   html += '<div class="sa-user-edit-identity"><div class="sa-avatar sa-avatar-fallback">+</div><div><p class="sa-eyebrow">Identity & Access</p><h2>Create User Profile</h2><div class="sa-user-edit-meta"><span>This creates a Firestore profile only.</span></div></div></div>';
@@ -1571,12 +1577,12 @@ function buildUserCommandCenterModal() {
   var user = getSafeUser(findUser(command.userId));
 
   if (!user.id) {
-    return '<div class="sa-location-command-backdrop sa-user-command-backdrop" role="dialog" aria-modal="true" aria-label="User Command Center"><section class="sa-location-command-modal sa-user-command-modal">' + createEmptyState("User not found.", "Return to the user list and open a current profile.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '<button type="button" class="sa-location-command-close" data-action="close-user-command-center" aria-label="Close">x</button></section></div>';
+    return '<div class="sa-location-command-backdrop sa-user-command-backdrop"' + buildModalStackAttributes("user-command") + ' role="dialog" aria-modal="true" aria-label="User Command Center"><section class="sa-location-command-modal sa-user-command-modal">' + createEmptyState("User not found.", "Return to the user list and open a current profile.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '<button type="button" class="sa-location-command-close" data-action="close-user-command-center" aria-label="Close">x</button></section></div>';
   }
 
   var context = readUserCommandContext(user);
 
-  return '<div class="sa-location-command-backdrop sa-user-command-backdrop" role="dialog" aria-modal="true" aria-label="User Command Center">'
+  return '<div class="sa-location-command-backdrop sa-user-command-backdrop"' + buildModalStackAttributes("user-command") + ' role="dialog" aria-modal="true" aria-label="User Command Center">'
     + '<section class="sa-location-command-modal sa-user-command-modal">'
     + buildUserCommandHeader(user, context)
     + '<div class="sa-location-command-shell sa-user-command-shell">'
@@ -1904,7 +1910,7 @@ function buildCourseCommandCenterModal() {
 
   var context = readCourseCommandContext(course);
 
-  return '<div class="sa-location-command-backdrop sa-course-command-backdrop" role="dialog" aria-modal="true" aria-label="Course Command Center">'
+  return '<div class="sa-location-command-backdrop sa-course-command-backdrop"' + buildModalStackAttributes("course-command") + ' role="dialog" aria-modal="true" aria-label="Course Command Center">'
     + '<section class="sa-location-command-modal sa-course-command-modal">'
     + buildCourseCommandHeader(course, context)
     + '<div class="sa-location-command-shell sa-course-command-shell">'
@@ -1930,7 +1936,7 @@ function buildModuleCommandCenterModal() {
 
   var context = readModuleCommandContext(course, moduleRecord);
 
-  return '<div class="sa-location-command-backdrop sa-module-command-backdrop" role="dialog" aria-modal="true" aria-label="Module Command Center">'
+  return '<div class="sa-location-command-backdrop sa-module-command-backdrop"' + buildModalStackAttributes("module-command") + ' role="dialog" aria-modal="true" aria-label="Module Command Center">'
     + '<section class="sa-location-command-modal sa-module-command-modal">'
     + buildModuleCommandHeader(moduleRecord, context)
     + '<div class="sa-location-command-shell sa-module-command-shell">'
@@ -1941,7 +1947,7 @@ function buildModuleCommandCenterModal() {
 }
 
 function buildMissingCommandModal(label, title, message, closeAction) {
-  return '<div class="sa-location-command-backdrop" role="dialog" aria-modal="true" aria-label="' + escapeHtml(label) + '"><section class="sa-location-command-modal sa-course-command-modal">'
+  return '<div class="sa-location-command-backdrop"' + buildModalStackAttributes("missing-" + closeAction) + ' role="dialog" aria-modal="true" aria-label="' + escapeHtml(label) + '"><section class="sa-location-command-modal sa-course-command-modal">'
     + createEmptyState(title, message, { className: "sa-command-empty", titleTag: "strong", messageTag: "span" })
     + '<button type="button" class="sa-location-command-close" data-action="' + escapeHtml(closeAction) + '" aria-label="Close">x</button></section></div>';
 }
@@ -2238,7 +2244,7 @@ function buildUserEditModal() {
   var title = form.displayName || form.email || form.userId || "User profile";
   var subtitle = (form.roles || []).map(readRoleLabel).join(" / ") || "No role";
   var actionKey = "update-user:" + modal.userId;
-  var html = '<div class="sa-modal-backdrop sa-user-edit-backdrop"><section class="sa-modal sa-user-edit-modal" role="dialog" aria-modal="true" aria-label="Edit user">';
+  var html = '<div class="sa-modal-backdrop sa-user-edit-backdrop"' + buildModalStackAttributes("user-edit") + '><section class="sa-modal sa-user-edit-modal" role="dialog" aria-modal="true" aria-label="Edit user">';
 
   html += '<div class="sa-user-edit-hero">';
   html += '<div class="sa-user-edit-identity">' + buildAvatar(Object.assign({}, user, form)) + '<div><p class="sa-eyebrow">Edit User</p><h2>' + escapeHtml(title || "Untitled User") + '</h2><div class="sa-user-edit-meta"><span>' + escapeHtml(subtitle) + '</span>' + buildStatusBadge(form.status) + '</div><div class="sa-role-badges">' + buildRoleBadges(form.roles) + '</div></div></div>';
@@ -2553,7 +2559,7 @@ function buildLocationCommandCenterModal() {
   var location = getSafeLocation(findLocation(command.locationId));
   var stats = readLocationCommandStats(location.id);
 
-  return '<div class="sa-location-command-backdrop" role="dialog" aria-modal="true" aria-label="Location Command Center">'
+  return '<div class="sa-location-command-backdrop"' + buildModalStackAttributes("location-command") + ' role="dialog" aria-modal="true" aria-label="Location Command Center">'
     + '<section class="sa-location-command-modal">'
     + '<header class="sa-location-command-header">'
     + '<div class="sa-location-command-identity">'
@@ -3614,6 +3620,10 @@ function buildCheckbox(kind, id, field, label, checked) {
   return '<label class="sa-check"><input type="checkbox" data-field-kind="' + kind + '" data-field-id="' + escapeHtml(id) + '" data-field="' + escapeHtml(field) + '"' + (checked ? " checked" : "") + '><span>' + escapeHtml(label) + '</span></label>';
 }
 
+function buildModalStackAttributes(key) {
+  return ' data-modal-stack-key="' + escapeHtml(key) + '"';
+}
+
 function buildResetModal() {
   if (!state.resetStudentId) {
     return "";
@@ -3623,7 +3633,7 @@ function buildResetModal() {
   var name = student ? student.name : state.resetStudentId;
   var isFruitResetLocked = state.fruitResetSaveStatus === "saving" || state.fruitResetSaveStatus === "saved";
 
-  return '<div class="sa-modal-backdrop"><section class="sa-modal sa-fruit-reset-modal"><h2>Reset Fruit Password</h2><p>' + escapeHtml(name) + '</p><p class="sa-summary">A random fruit password is ready locally. It will not be saved until you click Save Password.</p>' + buildFruitSelector("reset", state.resetFruitPassword) + buildFruitResetFeedback() + '<div class="sa-modal-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="regenerate-reset-fruit"' + disabled(isFruitResetLocked) + '>Regenerate</button><button type="button" class="sa-btn sa-btn-secondary" data-action="close-reset-fruit"' + disabled(isFruitResetLocked) + '>Cancel</button><button type="button" class="sa-btn" data-action="confirm-reset-fruit"' + disabled(state.resetFruitPassword.length !== 4 || isFruitResetLocked) + '>Save Password</button></div>' + buildFruitResetSavingOverlay() + '</section></div>';
+  return '<div class="sa-modal-backdrop"' + buildModalStackAttributes("fruit-reset") + '><section class="sa-modal sa-fruit-reset-modal"><h2>Reset Fruit Password</h2><p>' + escapeHtml(name) + '</p><p class="sa-summary">A random fruit password is ready locally. It will not be saved until you click Save Password.</p>' + buildFruitSelector("reset", state.resetFruitPassword) + buildFruitResetFeedback() + '<div class="sa-modal-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="regenerate-reset-fruit"' + disabled(isFruitResetLocked) + '>Regenerate</button><button type="button" class="sa-btn sa-btn-secondary" data-action="close-reset-fruit"' + disabled(isFruitResetLocked) + '>Cancel</button><button type="button" class="sa-btn" data-action="confirm-reset-fruit"' + disabled(state.resetFruitPassword.length !== 4 || isFruitResetLocked) + '>Save Password</button></div>' + buildFruitResetSavingOverlay() + '</section></div>';
 }
 
 function buildFruitResetFeedback() {
@@ -3650,7 +3660,7 @@ function buildStaffPasswordResetModal() {
     return "";
   }
 
-  return '<div class="sa-modal-backdrop"><section class="sa-modal sa-staff-reset-modal" role="dialog" aria-modal="true" aria-labelledby="staff-reset-title"><p class="sa-eyebrow">Staff Access</p><h2 id="staff-reset-title">Reset password</h2><p>Enter the email for your staff account. Firebase will send the reset link.</p><div class="sa-form"><label>Email<input type="email" data-staff-reset-field="email" value="' + escapeHtml(state.staffResetEmail) + '" placeholder="admin@example.com"></label></div>' + buildStaffResetStatus() + '<div class="sa-modal-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="close-staff-login-reset"' + disabled(state.isSaving) + '>Cancel</button><button type="button" class="sa-btn" data-action="send-staff-login-reset"' + disabled(state.isSaving) + '>' + buildButtonContent("Send Reset Link", "staff-login-reset") + '</button></div></section></div>';
+  return '<div class="sa-modal-backdrop"' + buildModalStackAttributes("staff-reset") + '><section class="sa-modal sa-staff-reset-modal" role="dialog" aria-modal="true" aria-labelledby="staff-reset-title"><p class="sa-eyebrow">Staff Access</p><h2 id="staff-reset-title">Reset password</h2><p>Enter the email for your staff account. Firebase will send the reset link.</p><div class="sa-form"><label>Email<input type="email" data-staff-reset-field="email" value="' + escapeHtml(state.staffResetEmail) + '" placeholder="admin@example.com"></label></div>' + buildStaffResetStatus() + '<div class="sa-modal-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="close-staff-login-reset"' + disabled(state.isSaving) + '>Cancel</button><button type="button" class="sa-btn" data-action="send-staff-login-reset"' + disabled(state.isSaving) + '>' + buildButtonContent("Send Reset Link", "staff-login-reset") + '</button></div></section></div>';
 }
 
 function buildStaffResetStatus() {
@@ -3669,7 +3679,7 @@ function buildClassPickerModal() {
   var picker = state.classPicker;
   var classes = readClassPickerClasses(picker);
   var title = picker.mode === "primary" ? "Choose Primary Class" : "Add Additional Classes";
-  var html = '<div class="sa-modal-backdrop"><section class="sa-modal"><h2>' + escapeHtml(title) + '</h2><p>Search classes and confirm the selection. Location names are shown beside each class.</p>';
+  var html = '<div class="sa-modal-backdrop"' + buildModalStackAttributes("class-picker") + '><section class="sa-modal"><h2>' + escapeHtml(title) + '</h2><p>Search classes and confirm the selection. Location names are shown beside each class.</p>';
   html += '<div class="sa-form sa-form-2"><label>Search<input type="search" data-class-picker-search="true" value="' + escapeHtml(picker.searchText) + '" placeholder="Search class or location"></label><label><span>Scope</span><span class="sa-check-row"><input type="checkbox" data-class-picker-all-locations="true"' + (picker.includeAllLocations ? " checked" : "") + '> Search all locations</span></label></div>';
   html += '<div class="sa-table" style="max-height:320px;overflow:auto;margin-top:12px">';
 
@@ -3700,7 +3710,7 @@ function buildUserLocationPickerModal() {
   var isPrimary = picker.mode === "primary";
   var title = isPrimary ? "Choose Primary Location" : "Choose Locations";
   var locations = readUserLocationPickerLocations(picker);
-  var html = '<div class="sa-modal-backdrop sa-user-location-picker-backdrop" data-user-location-picker-backdrop="true"><section class="sa-modal sa-user-location-picker-modal" role="dialog" aria-modal="true" aria-label="' + escapeHtml(title) + '">';
+  var html = '<div class="sa-modal-backdrop sa-user-location-picker-backdrop"' + buildModalStackAttributes("user-location-picker") + ' data-user-location-picker-backdrop="true"><section class="sa-modal sa-user-location-picker-modal" role="dialog" aria-modal="true" aria-label="' + escapeHtml(title) + '">';
 
   html += '<div class="sa-section-title"><div><p class="sa-eyebrow">Identity & Access</p><h2>' + escapeHtml(title) + '</h2><p>Search locations without scrolling through a long select list.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="close-user-location-picker">Close</button></div>';
   html += '<div class="sa-form"><label>Search<input type="search" data-user-location-picker-search="true" value="' + escapeHtml(picker.searchText) + '" placeholder="Search location name or ID"></label></div>';
@@ -3742,7 +3752,7 @@ function buildClassStaffPickerModal() {
   var users = readClassStaffPickerUsers(picker);
   var isPrimary = picker.mode === "primary";
   var title = isPrimary ? "Assign Teacher" : "Manage Assistants";
-  var html = '<div class="sa-modal-backdrop sa-class-staff-backdrop"><section class="sa-modal sa-class-staff-modal" role="dialog" aria-modal="true">';
+  var html = '<div class="sa-modal-backdrop sa-class-staff-backdrop"' + buildModalStackAttributes("class-staff-picker") + '><section class="sa-modal sa-class-staff-modal" role="dialog" aria-modal="true">';
 
   html += '<div class="sa-section-title"><div><p class="sa-eyebrow">Class Staff</p><h2>' + escapeHtml(title) + '</h2><p>' + escapeHtml(classRecord.name || picker.classId || "Class") + '</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="close-class-staff-picker">Close</button></div>';
   html += '<div class="sa-form"><label>Search<input type="search" data-class-staff-picker-search="true" value="' + escapeHtml(picker.searchText) + '" placeholder="Search name, role, location, or email"></label></div>';
@@ -3775,7 +3785,7 @@ function buildAssignmentCoursePickerModal() {
   }
 
   var courses = readAssignmentPickerCourses();
-  var html = '<div class="sa-modal-backdrop"><section class="sa-modal sa-assignment-picker-modal sa-assignment-course-picker-modal"><div class="sa-section-title"><div><p class="sa-eyebrow">Course Assignment</p><h2>Select Course</h2><p>Search courses and choose the learning program to assign.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="close-assignment-course-picker">Close</button></div>';
+  var html = '<div class="sa-modal-backdrop"' + buildModalStackAttributes("assignment-course-picker") + '><section class="sa-modal sa-assignment-picker-modal sa-assignment-course-picker-modal"><div class="sa-section-title"><div><p class="sa-eyebrow">Course Assignment</p><h2>Select Course</h2><p>Search courses and choose the learning program to assign.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="close-assignment-course-picker">Close</button></div>';
   html += '<div class="sa-form sa-form-2"><label>Search<input type="search" data-assignment-course-picker-field="searchText" value="' + escapeHtml(picker.searchText) + '" placeholder="Search title or description"></label><label>Status<select data-assignment-course-picker-field="statusFilter"><option value="">All</option><option value="published"' + selected(picker.statusFilter, "published") + '>Published</option><option value="draft"' + selected(picker.statusFilter, "draft") + '>Draft</option><option value="archived"' + selected(picker.statusFilter, "archived") + '>Archived</option></select></label></div>';
   html += '<div class="sa-picker-grid sa-assignment-course-grid">';
 
@@ -3802,7 +3812,7 @@ function buildAssignmentTargetPickerModal() {
   }
 
   var items = picker.targetType === "student" ? readAssignmentPickerStudents() : readAssignmentPickerClasses();
-  var html = '<div class="sa-modal-backdrop"><section class="sa-modal sa-assignment-picker-modal"><div class="sa-section-title"><div><p class="sa-eyebrow">Course Assignment</p><h2>Select Target</h2><p>Choose a class or an individual student without saving the assignment yet.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="close-assignment-target-picker">Close</button></div>';
+  var html = '<div class="sa-modal-backdrop"' + buildModalStackAttributes("assignment-target-picker") + '><section class="sa-modal sa-assignment-picker-modal"><div class="sa-section-title"><div><p class="sa-eyebrow">Course Assignment</p><h2>Select Target</h2><p>Choose a class or an individual student without saving the assignment yet.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="close-assignment-target-picker">Close</button></div>';
   html += '<div class="sa-form sa-form-2"><label>Target Type<select data-assignment-target-picker-field="targetType"><option value="class"' + selected(picker.targetType, "class") + '>Class</option><option value="student"' + selected(picker.targetType, "student") + '>Individual Student</option></select></label><label>Location' + buildOptionsSelectFromList('data-assignment-target-picker-field="locationId"', picker.locationId, state.locations, "Choose location") + '</label><label>Search<input type="search" data-assignment-target-picker-field="searchText" value="' + escapeHtml(picker.searchText) + '" placeholder="Search names"></label><label><span>Scope</span><span class="sa-check-row"><input type="checkbox" data-assignment-target-picker-check="includeAllLocations"' + (picker.includeAllLocations ? " checked" : "") + '> Search all locations</span></label></div>';
 
   if (picker.targetType === "student") {
@@ -3841,7 +3851,7 @@ function buildAssignmentStaffPickerModal() {
   var isResponsible = picker.mode === "responsible";
   var title = isResponsible ? "Assign Teacher" : "Manage Assistants";
   var assignmentLabel = assignment && assignment.courseId ? readCourseName(assignment.courseId) : "New assignment";
-  var html = '<div class="sa-modal-backdrop sa-assignment-staff-backdrop"><section class="sa-modal sa-class-staff-modal" role="dialog" aria-modal="true">';
+  var html = '<div class="sa-modal-backdrop sa-assignment-staff-backdrop"' + buildModalStackAttributes("assignment-staff-picker") + '><section class="sa-modal sa-class-staff-modal" role="dialog" aria-modal="true">';
 
   html += '<div class="sa-section-title"><div><p class="sa-eyebrow">Course Staff</p><h2>' + escapeHtml(title) + '</h2><p>' + escapeHtml(assignmentLabel) + '</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="close-assignment-staff-picker">Close</button></div>';
   html += '<div class="sa-form"><label>Search<input type="search" data-assignment-staff-picker-search="true" value="' + escapeHtml(picker.searchText) + '" placeholder="Search name, role, location, or email"></label></div>';
@@ -3877,7 +3887,7 @@ function buildAssignmentDeleteModal() {
   var isDeleting = modal.status === "deleting";
   var isDeleted = modal.status === "deleted";
 
-  return '<div class="sa-modal-backdrop"><section class="sa-modal sa-delete-assignment-modal"><h2>Delete Course Assignment?</h2><p>This will remove this assignment from students. This cannot be undone.</p><div class="sa-assignment-review-card"><strong>' + escapeHtml(assignment ? readCourseName(assignment.courseId) : modal.assignmentId) + '</strong><small>' + escapeHtml(assignment ? readAssignmentTargetName(assignment) : "") + '</small></div>' + buildAssignmentDeleteAnimation(isDeleting, isDeleted, modal.message) + '<div class="sa-modal-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="close-delete-assignment"' + disabled(isDeleting || isDeleted) + '>Cancel</button><button type="button" class="sa-btn sa-danger-btn" data-action="confirm-delete-assignment"' + disabled(isDeleting || isDeleted) + '>Delete Assignment</button></div></section></div>';
+  return '<div class="sa-modal-backdrop"' + buildModalStackAttributes("assignment-delete") + '><section class="sa-modal sa-delete-assignment-modal"><h2>Delete Course Assignment?</h2><p>This will remove this assignment from students. This cannot be undone.</p><div class="sa-assignment-review-card"><strong>' + escapeHtml(assignment ? readCourseName(assignment.courseId) : modal.assignmentId) + '</strong><small>' + escapeHtml(assignment ? readAssignmentTargetName(assignment) : "") + '</small></div>' + buildAssignmentDeleteAnimation(isDeleting, isDeleted, modal.message) + '<div class="sa-modal-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="close-delete-assignment"' + disabled(isDeleting || isDeleted) + '>Cancel</button><button type="button" class="sa-btn sa-danger-btn" data-action="confirm-delete-assignment"' + disabled(isDeleting || isDeleted) + '>Delete Assignment</button></div></section></div>';
 }
 
 function buildAssignmentDeleteAnimation(isDeleting, isDeleted, message) {

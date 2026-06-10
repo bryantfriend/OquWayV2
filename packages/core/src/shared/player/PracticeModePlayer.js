@@ -1,7 +1,7 @@
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../stepTypes/stepTypeRegistry.js?v=1.1.159-emotional-regulation";
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.162-modal-stack";
 
 export class PracticeModePlayer {
   constructor(options) {

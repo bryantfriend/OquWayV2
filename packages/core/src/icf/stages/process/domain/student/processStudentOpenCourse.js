@@ -1,6 +1,6 @@
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.124-location-icon-upload";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.124-location-icon-upload";
-import { resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.124-location-icon-upload";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.162-modal-stack";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.162-modal-stack";
+import { resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.162-modal-stack";
 
 export async function processStudentOpenCourse(executionState) {
   var payload = executionState.payload || {};

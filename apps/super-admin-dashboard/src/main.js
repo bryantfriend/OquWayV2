@@ -1,5 +1,5 @@
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.143-assignment-course-picker-scroll";
-import { initApp } from "./js/app/initApp.js?v=1.1.143-assignment-course-picker-scroll";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.162-modal-stack";
+import { initApp } from "./js/app/initApp.js?v=1.1.162-modal-stack";
 
 console.log("[oquway-build]", OQUWAY_BUILD_VERSION);
 

@@ -1,8 +1,8 @@
-import { appState, updateAppState } from "./appState.js?v=1.1.143-assignment-course-picker-scroll";
-import { registerIntentDefinitions, runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.143-assignment-course-picker-scroll";
-import { createClassesIntentRegistrar, createDashboardIntentRegistrar, createUsersIntentRegistrar } from "../../../../../packages/icf/admin/intents/index.js?v=1.1.143-assignment-course-picker-scroll";
-import { createUser, deleteUser, disableUser, getUser, getUsers, sendPasswordReset, updateUser } from "../users/usersService.js?v=1.1.143-assignment-course-picker-scroll";
-import { resetFruitPassword } from "../users/fruitPasswordService.js?v=1.1.143-assignment-course-picker-scroll";
+import { appState, updateAppState } from "./appState.js?v=1.1.162-modal-stack";
+import { registerIntentDefinitions, runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.162-modal-stack";
+import { createClassesIntentRegistrar, createDashboardIntentRegistrar, createUsersIntentRegistrar } from "../../../../../packages/icf/admin/intents/index.js?v=1.1.162-modal-stack";
+import { createUser, deleteUser, disableUser, getUser, getUsers, sendPasswordReset, updateUser } from "../users/usersService.js?v=1.1.162-modal-stack";
+import { resetFruitPassword } from "../users/fruitPasswordService.js?v=1.1.162-modal-stack";
 
 export async function initApp() {
   registerIntentDefinitions([
@@ -25,7 +25,7 @@ export async function initApp() {
     runIntent: runAdminIntent
   };
 
-  await import("./legacyDashboard.js?v=1.1.143-assignment-course-picker-scroll");
+  await import("./legacyDashboard.js?v=1.1.162-modal-stack");
   updateAppState({ legacyDashboardLoaded: true });
 }
 

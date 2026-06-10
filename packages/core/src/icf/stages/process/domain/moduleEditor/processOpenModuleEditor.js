@@ -1,4 +1,4 @@
-import { createDefaultLearningContent, createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.124-location-icon-upload";
+import { createDefaultLearningContent, createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.162-modal-stack";
 
 export async function processOpenModuleEditor(executionState) {
   const context = executionState.context;

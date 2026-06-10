@@ -1,8 +1,8 @@
-import { validateAuthenticated } from "../../stages/validate/validators.js?v=1.1.141-user-command-context-data";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.141-user-command-context-data";
-import { requireSuperAdminAccess } from "../../stages/authorize/authorizers.js?v=1.1.141-user-command-context-data";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.141-user-command-context-data";
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../infrastructure/firebase/firestore.js?v=1.1.141-user-command-context-data";
+import { validateAuthenticated } from "../../stages/validate/validators.js?v=1.1.162-modal-stack";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
+import { requireSuperAdminAccess } from "../../stages/authorize/authorizers.js?v=1.1.162-modal-stack";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.162-modal-stack";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
 
 export function OpenUserCommandCenterIntent() {
   return {

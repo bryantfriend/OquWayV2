@@ -1,4 +1,4 @@
-import { fruitOptions } from "../../../../../packages/shared/constants/admin.js?v=1.1.124-location-icon-upload";
+import { fruitOptions } from "../../../../../packages/shared/constants/admin.js?v=1.1.162-modal-stack";
 
 export function createRandomFruitPassword() {
   var values = [];

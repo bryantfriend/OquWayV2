@@ -1,6 +1,6 @@
-import { getActiveAssignmentsForStudent } from "../assignments/index.js?v=1.1.121-student-dashboard-open-clean";
+import { getActiveAssignmentsForStudent } from "../assignments/index.js?v=1.1.162-modal-stack";
 
-export { buildStudentAssignmentTargets } from "../assignments/index.js?v=1.1.121-student-dashboard-open-clean";
+export { buildStudentAssignmentTargets } from "../assignments/index.js?v=1.1.162-modal-stack";
 
 export async function getAssignedCourses(studentId, studentProfile) {
   var assignmentResult = await getAssignedCourseIds(studentId, studentProfile);

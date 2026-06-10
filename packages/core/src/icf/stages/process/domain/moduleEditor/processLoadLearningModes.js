@@ -1,4 +1,4 @@
-import { createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.124-location-icon-upload";
+import { createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.162-modal-stack";
 
 export function processLoadLearningModes(executionState) {
   executionState.result = {

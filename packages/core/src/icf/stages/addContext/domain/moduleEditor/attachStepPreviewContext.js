@@ -1,4 +1,4 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.124-location-icon-upload";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
 
 export async function attachStepPreviewContext(executionState) {
   var payload = executionState.payload || {};

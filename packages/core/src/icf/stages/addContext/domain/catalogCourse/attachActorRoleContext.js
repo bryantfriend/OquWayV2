@@ -1,4 +1,4 @@
-import { readActorRoles, readPrimaryRole } from "../../../authorize/core/roleAuthorization.js?v=1.1.124-location-icon-upload";
+import { readActorRoles, readPrimaryRole } from "../../../authorize/core/roleAuthorization.js?v=1.1.162-modal-stack";
 
 export function attachActorContext(executionState) {
     if (executionState.actor && executionState.actor.id) {

@@ -1,5 +1,5 @@
 import { collection, db, getDocs, query, where } from "../../firebase/index.js";
-import { normalizeExternalTaskSubmission } from "./externalTaskModel.js?v=1.1.129-teacher-query-noise";
+import { normalizeExternalTaskSubmission } from "./externalTaskModel.js?v=1.1.162-modal-stack";
 
 var IN_QUERY_CHUNK_SIZE = 10;
 

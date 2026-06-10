@@ -1,9 +1,9 @@
-import { auth } from "../../firebase/auth/index.js?v=1.1.161-universal-check-in";
-import { getIntentDefinition, runIntentPipeline } from "../../icf/index.js?v=1.1.161-universal-check-in";
+import { auth } from "../../firebase/auth/index.js?v=1.1.162-modal-stack";
+import { getIntentDefinition, runIntentPipeline } from "../../icf/index.js?v=1.1.162-modal-stack";
 import {
   buildEmotionalCheckInContext,
   getExistingEmotionalCheckIn
-} from "../../domain/emotionalCheckIns/index.js?v=1.1.161-universal-check-in";
+} from "../../domain/emotionalCheckIns/index.js?v=1.1.162-modal-stack";
 
 export const emotionalCheckInService = {
   buildContext: buildEmotionalCheckInContext,

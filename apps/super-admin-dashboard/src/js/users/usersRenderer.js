@@ -1,7 +1,7 @@
-import { roleFilterCards } from "../../../../../packages/shared/constants/admin.js?v=1.1.124-location-icon-upload";
-import { escapeHtml, formatDateTime } from "../../../../../packages/shared/formatting/index.js?v=1.1.124-location-icon-upload";
-import { collectUserRoles } from "../../../../../packages/domain/users/index.js?v=1.1.124-location-icon-upload";
-import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.124-location-icon-upload";
+import { roleFilterCards } from "../../../../../packages/shared/constants/admin.js?v=1.1.162-modal-stack";
+import { escapeHtml, formatDateTime } from "../../../../../packages/shared/formatting/index.js?v=1.1.162-modal-stack";
+import { collectUserRoles } from "../../../../../packages/domain/users/index.js?v=1.1.162-modal-stack";
+import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.162-modal-stack";
 
 export function renderUsersRoleCards(users, selectedRoleFilter) {
   var html = '<section class="sa-role-card-grid" aria-label="Role filters">';

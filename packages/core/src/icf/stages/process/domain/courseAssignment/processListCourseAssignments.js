@@ -1,4 +1,4 @@
-import { loadCourseAssignments, sortAssignments } from "./courseAssignmentHelpers.js?v=1.1.124-location-icon-upload";
+import { loadCourseAssignments, sortAssignments } from "./courseAssignmentHelpers.js?v=1.1.162-modal-stack";
 
 export async function processListCourseAssignments(executionState) {
   var payload = executionState.payload || {};

@@ -1,4 +1,4 @@
-import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.154-emotional-check-in-prototype";
+import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.162-modal-stack";
 
 export function normalizePracticeModeStep(executionState) {
   var payload = executionState.payload;

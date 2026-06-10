@@ -1,4 +1,4 @@
-import { db, writeBatch, doc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.124-location-icon-upload";
+import { db, writeBatch, doc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
 
 export async function processLoadModules(executionState) {
     const { context } = executionState;

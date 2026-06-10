@@ -1,6 +1,6 @@
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.129-teacher-query-noise";
-import { getExternalTaskSubmissionById } from "../../../../../../../domain/externalTasks/index.js?v=1.1.129-teacher-query-noise";
-import { getUserProfileByAuthUid, getUserRoles } from "../../../../../../../domain/users/index.js?v=1.1.129-teacher-query-noise";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
+import { getExternalTaskSubmissionById } from "../../../../../../../domain/externalTasks/index.js?v=1.1.162-modal-stack";
+import { getUserProfileByAuthUid, getUserRoles } from "../../../../../../../domain/users/index.js?v=1.1.162-modal-stack";
 
 export async function attachTeacherProfileContext(executionState) {
   var actor = executionState.actor || {};

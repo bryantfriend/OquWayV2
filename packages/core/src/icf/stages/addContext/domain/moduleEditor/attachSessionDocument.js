@@ -1,5 +1,5 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.124-location-icon-upload";
-import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.124-location-icon-upload";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
+import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.162-modal-stack";
 
 export async function attachSessionDocument(executionState) {
   var payload = executionState.payload;

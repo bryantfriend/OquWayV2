@@ -1,6 +1,6 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.121-student-dashboard-open-clean";
-import { canResubmitExternalTaskSubmission } from "../../../../domain/externalTasks/index.js?v=1.1.121-student-dashboard-open-clean";
-import { isExternalTaskReviewComplete } from "../../../../domain/progress/index.js?v=1.1.121-student-dashboard-open-clean";
+import { BaseStep } from "./BaseStep.js?v=1.1.162-modal-stack";
+import { canResubmitExternalTaskSubmission } from "../../../../domain/externalTasks/index.js?v=1.1.162-modal-stack";
+import { isExternalTaskReviewComplete } from "../../../../domain/progress/index.js?v=1.1.162-modal-stack";
 
 export class ExternalTaskStep extends BaseStep {
   static get type() {

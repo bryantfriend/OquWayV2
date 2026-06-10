@@ -3,7 +3,7 @@ import {
   getStepTypeDefinition,
   isSupportedStepType,
   listStepTypeDefinitions
-} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.159-emotional-regulation";
+} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.162-modal-stack";
 
 export {
   createDefaultStepConfig,

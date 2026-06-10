@@ -1,7 +1,7 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.124-location-icon-upload";
-import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.124-location-icon-upload";
-import { createDefaultProgressDocument } from "../../../process/domain/student/studentProgressHelpers.js?v=1.1.124-location-icon-upload";
-import { resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.124-location-icon-upload";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
+import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.162-modal-stack";
+import { createDefaultProgressDocument } from "../../../process/domain/student/studentProgressHelpers.js?v=1.1.162-modal-stack";
+import { resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.162-modal-stack";
 
 export async function attachStudentSessionContext(executionState) {
   var payload = executionState.payload;

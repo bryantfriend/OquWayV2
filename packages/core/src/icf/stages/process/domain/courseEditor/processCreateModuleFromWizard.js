@@ -1,4 +1,4 @@
-import { processCreateModule } from "./processCreateModule.js?v=1.1.124-location-icon-upload";
+import { processCreateModule } from "./processCreateModule.js?v=1.1.162-modal-stack";
 
 export async function processCreateModuleFromWizard(executionState) {
   var payload = executionState.payload || {};

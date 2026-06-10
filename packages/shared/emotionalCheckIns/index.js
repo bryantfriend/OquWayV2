@@ -1,1 +1,1 @@
-export { emotionalCheckInService, buildEmotionalCheckInContext } from "./emotionalCheckInService.js?v=1.1.161-universal-check-in";
+export { emotionalCheckInService, buildEmotionalCheckInContext } from "./emotionalCheckInService.js?v=1.1.162-modal-stack";

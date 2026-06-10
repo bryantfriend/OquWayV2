@@ -1,1 +1,1 @@
-export { PracticeModePlayer } from "../../core/src/shared/player/PracticeModePlayer.js?v=1.1.161-universal-check-in";
+export { PracticeModePlayer } from "../../core/src/shared/player/PracticeModePlayer.js?v=1.1.162-modal-stack";

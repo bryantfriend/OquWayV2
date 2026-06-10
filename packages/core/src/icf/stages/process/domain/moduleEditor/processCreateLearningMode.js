@@ -1,6 +1,6 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.124-location-icon-upload";
-import { createDefaultPracticeModes } from "./practiceModeShells.js?v=1.1.124-location-icon-upload";
-import { createDefaultLearningModes, createLearningModeRecord, createModeFromPayload } from "./learningArchitecture.js?v=1.1.124-location-icon-upload";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
+import { createDefaultPracticeModes } from "./practiceModeShells.js?v=1.1.162-modal-stack";
+import { createDefaultLearningModes, createLearningModeRecord, createModeFromPayload } from "./learningArchitecture.js?v=1.1.162-modal-stack";
 
 export async function processCreateLearningMode(executionState) {
   var payload = executionState.payload;

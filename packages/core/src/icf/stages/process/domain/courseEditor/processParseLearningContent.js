@@ -1,4 +1,4 @@
-import { parseLearningContentText } from "../moduleEditor/learningArchitecture.js?v=1.1.124-location-icon-upload";
+import { parseLearningContentText } from "../moduleEditor/learningArchitecture.js?v=1.1.162-modal-stack";
 
 export function processParseLearningContent(executionState) {
   var payload = executionState.payload || {};

@@ -2,7 +2,7 @@ import {
   createLearningModesForTemplate,
   createStarterStepsForMode,
   normalizeLearningContentPayload
-} from "../moduleEditor/learningArchitecture.js?v=1.1.124-location-icon-upload";
+} from "../moduleEditor/learningArchitecture.js?v=1.1.162-modal-stack";
 
 export function processGenerateModuleSkeleton(executionState) {
   var payload = executionState.payload || {};

@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../../../../packages/firebase/index.js?v=1.1.124-location-icon-upload";
+import { collection, db, getDocs, query, where } from "../../../../../packages/firebase/index.js?v=1.1.162-modal-stack";
 
 export async function loadClasses() {
   return [];

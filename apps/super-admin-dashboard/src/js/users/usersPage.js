@@ -1,7 +1,7 @@
-import { updateAppState } from "../app/appState.js?v=1.1.124-location-icon-upload";
-import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.124-location-icon-upload";
-import { renderUsersRoleCards, renderUsersTableRows } from "./usersRenderer.js?v=1.1.124-location-icon-upload";
-import { collectUserRoles } from "../../../../../packages/domain/users/index.js?v=1.1.124-location-icon-upload";
+import { updateAppState } from "../app/appState.js?v=1.1.162-modal-stack";
+import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.162-modal-stack";
+import { renderUsersRoleCards, renderUsersTableRows } from "./usersRenderer.js?v=1.1.162-modal-stack";
+import { collectUserRoles } from "../../../../../packages/domain/users/index.js?v=1.1.162-modal-stack";
 
 export async function loadUsersPage(context) {
   var result = await runAdminIntent("LoadUsersIntent", {}, context || {});

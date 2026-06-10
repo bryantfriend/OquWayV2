@@ -24,5 +24,5 @@ export function readCourseTitle(course) {
   return readSafeString(course && (course.name || course.displayName)).trim() || "Untitled Course";
 }
 
-export * from "./courseQueries.js?v=1.1.121-student-dashboard-open-clean";
-export * from "./courseRepository.js?v=1.1.138-course-overview-title";
+export * from "./courseQueries.js?v=1.1.162-modal-stack";
+export * from "./courseRepository.js?v=1.1.162-modal-stack";

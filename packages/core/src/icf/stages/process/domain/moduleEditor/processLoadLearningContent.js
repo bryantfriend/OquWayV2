@@ -1,4 +1,4 @@
-import { createDefaultLearningContent } from "./learningArchitecture.js?v=1.1.124-location-icon-upload";
+import { createDefaultLearningContent } from "./learningArchitecture.js?v=1.1.162-modal-stack";
 
 export function processLoadLearningContent(executionState) {
   executionState.result = {

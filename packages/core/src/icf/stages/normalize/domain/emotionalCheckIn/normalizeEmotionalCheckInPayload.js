@@ -2,7 +2,7 @@ import {
   getEmotionalCheckInOption,
   normalizeCheckInContext,
   normalizeEmotionKey
-} from "../../../../../../../domain/emotionalCheckIns/index.js?v=1.1.161-universal-check-in";
+} from "../../../../../../../domain/emotionalCheckIns/index.js?v=1.1.162-modal-stack";
 
 export function normalizeEmotionalCheckInPayload(executionState) {
   var payload = executionState.payload || {};
