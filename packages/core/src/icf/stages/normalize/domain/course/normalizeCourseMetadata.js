@@ -12,7 +12,8 @@ export function normalizeCourseMetadata(executionState) {
     defaultLanguage: defaultLanguage,
     languages: languages,
     tags: normalizeTags(payload.tags),
-    slug: normalizeSlug(payload.title, defaultLanguage)
+    slug: normalizeSlug(payload.title, defaultLanguage),
+    displayTemplate: normalizeDisplayTemplate(payload.displayTemplate)
   };
 
   appendOptionalVisualFields(courseData, payload);
@@ -170,6 +171,14 @@ function normalizeStatus(status) {
   }
 
   return "draft";
+}
+
+function normalizeDisplayTemplate(displayTemplate) {
+  if (displayTemplate === "adventurePath" || displayTemplate === "compactGrid") {
+    return displayTemplate;
+  }
+
+  return "basic";
 }
 
 function normalizeLanguage(language, fallbackLanguage) {

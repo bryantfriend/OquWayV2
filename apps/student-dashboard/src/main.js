@@ -1,5 +1,5 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.163-main-path-step-editor";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.165-course-display-templates";
 import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.162-modal-stack";
 import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.162-modal-stack";
 import {
@@ -22,8 +22,8 @@ import {
   renderEmotionalCheckInGate
 } from "../../../packages/ui/index.js?v=1.1.162-modal-stack";
 import { emotionalCheckInService } from "../../../packages/shared/emotionalCheckIns/index.js?v=1.1.162-modal-stack";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.163-main-path-step-editor";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.163-main-path-step-editor";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.164-course-builder-source-truth";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.164-course-builder-source-truth";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -444,7 +444,7 @@ function buildStudentCourseCheckInContext(openResult) {
     scheduledLessonId: readText(course.scheduledLessonId || target.scheduledLessonId),
     courseSessionId: readText(course.courseSessionId || target.courseSessionId),
     contextScope: classId ? "class-session" : "course-entry",
-    checkInSource: "student-dashboard-course-entry",
+    checkInSource: "student_panel",
     timezone: readText(student.timezone || student.locationTimezone || student.schoolTimezone || course.timezone)
   });
 }
@@ -930,7 +930,10 @@ function buildCourseFocusView(state) {
   html += '<section class="course-focus-main">';
   html += '<div class="course-focus-primary">';
   html += renderCourseHero(course, progress);
-  html += renderModuleRoadmap(modules, selectedModule ? selectedModule.id : state.selectedModuleId);
+  html += renderCourseModules(course, modules, {
+    selectedModuleId: selectedModule ? selectedModule.id : state.selectedModuleId,
+    progress: progress
+  });
   html += renderModuleActivities(course, selectedModule, state);
   html += renderSelectedModulePanel(course, selectedModule, state);
   html += '</div>';
@@ -1017,93 +1020,168 @@ function renderNextUpCard(nextAction) {
     + '</section>';
 }
 
-function renderModuleRoadmap(modules, selectedModuleId) {
+function renderCourseModules(course, modules, progress) {
+  var displayTemplate = readCourseDisplayTemplate(course);
+
+  if (displayTemplate === "adventurePath") {
+    return renderAdventurePathModules(course, modules, progress);
+  }
+
+  if (displayTemplate === "compactGrid") {
+    return renderCompactGridModules(course, modules, progress);
+  }
+
+  return renderBasicModuleList(course, modules, progress);
+}
+
+function renderBasicModuleList(course, modules, progress) {
   var safeModules = sortModulesForJourney(Array.isArray(modules) ? modules : []);
-  var journeyModules = createJourneyNodes(safeModules);
-  var html = '<section class="course-roadmap"><div class="student-section-head course-journey-head"><div><h2>Course Journey</h2></div><div class="course-journey-legend"><span><b></b>Main Path</span><span><b></b>Bonus Path</span><span><b></b>Extra Quest</span></div></div>';
+  var html = renderModuleTemplateShellStart("course-modules-basic", "Course Modules", "Top-to-bottom module list");
   var moduleIndex = 0;
 
   if (safeModules.length === 0) {
     return html + '<div class="course-roadmap-empty">This course is not ready yet.</div></section>';
   }
 
-  html += '<div class="course-journey-scroller"><button type="button" class="course-journey-scroll-btn" aria-label="Scroll course journey left">' + renderSvgIcon("arrowLeft") + '</button><div class="course-journey-track" tabindex="0">';
-  while (moduleIndex < journeyModules.length) {
-    html += renderModuleRoadmapItem(journeyModules[moduleIndex], selectedModuleId, moduleIndex);
+  html += '<div class="course-basic-module-list">';
+  while (moduleIndex < safeModules.length) {
+    html += renderTemplateModuleButton(safeModules[moduleIndex], moduleIndex, progress, "basic");
     moduleIndex = moduleIndex + 1;
   }
-  html += '<span class="course-journey-finish">More</span>';
-  html += '</div><button type="button" class="course-journey-scroll-btn" aria-label="Scroll course journey right">' + renderSvgIcon("arrowRight") + '</button></div>';
-  html += '<div class="course-journey-scrub" aria-hidden="true"><span style="width:' + calculatePercent(countJourneyCompleteModules(safeModules), safeModules.length) + '%"></span></div>';
-
-  html += '</section>';
+  html += '</div></section>';
   return html;
 }
 
-function createJourneyNodes(modules) {
-  var safeModules = Array.isArray(modules) ? modules.slice() : [];
-  var minimumNodeCount = 6;
-  var nodeIndex = safeModules.length;
+function renderAdventurePathModules(course, modules, progress) {
+  var safeModules = sortModulesForJourney(Array.isArray(modules) ? modules : []);
+  var pathHeight = Math.max(220, safeModules.length * 138 + 70);
+  var html = '<section class="course-roadmap course-adventure-path">';
+  var moduleIndex = 0;
 
-  while (nodeIndex < minimumNodeCount) {
-    safeModules.push(createFutureJourneyNode(nodeIndex));
-    nodeIndex = nodeIndex + 1;
+  html += '<div class="course-adventure-header">'
+    + renderCourseIcon(course, "course-adventure-course-icon")
+    + '<div><p class="student-eyebrow">Adventure Path</p><h2>' + escapeHtml(readLocalizedText(course && course.title, "Course Journey")) + '</h2></div>'
+    + '<span>' + calculatePercent(countJourneyCompleteModules(safeModules), safeModules.length || 1) + '%</span>'
+    + '</div>';
+
+  if (safeModules.length === 0) {
+    return html + '<div class="course-roadmap-empty">This course is not ready yet.</div></section>';
   }
 
-  return safeModules;
-}
+  html += '<div class="course-adventure-stage" style="min-height:' + pathHeight + 'px">';
+  html += '<svg class="course-adventure-path-line" viewBox="0 0 100 ' + pathHeight + '" preserveAspectRatio="none" aria-hidden="true">';
+  html += '<path d="' + escapeHtml(buildAdventurePathData(safeModules.length)) + '"></path>';
+  html += '</svg>';
 
-function createFutureJourneyNode(moduleIndex) {
-  var pathType = "main";
-
-  if (moduleIndex === 2) {
-    pathType = "bonus";
-  } else if (moduleIndex === 4) {
-    pathType = "extra";
+  while (moduleIndex < safeModules.length) {
+    html += renderAdventurePathNode(safeModules[moduleIndex], moduleIndex, progress);
+    moduleIndex = moduleIndex + 1;
   }
 
-  return {
-    id: "future-module-" + (moduleIndex + 1),
-    title: pathType === "bonus" ? "Bonus Path" : (pathType === "extra" ? "Extra Quest" : "Future Module"),
-    pathOrder: moduleIndex + 1,
-    pathType: pathType,
-    isJourneyPlaceholder: true,
-    locked: true,
-    sessions: []
-  };
+  html += '</div></section>';
+  return html;
 }
 
-function renderModuleRoadmapItem(module, selectedModuleId, moduleIndex) {
-  var readiness = module && module.isJourneyPlaceholder ? {
-    status: "future",
-    label: "Future",
-    completedSteps: 0,
-    totalSteps: 0
-  } : getModuleReadiness(module);
-  var activeClass = module && module.id === selectedModuleId ? " course-roadmap-item-active" : "";
+function renderCompactGridModules(course, modules, progress) {
+  var safeModules = sortModulesForJourney(Array.isArray(modules) ? modules : []);
+  var html = renderModuleTemplateShellStart("course-modules-grid", "Course Modules", "Compact grid");
+  var moduleIndex = 0;
+
+  if (safeModules.length === 0) {
+    return html + '<div class="course-roadmap-empty">This course is not ready yet.</div></section>';
+  }
+
+  html += '<div class="course-compact-module-grid">';
+  while (moduleIndex < safeModules.length) {
+    html += renderTemplateModuleButton(safeModules[moduleIndex], moduleIndex, progress, "grid");
+    moduleIndex = moduleIndex + 1;
+  }
+  html += '</div></section>';
+  return html;
+}
+
+function renderModuleTemplateShellStart(className, title, label) {
+  return '<section class="course-roadmap course-module-template ' + className + '">'
+    + '<div class="student-section-head course-template-head"><div><h2>' + escapeHtml(title) + '</h2></div><span>' + escapeHtml(label) + '</span></div>';
+}
+
+function renderAdventurePathNode(module, moduleIndex, progress) {
+  var x = moduleIndex % 2 === 0 ? 28 : 72;
+  var y = readAdventureNodeY(moduleIndex);
+  var sideClass = moduleIndex % 2 === 0 ? " course-adventure-node-left" : " course-adventure-node-right";
+
+  return renderTemplateModuleButton(module, moduleIndex, progress, "adventure", {
+    className: sideClass,
+    style: "--node-x:" + x + "%;--node-y:" + y + "px;"
+  });
+}
+
+function renderTemplateModuleButton(module, moduleIndex, progress, variant, options) {
+  var safeModule = module || {};
+  var readiness = getModuleReadiness(module);
+  var moduleId = readModuleIdValue(safeModule, moduleIndex);
+  var selectedModuleId = progress && progress.selectedModuleId ? progress.selectedModuleId : "";
+  var isActive = moduleId && moduleId === selectedModuleId;
+  var isComplete = readiness.status === "complete";
+  var locked = isModuleLocked(module);
   var progressPercent = readModuleProgressPercent(module);
-  var moduleNumber = moduleIndex + 1;
-  var pathType = readModulePathType(module);
-  var placeholderClass = module && module.isJourneyPlaceholder ? " course-roadmap-item-future" : "";
-  var lockedClass = isModuleLocked(module) ? " course-roadmap-item-locked" : "";
-  var pathClass = " course-roadmap-path-" + pathType;
-  var icon = renderModuleIcon(module, readiness.status);
-  var tagName = module && module.isJourneyPlaceholder ? "span" : "button";
-  var nodeClass = tagName === "button" ? " course-journey-node" : "";
-  var buttonType = tagName === "button" ? ' type="button"' : "";
-  var moduleData = tagName === "button" ? ' data-module-id="' + escapeHtml(module.id) + '"' : ' aria-disabled="true"';
-  var detailText = module && module.isJourneyPlaceholder ? "Locked future stop" : readiness.completedSteps + ' / ' + readiness.totalSteps + ' steps - ' + progressPercent + '%';
-  var ariaLabel = module && module.isJourneyPlaceholder
-    ? "Future locked module " + moduleNumber
-    : "Open module " + readLocalizedText(module.title, "Module");
+  var variantClass = " course-template-module-" + variant;
+  var activeClass = isActive ? " course-template-module-current" : "";
+  var completeClass = isComplete ? " course-template-module-complete" : "";
+  var lockedClass = locked ? " course-template-module-locked" : "";
+  var extraClass = options && options.className ? options.className : "";
+  var style = options && options.style ? ' style="' + escapeHtml(options.style) + '"' : "";
+  var title = readLocalizedText(safeModule.title || safeModule.name, "Module " + (moduleIndex + 1));
+  var detailText = readiness.completedSteps + " / " + readiness.totalSteps + " steps";
+  var statusIcon = locked ? renderSvgIcon("lock") : (isComplete ? renderSvgIcon("check") : renderModuleIcon(module, readiness.status));
 
-  return '<' + tagName + buttonType + ' class="course-roadmap-item' + nodeClass + activeClass + lockedClass + placeholderClass + pathClass + '"' + moduleData + ' aria-label="' + escapeHtml(ariaLabel) + '">'
-    + '<span class="course-journey-node-icon">' + icon + '</span>'
-    + '<span class="course-journey-node-number">' + moduleNumber + '</span>'
-    + '<span class="course-roadmap-status course-roadmap-status-' + escapeHtml(readiness.status) + '">' + escapeHtml(readiness.label) + '</span>'
-    + '<strong>' + escapeHtml(readLocalizedText(module.title, "Module")) + '</strong>'
-    + '<small>' + detailText + '</small>'
-    + '</' + tagName + '>';
+  if (!module) {
+    title = "Module data missing";
+    detailText = "This module could not be loaded.";
+  }
+
+  return '<button type="button" class="course-template-module-card course-journey-node' + variantClass + activeClass + completeClass + lockedClass + extraClass + '" data-module-id="' + escapeHtml(moduleId) + '"' + style + ' aria-label="' + escapeHtml("Open module " + title) + '">'
+    + '<span class="course-template-module-icon">' + renderStudentModuleVisual(module, statusIcon) + '</span>'
+    + '<span class="course-template-module-copy"><strong>' + escapeHtml(title) + '</strong><small>' + escapeHtml(readiness.label) + ' - ' + escapeHtml(detailText) + '</small></span>'
+    + '<span class="course-template-module-progress" aria-hidden="true"><span style="width:' + progressPercent + '%"></span></span>'
+    + '<span class="course-template-module-badge">' + statusIcon + '</span>'
+    + '</button>';
+}
+
+function renderStudentModuleVisual(module, fallbackIcon) {
+  var iconUrl = readImageUrl(module && module.iconUrl);
+
+  if (iconUrl) {
+    return '<img src="' + escapeHtml(iconUrl) + '" alt="">';
+  }
+
+  return fallbackIcon;
+}
+
+function buildAdventurePathData(moduleCount) {
+  var path = "";
+  var moduleIndex = 0;
+
+  while (moduleIndex < moduleCount) {
+    var x = moduleIndex % 2 === 0 ? 28 : 72;
+    var y = readAdventureNodeY(moduleIndex);
+
+    if (moduleIndex === 0) {
+      path += "M " + x + " " + y;
+    } else {
+      var previousX = (moduleIndex - 1) % 2 === 0 ? 28 : 72;
+      var previousY = readAdventureNodeY(moduleIndex - 1);
+      path += " C " + previousX + " " + (previousY + 78) + ", " + x + " " + (y - 78) + ", " + x + " " + y;
+    }
+
+    moduleIndex = moduleIndex + 1;
+  }
+
+  return path;
+}
+
+function readAdventureNodeY(moduleIndex) {
+  return 72 + moduleIndex * 138;
 }
 
 function renderModuleActivities(course, module, state) {
@@ -1404,6 +1482,30 @@ function readModulePathType(module) {
   }
 
   return "main";
+}
+
+function readCourseDisplayTemplate(course) {
+  var displayTemplate = course && typeof course.displayTemplate === "string" ? course.displayTemplate : "";
+
+  if (displayTemplate === "adventurePath" || displayTemplate === "compactGrid") {
+    return displayTemplate;
+  }
+
+  return "basic";
+}
+
+function readModuleIdValue(module, moduleIndex) {
+  var id = readFirstTextValue([
+    module && module.id,
+    module && module.moduleId,
+    module && module.uid
+  ]);
+
+  if (id) {
+    return id;
+  }
+
+  return "missing-module-" + (moduleIndex + 1);
 }
 
 function readFirstTextValue(values) {
@@ -2021,8 +2123,6 @@ function buildCourseDetail(course, state) {
 
 function buildModules(course, state) {
   var modules = Array.isArray(course.modules) ? course.modules : [];
-  var html = "";
-  var moduleIndex = 0;
 
   if (modules.length === 0) {
     return createEmptyState("No modules ready yet", "This course does not have modules yet.", {
@@ -2030,25 +2130,10 @@ function buildModules(course, state) {
     });
   }
 
-  while (moduleIndex < modules.length) {
-    var module = modules[moduleIndex];
-    var activeClass = state.selectedModuleId === module.id ? " student-module-active" : "";
-    var moduleStatus = readModuleLearningStatus(module);
-    var completedSteps = countModuleCompletedSteps(module);
-    var totalSteps = countModuleSteps(module);
-    html += '<article class="student-module">';
-    html += '<button type="button" class="student-module-card' + activeClass + '" data-module-id="' + escapeHtml(module.id) + '">';
-    html += '<span>' + escapeHtml(readLocalizedText(module.title, "Module")) + '</span>';
-    html += '<small>' + escapeHtml(readLearningStatusLabel(moduleStatus)) + ' - ' + completedSteps + ' / ' + totalSteps + ' steps</small>';
-    html += '<small>' + escapeHtml(readModuleLastActivityLabel(module)) + '</small>';
-    html += buildStudentModuleActionBadge(moduleStatus, readModuleActionLabel(moduleStatus, completedSteps));
-    html += '</button>';
-    html += buildSessions(course, module, state);
-    html += '</article>';
-    moduleIndex = moduleIndex + 1;
-  }
-
-  return html;
+  return renderCourseModules(course, modules, {
+    selectedModuleId: state.selectedModuleId,
+    progress: readCourseFocusProgress(course)
+  });
 }
 
 function buildSessions(course, module, state) {
