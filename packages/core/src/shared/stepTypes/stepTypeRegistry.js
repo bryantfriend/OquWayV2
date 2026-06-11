@@ -10,8 +10,26 @@ import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.162-modal-
 import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.162-modal-stack";
 import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.162-modal-stack";
 import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.162-modal-stack";
+import {
+  CardRevealStep,
+  IntroCardStep,
+  MatchingStep,
+  MultipleChoiceStep,
+  OrderingStep,
+  ReflectionStep as MainPathReflectionStep,
+  RoadmapStep,
+  SortingStep
+} from "./InteractiveLearningSteps.js?v=1.1.163-main-path-step-editor";
 
 var stepTypes = {
+  "intro-card": IntroCardStep,
+  "card-reveal": CardRevealStep,
+  sorting: SortingStep,
+  "multiple-choice": MultipleChoiceStep,
+  roadmap: RoadmapStep,
+  matching: MatchingStep,
+  ordering: OrderingStep,
+  reflection: MainPathReflectionStep,
   "emotional-check-in": EmotionalCheckInStep,
   "mood-reset": EmotionalCheckInStep,
   emotionalcheckin: EmotionalCheckInStep,
@@ -22,7 +40,7 @@ var stepTypes = {
   phrase: PhraseStep,
   listening: ListeningStep,
   speakingPrompt: SpeakingPromptStep,
-  reflection: ReflectionStep,
+  reflectionShell: ReflectionStep,
   customExperience: CustomExperienceStep,
   cyberCodeMission: CyberCodeMissionStep,
   dragMatchIsland: DragMatchIslandStep,
@@ -41,6 +59,14 @@ export function listStepTypeDefinitions() {
   void BaseStep;
 
   return [
+    IntroCardStep,
+    CardRevealStep,
+    SortingStep,
+    MultipleChoiceStep,
+    RoadmapStep,
+    MatchingStep,
+    OrderingStep,
+    MainPathReflectionStep,
     EmotionalCheckInStep,
     TextBriefingStep,
     VocabularyStep,

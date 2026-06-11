@@ -8,6 +8,18 @@ import {
 import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.159-emotional-regulation";
 import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.138-course-overview-title";
 
+const MAIN_PATH_PRACTICE_MODE_KEY = "beforeClass";
+const SUPPORTED_MAIN_PATH_STEP_TYPES = [
+  "intro-card",
+  "card-reveal",
+  "roadmap",
+  "sorting",
+  "matching",
+  "ordering",
+  "multiple-choice",
+  "reflection"
+];
+
 export class CourseEditorPage {
   constructor(courseId, moduleId) {
     this.courseId = courseId;
@@ -343,7 +355,7 @@ export class CourseEditorPage {
         var currentState = moduleEditorStore.getState();
         var currentSession = self.findSelectedSession(currentState);
         var currentStepId = currentState.selectedStepId;
-        var currentModeKey = currentState.selectedPracticeModeKey || "beforeClass";
+        var currentModeKey = MAIN_PATH_PRACTICE_MODE_KEY;
 
         if (currentSession && currentStepId) {
           var currentStep = findPracticeModeStep(currentSession, currentModeKey, currentStepId);
@@ -487,7 +499,7 @@ export class CourseEditorPage {
     if (reorderBtn && session) {
       var reorderStepId = reorderBtn.getAttribute("data-step-id");
       var direction = reorderBtn.getAttribute("data-direction");
-      var practiceModeKey = state.selectedPracticeModeKey || "beforeClass";
+      var practiceModeKey = MAIN_PATH_PRACTICE_MODE_KEY;
       var orderedStepIds = createReorderedStepIds(session, practiceModeKey, reorderStepId, direction);
 
       if (orderedStepIds.length === 0) {
@@ -510,8 +522,8 @@ export class CourseEditorPage {
     var tileDeleteBtn = event.target.closest(".step-tile-delete-btn");
     if (tileDeleteBtn && session) {
       var deleteStepId = tileDeleteBtn.getAttribute("data-step-id");
-      var deleteModeKey = state.selectedPracticeModeKey || "beforeClass";
-      if (!confirm("Delete this step from the practice mode?")) {
+      var deleteModeKey = MAIN_PATH_PRACTICE_MODE_KEY;
+      if (!confirm("Delete this step from the Main Path?")) {
         return;
       }
       tileDeleteBtn.textContent = "Deleting...";
@@ -567,7 +579,7 @@ export class CourseEditorPage {
     var stepOption = event.target.closest(".step-type-option");
     if (stepOption) {
       var stepType = stepOption.getAttribute("data-type");
-      var practiceModeKey = state.selectedPracticeModeKey || "beforeClass";
+      var practiceModeKey = MAIN_PATH_PRACTICE_MODE_KEY;
       var selectedModeId = readSelectedModeId(state);
       var courseContext = readCourseContext(state, self.courseId, self.moduleId, selectedModeId);
       var originalStepOptionHtml = stepOption.innerHTML;
@@ -604,8 +616,8 @@ export class CourseEditorPage {
     var deleteBtn = event.target.closest(".delete-step-btn");
     if (deleteBtn && session) {
       var stepId = deleteBtn.getAttribute("data-step-id");
-      var practiceModeKey = state.selectedPracticeModeKey || "beforeClass";
-      if (!confirm("Delete this step from the practice mode?")) {
+      var practiceModeKey = MAIN_PATH_PRACTICE_MODE_KEY;
+      if (!confirm("Delete this step from the Main Path?")) {
         return;
       }
       deleteBtn.textContent = "Deleting\u2026";
@@ -620,7 +632,7 @@ export class CourseEditorPage {
       return;
     }
 
-    // Repair practice modes banner button
+    // Repair Main Path backing shell
     var repairBtn = event.target.closest(".repair-practice-modes-btn");
     if (repairBtn && session) {
       repairBtn.textContent = "Repairing\u2026";
@@ -628,7 +640,7 @@ export class CourseEditorPage {
       moduleEditorService.repairSessionPracticeModes(
         self.courseId, self.moduleId, session.id
       ).catch(function (error) {
-        repairBtn.textContent = "Repair Practice Modes";
+        repairBtn.textContent = "Repair Main Path";
         repairBtn.disabled = false;
         alert("Failed to repair: " + error.message);
       });
@@ -678,10 +690,10 @@ export class CourseEditorPage {
       return;
     }
 
-    // Save practice mode
+    // Save Main Path backing shell
     var saveModeBtn = event.target.closest(".save-practice-mode-btn");
     if (saveModeBtn && session) {
-      var practiceModeKey = state.selectedPracticeModeKey || "beforeClass";
+      var practiceModeKey = MAIN_PATH_PRACTICE_MODE_KEY;
       var practiceMode = self.readPracticeModeFromInspector(propsPane, session, practiceModeKey);
       saveModeBtn.textContent = "Saving\u2026";
       saveModeBtn.disabled = true;
@@ -692,14 +704,14 @@ export class CourseEditorPage {
         self.showEditorSaveStatus("success", "Saved");
         saveModeBtn.textContent = "Saved \u2713";
         setTimeout(function () {
-          saveModeBtn.textContent = "Save Step Sequence";
+          saveModeBtn.textContent = "Save Main Path";
           saveModeBtn.disabled = false;
         }, 1400);
       }).catch(function (error) {
         self.showEditorSaveStatus("error", "Could not save changes");
-        saveModeBtn.textContent = "Save Step Sequence";
+        saveModeBtn.textContent = "Save Main Path";
         saveModeBtn.disabled = false;
-        alert("Failed to save practice mode: " + error.message);
+        alert("Failed to save Main Path: " + error.message);
       });
       return;
     }
@@ -707,7 +719,7 @@ export class CourseEditorPage {
     // Save step
     var saveStepBtn = event.target.closest(".save-practice-step-btn");
     if (saveStepBtn && session) {
-      var practiceModeKey = state.selectedPracticeModeKey || "beforeClass";
+      var practiceModeKey = MAIN_PATH_PRACTICE_MODE_KEY;
       var modeId = readSelectedModeId(state);
       var stepId = state.selectedStepId;
       var step = self.readStepFromInspector(propsPane, session, practiceModeKey, stepId);
@@ -760,7 +772,7 @@ export class CourseEditorPage {
   uploadInspectorMedia(mediaInput) {
     var state = moduleEditorStore.getState();
     var session = this.findSelectedSession(state);
-    var practiceModeKey = state.selectedPracticeModeKey || "beforeClass";
+    var practiceModeKey = MAIN_PATH_PRACTICE_MODE_KEY;
     var stepId = state.selectedStepId;
     var mediaField = mediaInput.getAttribute("data-config-key");
     var statusElement = findMediaStatusElement(mediaInput);
@@ -836,7 +848,7 @@ export class CourseEditorPage {
   movePlaytestStep(direction) {
     var state = moduleEditorStore.getState();
     var session = this.findSelectedSession(state);
-    var practiceModeKey = state.selectedPracticeModeKey || "beforeClass";
+    var practiceModeKey = MAIN_PATH_PRACTICE_MODE_KEY;
     var steps = readPracticeModeStepsForKey(session, practiceModeKey);
 
     if (steps.length === 0) {
@@ -851,7 +863,7 @@ export class CourseEditorPage {
   completePlaytestStep() {
     var state = moduleEditorStore.getState();
     var session = this.findSelectedSession(state);
-    var practiceModeKey = state.selectedPracticeModeKey || "beforeClass";
+    var practiceModeKey = MAIN_PATH_PRACTICE_MODE_KEY;
     var steps = readPracticeModeStepsForKey(session, practiceModeKey);
 
     if (steps.length === 0) {
@@ -1041,7 +1053,7 @@ export class CourseEditorPage {
       return;
     }
 
-    var selectedPracticeModeKey = state.selectedPracticeModeKey || "beforeClass";
+    var selectedPracticeModeKey = MAIN_PATH_PRACTICE_MODE_KEY;
     var practiceModes = readPracticeModes(session);
     var selectedMode = practiceModes[selectedPracticeModeKey];
     var effectiveStepId = getEffectiveStepId(selectedMode, state.selectedStepId);
@@ -1096,7 +1108,6 @@ export class CourseEditorPage {
       i = i + 1;
     }
 
-    var practiceModes = readPracticeModes(session);
     var hasPracticeModes = session.practiceModes && typeof session.practiceModes === "object";
     var html = "";
 
@@ -1111,7 +1122,7 @@ export class CourseEditorPage {
     // ── Sticky session header ────────────────────────────────────────
     html += '<div class="oqu-workspace-sticky px-5 py-3.5 flex items-center gap-3">';
     html += '<div class="flex-1 min-w-0">';
-    html += '<div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Lesson Path ' + (sessionIndex + 1) + '</div>';
+    html += '<div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Module Structure</div>';
     html += '<div class="text-sm font-bold text-gray-900 truncate">' + escapeHtml(title) + '</div>';
     html += '</div>';
     html += buildStatusPill(status);
@@ -1122,9 +1133,9 @@ export class CourseEditorPage {
       html += '<div class="mx-5 mb-3 rounded-xl border border-amber-200 bg-amber-50 p-3.5 flex items-start gap-3">';
       html += '<i class="fa-solid fa-triangle-exclamation text-amber-500 mt-0.5 shrink-0 text-sm"></i>';
       html += '<div class="flex-1">';
-      html += '<div class="text-xs font-bold text-amber-900 mb-1">Step tracks not initialized</div>';
-      html += '<div class="text-[11px] text-amber-700 mb-2">This legacy mode predates step track shells.</div>';
-      html += '<button class="repair-practice-modes-btn text-xs bg-amber-600 hover:bg-amber-700 text-white font-semibold px-3 py-1.5 rounded-lg transition">Repair Step Tracks</button>';
+      html += '<div class="text-xs font-bold text-amber-900 mb-1">Main Path not initialized</div>';
+      html += '<div class="text-[11px] text-amber-700 mb-2">This legacy mode predates the stored step shell used by Main Path.</div>';
+      html += '<button class="repair-practice-modes-btn text-xs bg-amber-600 hover:bg-amber-700 text-white font-semibold px-3 py-1.5 rounded-lg transition">Repair Main Path</button>';
       html += '</div>';
       html += '</div>';
     }
@@ -1140,38 +1151,18 @@ export class CourseEditorPage {
   }
 
   buildModuleStructureDetails(session, state, selectedPracticeModeKey, selectedMode, effectiveStepId) {
-    var practiceModes = readPracticeModes(session);
-    var keys = createPracticeModeKeys();
     var html = "";
-    var keyIndex = 0;
 
     html += '<div class="space-y-3">';
     html += '<div>';
-    html += '<div class="text-[10px] font-black text-gray-400 uppercase tracking-wide mb-2">Step Sequences</div>';
-    html += '<div class="space-y-1.5">';
-
-    while (keyIndex < keys.length) {
-      var mode = practiceModes[keys[keyIndex]];
-      var modeTitle = readLocalizedText(mode.title, "Step Sequence");
-      var stepCount = readStepCount(mode);
-      var modeStatus = readString(mode.status, "shell");
-      var isActive = selectedPracticeModeKey === mode.key;
-      var cardClass = "pm-nav-card rounded-xl border px-2.5 py-2 cursor-pointer transition "
-        + (isActive ? "border-emerald-300 bg-emerald-50 ring-1 ring-emerald-200" : "border-gray-100 bg-white hover:border-emerald-200 hover:bg-gray-50");
-
-      html += '<div class="' + cardClass + '" data-key="' + mode.key + '">';
-      html += '<div class="flex items-center justify-between gap-2">';
-      html += '<div class="min-w-0">';
-      html += '<div class="text-xs font-bold text-gray-900 truncate">' + escapeHtml(modeTitle) + '</div>';
-      html += '<div class="text-[10px] text-gray-400 font-semibold mt-0.5">' + stepCount + ' step' + (stepCount === 1 ? '' : 's') + '</div>';
-      html += '</div>';
-      html += buildStatusPill(modeStatus);
-      html += '</div>';
-      html += '</div>';
-
-      keyIndex = keyIndex + 1;
-    }
-
+    html += '<div class="text-[10px] font-black text-gray-400 uppercase tracking-wide mb-2">Module Structure</div>';
+    html += '<div class="rounded-xl border border-emerald-200 bg-emerald-50 px-2.5 py-2">';
+    html += '<div class="flex items-center justify-between gap-2">';
+    html += '<div class="min-w-0">';
+    html += '<div class="text-xs font-bold text-gray-900 truncate">Main Path</div>';
+    html += '<div class="text-[10px] text-gray-500 font-semibold mt-0.5">Ordered Step List · ' + readStepCount(selectedMode) + ' step' + (readStepCount(selectedMode) === 1 ? '' : 's') + '</div>';
+    html += '</div>';
+    html += buildStatusPill(readString(selectedMode.status, "draft"));
     html += '</div>';
     html += '</div>';
     html += this.buildStructureStepList(selectedMode, effectiveStepId, selectedPracticeModeKey);
@@ -1183,15 +1174,14 @@ export class CourseEditorPage {
   buildStructureStepList(mode, effectiveStepId, practiceModeKey) {
     var safeMode = mode || {};
     var steps = readSortedSteps(safeMode.steps);
-    var modeTitle = readLocalizedText(safeMode.title, "Step Sequence");
     var html = "";
     var stepIndex = 0;
 
     html += '<div>';
     html += '<div class="flex items-center justify-between gap-2 mb-2">';
     html += '<div class="min-w-0">';
-    html += '<div class="text-[10px] font-black text-gray-400 uppercase tracking-wide">Step List</div>';
-    html += '<div class="text-[10px] text-gray-400 font-semibold truncate">' + escapeHtml(modeTitle) + '</div>';
+    html += '<div class="text-[10px] font-black text-gray-400 uppercase tracking-wide">Ordered Step List</div>';
+    html += '<div class="text-[10px] text-gray-400 font-semibold truncate">Main Path</div>';
     html += '</div>';
     html += '<button type="button" class="add-step-trigger-btn border border-dashed border-blue-300 bg-white hover:bg-blue-50 text-blue-600 font-bold px-2.5 py-1 rounded-lg text-[10px] transition" data-key="' + practiceModeKey + '">';
     html += '<i class="fa-solid fa-plus text-[9px]"></i> Add Step';
@@ -1239,19 +1229,18 @@ export class CourseEditorPage {
 
   buildStepNavigationArea(mode, effectiveStepId, practiceModeKey) {
     var steps = readSortedSteps(mode.steps);
-    var modeTitle = readLocalizedText(mode.title, "Step Sequence");
     var html = "";
 
     html += '<div class="px-5 pb-2">';
     html += '<div class="flex items-center justify-between mb-2">';
     html += '<div class="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">';
     html += '<i class="fa-solid fa-list-check text-gray-300"></i>';
-    html += escapeHtml(modeTitle) + ' — Steps';
+    html += 'Main Path — Ordered Step List';
     html += '</div>';
 
     html += '<div class="flex items-center gap-1.5">';
     html += '<button type="button" class="play-practice-mode-btn border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-lg text-[10px] transition flex items-center gap-1" data-key="' + practiceModeKey + '">';
-    html += '▶ Preview Mode';
+    html += '▶ Student Preview';
     html += '</button>';
     html += '<button type="button" class="add-step-trigger-btn border border-dashed border-blue-300 bg-white hover:bg-blue-50 text-blue-600 font-bold px-2.5 py-1 rounded-lg text-[10px] transition flex items-center gap-1" data-key="' + practiceModeKey + '">';
     html += '<i class="fa-solid fa-plus text-[9px]"></i> Add Step';
@@ -1315,9 +1304,9 @@ export class CourseEditorPage {
       var emptyHtml = '<div class="oqu-preview-canvas">';
       emptyHtml += '<div class="text-center max-w-[260px]">';
       emptyHtml += '<div class="text-4xl mb-4">📚</div>';
-      emptyHtml += '<div class="text-sm font-bold text-gray-700 mb-1.5">No activities yet</div>';
-      emptyHtml += '<div class="text-xs text-gray-400 leading-relaxed mb-5">Start designing this practice mode by adding your first step.</div>';
-      emptyHtml += '<button type="button" class="add-step-trigger-btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition" data-key="' + mode.key + '">+ Add Step</button>';
+      emptyHtml += '<div class="text-sm font-bold text-gray-700 mb-1.5">No steps yet</div>';
+      emptyHtml += '<div class="text-xs text-gray-400 leading-relaxed mb-5">Start the Main Path by adding your first activity.</div>';
+      emptyHtml += '<button type="button" class="add-step-trigger-btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition" data-key="' + MAIN_PATH_PRACTICE_MODE_KEY + '">+ Add Step</button>';
       emptyHtml += '</div>';
       emptyHtml += '</div>';
       return emptyHtml;
@@ -1459,8 +1448,8 @@ export class CourseEditorPage {
       // Unknown / unsupported step type
       var safeType = stepType ? escapeHtml(stepType) : "unknown";
       inner += '<div class="oqu-preview-type-badge">🔷 ' + safeType + '</div>';
-      inner += '<div class="text-xs font-bold text-amber-700 mb-2">Preview renderer missing</div>';
-      inner += '<div class="text-xs text-gray-500 mb-2">This step type is not registered with the preview renderer.</div>';
+      inner += '<div class="text-xs font-bold text-amber-700 mb-2">Step type ' + safeType + ' is not registered with the preview renderer.</div>';
+      inner += '<div class="text-xs text-gray-500 mb-2">The saved step is preserved so a developer can register or repair it.</div>';
       inner += '<div class="oqu-preview-title">' + escapeHtml(title) + '</div>';
       if (instructions) {
         inner += '<div class="oqu-preview-instructions">' + escapeHtml(instructions) + '</div>';
@@ -1607,7 +1596,6 @@ export class CourseEditorPage {
     var practiceModes = readPracticeModes(session);
     var mode = practiceModes[practiceModeKey];
     var step = findPracticeModeStep(session, practiceModeKey, stepId);
-    var modeTitle = readLocalizedText(mode.title, "Step Sequence");
     var stepTitle = readLocalizedText(step.title, "Selected Step");
     var stepType = readStepTypeLabel(readStepType(step));
     var html = "";
@@ -1617,8 +1605,8 @@ export class CourseEditorPage {
     html += '<div class="text-xs font-bold text-blue-900 mb-1">Previewing one selected step</div>';
     html += '<div class="text-[11px] text-blue-700 leading-relaxed">Editor controls are hidden in the center canvas. Use Back to Editor to return to editing.</div>';
     html += '</div>';
-    html += '<div class="oqu-inspector-readonly-label">Step Sequence</div>';
-    html += '<div class="oqu-inspector-readonly-value mb-3">' + escapeHtml(modeTitle) + '</div>';
+    html += '<div class="oqu-inspector-readonly-label">Path</div>';
+    html += '<div class="oqu-inspector-readonly-value mb-3">Main Path</div>';
     html += '<div class="oqu-inspector-readonly-label">Step</div>';
     html += '<div class="oqu-inspector-readonly-value mb-3">' + escapeHtml(stepTitle) + '</div>';
     html += '<div class="oqu-inspector-readonly-label">Type</div>';
@@ -1642,7 +1630,7 @@ export class CourseEditorPage {
     html += '<div class="oqu-student-preview-topbar oqu-playtest-topbar">';
     html += '<button type="button" class="back-to-editor-btn oqu-back-editor-btn">Back to Editor</button>';
     html += '<div class="min-w-0">';
-    html += '<div class="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Step Sequence Playtest</div>';
+    html += '<div class="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Main Path Playtest</div>';
     html += '<div class="text-sm font-bold text-gray-900 truncate">' + escapeHtml(modeTitle) + '</div>';
     html += '</div>';
     html += '</div>';
@@ -1650,7 +1638,7 @@ export class CourseEditorPage {
     html += '<div class="oqu-playtest-empty">';
     html += '<div class="text-4xl mb-4">📚</div>';
     html += '<div class="text-lg font-black text-gray-900 mb-2">No activities to play yet</div>';
-    html += '<div class="text-sm text-gray-500 leading-relaxed mb-5">Add steps to this practice mode, then come back here to test the learner flow from start to finish.</div>';
+    html += '<div class="text-sm text-gray-500 leading-relaxed mb-5">Add steps to the Main Path, then come back here to test the learner flow from start to finish.</div>';
     html += '<button type="button" class="back-to-editor-btn oqu-back-editor-btn">Back to Editor</button>';
     html += '</div>';
     html += '</div>';
@@ -1666,7 +1654,7 @@ export class CourseEditorPage {
     html += '<div class="oqu-student-preview-topbar oqu-playtest-topbar">';
     html += '<button type="button" class="back-to-editor-btn oqu-back-editor-btn">Back to Editor</button>';
     html += '<div class="min-w-0 flex-1">';
-    html += '<div class="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Step Sequence Playtest</div>';
+    html += '<div class="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Main Path Playtest</div>';
     html += '<div class="text-sm font-bold text-gray-900 truncate">' + escapeHtml(modeTitle) + '</div>';
     html += '</div>';
     html += '<div class="oqu-playtest-progress-label">' + stepCount + ' step' + (stepCount === 1 ? "" : "s") + ' tested</div>';
@@ -1677,8 +1665,8 @@ export class CourseEditorPage {
     html += '<div class="oqu-student-preview-canvas oqu-playtest-canvas">';
     html += '<div class="oqu-playtest-finished">';
     html += '<div class="text-5xl mb-4">✓</div>';
-    html += '<div class="text-xl font-black text-gray-950 mb-2">Practice mode complete</div>';
-    html += '<div class="text-sm text-gray-500 leading-relaxed mb-6">The full learner preview ran through every step in this practice mode.</div>';
+    html += '<div class="text-xl font-black text-gray-950 mb-2">Main Path complete</div>';
+    html += '<div class="text-sm text-gray-500 leading-relaxed mb-6">The full learner preview ran through every step in the Main Path.</div>';
     html += '<button type="button" class="playtest-restart-btn oqu-playtest-complete-btn">Play Again</button>';
     html += '</div>';
     html += '</div>';
@@ -1751,7 +1739,6 @@ export class CourseEditorPage {
       mode = practiceModes.beforeClass;
     }
     var steps = readSortedSteps(mode.steps);
-    var modeTitle = readLocalizedText(mode.title, "Step Sequence");
     var snapshot = this.practiceModePlayerSnapshot;
     var currentStepIndex = snapshot && typeof snapshot.currentStepIndex === "number" ? snapshot.currentStepIndex : 0;
     var currentStepTitle = "No step selected";
@@ -1768,11 +1755,11 @@ export class CourseEditorPage {
 
     html += '<div class="oqu-inspector-section">Playtest</div>';
     html += '<div class="rounded-xl border border-emerald-100 bg-emerald-50 p-3 mb-4">';
-    html += '<div class="text-xs font-bold text-emerald-900 mb-1">Previewing the full practice mode</div>';
+    html += '<div class="text-xs font-bold text-emerald-900 mb-1">Previewing the full Main Path</div>';
     html += '<div class="text-[11px] text-emerald-700 leading-relaxed">This is editor-only. It does not save student progress.</div>';
     html += '</div>';
-    html += '<div class="oqu-inspector-readonly-label">Step Sequence</div>';
-    html += '<div class="oqu-inspector-readonly-value mb-3">' + escapeHtml(modeTitle) + '</div>';
+    html += '<div class="oqu-inspector-readonly-label">Path</div>';
+    html += '<div class="oqu-inspector-readonly-value mb-3">Main Path</div>';
     html += '<div class="oqu-inspector-readonly-label">Steps</div>';
     html += '<div class="oqu-inspector-readonly-value mb-3">' + steps.length + '</div>';
     html += '<div class="oqu-inspector-readonly-label">Completed</div>';
@@ -1792,10 +1779,9 @@ export class CourseEditorPage {
 
     // Context breadcrumb
     var sessionTitle = readLocalizedText(session.title, "Learning Mode");
-    var modeTitle = readLocalizedText(selectedMode.title, "Step Track");
     html += '<div class="mb-4">';
     html += '<div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">' + escapeHtml(sessionTitle) + '</div>';
-    html += '<div class="text-[10px] font-bold text-blue-600">' + escapeHtml(modeTitle) + '</div>';
+    html += '<div class="text-[10px] font-bold text-blue-600">Main Path</div>';
     html += '</div>';
 
     html += '<div class="oqu-inspector-divider"></div>';
@@ -1897,56 +1883,23 @@ export class CourseEditorPage {
   }
 
   buildPracticeModeInspector(mode, session, practiceModeKey) {
-    var title = readLocalizedText(mode.title, "Step Sequence");
     var status = readString(mode.status, "shell");
+    var steps = readSortedSteps(mode.steps);
+    var sessionTitle = readLocalizedText(session.title, "Learning Mode");
     var html = "";
 
-    html += '<div class="oqu-inspector-section">Step Sequence</div>';
-
-    // Title
-    html += '<div class="oqu-inspector-field">';
-    html += '<label class="oqu-inspector-label">Title</label>';
-    html += '<input type="text" class="oqu-inspector-input inspector-mode-title" value="' + escapeHtml(title) + '">';
-    html += '</div>';
-
-    // Purpose
-    html += '<div class="oqu-inspector-field">';
-    html += '<label class="oqu-inspector-label">Purpose</label>';
-    html += '<textarea class="oqu-inspector-textarea inspector-mode-purpose" placeholder="Describe this mode\'s learning goal...">' + escapeHtml(mode.purpose) + '</textarea>';
-    html += '</div>';
-
-    // Status
-    html += '<div class="oqu-inspector-field">';
-    html += '<label class="oqu-inspector-label">Status</label>';
-    html += '<select class="oqu-inspector-select inspector-mode-status">';
-    html += buildStatusOption("shell", status);
-    html += buildStatusOption("draft", status);
-    html += buildStatusOption("ready", status);
-    html += buildStatusOption("disabled", status);
-    html += '</select>';
-    html += '</div>';
-
-    // Enabled
-    html += '<div class="oqu-inspector-field">';
-    html += '<label class="oqu-inspector-label">Enabled</label>';
-    html += '<label class="flex items-center gap-2 cursor-pointer mt-1">';
-    html += '<input type="checkbox" class="inspector-mode-enabled rounded" ' + (mode.enabled ? "checked" : "") + '>';
-    html += '<span class="text-xs font-semibold text-gray-700">Active for learners</span>';
-    html += '</label>';
-    html += '</div>';
-
-    html += '<button type="button" class="save-practice-mode-btn w-full bg-gray-900 hover:bg-black text-white font-bold py-2 rounded-lg text-xs transition mt-1">Save Step Sequence</button>';
-
-    // Legacy shell context remains visible during migration.
-    html += '<div class="oqu-inspector-divider" style="margin-top:20px"></div>';
-    html += '<div class="oqu-inspector-section">Path Shell</div>';
-
-    var sessionTitle = readLocalizedText(session.title, "Lesson Path");
-    var sessionStatus = readString(session.status, "draft");
-    html += '<div class="flex items-center justify-between">';
-    html += '<div class="oqu-inspector-readonly-value">' + escapeHtml(sessionTitle) + '</div>';
-    html += buildStatusPill(sessionStatus);
-    html += '</div>';
+    html += '<div class="oqu-inspector-section">Main Path</div>';
+    html += '<div class="oqu-inspector-readonly-label">Module</div>';
+    html += '<div class="oqu-inspector-readonly-value mb-3">' + escapeHtml(sessionTitle) + '</div>';
+    html += '<div class="oqu-inspector-readonly-label">Structure</div>';
+    html += '<div class="oqu-inspector-readonly-value mb-3">Ordered Step List</div>';
+    html += '<div class="oqu-inspector-readonly-label">Status</div>';
+    html += '<div class="oqu-inspector-readonly-value mb-3">' + escapeHtml(status) + '</div>';
+    html += '<div class="oqu-inspector-readonly-label">Steps</div>';
+    html += '<div class="oqu-inspector-readonly-value mb-4">' + steps.length + '</div>';
+    html += '<button type="button" class="add-step-trigger-btn w-full border border-dashed border-blue-300 bg-white hover:bg-blue-50 text-blue-600 font-bold py-2 rounded-lg text-xs transition" data-key="' + MAIN_PATH_PRACTICE_MODE_KEY + '">';
+    html += '<i class="fa-solid fa-plus text-[10px]"></i> Add Step';
+    html += '</button>';
 
     return html;
   }
@@ -2272,7 +2225,7 @@ function readStepValidation(step) {
     if (!result || result.valid !== true) {
       return {
         valid: false,
-        message: "This step type is not registered with the preview renderer."
+        message: "Step type " + stepType + " is not registered with the preview renderer."
       };
     }
   } catch (error) {
@@ -2385,16 +2338,16 @@ function buildStepPickerModal(practiceModeKey) {
   html += '<div class="oqu-step-picker-header">';
   html += '<div>';
   html += '<div class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Add Step</div>';
-  html += '<div class="text-lg font-black text-gray-950">Choose an activity type</div>';
-  html += '<div class="text-xs text-gray-500 mt-1">Search activities, games, reflection, vocabulary, and assessment-ready steps.</div>';
+  html += '<div class="text-lg font-black text-gray-950">Choose a Main Path step</div>';
+  html += '<div class="text-xs text-gray-500 mt-1">Add a reusable step to the module ordered list.</div>';
   html += '</div>';
   html += '<button type="button" class="close-step-picker-btn oqu-step-picker-close" aria-label="Close step picker">×</button>';
   html += '</div>';
-  html += '<div class="px-6 pb-4"><input type="search" class="step-picker-search w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:border-blue-300 focus:ring-4 focus:ring-blue-100" placeholder="Search step activities..."></div>';
+  html += '<div class="px-6 pb-4"><input type="search" class="step-picker-search w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:border-blue-300 focus:ring-4 focus:ring-blue-100" placeholder="Search supported steps..."></div>';
   html += '<div class="px-6 pb-4 flex flex-wrap gap-2">';
-  html += '<span class="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-emerald-700">Popular: Matching Game</span>';
-  html += '<span class="rounded-full bg-sky-50 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-sky-700">Suggested: Flashcards</span>';
-  html += '<span class="rounded-full bg-violet-50 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-violet-700">Assessment-ready</span>';
+  html += '<span class="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-emerald-700">Basic / Content</span>';
+  html += '<span class="rounded-full bg-sky-50 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-sky-700">Practice</span>';
+  html += '<span class="rounded-full bg-violet-50 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-violet-700">Assessment / Check</span>';
   html += '</div>';
   html += '<div class="oqu-step-picker-category-list" data-key="' + practiceModeKey + '">';
   html += buildStepPickerOptions();
@@ -2478,26 +2431,17 @@ function filterStepPicker(value) {
 
 function createStepTypeCards() {
   var definitions = listStepTypeDefinitions();
-  var cards = [createPrimerStepTypeCard()];
+  var cards = [];
   var definitionIndex = 0;
 
   while (definitionIndex < definitions.length) {
-    cards.push(createStepTypeCard(definitions[definitionIndex]));
+    if (SUPPORTED_MAIN_PATH_STEP_TYPES.indexOf(readStepDefinitionText(definitions[definitionIndex], "type", "")) !== -1) {
+      cards.push(createStepTypeCard(definitions[definitionIndex]));
+    }
     definitionIndex = definitionIndex + 1;
   }
 
   return cards;
-}
-
-function createPrimerStepTypeCard() {
-  return {
-    type: "textBriefing",
-    label: "Primer",
-    icon: "fa-solid fa-seedling",
-    description: "A short starter step that introduces the key idea before practice.",
-    category: "Basic",
-    complexity: "Easy"
-  };
 }
 
 function createStepTypeCard(StepTypeDefinition) {
@@ -2516,39 +2460,23 @@ function createStepTypeCard(StepTypeDefinition) {
 function normalizeStepPickerCategory(category) {
   var normalizedCategory = typeof category === "string" ? category.trim().toLowerCase() : "";
 
-  if (normalizedCategory === "basic") {
-    return "Basic";
+  if (normalizedCategory === "basic" || normalizedCategory === "basic / content") {
+    return "Basic / Content";
   }
 
-  if (normalizedCategory === "reflection") {
-    return "Reflection";
+  if (normalizedCategory === "interactive" || normalizedCategory === "practice") {
+    return "Practice";
   }
 
-  if (normalizedCategory === "media") {
-    return "Media";
-  }
-
-  if (normalizedCategory === "games") {
-    return "Games";
-  }
-
-  if (normalizedCategory === "coding") {
-    return "Coding";
-  }
-
-  if (normalizedCategory === "speaking") {
-    return "Speaking";
-  }
-
-  if (normalizedCategory === "assessment") {
-    return "Assessment";
+  if (normalizedCategory === "assessment" || normalizedCategory === "assessment / check" || normalizedCategory === "reflection") {
+    return "Assessment / Check";
   }
 
   return category || "Custom";
 }
 
 function createStepCategoryOrder() {
-  return ["Basic", "Reflection", "Media", "Games", "Coding", "Speaking", "Assessment", "Custom"];
+  return ["Basic / Content", "Practice", "Assessment / Check"];
 }
 
 function buildUnsupportedStudentPreview(step) {
@@ -3169,12 +3097,19 @@ function readStepTypeLabel(stepType) {
 }
 
 function readStepTypeIcon(stepType) {
+  if (stepType === "intro-card") { return "🚀"; }
+  if (stepType === "card-reveal") { return "🃏"; }
+  if (stepType === "sorting") { return "🧺"; }
+  if (stepType === "multiple-choice") { return "✅"; }
+  if (stepType === "roadmap") { return "🗺️"; }
+  if (stepType === "matching") { return "🔗"; }
+  if (stepType === "ordering") { return "🔢"; }
+  if (stepType === "reflection") { return "💭"; }
   if (stepType === "textBriefing") { return "📄"; }
   if (stepType === "vocabulary") { return "📖"; }
   if (stepType === "phrase") { return "💬"; }
   if (stepType === "listening") { return "🎧"; }
   if (stepType === "speakingPrompt") { return "🎤"; }
-  if (stepType === "reflection") { return "💡"; }
   if (isEmotionalCheckInStepType(stepType)) { return "💙"; }
   if (stepType === "customExperience") { return "✦"; }
   if (stepType === "cyberCodeMission") { return "⌨"; }
@@ -3206,12 +3141,19 @@ function readStepDefinitionText(StepTypeDefinition, propertyName, fallbackText) 
 }
 
 function readStepDefinitionIcon(stepType) {
+  if (stepType === "intro-card") { return "fa-solid fa-rocket"; }
+  if (stepType === "card-reveal") { return "fa-solid fa-clone"; }
+  if (stepType === "sorting") { return "fa-solid fa-table-cells"; }
+  if (stepType === "multiple-choice") { return "fa-solid fa-circle-check"; }
+  if (stepType === "roadmap") { return "fa-solid fa-route"; }
+  if (stepType === "matching") { return "fa-solid fa-link"; }
+  if (stepType === "ordering") { return "fa-solid fa-arrow-down-1-9"; }
+  if (stepType === "reflection") { return "fa-solid fa-comment-dots"; }
   if (stepType === "textBriefing") { return "fa-solid fa-file-lines"; }
   if (stepType === "vocabulary") { return "fa-solid fa-book"; }
   if (stepType === "phrase") { return "fa-solid fa-comment-dots"; }
   if (stepType === "listening") { return "fa-solid fa-headphones"; }
   if (stepType === "speakingPrompt") { return "fa-solid fa-microphone"; }
-  if (stepType === "reflection") { return "fa-solid fa-lightbulb"; }
   if (isEmotionalCheckInStepType(stepType)) { return "fa-regular fa-face-smile"; }
   if (stepType === "customExperience") { return "fa-solid fa-shapes"; }
   if (stepType === "cyberCodeMission") { return "fa-solid fa-code"; }
@@ -3229,10 +3171,13 @@ function isEmotionalCheckInStepType(stepType) {
 }
 
 function supportsLearningContentPull(stepType) {
-  return stepType === "dragMatchIsland"
-    || stepType === "vocabulary"
-    || stepType === "reflection"
-    || stepType === "customExperience";
+  return stepType === "card-reveal"
+    || stepType === "sorting"
+    || stepType === "multiple-choice"
+    || stepType === "matching"
+    || stepType === "ordering"
+    || stepType === "roadmap"
+    || stepType === "reflection";
 }
 
 // ── Status option builder ─────────────────────────────────────────────────────

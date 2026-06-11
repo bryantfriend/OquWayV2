@@ -77,6 +77,21 @@ function createStep(payload) {
 }
 
 function createDefaultStepTitle(stepType) {
+  var titles = {
+    "intro-card": "Intro Card",
+    "card-reveal": "Card Reveal",
+    sorting: "Sorting",
+    "multiple-choice": "Multiple Choice",
+    roadmap: "Roadmap",
+    matching: "Matching",
+    ordering: "Ordering",
+    reflection: "Reflection"
+  };
+
+  if (titles[stepType]) {
+    return { en: titles[stepType], ru: "", ky: "" };
+  }
+
   if (stepType === "textBriefing") {
     return { en: "Primer", ru: "", ky: "" };
   }

@@ -229,7 +229,7 @@ function validatePreviewData(data, stepId) {
   }
 
   if (!StepTypeDefinition) {
-    return new Error("This step type is not registered with the preview renderer. Type: " + stepType + ".");
+    return new Error("Step type " + stepType + " is not registered with the preview renderer.");
   }
 
   if (step.config && (typeof step.config !== "object" || Array.isArray(step.config))) {

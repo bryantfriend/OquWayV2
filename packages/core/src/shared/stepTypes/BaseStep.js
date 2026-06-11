@@ -117,21 +117,22 @@ export class BaseStep {
       container = true;
     }
 
-    return {
-      complete: function (completionResult) {
-        if (hasCompleted) {
-          return false;
-        }
-
-        if (!container || !safeCallbacks || typeof safeCallbacks.onComplete !== "function") {
-          return false;
-        }
-
-        hasCompleted = true;
-        safeCallbacks.onComplete(createGuardedCompletionResult(completionResult));
-        return true;
+    var complete = function (completionResult) {
+      if (hasCompleted) {
+        return false;
       }
+
+      if (!container || !safeCallbacks || typeof safeCallbacks.onComplete !== "function") {
+        return false;
+      }
+
+      hasCompleted = true;
+      safeCallbacks.onComplete(createGuardedCompletionResult(completionResult));
+      return true;
     };
+
+    complete.complete = complete;
+    return complete;
   }
 
   static escapeHtml(value) {
@@ -180,7 +181,12 @@ function createGuardedCompletionResult(completionResult) {
   return result;
 }
 
-if (typeof window !== "undefined") {
-  window.CourseEngine = window.CourseEngine || {};
-  window.CourseEngine.BaseStep = BaseStep;
+if (typeof globalThis !== "undefined") {
+  globalThis.CourseEngine = globalThis.CourseEngine || {};
+  globalThis.CourseEngine.BaseStep = BaseStep;
+
+  if (typeof window !== "undefined") {
+    window.CourseEngine = window.CourseEngine || globalThis.CourseEngine;
+    window.CourseEngine.BaseStep = BaseStep;
+  }
 }
