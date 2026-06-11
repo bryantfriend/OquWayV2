@@ -142,7 +142,7 @@ export function normalizeLearningMode(modeId, mode, fallbackSession) {
   var id = readText(safeMode.id || safeMode.key || modeId, PRIMARY_MODE_ID);
   var title = readText(safeMode.title, fallbackSession ? readLocalizedTitle(fallbackSession.title, "Learning Mode") : "Learning Mode");
 
-  return createLearningModeRecord({
+  var normalizedMode = createLearningModeRecord({
     modeId: id,
     title: title,
     purpose: safeMode.purpose || safeMode.description || "",
@@ -155,6 +155,24 @@ export function normalizeLearningMode(modeId, mode, fallbackSession) {
     generatedFrom: safeMode.generatedFrom,
     createdAt: safeMode.createdAt
   });
+
+  if (Array.isArray(safeMode.steps)) {
+    normalizedMode.steps = safeMode.steps.slice();
+  }
+
+  if (Array.isArray(safeMode.stepOrder)) {
+    normalizedMode.stepOrder = safeMode.stepOrder.slice();
+  } else if (Array.isArray(safeMode.steps)) {
+    normalizedMode.stepOrder = safeMode.steps.map(function (step) {
+      return step && step.id ? step.id : "";
+    }).filter(Boolean);
+  }
+
+  normalizedMode.stepCount = typeof safeMode.stepCount === "number"
+    ? safeMode.stepCount
+    : (Array.isArray(normalizedMode.stepOrder) ? normalizedMode.stepOrder.length : 0);
+
+  return normalizedMode;
 }
 
 export function createModeFromPayload(payload, existingModes) {

@@ -2,7 +2,7 @@ import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.
 import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.160-lesson-paths";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.154-emotional-check-in-prototype";
-import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.163-main-path-step-editor";
+import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.164-course-builder-source-truth";
 import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.159-emotional-regulation";
 import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.154-emotional-check-in-prototype";
 import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.160-lesson-paths";

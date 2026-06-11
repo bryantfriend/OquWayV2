@@ -7,14 +7,17 @@ const MODE_COUNT_CONCURRENCY = 6;
 export async function catalogCourseFetchAllProcessing(executionState) {
   try {
     const courses = await readCatalogCoursesWithLegacyFallback();
+    const shouldVerifyCounts = shouldRunDeepCountVerification(executionState);
 
     const countedCourses = await mapWithLimit(courses, COURSE_COUNT_CONCURRENCY, async function (course) {
-      const counts = await readCourseCounts(course);
+      const counts = shouldVerifyCounts
+        ? await readCourseCounts(course)
+        : readStoredCourseCounts(course);
       return Object.assign({}, course, {
         moduleCount: counts.moduleCount,
         stepCount: counts.stepCount,
         countsVerifiedAt: counts.countsVerifiedAt,
-        countsVerified: true,
+        countsVerified: counts.countsVerified,
         countSource: counts.source,
         moduleCountSource: counts.source
       });
@@ -33,6 +36,31 @@ export async function catalogCourseFetchAllProcessing(executionState) {
       ]
     };
   }
+}
+
+function readStoredCourseCounts(course) {
+  return {
+    moduleCount: readStoredCount(course.moduleCount),
+    stepCount: readStoredCount(course.stepCount),
+    countsVerifiedAt: course.countsVerifiedAt || null,
+    countsVerified: false,
+    source: course.courseRecordSource || "catalogCourses"
+  };
+}
+
+function shouldRunDeepCountVerification(executionState) {
+  var payload = executionState && executionState.payload ? executionState.payload : {};
+  var meta = executionState && executionState.meta ? executionState.meta : {};
+
+  if (payload.verifyCounts === true || meta.verifyCounts === true) {
+    return true;
+  }
+
+  if (typeof window === "undefined" || !window.location) {
+    return false;
+  }
+
+  return window.location.search.indexOf("debugCounts=1") !== -1;
 }
 
 async function readCourseCounts(course) {
@@ -76,6 +104,7 @@ async function readCourseCounts(course) {
     moduleCount: modules.length,
     stepCount: actualStepCount,
     countsVerifiedAt: Date.now(),
+    countsVerified: true,
     source: source
   };
 }

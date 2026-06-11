@@ -1,7 +1,7 @@
-import { validateAuthenticated, validateCourseId, validateModuleId, validatePracticeModeKey, validateSessionId } from "../../stages/validate/validators.js?v=1.1.162-modal-stack";
+import { validateAuthenticated, validateCourseId, validateLearningModeId, validateModuleId, validatePracticeModeKey, validatePracticeModeStepOrder, validateSessionId } from "../../stages/validate/validators.js?v=1.1.162-modal-stack";
 import { normalizeCourseId } from "../../stages/normalize/normalizers.js?v=1.1.162-modal-stack";
 import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
-import { attachCourseDocumentForModule, attachModuleDocument, attachSessionDocument } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
+import { attachCourseDocumentForModule, attachLearningModeDocument, attachModuleDocument, attachSessionDocument } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
 import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.162-modal-stack";
 import { processReorderPracticeModeSteps } from "../../stages/process/processors.js?v=1.1.162-modal-stack";
 import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.162-modal-stack";
@@ -13,8 +13,10 @@ export function ReorderPracticeModeStepsIntent() {
       validateAuthenticated,
       validateCourseId,
       validateModuleId,
+      validateLearningModeId,
       validateSessionId,
-      validatePracticeModeKey
+      validatePracticeModeKey,
+      validatePracticeModeStepOrder
     ],
     normalize: [
       normalizeCourseId
@@ -24,7 +26,8 @@ export function ReorderPracticeModeStepsIntent() {
       attachActorRoleContext,
       attachCourseDocumentForModule,
       attachModuleDocument,
-      attachSessionDocument
+      attachSessionDocument,
+      attachLearningModeDocument
     ],
     authorize: [
       requireCourseCreatorAuthorization

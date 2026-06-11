@@ -1,5 +1,5 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.163-main-path-step-editor";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.164-course-builder-source-truth";
 import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.162-modal-stack";
 import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.162-modal-stack";
 import {
@@ -22,8 +22,8 @@ import {
   renderEmotionalCheckInGate
 } from "../../../packages/ui/index.js?v=1.1.162-modal-stack";
 import { emotionalCheckInService } from "../../../packages/shared/emotionalCheckIns/index.js?v=1.1.162-modal-stack";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.163-main-path-step-editor";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.163-main-path-step-editor";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.164-course-builder-source-truth";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.164-course-builder-source-truth";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -444,7 +444,7 @@ function buildStudentCourseCheckInContext(openResult) {
     scheduledLessonId: readText(course.scheduledLessonId || target.scheduledLessonId),
     courseSessionId: readText(course.courseSessionId || target.courseSessionId),
     contextScope: classId ? "class-session" : "course-entry",
-    checkInSource: "student-dashboard-course-entry",
+    checkInSource: "student_panel",
     timezone: readText(student.timezone || student.locationTimezone || student.schoolTimezone || course.timezone)
   });
 }

@@ -344,6 +344,7 @@ export const moduleEditorService = {
     if (result && result.emitted && result.emitted.success) {
       if (result.emitted.data && result.emitted.data.learningMode) {
         mergeLearningMode(result.emitted.data.learningMode);
+        patchSessionFromLearningMode(result.emitted.data.learningMode, stepId);
       }
       moduleEditorStore.setState({
         selectedStepId: stepId,
@@ -393,40 +394,44 @@ export const moduleEditorService = {
     throw new Error(readIntentErrorMessage(result));
   },
 
-  deletePracticeModeStep: async function (courseId, moduleId, sessionId, practiceModeKey, stepId) {
+  deletePracticeModeStep: async function (courseId, moduleId, sessionId, practiceModeKey, stepId, modeId, selectedStepId) {
     var result = await runIntentPipeline(getIntentDefinition("DeletePracticeModeStepIntent"), {
       payload: {
         courseId: courseId,
         moduleId: moduleId,
+        modeId: modeId,
         sessionId: sessionId,
         practiceModeKey: practiceModeKey,
-        stepId: stepId
+        stepId: stepId,
+        selectedStepId: selectedStepId || ""
       },
       actor: getActor()
     });
 
     if (result && result.emitted && result.emitted.success) {
-      replaceSessionInState(result.emitted.data);
+      mergePracticeModeMutationResult(result.emitted.data, selectedStepId || "");
       return result;
     }
 
     throw new Error(readIntentErrorMessage(result));
   },
 
-  reorderPracticeModeSteps: async function (courseId, moduleId, sessionId, practiceModeKey, orderedStepIds, selectedStepId) {
+  reorderPracticeModeSteps: async function (courseId, moduleId, sessionId, practiceModeKey, orderedStepIds, selectedStepId, modeId) {
     var result = await runIntentPipeline(getIntentDefinition("ReorderPracticeModeStepsIntent"), {
       payload: {
         courseId: courseId,
         moduleId: moduleId,
+        modeId: modeId,
         sessionId: sessionId,
         practiceModeKey: practiceModeKey,
-        orderedStepIds: orderedStepIds
+        orderedStepIds: orderedStepIds,
+        selectedStepId: selectedStepId || ""
       },
       actor: getActor()
     });
 
     if (result && result.emitted && result.emitted.success) {
-      replaceSessionInState(result.emitted.data, selectedStepId);
+      mergePracticeModeMutationResult(result.emitted.data, selectedStepId || "");
       return result;
     }
 
@@ -553,6 +558,118 @@ function replaceSessionInState(updatedSession, selectedStepId) {
     selectedStepId: nextSelectedStepId,
     lastSaved: Date.now()
   });
+}
+
+function mergePracticeModeMutationResult(data, fallbackSelectedStepId) {
+  var payload = data || {};
+  var selectedStepId = typeof payload.selectedStepId === "string" ? payload.selectedStepId : fallbackSelectedStepId;
+
+  if (payload.session) {
+    replaceSessionInState(payload.session, selectedStepId);
+  } else {
+    replaceSessionInState(payload, selectedStepId);
+  }
+
+  if (payload.learningMode) {
+    mergeLearningMode(payload.learningMode);
+  }
+
+  if (typeof selectedStepId === "string") {
+    moduleEditorStore.setState({
+      selectedStepId: selectedStepId,
+      lastSaved: Date.now()
+    });
+  }
+}
+
+function patchSessionFromLearningMode(learningMode, selectedStepId) {
+  var state = moduleEditorStore.getState();
+  var modeId = learningMode && learningMode.id ? learningMode.id : "";
+  var steps = learningMode && Array.isArray(learningMode.steps) ? learningMode.steps.slice() : [];
+  var practiceModeKey = readPracticeModeKeyForLearningMode(learningMode);
+  var sessions = state.sessions.slice();
+  var sessionIndex = findSessionIndexForLearningMode(sessions, learningMode);
+
+  if (sessionIndex === -1) {
+    return;
+  }
+
+  var session = sessions[sessionIndex];
+  var practiceModes = clonePracticeModes(session.practiceModes);
+  var practiceMode = practiceModes[practiceModeKey] || createPracticeModeShell(practiceModeKey);
+
+  practiceMode.steps = steps;
+  practiceMode.status = steps.length > 0 ? "draft" : practiceMode.status;
+  practiceModes[practiceModeKey] = practiceMode;
+  sessions[sessionIndex] = Object.assign({}, session, {
+    learningModeId: modeId || session.learningModeId,
+    practiceModes: practiceModes,
+    updatedAt: Date.now()
+  });
+
+  moduleEditorStore.setState({
+    sessions: sessions,
+    selectedSessionId: sessions[sessionIndex].id,
+    selectedStepId: selectedStepId || state.selectedStepId,
+    lastSaved: Date.now()
+  });
+}
+
+function findSessionIndexForLearningMode(sessions, learningMode) {
+  var modeId = learningMode && learningMode.id ? learningMode.id : "";
+  var legacySessionId = learningMode && learningMode.legacySessionId ? learningMode.legacySessionId : "";
+  var index = 0;
+
+  while (index < sessions.length) {
+    if ((legacySessionId && sessions[index].id === legacySessionId) || (modeId && sessions[index].learningModeId === modeId)) {
+      return index;
+    }
+
+    index = index + 1;
+  }
+
+  return -1;
+}
+
+function readPracticeModeKeyForLearningMode(learningMode) {
+  if (learningMode && learningMode.modeType === "review") {
+    return "afterClass";
+  }
+
+  if (learningMode && learningMode.modeType === "practice") {
+    return "dailyPractice";
+  }
+
+  if (learningMode && learningMode.modeType === "assessment") {
+    return "classroomLesson";
+  }
+
+  return "beforeClass";
+}
+
+function clonePracticeModes(practiceModes) {
+  var source = practiceModes && typeof practiceModes === "object" ? practiceModes : {};
+  var result = {};
+
+  Object.keys(source).forEach(function (key) {
+    result[key] = Object.assign({}, source[key], {
+      steps: Array.isArray(source[key].steps) ? source[key].steps.slice() : []
+    });
+  });
+
+  return result;
+}
+
+function createPracticeModeShell(key) {
+  return {
+    key: key,
+    title: { en: "Main Path", ru: "", ky: "" },
+    purpose: "",
+    status: "draft",
+    enabled: true,
+    steps: [],
+    order: 1
+  };
 }
 
 function mergeLearningModeResult(data) {

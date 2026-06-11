@@ -1,4 +1,4 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
+import { collection, db, doc, getDocs, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
 import { addStepToPracticeMode, createDefaultPracticeModes, isValidPracticeModeKey } from "./practiceModeShells.js?v=1.1.162-modal-stack";
 
 export async function processAddStepToLearningMode(executionState) {
@@ -166,6 +166,9 @@ async function saveLegacySession(executionState, payload, session) {
 }
 
 async function saveLearningModeSessionLink(executionState, payload, modeId, learningMode) {
+  var moduleStepCount = readUpdatedModuleStepCount(executionState, modeId, learningMode.stepCount);
+  var courseStepCount = await readUpdatedCourseStepCount(readCourseCollectionName(executionState), payload.courseId, payload.moduleId, moduleStepCount, executionState.context.module);
+
   await setDoc(doc(db, readCourseCollectionName(executionState), payload.courseId, "modules", payload.moduleId, "learningModes", modeId), Object.assign({}, learningMode, {
     updatedAt: serverTimestamp()
   }), { merge: true });
@@ -174,7 +177,13 @@ async function saveLearningModeSessionLink(executionState, payload, modeId, lear
     learningModes: {
       [modeId]: learningMode
     },
-    stepCount: readUpdatedModuleStepCount(executionState, modeId, learningMode.stepCount),
+    stepCount: moduleStepCount,
+    stepsInitialized: true,
+    updatedAt: serverTimestamp()
+  }, { merge: true });
+
+  await setDoc(doc(db, readCourseCollectionName(executionState), payload.courseId), {
+    stepCount: courseStepCount,
     updatedAt: serverTimestamp()
   }, { merge: true });
 }
@@ -199,6 +208,62 @@ function readUpdatedModuleStepCount(executionState, updatedModeId, updatedModeSt
   if (modeIds.indexOf(updatedModeId) === -1) {
     total = total + readNumber(updatedModeStepCount, 0);
   }
+
+  return total;
+}
+
+async function readUpdatedCourseStepCount(collectionName, courseId, updatedModuleId, updatedModuleStepCount, currentModule) {
+  var modulesSnapshot = await getDocs(collection(db, collectionName, courseId, "modules"));
+  var total = 0;
+  var sawUpdatedModule = false;
+
+  modulesSnapshot.forEach(function (moduleDoc) {
+    if (moduleDoc.id === updatedModuleId) {
+      total = total + readNumber(updatedModuleStepCount, 0);
+      sawUpdatedModule = true;
+      return;
+    }
+
+    total = total + countModuleSteps(moduleDoc.data() || {});
+  });
+
+  if (!sawUpdatedModule) {
+    total = total + readNumber(updatedModuleStepCount, countModuleSteps(currentModule));
+  }
+
+  return total;
+}
+
+function countModuleSteps(module) {
+  if (!module || typeof module !== "object") {
+    return 0;
+  }
+
+  if (module.learningModes && typeof module.learningModes === "object") {
+    return countLearningModeSteps(module.learningModes);
+  }
+
+  return readNumber(module.stepCount, 0);
+}
+
+function countLearningModeSteps(learningModes) {
+  var total = 0;
+
+  Object.keys(learningModes || {}).forEach(function (modeId) {
+    var mode = learningModes[modeId];
+
+    if (mode && Array.isArray(mode.stepOrder) && mode.stepOrder.length > 0) {
+      total = total + mode.stepOrder.length;
+      return;
+    }
+
+    if (mode && Array.isArray(mode.steps)) {
+      total = total + mode.steps.length;
+      return;
+    }
+
+    total = total + readNumber(mode && mode.stepCount, 0);
+  });
 
   return total;
 }

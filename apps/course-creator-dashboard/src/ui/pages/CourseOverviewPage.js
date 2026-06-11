@@ -2729,23 +2729,44 @@ function countCourseSteps(modules) {
 }
 
 function countModuleSteps(module) {
-  if (!module || typeof module !== 'object') {
-    return 0;
+  return calculateModuleStepSummary(module).stepCount;
+}
+
+function calculateModuleStepSummary(module) {
+  var learningModeCount = countLearningModeSteps(module && module.learningModes);
+
+  if (learningModeCount > 0) {
+    return {
+      stepCount: learningModeCount,
+      source: 'learningModes'
+    };
   }
 
-  if (typeof module.stepCount === 'number') {
-    return module.stepCount;
+  if (module && Array.isArray(module.steps)) {
+    return {
+      stepCount: module.steps.length,
+      source: 'module.steps'
+    };
   }
 
-  if (Array.isArray(module.steps)) {
-    return module.steps.length;
+  if (module && Array.isArray(module.sessions)) {
+    return {
+      stepCount: countPreviewModuleSteps(module),
+      source: 'sessions'
+    };
   }
 
-  if (Array.isArray(module.sessions)) {
-    return countPreviewModuleSteps(module);
+  if (module && typeof module.stepCount === 'number') {
+    return {
+      stepCount: module.stepCount,
+      source: 'storedStepCount'
+    };
   }
 
-  return countLearningModeSteps(module.learningModes);
+  return {
+    stepCount: 0,
+    source: 'none'
+  };
 }
 
 function countLearningModeSteps(learningModes) {
@@ -2757,8 +2778,18 @@ function countLearningModeSteps(learningModes) {
   Object.keys(learningModes).forEach(function (modeId) {
     var mode = learningModes[modeId];
 
+    if (mode && Array.isArray(mode.stepOrder) && mode.stepOrder.length > 0) {
+      count = count + mode.stepOrder.length;
+      return;
+    }
+
     if (mode && Array.isArray(mode.steps)) {
       count = count + mode.steps.length;
+      return;
+    }
+
+    if (mode && typeof mode.stepCount === 'number') {
+      count = count + mode.stepCount;
     }
   });
 

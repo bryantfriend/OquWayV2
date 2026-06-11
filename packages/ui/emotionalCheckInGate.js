@@ -1,8 +1,9 @@
-import { EMOTIONAL_CHECK_IN_OPTIONS } from "../domain/emotionalCheckIns/index.js?v=1.1.162-modal-stack";
+import { EMOTIONAL_CHECK_IN_CATEGORIES, getEmotionalCheckInOption } from "../domain/emotionalCheckIns/index.js?v=1.1.162-modal-stack";
 
 export function renderEmotionalCheckInGate(container, checkInContext, callbacks) {
   var state = {
     selectedEmotionKey: "",
+    isConfirming: false,
     isSaving: false,
     error: callbacks && callbacks.initialError ? callbacks.initialError : "",
     thanks: false
@@ -21,18 +22,27 @@ export function renderEmotionalCheckInGate(container, checkInContext, callbacks)
 
   function handleClick(event) {
     var emotionButton = event.target.closest(".oqu-check-in-emotion");
-    var continueButton = event.target.closest(".oqu-check-in-continue");
+    var confirmButton = event.target.closest(".oqu-check-in-confirm");
+    var chooseDifferentButton = event.target.closest(".oqu-check-in-change");
     var retryButton = event.target.closest(".oqu-check-in-retry");
     var skipButton = event.target.closest(".oqu-check-in-skip");
 
     if (emotionButton && !state.isSaving) {
       state.selectedEmotionKey = emotionButton.getAttribute("data-emotion-key") || "";
+      state.isConfirming = true;
       state.error = "";
       render();
       return;
     }
 
-    if (continueButton && state.selectedEmotionKey && !state.isSaving) {
+    if (chooseDifferentButton && !state.isSaving) {
+      state.isConfirming = false;
+      state.error = "";
+      render();
+      return;
+    }
+
+    if (confirmButton && state.selectedEmotionKey && !state.isSaving) {
       saveSelection();
       return;
     }
@@ -75,7 +85,7 @@ export function renderEmotionalCheckInGate(container, checkInContext, callbacks)
       }, 700);
     } catch (error) {
       state.isSaving = false;
-      state.error = "We could not save your check-in. You can try again or continue without checking in.";
+      state.error = "Couldn't save right now. You can still continue.";
       render();
     }
   }
@@ -100,7 +110,7 @@ function buildCheckInHtml(checkInContext, state) {
   html += '<div class="oqu-check-in-card">';
 
   if (state.thanks) {
-    html += '<div class="oqu-check-in-thanks"><div class="oqu-check-in-thanks-icon">✓</div><h1>Thanks for checking in.</h1><p>You are ready to continue.</p></div>';
+    html += '<div class="oqu-check-in-thanks"><div class="oqu-check-in-thanks-icon">✓</div><h1>Thanks for checking in.</h1><p>You can continue learning now.</p></div>';
     html += '</div></section>';
     return html;
   }
@@ -108,32 +118,70 @@ function buildCheckInHtml(checkInContext, state) {
   html += '<div class="oqu-check-in-header">';
   html += '<p class="oqu-check-in-eyebrow">OquWay Check-In</p>';
   html += '<h1>How are you feeling right now?</h1>';
-  html += '<p>Before you start ' + escapeHtml(title) + ', choose the feeling that is closest for you.</p>';
+  html += '<p>Before you start ' + escapeHtml(title) + ', choose the feeling that is closest for you. Your teacher uses this to better support the class.</p>';
   html += '</div>';
-  html += '<div class="oqu-check-in-grid" role="list">';
-  EMOTIONAL_CHECK_IN_OPTIONS.forEach(function (option) {
-    var isSelected = state.selectedEmotionKey === option.key;
-    html += '<button type="button" class="oqu-check-in-emotion' + (isSelected ? " is-selected" : "") + '" data-emotion-key="' + escapeHtml(option.key) + '" role="listitem" aria-pressed="' + (isSelected ? "true" : "false") + '">';
-    html += '<span class="oqu-check-in-emoji">' + escapeHtml(option.emoji) + '</span>';
-    html += '<span>' + escapeHtml(option.label) + '</span>';
-    html += '</button>';
-  });
-  html += '</div>';
+
+  if (state.isConfirming) {
+    html += buildConfirmationHtml(state);
+  } else {
+    html += buildGroupedMoodHtml(state);
+  }
 
   if (state.error) {
     html += '<div class="oqu-check-in-error">' + escapeHtml(state.error) + '</div>';
   }
 
+  html += '</div></section>';
+  return html;
+}
+
+function buildGroupedMoodHtml(state) {
+  var html = "";
+
+  html += '<div class="oqu-check-in-groups" role="list">';
+  EMOTIONAL_CHECK_IN_CATEGORIES.forEach(function (category) {
+    html += '<section class="oqu-check-in-group" aria-label="' + escapeHtml(category.label) + '">';
+    html += '<h2>' + escapeHtml(category.label) + '</h2>';
+    html += '<div class="oqu-check-in-options">';
+    category.options.forEach(function (option) {
+      var isSelected = state.selectedEmotionKey === option.key;
+      html += '<button type="button" class="oqu-check-in-emotion' + (isSelected ? " is-selected" : "") + '" data-emotion-key="' + escapeHtml(option.key) + '" role="listitem" aria-pressed="' + (isSelected ? "true" : "false") + '">';
+      html += '<span class="oqu-check-in-emoji">' + escapeHtml(option.emoji) + '</span>';
+      html += '<span>' + escapeHtml(option.label) + '</span>';
+      html += '</button>';
+    });
+    html += '</div>';
+    html += '</section>';
+  });
+  html += '</div>';
+  html += '<div class="oqu-check-in-actions">';
+  html += '<button type="button" class="oqu-check-in-skip">Continue Without Check-In</button>';
+  html += '</div>';
+
+  return html;
+}
+
+function buildConfirmationHtml(state) {
+  var selected = getEmotionalCheckInOption(state.selectedEmotionKey);
+  var html = "";
+
+  if (!selected) {
+    return buildGroupedMoodHtml(state);
+  }
+
+  html += '<div class="oqu-check-in-confirmation">';
+  html += '<p>You selected:</p>';
+  html += '<strong><span>' + escapeHtml(selected.emoji) + '</span> ' + escapeHtml(selected.label) + '</strong>';
+  html += '</div>';
   html += '<div class="oqu-check-in-actions">';
   if (state.error) {
     html += '<button type="button" class="oqu-check-in-retry">Try Again</button>';
-    html += '<button type="button" class="oqu-check-in-skip">Continue Without Check-In</button>';
-  } else {
-    html += '<button type="button" class="oqu-check-in-skip">Continue Without Check-In</button>';
-    html += '<button type="button" class="oqu-check-in-continue" ' + (!state.selectedEmotionKey || state.isSaving ? "disabled" : "") + '>' + (state.isSaving ? "Saving..." : "Continue") + '</button>';
   }
+  html += '<button type="button" class="oqu-check-in-change">Choose Different Feeling</button>';
+  html += '<button type="button" class="oqu-check-in-skip">Continue Without Check-In</button>';
+  html += '<button type="button" class="oqu-check-in-confirm" ' + (state.isSaving ? "disabled" : "") + '>' + (state.isSaving ? "Saving..." : "Confirm Check-In") + '</button>';
   html += '</div>';
-  html += '</div></section>';
+
   return html;
 }
 

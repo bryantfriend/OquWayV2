@@ -34,6 +34,9 @@ export class CourseEditorPage {
     this.practiceModePlayerSignature = "";
     this.practiceModePlayerSnapshot = null;
     this.activeEditorTab = "learningContent";
+    this.stepDragState = null;
+    this.boundStepDragMove = null;
+    this.boundStepDragEnd = null;
   }
 
   render() {
@@ -209,6 +212,10 @@ export class CourseEditorPage {
 
     document.getElementById("moduleStructureDetails").addEventListener("click", function (e) {
       self.handleWorkspaceClick(e);
+    });
+
+    document.getElementById("moduleStructureDetails").addEventListener("pointerdown", function (e) {
+      self.handleStepDragPointerDown(e);
     });
 
     document.getElementById("workspaceContent").addEventListener("input", function (e) {
@@ -510,10 +517,11 @@ export class CourseEditorPage {
       reorderBtn.disabled = true;
 
       moduleEditorService.reorderPracticeModeSteps(
-        self.courseId, self.moduleId, session.id, practiceModeKey, orderedStepIds, reorderStepId
+        self.courseId, self.moduleId, session.id, practiceModeKey, orderedStepIds, reorderStepId, readSelectedModeId(state)
       ).catch(function (error) {
         reorderBtn.disabled = false;
-        alert("Failed to reorder steps: " + error.message);
+        self.showEditorSaveStatus("error", "Could not save step order");
+        self.updateUi(moduleEditorStore.getState());
       });
       return;
     }
@@ -526,21 +534,23 @@ export class CourseEditorPage {
       if (!confirm("Delete this step from the Main Path?")) {
         return;
       }
+      var safeSelectedStepId = readSafeSelectedStepIdAfterDelete(session, deleteModeKey, deleteStepId, state.selectedStepId);
       tileDeleteBtn.textContent = "Deleting...";
       tileDeleteBtn.disabled = true;
       moduleEditorService.deletePracticeModeStep(
-        self.courseId, self.moduleId, session.id, deleteModeKey, deleteStepId
+        self.courseId, self.moduleId, session.id, deleteModeKey, deleteStepId, readSelectedModeId(state), safeSelectedStepId
       ).catch(function (error) {
         tileDeleteBtn.textContent = "Delete";
         tileDeleteBtn.disabled = false;
-        alert("Failed to delete step: " + error.message);
+        self.showEditorSaveStatus("error", "Could not delete step");
+        self.updateUi(moduleEditorStore.getState());
       });
       return;
     }
 
     // Step tile click — selects a step
     var stepTile = event.target.closest(".step-tile");
-    if (stepTile) {
+    if (stepTile && !event.target.closest(".step-drag-handle") && !event.target.closest("button")) {
       var stepId = stepTile.getAttribute("data-step-id");
       this.studentPreviewMode = false;
       this.practiceModePlaytestMode = false;
@@ -620,14 +630,16 @@ export class CourseEditorPage {
       if (!confirm("Delete this step from the Main Path?")) {
         return;
       }
+      var safeSelectedStepIdFromPreview = readSafeSelectedStepIdAfterDelete(session, practiceModeKey, stepId, state.selectedStepId);
       deleteBtn.textContent = "Deleting\u2026";
       deleteBtn.disabled = true;
       moduleEditorService.deletePracticeModeStep(
-        self.courseId, self.moduleId, session.id, practiceModeKey, stepId
+        self.courseId, self.moduleId, session.id, practiceModeKey, stepId, readSelectedModeId(state), safeSelectedStepIdFromPreview
       ).catch(function (error) {
         deleteBtn.textContent = "Delete";
         deleteBtn.disabled = false;
-        alert("Failed to delete step: " + error.message);
+        self.showEditorSaveStatus("error", "Could not delete step");
+        self.updateUi(moduleEditorStore.getState());
       });
       return;
     }
@@ -644,6 +656,169 @@ export class CourseEditorPage {
         repairBtn.disabled = false;
         alert("Failed to repair: " + error.message);
       });
+    }
+  }
+
+  handleStepDragPointerDown(event) {
+    var handle = event.target.closest(".step-drag-handle");
+    if (!handle) {
+      return;
+    }
+
+    var tile = handle.closest(".step-tile");
+    var list = handle.closest(".main-path-step-list");
+    var state = moduleEditorStore.getState();
+    var session = this.findSelectedSession(state);
+
+    if (!tile || !list || !session) {
+      return;
+    }
+
+    var stepId = tile.getAttribute("data-step-id");
+    var originStepIds = readPracticeModeStepIds(session, MAIN_PATH_PRACTICE_MODE_KEY);
+
+    if (originStepIds.indexOf(stepId) === -1) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.clearStepDropIndicator();
+
+    this.stepDragState = {
+      pointerId: event.pointerId,
+      stepId: stepId,
+      originStepIds: originStepIds,
+      targetIndex: originStepIds.indexOf(stepId),
+      listElement: list,
+      tileElement: tile
+    };
+
+    tile.classList.add("is-dragging");
+    list.classList.add("is-drop-active");
+
+    this.boundStepDragMove = this.handleStepDragPointerMove.bind(this);
+    this.boundStepDragEnd = this.handleStepDragPointerUp.bind(this);
+    document.addEventListener("pointermove", this.boundStepDragMove);
+    document.addEventListener("pointerup", this.boundStepDragEnd);
+    document.addEventListener("pointercancel", this.boundStepDragEnd);
+  }
+
+  handleStepDragPointerMove(event) {
+    if (!this.stepDragState || event.pointerId !== this.stepDragState.pointerId) {
+      return;
+    }
+
+    event.preventDefault();
+    var targetIndex = this.readStepDropIndex(event.clientY);
+    this.stepDragState.targetIndex = targetIndex;
+    this.renderStepDropIndicator(targetIndex);
+  }
+
+  handleStepDragPointerUp(event) {
+    if (!this.stepDragState || event.pointerId !== this.stepDragState.pointerId) {
+      return;
+    }
+
+    event.preventDefault();
+    var dragState = this.stepDragState;
+    var orderedStepIds = createDraggedStepOrder(dragState.originStepIds, dragState.stepId, dragState.targetIndex);
+    var state = moduleEditorStore.getState();
+    var session = this.findSelectedSession(state);
+
+    this.cancelStepDrag();
+
+    if (!session || orderedStepIds.length === 0) {
+      return;
+    }
+
+    this.showEditorSaveStatus("saving", "Saving order...");
+    moduleEditorService.reorderPracticeModeSteps(
+      this.courseId,
+      this.moduleId,
+      session.id,
+      MAIN_PATH_PRACTICE_MODE_KEY,
+      orderedStepIds,
+      dragState.stepId,
+      readSelectedModeId(state)
+    ).then(() => {
+      this.showEditorSaveStatus("success", "Saved");
+    }).catch(() => {
+      this.showEditorSaveStatus("error", "Could not save step order");
+      this.updateUi(moduleEditorStore.getState());
+    });
+  }
+
+  cancelStepDrag() {
+    if (this.stepDragState) {
+      if (this.stepDragState.tileElement) {
+        this.stepDragState.tileElement.classList.remove("is-dragging");
+      }
+      if (this.stepDragState.listElement) {
+        this.stepDragState.listElement.classList.remove("is-drop-active");
+      }
+    }
+
+    this.clearStepDropIndicator();
+
+    if (this.boundStepDragMove) {
+      document.removeEventListener("pointermove", this.boundStepDragMove);
+    }
+
+    if (this.boundStepDragEnd) {
+      document.removeEventListener("pointerup", this.boundStepDragEnd);
+      document.removeEventListener("pointercancel", this.boundStepDragEnd);
+    }
+
+    this.stepDragState = null;
+    this.boundStepDragMove = null;
+    this.boundStepDragEnd = null;
+  }
+
+  readStepDropIndex(clientY) {
+    var dragState = this.stepDragState;
+    var rows = dragState && dragState.listElement
+      ? Array.prototype.slice.call(dragState.listElement.querySelectorAll(".step-tile[data-step-id]"))
+      : [];
+    var index = 0;
+
+    while (index < rows.length) {
+      var rect = rows[index].getBoundingClientRect();
+      if (clientY < rect.top + rect.height / 2) {
+        return index;
+      }
+      index = index + 1;
+    }
+
+    return rows.length;
+  }
+
+  renderStepDropIndicator(targetIndex) {
+    var dragState = this.stepDragState;
+    if (!dragState || !dragState.listElement) {
+      return;
+    }
+
+    var indicator = dragState.listElement.querySelector(".step-drop-indicator");
+    var rows = Array.prototype.slice.call(dragState.listElement.querySelectorAll(".step-tile[data-step-id]"));
+
+    if (!indicator) {
+      indicator = document.createElement("div");
+      indicator.className = "step-drop-indicator";
+    }
+
+    if (targetIndex >= rows.length) {
+      dragState.listElement.appendChild(indicator);
+      return;
+    }
+
+    dragState.listElement.insertBefore(indicator, rows[targetIndex]);
+  }
+
+  clearStepDropIndicator() {
+    var indicator = document.querySelector(".step-drop-indicator");
+    if (indicator && indicator.parentNode) {
+      indicator.parentNode.removeChild(indicator);
     }
   }
 
@@ -1197,7 +1372,7 @@ export class CourseEditorPage {
       return html;
     }
 
-    html += '<div class="space-y-1.5">';
+    html += '<div class="main-path-step-list space-y-1.5">';
     while (stepIndex < steps.length) {
       var step = steps[stepIndex];
       var stepId = readStepId(step, "");
@@ -1205,16 +1380,27 @@ export class CourseEditorPage {
       var stepType = readStepType(step);
       var stepStatus = readString(step.status, "draft");
       var isActive = effectiveStepId === stepId;
-      var tileClass = "step-tile rounded-xl border p-2 cursor-pointer transition "
+      var upDisabled = stepIndex === 0 ? " disabled" : "";
+      var downDisabled = stepIndex === steps.length - 1 ? " disabled" : "";
+      var tileClass = "step-tile main-path-step-tile rounded-xl border p-2 cursor-pointer transition "
         + (isActive ? "border-blue-300 bg-blue-50 ring-1 ring-blue-200" : "border-gray-100 bg-white hover:border-blue-200 hover:bg-gray-50");
 
       html += '<div class="' + tileClass + '" data-step-id="' + stepId + '">';
-      html += '<div class="flex items-start gap-2">';
+      html += '<div class="flex items-start gap-2 min-w-0">';
+      html += '<button type="button" class="step-drag-handle" data-step-id="' + stepId + '" aria-label="Drag step to reorder" title="Drag to reorder">';
+      html += '<span></span><span></span><span></span><span></span><span></span><span></span>';
+      html += '</button>';
       html += '<span class="w-6 h-6 rounded-lg bg-gray-100 flex items-center justify-center text-[10px] font-black text-gray-500 shrink-0">' + (stepIndex + 1) + '</span>';
       html += '<div class="flex-1 min-w-0">';
       html += '<div class="text-xs font-bold text-gray-900 truncate">' + escapeHtml(stepTitle) + '</div>';
       html += '<div class="text-[10px] text-gray-400 font-semibold truncate">' + readStepTypeLabel(stepType) + '</div>';
       html += '<div class="mt-1">' + buildStepStatusBadge(stepStatus) + '</div>';
+      html += '</div>';
+      html += '<div class="structure-step-actions">';
+      html += '<button type="button" class="step-reorder-btn structure-step-icon-btn" data-step-id="' + stepId + '" data-direction="up"' + upDisabled + ' title="Move up" aria-label="Move step up"><i class="fa-solid fa-arrow-up"></i></button>';
+      html += '<button type="button" class="step-reorder-btn structure-step-icon-btn" data-step-id="' + stepId + '" data-direction="down"' + downDisabled + ' title="Move down" aria-label="Move step down"><i class="fa-solid fa-arrow-down"></i></button>';
+      html += '<button type="button" class="preview-step-btn structure-step-preview-btn" data-step-id="' + stepId + '" title="Preview step"><i class="fa-solid fa-play"></i></button>';
+      html += '<button type="button" class="step-tile-delete-btn structure-step-delete-btn" data-step-id="' + stepId + '" title="Delete step"><i class="fa-solid fa-trash-can"></i></button>';
       html += '</div>';
       html += '</div>';
       html += '</div>';
@@ -2109,6 +2295,93 @@ function createReorderedStepIds(session, practiceModeKey, stepId, direction) {
   }
 
   return [];
+}
+
+function createDraggedStepOrder(originStepIds, draggedStepId, targetIndex) {
+  var originalOrder = Array.isArray(originStepIds) ? originStepIds.slice() : [];
+  var currentIndex = originalOrder.indexOf(draggedStepId);
+  var insertIndex = targetIndex;
+  var nextOrder = [];
+
+  if (currentIndex === -1) {
+    return [];
+  }
+
+  if (insertIndex > currentIndex) {
+    insertIndex = insertIndex - 1;
+  }
+
+  if (insertIndex < 0) {
+    insertIndex = 0;
+  }
+
+  originalOrder.forEach(function (stepId) {
+    if (stepId !== draggedStepId) {
+      nextOrder.push(stepId);
+    }
+  });
+
+  if (insertIndex > nextOrder.length) {
+    insertIndex = nextOrder.length;
+  }
+
+  nextOrder.splice(insertIndex, 0, draggedStepId);
+
+  if (areStepOrdersEqual(originalOrder, nextOrder)) {
+    return [];
+  }
+
+  return nextOrder;
+}
+
+function areStepOrdersEqual(firstOrder, secondOrder) {
+  if (firstOrder.length !== secondOrder.length) {
+    return false;
+  }
+
+  var index = 0;
+  while (index < firstOrder.length) {
+    if (firstOrder[index] !== secondOrder[index]) {
+      return false;
+    }
+    index = index + 1;
+  }
+
+  return true;
+}
+
+function readPracticeModeStepIds(session, practiceModeKey) {
+  var practiceModes = readPracticeModes(session);
+  var practiceMode = practiceModes[practiceModeKey];
+  var steps = readSortedSteps(practiceMode.steps);
+
+  return steps.map(function (step) {
+    return readStepId(step, "");
+  }).filter(function (stepId) {
+    return stepId.length > 0;
+  });
+}
+
+function readSafeSelectedStepIdAfterDelete(session, practiceModeKey, deletedStepId, currentSelectedStepId) {
+  var orderedStepIds = readPracticeModeStepIds(session, practiceModeKey);
+  var deletedIndex = orderedStepIds.indexOf(deletedStepId);
+  var remainingStepIds = orderedStepIds.filter(function (stepId) {
+    return stepId !== deletedStepId;
+  });
+
+  if (currentSelectedStepId && currentSelectedStepId !== deletedStepId && remainingStepIds.indexOf(currentSelectedStepId) !== -1) {
+    return currentSelectedStepId;
+  }
+
+  if (remainingStepIds.length === 0) {
+    return "";
+  }
+
+  if (deletedIndex >= 0 && deletedIndex < remainingStepIds.length) {
+    return remainingStepIds[deletedIndex];
+  }
+
+  return remainingStepIds[remainingStepIds.length - 1];
 }
 
 function readPracticeModeStepsForKey(session, practiceModeKey) {

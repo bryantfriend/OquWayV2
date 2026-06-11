@@ -49,7 +49,7 @@ async function readCanonicalLearningModes(executionState, courseId, moduleId) {
 
   for (const modeDoc of modeSnapshot.docs) {
     const mode = Object.assign({ id: modeDoc.id }, modeDoc.data() || {});
-    mode.steps = await readCanonicalSteps(collectionName, courseId, moduleId, modeDoc.id);
+    mode.steps = await readCanonicalSteps(collectionName, courseId, moduleId, modeDoc.id, mode.stepOrder);
     mode.stepCount = mode.steps.length;
     mode.stepOrder = mode.steps.map(function (step) {
       return step.id;
@@ -60,14 +60,29 @@ async function readCanonicalLearningModes(executionState, courseId, moduleId) {
   return modes;
 }
 
-async function readCanonicalSteps(collectionName, courseId, moduleId, modeId) {
+async function readCanonicalSteps(collectionName, courseId, moduleId, modeId, stepOrder) {
   const stepsRef = collection(db, collectionName, courseId, "modules", moduleId, "learningModes", modeId, "steps");
   const stepSnapshot = await getDocs(stepsRef);
   const steps = [];
+  const stepsById = {};
 
   stepSnapshot.forEach(function (stepDoc) {
-    steps.push(Object.assign({ id: stepDoc.id }, stepDoc.data() || {}));
+    const step = Object.assign({ id: stepDoc.id }, stepDoc.data() || {});
+    steps.push(step);
+    stepsById[stepDoc.id] = step;
   });
+
+  if (Array.isArray(stepOrder) && stepOrder.length > 0) {
+    return stepOrder.map(function (stepId, index) {
+      if (!stepsById[stepId]) {
+        return null;
+      }
+
+      return Object.assign({}, stepsById[stepId], {
+        order: index + 1
+      });
+    }).filter(Boolean);
+  }
 
   steps.sort(function (firstStep, secondStep) {
     return readOrder(firstStep) - readOrder(secondStep);

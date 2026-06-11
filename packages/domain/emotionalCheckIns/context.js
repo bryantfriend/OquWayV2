@@ -28,7 +28,7 @@ export function buildEmotionalCheckInContext(userContext, programContext) {
     timezone: timezone,
     localDate: localParts.localDate,
     localTime: localParts.localTime,
-    checkInSource: readText(program.checkInSource || "oquway-web")
+    checkInSource: readText(program.checkInSource || program.source || "student_panel")
   };
 
   context.contextId = buildEmotionalCheckInContextId(context);
@@ -73,7 +73,15 @@ export function buildEmotionalCheckInRecord(checkInContext, selectedEmotionKey) 
     emotionKey: normalizeEmotionKey(option.key),
     emotionLabel: option.label,
     emoji: option.emoji,
-    version: "1.0.0"
+    moodKey: normalizeEmotionKey(option.key),
+    moodLabel: option.label,
+    moodCategory: option.category,
+    moodCategoryLabel: option.categoryLabel,
+    moodValue: option.moodValue,
+    studentId: context.participantProfileId || context.participantUserId,
+    checkInDate: context.localDate,
+    source: readText(context.checkInSource || "student_panel"),
+    version: "1.1.0"
   });
 }
 
@@ -113,7 +121,7 @@ export function normalizeCheckInContext(checkInContext) {
     localDate: localParts.localDate,
     localTime: localParts.localTime,
     timezone: timezone,
-    checkInSource: readText(context.checkInSource || "oquway-web"),
+    checkInSource: readText(context.checkInSource || context.source || "student_panel"),
     contextTimeFallbackUsed: context.contextTimeFallbackUsed === true
   };
 

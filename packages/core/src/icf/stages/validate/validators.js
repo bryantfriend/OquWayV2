@@ -46,6 +46,7 @@ export { validateModuleId } from "./domain/moduleEditor/validateModuleId.js?v=1.
 export { validateLearningModeId } from "./domain/moduleEditor/validateLearningModeId.js?v=1.1.162-modal-stack";
 export { validateModuleStepsPayload } from "./domain/moduleEditor/validateModuleStepsPayload.js?v=1.1.162-modal-stack";
 export { validatePracticeModeKey } from "./domain/moduleEditor/validatePracticeModeKey.js?v=1.1.162-modal-stack";
+export { validatePracticeModeStepOrder } from "./domain/moduleEditor/validatePracticeModeStepOrder.js?v=1.1.162-modal-stack";
 export { validatePracticeModeStepId } from "./domain/moduleEditor/validatePracticeModeStepId.js?v=1.1.162-modal-stack";
 export { validatePracticeModeStepType } from "./domain/moduleEditor/validatePracticeModeStepType.js?v=1.1.162-modal-stack";
 export { validateSessionId } from "./domain/moduleEditor/validateSessionId.js?v=1.1.162-modal-stack";
