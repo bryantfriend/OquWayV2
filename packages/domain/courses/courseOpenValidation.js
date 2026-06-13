@@ -9,6 +9,7 @@ var PLAYABLE_TYPES = [
   "choice",
   "multiplechoice",
   "multiselect",
+  "scenariochoice",
   "reflection",
   "dragmatchisland",
   "matchinggame",

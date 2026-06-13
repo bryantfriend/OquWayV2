@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.183-multi-select-step";
+import * as IntentExports from "../intents/intents.js?v=1.1.184-scenario-choice";
 
 const registry = {
   // Demo Verification

@@ -2,14 +2,14 @@ import {
   getActivityTemplateDefinition,
   getDefaultActivityTemplateId,
   normalizeActivityTemplateId
-} from "./activityTemplateRegistry.js?v=1.1.183-multi-select-step";
+} from "./activityTemplateRegistry.js?v=1.1.184-scenario-choice";
 import {
   createGamificationSummary,
   renderActivityResults,
   renderCelebration,
   renderStars,
   updateStreak
-} from "./gamificationService.js?v=1.1.183-multi-select-step";
+} from "./gamificationService.js?v=1.1.184-scenario-choice";
 
 const BaseStep = typeof window !== "undefined"
   ? window.CourseEngine.BaseStep
@@ -438,6 +438,42 @@ export class MultiSelectStep extends InteractiveLearningStepBase {
 
   static attachPlayerHandlers(container, config, complete) {
     MultiSelectRenderer.attachPlayerHandlers(container, config, complete);
+  }
+}
+
+export class ScenarioChoiceStep extends InteractiveLearningStepBase {
+  static type = "scenario-choice";
+  static label = "Scenario Choice";
+  static description = "Students read a scenario and choose the best action.";
+  static category = "Decision Making";
+  static complexity = "Easy";
+  static defaultConfig = {
+    title: "What Should You Do?",
+    scenario: "You finish early. What should you do?",
+    options: "Start talking loudly.\nOpen random websites.\nCheck your work, try an extension activity, or wait quietly.\nLeave your seat without permission.",
+    correctAnswer: "Check your work, try an extension activity, or wait quietly.",
+    feedback: "Good choice! Responsible students use their time productively.",
+    incorrectFeedback: "Think about the choice that is safe, respectful, and productive.",
+    explanation: "Checking your work or waiting quietly helps you keep learning without distracting others.",
+    buttonText: "Submit Choice"
+  };
+  static editorSchema = { fields: [
+    { key: "title", label: "Title", type: "text" },
+    { key: "scenario", label: "Scenario", type: "textarea" },
+    { key: "options", label: "Options", type: "textarea" },
+    { key: "correctAnswer", label: "Correct Answer", type: "textarea" },
+    { key: "feedback", label: "Feedback", type: "textarea" },
+    { key: "explanation", label: "Optional Explanation", type: "textarea" },
+    { key: "incorrectFeedback", label: "Incorrect Feedback", type: "textarea" },
+    { key: "buttonText", label: "Button Text", type: "text" }
+  ] };
+
+  static renderPlayerShell(config) {
+    return ScenarioChoiceRenderer.renderPlayerShell(this, config);
+  }
+
+  static attachPlayerHandlers(container, config, complete) {
+    ScenarioChoiceRenderer.attachPlayerHandlers(container, config, complete);
   }
 }
 
@@ -1832,6 +1868,86 @@ var multiSelectTemplateMap = {
   "grid-detective": GridDetectiveRenderer
 };
 
+class ScenarioChoiceRenderer {
+  static renderPlayerShell(StepType, config) {
+    var renderer = getScenarioChoiceTemplateRenderer(config);
+    return renderer.renderPlayerShell(StepType, config);
+  }
+
+  static attachPlayerHandlers(container, config, complete) {
+    var renderer = getScenarioChoiceTemplateRenderer(config);
+    renderer.attachPlayerHandlers(container, config, complete);
+  }
+}
+
+class ClassicScenarioChoiceRenderer {
+  static renderPlayerShell(StepType, config) {
+    return renderScenarioChoicePlayerShell(StepType, config, {
+      template: "classic-scenario-choice",
+      shellClass: "scenario-choice-classic",
+      optionClass: "scenario-choice-option",
+      emptyTitle: "Scenario Choice needs options.",
+      emptyMessage: "Add a scenario, response options, and the best response in the editor."
+    });
+  }
+
+  static attachPlayerHandlers(container, config, complete) {
+    attachScenarioChoiceHandlers(container, config, complete, {
+      template: "classic-scenario-choice",
+      activityName: "Classic Scenario Choice",
+      revealConsequence: false
+    });
+  }
+}
+
+class WhatHappensNextRenderer {
+  static renderPlayerShell(StepType, config) {
+    return renderScenarioChoicePlayerShell(StepType, config, {
+      template: "what-happens-next",
+      shellClass: "what-happens-next",
+      optionClass: "scenario-choice-option scenario-choice-consequence-option",
+      scenarioLabel: "Situation",
+      emptyTitle: "What Happens Next needs a situation.",
+      emptyMessage: "Add a scenario, choices, and the best response."
+    });
+  }
+
+  static attachPlayerHandlers(container, config, complete) {
+    attachScenarioChoiceHandlers(container, config, complete, {
+      template: "what-happens-next",
+      activityName: "What Happens Next",
+      revealConsequence: true
+    });
+  }
+}
+
+class ClassroomHeroRenderer {
+  static renderPlayerShell(StepType, config) {
+    return renderScenarioChoicePlayerShell(StepType, config, {
+      template: "classroom-hero",
+      shellClass: "classroom-hero",
+      optionClass: "scenario-choice-option classroom-hero-action",
+      scenarioLabel: "Hero Moment",
+      emptyTitle: "Classroom Hero needs a scenario.",
+      emptyMessage: "Add a classroom situation and the responsible action students should choose."
+    });
+  }
+
+  static attachPlayerHandlers(container, config, complete) {
+    attachScenarioChoiceHandlers(container, config, complete, {
+      template: "classroom-hero",
+      activityName: "Classroom Hero",
+      revealConsequence: true
+    });
+  }
+}
+
+var scenarioChoiceTemplateMap = {
+  "classic-scenario-choice": ClassicScenarioChoiceRenderer,
+  "what-happens-next": WhatHappensNextRenderer,
+  "classroom-hero": ClassroomHeroRenderer
+};
+
 class AdventurePathRoadmap {
   static renderPlayerShell(StepType, config) {
     var data = createAdventurePathData(config);
@@ -3053,6 +3169,289 @@ function readSelectedMultiSelectLabels(data, selectedKeys) {
   });
 
   return labels;
+}
+
+function getScenarioChoiceTemplateRenderer(config) {
+  var templateId = normalizeActivityTemplateId("scenario-choice", readRawActivityTemplateId(config));
+
+  return scenarioChoiceTemplateMap[templateId] || ClassicScenarioChoiceRenderer;
+}
+
+function renderScenarioChoicePlayerShell(StepType, config, options) {
+  var data = createScenarioChoiceData(config);
+  var safeOptions = options || {};
+  var template = safeOptions.template || "classic-scenario-choice";
+  var shellClass = safeOptions.shellClass || "scenario-choice-classic";
+  var optionClass = safeOptions.optionClass || "scenario-choice-option";
+  var scenarioLabel = safeOptions.scenarioLabel || "Scenario";
+  var body = "";
+
+  body += '<div class="scenario-choice-shell ' + shellClass + '" data-scenario-choice-root data-template="' + StepType.escapeHtml(template) + '">';
+  body += '<div class="scenario-choice-header">';
+  body += '<div>';
+  body += '<h2>' + StepType.escapeHtml(readText(config, "title", "Scenario Choice")) + '</h2>';
+  body += '<p>' + StepType.escapeHtml("Choose the best response for this real-world situation.") + '</p>';
+  body += '</div>';
+  body += '<div class="scenario-choice-score"><strong data-scenario-attempts>0</strong><span>Attempts</span></div>';
+  body += '</div>';
+
+  if (!data.valid) {
+    body += '<div class="scenario-choice-empty">';
+    body += '<strong>' + StepType.escapeHtml(safeOptions.emptyTitle || "Scenario Choice needs content.") + '</strong>';
+    body += '<span>' + StepType.escapeHtml(safeOptions.emptyMessage || "Add a scenario, choices, and a correct answer in the editor.") + '</span>';
+    body += '</div>';
+    body += '</div>';
+    return buildShell(StepType, config, body);
+  }
+
+  body += '<div class="scenario-choice-card">';
+  if (template === "classroom-hero") {
+    body += '<div class="classroom-hero-avatar" aria-hidden="true">★</div>';
+  }
+  body += '<span class="scenario-choice-label">' + StepType.escapeHtml(scenarioLabel) + '</span>';
+  body += '<p>' + StepType.escapeHtml(data.scenario) + '</p>';
+  body += '</div>';
+  body += '<div class="scenario-choice-streak" data-scenario-streak>Streak: 0</div>';
+  body += '<div class="scenario-choice-options" data-scenario-options>';
+  data.options.forEach(function (option, index) {
+    body += '<button type="button" class="' + optionClass + '" data-scenario-option data-answer-key="' + StepType.escapeHtml(option.key) + '">';
+    body += '<span class="scenario-choice-option-index">' + String.fromCharCode(65 + index) + '</span>';
+    body += '<strong>' + StepType.escapeHtml(option.label) + '</strong>';
+    body += '</button>';
+  });
+  body += '</div>';
+  body += '<div class="scenario-choice-feedback" data-scenario-feedback aria-live="polite"></div>';
+  body += '<button type="button" class="scenario-choice-submit" data-scenario-submit>' + StepType.escapeHtml(readText(config, "buttonText", "Submit Choice")) + '</button>';
+  body += '<div class="scenario-choice-results" data-scenario-results hidden></div>';
+  body += '</div>';
+
+  return buildShell(StepType, config, body);
+}
+
+function attachScenarioChoiceHandlers(container, config, complete, options) {
+  var data = createScenarioChoiceData(config);
+  var safeOptions = options || {};
+  var root = container.querySelector("[data-scenario-choice-root]");
+  var optionList = container.querySelector("[data-scenario-options]");
+  var submitButton = container.querySelector("[data-scenario-submit]");
+  var state = {
+    selectedKey: "",
+    attempts: 0,
+    streak: 0,
+    completed: false,
+    startedAt: Date.now()
+  };
+
+  if (!data.valid || !root || !optionList || !submitButton) {
+    return;
+  }
+
+  optionList.addEventListener("click", function (event) {
+    var option = event.target && event.target.closest ? event.target.closest("[data-scenario-option]") : null;
+
+    if (!option || state.completed) {
+      return;
+    }
+
+    selectScenarioChoiceOption(container, option, state);
+  });
+
+  submitButton.addEventListener("click", function () {
+    submitScenarioChoice(container, config, data, state, safeOptions, complete);
+  });
+
+  updateScenarioChoiceAttempts(container, state);
+}
+
+function selectScenarioChoiceOption(container, option, state) {
+  var key = option.getAttribute("data-answer-key") || "";
+  var options = container.querySelectorAll("[data-scenario-option]");
+
+  if (!key) {
+    return;
+  }
+
+  clearScenarioChoiceMarkedState(container);
+  forEachElement(options, function (item) {
+    item.classList.toggle("is-selected", item === option);
+  });
+  state.selectedKey = key;
+  setScenarioChoiceFeedback(container, "Submit when you are ready to make this decision.", "");
+}
+
+function submitScenarioChoice(container, config, data, state, options, complete) {
+  var correct = false;
+  var summary = null;
+  var streakUpdate = null;
+  var submitButton = container.querySelector("[data-scenario-submit]");
+  var resultsElement = container.querySelector("[data-scenario-results]");
+
+  if (state.completed) {
+    return;
+  }
+
+  if (!state.selectedKey) {
+    setScenarioChoiceFeedback(container, "Choose one response first.", "incorrect");
+    return;
+  }
+
+  state.attempts = state.attempts + 1;
+  correct = state.selectedKey === data.correctKey;
+  streakUpdate = updateStreak(state.streak, correct);
+  state.streak = streakUpdate.streak;
+  updateScenarioChoiceAttempts(container, state);
+  updateScenarioChoiceStreak(container, state, streakUpdate.milestone);
+  markScenarioChoiceOptions(container, data, state.selectedKey, correct || options.revealConsequence);
+
+  if (!correct) {
+    setScenarioChoiceFeedback(container, createScenarioChoiceIncorrectFeedback(config, data, options), "incorrect");
+    return;
+  }
+
+  state.completed = true;
+  summary = readGamificationSummary(options.activityName || "Scenario Choice", 1, 1, true, state.startedAt);
+  setScenarioChoiceFeedback(container, createScenarioChoiceSuccessFeedback(config, data, options), "correct");
+  if (submitButton) {
+    submitButton.disabled = true;
+  }
+  disableScenarioChoiceOptions(container);
+  if (resultsElement) {
+    resultsElement.hidden = false;
+    resultsElement.innerHTML = renderCelebration("Activity Complete") + renderActivityResults(summary);
+  }
+
+  complete({
+    success: true,
+    score: 100,
+    data: {
+      selectedAnswer: data.optionLabelsByKey[state.selectedKey] || "",
+      correctAnswer: data.correctAnswer,
+      attempts: state.attempts,
+      completionTimeSeconds: summary.completionTimeSeconds,
+      gamification: summary,
+      template: options.template || "classic-scenario-choice"
+    }
+  });
+}
+
+function createScenarioChoiceData(config) {
+  var optionLabels = readConfigList(config.options, ScenarioChoiceStep.defaultConfig.options);
+  var correctAnswer = cleanMultiSelectLine(readText(config, "correctAnswer", ScenarioChoiceStep.defaultConfig.correctAnswer));
+  var optionKeys = {};
+  var optionLabelsByKey = {};
+  var options = [];
+  var correctKey = normalizeAnswerKey(correctAnswer);
+
+  optionLabels.forEach(function (label) {
+    var key = normalizeAnswerKey(label);
+    if (key && !optionKeys[key]) {
+      optionKeys[key] = true;
+      optionLabelsByKey[key] = label;
+      options.push({ label: label, key: key });
+    }
+  });
+
+  return {
+    scenario: readText(config, "scenario", ScenarioChoiceStep.defaultConfig.scenario),
+    options: options,
+    correctAnswer: correctAnswer,
+    correctKey: optionKeys[correctKey] ? correctKey : "",
+    optionLabelsByKey: optionLabelsByKey,
+    valid: options.length > 1 && Boolean(optionKeys[correctKey])
+  };
+}
+
+function createScenarioChoiceSuccessFeedback(config, data, options) {
+  var message = readText(config, "feedback", "Good choice.");
+  var explanation = readText(config, "explanation", "");
+
+  if (options && options.template === "what-happens-next" && explanation) {
+    return message + " Consequence: " + explanation;
+  }
+
+  if (options && options.template === "classroom-hero" && explanation) {
+    return message + " Hero move: " + explanation;
+  }
+
+  return explanation ? message + " " + explanation : message;
+}
+
+function createScenarioChoiceIncorrectFeedback(config, data, options) {
+  var message = readText(config, "incorrectFeedback", "Think about the safest and most responsible choice.");
+  var explanation = readText(config, "explanation", "");
+
+  if (options && options.template === "what-happens-next") {
+    message += " Consequence: " + (explanation || "The best choice protects you and others.");
+  } else if (options && options.template === "classroom-hero") {
+    message += " A hero choice is: " + data.correctAnswer + ".";
+    if (explanation) {
+      message += " " + explanation;
+    }
+  } else if (explanation) {
+    message += " " + explanation;
+  }
+
+  return message;
+}
+
+function markScenarioChoiceOptions(container, data, selectedKey, revealCorrect) {
+  var options = container.querySelectorAll("[data-scenario-option]");
+
+  forEachElement(options, function (option) {
+    var key = option.getAttribute("data-answer-key") || "";
+    var selected = key === selectedKey;
+    var correct = key === data.correctKey;
+
+    option.classList.toggle("is-correct", correct && (selected || revealCorrect));
+    option.classList.toggle("is-incorrect", selected && !correct);
+  });
+}
+
+function clearScenarioChoiceMarkedState(container) {
+  var options = container.querySelectorAll("[data-scenario-option]");
+
+  forEachElement(options, function (option) {
+    option.classList.remove("is-correct", "is-incorrect");
+  });
+}
+
+function disableScenarioChoiceOptions(container) {
+  var options = container.querySelectorAll("[data-scenario-option]");
+
+  forEachElement(options, function (option) {
+    option.disabled = true;
+  });
+}
+
+function updateScenarioChoiceAttempts(container, state) {
+  var attemptsElement = container.querySelector("[data-scenario-attempts]");
+
+  if (attemptsElement) {
+    attemptsElement.textContent = String(state.attempts);
+  }
+}
+
+function updateScenarioChoiceStreak(container, state, milestone) {
+  var streakElement = container.querySelector("[data-scenario-streak]");
+
+  if (!streakElement) {
+    return;
+  }
+
+  streakElement.textContent = milestone || ("Streak: " + state.streak);
+  streakElement.classList.toggle("has-milestone", Boolean(milestone));
+}
+
+function setScenarioChoiceFeedback(container, message, stateName) {
+  var feedbackElement = container.querySelector("[data-scenario-feedback]");
+
+  if (!feedbackElement) {
+    return;
+  }
+
+  feedbackElement.textContent = message;
+  feedbackElement.classList.toggle("is-correct", stateName === "correct");
+  feedbackElement.classList.toggle("is-incorrect", stateName === "incorrect");
 }
 
 function getMultipleChoiceTemplateRenderer(config) {
@@ -4354,6 +4753,43 @@ function buildScopedCss(rootClass) {
     + scope + " .multi-select-empty{border:1px dashed #cbd5e1;border-radius:16px;background:#f8fafc;padding:18px;color:#475569;display:grid;gap:5px;}"
     + scope + " .multi-select-empty strong{color:#0f172a;font-size:15px;font-weight:950;}"
     + scope + " .multi-select-empty span{font-size:13px;font-weight:750;line-height:1.45;}"
+    + scope + " .scenario-choice-shell{display:grid;gap:14px;min-width:0;}"
+    + scope + " .scenario-choice-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;min-width:0;}"
+    + scope + " .scenario-choice-header h2{margin:0 0 8px;font-size:24px;line-height:1.15;}"
+    + scope + " .scenario-choice-header p{margin:0;color:#475569;font-size:14px;font-weight:750;line-height:1.45;}"
+    + scope + " .scenario-choice-score{flex:0 0 auto;min-width:96px;border:1px solid #bae6fd;border-radius:14px;background:#f0f9ff;padding:10px;text-align:center;color:#0369a1;}"
+    + scope + " .scenario-choice-score strong{display:block;font-size:24px;font-weight:950;line-height:1;}"
+    + scope + " .scenario-choice-score span{display:block;margin-top:3px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;}"
+    + scope + " .scenario-choice-card{position:relative;overflow:hidden;border:1px solid #dbeafe;border-radius:18px;background:linear-gradient(135deg,#ffffff,#f8fafc);padding:16px;color:#0f172a;box-shadow:0 12px 28px rgba(15,23,42,.07);display:grid;gap:8px;}"
+    + scope + " .what-happens-next .scenario-choice-card{border-color:#fed7aa;background:linear-gradient(135deg,#fff7ed,#ffffff);}"
+    + scope + " .classroom-hero .scenario-choice-card{grid-template-columns:54px minmax(0,1fr);align-items:center;border-color:#bbf7d0;background:linear-gradient(135deg,#f0fdf4,#ffffff);}"
+    + scope + " .scenario-choice-label{display:inline-flex;justify-self:start;border-radius:999px;background:#e0f2fe;color:#0369a1;padding:5px 9px;font-size:10px;font-weight:950;text-transform:uppercase;letter-spacing:.08em;}"
+    + scope + " .what-happens-next .scenario-choice-label{background:#ffedd5;color:#c2410c;}"
+    + scope + " .classroom-hero .scenario-choice-label{background:#dcfce7;color:#15803d;}"
+    + scope + " .scenario-choice-card p{margin:0;color:#0f172a;font-size:18px;font-weight:900;line-height:1.35;}"
+    + scope + " .classroom-hero-avatar{grid-row:1 / span 2;width:48px;height:48px;border-radius:16px;background:#16a34a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:22px;font-weight:950;box-shadow:0 10px 20px rgba(22,163,74,.2);}"
+    + scope + " .scenario-choice-streak{justify-self:start;border:1px solid #dbeafe;border-radius:999px;background:#f8fafc;color:#475569;padding:6px 10px;font-size:11px;font-weight:900;}"
+    + scope + " .scenario-choice-streak.has-milestone{background:#fffbeb;border-color:#fde68a;color:#92400e;animation:quizStreakPulse .36s ease-out;}"
+    + scope + " .scenario-choice-options{display:grid;grid-template-columns:1fr;gap:10px;min-width:0;}"
+    + scope + " .scenario-choice-option{min-width:0;min-height:58px;display:grid;grid-template-columns:34px minmax(0,1fr);align-items:center;gap:11px;border:1px solid #dbeafe;border-radius:15px;background:#ffffff;padding:12px;text-align:left;color:#0f172a;box-shadow:0 8px 18px rgba(15,23,42,.05);transition:transform .16s,border-color .16s,background .16s,box-shadow .16s;}"
+    + scope + " .scenario-choice-option:hover:not(:disabled){border-color:#60a5fa;background:#eff6ff;transform:translateY(-1px);}"
+    + scope + " .scenario-choice-option strong{min-width:0;font-size:13px;font-weight:900;line-height:1.35;overflow-wrap:anywhere;}"
+    + scope + " .scenario-choice-option-index{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:999px;background:#dbeafe;color:#1d4ed8;font-size:12px;font-weight:950;}"
+    + scope + " .scenario-choice-option.is-selected{border-color:#2563eb;background:#eff6ff;box-shadow:0 0 0 3px rgba(37,99,235,.12),0 10px 22px rgba(15,23,42,.07);}"
+    + scope + " .scenario-choice-option.is-correct{border-color:#22c55e;background:#ecfdf5;color:#14532d;}"
+    + scope + " .scenario-choice-option.is-incorrect{border-color:#fb7185;background:#fff1f2;color:#7f1d1d;}"
+    + scope + " .scenario-choice-consequence-option.is-correct{background:#f0fdf4;}"
+    + scope + " .classroom-hero-action.is-correct{background:#ecfdf5;box-shadow:0 0 0 3px rgba(34,197,94,.12),0 10px 22px rgba(15,23,42,.07);}"
+    + scope + " .scenario-choice-feedback{min-height:34px;border:1px solid #dbeafe;border-radius:14px;background:#f8fafc;padding:10px 12px;color:#475569;font-size:13px;font-weight:850;line-height:1.45;}"
+    + scope + " .scenario-choice-feedback:empty{padding:0;background:transparent;border-color:transparent;min-height:0;}"
+    + scope + " .scenario-choice-feedback.is-correct{background:#ecfdf5;color:#047857;border-color:#bbf7d0;}"
+    + scope + " .scenario-choice-feedback.is-incorrect{background:#fff7ed;color:#c2410c;border-color:#fed7aa;}"
+    + scope + " .scenario-choice-submit{justify-self:start;background:#111827;color:#fff;border-color:#111827;padding:0 16px;}"
+    + scope + " .scenario-choice-submit:disabled{background:#94a3b8;border-color:#94a3b8;cursor:default;}"
+    + scope + " .scenario-choice-results{display:grid;gap:10px;}"
+    + scope + " .scenario-choice-empty{border:1px dashed #cbd5e1;border-radius:16px;background:#f8fafc;padding:18px;color:#475569;display:grid;gap:5px;}"
+    + scope + " .scenario-choice-empty strong{color:#0f172a;font-size:15px;font-weight:950;}"
+    + scope + " .scenario-choice-empty span{font-size:13px;font-weight:750;line-height:1.45;}"
     + scope + " .roadmap-list{list-style:none;margin:16px 0;padding:0;display:flex;flex-direction:column;gap:10px;}"
     + scope + " .roadmap-item{width:100%;padding:14px;text-align:left;display:flex;gap:12px;align-items:flex-start;background:#f8fafc;}"
     + scope + " .roadmap-number{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:999px;background:#2563eb;color:#fff;font-weight:900;flex:0 0 auto;}"
@@ -4532,7 +4968,7 @@ function buildScopedCss(rootClass) {
     + "@keyframes levelUnlockPulse{0%{transform:scale(1);}55%{transform:scale(1.14);}100%{transform:scale(1);}}"
     + "@media(prefers-reduced-motion:reduce){" + scope + " .card-reveal-card-inner{transition:none;}" + scope + " .card-reveal-card.is-reveal-pop .card-reveal-card-inner{animation:none;}}"
     + "@media(prefers-reduced-motion:reduce){" + scope + " .bubble-pop-bubble{animation:none;}" + scope + " .runner-sort-avatar{transition:none;}" + scope + " .runner-sort-shell.is-correct .runner-sort-item," + scope + " .runner-sort-shell.is-incorrect .runner-sort-item," + scope + " .quiz-show-streak.has-milestone{animation:none;}" + scope + " .memory-card-inner{transition:none;}" + scope + " .adventure-path-progressbar span," + scope + " .level-unlock-progress span{transition:none;}" + scope + " .adventure-path-checkpoint.is-activating .adventure-path-node," + scope + " .level-unlock-stop.is-in-progress .level-unlock-badge{animation:none;}}"
-    + "@media(max-width:640px){" + scope + "{padding:18px;border-radius:12px;}" + scope + " h2{font-size:22px;}" + scope + " .sorting-workspace," + scope + " .matching-board," + scope + " .quiz-show-answers," + scope + " .millionaire-answers," + scope + " .multi-select-options{grid-template-columns:1fr;}" + scope + " .bubble-pop-header," + scope + " .runner-sort-header," + scope + " .quiz-show-header," + scope + " .millionaire-header," + scope + " .memory-game-header," + scope + " .adventure-path-header," + scope + " .level-unlock-header," + scope + " .multi-select-header{display:grid;}" + scope + " .bubble-pop-score," + scope + " .runner-sort-score," + scope + " .quiz-show-score," + scope + " .quiz-show-xp," + scope + " .millionaire-score," + scope + " .memory-game-progress," + scope + " .adventure-path-meter," + scope + " .level-unlock-summary," + scope + " .multi-select-score{width:100%;min-width:0;}" + scope + " .activity-results-grid," + scope + " .bubble-pop-roundbar," + scope + " .runner-sort-progress," + scope + " .quiz-show-progress," + scope + " .millionaire-progress," + scope + " .timeline-builder-meta{display:grid;grid-template-columns:1fr;}" + scope + " .multi-select-submit{width:100%;}" + scope + " .bubble-pop-stage{min-height:460px;}" + scope + " .bubble-pop-bubble{width:min(var(--bubble-size),34vw);height:min(var(--bubble-size),34vw);padding:10px;}" + scope + " .bubble-pop-bubble span{font-size:11px;-webkit-line-clamp:5;}" + scope + " .runner-sort-arena{grid-template-columns:1fr 1fr;grid-template-areas:'item item' 'left right';min-height:0;padding:10px;}" + scope + " .runner-sort-bin{min-height:108px;padding:10px;}" + scope + " .runner-sort-bin.is-left{grid-area:left;}" + scope + " .runner-sort-bin.is-right{grid-area:right;}" + scope + " .runner-sort-lane{grid-area:item;min-height:150px;}" + scope + " .runner-sort-lane:before{bottom:24px;}" + scope + " .runner-sort-avatar{width:62px;height:62px;}" + scope + " .runner-sort-avatar span{width:36px;height:36px;font-size:18px;}" + scope + " .runner-sort-avatar.is-moving-left{transform:translateX(-44px);}" + scope + " .runner-sort-avatar.is-moving-right{transform:translateX(44px);}" + scope + " .runner-sort-controls button{min-height:58px;}" + scope + " .quiz-show-question," + scope + " .millionaire-question{font-size:17px;padding:15px;}" + scope + " .quiz-show-answer," + scope + " .millionaire-answer{min-height:64px;}" + scope + " .millionaire-layout{grid-template-columns:1fr;}" + scope + " .millionaire-ladder{grid-template-columns:repeat(2,minmax(0,1fr));max-height:none;}" + scope + " .millionaire-lifelines{grid-template-columns:1fr;}" + scope + " .millionaire-confirm div{display:grid;grid-template-columns:1fr;}" + scope + " .millionaire-next{width:100%;}" + scope + " .adventure-path-list:before{left:19px;}" + scope + " .adventure-path-stop:before{left:19px;width:22px;transform:none;}" + scope + " .adventure-path-stop.is-left," + scope + " .adventure-path-stop.is-right{justify-content:flex-start;padding-left:38px;padding-right:0;}" + scope + " .adventure-path-checkpoint{width:100%;}" + scope + " .level-unlock-summary{grid-template-columns:repeat(3,minmax(0,1fr));}" + scope + " .level-unlock-list:before{left:18px;}" + scope + " .level-unlock-stop{padding-left:38px;}" + scope + " .level-unlock-stop:before{left:18px;width:22px;}" + scope + " .level-unlock-node{grid-template-columns:38px minmax(0,1fr);grid-template-rows:auto auto;min-height:0;}" + scope + " .level-unlock-badge{width:38px;height:38px;grid-row:1 / span 2;}" + scope + " .level-unlock-rewards{grid-column:2;justify-items:start;text-align:left;grid-template-columns:repeat(3,auto);align-items:center;gap:7px;}" + scope + " .memory-game-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}" + scope + " .memory-card{height:104px;}" + scope + " .memory-card-back{font-size:11px;padding:9px;}" + scope + " .timeline-builder-list{grid-template-columns:1fr;padding-left:24px;gap:10px;}" + scope + " .timeline-builder-list:before{left:18px;right:auto;top:18px;bottom:18px;width:4px;height:auto;}" + scope + " .timeline-builder-card{grid-template-columns:38px minmax(0,1fr);grid-template-rows:auto auto;text-align:left;align-items:center;}" + scope + " .timeline-builder-node{grid-row:1 / span 2;}" + scope + " .timeline-builder-card-actions{grid-column:2;}" + scope + " .timeline-builder-actions{display:grid;grid-template-columns:1fr;}" + scope + " .timeline-builder-actions button{width:100%;}" + scope + " .emoji-checkin-moods{grid-template-columns:repeat(2,minmax(0,1fr));}" + scope + " .emoji-checkin-mood{min-height:92px;}" + scope + " .emoji-checkin-submit{width:100%;}}";
+    + "@media(max-width:640px){" + scope + "{padding:18px;border-radius:12px;}" + scope + " h2{font-size:22px;}" + scope + " .sorting-workspace," + scope + " .matching-board," + scope + " .quiz-show-answers," + scope + " .millionaire-answers," + scope + " .multi-select-options{grid-template-columns:1fr;}" + scope + " .bubble-pop-header," + scope + " .runner-sort-header," + scope + " .quiz-show-header," + scope + " .millionaire-header," + scope + " .memory-game-header," + scope + " .adventure-path-header," + scope + " .level-unlock-header," + scope + " .multi-select-header{display:grid;}" + scope + " .bubble-pop-score," + scope + " .runner-sort-score," + scope + " .quiz-show-score," + scope + " .quiz-show-xp," + scope + " .millionaire-score," + scope + " .memory-game-progress," + scope + " .adventure-path-meter," + scope + " .level-unlock-summary," + scope + " .multi-select-score{width:100%;min-width:0;}" + scope + " .activity-results-grid," + scope + " .bubble-pop-roundbar," + scope + " .runner-sort-progress," + scope + " .quiz-show-progress," + scope + " .millionaire-progress," + scope + " .timeline-builder-meta{display:grid;grid-template-columns:1fr;}" + scope + " .multi-select-submit{width:100%;}" + scope + " .scenario-choice-header{display:grid;}" + scope + " .scenario-choice-score{width:100%;min-width:0;}" + scope + " .classroom-hero .scenario-choice-card{grid-template-columns:1fr;}" + scope + " .scenario-choice-submit{width:100%;}" + scope + " .bubble-pop-stage{min-height:460px;}" + scope + " .bubble-pop-bubble{width:min(var(--bubble-size),34vw);height:min(var(--bubble-size),34vw);padding:10px;}" + scope + " .bubble-pop-bubble span{font-size:11px;-webkit-line-clamp:5;}" + scope + " .runner-sort-arena{grid-template-columns:1fr 1fr;grid-template-areas:'item item' 'left right';min-height:0;padding:10px;}" + scope + " .runner-sort-bin{min-height:108px;padding:10px;}" + scope + " .runner-sort-bin.is-left{grid-area:left;}" + scope + " .runner-sort-bin.is-right{grid-area:right;}" + scope + " .runner-sort-lane{grid-area:item;min-height:150px;}" + scope + " .runner-sort-lane:before{bottom:24px;}" + scope + " .runner-sort-avatar{width:62px;height:62px;}" + scope + " .runner-sort-avatar span{width:36px;height:36px;font-size:18px;}" + scope + " .runner-sort-avatar.is-moving-left{transform:translateX(-44px);}" + scope + " .runner-sort-avatar.is-moving-right{transform:translateX(44px);}" + scope + " .runner-sort-controls button{min-height:58px;}" + scope + " .quiz-show-question," + scope + " .millionaire-question{font-size:17px;padding:15px;}" + scope + " .quiz-show-answer," + scope + " .millionaire-answer{min-height:64px;}" + scope + " .millionaire-layout{grid-template-columns:1fr;}" + scope + " .millionaire-ladder{grid-template-columns:repeat(2,minmax(0,1fr));max-height:none;}" + scope + " .millionaire-lifelines{grid-template-columns:1fr;}" + scope + " .millionaire-confirm div{display:grid;grid-template-columns:1fr;}" + scope + " .millionaire-next{width:100%;}" + scope + " .adventure-path-list:before{left:19px;}" + scope + " .adventure-path-stop:before{left:19px;width:22px;transform:none;}" + scope + " .adventure-path-stop.is-left," + scope + " .adventure-path-stop.is-right{justify-content:flex-start;padding-left:38px;padding-right:0;}" + scope + " .adventure-path-checkpoint{width:100%;}" + scope + " .level-unlock-summary{grid-template-columns:repeat(3,minmax(0,1fr));}" + scope + " .level-unlock-list:before{left:18px;}" + scope + " .level-unlock-stop{padding-left:38px;}" + scope + " .level-unlock-stop:before{left:18px;width:22px;}" + scope + " .level-unlock-node{grid-template-columns:38px minmax(0,1fr);grid-template-rows:auto auto;min-height:0;}" + scope + " .level-unlock-badge{width:38px;height:38px;grid-row:1 / span 2;}" + scope + " .level-unlock-rewards{grid-column:2;justify-items:start;text-align:left;grid-template-columns:repeat(3,auto);align-items:center;gap:7px;}" + scope + " .memory-game-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}" + scope + " .memory-card{height:104px;}" + scope + " .memory-card-back{font-size:11px;padding:9px;}" + scope + " .timeline-builder-list{grid-template-columns:1fr;padding-left:24px;gap:10px;}" + scope + " .timeline-builder-list:before{left:18px;right:auto;top:18px;bottom:18px;width:4px;height:auto;}" + scope + " .timeline-builder-card{grid-template-columns:38px minmax(0,1fr);grid-template-rows:auto auto;text-align:left;align-items:center;}" + scope + " .timeline-builder-node{grid-row:1 / span 2;}" + scope + " .timeline-builder-card-actions{grid-column:2;}" + scope + " .timeline-builder-actions{display:grid;grid-template-columns:1fr;}" + scope + " .timeline-builder-actions button{width:100%;}" + scope + " .emoji-checkin-moods{grid-template-columns:repeat(2,minmax(0,1fr));}" + scope + " .emoji-checkin-mood{min-height:92px;}" + scope + " .emoji-checkin-submit{width:100%;}}";
 }
 
 function boolOptions() {

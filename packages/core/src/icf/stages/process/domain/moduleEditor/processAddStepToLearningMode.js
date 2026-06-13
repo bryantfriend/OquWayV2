@@ -1,6 +1,6 @@
-import { collection, db, doc, getDocs, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.183-multi-select-step";
-import { addStepToPracticeMode, createDefaultPracticeModes, isValidPracticeModeKey } from "./practiceModeShells.js?v=1.1.183-multi-select-step";
-import { normalizeActivityTemplateId } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.183-multi-select-step";
+import { collection, db, doc, getDocs, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.184-scenario-choice";
+import { addStepToPracticeMode, createDefaultPracticeModes, isValidPracticeModeKey } from "./practiceModeShells.js?v=1.1.184-scenario-choice";
+import { normalizeActivityTemplateId } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.184-scenario-choice";
 
 export async function processAddStepToLearningMode(executionState) {
   var payload = executionState.payload;
@@ -86,6 +86,7 @@ function createDefaultStepTitle(stepType) {
     sorting: "Sorting",
     "multiple-choice": "Multiple Choice",
     "multi-select": "Multi Select",
+    "scenario-choice": "Scenario Choice",
     roadmap: "Roadmap",
     matching: "Matching",
     ordering: "Ordering",

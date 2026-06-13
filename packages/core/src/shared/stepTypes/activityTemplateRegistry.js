@@ -43,6 +43,14 @@ var activityTemplateRegistry = {
       createTemplate("grid-detective", "Grid Detective", "Students investigate a grid and select all matching items.", "ready")
     ]
   },
+  "scenario-choice": {
+    defaultTemplate: "classic-scenario-choice",
+    templates: [
+      createTemplate("classic-scenario-choice", "Classic Scenario Choice", "Students choose the best response to a realistic situation.", "ready"),
+      createTemplate("what-happens-next", "What Happens Next?", "Students predict the best action and see the consequence.", "ready"),
+      createTemplate("classroom-hero", "Classroom Hero", "Students choose positive actions in classroom and digital citizenship scenarios.", "ready")
+    ]
+  },
   roadmap: {
     defaultTemplate: "classic-roadmap",
     templates: [

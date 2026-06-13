@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateCourseId, validateLearningModeId, validateModuleId, validatePracticeModeStepId } from "../../stages/validate/validators.js?v=1.1.183-multi-select-step";
-import { normalizeCourseId } from "../../stages/normalize/normalizers.js?v=1.1.183-multi-select-step";
+import { validateAuthenticated, validateCourseId, validateLearningModeId, validateModuleId, validatePracticeModeStepId } from "../../stages/validate/validators.js?v=1.1.184-scenario-choice";
+import { normalizeCourseId } from "../../stages/normalize/normalizers.js?v=1.1.184-scenario-choice";
 import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
 import { attachCourseDocumentForModule, attachLearningModeDocument, attachModuleDocument } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
 import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.162-modal-stack";
-import { processUpdateLearningModeStep } from "../../stages/process/processors.js?v=1.1.183-multi-select-step";
+import { processUpdateLearningModeStep } from "../../stages/process/processors.js?v=1.1.184-scenario-choice";
 import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.162-modal-stack";
 
 export function UpdateLearningModeStepIntent() {

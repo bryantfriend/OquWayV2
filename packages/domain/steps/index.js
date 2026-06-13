@@ -24,4 +24,4 @@ export function readStepTitle(step) {
   return readSafeString(step && (step.name || step.displayName || step.taskTitle)).trim() || "Untitled Step";
 }
 
-export * from "./stepTypeRegistry.js?v=1.1.183-multi-select-step";
+export * from "./stepTypeRegistry.js?v=1.1.184-scenario-choice";

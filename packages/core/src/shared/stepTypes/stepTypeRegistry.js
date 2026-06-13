@@ -1,15 +1,15 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.183-multi-select-step";
-import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.183-multi-select-step";
-import { VocabularyStep } from "./VocabularyStep.js?v=1.1.183-multi-select-step";
-import { PhraseStep } from "./PhraseStep.js?v=1.1.183-multi-select-step";
-import { ListeningStep } from "./ListeningStep.js?v=1.1.183-multi-select-step";
-import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.183-multi-select-step";
-import { ReflectionStep } from "./ReflectionStep.js?v=1.1.183-multi-select-step";
-import { EmotionalCheckInStep } from "./EmotionalCheckInStep.js?v=1.1.183-multi-select-step";
-import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.183-multi-select-step";
-import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.183-multi-select-step";
-import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.183-multi-select-step";
-import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.183-multi-select-step";
+import { BaseStep } from "./BaseStep.js?v=1.1.184-scenario-choice";
+import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.184-scenario-choice";
+import { VocabularyStep } from "./VocabularyStep.js?v=1.1.184-scenario-choice";
+import { PhraseStep } from "./PhraseStep.js?v=1.1.184-scenario-choice";
+import { ListeningStep } from "./ListeningStep.js?v=1.1.184-scenario-choice";
+import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.184-scenario-choice";
+import { ReflectionStep } from "./ReflectionStep.js?v=1.1.184-scenario-choice";
+import { EmotionalCheckInStep } from "./EmotionalCheckInStep.js?v=1.1.184-scenario-choice";
+import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.184-scenario-choice";
+import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.184-scenario-choice";
+import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.184-scenario-choice";
+import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.184-scenario-choice";
 import {
   CardRevealStep,
   IntroCardStep,
@@ -19,8 +19,9 @@ import {
   OrderingStep,
   ReflectionStep as MainPathReflectionStep,
   RoadmapStep,
+  ScenarioChoiceStep,
   SortingStep
-} from "./InteractiveLearningSteps.js?v=1.1.183-multi-select-step";
+} from "./InteractiveLearningSteps.js?v=1.1.184-scenario-choice";
 export {
   getActivityTemplateDefinition,
   getActivityTemplateOptions,
@@ -29,7 +30,7 @@ export {
   isDefaultActivityTemplate,
   isReadyActivityTemplate,
   normalizeActivityTemplateId
-} from "./activityTemplateRegistry.js?v=1.1.183-multi-select-step";
+} from "./activityTemplateRegistry.js?v=1.1.184-scenario-choice";
 
 var stepTypes = {
   "intro-card": IntroCardStep,
@@ -37,6 +38,7 @@ var stepTypes = {
   sorting: SortingStep,
   "multiple-choice": MultipleChoiceStep,
   "multi-select": MultiSelectStep,
+  "scenario-choice": ScenarioChoiceStep,
   roadmap: RoadmapStep,
   matching: MatchingStep,
   ordering: OrderingStep,
@@ -75,6 +77,7 @@ export function listStepTypeDefinitions() {
     SortingStep,
     MultipleChoiceStep,
     MultiSelectStep,
+    ScenarioChoiceStep,
     RoadmapStep,
     MatchingStep,
     OrderingStep,

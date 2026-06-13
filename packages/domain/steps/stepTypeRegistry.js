@@ -6,7 +6,7 @@ import {
   normalizeActivityTemplateId,
   isSupportedStepType,
   listStepTypeDefinitions
-} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.183-multi-select-step";
+} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.184-scenario-choice";
 
 export {
   createDefaultStepConfig,
