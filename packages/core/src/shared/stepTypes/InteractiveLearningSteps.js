@@ -2,14 +2,14 @@ import {
   getActivityTemplateDefinition,
   getDefaultActivityTemplateId,
   normalizeActivityTemplateId
-} from "./activityTemplateRegistry.js?v=1.1.177-level-unlock-roadmap";
+} from "./activityTemplateRegistry.js?v=1.1.183-multi-select-step";
 import {
   createGamificationSummary,
   renderActivityResults,
   renderCelebration,
   renderStars,
   updateStreak
-} from "./gamificationService.js?v=1.1.177-level-unlock-roadmap";
+} from "./gamificationService.js?v=1.1.183-multi-select-step";
 
 const BaseStep = typeof window !== "undefined"
   ? window.CourseEngine.BaseStep
@@ -404,6 +404,40 @@ export class MultipleChoiceStep extends InteractiveLearningStepBase {
         }
       });
     }
+  }
+}
+
+export class MultiSelectStep extends InteractiveLearningStepBase {
+  static type = "multi-select";
+  static label = "Multi Select";
+  static description = "Students select all correct answers from a list of options.";
+  static category = "Assessment / Check";
+  static complexity = "Easy";
+  static defaultConfig = {
+    title: "Technology Around Us",
+    prompt: "Which of these use ICT or digital technology?",
+    options: "A traffic light controlling cars\nAn ATM giving money\nA phone sending a message\nA computer opening a document\nA teacher writing on a whiteboard\nA student creating a presentation\nA calculator solving a math problem",
+    correctAnswers: "A traffic light controlling cars\nAn ATM giving money\nA phone sending a message\nA computer opening a document\nA student creating a presentation\nA calculator solving a math problem",
+    feedback: "ICT is not only computers in the lab. It is all around us.",
+    incorrectFeedback: "Not quite. Select every correct answer and remove anything that does not fit.",
+    buttonText: "Submit Answers"
+  };
+  static editorSchema = { fields: [
+    { key: "title", label: "Title", type: "text" },
+    { key: "prompt", label: "Prompt", type: "textarea" },
+    { key: "options", label: "Options", type: "textarea" },
+    { key: "correctAnswers", label: "Correct Answers", type: "textarea" },
+    { key: "feedback", label: "Feedback", type: "textarea" },
+    { key: "incorrectFeedback", label: "Incorrect Feedback", type: "textarea" },
+    { key: "buttonText", label: "Button Text", type: "text" }
+  ] };
+
+  static renderPlayerShell(config) {
+    return MultiSelectRenderer.renderPlayerShell(this, config);
+  }
+
+  static attachPlayerHandlers(container, config, complete) {
+    MultiSelectRenderer.attachPlayerHandlers(container, config, complete);
   }
 }
 
@@ -1719,6 +1753,85 @@ var multipleChoiceRendererMap = {
 
 var multipleChoiceTemplateRenderers = multipleChoiceRendererMap;
 
+class MultiSelectRenderer {
+  static renderPlayerShell(StepType, config) {
+    var renderer = getMultiSelectTemplateRenderer(config);
+    return renderer.renderPlayerShell(StepType, config);
+  }
+
+  static attachPlayerHandlers(container, config, complete) {
+    var renderer = getMultiSelectTemplateRenderer(config);
+    renderer.attachPlayerHandlers(container, config, complete);
+  }
+}
+
+class ClassicMultiSelectRenderer {
+  static renderPlayerShell(StepType, config) {
+    return renderMultiSelectPlayerShell(StepType, config, {
+      template: "classic-multi-select",
+      shellClass: "multi-select-classic",
+      optionClass: "multi-select-option",
+      inputType: "checkbox",
+      emptyTitle: "Multi Select needs options.",
+      emptyMessage: "Add options and correct answers in the Multi Select editor."
+    });
+  }
+
+  static attachPlayerHandlers(container, config, complete) {
+    attachMultiSelectHandlers(container, config, complete, {
+      template: "classic-multi-select",
+      activityName: "Classic Multi Select",
+      revealCorrectOnIncorrect: false
+    });
+  }
+}
+
+class TechnologyScannerRenderer {
+  static renderPlayerShell(StepType, config) {
+    return renderMultiSelectPlayerShell(StepType, config, {
+      template: "technology-scanner",
+      shellClass: "technology-scanner",
+      optionClass: "technology-scanner-card",
+      emptyTitle: "Technology Scanner needs options.",
+      emptyMessage: "Add items students can scan for technology use."
+    });
+  }
+
+  static attachPlayerHandlers(container, config, complete) {
+    attachMultiSelectHandlers(container, config, complete, {
+      template: "technology-scanner",
+      activityName: "Technology Scanner",
+      revealCorrectOnIncorrect: false
+    });
+  }
+}
+
+class GridDetectiveRenderer {
+  static renderPlayerShell(StepType, config) {
+    return renderMultiSelectPlayerShell(StepType, config, {
+      template: "grid-detective",
+      shellClass: "grid-detective",
+      optionClass: "grid-detective-card",
+      emptyTitle: "Grid Detective needs clues.",
+      emptyMessage: "Add options and correct answers in the Multi Select editor."
+    });
+  }
+
+  static attachPlayerHandlers(container, config, complete) {
+    attachMultiSelectHandlers(container, config, complete, {
+      template: "grid-detective",
+      activityName: "Grid Detective",
+      revealCorrectOnIncorrect: true
+    });
+  }
+}
+
+var multiSelectTemplateMap = {
+  "classic-multi-select": ClassicMultiSelectRenderer,
+  "technology-scanner": TechnologyScannerRenderer,
+  "grid-detective": GridDetectiveRenderer
+};
+
 class AdventurePathRoadmap {
   static renderPlayerShell(StepType, config) {
     var data = createAdventurePathData(config);
@@ -2576,6 +2689,370 @@ function setMemoryFeedback(container, message, stateName) {
   feedbackElement.textContent = message;
   feedbackElement.classList.toggle("is-correct", stateName === "correct");
   feedbackElement.classList.toggle("is-incorrect", stateName === "incorrect");
+}
+
+function getMultiSelectTemplateRenderer(config) {
+  var templateId = normalizeActivityTemplateId("multi-select", readRawActivityTemplateId(config));
+
+  return multiSelectTemplateMap[templateId] || ClassicMultiSelectRenderer;
+}
+
+function renderMultiSelectPlayerShell(StepType, config, options) {
+  var data = createMultiSelectData(config);
+  var safeOptions = options || {};
+  var template = safeOptions.template || "classic-multi-select";
+  var shellClass = safeOptions.shellClass || "multi-select-classic";
+  var optionClass = safeOptions.optionClass || "multi-select-option";
+  var body = "";
+
+  body += '<div class="multi-select-shell ' + shellClass + '" data-multi-select-root data-template="' + StepType.escapeHtml(template) + '">';
+  body += '<div class="multi-select-header">';
+  body += '<div>';
+  body += '<h2>' + StepType.escapeHtml(readText(config, "title", "Multi Select")) + '</h2>';
+  body += '<p>' + StepType.escapeHtml(readText(config, "prompt", "Select all correct answers.")) + '</p>';
+  body += '</div>';
+  body += '<div class="multi-select-score"><strong data-multi-select-score>0</strong><span>Selected</span></div>';
+  body += '</div>';
+
+  if (!data.valid) {
+    body += '<div class="multi-select-empty">';
+    body += '<strong>' + StepType.escapeHtml(safeOptions.emptyTitle || "Multi Select needs options.") + '</strong>';
+    body += '<span>' + StepType.escapeHtml(safeOptions.emptyMessage || "Add options and correct answers in the editor.") + '</span>';
+    body += '</div>';
+    body += '</div>';
+    return buildShell(StepType, config, body);
+  }
+
+  body += '<div class="multi-select-streak" data-multi-select-streak>Streak: 0</div>';
+  body += '<div class="multi-select-options" data-multi-select-options>';
+  data.options.forEach(function (option, index) {
+    if (safeOptions.inputType === "checkbox") {
+      body += '<label class="' + optionClass + '" data-multi-select-option data-answer-key="' + StepType.escapeHtml(option.key) + '">';
+      body += '<input type="checkbox" data-multi-select-input>';
+      body += '<span>' + StepType.escapeHtml(option.label) + '</span>';
+      body += '</label>';
+      return;
+    }
+
+    body += '<button type="button" class="' + optionClass + '" data-multi-select-option data-answer-key="' + StepType.escapeHtml(option.key) + '">';
+    body += '<span class="multi-select-card-number">' + (index + 1) + '</span>';
+    body += '<strong>' + StepType.escapeHtml(option.label) + '</strong>';
+    body += '</button>';
+  });
+  body += '</div>';
+  body += '<div class="multi-select-feedback" data-multi-select-feedback aria-live="polite"></div>';
+  body += '<button type="button" class="multi-select-submit" data-multi-select-submit>' + StepType.escapeHtml(readText(config, "buttonText", "Submit Answers")) + '</button>';
+  body += '<div class="multi-select-results" data-multi-select-results hidden></div>';
+  body += '</div>';
+
+  return buildShell(StepType, config, body);
+}
+
+function attachMultiSelectHandlers(container, config, complete, options) {
+  var data = createMultiSelectData(config);
+  var safeOptions = options || {};
+  var root = container.querySelector("[data-multi-select-root]");
+  var optionList = container.querySelector("[data-multi-select-options]");
+  var submitButton = container.querySelector("[data-multi-select-submit]");
+  var state = {
+    selectedKeys: {},
+    attempts: 0,
+    streak: 0,
+    completed: false,
+    startedAt: Date.now()
+  };
+
+  if (!data.valid || !root || !optionList || !submitButton) {
+    return;
+  }
+
+  optionList.addEventListener("click", function (event) {
+    var option = event.target && event.target.closest ? event.target.closest("[data-multi-select-option]") : null;
+
+    if (event.target && event.target.closest && event.target.closest("[data-multi-select-input]")) {
+      return;
+    }
+
+    if (!option || state.completed) {
+      return;
+    }
+
+    if (option.querySelector("[data-multi-select-input]")) {
+      event.preventDefault();
+    }
+
+    toggleMultiSelectOption(container, option, state);
+  });
+
+  optionList.addEventListener("change", function (event) {
+    var input = event.target && event.target.closest ? event.target.closest("[data-multi-select-input]") : null;
+    var option = input ? input.closest("[data-multi-select-option]") : null;
+
+    if (!input || !option || state.completed) {
+      return;
+    }
+
+    setMultiSelectOptionSelected(container, option, input.checked, state);
+  });
+
+  submitButton.addEventListener("click", function () {
+    submitMultiSelect(container, config, data, state, safeOptions, complete);
+  });
+
+  updateMultiSelectSelectedCount(container, state);
+}
+
+function toggleMultiSelectOption(container, option, state) {
+  var input = option.querySelector("[data-multi-select-input]");
+  var selected = !option.classList.contains("is-selected");
+
+  if (input) {
+    input.checked = selected;
+  }
+
+  setMultiSelectOptionSelected(container, option, selected, state);
+}
+
+function setMultiSelectOptionSelected(container, option, selected, state) {
+  var key = option.getAttribute("data-answer-key") || "";
+
+  if (!key) {
+    return;
+  }
+
+  if (selected) {
+    state.selectedKeys[key] = true;
+  } else {
+    delete state.selectedKeys[key];
+  }
+
+  option.classList.toggle("is-selected", selected);
+  clearMultiSelectMarkedState(container);
+  setMultiSelectFeedback(container, "Choose all answers that fit, then submit.", "");
+  updateMultiSelectSelectedCount(container, state);
+}
+
+function submitMultiSelect(container, config, data, state, options, complete) {
+  var correct = isMultiSelectSelectionCorrect(state.selectedKeys, data.correctKeys);
+  var selectedLabels = readSelectedMultiSelectLabels(data, state.selectedKeys);
+  var summary = null;
+  var streakUpdate = null;
+  var submitButton = container.querySelector("[data-multi-select-submit]");
+  var resultsElement = container.querySelector("[data-multi-select-results]");
+
+  if (state.completed) {
+    return;
+  }
+
+  state.attempts = state.attempts + 1;
+  streakUpdate = updateStreak(state.streak, correct);
+  state.streak = streakUpdate.streak;
+  updateMultiSelectStreak(container, state, streakUpdate.milestone);
+  markMultiSelectOptions(container, data, state.selectedKeys, correct || options.revealCorrectOnIncorrect);
+
+  if (!correct) {
+    setMultiSelectFeedback(container, createMultiSelectIncorrectFeedback(config, data, state, options), "incorrect");
+    if (options.revealCorrectOnIncorrect) {
+      appendMultiSelectCorrectAnswerList(container, data);
+    }
+    return;
+  }
+
+  state.completed = true;
+  summary = readGamificationSummary(options.activityName || "Multi Select", data.correctAnswers.length, data.correctAnswers.length, true, state.startedAt);
+  setMultiSelectFeedback(container, readText(config, "feedback", "Correct. You selected every matching answer."), "correct");
+  if (submitButton) {
+    submitButton.disabled = true;
+  }
+  if (resultsElement) {
+    resultsElement.hidden = false;
+    resultsElement.innerHTML = renderActivityResults(summary);
+  }
+
+  complete({
+    success: true,
+    score: 100,
+    data: {
+      selectedAnswers: selectedLabels,
+      correctAnswers: data.correctAnswers.slice(),
+      attempts: state.attempts,
+      completionTimeSeconds: summary.completionTimeSeconds,
+      gamification: summary,
+      template: options.template || "classic-multi-select"
+    }
+  });
+}
+
+function createMultiSelectData(config) {
+  var optionLabels = readConfigList(config.options, MultiSelectStep.defaultConfig.options);
+  var correctLabels = readConfigList(config.correctAnswers, MultiSelectStep.defaultConfig.correctAnswers);
+  var optionKeys = {};
+  var correctKeys = {};
+  var options = [];
+  var correctAnswers = [];
+
+  optionLabels.forEach(function (label) {
+    var key = normalizeAnswerKey(label);
+    if (key && !optionKeys[key]) {
+      optionKeys[key] = true;
+      options.push({ label: label, key: key });
+    }
+  });
+
+  correctLabels.forEach(function (label) {
+    var key = normalizeAnswerKey(label);
+    if (key && optionKeys[key] && !correctKeys[key]) {
+      correctKeys[key] = true;
+      correctAnswers.push(label);
+    }
+  });
+
+  return {
+    options: options,
+    correctAnswers: correctAnswers,
+    correctKeys: correctKeys,
+    valid: options.length > 0 && correctAnswers.length > 0
+  };
+}
+
+function readConfigList(value, fallbackValue) {
+  if (Array.isArray(value)) {
+    return value.map(function (item) {
+      return cleanMultiSelectLine(item);
+    }).filter(Boolean);
+  }
+
+  return parseLines(typeof value === "string" ? value : fallbackValue, []).map(function (line) {
+    return cleanMultiSelectLine(line);
+  }).filter(Boolean);
+}
+
+function cleanMultiSelectLine(value) {
+  return String(value == null ? "" : value).trim().replace(/^([-*]|\d+[.)])\s+/, "");
+}
+
+function normalizeAnswerKey(value) {
+  return String(value == null ? "" : value).trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+function isMultiSelectSelectionCorrect(selectedKeys, correctKeys) {
+  var selected = Object.keys(selectedKeys || {}).sort();
+  var correct = Object.keys(correctKeys || {}).sort();
+  var index = 0;
+
+  if (selected.length !== correct.length) {
+    return false;
+  }
+
+  while (index < correct.length) {
+    if (selected[index] !== correct[index]) {
+      return false;
+    }
+    index = index + 1;
+  }
+
+  return true;
+}
+
+function createMultiSelectIncorrectFeedback(config, data, state, options) {
+  var message = readText(config, "incorrectFeedback", "Not quite. Select every correct answer and remove anything that does not fit.");
+
+  if (options && options.template === "grid-detective") {
+    return "Score: " + countCorrectMultiSelectSelections(data, state.selectedKeys) + " / " + data.correctAnswers.length + ". " + message;
+  }
+
+  return message;
+}
+
+function countCorrectMultiSelectSelections(data, selectedKeys) {
+  var count = 0;
+
+  Object.keys(selectedKeys || {}).forEach(function (key) {
+    if (data.correctKeys && data.correctKeys[key]) {
+      count = count + 1;
+    }
+  });
+
+  return count;
+}
+
+function markMultiSelectOptions(container, data, selectedKeys, revealCorrect) {
+  var correctKeys = data.correctKeys || {};
+  var options = container.querySelectorAll("[data-multi-select-option]");
+
+  forEachElement(options, function (option) {
+    var key = option.getAttribute("data-answer-key") || "";
+    var selected = Boolean(selectedKeys[key]);
+    var correct = Boolean(correctKeys[key]);
+
+    option.classList.toggle("is-correct", correct && (selected || revealCorrect));
+    option.classList.toggle("is-incorrect", selected && !correct);
+    option.classList.toggle("is-missed", revealCorrect && correct && !selected);
+  });
+}
+
+function clearMultiSelectMarkedState(container) {
+  var options = container.querySelectorAll("[data-multi-select-option]");
+
+  forEachElement(options, function (option) {
+    option.classList.remove("is-correct", "is-incorrect", "is-missed");
+  });
+}
+
+function updateMultiSelectSelectedCount(container, state) {
+  var scoreElement = container.querySelector("[data-multi-select-score]");
+
+  if (scoreElement) {
+    scoreElement.textContent = String(Object.keys(state.selectedKeys || {}).length);
+  }
+}
+
+function updateMultiSelectStreak(container, state, milestone) {
+  var streakElement = container.querySelector("[data-multi-select-streak]");
+
+  if (!streakElement) {
+    return;
+  }
+
+  streakElement.textContent = milestone || ("Streak: " + state.streak);
+  streakElement.classList.toggle("has-milestone", Boolean(milestone));
+}
+
+function setMultiSelectFeedback(container, message, stateName) {
+  var feedbackElement = container.querySelector("[data-multi-select-feedback]");
+
+  if (!feedbackElement) {
+    return;
+  }
+
+  feedbackElement.textContent = message;
+  feedbackElement.classList.toggle("is-correct", stateName === "correct");
+  feedbackElement.classList.toggle("is-incorrect", stateName === "incorrect");
+}
+
+function appendMultiSelectCorrectAnswerList(container, data) {
+  var feedbackElement = container.querySelector("[data-multi-select-feedback]");
+
+  if (!feedbackElement) {
+    return;
+  }
+
+  feedbackElement.innerHTML = BaseStep.escapeHtml(feedbackElement.textContent)
+    + '<span class="multi-select-correct-list">Correct answers: '
+    + BaseStep.escapeHtml(data.correctAnswers.join(", "))
+    + '</span>';
+}
+
+function readSelectedMultiSelectLabels(data, selectedKeys) {
+  var labels = [];
+
+  data.options.forEach(function (option) {
+    if (selectedKeys[option.key]) {
+      labels.push(option.label);
+    }
+  });
+
+  return labels;
 }
 
 function getMultipleChoiceTemplateRenderer(config) {
@@ -3843,6 +4320,40 @@ function buildScopedCss(rootClass) {
     + scope + " .millionaire-results{display:grid;gap:10px;}"
     + scope + " .millionaire-analytics{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;color:#475569;font-size:12px;font-weight:850;}"
     + scope + " .millionaire-analytics span{border:1px solid #dbeafe;border-radius:999px;background:#fff;padding:6px 10px;}"
+    + scope + " .multi-select-shell{display:grid;gap:14px;min-width:0;}"
+    + scope + " .multi-select-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;min-width:0;}"
+    + scope + " .multi-select-header h2{margin:0 0 8px;font-size:24px;line-height:1.15;}"
+    + scope + " .multi-select-header p{margin:0;color:#475569;font-size:14px;font-weight:750;line-height:1.45;}"
+    + scope + " .multi-select-score{flex:0 0 auto;min-width:96px;border:1px solid #bfdbfe;border-radius:14px;background:#eff6ff;padding:10px;text-align:center;color:#1d4ed8;}"
+    + scope + " .multi-select-score strong{display:block;font-size:24px;font-weight:950;line-height:1;}"
+    + scope + " .multi-select-score span{display:block;margin-top:3px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;}"
+    + scope + " .multi-select-streak{justify-self:start;border:1px solid #dbeafe;border-radius:999px;background:#f8fafc;color:#475569;padding:6px 10px;font-size:11px;font-weight:900;}"
+    + scope + " .multi-select-streak.has-milestone{background:#fffbeb;border-color:#fde68a;color:#92400e;animation:quizStreakPulse .36s ease-out;}"
+    + scope + " .multi-select-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;min-width:0;}"
+    + scope + " .multi-select-option{min-width:0;min-height:54px;display:grid;grid-template-columns:22px minmax(0,1fr);align-items:center;gap:10px;border:1px solid #dbeafe;border-radius:14px;background:#ffffff;padding:11px 12px;text-align:left;color:#0f172a;font-size:13px;font-weight:850;line-height:1.35;box-shadow:0 8px 18px rgba(15,23,42,.05);cursor:pointer;transition:transform .16s,border-color .16s,background .16s,box-shadow .16s;}"
+    + scope + " .multi-select-option:hover{border-color:#60a5fa;background:#eff6ff;transform:translateY(-1px);}"
+    + scope + " .multi-select-option input{width:18px;height:18px;accent-color:#2563eb;}"
+    + scope + " .technology-scanner .multi-select-options," + scope + " .grid-detective .multi-select-options{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));}"
+    + scope + " .technology-scanner-card," + scope + " .grid-detective-card{min-width:0;min-height:112px;display:grid;grid-template-rows:auto minmax(0,1fr);align-content:start;gap:8px;border:1px solid #dbeafe;border-radius:16px;background:#ffffff;padding:13px;text-align:left;color:#0f172a;box-shadow:0 10px 22px rgba(15,23,42,.07);transition:transform .16s,border-color .16s,background .16s,box-shadow .16s;}"
+    + scope + " .technology-scanner-card:hover," + scope + " .grid-detective-card:hover{border-color:#60a5fa;background:#eff6ff;transform:translateY(-2px);}"
+    + scope + " .technology-scanner-card strong," + scope + " .grid-detective-card strong{min-width:0;color:#0f172a;font-size:13px;font-weight:900;line-height:1.35;overflow-wrap:anywhere;}"
+    + scope + " .multi-select-card-number{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:999px;background:#dbeafe;color:#1d4ed8;font-size:12px;font-weight:950;}"
+    + scope + " .multi-select-option.is-selected," + scope + " .technology-scanner-card.is-selected," + scope + " .grid-detective-card.is-selected{border-color:#2563eb;background:#eff6ff;box-shadow:0 0 0 3px rgba(37,99,235,.12),0 10px 22px rgba(15,23,42,.07);}"
+    + scope + " .technology-scanner-card.is-selected{background:linear-gradient(135deg,#eff6ff,#ecfeff);}"
+    + scope + " .multi-select-option.is-correct," + scope + " .technology-scanner-card.is-correct," + scope + " .grid-detective-card.is-correct{border-color:#22c55e;background:#ecfdf5;color:#14532d;}"
+    + scope + " .multi-select-option.is-incorrect," + scope + " .technology-scanner-card.is-incorrect," + scope + " .grid-detective-card.is-incorrect{border-color:#fb7185;background:#fff1f2;color:#7f1d1d;}"
+    + scope + " .multi-select-option.is-missed," + scope + " .technology-scanner-card.is-missed," + scope + " .grid-detective-card.is-missed{border-color:#f59e0b;background:#fffbeb;color:#78350f;}"
+    + scope + " .multi-select-feedback{min-height:34px;border:1px solid #dbeafe;border-radius:14px;background:#f8fafc;padding:10px 12px;color:#475569;font-size:13px;font-weight:850;line-height:1.45;display:grid;gap:5px;}"
+    + scope + " .multi-select-feedback:empty{padding:0;background:transparent;border-color:transparent;min-height:0;}"
+    + scope + " .multi-select-feedback.is-correct{background:#ecfdf5;color:#047857;border-color:#bbf7d0;}"
+    + scope + " .multi-select-feedback.is-incorrect{background:#fff7ed;color:#c2410c;border-color:#fed7aa;}"
+    + scope + " .multi-select-correct-list{display:block;color:#0f172a;font-size:12px;font-weight:850;line-height:1.4;}"
+    + scope + " .multi-select-submit{justify-self:start;background:#111827;color:#fff;border-color:#111827;padding:0 16px;}"
+    + scope + " .multi-select-submit:disabled{background:#94a3b8;border-color:#94a3b8;cursor:default;}"
+    + scope + " .multi-select-results{display:grid;gap:10px;}"
+    + scope + " .multi-select-empty{border:1px dashed #cbd5e1;border-radius:16px;background:#f8fafc;padding:18px;color:#475569;display:grid;gap:5px;}"
+    + scope + " .multi-select-empty strong{color:#0f172a;font-size:15px;font-weight:950;}"
+    + scope + " .multi-select-empty span{font-size:13px;font-weight:750;line-height:1.45;}"
     + scope + " .roadmap-list{list-style:none;margin:16px 0;padding:0;display:flex;flex-direction:column;gap:10px;}"
     + scope + " .roadmap-item{width:100%;padding:14px;text-align:left;display:flex;gap:12px;align-items:flex-start;background:#f8fafc;}"
     + scope + " .roadmap-number{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:999px;background:#2563eb;color:#fff;font-weight:900;flex:0 0 auto;}"
@@ -4021,7 +4532,7 @@ function buildScopedCss(rootClass) {
     + "@keyframes levelUnlockPulse{0%{transform:scale(1);}55%{transform:scale(1.14);}100%{transform:scale(1);}}"
     + "@media(prefers-reduced-motion:reduce){" + scope + " .card-reveal-card-inner{transition:none;}" + scope + " .card-reveal-card.is-reveal-pop .card-reveal-card-inner{animation:none;}}"
     + "@media(prefers-reduced-motion:reduce){" + scope + " .bubble-pop-bubble{animation:none;}" + scope + " .runner-sort-avatar{transition:none;}" + scope + " .runner-sort-shell.is-correct .runner-sort-item," + scope + " .runner-sort-shell.is-incorrect .runner-sort-item," + scope + " .quiz-show-streak.has-milestone{animation:none;}" + scope + " .memory-card-inner{transition:none;}" + scope + " .adventure-path-progressbar span," + scope + " .level-unlock-progress span{transition:none;}" + scope + " .adventure-path-checkpoint.is-activating .adventure-path-node," + scope + " .level-unlock-stop.is-in-progress .level-unlock-badge{animation:none;}}"
-    + "@media(max-width:640px){" + scope + "{padding:18px;border-radius:12px;}" + scope + " h2{font-size:22px;}" + scope + " .sorting-workspace," + scope + " .matching-board," + scope + " .quiz-show-answers," + scope + " .millionaire-answers{grid-template-columns:1fr;}" + scope + " .bubble-pop-header," + scope + " .runner-sort-header," + scope + " .quiz-show-header," + scope + " .millionaire-header," + scope + " .memory-game-header," + scope + " .adventure-path-header," + scope + " .level-unlock-header{display:grid;}" + scope + " .bubble-pop-score," + scope + " .runner-sort-score," + scope + " .quiz-show-score," + scope + " .quiz-show-xp," + scope + " .millionaire-score," + scope + " .memory-game-progress," + scope + " .adventure-path-meter," + scope + " .level-unlock-summary{width:100%;min-width:0;}" + scope + " .activity-results-grid," + scope + " .bubble-pop-roundbar," + scope + " .runner-sort-progress," + scope + " .quiz-show-progress," + scope + " .millionaire-progress," + scope + " .timeline-builder-meta{display:grid;grid-template-columns:1fr;}" + scope + " .bubble-pop-stage{min-height:460px;}" + scope + " .bubble-pop-bubble{width:min(var(--bubble-size),34vw);height:min(var(--bubble-size),34vw);padding:10px;}" + scope + " .bubble-pop-bubble span{font-size:11px;-webkit-line-clamp:5;}" + scope + " .runner-sort-arena{grid-template-columns:1fr 1fr;grid-template-areas:'item item' 'left right';min-height:0;padding:10px;}" + scope + " .runner-sort-bin{min-height:108px;padding:10px;}" + scope + " .runner-sort-bin.is-left{grid-area:left;}" + scope + " .runner-sort-bin.is-right{grid-area:right;}" + scope + " .runner-sort-lane{grid-area:item;min-height:150px;}" + scope + " .runner-sort-lane:before{bottom:24px;}" + scope + " .runner-sort-avatar{width:62px;height:62px;}" + scope + " .runner-sort-avatar span{width:36px;height:36px;font-size:18px;}" + scope + " .runner-sort-avatar.is-moving-left{transform:translateX(-44px);}" + scope + " .runner-sort-avatar.is-moving-right{transform:translateX(44px);}" + scope + " .runner-sort-controls button{min-height:58px;}" + scope + " .quiz-show-question," + scope + " .millionaire-question{font-size:17px;padding:15px;}" + scope + " .quiz-show-answer," + scope + " .millionaire-answer{min-height:64px;}" + scope + " .millionaire-layout{grid-template-columns:1fr;}" + scope + " .millionaire-ladder{grid-template-columns:repeat(2,minmax(0,1fr));max-height:none;}" + scope + " .millionaire-lifelines{grid-template-columns:1fr;}" + scope + " .millionaire-confirm div{display:grid;grid-template-columns:1fr;}" + scope + " .millionaire-next{width:100%;}" + scope + " .adventure-path-list:before{left:19px;}" + scope + " .adventure-path-stop:before{left:19px;width:22px;transform:none;}" + scope + " .adventure-path-stop.is-left," + scope + " .adventure-path-stop.is-right{justify-content:flex-start;padding-left:38px;padding-right:0;}" + scope + " .adventure-path-checkpoint{width:100%;}" + scope + " .level-unlock-summary{grid-template-columns:repeat(3,minmax(0,1fr));}" + scope + " .level-unlock-list:before{left:18px;}" + scope + " .level-unlock-stop{padding-left:38px;}" + scope + " .level-unlock-stop:before{left:18px;width:22px;}" + scope + " .level-unlock-node{grid-template-columns:38px minmax(0,1fr);grid-template-rows:auto auto;min-height:0;}" + scope + " .level-unlock-badge{width:38px;height:38px;grid-row:1 / span 2;}" + scope + " .level-unlock-rewards{grid-column:2;justify-items:start;text-align:left;grid-template-columns:repeat(3,auto);align-items:center;gap:7px;}" + scope + " .memory-game-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}" + scope + " .memory-card{height:104px;}" + scope + " .memory-card-back{font-size:11px;padding:9px;}" + scope + " .timeline-builder-list{grid-template-columns:1fr;padding-left:24px;gap:10px;}" + scope + " .timeline-builder-list:before{left:18px;right:auto;top:18px;bottom:18px;width:4px;height:auto;}" + scope + " .timeline-builder-card{grid-template-columns:38px minmax(0,1fr);grid-template-rows:auto auto;text-align:left;align-items:center;}" + scope + " .timeline-builder-node{grid-row:1 / span 2;}" + scope + " .timeline-builder-card-actions{grid-column:2;}" + scope + " .timeline-builder-actions{display:grid;grid-template-columns:1fr;}" + scope + " .timeline-builder-actions button{width:100%;}" + scope + " .emoji-checkin-moods{grid-template-columns:repeat(2,minmax(0,1fr));}" + scope + " .emoji-checkin-mood{min-height:92px;}" + scope + " .emoji-checkin-submit{width:100%;}}";
+    + "@media(max-width:640px){" + scope + "{padding:18px;border-radius:12px;}" + scope + " h2{font-size:22px;}" + scope + " .sorting-workspace," + scope + " .matching-board," + scope + " .quiz-show-answers," + scope + " .millionaire-answers," + scope + " .multi-select-options{grid-template-columns:1fr;}" + scope + " .bubble-pop-header," + scope + " .runner-sort-header," + scope + " .quiz-show-header," + scope + " .millionaire-header," + scope + " .memory-game-header," + scope + " .adventure-path-header," + scope + " .level-unlock-header," + scope + " .multi-select-header{display:grid;}" + scope + " .bubble-pop-score," + scope + " .runner-sort-score," + scope + " .quiz-show-score," + scope + " .quiz-show-xp," + scope + " .millionaire-score," + scope + " .memory-game-progress," + scope + " .adventure-path-meter," + scope + " .level-unlock-summary," + scope + " .multi-select-score{width:100%;min-width:0;}" + scope + " .activity-results-grid," + scope + " .bubble-pop-roundbar," + scope + " .runner-sort-progress," + scope + " .quiz-show-progress," + scope + " .millionaire-progress," + scope + " .timeline-builder-meta{display:grid;grid-template-columns:1fr;}" + scope + " .multi-select-submit{width:100%;}" + scope + " .bubble-pop-stage{min-height:460px;}" + scope + " .bubble-pop-bubble{width:min(var(--bubble-size),34vw);height:min(var(--bubble-size),34vw);padding:10px;}" + scope + " .bubble-pop-bubble span{font-size:11px;-webkit-line-clamp:5;}" + scope + " .runner-sort-arena{grid-template-columns:1fr 1fr;grid-template-areas:'item item' 'left right';min-height:0;padding:10px;}" + scope + " .runner-sort-bin{min-height:108px;padding:10px;}" + scope + " .runner-sort-bin.is-left{grid-area:left;}" + scope + " .runner-sort-bin.is-right{grid-area:right;}" + scope + " .runner-sort-lane{grid-area:item;min-height:150px;}" + scope + " .runner-sort-lane:before{bottom:24px;}" + scope + " .runner-sort-avatar{width:62px;height:62px;}" + scope + " .runner-sort-avatar span{width:36px;height:36px;font-size:18px;}" + scope + " .runner-sort-avatar.is-moving-left{transform:translateX(-44px);}" + scope + " .runner-sort-avatar.is-moving-right{transform:translateX(44px);}" + scope + " .runner-sort-controls button{min-height:58px;}" + scope + " .quiz-show-question," + scope + " .millionaire-question{font-size:17px;padding:15px;}" + scope + " .quiz-show-answer," + scope + " .millionaire-answer{min-height:64px;}" + scope + " .millionaire-layout{grid-template-columns:1fr;}" + scope + " .millionaire-ladder{grid-template-columns:repeat(2,minmax(0,1fr));max-height:none;}" + scope + " .millionaire-lifelines{grid-template-columns:1fr;}" + scope + " .millionaire-confirm div{display:grid;grid-template-columns:1fr;}" + scope + " .millionaire-next{width:100%;}" + scope + " .adventure-path-list:before{left:19px;}" + scope + " .adventure-path-stop:before{left:19px;width:22px;transform:none;}" + scope + " .adventure-path-stop.is-left," + scope + " .adventure-path-stop.is-right{justify-content:flex-start;padding-left:38px;padding-right:0;}" + scope + " .adventure-path-checkpoint{width:100%;}" + scope + " .level-unlock-summary{grid-template-columns:repeat(3,minmax(0,1fr));}" + scope + " .level-unlock-list:before{left:18px;}" + scope + " .level-unlock-stop{padding-left:38px;}" + scope + " .level-unlock-stop:before{left:18px;width:22px;}" + scope + " .level-unlock-node{grid-template-columns:38px minmax(0,1fr);grid-template-rows:auto auto;min-height:0;}" + scope + " .level-unlock-badge{width:38px;height:38px;grid-row:1 / span 2;}" + scope + " .level-unlock-rewards{grid-column:2;justify-items:start;text-align:left;grid-template-columns:repeat(3,auto);align-items:center;gap:7px;}" + scope + " .memory-game-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}" + scope + " .memory-card{height:104px;}" + scope + " .memory-card-back{font-size:11px;padding:9px;}" + scope + " .timeline-builder-list{grid-template-columns:1fr;padding-left:24px;gap:10px;}" + scope + " .timeline-builder-list:before{left:18px;right:auto;top:18px;bottom:18px;width:4px;height:auto;}" + scope + " .timeline-builder-card{grid-template-columns:38px minmax(0,1fr);grid-template-rows:auto auto;text-align:left;align-items:center;}" + scope + " .timeline-builder-node{grid-row:1 / span 2;}" + scope + " .timeline-builder-card-actions{grid-column:2;}" + scope + " .timeline-builder-actions{display:grid;grid-template-columns:1fr;}" + scope + " .timeline-builder-actions button{width:100%;}" + scope + " .emoji-checkin-moods{grid-template-columns:repeat(2,minmax(0,1fr));}" + scope + " .emoji-checkin-mood{min-height:92px;}" + scope + " .emoji-checkin-submit{width:100%;}}";
 }
 
 function boolOptions() {

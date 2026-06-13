@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.179-teacher-analytics-dashboard";
+import * as IntentExports from "../intents/intents.js?v=1.1.183-multi-select-step";
 
 const registry = {
   // Demo Verification

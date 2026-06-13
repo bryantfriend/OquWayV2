@@ -1,6 +1,6 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
-import { createDefaultStepConfig } from "../../../../../../../domain/steps/index.js";
-import { normalizeActivityTemplateId } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.177-level-unlock-roadmap";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.183-multi-select-step";
+import { createDefaultStepConfig } from "../../../../../../../domain/steps/index.js?v=1.1.183-multi-select-step";
+import { normalizeActivityTemplateId } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.183-multi-select-step";
 
 export async function processUpdateLearningModeStep(executionState) {
   var payload = executionState.payload || {};

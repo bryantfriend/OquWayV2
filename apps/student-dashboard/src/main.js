@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.180-student-profile-center";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.180-student-profile-center";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.180-student-profile-center";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.183-multi-select-step";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.183-multi-select-step";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.183-multi-select-step";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,24 +13,24 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.180-student-profile-center";
+} from "../../../packages/domain/progress/index.js?v=1.1.183-multi-select-step";
 import {
   createEmptyState,
   createErrorState,
   createStatusBadge,
   formatStatusLabel,
   renderEmotionalCheckInGate
-} from "../../../packages/ui/index.js?v=1.1.180-student-profile-center";
-import { emotionalCheckInService } from "../../../packages/shared/emotionalCheckIns/index.js?v=1.1.180-student-profile-center";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.180-student-profile-center";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.180-student-profile-center";
+} from "../../../packages/ui/index.js?v=1.1.183-multi-select-step";
+import { emotionalCheckInService } from "../../../packages/shared/emotionalCheckIns/index.js?v=1.1.183-multi-select-step";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.183-multi-select-step";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.183-multi-select-step";
 import {
   STUDENT_PROFILE_AVATARS,
   createStudentProfileSnapshot,
   readAvatarById,
   readStudentProfilePreferences,
   saveStudentProfilePreferences
-} from "./ui/services/profileService.js?v=1.1.180-student-profile-center";
+} from "./ui/services/profileService.js?v=1.1.183-multi-select-step";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;

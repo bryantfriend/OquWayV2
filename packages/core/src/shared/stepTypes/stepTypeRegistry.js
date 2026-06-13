@@ -1,25 +1,26 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.162-modal-stack";
-import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.162-modal-stack";
-import { VocabularyStep } from "./VocabularyStep.js?v=1.1.162-modal-stack";
-import { PhraseStep } from "./PhraseStep.js?v=1.1.162-modal-stack";
-import { ListeningStep } from "./ListeningStep.js?v=1.1.162-modal-stack";
-import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.162-modal-stack";
-import { ReflectionStep } from "./ReflectionStep.js?v=1.1.162-modal-stack";
-import { EmotionalCheckInStep } from "./EmotionalCheckInStep.js?v=1.1.162-modal-stack";
-import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.162-modal-stack";
-import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.162-modal-stack";
-import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.162-modal-stack";
-import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.162-modal-stack";
+import { BaseStep } from "./BaseStep.js?v=1.1.183-multi-select-step";
+import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.183-multi-select-step";
+import { VocabularyStep } from "./VocabularyStep.js?v=1.1.183-multi-select-step";
+import { PhraseStep } from "./PhraseStep.js?v=1.1.183-multi-select-step";
+import { ListeningStep } from "./ListeningStep.js?v=1.1.183-multi-select-step";
+import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.183-multi-select-step";
+import { ReflectionStep } from "./ReflectionStep.js?v=1.1.183-multi-select-step";
+import { EmotionalCheckInStep } from "./EmotionalCheckInStep.js?v=1.1.183-multi-select-step";
+import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.183-multi-select-step";
+import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.183-multi-select-step";
+import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.183-multi-select-step";
+import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.183-multi-select-step";
 import {
   CardRevealStep,
   IntroCardStep,
   MatchingStep,
+  MultiSelectStep,
   MultipleChoiceStep,
   OrderingStep,
   ReflectionStep as MainPathReflectionStep,
   RoadmapStep,
   SortingStep
-} from "./InteractiveLearningSteps.js?v=1.1.177-level-unlock-roadmap";
+} from "./InteractiveLearningSteps.js?v=1.1.183-multi-select-step";
 export {
   getActivityTemplateDefinition,
   getActivityTemplateOptions,
@@ -28,13 +29,14 @@ export {
   isDefaultActivityTemplate,
   isReadyActivityTemplate,
   normalizeActivityTemplateId
-} from "./activityTemplateRegistry.js?v=1.1.177-level-unlock-roadmap";
+} from "./activityTemplateRegistry.js?v=1.1.183-multi-select-step";
 
 var stepTypes = {
   "intro-card": IntroCardStep,
   "card-reveal": CardRevealStep,
   sorting: SortingStep,
   "multiple-choice": MultipleChoiceStep,
+  "multi-select": MultiSelectStep,
   roadmap: RoadmapStep,
   matching: MatchingStep,
   ordering: OrderingStep,
@@ -72,6 +74,7 @@ export function listStepTypeDefinitions() {
     CardRevealStep,
     SortingStep,
     MultipleChoiceStep,
+    MultiSelectStep,
     RoadmapStep,
     MatchingStep,
     OrderingStep,

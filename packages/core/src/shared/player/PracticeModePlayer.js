@@ -2,7 +2,7 @@ import {
   createDefaultStepConfig,
   getStepTypeDefinition,
   normalizeActivityTemplateId
-} from "../stepTypes/stepTypeRegistry.js?v=1.1.177-level-unlock-roadmap";
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.183-multi-select-step";
 
 export class PracticeModePlayer {
   constructor(options) {

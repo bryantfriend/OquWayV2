@@ -1,5 +1,5 @@
 import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.160-lesson-paths";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.181-instant-step-reorder";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.183-multi-select-step";
 import {
   getDefaultActivityTemplateId,
   getActivityTemplateOptions,
@@ -7,8 +7,8 @@ import {
   listStepTypeDefinitions,
   normalizeActivityTemplateId,
   validateStepConfig
-} from "../../../../../packages/domain/steps/index.js?v=1.1.177-level-unlock-roadmap";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.177-level-unlock-roadmap";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.183-multi-select-step";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.183-multi-select-step";
 import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.138-course-overview-title";
 
 const MAIN_PATH_PRACTICE_MODE_KEY = "beforeClass";
@@ -20,6 +20,7 @@ const SUPPORTED_MAIN_PATH_STEP_TYPES = [
   "matching",
   "ordering",
   "multiple-choice",
+  "multi-select",
   "reflection"
 ];
 
@@ -3631,6 +3632,7 @@ function readStepTypeIcon(stepType) {
   if (stepType === "card-reveal") { return "🃏"; }
   if (stepType === "sorting") { return "🧺"; }
   if (stepType === "multiple-choice") { return "✅"; }
+  if (stepType === "multi-select") { return "☑️"; }
   if (stepType === "roadmap") { return "🗺️"; }
   if (stepType === "matching") { return "🔗"; }
   if (stepType === "ordering") { return "🔢"; }
@@ -3675,6 +3677,7 @@ function readStepDefinitionIcon(stepType) {
   if (stepType === "card-reveal") { return "fa-solid fa-clone"; }
   if (stepType === "sorting") { return "fa-solid fa-table-cells"; }
   if (stepType === "multiple-choice") { return "fa-solid fa-circle-check"; }
+  if (stepType === "multi-select") { return "fa-solid fa-list-check"; }
   if (stepType === "roadmap") { return "fa-solid fa-route"; }
   if (stepType === "matching") { return "fa-solid fa-link"; }
   if (stepType === "ordering") { return "fa-solid fa-arrow-down-1-9"; }

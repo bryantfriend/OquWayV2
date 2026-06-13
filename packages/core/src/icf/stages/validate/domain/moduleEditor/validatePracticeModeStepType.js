@@ -1,4 +1,4 @@
-import { isSupportedStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.162-modal-stack";
+import { isSupportedStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.183-multi-select-step";
 
 export function validatePracticeModeStepType(executionState) {
   var payload = executionState.payload;

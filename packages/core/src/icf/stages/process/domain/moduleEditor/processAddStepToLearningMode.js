@@ -1,6 +1,6 @@
-import { collection, db, doc, getDocs, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
-import { addStepToPracticeMode, createDefaultPracticeModes, isValidPracticeModeKey } from "./practiceModeShells.js?v=1.1.162-modal-stack";
-import { normalizeActivityTemplateId } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.177-level-unlock-roadmap";
+import { collection, db, doc, getDocs, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.183-multi-select-step";
+import { addStepToPracticeMode, createDefaultPracticeModes, isValidPracticeModeKey } from "./practiceModeShells.js?v=1.1.183-multi-select-step";
+import { normalizeActivityTemplateId } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.183-multi-select-step";
 
 export async function processAddStepToLearningMode(executionState) {
   var payload = executionState.payload;
@@ -85,6 +85,7 @@ function createDefaultStepTitle(stepType) {
     "card-reveal": "Card Reveal",
     sorting: "Sorting",
     "multiple-choice": "Multiple Choice",
+    "multi-select": "Multi Select",
     roadmap: "Roadmap",
     matching: "Matching",
     ordering: "Ordering",

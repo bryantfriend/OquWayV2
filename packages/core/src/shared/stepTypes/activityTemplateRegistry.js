@@ -28,11 +28,19 @@ var activityTemplateRegistry = {
   "multiple-choice": {
     defaultTemplate: "classic-multiple-choice",
     templates: [
-      createTemplate("classic-multiple-choice", "Classic Multiple Choice", "The current single-answer or multi-select question layout.", "ready"),
+      createTemplate("classic-multiple-choice", "Classic Multiple Choice", "The current single-answer question layout.", "ready"),
       createTemplate("quiz-show", "Quiz Show", "A more energetic classroom quiz presentation.", "ready"),
       createTemplate("millionaire-style", "Millionaire Style", "A staged answer ladder with dramatic feedback.", "ready"),
       createTemplate("wheel-spin", "Wheel Spin", "Students spin into a question or answer reveal.", "coming-soon"),
       createTemplate("timed-challenge", "Timed Challenge", "A faster question round with timer pressure.", "coming-soon")
+    ]
+  },
+  "multi-select": {
+    defaultTemplate: "classic-multi-select",
+    templates: [
+      createTemplate("classic-multi-select", "Classic Multi Select", "Students select all correct answers with checkbox options.", "ready"),
+      createTemplate("technology-scanner", "Technology Scanner", "Students scan large cards and tap every option that uses technology.", "ready"),
+      createTemplate("grid-detective", "Grid Detective", "Students investigate a grid and select all matching items.", "ready")
     ]
   },
   roadmap: {

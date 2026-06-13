@@ -1,7 +1,7 @@
 import {
   createDefaultStepConfig,
   normalizeActivityTemplateId
-} from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.177-level-unlock-roadmap";
+} from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.183-multi-select-step";
 
 export function normalizePracticeModeStep(executionState) {
   var payload = executionState.payload;
