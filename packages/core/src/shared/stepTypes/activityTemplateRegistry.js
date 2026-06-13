@@ -1,0 +1,151 @@
+var activityTemplateRegistry = {
+  "intro-card": {
+    defaultTemplate: "classic-intro-card",
+    templates: [
+      createTemplate("classic-intro-card", "Classic Intro Card", "The current welcome card layout with title, copy, callout, and continue action.", "ready"),
+      createTemplate("visual-hero-intro", "Visual Hero Intro", "A more visual opening card for image-led lesson introductions.", "coming-soon")
+    ]
+  },
+  "card-reveal": {
+    defaultTemplate: "classic-card-reveal",
+    templates: [
+      createTemplate("classic-card-reveal", "Classic Card Reveal", "The current tap-to-reveal card experience.", "ready"),
+      createTemplate("mystery-flip-cards", "Mystery Flip Cards", "A richer flip-card reveal with stronger game-like feedback.", "coming-soon")
+    ]
+  },
+  sorting: {
+    defaultTemplate: "classic-click-sorting",
+    templates: [
+      createTemplate("classic-click-sorting", "Classic Click Sorting", "The current click-to-place sorting activity.", "ready"),
+      createTemplate("drag-drop-sorting", "Drag and Drop Sorting", "Students drag items into target groups.", "coming-soon"),
+      createTemplate("character-runner-sorting", "Character Runner Sorting", "Students guide a character toward the correct category.", "ready"),
+      createTemplate("bubble-pop-sorting", "Bubble Pop Sorting", "Students pop items into the matching group.", "ready"),
+      createTemplate("conveyor-belt-sorting", "Conveyor Belt Sorting", "Items move past categories for fast sorting choices.", "coming-soon"),
+      createTemplate("basket-catch-sorting", "Basket Catch Sorting", "Students catch examples in the right category basket.", "coming-soon"),
+      createTemplate("timed-sorting-challenge", "Timed Sorting Challenge", "A quick sorting round with a visible timer.", "coming-soon")
+    ]
+  },
+  "multiple-choice": {
+    defaultTemplate: "classic-multiple-choice",
+    templates: [
+      createTemplate("classic-multiple-choice", "Classic Multiple Choice", "The current single-answer or multi-select question layout.", "ready"),
+      createTemplate("quiz-show", "Quiz Show", "A more energetic classroom quiz presentation.", "ready"),
+      createTemplate("millionaire-style", "Millionaire Style", "A staged answer ladder with dramatic feedback.", "ready"),
+      createTemplate("wheel-spin", "Wheel Spin", "Students spin into a question or answer reveal.", "coming-soon"),
+      createTemplate("timed-challenge", "Timed Challenge", "A faster question round with timer pressure.", "coming-soon")
+    ]
+  },
+  roadmap: {
+    defaultTemplate: "classic-roadmap",
+    templates: [
+      createTemplate("classic-roadmap", "Classic Roadmap", "The current expandable ordered topic roadmap.", "ready"),
+      createTemplate("adventure-path", "Adventure Path", "A quest-style path through lesson stops.", "ready"),
+      createTemplate("island-map", "Island Map", "A map-based journey between topic islands.", "coming-soon"),
+      createTemplate("level-unlock-map", "Level Unlock Map", "A level path that unlocks each stop in sequence.", "ready")
+    ]
+  },
+  matching: {
+    defaultTemplate: "classic-matching",
+    templates: [
+      createTemplate("classic-matching", "Classic Matching", "The current two-column matching activity.", "ready"),
+      createTemplate("memory-game", "Memory Game", "Students flip cards to find matching pairs.", "ready"),
+      createTemplate("card-flip-matching", "Card Flip Matching", "A compact matching game with animated pair reveals.", "coming-soon"),
+      createTemplate("connect-lines", "Connect Lines", "Students connect related terms and meanings.", "coming-soon"),
+      createTemplate("race-mode", "Race Mode", "A faster matching round with progress pressure.", "coming-soon")
+    ]
+  },
+  ordering: {
+    defaultTemplate: "classic-ordering",
+    templates: [
+      createTemplate("classic-ordering", "Classic Ordering", "The current move-up and move-down sequence activity.", "ready"),
+      createTemplate("drag-sequence", "Drag Sequence", "Students drag items into the correct order.", "coming-soon"),
+      createTemplate("timeline-builder", "Timeline Builder", "Students build a timeline from ordered events.", "ready"),
+      createTemplate("stack-order-game", "Stack Order Game", "Students stack steps from first to last.", "coming-soon")
+    ]
+  },
+  reflection: {
+    defaultTemplate: "classic-reflection",
+    templates: [
+      createTemplate("classic-reflection", "Classic Reflection", "The current choice and short-response reflection activity.", "ready"),
+      createTemplate("emoji-check-in", "Emoji Check-In", "Students reflect by choosing an emoji-led response.", "ready"),
+      createTemplate("sentence-starter", "Sentence Starter", "Students complete guided reflection prompts.", "coming-soon"),
+      createTemplate("exit-ticket", "Exit Ticket", "A concise end-of-lesson reflection card.", "coming-soon")
+    ]
+  }
+};
+
+export function getActivityTemplateRegistry() {
+  return activityTemplateRegistry;
+}
+
+export function getActivityTemplateOptions(stepType) {
+  var entry = readRegistryEntry(stepType);
+
+  return entry.templates.map(function (template) {
+    return Object.assign({}, template);
+  });
+}
+
+export function getActivityTemplateDefinition(stepType, templateId) {
+  var entry = readRegistryEntry(stepType);
+  var normalizedId = normalizeActivityTemplateId(stepType, templateId);
+  var index = 0;
+
+  while (index < entry.templates.length) {
+    if (entry.templates[index].id === normalizedId) {
+      return Object.assign({}, entry.templates[index]);
+    }
+    index = index + 1;
+  }
+
+  return Object.assign({}, entry.templates[0]);
+}
+
+export function getDefaultActivityTemplateId(stepType) {
+  return readRegistryEntry(stepType).defaultTemplate;
+}
+
+export function normalizeActivityTemplateId(stepType, templateId) {
+  var entry = readRegistryEntry(stepType);
+  var safeId = typeof templateId === "string" ? templateId.trim() : "";
+  var index = 0;
+
+  while (index < entry.templates.length) {
+    if (entry.templates[index].id === safeId) {
+      return safeId;
+    }
+    index = index + 1;
+  }
+
+  return entry.defaultTemplate;
+}
+
+export function isDefaultActivityTemplate(stepType, templateId) {
+  return normalizeActivityTemplateId(stepType, templateId) === getDefaultActivityTemplateId(stepType);
+}
+
+export function isReadyActivityTemplate(stepType, templateId) {
+  return getActivityTemplateDefinition(stepType, templateId).status === "ready";
+}
+
+function readRegistryEntry(stepType) {
+  if (stepType && activityTemplateRegistry[stepType]) {
+    return activityTemplateRegistry[stepType];
+  }
+
+  return {
+    defaultTemplate: "",
+    templates: [
+      createTemplate("", "Classic", "The default renderer for this step type.", "ready")
+    ]
+  };
+}
+
+function createTemplate(id, name, description, status) {
+  return {
+    id: id,
+    name: name,
+    description: description,
+    status: status
+  };
+}

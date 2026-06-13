@@ -1,11 +1,14 @@
 import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.160-lesson-paths";
 import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.160-lesson-paths";
 import {
+  getDefaultActivityTemplateId,
+  getActivityTemplateOptions,
   getStepTypeDefinition,
   listStepTypeDefinitions,
+  normalizeActivityTemplateId,
   validateStepConfig
-} from "../../../../../packages/domain/steps/index.js?v=1.1.159-emotional-regulation";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.159-emotional-regulation";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.177-level-unlock-roadmap";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.177-level-unlock-roadmap";
 import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.138-course-overview-title";
 
 const MAIN_PATH_PRACTICE_MODE_KEY = "beforeClass";
@@ -74,26 +77,30 @@ export class CourseEditorPage {
 
           <!-- LEFT: Module Structure -->
           <div class="flex-col shrink-0 min-h-0 flex" style="width:256px">
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm flex-1 flex flex-col min-h-0 overflow-hidden">
-              <div class="px-4 pt-4 pb-3 border-b border-gray-100 shrink-0">
-                <div class="text-[9px] font-black text-gray-400 uppercase tracking-[0.12em] mb-3 flex items-center gap-1.5">
+            <div class="course-structure-sidebar">
+              <div class="course-structure-topbar">
+                <div class="text-[9px] font-black text-gray-400 uppercase tracking-[0.12em] flex items-center gap-1.5">
                   <i class="fa-solid fa-diagram-project text-gray-300"></i>
                   Module Structure
                 </div>
-                <div class="text-[10px] font-black text-gray-400 uppercase tracking-wide mb-2">Lesson Paths</div>
+              </div>
+              <section class="course-structure-section course-structure-section-paths">
+                <div class="course-structure-section-header">
+                  <div class="course-structure-section-title">Lesson Paths</div>
+                  <button id="addSessionBtn" class="course-structure-add-path-btn">
+                    <i class="fa-solid fa-plus text-[10px]"></i> Add Path
+                  </button>
+                </div>
                 <div id="sessionCreateStatusBanner" style="display:none" class="oqu-status-banner mb-2"></div>
-                <button id="addSessionBtn" class="w-full border border-dashed border-gray-300 bg-white hover:bg-blue-50 hover:border-blue-300 text-gray-600 hover:text-blue-700 py-2 rounded-lg font-semibold transition flex items-center justify-center gap-2 text-xs">
-                  <i class="fa-solid fa-plus text-xs"></i> Add Path
-                </button>
+                <div id="sessionList" class="course-structure-path-list">
+                  ${buildSessionSkeletonCards(3)}
+                </div>
+              </section>
+              <div id="moduleStructureDetails" class="course-structure-details">
+                <div class="course-structure-idle">Select a path, then edit its steps.</div>
               </div>
-              <div id="sessionList" class="shrink-0 max-h-[34%] overflow-y-auto p-2.5 space-y-1">
-                ${buildSessionSkeletonCards(3)}
-              </div>
-              <div id="moduleStructureDetails" class="flex-1 overflow-y-auto border-t border-gray-100 p-2.5 min-h-0">
-                <div class="text-xs text-gray-400 text-center py-8">Select a path, then edit its steps.</div>
-              </div>
-              <div class="px-4 py-2.5 bg-gray-50 border-t border-gray-100 rounded-b-xl shrink-0">
-                <div id="sessionCountText" class="text-[9px] font-bold text-gray-400 uppercase tracking-wide">0 Paths</div>
+              <div class="course-structure-footer">
+                <div id="sessionCountText" class="course-structure-count">0 Paths</div>
               </div>
             </div>
           </div>
@@ -830,6 +837,15 @@ export class CourseEditorPage {
     var session = self.findSelectedSession(state);
     var propsPane = document.getElementById("configEditorPane");
 
+    var appendCardBtn = event.target.closest(".append-card-line-btn");
+    if (appendCardBtn && propsPane) {
+      var cardsTextInput = propsPane.querySelector('.inspector-config-field[data-config-key="cardsText"]');
+      if (cardsTextInput) {
+        appendCardsTextLine(cardsTextInput);
+      }
+      return;
+    }
+
     // Save lesson path details
     var savePathBtn = event.target.closest(".save-learning-path-btn");
     if (savePathBtn) {
@@ -1005,6 +1021,7 @@ export class CourseEditorPage {
       type: stepTypeEl.getAttribute("data-step-type"),
       title: { en: titleInput.value, ru: "", ky: "" },
       instructions: { en: instrInput ? instrInput.value : "", ru: "", ky: "" },
+      activityTemplate: readActivityTemplateFromInspector(propsPane, stepTypeEl.getAttribute("data-step-type")),
       status: "draft",
       config: readStepConfigFromInspector(propsPane, stepTypeEl.getAttribute("data-step-type"), {})
     };
@@ -1173,14 +1190,13 @@ export class CourseEditorPage {
       var isSelected = selectedModeId === mode.id;
       var title = readLearningPathTitle(mode, "Lesson Path");
       var status = readString(mode.status, "draft");
-      var wrapperClass = isSelected
-        ? "border-emerald-300 bg-emerald-50 ring-1 ring-emerald-300 shadow-sm"
-        : "border-gray-100 bg-white hover:border-emerald-200 hover:bg-gray-50";
-      html += '<div class="relative p-2.5 rounded-xl border cursor-pointer transition ' + wrapperClass + ' session-item flex items-center gap-2.5" data-id="' + (mode.legacySessionId || "") + '" data-mode-id="' + mode.id + '">';
-      html += '<div class="w-7 h-7 rounded-xl bg-gradient-to-br from-emerald-100 to-sky-100 flex items-center justify-center shrink-0 text-[11px] font-black text-emerald-700">' + readLearningModeIcon(mode) + '</div>';
-      html += '<div class="flex-1 min-w-0">';
-      html += '<div class="text-xs font-bold text-gray-900 truncate leading-tight">' + escapeHtml(title) + '</div>';
-      html += '<div class="mt-1 flex items-center gap-1.5">' + buildStatusPill(status) + (mode.required ? '<span class="text-[9px] font-black text-emerald-600 uppercase">Required</span>' : '') + '</div>';
+      var meta = readLearningPathMeta(mode);
+      var wrapperClass = "course-path-card session-item" + (isSelected ? " is-selected" : "");
+      html += '<div class="' + wrapperClass + '" data-id="' + (mode.legacySessionId || "") + '" data-mode-id="' + mode.id + '">';
+      html += '<div class="course-path-icon course-path-icon-' + readStructureClassSuffix(meta.pathType || "custom") + '">' + readLearningModeIcon(mode) + '</div>';
+      html += '<div class="course-path-card-copy">';
+      html += '<div class="course-path-card-title">' + escapeHtml(title) + '</div>';
+      html += '<div class="course-path-card-meta">' + buildStructureStatusBadge(status) + (mode.required ? buildStructureMetaBadge("Required", "required") : '') + '</div>';
       html += '</div>';
       html += '</div>';
       i = i + 1;
@@ -1326,20 +1342,25 @@ export class CourseEditorPage {
   }
 
   buildModuleStructureDetails(session, state, selectedPracticeModeKey, selectedMode, effectiveStepId) {
+    var selectedLearningMode = this.findSelectedLearningMode(state);
+    var pathTitle = readLearningPathTitle(selectedLearningMode, readLocalizedText(session.title, "Lesson Path"));
+    var pathStatus = readString(selectedLearningMode && selectedLearningMode.status, readString(selectedMode && selectedMode.status, "draft"));
+    var stepCount = readStepCount(selectedMode);
     var html = "";
 
-    html += '<div class="space-y-3">';
-    html += '<div>';
-    html += '<div class="text-[10px] font-black text-gray-400 uppercase tracking-wide mb-2">Module Structure</div>';
-    html += '<div class="rounded-xl border border-emerald-200 bg-emerald-50 px-2.5 py-2">';
-    html += '<div class="flex items-center justify-between gap-2">';
-    html += '<div class="min-w-0">';
-    html += '<div class="text-xs font-bold text-gray-900 truncate">Main Path</div>';
-    html += '<div class="text-[10px] text-gray-500 font-semibold mt-0.5">Ordered Step List · ' + readStepCount(selectedMode) + ' step' + (readStepCount(selectedMode) === 1 ? '' : 's') + '</div>';
+    html += '<div class="course-structure-details-inner">';
+    html += '<section class="course-structure-section">';
+    html += '<div class="course-structure-section-header">';
+    html += '<div class="course-structure-section-title">Current Path</div>';
     html += '</div>';
-    html += buildStatusPill(readString(selectedMode.status, "draft"));
+    html += '<div class="current-path-card">';
+    html += '<div class="current-path-copy">';
+    html += '<div class="current-path-title">' + escapeHtml(pathTitle) + '</div>';
+    html += '<div class="current-path-meta">Ordered Step List · ' + stepCount + ' step' + (stepCount === 1 ? '' : 's') + '</div>';
     html += '</div>';
+    html += '<div class="current-path-badges">' + buildStructureStatusBadge(pathStatus) + (selectedLearningMode && selectedLearningMode.required ? buildStructureMetaBadge("Required", "required") : '') + '</div>';
     html += '</div>';
+    html += '</section>';
     html += this.buildStructureStepList(selectedMode, effectiveStepId, selectedPracticeModeKey);
     html += '</div>';
 
@@ -1352,27 +1373,27 @@ export class CourseEditorPage {
     var html = "";
     var stepIndex = 0;
 
-    html += '<div>';
-    html += '<div class="flex items-center justify-between gap-2 mb-2">';
+    html += '<section class="course-structure-section course-structure-steps-section">';
+    html += '<div class="course-structure-section-header">';
     html += '<div class="min-w-0">';
-    html += '<div class="text-[10px] font-black text-gray-400 uppercase tracking-wide">Ordered Step List</div>';
-    html += '<div class="text-[10px] text-gray-400 font-semibold truncate">Main Path</div>';
+    html += '<div class="course-structure-section-title">Steps</div>';
+    html += '<div class="course-structure-section-subtitle">' + steps.length + ' ordered item' + (steps.length === 1 ? '' : 's') + '</div>';
     html += '</div>';
-    html += '<button type="button" class="add-step-trigger-btn border border-dashed border-blue-300 bg-white hover:bg-blue-50 text-blue-600 font-bold px-2.5 py-1 rounded-lg text-[10px] transition" data-key="' + practiceModeKey + '">';
+    html += '<button type="button" class="add-step-trigger-btn course-structure-add-step-btn" data-key="' + practiceModeKey + '">';
     html += '<i class="fa-solid fa-plus text-[9px]"></i> Add Step';
     html += '</button>';
     html += '</div>';
 
     if (steps.length === 0) {
-      html += '<div class="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-3 text-center">';
-      html += '<div class="text-xs font-bold text-gray-600 mb-1">No steps yet</div>';
-      html += '<div class="text-[10px] text-gray-400 leading-relaxed">Add the first student activity for this track.</div>';
+      html += '<div class="course-structure-empty-card">';
+      html += '<div class="course-structure-empty-title">No steps yet</div>';
+      html += '<div class="course-structure-empty-copy">Add the first student activity for this path.</div>';
       html += '</div>';
-      html += '</div>';
+      html += '</section>';
       return html;
     }
 
-    html += '<div class="main-path-step-list space-y-1.5">';
+    html += '<div class="main-path-step-list">';
     while (stepIndex < steps.length) {
       var step = steps[stepIndex];
       var stepId = readStepId(step, "");
@@ -1382,19 +1403,17 @@ export class CourseEditorPage {
       var isActive = effectiveStepId === stepId;
       var upDisabled = stepIndex === 0 ? " disabled" : "";
       var downDisabled = stepIndex === steps.length - 1 ? " disabled" : "";
-      var tileClass = "step-tile main-path-step-tile rounded-xl border p-2 cursor-pointer transition "
-        + (isActive ? "border-blue-300 bg-blue-50 ring-1 ring-blue-200" : "border-gray-100 bg-white hover:border-blue-200 hover:bg-gray-50");
+      var tileClass = "step-tile main-path-step-tile" + (isActive ? " is-selected" : "");
 
       html += '<div class="' + tileClass + '" data-step-id="' + stepId + '">';
-      html += '<div class="flex items-start gap-2 min-w-0">';
       html += '<button type="button" class="step-drag-handle" data-step-id="' + stepId + '" aria-label="Drag step to reorder" title="Drag to reorder">';
       html += '<span></span><span></span><span></span><span></span><span></span><span></span>';
       html += '</button>';
-      html += '<span class="w-6 h-6 rounded-lg bg-gray-100 flex items-center justify-center text-[10px] font-black text-gray-500 shrink-0">' + (stepIndex + 1) + '</span>';
-      html += '<div class="flex-1 min-w-0">';
-      html += '<div class="text-xs font-bold text-gray-900 truncate">' + escapeHtml(stepTitle) + '</div>';
-      html += '<div class="text-[10px] text-gray-400 font-semibold truncate">' + readStepTypeLabel(stepType) + '</div>';
-      html += '<div class="mt-1">' + buildStepStatusBadge(stepStatus) + '</div>';
+      html += '<span class="structure-step-number">' + (stepIndex + 1) + '</span>';
+      html += '<div class="structure-step-copy">';
+      html += '<div class="structure-step-title">' + escapeHtml(stepTitle) + '</div>';
+      html += '<div class="structure-step-meta">' + escapeHtml(readStepTypeLabel(stepType)) + '</div>';
+      html += '<div class="structure-step-badges">' + buildStructureStatusBadge(stepStatus) + '</div>';
       html += '</div>';
       html += '<div class="structure-step-actions">';
       html += '<button type="button" class="step-reorder-btn structure-step-icon-btn" data-step-id="' + stepId + '" data-direction="up"' + upDisabled + ' title="Move up" aria-label="Move step up"><i class="fa-solid fa-arrow-up"></i></button>';
@@ -1403,12 +1422,11 @@ export class CourseEditorPage {
       html += '<button type="button" class="step-tile-delete-btn structure-step-delete-btn" data-step-id="' + stepId + '" title="Delete step"><i class="fa-solid fa-trash-can"></i></button>';
       html += '</div>';
       html += '</div>';
-      html += '</div>';
 
       stepIndex = stepIndex + 1;
     }
     html += '</div>';
-    html += '</div>';
+    html += '</section>';
 
     return html;
   }
@@ -1530,7 +1548,7 @@ export class CourseEditorPage {
     var title = readLocalizedText(step.title, "New Step");
     var instructions = readLocalizedText(step.instructions, "");
     var stepId = readStepId(step, "");
-    var config = createSafeStepConfig(stepType, readStepConfig(step));
+    var config = createStepRenderConfig(step);
     var StepTypeDefinition = getStepTypeDefinition(stepType);
 
     var inner = "";
@@ -1690,7 +1708,7 @@ export class CourseEditorPage {
     }
 
     try {
-      StepTypeDefinition.renderPlayer(target, readStepConfig(step), {
+      StepTypeDefinition.renderPlayer(target, createStepRenderConfig(step), {
         onComplete: function (completionResult) {
           console.info("[OquWay] Editor preview step completed:", completionResult);
         }
@@ -1764,7 +1782,7 @@ export class CourseEditorPage {
 
     if (StepTypeDefinition && typeof StepTypeDefinition.renderPlayer === "function") {
       try {
-        StepTypeDefinition.renderPlayer(playerBody, readStepConfig(step), {
+        StepTypeDefinition.renderPlayer(playerBody, createStepRenderConfig(step), {
           onComplete: function (completionResult) {
             console.info("[OquWay] Student preview step completed:", completionResult);
           }
@@ -1991,6 +2009,7 @@ export class CourseEditorPage {
     var status = readString(step.status, "draft");
     var label = readStepTypeLabel(stepType);
     var icon = readStepTypeIcon(stepType);
+    var activityTemplate = readStepActivityTemplate(step, stepType);
 
     var html = '<div data-inspector-mode="step" data-step-type="' + stepType + '">';
     html += '<div class="oqu-inspector-section">Step</div>';
@@ -2027,6 +2046,8 @@ export class CourseEditorPage {
     html += buildStatusOption("disabled", status);
     html += '</select>';
     html += '</div>';
+
+    html += buildActivityTemplateSelector(stepType, activityTemplate);
 
     html += this.buildStepConfigInspector(step);
 
@@ -2113,13 +2134,15 @@ export class CourseEditorPage {
     var titleInput = propsPane.querySelector(".inspector-step-title");
     var instrInput = propsPane.querySelector(".inspector-step-instructions");
     var statusInput = propsPane.querySelector(".inspector-step-status");
+    var stepType = readStepType(currentStep);
 
     return {
       id: stepId,
-      type: readStepType(currentStep),
+      type: stepType,
       title: createLocalizedTitle(currentStep.title, titleInput ? titleInput.value : ""),
       instructions: createLocalizedTitle(currentStep.instructions, instrInput ? instrInput.value : ""),
-      config: readStepConfigFromInspector(propsPane, readStepType(currentStep), readStepConfig(currentStep)),
+      config: readStepConfigFromInspector(propsPane, stepType, readStepConfig(currentStep)),
+      activityTemplate: readActivityTemplateFromInspector(propsPane, stepType),
       status: statusInput ? statusInput.value : "draft"
     };
   }
@@ -2474,6 +2497,19 @@ function buildStepStatusBadge(status) {
   });
 }
 
+function buildStructureStatusBadge(status) {
+  var safeStatus = typeof status === "string" && status.trim() ? status.trim().toLowerCase() : "draft";
+  return '<span class="structure-mini-badge structure-mini-badge-status structure-mini-badge-' + readStructureClassSuffix(safeStatus) + '">' + escapeHtml(safeStatus) + '</span>';
+}
+
+function buildStructureMetaBadge(label, type) {
+  return '<span class="structure-mini-badge structure-mini-badge-' + readStructureClassSuffix(type || "meta") + '">' + escapeHtml(label) + '</span>';
+}
+
+function readStructureClassSuffix(value) {
+  return String(value || "meta").toLowerCase().replace(/[^a-z0-9_-]/g, "-");
+}
+
 function readStepValidation(step) {
   var stepType = readStepType(step);
   var title = readLocalizedText(step && step.title, "");
@@ -2594,10 +2630,9 @@ function buildModeReadyEmptyHtml(mode) {
 }
 
 function buildListEmptyState() {
-  return '<div class="text-center p-5">'
-    + '<div class="text-2xl mb-2">✨</div>'
-    + '<div class="text-xs font-bold text-gray-600 mb-1">No modes yet</div>'
-    + '<div class="text-[11px] text-gray-400">Create one to start building this module.</div>'
+  return '<div class="course-structure-empty-card">'
+    + '<div class="course-structure-empty-title">No paths yet</div>'
+    + '<div class="course-structure-empty-copy">Add a lesson path to start building this module.</div>'
     + '</div>';
 }
 
@@ -2769,9 +2804,9 @@ function buildUnsupportedStudentPreview(step) {
 }
 
 function buildModuleStructureIdleHtml(message) {
-  return '<div class="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-3 text-center">'
-    + '<div class="text-xs font-bold text-gray-600 mb-1">Select a path, then edit its steps</div>'
-    + '<div class="text-[10px] text-gray-400 leading-relaxed">' + escapeHtml(message || "Select a lesson path, then edit its steps.") + '</div>'
+  return '<div class="course-structure-idle-card">'
+    + '<div class="course-structure-empty-title">Select a path</div>'
+    + '<div class="course-structure-empty-copy">' + escapeHtml(message || "Select a lesson path, then edit its steps.") + '</div>'
     + '</div>';
 }
 
@@ -2927,7 +2962,9 @@ function buildStepConfigField(field, config) {
   html += '<div class="oqu-inspector-field">';
   html += '<label class="oqu-inspector-label">' + escapeHtml(label) + '</label>';
 
-  if (type === "textarea") {
+  if (key === "cardsText") {
+    html += buildCardsTextEditor(displayValue);
+  } else if (type === "textarea") {
     html += '<textarea class="oqu-inspector-textarea inspector-config-field" data-config-key="' + escapeHtml(key) + '" data-config-type="textarea">' + escapeHtml(displayValue) + '</textarea>';
   } else if (type === "number") {
     html += '<input type="number" class="oqu-inspector-input inspector-config-field" data-config-key="' + escapeHtml(key) + '" data-config-type="number" value="' + escapeHtml(displayValue) + '">';
@@ -2947,6 +2984,45 @@ function buildStepConfigField(field, config) {
   return html;
 }
 
+function buildActivityTemplateSelector(stepType, selectedTemplateId) {
+  var options = getActivityTemplateOptions(stepType);
+  var selectedId = normalizeActivityTemplateId(stepType, selectedTemplateId);
+  var defaultTemplateId = getDefaultActivityTemplateId(stepType);
+  var html = "";
+
+  if (!options || options.length === 0 || !selectedId) {
+    return "";
+  }
+
+  html += '<div class="activity-template-section">';
+  html += '<div class="activity-template-header">';
+  html += '<div class="oqu-inspector-section">Activity Template</div>';
+  html += '<span class="activity-template-help">Renderer style</span>';
+  html += '</div>';
+  html += '<div class="activity-template-list">';
+
+  options.forEach(function (option) {
+    var checked = option.id === selectedId ? " checked" : "";
+    var selectedClass = option.id === selectedId ? " is-selected" : "";
+    var statusClass = option.status === "ready" ? "ready" : "soon";
+    var statusLabel = option.id === defaultTemplateId ? "Default" : (option.status === "ready" ? "Ready" : "Soon");
+
+    html += '<label class="activity-template-option' + selectedClass + '">';
+    html += '<input type="radio" class="inspector-activity-template" name="inspector-activity-template" value="' + escapeHtml(option.id) + '"' + checked + '>';
+    html += '<span class="activity-template-copy">';
+    html += '<span class="activity-template-name">' + escapeHtml(option.name) + '</span>';
+    html += '<span class="activity-template-description">' + escapeHtml(option.description) + '</span>';
+    html += '</span>';
+    html += '<span class="activity-template-badge activity-template-badge-' + statusClass + '">' + statusLabel + '</span>';
+    html += '</label>';
+  });
+
+  html += '</div>';
+  html += '</div>';
+
+  return html;
+}
+
 function formatConfigEditorValue(value, type) {
   if (Array.isArray(value)) {
     return type === "textarea" ? value.join("\n") : value.join(", ");
@@ -2957,6 +3033,32 @@ function formatConfigEditorValue(value, type) {
   }
 
   return String(value);
+}
+
+function buildCardsTextEditor(displayValue) {
+  var placeholder = "🃏|Card title|What students see after the flip\\n⭐|Another card|A second reveal";
+  var html = "";
+
+  html += '<div class="cards-text-editor-shell">';
+  html += '<div class="cards-text-editor-guide">';
+  html += '<div><strong>One card per line</strong><span>icon | front title | reveal text</span></div>';
+  html += '<button type="button" class="append-card-line-btn"><i class="fa-solid fa-plus"></i> Add card</button>';
+  html += '</div>';
+  html += '<textarea class="oqu-inspector-textarea inspector-config-field cards-text-editor-textarea" data-config-key="cardsText" data-config-type="textarea" spellcheck="true" placeholder="' + escapeHtml(placeholder) + '">' + escapeHtml(displayValue) + '</textarea>';
+  html += '<div class="cards-text-editor-example"><span>Example</span> 💻|Computers|ICT includes using computers to process information.</div>';
+  html += '</div>';
+
+  return html;
+}
+
+function appendCardsTextLine(textarea) {
+  var line = "🃏|New card|Write the reveal text here.";
+  var currentValue = textarea.value || "";
+  var separator = currentValue.trim() ? "\n" : "";
+  textarea.value = currentValue.replace(/\s+$/g, "") + separator + line;
+  textarea.focus();
+  textarea.selectionStart = textarea.value.length;
+  textarea.selectionEnd = textarea.value.length;
 }
 
 function buildMediaFieldControls(key, mediaKind, value) {
@@ -3083,6 +3185,14 @@ function createSafeStepConfig(stepType, config) {
   }
 
   return {};
+}
+
+function createStepRenderConfig(step) {
+  var stepType = readStepType(step);
+  var config = createSafeStepConfig(stepType, readStepConfig(step));
+
+  config._activityTemplate = readStepActivityTemplate(step, stepType);
+  return config;
 }
 
 function readConfigValue(config, key) {
@@ -3300,10 +3410,34 @@ function readStepId(step, fallbackValue) {
 }
 
 function readStepType(step) {
-  if (!step || typeof step.type !== "string") {
+  if (!step) {
     return "";
   }
-  return step.type;
+
+  if (typeof step.type === "string" && step.type.length > 0) {
+    return step.type;
+  }
+
+  if (typeof step.stepTypeId === "string" && step.stepTypeId.length > 0) {
+    return step.stepTypeId;
+  }
+
+  return "";
+}
+
+function readStepActivityTemplate(step, stepType) {
+  if (!step || typeof step.activityTemplate !== "string") {
+    return normalizeActivityTemplateId(stepType, "");
+  }
+
+  return normalizeActivityTemplateId(stepType, step.activityTemplate);
+}
+
+function readActivityTemplateFromInspector(propsPane, stepType) {
+  var selectedInput = propsPane ? propsPane.querySelector(".inspector-activity-template:checked") : null;
+  var selectedValue = selectedInput ? selectedInput.value : "";
+
+  return normalizeActivityTemplateId(stepType, selectedValue);
 }
 
 function readStepConfig(step) {
@@ -3320,6 +3454,7 @@ function createLearningModeStepUpdates(step) {
     title: step ? step.title : { en: "", ru: "", ky: "" },
     instructions: step ? step.instructions : { en: "", ru: "", ky: "" },
     config: readStepConfig(step),
+    activityTemplate: step ? readStepActivityTemplate(step, step.type || step.stepTypeId || "") : "",
     status: step && step.status ? step.status : "draft"
   };
 }
@@ -3491,9 +3626,9 @@ function buildSessionSkeletonCards(count) {
   var widths = ["70%", "55%", "65%"];
   while (i < count) {
     var w = widths[i % widths.length];
-    html += '<div class="p-2.5 rounded-lg border border-gray-100 flex items-center gap-2.5">';
+    html += '<div class="course-path-card is-loading">';
     html += '<div class="oqu-skeleton-card" style="width:20px;height:20px;border-radius:50%;flex-shrink:0"></div>';
-    html += '<div class="flex-1">';
+    html += '<div class="course-path-card-copy">';
     html += '<div class="oqu-skeleton-line" style="height:11px;width:' + w + ';margin-bottom:5px"></div>';
     html += '<div class="oqu-skeleton-line" style="height:9px;width:35%"></div>';
     html += '</div>';

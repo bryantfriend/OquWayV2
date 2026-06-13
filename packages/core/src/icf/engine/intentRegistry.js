@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.162-modal-stack";
+import * as IntentExports from "../intents/intents.js?v=1.1.179-teacher-analytics-dashboard";
 
 const registry = {
   // Demo Verification

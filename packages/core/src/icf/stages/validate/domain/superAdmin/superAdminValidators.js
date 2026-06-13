@@ -96,6 +96,17 @@ export function validateClassUpdatePayload(executionState) {
   return buildValidationResult(errors);
 }
 
+export function validateClassDeletePayload(executionState) {
+  var payload = executionState.payload || {};
+  var errors = [];
+
+  if (!isNonEmptyText(payload.classId)) {
+    errors.push({ code: "CLASS_ID_REQUIRED", message: "Class ID is required." });
+  }
+
+  return buildValidationResult(errors);
+}
+
 export function validateClassOwnershipPayload(executionState) {
   var payload = executionState.payload || {};
   var errors = [];

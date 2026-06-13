@@ -1,4 +1,7 @@
-import { createDefaultStepConfig } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.162-modal-stack";
+import {
+  createDefaultStepConfig,
+  normalizeActivityTemplateId
+} from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.177-level-unlock-roadmap";
 
 export function normalizePracticeModeStep(executionState) {
   var payload = executionState.payload;
@@ -12,6 +15,7 @@ export function normalizePracticeModeStep(executionState) {
       title: normalizeLocalizedText(payload.title, "New Step"),
       instructions: normalizeLocalizedText(payload.instructions, ""),
       config: createDefaultStepConfig(stepType, payload.config),
+      activityTemplate: normalizeActivityTemplateId(stepType, payload.activityTemplate),
       status: normalizeStatus(payload.status)
     }
   };

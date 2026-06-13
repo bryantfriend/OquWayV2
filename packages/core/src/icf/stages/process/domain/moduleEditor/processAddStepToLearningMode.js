@@ -1,5 +1,6 @@
 import { collection, db, doc, getDocs, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
 import { addStepToPracticeMode, createDefaultPracticeModes, isValidPracticeModeKey } from "./practiceModeShells.js?v=1.1.162-modal-stack";
+import { normalizeActivityTemplateId } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.177-level-unlock-roadmap";
 
 export async function processAddStepToLearningMode(executionState) {
   var payload = executionState.payload;
@@ -61,14 +62,16 @@ export async function processAddStepToLearningMode(executionState) {
 
 function createStep(payload) {
   var now = Date.now();
+  var stepType = payload.stepTypeId || payload.stepType;
 
   return {
     id: generateId("step"),
     type: payload.stepType,
-    stepTypeId: payload.stepTypeId || payload.stepType,
-    title: payload.title || createDefaultStepTitle(payload.stepTypeId || payload.stepType),
+    stepTypeId: stepType,
+    title: payload.title || createDefaultStepTitle(stepType),
     instructions: payload.instructions || "",
     config: payload.config && typeof payload.config === "object" && !Array.isArray(payload.config) ? payload.config : {},
+    activityTemplate: normalizeActivityTemplateId(stepType, payload.activityTemplate),
     order: 1,
     status: payload.status || "draft",
     createdAt: now,

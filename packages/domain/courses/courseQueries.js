@@ -1,6 +1,7 @@
-import { getActiveAssignmentsForStudent } from "../assignments/index.js?v=1.1.162-modal-stack";
+import { getActiveAssignmentsForStudent } from "../assignments/index.js";
+import { resolveStudentId } from "../users/index.js";
 
-export { buildStudentAssignmentTargets } from "../assignments/index.js?v=1.1.162-modal-stack";
+export { buildStudentAssignmentTargets } from "../assignments/index.js";
 
 export async function getAssignedCourses(studentId, studentProfile) {
   var assignmentResult = await getAssignedCourseIds(studentId, studentProfile);
@@ -12,11 +13,8 @@ export async function getAssignedCourses(studentId, studentProfile) {
     source: assignmentResult.source,
     warnings: assignmentResult.warnings,
     queryPaths: assignmentResult.queryPaths,
+    queryErrors: assignmentResult.queryErrors,
     rejectionReasons: assignmentResult.rejectionReasons,
-    studentIdentifiers: assignmentResult.studentIdentifiers || [],
-    classIdentifiers: assignmentResult.classIdentifiers || [],
-    locationIdentifiers: assignmentResult.locationIdentifiers || [],
-    assignments: assignmentResult.assignments || [],
     directCount: assignmentResult.directCount || 0,
     classCount: assignmentResult.classCount || 0,
     locationCount: assignmentResult.locationCount || 0,
@@ -43,8 +41,12 @@ export async function getAssignedCourseIds(studentId, studentProfile, contextCou
 }
 
 async function getAssignedCourseIdsFromAssignments(studentId, studentProfile) {
+  var actor = studentProfile && studentProfile.__actor ? studentProfile.__actor : null;
+  var resolvedStudentId = resolveStudentId(studentProfile, actor) || studentId;
   var assignmentResult = await getActiveAssignmentsForStudent(Object.assign({}, studentProfile || {}, {
-    id: studentProfile && studentProfile.id ? studentProfile.id : studentId
+    id: studentProfile && studentProfile.id ? studentProfile.id : resolvedStudentId,
+    studentId: studentProfile && studentProfile.studentId ? studentProfile.studentId : resolvedStudentId,
+    __actor: actor
   }));
 
   return {
@@ -54,11 +56,8 @@ async function getAssignedCourseIdsFromAssignments(studentId, studentProfile) {
     warnings: assignmentResult.warnings,
     source: "courseAssignments",
     queryPaths: assignmentResult.queryPaths,
+    queryErrors: assignmentResult.queryErrors,
     rejectionReasons: assignmentResult.rejectionReasons,
-    studentIdentifiers: assignmentResult.studentIdentifiers || [],
-    classIdentifiers: assignmentResult.classIdentifiers || [],
-    locationIdentifiers: assignmentResult.locationIdentifiers || [],
-    assignments: assignmentResult.assignments || [],
     directCount: assignmentResult.directAssignments.length,
     classCount: assignmentResult.classAssignments.length,
     locationCount: assignmentResult.locationAssignments.length,

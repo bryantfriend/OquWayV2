@@ -54,6 +54,7 @@ function createMetadataUpdate(payload, context) {
         languages: readLanguages(payload.languages, payload.defaultLanguage),
         tags: readTags(payload.tags),
         slug: readText(payload.slug),
+        displayTemplate: readDisplayTemplate(payload.displayTemplate),
         updatedAt: serverTimestamp(),
         updatedBy: readText(context.updatedBy),
         updatedByName: readText(context.updatedByName)
@@ -148,6 +149,14 @@ function readStatus(status) {
     }
 
     return "draft";
+}
+
+function readDisplayTemplate(displayTemplate) {
+    if (displayTemplate === "adventurePath" || displayTemplate === "compactGrid") {
+        return displayTemplate;
+    }
+
+    return "basic";
 }
 
 function readDefaultLanguage(defaultLanguage) {

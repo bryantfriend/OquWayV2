@@ -1,10 +1,15 @@
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.129-teacher-query-noise";
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.129-teacher-query-noise";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.179-teacher-analytics-dashboard";
+import {
+  createStudentAnalyticsDetail,
+  createTeacherAnalyticsSnapshot,
+  sortStudentAnalyticsRows
+} from "./ui/services/analyticsService.js?v=1.1.179-teacher-analytics-dashboard";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.179-teacher-analytics-dashboard";
 import {
   createEmptyState,
   createLoadingState,
   createStatusBadge
-} from "../../../packages/ui/index.js?v=1.1.129-teacher-query-noise";
+} from "../../../packages/ui/index.js?v=1.1.179-teacher-analytics-dashboard";
 
 var app = document.getElementById("app");
 var state = {
@@ -13,22 +18,45 @@ var state = {
   isLoggingIn: false,
   isResetting: false,
   isReviewing: "",
+  currentTeacher: null,
   teacher: null,
   classes: [],
+  allStudents: [],
+  studentsByClassId: {},
   courses: [],
+  allCourses: [],
+  coursesByClassId: {},
   students: [],
   submissions: [],
   summary: null,
-  debug: null,
+  classDetailCache: {},
+  classDetailsById: {},
+  courseDetailCache: {},
+  courseDetailsById: {},
+  studentDetailCache: {},
+  unsubscribeHandlers: [],
+  isClassDetailLoading: false,
+  isCourseListLoading: false,
+  isCourseDetailLoading: false,
+  selectedTab: "overview",
   selectedClassId: "",
   selectedCourseId: "",
+  selectedStudentId: "",
   activeTab: "overview",
+  studentClassFilterId: "",
+  studentStatusFilter: "all",
+  courseClassFilterId: "",
+  analyticsTab: "overview",
+  analyticsRange: "week",
+  analyticsStudentSort: "highestXp",
+  selectedAnalyticsStudentId: "",
   reviewClassId: "",
   reviewCourseId: "",
   reviewModuleId: "",
   statusFilter: "pending",
   reviewStudentSearch: "",
   isReviewQueueLoading: false,
+  reviewQueueError: "",
   message: "",
   error: "",
   unauthorized: false
@@ -58,7 +86,35 @@ async function handleAuthState(user) {
       isLoading: false,
       isLoggingIn: false,
       isResetting: false,
+      currentTeacher: null,
       teacher: null,
+      classes: [],
+      allStudents: [],
+      studentsByClassId: {},
+      allCourses: [],
+      coursesByClassId: {},
+      courses: [],
+      students: [],
+      submissions: [],
+      summary: null,
+      classDetailCache: {},
+      classDetailsById: {},
+      courseDetailCache: {},
+      courseDetailsById: {},
+      studentDetailCache: {},
+      unsubscribeHandlers: [],
+      isClassDetailLoading: false,
+      isCourseListLoading: false,
+      isCourseDetailLoading: false,
+      selectedTab: "overview",
+      selectedClassId: "",
+      selectedCourseId: "",
+      selectedStudentId: "",
+      selectedAnalyticsStudentId: "",
+      analyticsTab: "overview",
+      analyticsRange: "week",
+      analyticsStudentSort: "highestXp",
+      activeTab: "overview",
       unauthorized: false,
       message: readLoginMessage(),
       error: ""
@@ -80,20 +136,25 @@ async function loadDashboard() {
 
   try {
     var data = await teacherDashboardService.loadDashboard({
-      reviewStatus: readReviewStatusForQuery() || "pending",
-      classId: state.selectedClassId
+      reviewStatus: readReviewStatusForQuery() || "pending"
     });
 
     setState({
       isLoading: false,
       isLoggingIn: false,
+      currentTeacher: data.teacher,
       teacher: data.teacher,
       classes: data.classes || [],
+      allStudents: data.students || [],
+      studentsByClassId: buildStudentsByClassId(data.students || []),
       courses: data.courses || [],
+      allCourses: data.courses || [],
+      coursesByClassId: buildCoursesByClassId(data.courses || []),
       students: data.students || [],
       submissions: data.submissions || [],
       summary: data.summary || null,
-      debug: data.debug || null,
+      isClassDetailLoading: false,
+      isCourseListLoading: false,
       message: "",
       error: "",
       unauthorized: false
@@ -104,15 +165,211 @@ async function loadDashboard() {
       unauthorized: isUnauthorizedError(error),
       teacher: null,
       classes: [],
+      allStudents: [],
+      studentsByClassId: {},
+      allCourses: [],
+      coursesByClassId: {},
       courses: [],
       students: [],
       submissions: [],
       summary: null,
-      debug: null,
+      classDetailCache: {},
+      classDetailsById: {},
+      courseDetailCache: {},
+      courseDetailsById: {},
+      studentDetailCache: {},
+      isClassDetailLoading: false,
+      isCourseListLoading: false,
+      isCourseDetailLoading: false,
       error: error.message,
       message: ""
     });
   }
+}
+
+async function loadCourses() {
+  if (state.isCourseListLoading || (state.courses || []).length > 0) {
+    return;
+  }
+
+  setState({
+    isCourseListLoading: true,
+    message: "Loading courses...",
+    error: ""
+  });
+
+  try {
+    var data = await teacherDashboardService.loadCourses({});
+    setState({
+      isCourseListLoading: false,
+      courses: data.courses || [],
+      allCourses: data.courses || [],
+      coursesByClassId: buildCoursesByClassId(data.courses || []),
+      summary: Object.assign({}, state.summary || {}, data.summary || {}),
+      message: "",
+      error: ""
+    });
+  } catch (error) {
+    console.warn("[teacher-dashboard:courses-load-failed]", {
+      errorMessage: error.message
+    });
+
+    setState({
+      isCourseListLoading: false,
+      message: "",
+      error: "Courses could not be loaded. Try Refresh."
+    });
+  }
+}
+
+async function loadClassDetail(classId, forceRefresh) {
+  if (!classId) {
+    console.error("Cannot open class view: missing classId");
+    return;
+  }
+
+  if (!forceRefresh && state.classDetailsById[classId]) {
+    setState({
+      isClassDetailLoading: false,
+      message: "",
+      error: ""
+    });
+    return;
+  }
+
+  setState({
+    isClassDetailLoading: true,
+    message: "Loading class command center...",
+    error: ""
+  });
+
+  try {
+    var data = await teacherDashboardService.loadClassDetail(classId);
+    var nextDetails = Object.assign({}, state.classDetailsById);
+    nextDetails[classId] = data || {};
+
+    setState({
+      classDetailsById: nextDetails,
+      classDetailCache: nextDetails,
+      studentsByClassId: Object.assign({}, state.studentsByClassId || {}, createSingleClassRecord(classId, data && data.students ? data.students : [])),
+      coursesByClassId: Object.assign({}, state.coursesByClassId || {}, createSingleClassRecord(classId, data && data.courses ? data.courses : [])),
+      isClassDetailLoading: false,
+      message: "",
+      error: ""
+    });
+  } catch (error) {
+    var fallbackDetails = Object.assign({}, state.classDetailsById);
+    fallbackDetails[classId] = createClassDetailFallback(classId, error);
+
+    console.error("[teacher-class-view:load-failed]", {
+      classId: classId,
+      errorMessage: error.message
+    });
+
+    setState({
+      classDetailsById: fallbackDetails,
+      classDetailCache: fallbackDetails,
+      studentsByClassId: Object.assign({}, state.studentsByClassId || {}, createSingleClassRecord(classId, fallbackDetails[classId].students || [])),
+      coursesByClassId: Object.assign({}, state.coursesByClassId || {}, createSingleClassRecord(classId, fallbackDetails[classId].courses || [])),
+      selectedClassId: classId,
+      isClassDetailLoading: false,
+      message: "",
+      error: ""
+    });
+  }
+}
+
+function createClassDetailFallback(classId, error) {
+  var classRecord = (state.classes || []).find(function (item) {
+    return item && item.id === classId;
+  }) || null;
+  var students = classId ? filterStudentsForClass(state.students || [], classId) : [];
+  var courses = classId ? filterCoursesForClass(state.courses || [], classId) : [];
+
+  return {
+    classRecord: classRecord,
+    students: students,
+    courses: courses,
+    submissions: [],
+    emotionalCheckIns: [],
+    errors: {
+      classDetail: readErrorMessage(error)
+    },
+    summary: {
+      studentCount: students.length,
+      courseCount: courses.length,
+      emotionalCheckInCount: 0
+    }
+  };
+}
+
+async function loadCourseDetail(assignmentId, courseId, forceRefresh) {
+  var cacheKey = assignmentId || courseId || "";
+
+  if (!cacheKey) {
+    console.error("Cannot open course detail: missing course identifier");
+    return;
+  }
+
+  if (!forceRefresh && state.courseDetailsById[cacheKey]) {
+    setState({
+      isCourseDetailLoading: false,
+      message: "",
+      error: ""
+    });
+    return;
+  }
+
+  setState({
+    isCourseDetailLoading: true,
+    message: "Loading course detail...",
+    error: ""
+  });
+
+  try {
+    var data = await teacherDashboardService.loadCourseDetail(assignmentId, courseId);
+    var nextDetails = Object.assign({}, state.courseDetailsById);
+    nextDetails[cacheKey] = data || {};
+
+    setState({
+      courseDetailsById: nextDetails,
+      courseDetailCache: nextDetails,
+      isCourseDetailLoading: false,
+      message: "",
+      error: ""
+    });
+  } catch (error) {
+    var fallbackDetails = Object.assign({}, state.courseDetailsById);
+    fallbackDetails[cacheKey] = createCourseDetailFallback(assignmentId, courseId, error);
+
+    console.error("[teacher-course-view:load-failed]", {
+      assignmentId: assignmentId || "",
+      courseId: courseId || "",
+      errorMessage: error.message
+    });
+
+    setState({
+      courseDetailsById: fallbackDetails,
+      courseDetailCache: fallbackDetails,
+      isCourseDetailLoading: false,
+      message: "",
+      error: ""
+    });
+  }
+}
+
+function createCourseDetailFallback(assignmentId, courseId, error) {
+  var course = findCourseByAssignmentOrCourseId(assignmentId, courseId);
+
+  return {
+    course: course,
+    modules: [],
+    students: course ? readStudentsForCourse(course) : [],
+    submissions: [],
+    errors: {
+      courseDetail: readErrorMessage(error)
+    }
+  };
 }
 
 async function refreshReviewQueue() {
@@ -134,14 +391,20 @@ async function refreshReviewQueue() {
     setState({
       isReviewQueueLoading: false,
       submissions: data.submissions || [],
-      debug: mergeDashboardDebug(state.debug, data.debug),
+      reviewQueueError: "",
       message: "",
       error: ""
     });
   } catch (error) {
+    console.warn("[teacher-review-queue:load-failed]", {
+      errorMessage: error.message
+    });
+
     setState({
       isReviewQueueLoading: false,
-      error: error.message,
+      reviewQueueError: error.message,
+      submissions: [],
+      error: "",
       message: ""
     });
   }
@@ -226,7 +489,15 @@ async function sendPasswordReset(form) {
 async function handleClick(event) {
   var logoutButton = event.target.closest("[data-action=logout]");
   var refreshButton = event.target.closest("[data-action=refresh]");
+  var overviewButton = event.target.closest("[data-overview-target]");
+  var backToClassesButton = event.target.closest("[data-action=back-to-classes]");
+  var backToCoursesButton = event.target.closest("[data-action=back-to-courses]");
+  var studentProfileButton = event.target.closest("[data-action=open-student-profile]");
+  var closeStudentProfileButton = event.target.closest("[data-action=close-student-profile]");
   var studentHistoryButton = event.target.closest("[data-action=view-student-history]");
+  var analyticsTabButton = event.target.closest("[data-analytics-tab]");
+  var analyticsStudentButton = event.target.closest("[data-analytics-student-id]");
+  var closeAnalyticsStudentButton = event.target.closest("[data-action=close-analytics-student]");
   var classButton = event.target.closest("[data-class-id]");
   var courseButton = event.target.closest("[data-course-assignment-id]");
   var tabButton = event.target.closest("[data-teacher-tab]");
@@ -238,7 +509,58 @@ async function handleClick(event) {
   }
 
   if (refreshButton) {
+    var refreshClassId = state.selectedClassId;
+    var refreshTab = state.activeTab;
+    setState({
+      classDetailsById: {},
+      courses: [],
+      selectedStudentId: "",
+      selectedAnalyticsStudentId: ""
+    });
     await loadDashboard();
+    if (refreshClassId) {
+      await loadClassDetail(refreshClassId, true);
+    }
+    if (refreshTab === "courses") {
+      await loadCourses();
+    }
+    return;
+  }
+
+  if (overviewButton) {
+    await openOverviewTarget(overviewButton);
+    return;
+  }
+
+  if (backToClassesButton) {
+    setState({
+      selectedClassId: "",
+      selectedStudentId: "",
+      activeTab: "classes"
+    });
+    return;
+  }
+
+  if (backToCoursesButton) {
+    setState({
+      selectedCourseId: "",
+      activeTab: "courses",
+      selectedTab: "courses"
+    });
+    return;
+  }
+
+  if (closeStudentProfileButton || event.target.hasAttribute("data-student-profile-backdrop")) {
+    setState({
+      selectedStudentId: ""
+    });
+    return;
+  }
+
+  if (studentProfileButton) {
+    setState({
+      selectedStudentId: studentProfileButton.getAttribute("data-student-id") || ""
+    });
     return;
   }
 
@@ -255,27 +577,78 @@ async function handleClick(event) {
     return;
   }
 
-  if (tabButton) {
+  if (analyticsTabButton) {
     setState({
-      activeTab: tabButton.getAttribute("data-teacher-tab") || "classes"
+      analyticsTab: analyticsTabButton.getAttribute("data-analytics-tab") || "overview",
+      selectedAnalyticsStudentId: ""
     });
+    return;
+  }
+
+  if (closeAnalyticsStudentButton) {
+    setState({
+      selectedAnalyticsStudentId: ""
+    });
+    return;
+  }
+
+  if (analyticsStudentButton) {
+    setState({
+      analyticsTab: "student-detail",
+      selectedAnalyticsStudentId: analyticsStudentButton.getAttribute("data-analytics-student-id") || ""
+    });
+    return;
+  }
+
+  if (tabButton) {
+    var nextTab = tabButton.getAttribute("data-teacher-tab") || "classes";
+    setState({
+      activeTab: nextTab,
+      selectedTab: nextTab,
+      selectedClassId: nextTab === "classes" ? state.selectedClassId : "",
+      selectedCourseId: nextTab === "courses" ? state.selectedCourseId : "",
+      selectedStudentId: "",
+      selectedAnalyticsStudentId: nextTab === "analytics" ? state.selectedAnalyticsStudentId : ""
+    });
+    if (nextTab === "courses") {
+      await loadCourses();
+    }
+    if (nextTab === "reviews") {
+      await refreshReviewQueue();
+    }
     return;
   }
 
   if (classButton) {
+    var classId = classButton.getAttribute("data-class-id") || "";
+    if (!classId) {
+      setState({
+        selectedClassId: "",
+        selectedStudentId: "",
+        activeTab: "classes"
+      });
+      return;
+    }
+
     setState({
-      selectedClassId: classButton.getAttribute("data-class-id") || "",
+      selectedClassId: classId,
+      selectedStudentId: "",
       activeTab: "classes"
     });
-    await loadDashboard();
+    await loadClassDetail(classId, false);
     return;
   }
 
   if (courseButton) {
+    var assignmentId = courseButton.getAttribute("data-course-assignment-id") || "";
+    var courseId = courseButton.getAttribute("data-course-id") || "";
     setState({
-      selectedCourseId: courseButton.getAttribute("data-course-assignment-id") || "",
-      activeTab: "courses"
+      selectedCourseId: assignmentId || courseId,
+      selectedStudentId: "",
+      activeTab: "courses",
+      selectedTab: "courses"
     });
+    await loadCourseDetail(assignmentId, courseId, false);
     return;
   }
 
@@ -285,12 +658,60 @@ async function handleClick(event) {
 }
 
 async function handleChange(event) {
+  var studentClassFilter = event.target.closest("#studentClassFilter");
+  var studentStatusFilter = event.target.closest("#studentStatusFilter");
+  var courseClassFilter = event.target.closest("#courseClassFilter");
+  var analyticsRange = event.target.closest("#analyticsRangeFilter");
+  var analyticsStudentSort = event.target.closest("#analyticsStudentSort");
   var statusSelect = event.target.closest("#reviewStatusFilter");
   var classSelect = event.target.closest("#reviewClassFilter");
   var courseSelect = event.target.closest("#reviewCourseFilter");
   var moduleSelect = event.target.closest("#reviewModuleFilter");
 
-  if (!statusSelect && !classSelect && !courseSelect && !moduleSelect) {
+  if (!studentClassFilter && !studentStatusFilter && !courseClassFilter && !analyticsRange && !analyticsStudentSort && !statusSelect && !classSelect && !courseSelect && !moduleSelect) {
+    return;
+  }
+
+  if (studentClassFilter) {
+    var nextStudentClassId = studentClassFilter.value || "";
+    setState({
+      studentClassFilterId: nextStudentClassId
+    });
+    if (nextStudentClassId) {
+      await loadClassDetail(nextStudentClassId, false);
+    }
+    return;
+  }
+
+  if (studentStatusFilter) {
+    setState({
+      studentStatusFilter: studentStatusFilter.value || "all"
+    });
+    return;
+  }
+
+  if (courseClassFilter) {
+    var nextCourseClassId = courseClassFilter.value || "";
+    setState({
+      courseClassFilterId: nextCourseClassId
+    });
+    if (nextCourseClassId) {
+      await loadClassDetail(nextCourseClassId, false);
+    }
+    return;
+  }
+
+  if (analyticsRange) {
+    setState({
+      analyticsRange: analyticsRange.value || "week"
+    });
+    return;
+  }
+
+  if (analyticsStudentSort) {
+    setState({
+      analyticsStudentSort: analyticsStudentSort.value || "highestXp"
+    });
     return;
   }
 
@@ -324,6 +745,36 @@ async function handleChange(event) {
       reviewModuleId: moduleSelect.value
     });
     await refreshReviewQueue();
+  }
+}
+
+async function openOverviewTarget(button) {
+  var targetTab = button.getAttribute("data-overview-target") || "overview";
+  var targetFilter = button.getAttribute("data-overview-filter") || "";
+
+  setState({
+    activeTab: targetTab,
+    selectedTab: targetTab,
+    selectedClassId: "",
+    selectedCourseId: "",
+    selectedStudentId: ""
+  });
+
+  if (targetTab === "courses") {
+    await loadCourses();
+  }
+
+  if (targetTab === "reviews") {
+    setState({
+      statusFilter: targetFilter || "pending"
+    });
+    await refreshReviewQueue();
+  }
+
+  if (targetTab === "students" && targetFilter) {
+    setState({
+      studentStatusFilter: targetFilter
+    });
   }
 }
 
@@ -369,6 +820,39 @@ async function reviewSubmission(button) {
 
 function setState(patch) {
   state = Object.assign({}, state, patch || {});
+
+  if (Object.prototype.hasOwnProperty.call(patch || {}, "teacher")) {
+    state.currentTeacher = state.teacher;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(patch || {}, "currentTeacher")) {
+    state.teacher = state.currentTeacher;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(patch || {}, "activeTab")) {
+    state.selectedTab = state.activeTab;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(patch || {}, "selectedTab")) {
+    state.activeTab = state.selectedTab;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(patch || {}, "classDetailsById")) {
+    state.classDetailCache = state.classDetailsById;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(patch || {}, "classDetailCache")) {
+    state.classDetailsById = state.classDetailCache;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(patch || {}, "courseDetailsById")) {
+    state.courseDetailCache = state.courseDetailsById;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(patch || {}, "courseDetailCache")) {
+    state.courseDetailsById = state.courseDetailCache;
+  }
+
   render();
 }
 
@@ -622,21 +1106,18 @@ function buildDashboardView() {
     + buildTeacherBackdropSvg()
     + buildHeader()
     + buildStatusMessages()
-    + buildMetrics()
     + buildTeacherTabs()
     + buildActiveTeacherTab()
-    + buildTeacherDebugPanel()
+    + buildStudentProfileModal()
     + '</main>';
 }
 
 function buildHeader() {
   var teacher = state.teacher || {};
-  var locationName = teacher.locationName || teacher.primaryLocationName || teacher.schoolName || "";
 
   return '<header class="teacher-header">'
     + '<div><p>Teacher Dashboard</p><h1>' + escapeHtml(teacher.name || "Teacher") + '</h1>'
-    + '<span>' + escapeHtml(locationName || "Location not assigned") + '</span>'
-    + '<small class="teacher-today">' + escapeHtml(formatToday()) + '</small></div>'
+    + '<span>' + escapeHtml(teacher.locationName || "Assigned school") + '</span></div>'
     + buildHeaderSceneSvg()
     + '<div class="teacher-header-actions"><span class="teacher-role-badge">' + escapeHtml(teacher.roleLabel || "Teacher") + '</span>'
     + '<button type="button" class="teacher-secondary-btn" data-action="refresh">Refresh</button>'
@@ -646,34 +1127,31 @@ function buildHeader() {
 
 function buildMetrics() {
   var summary = state.summary || {};
-  var studentFailed = hasBlockingStudentQueryErrors() || summary.studentQueryFailed;
-  var submissionFailed = hasBlockingSubmissionQueryErrors() || summary.submissionQueryFailed;
 
   return '<section class="teacher-metrics">'
-    + buildMetricCard(readCount(summary.classCount, state.classes.length), "My Classes", "classes")
-    + buildMetricCard(readCount(summary.courseCount, state.courses.length), "My Courses", "courses")
-    + buildMetricCard(studentFailed ? "!" : readCount(summary.studentCount, state.students.length), "My Students", "students", studentFailed ? "Could not load students" : "")
-    + buildMetricCard(submissionFailed ? "!" : readCount(summary.pendingSubmissionsCount, countByReviewStatus("pending")), "Pending Reviews", "reviews", submissionFailed ? "Could not load review queue" : "")
-    + buildMetricCard(submissionFailed ? "!" : readCount(summary.needsWorkSubmissionsCount, countByReviewStatus("needsWork")), "Needs Work", "reviews", submissionFailed ? "Could not load review queue" : "")
-    + buildMetricCard(submissionFailed ? "!" : readCount(summary.completedSubmissionsCount, countByReviewStatus("complete")), "Completed Reviews", "reviews", submissionFailed ? "Could not load review queue" : "")
+    + buildMetricCard(summary.classCount || state.classes.length, "My Classes", "classes", "classes", "")
+    + buildMetricCard(summary.courseCount || state.courses.length, "My Courses", "courses", "courses", "")
+    + buildMetricCard(summary.studentCount || countKnownStudents(), "My Students", "students", "students", "")
+    + buildMetricCard(summary.pendingSubmissionsCount || countPending(state.submissions), "Pending Reviews", "reviews", "reviews", "pending")
+    + buildMetricCard(countNeedsWorkStudents(), "Needs Work", "students", "students", "needsWork")
+    + buildMetricCard(countReviewsByStatus("complete"), "Completed Reviews", "reviews", "reviews", "complete")
     + '</section>';
 }
 
-function buildMetricCard(value, label, tone, warning) {
-  return '<article class="teacher-metric teacher-metric-' + escapeHtml(tone) + (warning ? " teacher-metric-warning" : "") + '">'
+function buildMetricCard(value, label, tone, targetTab, targetFilter) {
+  return '<button type="button" class="teacher-metric teacher-metric-' + escapeHtml(tone) + '" data-overview-target="' + escapeHtml(targetTab || "overview") + '" data-overview-filter="' + escapeHtml(targetFilter || "") + '">'
     + buildMetricSvg(tone)
-    + '<strong>' + escapeHtml(String(value)) + '</strong><span>' + escapeHtml(label) + '</span>'
-    + (warning ? '<small>' + escapeHtml(warning) + '</small>' : "")
-    + '</article>';
+    + '<strong>' + escapeHtml(String(value)) + '</strong><span>' + escapeHtml(label) + '</span></button>';
 }
 
 function buildTeacherTabs() {
   return '<nav class="teacher-tabs" aria-label="Teacher dashboard sections">'
     + buildTeacherTabButton("overview", "Overview", "")
     + buildTeacherTabButton("classes", "Classes", state.classes.length)
-    + buildTeacherTabButton("students", "Students", hasBlockingStudentQueryErrors() ? "!" : state.students.length)
-    + buildTeacherTabButton("courses", "Courses", state.courses.length)
-    + buildTeacherTabButton("reviews", "Reviews", hasBlockingSubmissionQueryErrors() ? "!" : countPending(state.submissions))
+    + buildTeacherTabButton("students", "Students", countKnownStudents())
+    + buildTeacherTabButton("courses", "Courses", countKnownCourses())
+    + buildTeacherTabButton("reviews", "Reviews", countPending(state.submissions))
+    + buildTeacherTabButton("analytics", "Analytics", "")
     + buildTeacherTabButton("activity", "Activity", "")
     + buildTeacherTabButton("schedule", "Schedule", "")
     + '</nav>';
@@ -681,7 +1159,7 @@ function buildTeacherTabs() {
 
 function buildTeacherTabButton(tabName, label, count) {
   return '<button type="button" class="teacher-tab' + (state.activeTab === tabName ? " active" : "") + '" data-teacher-tab="' + escapeHtml(tabName) + '">'
-    + '<strong>' + escapeHtml(label) + '</strong><span>' + escapeHtml(String(count)) + '</span></button>';
+    + '<strong>' + escapeHtml(label) + '</strong>' + (count === "" ? "" : '<span>' + escapeHtml(String(count)) + '</span>') + '</button>';
 }
 
 function buildActiveTeacherTab() {
@@ -694,11 +1172,15 @@ function buildActiveTeacherTab() {
   }
 
   if (state.activeTab === "students") {
-    return buildStudentsView();
+    return buildStudentsTab();
   }
 
   if (state.activeTab === "reviews") {
     return buildReviewQueue();
+  }
+
+  if (state.activeTab === "analytics") {
+    return buildAnalyticsDashboard();
   }
 
   if (state.activeTab === "activity") {
@@ -709,108 +1191,62 @@ function buildActiveTeacherTab() {
     return buildScheduleTab();
   }
 
+  if (state.selectedClassId) {
+    return buildClassCommandCenter();
+  }
+
+  return buildClassesTab();
+}
+
+function buildOverviewTab() {
+  return '<section class="teacher-overview-stack">'
+    + buildMetrics()
+    + '<section class="teacher-grid">'
+    + buildOverviewClassesPanel()
+    + buildOverviewWorkPanel()
+    + '</section>'
+    + '</section>';
+}
+
+function buildOverviewClassesPanel() {
+  var classes = (state.classes || []).slice(0, 4);
+  var html = '<section class="teacher-card-section"><div class="teacher-section-title"><div><h2>Classes</h2><p>Quick access to assigned classrooms</p></div>' + buildSectionGlyphSvg("classes") + '</div>';
+
+  if (classes.length === 0) {
+    return html + buildEmptyState("classes", "No classes assigned yet.", "Assigned classes will appear here.") + '</section>';
+  }
+
+  html += '<div class="teacher-class-list">';
+  classes.forEach(function (classRecord) {
+    html += buildCompactClassButton(classRecord);
+  });
+
+  return html + '</div></section>';
+}
+
+function buildOverviewWorkPanel() {
+  return '<section class="teacher-card-section"><div class="teacher-section-title"><div><h2>Today</h2><p>Review and student signals</p></div>' + buildSectionGlyphSvg("reviews") + '</div>'
+    + '<div class="teacher-class-list">'
+    + buildActionRow("Pending Reviews", countPending(state.submissions), "reviews", "pending")
+    + buildActionRow("Needs Work", countNeedsWorkStudents(), "students", "needsWork")
+    + buildActionRow("Completed Reviews", countReviewsByStatus("complete"), "reviews", "complete")
+    + '</div></section>';
+}
+
+function buildActionRow(label, value, targetTab, targetFilter) {
+  return '<button type="button" class="teacher-class-card" data-overview-target="' + escapeHtml(targetTab) + '" data-overview-filter="' + escapeHtml(targetFilter || "") + '">'
+    + buildClassRouteSvg(label)
+    + '<strong>' + escapeHtml(label) + '</strong>'
+    + '<span>' + escapeHtml(String(value)) + '</span>'
+    + '<small>Open ' + escapeHtml(targetTab) + '</small>'
+    + '</button>';
+}
+
+function buildClassesTab() {
   return '<section class="teacher-grid">'
     + buildClassCards()
     + buildStudentsView()
     + '</section>';
-}
-
-function buildOverviewTab() {
-  var recentSubmissions = getRecentSubmissions(4);
-  var studentsNeedingAttention = (state.students || []).filter(function (student) {
-    return student.pendingSubmissionsCount > 0;
-  }).slice(0, 5);
-
-  return '<section class="teacher-overview-grid">'
-    + buildOverviewPanel("Today\'s classes", buildTodayClassesList())
-    + buildOverviewPanel("Pending reviews", buildPendingReviewsList())
-    + buildOverviewPanel("Students needing attention", buildStudentAttentionList(studentsNeedingAttention))
-    + buildOverviewPanel("Recent submissions", buildRecentSubmissionList(recentSubmissions))
-    + buildOverviewPanel("Course progress summary", buildCourseProgressList())
-    + '</section>';
-}
-
-function buildOverviewPanel(title, bodyHtml) {
-  return '<section class="teacher-card-section teacher-overview-panel">'
-    + '<div class="teacher-section-title compact"><div><h2>' + escapeHtml(title) + '</h2></div></div>'
-    + bodyHtml
-    + '</section>';
-}
-
-function buildTodayClassesList() {
-  if ((state.classes || []).length === 0) {
-    return buildEmptyState("classes", "No classes assigned yet.", "Assigned classroom groups will appear here.");
-  }
-
-  return '<div class="teacher-command-list">' + (state.classes || []).slice(0, 4).map(function (classRecord) {
-    return '<div class="teacher-command-item"><strong>' + escapeHtml(classRecord.name || "Class") + '</strong>'
-      + '<span>' + escapeHtml(classRecord.locationName || "Location not assigned") + '</span>'
-      + '<small>' + escapeHtml(String(classRecord.studentCount || 0)) + ' students | ' + escapeHtml(String(classRecord.pendingSubmissionsCount || 0)) + ' pending</small></div>';
-  }).join("") + '</div>';
-}
-
-function buildPendingReviewsList() {
-  if (hasBlockingSubmissionQueryErrors()) {
-    return buildEmptyState("reviews", "Could not load review queue.", "Open ?debug=true for the Firestore query details.");
-  }
-
-  var pending = (state.submissions || []).filter(function (submission) {
-    return (submission.reviewStatus || "pending") === "pending";
-  }).slice(0, 4);
-
-  if (pending.length === 0) {
-    return buildEmptyState("reviews", "No pending reviews.", "Submitted External Task work that needs review will appear here.");
-  }
-
-  return '<div class="teacher-command-list">' + pending.map(function (submission) {
-    return '<div class="teacher-command-item"><strong>' + escapeHtml(submission.studentName || submission.studentId || "Student") + '</strong>'
-      + '<span>' + escapeHtml(submission.taskTitle || submission.stepTitle || "External Task") + '</span>'
-      + '<small>' + escapeHtml(formatDate(submission.createdAt) || "Recently") + '</small></div>';
-  }).join("") + '</div>';
-}
-
-function buildStudentAttentionList(students) {
-  if (hasBlockingStudentQueryErrors()) {
-    return buildEmptyState("students", "Could not load students.", "Open ?debug=true for the Firestore query details.");
-  }
-
-  if (students.length === 0) {
-    return buildEmptyState("students", "No students need review right now.", "Students with pending submissions will appear here.");
-  }
-
-  return '<div class="teacher-command-list">' + students.map(function (student) {
-    return '<div class="teacher-command-item"><strong>' + escapeHtml(student.name || "Student") + '</strong>'
-      + '<span>' + escapeHtml(student.currentCourseProgress || "No progress yet") + '</span>'
-      + '<small>' + escapeHtml(String(student.pendingSubmissionsCount || 0)) + ' pending reviews</small></div>';
-  }).join("") + '</div>';
-}
-
-function buildRecentSubmissionList(submissions) {
-  if (hasBlockingSubmissionQueryErrors()) {
-    return buildEmptyState("reviews", "Could not load recent submissions.", "Open ?debug=true for the Firestore query details.");
-  }
-
-  if (submissions.length === 0) {
-    return buildEmptyState("reviews", "No recent submissions.", "Recent External Task submissions will appear here.");
-  }
-
-  return '<div class="teacher-command-list">' + submissions.map(function (submission) {
-    return '<div class="teacher-command-item"><strong>' + escapeHtml(submission.studentName || submission.studentId || "Student") + '</strong>'
-      + '<span>' + escapeHtml(formatReviewStatus(submission.reviewStatus || "pending")) + '</span>'
-      + '<small>' + escapeHtml(formatDate(submission.createdAt) || "Recently") + '</small></div>';
-  }).join("") + '</div>';
-}
-
-function buildCourseProgressList() {
-  if ((state.courses || []).length === 0) {
-    return buildEmptyState("courses", "No assigned courses.", "Course assignments will appear here.");
-  }
-
-  return '<div class="teacher-command-list">' + (state.courses || []).slice(0, 4).map(function (course) {
-    return '<div class="teacher-command-item"><strong>' + escapeHtml(course.courseTitle || "Untitled Course") + '</strong>'
-      + '<span>' + escapeHtml(course.targetName || "Assigned target") + '</span>'
-      + '<small>' + escapeHtml(String(course.studentCount || 0)) + ' students | ' + escapeHtml(String(course.pendingSubmissionsCount || 0)) + ' pending</small></div>';
-  }).join("") + '</div>';
 }
 
 function buildClassCards() {
@@ -836,9 +1272,214 @@ function buildClassCards() {
   return html + '</div></section>';
 }
 
+function buildCompactClassButton(classRecord) {
+  return '<button type="button" class="teacher-class-card' + (state.selectedClassId === classRecord.id ? " active" : "") + '" data-class-id="' + escapeHtml(classRecord.id) + '">'
+    + buildClassRouteSvg(classRecord.id || classRecord.name || "class")
+    + '<strong>' + escapeHtml(classRecord.name || "Class") + '</strong>'
+    + '<span>' + escapeHtml(classRecord.locationName || "Assigned location") + '</span>'
+    + '<small>' + escapeHtml(classRecord.ownershipRole || "Assigned") + ' | ' + (classRecord.studentCount || 0) + ' students | ' + (classRecord.assignedCoursesCount || 0) + ' courses | ' + (classRecord.pendingSubmissionsCount || 0) + ' pending</small>'
+    + '</button>';
+}
+
+function buildClassCommandCenter() {
+  var classRecord = getSelectedClassRecord();
+
+  if (!classRecord) {
+    console.warn("[teacher-class-view:missing-class]", {
+      classId: state.selectedClassId || ""
+    });
+
+    return '<section class="teacher-class-command">'
+      + '<div class="teacher-class-command-header"><div><p>Class Command Center</p><h2>Class not found</h2><span>The selected class is no longer available.</span></div>'
+      + '<button type="button" class="teacher-secondary-btn" data-action="back-to-classes">Back</button></div>'
+      + '</section>';
+  }
+
+  if (state.isClassDetailLoading && !getSelectedClassDetail()) {
+    return '<section class="teacher-class-command">'
+      + buildClassCommandHeader(classRecord)
+      + createLoadingState("Loading class details...", {
+        className: "teacher-review-loading",
+        beforeHtml: buildSavingSvg()
+      })
+      + '</section>';
+  }
+
+  return '<section class="teacher-class-command">'
+    + buildClassCommandHeader(classRecord)
+    + buildClassDetailErrors()
+    + buildClassSummaryCards(classRecord)
+    + '<div class="teacher-class-command-grid">'
+    + buildClassStudentsSection()
+    + '<aside class="teacher-class-side-panel">'
+    + buildMoodSummarySection()
+    + buildAssignedCoursesSection()
+    + '</aside>'
+    + '</div>'
+    + '</section>';
+}
+
+function buildClassCommandHeader(classRecord) {
+  return '<div class="teacher-class-command-header">'
+    + '<div><p>Class Command Center</p><h2>' + escapeHtml(classRecord.name || "Class") + '</h2>'
+    + '<span>' + escapeHtml(classRecord.locationName || "Assigned location") + ' | ' + getSelectedClassStudents().length + ' students | ' + escapeHtml(formatToday()) + '</span></div>'
+    + '<button type="button" class="teacher-secondary-btn" data-action="back-to-classes">Back to Classes</button>'
+    + '</div>';
+}
+
+function buildClassSummaryCards(classRecord) {
+  var students = getSelectedClassStudents();
+  var moodCount = countStudentsWithMoodToday(students);
+  var courses = getSelectedClassCourses();
+
+  return '<div class="teacher-class-summary">'
+    + buildClassSummaryCard("Total students", students.length)
+    + buildClassSummaryCard("Present today", countStudentsByAttendance(students, "present"))
+    + buildClassSummaryCard("Absent today", countStudentsByAttendance(students, "absent"))
+    + buildClassSummaryCard("Check-ins today", moodCount)
+    + buildClassSummaryCard("Assigned courses", classRecord.assignedCoursesCount || courses.length || 0)
+    + '</div>';
+}
+
+function buildClassSummaryCard(label, value) {
+  return '<article class="teacher-class-summary-card"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(String(value == null ? 0 : value)) + '</strong></article>';
+}
+
+function buildClassStudentsSection() {
+  var students = getSelectedClassStudents();
+  var errors = getSelectedClassDetailErrors();
+  var html = '<section class="teacher-card-section teacher-class-students-section"><div class="teacher-section-title"><div><h2>Students</h2><p>Today signals and course progress</p></div>' + buildSectionGlyphSvg("students") + '</div>';
+
+  if (errors.students) {
+    return html + buildClassSectionError("Students could not be loaded.", errors.students) + '</section>';
+  }
+
+  if (students.length === 0) {
+    return html + buildEmptyState("students", "No students in this class yet.", "Students assigned to this class will appear here.") + '</section>';
+  }
+
+  html += '<div class="teacher-class-student-grid">';
+  students.forEach(function (student) {
+    html += buildClassStudentCard(student);
+  });
+
+  return html + '</div></section>';
+}
+
+function buildClassStudentCard(student) {
+  var statusLabel = readStudentStatusLabel(student);
+  var progress = readStudentProgressPercent(student);
+  var progressText = progress == null ? "Progress not recorded" : progress + "% complete";
+
+  return '<button type="button" class="teacher-class-student-card" data-action="open-student-profile" data-student-id="' + escapeHtml(student.id || "") + '">'
+    + '<div class="teacher-avatar">' + buildStudentAvatar(student) + '</div>'
+    + '<div class="teacher-class-student-copy"><strong>' + escapeHtml(student.name || "Student") + '</strong>'
+    + '<span>Mood: ' + escapeHtml(readStudentMoodToday(student) || "Not recorded") + '</span>'
+    + '<span>Course: ' + escapeHtml(readStudentCourseTitle(student) || "Not assigned") + '</span>'
+    + '<span>' + escapeHtml(progressText) + '</span></div>'
+    + '<b class="' + escapeHtml(readStudentStatusClass(statusLabel)) + '">' + escapeHtml(statusLabel) + '</b>'
+    + '</button>';
+}
+
+function buildMoodSummarySection() {
+  var distribution = buildMoodDistribution(getSelectedClassStudents());
+  var keys = Object.keys(distribution);
+  var errors = getSelectedClassDetailErrors();
+  var html = '<section class="teacher-class-panel"><div class="teacher-section-title compact"><div><h2>Emotional Check-Ins</h2><p>Today mood distribution</p></div></div>';
+
+  if (errors.emotionalCheckIns) {
+    return html + buildClassSectionError("Emotional check-ins could not be loaded.", errors.emotionalCheckIns) + '</section>';
+  }
+
+  if (keys.length === 0) {
+    return html + '<div class="teacher-empty compact">No emotional check-ins recorded today.</div></section>';
+  }
+
+  html += '<div class="teacher-mood-list">';
+  keys.forEach(function (key) {
+    html += '<div><span>' + escapeHtml(key) + '</span><strong>' + escapeHtml(String(distribution[key])) + '</strong></div>';
+  });
+
+  return html + '</div></section>';
+}
+
+function buildAssignedCoursesSection() {
+  var courses = getSelectedClassCourses();
+  var errors = getSelectedClassDetailErrors();
+  var html = '<section class="teacher-class-panel"><div class="teacher-section-title compact"><div><h2>Assigned Courses</h2><p>Class course assignments</p></div></div>';
+
+  if (errors.courses) {
+    return html + buildClassSectionError("Assigned courses could not be loaded.", errors.courses) + '</section>';
+  }
+
+  if (courses.length === 0) {
+    return html + '<div class="teacher-empty compact">No courses assigned to this class yet.</div></section>';
+  }
+
+  html += '<div class="teacher-class-course-list">';
+  courses.forEach(function (course) {
+    html += buildAssignedCourseCard(course);
+  });
+
+  return html + '</div></section>';
+}
+
+function buildAssignedCourseCard(course) {
+  return '<article class="teacher-class-course-card">'
+    + '<strong>' + escapeHtml(course.courseTitle || course.title || "Untitled Course") + '</strong>'
+    + '<span>' + escapeHtml(readCourseModuleLabel(course)) + '</span>'
+    + '<span>Status: ' + escapeHtml(formatCourseStatus(course.status || course.readinessStatus || course.publishedStatus || "Not recorded")) + '</span>'
+    + '<small>' + escapeHtml(readCourseProgressSummary(course)) + '</small>'
+    + '</article>';
+}
+
+function buildClassDetailErrors() {
+  var errors = getSelectedClassDetailErrors();
+  var messages = [];
+
+  addClassErrorMessage(messages, "Class information", errors.classInfo || errors.classDetail);
+  addClassErrorMessage(messages, "Students", errors.students);
+  addClassErrorMessage(messages, "Assigned courses", errors.courses);
+  addClassErrorMessage(messages, "Emotional check-ins", errors.emotionalCheckIns);
+
+  if (messages.length === 0) {
+    return "";
+  }
+
+  return '<div class="teacher-error">' + messages.map(function (message) {
+    return '<div>' + escapeHtml(message) + '</div>';
+  }).join("") + '</div>';
+}
+
+function addClassErrorMessage(messages, label, errorMessage) {
+  if (!errorMessage) {
+    return;
+  }
+
+  messages.push(label + " failed to load: " + errorMessage);
+}
+
+function buildClassSectionError(title, errorMessage) {
+  return '<div class="teacher-empty compact"><strong>' + escapeHtml(title) + '</strong><span>' + escapeHtml(errorMessage || "Try refreshing this class.") + '</span></div>';
+}
+
 function buildCourseCards() {
-  var courses = state.courses || [];
-  var html = '<section class="teacher-card-section teacher-wide-section"><div class="teacher-section-title"><div><h2>My Courses</h2><p>Course assignments owned by this teacher</p></div>' + buildSectionGlyphSvg("courses") + '</div>';
+  if (state.selectedCourseId) {
+    return buildCourseDetailView();
+  }
+
+  var courses = getFilteredCoursesForCoursesTab();
+  var html = '<section class="teacher-card-section teacher-wide-section"><div class="teacher-section-title"><div><h2>My Courses</h2><p>Course assignments owned by this teacher</p></div>' + buildSectionGlyphSvg("courses") + '</div>'
+    + '<div class="teacher-filters">'
+    + '<label>Class<select id="courseClassFilter"><option value="">All classes</option>' + buildClassFilterOptions(state.courseClassFilterId) + '</select></label>'
+    + '</div>';
+
+  if (state.isCourseListLoading) {
+    return html + createLoadingState("Loading courses...", {
+      className: "teacher-review-loading",
+      beforeHtml: buildSavingSvg()
+    }) + '</section>';
+  }
 
   if (courses.length === 0) {
     return html + buildEmptyState("courses", "No course assignments assigned yet.", "Responsible teacher and assistant course assignments will appear here.") + '</section>';
@@ -846,89 +1487,169 @@ function buildCourseCards() {
 
   html += '<div class="teacher-course-list">';
   courses.forEach(function (course) {
-    html += '<button type="button" class="teacher-course-card' + (state.selectedCourseId === course.id ? " active" : "") + '" data-course-assignment-id="' + escapeHtml(course.id) + '">'
+    html += '<button type="button" class="teacher-course-card' + (state.selectedCourseId === course.id ? " active" : "") + '" data-course-assignment-id="' + escapeHtml(course.id) + '" data-course-id="' + escapeHtml(course.courseId || "") + '">'
       + buildCourseBookSvg(course.courseTitle || course.courseId || "course")
       + '<div><strong>' + escapeHtml(course.courseTitle || "Untitled Course") + '</strong>'
-      + '<span>' + escapeHtml(course.targetName || "Assigned target") + '</span></div>'
+      + '<span>' + escapeHtml(readCourseAssignedClassLabel(course)) + '</span></div>'
       + '<b>' + escapeHtml(course.ownershipRole || "Assigned") + '</b>'
-      + '<small>' + course.studentCount + ' students | ' + course.pendingSubmissionsCount + ' pending reviews</small>'
+      + '<small>' + escapeHtml(readCourseModuleLabel(course)) + ' | ' + course.studentCount + ' students | ' + course.pendingSubmissionsCount + ' pending reviews</small>'
       + '</button>';
   });
 
   return html + '</div></section>';
 }
 
-function buildActivityTab() {
-  if (hasBlockingSubmissionQueryErrors()) {
-    return '<section class="teacher-card-section teacher-wide-section">'
-      + '<div class="teacher-section-title"><div><h2>Activity</h2><p>Recent classroom signals</p></div>' + buildSectionGlyphSvg("reviews") + '</div>'
-      + buildEmptyState("reviews", "Could not load review activity.", "Open ?debug=true for the Firestore query details.")
+function buildCourseDetailView() {
+  var detail = getSelectedCourseDetail();
+  var course = detail && detail.course ? detail.course : findCourseByAssignmentOrCourseId(state.selectedCourseId, "");
+  var students = detail && Array.isArray(detail.students) ? detail.students : readStudentsForCourse(course);
+  var errors = detail && detail.errors ? detail.errors : {};
+  var modules = readCourseModulesFromDetail(detail, course);
+
+  if (state.isCourseDetailLoading && !detail) {
+    return '<section class="teacher-class-command">'
+      + '<div class="teacher-class-command-header"><div><p>Course Detail</p><h2>Loading course...</h2><span>Fetching course detail on demand.</span></div><button type="button" class="teacher-secondary-btn" data-action="back-to-courses">Back to Courses</button></div>'
+      + createLoadingState("Loading course details...", {
+        className: "teacher-review-loading",
+        beforeHtml: buildSavingSvg()
+      })
       + '</section>';
   }
 
-  var recentSubmissions = getRecentSubmissions(8);
-  var completedReviews = (state.submissions || []).filter(function (submission) {
-    return (submission.reviewStatus || "") === "complete";
-  }).slice(0, 8);
-
-  if (recentSubmissions.length === 0 && completedReviews.length === 0) {
-    return '<section class="teacher-card-section teacher-wide-section">'
-      + '<div class="teacher-section-title"><div><h2>Activity</h2><p>Recent classroom signals</p></div>' + buildSectionGlyphSvg("reviews") + '</div>'
-      + buildEmptyState("reviews", "No activity yet.", "Recent submissions, completed reviews, and progress events will appear here.")
+  if (!course) {
+    return '<section class="teacher-class-command">'
+      + '<div class="teacher-class-command-header"><div><p>Course Detail</p><h2>Course not found</h2><span>This course assignment is no longer available.</span></div><button type="button" class="teacher-secondary-btn" data-action="back-to-courses">Back to Courses</button></div>'
       + '</section>';
   }
 
-  return '<section class="teacher-overview-grid">'
-    + buildOverviewPanel("Recent submissions", buildRecentSubmissionList(recentSubmissions))
-    + buildOverviewPanel("Reviews completed", buildCompletedReviewList(completedReviews))
-    + buildOverviewPanel("Student course opens", buildEmptyState("students", "No course open activity yet.", "Student course open events are not available in this dashboard data set yet."))
-    + buildOverviewPanel("Module completions", buildEmptyState("courses", "No module completion activity yet.", "Module completion events are not available in this dashboard data set yet."))
+  return '<section class="teacher-class-command">'
+    + '<div class="teacher-class-command-header"><div><p>Course Detail</p><h2>' + escapeHtml(course.courseTitle || course.title || "Untitled Course") + '</h2><span>' + escapeHtml(readCourseAssignedClassLabel(course)) + ' | ' + escapeHtml(formatCourseStatus(course.status || course.readinessStatus || course.publishedStatus || "Not recorded")) + '</span></div><button type="button" class="teacher-secondary-btn" data-action="back-to-courses">Back to Courses</button></div>'
+    + (errors.courseDetail ? '<div class="teacher-error">Course detail failed to load: ' + escapeHtml(errors.courseDetail) + '</div>' : "")
+    + '<div class="teacher-class-summary">'
+    + buildClassSummaryCard("Students", students.length)
+    + buildClassSummaryCard("Modules", modules.length)
+    + buildClassSummaryCard("Pending reviews", course.pendingSubmissionsCount || 0)
+    + buildClassSummaryCard("Progress", readCourseProgressSummary(course))
+    + '</div>'
+    + '<div class="teacher-class-command-grid">'
+    + buildCourseModulesPanel(modules)
+    + '<aside class="teacher-class-side-panel">' + buildCourseStudentsPanel(students) + '</aside>'
+    + '</div>'
     + '</section>';
 }
 
-function buildCompletedReviewList(submissions) {
-  if (submissions.length === 0) {
-    return buildEmptyState("reviews", "No completed reviews yet.", "Completed External Task reviews will appear here.");
+function buildCourseModulesPanel(modules) {
+  var html = '<section class="teacher-card-section"><div class="teacher-section-title"><div><h2>Modules</h2><p>Loaded course structure</p></div>' + buildSectionGlyphSvg("courses") + '</div>';
+
+  if (!Array.isArray(modules) || modules.length === 0) {
+    return html + buildEmptyState("courses", "This course is not ready yet.", "Modules are missing or have not been loaded for this assignment.") + '</section>';
   }
 
-  return '<div class="teacher-command-list">' + submissions.map(function (submission) {
-    return '<div class="teacher-command-item"><strong>' + escapeHtml(submission.studentName || submission.studentId || "Student") + '</strong>'
-      + '<span>' + escapeHtml(submission.taskTitle || submission.stepTitle || "External Task") + '</span>'
-      + '<small>' + escapeHtml(formatDate(submission.reviewedAt || submission.updatedAt) || "Recently") + '</small></div>';
-  }).join("") + '</div>';
+  html += '<div class="teacher-class-course-list">';
+  modules.forEach(function (moduleRecord) {
+    html += '<article class="teacher-class-course-card"><strong>' + escapeHtml(readModuleTitle(moduleRecord)) + '</strong><span>' + escapeHtml(formatCourseStatus(moduleRecord.status || "Not recorded")) + '</span></article>';
+  });
+
+  return html + '</div></section>';
 }
 
-function buildScheduleTab() {
-  return '<section class="teacher-card-section teacher-wide-section">'
-    + '<div class="teacher-section-title"><div><h2>Schedule</h2><p>Class schedule</p></div>' + buildSectionGlyphSvg("classes") + '</div>'
-    + buildEmptyState("classes", "No schedule data yet.", "Scheduled class meetings will appear here when they are available.")
-    + '</section>';
+function buildCourseStudentsPanel(students) {
+  var html = '<section class="teacher-class-panel"><div class="teacher-section-title compact"><div><h2>Students</h2><p>Using this course</p></div></div>';
+
+  if (!students || students.length === 0) {
+    return html + '<div class="teacher-empty compact">No student usage is recorded yet.</div></section>';
+  }
+
+  html += '<div class="teacher-class-course-list">';
+  students.forEach(function (student) {
+    html += '<button type="button" class="teacher-class-student-card" data-action="open-student-profile" data-student-id="' + escapeHtml(student.id || "") + '"><div class="teacher-avatar">' + buildStudentAvatar(student) + '</div><div class="teacher-class-student-copy"><strong>' + escapeHtml(student.name || "Student") + '</strong><span>' + escapeHtml(readStudentProfileProgress(student)) + '</span></div></button>';
+  });
+
+  return html + '</div></section>';
 }
 
 function buildStudentsView() {
-  var students = filterStudentsForSelectedClass(state.students || []);
+  var students = getStudentsForInlinePanel();
   var html = '<section class="teacher-card-section"><div class="teacher-section-title"><div><h2>Students</h2><p>Progress and review signals</p></div>' + buildSectionGlyphSvg("students") + '</div>';
 
   if (students.length === 0) {
-    if (readStudentBlockingQueryErrors().length > 0) {
-      return html + buildEmptyState("students", "Could not load students.", "A Firestore query failed. Open ?debug=true for query details.") + '</section>';
-    }
-
     return html + buildEmptyState("students", "No students found.", "Students assigned to this class will appear here.") + '</section>';
   }
 
   html += '<div class="teacher-student-list">';
   students.forEach(function (student) {
-    html += '<article class="teacher-student-row">'
-      + '<div class="teacher-avatar">' + buildStudentAvatar(student) + '</div>'
-      + '<div><strong>' + escapeHtml(student.name) + '</strong><span>' + escapeHtml(student.currentCourseProgress || "No progress yet") + '</span></div>'
-      + buildStudentPulseSvg(student.pendingSubmissionsCount > 0)
-      + '<div><span>' + escapeHtml(formatDate(student.lastActiveAt) || "No recent activity") + '</span><small>' + student.pendingSubmissionsCount + ' pending</small></div>'
-      + '<b class="' + (student.pendingSubmissionsCount > 0 ? "needs-review" : "steady") + '">' + (student.pendingSubmissionsCount > 0 ? "Needs review" : "Steady") + '</b>'
-      + '</article>';
+    html += buildStudentRow(student);
   });
 
   return html + '</div></section>';
+}
+
+function buildStudentsTab() {
+  var students = getFilteredStudentsForStudentsTab();
+  var html = '<section class="teacher-card-section teacher-wide-section"><div class="teacher-section-title"><div><h2>Students</h2><p>Filter by class and support status</p></div>' + buildSectionGlyphSvg("students") + '</div>'
+    + '<div class="teacher-filters">'
+    + '<label>Class<select id="studentClassFilter"><option value="">All classes loaded</option>' + buildClassFilterOptions(state.studentClassFilterId) + '</select></label>'
+    + '<label>Status<select id="studentStatusFilter">'
+    + buildGenericOption("all", "All Students", state.studentStatusFilter)
+    + buildGenericOption("needsWork", "Needs Work", state.studentStatusFilter)
+    + buildGenericOption("noProgress", "No Progress", state.studentStatusFilter)
+    + buildGenericOption("steady", "Active / Steady", state.studentStatusFilter)
+    + '</select></label>'
+    + '</div>';
+
+  if (students.length === 0) {
+    return html + buildEmptyState("students", "No students match these filters.", "Choose a class filter to load class students, or open a class from the Classes tab.") + '</section>';
+  }
+
+  html += '<div class="teacher-student-list">';
+  students.forEach(function (student) {
+    html += buildStudentRow(student);
+  });
+
+  return html + '</div></section>';
+}
+
+function buildStudentRow(student) {
+  var statusLabel = readStudentStatusLabel(student);
+  var className = readStudentClassName(student);
+  var pendingCount = student.pendingSubmissionsCount || 0;
+
+  return '<button type="button" class="teacher-student-row" data-action="open-student-profile" data-student-id="' + escapeHtml(student.id || "") + '">'
+      + '<div class="teacher-avatar">' + buildStudentAvatar(student) + '</div>'
+      + '<div><strong>' + escapeHtml(student.name || "Student") + '</strong><span>' + escapeHtml(className || "Class not recorded") + ' | ' + escapeHtml(student.currentCourseProgress || readStudentProfileProgress(student)) + '</span></div>'
+      + buildStudentPulseSvg(pendingCount > 0)
+      + '<div><span>' + escapeHtml(formatDate(student.lastActiveAt) || "No recent activity") + '</span><small>' + pendingCount + ' pending</small></div>'
+      + '<b class="' + (pendingCount > 0 ? "needs-review" : "steady") + '">' + escapeHtml(statusLabel === "Needs Help" ? "Needs Work" : statusLabel) + '</b>'
+      + '</button>';
+}
+
+function buildStudentProfileModal() {
+  var student = getSelectedStudentRecord();
+  var studentCourses = readCoursesForStudent(student);
+
+  if (!student) {
+    return "";
+  }
+
+  return '<div class="teacher-modal-backdrop" data-student-profile-backdrop role="presentation">'
+    + '<section class="teacher-student-modal" role="dialog" aria-modal="true" aria-labelledby="teacherStudentModalTitle">'
+    + '<div class="teacher-student-modal-head"><div class="teacher-avatar large">' + buildStudentAvatar(student) + '</div>'
+    + '<div><p>Student Profile</p><h2 id="teacherStudentModalTitle">' + escapeHtml(student.name || "Student") + '</h2></div>'
+    + '<button type="button" class="teacher-secondary-btn" data-action="close-student-profile">Close</button></div>'
+    + '<div class="teacher-student-profile-grid">'
+    + buildStudentProfileRow("Class", readStudentClassName(student) || "Not recorded")
+    + buildStudentProfileRow("Assigned courses", studentCourses.length > 0 ? studentCourses.map(function (course) { return course.courseTitle || course.title || "Untitled Course"; }).join(", ") : "Not recorded")
+    + buildStudentProfileRow("Mood today", readStudentMoodToday(student) || "Not recorded")
+    + buildStudentProfileRow("Attendance today", readAttendanceToday(student) || "Not recorded")
+    + buildStudentProfileRow("Assigned progress", readStudentProfileProgress(student))
+    + buildStudentProfileRow("Intention points", readIntentionPointTotal(student))
+    + buildStudentProfileRow("Recent activity", formatDate(student.lastActiveAt) || "No recent activity")
+    + '</div>'
+    + '</section></div>';
+}
+
+function buildStudentProfileRow(label, value) {
+  return '<div class="teacher-student-profile-row"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(String(value == null || value === "" ? "Not recorded" : value)) + '</strong></div>';
 }
 
 function buildReviewQueue() {
@@ -956,6 +1677,10 @@ function buildReviewQueue() {
     }) + '</section>';
   }
 
+  if (state.reviewQueueError) {
+    return html + buildEmptyState("reviews", "Review tools are not available yet.", "The review queue could not be loaded. Try Refresh when review tools are available.") + '</section>';
+  }
+
   if (submissions.length === 0) {
     return html + buildReviewEmptyState() + '</section>';
   }
@@ -966,6 +1691,363 @@ function buildReviewQueue() {
   });
 
   return html + '</div></section>';
+}
+
+function buildAnalyticsDashboard() {
+  var snapshot = getAnalyticsSnapshot();
+
+  return '<section class="teacher-analytics-shell">'
+    + '<div class="teacher-section-title"><div><h2>Analytics</h2><p>Learning, engagement, wellness, and mastery signals from loaded classroom data</p></div>' + buildSectionGlyphSvg("students") + '</div>'
+    + buildAnalyticsControls()
+    + buildAnalyticsTabs(snapshot)
+    + buildAnalyticsActivePanel(snapshot)
+    + '</section>';
+}
+
+function buildAnalyticsControls() {
+  return '<div class="teacher-analytics-controls">'
+    + '<label>Range<select id="analyticsRangeFilter">'
+    + buildGenericOption("today", "Today", state.analyticsRange)
+    + buildGenericOption("week", "This Week", state.analyticsRange)
+    + buildGenericOption("month", "This Month", state.analyticsRange)
+    + '</select></label>'
+    + '<span>Uses existing progress, review, gamification, and check-in records already loaded for this teacher.</span>'
+    + '</div>';
+}
+
+function buildAnalyticsTabs(snapshot) {
+  var tab = state.analyticsTab || "overview";
+
+  return '<nav class="teacher-analytics-tabs" aria-label="Analytics sections">'
+    + buildAnalyticsTabButton("overview", "Overview", tab)
+    + buildAnalyticsTabButton("students", "Students", tab, snapshot.students.length)
+    + buildAnalyticsTabButton("activities", "Activities", tab, snapshot.activities.length)
+    + buildAnalyticsTabButton("mood", "Mood & Wellness", tab)
+    + buildAnalyticsTabButton("mastery", "Mastery", tab)
+    + buildAnalyticsTabButton("engagement", "Engagement", tab)
+    + '</nav>';
+}
+
+function buildAnalyticsTabButton(tabName, label, currentTab, count) {
+  return '<button type="button" class="teacher-analytics-tab' + (currentTab === tabName ? " active" : "") + '" data-analytics-tab="' + escapeHtml(tabName) + '">'
+    + '<strong>' + escapeHtml(label) + '</strong>'
+    + (typeof count === "number" ? '<span>' + count + '</span>' : "")
+    + '</button>';
+}
+
+function buildAnalyticsActivePanel(snapshot) {
+  if (state.analyticsTab === "student-detail") {
+    return buildAnalyticsStudentDetail(snapshot);
+  }
+  if (state.analyticsTab === "students") {
+    return buildAnalyticsStudentsPanel(snapshot);
+  }
+  if (state.analyticsTab === "activities") {
+    return buildAnalyticsActivitiesPanel(snapshot);
+  }
+  if (state.analyticsTab === "mood") {
+    return buildAnalyticsMoodPanel(snapshot);
+  }
+  if (state.analyticsTab === "mastery") {
+    return buildAnalyticsMasteryPanel(snapshot);
+  }
+  if (state.analyticsTab === "engagement") {
+    return buildAnalyticsEngagementPanel(snapshot);
+  }
+
+  return buildAnalyticsOverviewPanel(snapshot);
+}
+
+function buildAnalyticsOverviewPanel(snapshot) {
+  return '<section class="teacher-analytics-panel">'
+    + '<div class="teacher-analytics-card-grid">'
+    + buildAnalyticsMetric("Class Completion Rate", snapshot.overview.completionRate + "%", "Course and activity completion")
+    + buildAnalyticsMetric("Average Accuracy", snapshot.overview.averageAccuracy + "%", "Known scores and review results")
+    + buildAnalyticsMetric("Average XP", snapshot.overview.averageXp, "Gamification XP earned")
+    + buildAnalyticsMetric("Average Stars", snapshot.overview.averageStars, "Stars earned per student")
+    + buildAnalyticsMetric("Mastery Rate", snapshot.overview.masteryRate + "%", "Students at mastery level")
+    + buildAnalyticsMetric("Engagement Score", snapshot.overview.engagementScore + "%", "Completion, XP, activity, recency, consistency")
+    + '</div>'
+    + '<div class="teacher-analytics-grid">'
+    + buildAnalyticsTrendCard("Completion Trend", snapshot.trends.completion)
+    + buildAnalyticsTrendCard("XP Trend", snapshot.trends.xp)
+    + buildAnalyticsTrendCard("Mood Trend", snapshot.trends.mood)
+    + buildAnalyticsInsights(snapshot.insights)
+    + '</div>'
+    + '</section>';
+}
+
+function buildAnalyticsMetric(label, value, detail) {
+  return '<article class="teacher-analytics-metric"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(String(value)) + '</strong><small>' + escapeHtml(detail) + '</small></article>';
+}
+
+function buildAnalyticsTrendCard(title, points) {
+  return '<article class="teacher-analytics-chart-card"><h3>' + escapeHtml(title) + '</h3>'
+    + '<div class="teacher-analytics-bars">' + buildAnalyticsBars(points || []) + '</div></article>';
+}
+
+function buildAnalyticsBars(points) {
+  var maxValue = Math.max(1, Math.max.apply(null, points.map(function (point) { return Number(point.value) || 0; })));
+
+  return points.map(function (point) {
+    var percent = Math.round(((Number(point.value) || 0) / maxValue) * 100);
+
+    return '<div class="teacher-analytics-bar"><span style="height:' + percent + '%"></span><small>' + escapeHtml(point.label) + '</small><b>' + escapeHtml(String(point.value || 0)) + '</b></div>';
+  }).join("");
+}
+
+function buildAnalyticsInsights(insights) {
+  return '<article class="teacher-analytics-chart-card"><h3>Class Insights</h3><div class="teacher-analytics-insights">'
+    + (insights || []).map(function (insight) {
+      return '<div>' + escapeHtml(insight) + '</div>';
+    }).join("")
+    + '</div></article>';
+}
+
+function buildAnalyticsStudentsPanel(snapshot) {
+  var students = sortStudentAnalyticsRows(snapshot.students, state.analyticsStudentSort);
+  var html = '<section class="teacher-analytics-panel">'
+    + '<div class="teacher-analytics-toolbar"><h3>Students</h3><label>Sort<select id="analyticsStudentSort">'
+    + buildGenericOption("highestXp", "Highest XP", state.analyticsStudentSort)
+    + buildGenericOption("lowestXp", "Lowest XP", state.analyticsStudentSort)
+    + buildGenericOption("highestCompletion", "Highest Completion", state.analyticsStudentSort)
+    + buildGenericOption("lowestCompletion", "Lowest Completion", state.analyticsStudentSort)
+    + buildGenericOption("mostActive", "Most Active", state.analyticsStudentSort)
+    + buildGenericOption("leastActive", "Least Active", state.analyticsStudentSort)
+    + '</select></label></div>';
+
+  if (students.length === 0) {
+    return html + buildEmptyState("students", "No student analytics yet.", "Analytics will appear once students are loaded or complete work.") + '</section>';
+  }
+
+  html += '<div class="teacher-analytics-table teacher-analytics-student-table">'
+    + '<div class="teacher-analytics-table-head"><span>Student</span><span>Completion</span><span>XP</span><span>Stars</span><span>Mastery</span><span>Streak</span><span>Last Active</span><span>Mood Trend</span></div>';
+  students.forEach(function (student) {
+    html += '<button type="button" class="teacher-analytics-table-row" data-analytics-student-id="' + escapeHtml(student.studentId) + '">'
+      + '<span><strong>' + escapeHtml(student.name) + '</strong><small>' + escapeHtml(student.className || "Class not recorded") + '</small></span>'
+      + '<span>' + student.completionPercent + '%</span>'
+      + '<span>' + student.xpEarned + '</span>'
+      + '<span>' + student.starsEarned + '</span>'
+      + '<span>' + student.masteryPercent + '%</span>'
+      + '<span>' + student.currentStreak + '</span>'
+      + '<span>' + escapeHtml(formatDate(student.lastActiveAt) || "Not active yet") + '</span>'
+      + '<span>' + escapeHtml(student.moodTrend) + '</span>'
+      + '</button>';
+  });
+
+  return html + '</div></section>';
+}
+
+function buildAnalyticsStudentDetail(snapshot) {
+  var detail = createStudentAnalyticsDetail(state.selectedAnalyticsStudentId, snapshot);
+
+  if (!detail) {
+    return '<section class="teacher-analytics-panel">' + buildEmptyState("students", "Student analytics unavailable.", "Open a student from the Students analytics table.") + '</section>';
+  }
+
+  return '<section class="teacher-analytics-panel">'
+    + '<div class="teacher-analytics-detail-head"><div><h3>' + escapeHtml(detail.student.name) + '</h3><p>' + escapeHtml(detail.student.className || "Class not recorded") + '</p></div><button type="button" class="teacher-secondary-btn" data-action="close-analytics-student">Back to Students</button></div>'
+    + '<div class="teacher-analytics-card-grid compact">'
+    + buildAnalyticsMetric("XP Earned", detail.student.xpEarned, "Total known XP")
+    + buildAnalyticsMetric("Stars Earned", detail.student.starsEarned, "Total known stars")
+    + buildAnalyticsMetric("Current Streak", detail.student.currentStreak, "Consecutive correct answers")
+    + buildAnalyticsMetric("Last Active", formatDate(detail.student.lastActiveAt) || "Not active yet", "Recent activity")
+    + '</div>'
+    + '<div class="teacher-analytics-grid">'
+    + buildAnalyticsTrendCard("Completion Over Time", detail.completionTrend)
+    + buildAnalyticsTrendCard("Accuracy Over Time", detail.accuracyTrend)
+    + buildAnalyticsMoodHistoryCard(detail.moodTrend)
+    + buildAnalyticsObservations(detail.observations)
+    + '</div>'
+    + buildAnalyticsRecentActivities(detail.recentActivities)
+    + '</section>';
+}
+
+function buildAnalyticsMoodHistoryCard(history) {
+  return '<article class="teacher-analytics-chart-card"><h3>Mood Over Time</h3><div class="teacher-analytics-insights">'
+    + ((history || []).length === 0 ? '<div>No mood check-ins recorded.</div>' : history.slice(0, 8).map(function (mood) {
+      return '<div><strong>' + escapeHtml(mood.label) + '</strong><span>' + escapeHtml(formatDate(mood.millis) || "") + '</span></div>';
+    }).join(""))
+    + '</div></article>';
+}
+
+function buildAnalyticsObservations(observations) {
+  return '<article class="teacher-analytics-chart-card"><h3>Support Observations</h3><div class="teacher-analytics-insights">'
+    + (observations || []).map(function (observation) {
+      return '<div>' + escapeHtml(observation) + '</div>';
+    }).join("")
+    + '</div></article>';
+}
+
+function buildAnalyticsRecentActivities(activities) {
+  var html = '<section class="teacher-analytics-subsection"><h3>Recent Activities</h3>';
+
+  if (!activities || activities.length === 0) {
+    return html + buildEmptyState("reviews", "No recent activity recorded.", "Completed work will appear here.") + '</section>';
+  }
+
+  html += '<div class="teacher-analytics-table compact"><div class="teacher-analytics-table-head"><span>Activity</span><span>Score</span><span>Stars</span><span>Completion Date</span></div>';
+  activities.forEach(function (activity) {
+    html += '<div class="teacher-analytics-table-row"><span>' + escapeHtml(activity.activity) + '</span><span>' + escapeHtml(String(activity.score == null ? "Not recorded" : activity.score + "%")) + '</span><span>' + activity.stars + '</span><span>' + escapeHtml(formatDate(activity.completedAt) || "Not recorded") + '</span></div>';
+  });
+
+  return html + '</div></section>';
+}
+
+function buildAnalyticsActivitiesPanel(snapshot) {
+  var html = '<section class="teacher-analytics-panel"><div class="teacher-analytics-card-grid compact">'
+    + buildAnalyticsMetric("Most Completed", readTopActivity(snapshot.activities, "completedCount", true), "Activity with most completions")
+    + buildAnalyticsMetric("Least Completed", readTopActivity(snapshot.activities, "completedCount", false), "Activity with fewest completions")
+    + buildAnalyticsMetric("Highest Avg Score", readTopActivity(snapshot.activities, "averageScore", true), "Strongest known score")
+    + buildAnalyticsMetric("Lowest Avg Score", readTopActivity(snapshot.activities, "averageScore", false), "May need review")
+    + '</div>';
+
+  if (snapshot.activities.length === 0) {
+    return html + buildEmptyState("reviews", "No activity performance yet.", "Scores and completion records will appear as students complete work.") + '</section>';
+  }
+
+  html += '<div class="teacher-analytics-table"><div class="teacher-analytics-table-head"><span>Activity</span><span>Completion</span><span>Avg Score</span><span>Avg Attempts</span><span>Avg Time</span></div>';
+  snapshot.activities.forEach(function (activity) {
+    html += '<div class="teacher-analytics-table-row"><span><strong>' + escapeHtml(activity.title) + '</strong><small>' + escapeHtml(activity.type) + '</small></span><span>' + activity.completionRate + '%</span><span>' + activity.averageScore + '%</span><span>' + activity.averageAttempts + '</span><span>' + formatDuration(activity.averageTimeSeconds) + '</span></div>';
+  });
+
+  return html + '</div></section>';
+}
+
+function buildAnalyticsMoodPanel(snapshot) {
+  var labels = Object.keys(snapshot.mood.distribution);
+  var html = '<section class="teacher-analytics-panel">'
+    + '<div class="teacher-analytics-card-grid compact">'
+    + buildAnalyticsMetric("Check-ins", snapshot.mood.totalCheckedIn + " / " + snapshot.mood.totalStudents, "Students with mood data")
+    + buildAnalyticsMetric("Check-in Rate", snapshot.mood.checkInRate + "%", "Current mood coverage")
+    + '</div>'
+    + '<div class="teacher-analytics-grid"><article class="teacher-analytics-chart-card"><h3>Daily Mood Distribution</h3><div class="teacher-analytics-insights mood">';
+
+  if (labels.length === 0) {
+    html += '<div>No mood check-ins recorded.</div>';
+  } else {
+    labels.forEach(function (label) {
+      html += '<div><strong>' + escapeHtml(label) + '</strong><span>' + snapshot.mood.distribution[label] + '</span></div>';
+    });
+  }
+
+  html += '</div></article><article class="teacher-analytics-chart-card"><h3>Student Mood History</h3><div class="teacher-analytics-insights">'
+    + (snapshot.mood.histories.length === 0 ? '<div>No individual mood history recorded.</div>' : snapshot.mood.histories.slice(0, 10).map(function (row) {
+      return '<div><strong>' + escapeHtml(row.studentName) + '</strong><span>' + escapeHtml(row.history.slice(0, 3).map(function (mood) { return mood.label; }).join(" -> ")) + '</span></div>';
+    }).join(""))
+    + '</div></article></div></section>';
+
+  return html;
+}
+
+function buildAnalyticsMasteryPanel(snapshot) {
+  return '<section class="teacher-analytics-panel">'
+    + '<div class="teacher-analytics-card-grid compact">'
+    + buildAnalyticsMetric("Mastered", snapshot.mastery.mastered, "90%+ score and 3 stars where known")
+    + buildAnalyticsMetric("Completed", snapshot.mastery.completed, "Completed but not yet mastered")
+    + buildAnalyticsMetric("In Progress", snapshot.mastery.inProgress, "Started but unfinished")
+    + buildAnalyticsMetric("Not Started", snapshot.mastery.notStarted, "No progress recorded")
+    + '</div>'
+    + buildMasteryHeatmap(snapshot.mastery)
+    + '</section>';
+}
+
+function buildMasteryHeatmap(mastery) {
+  var html = '<div class="teacher-mastery-heatmap"><div class="teacher-mastery-row head"><span>Student</span>';
+  var labels = mastery.courseLabels.length > 0 ? mastery.courseLabels : ["Overall"];
+
+  labels.forEach(function (label) {
+    html += '<span>' + escapeHtml(label) + '</span>';
+  });
+  html += '</div>';
+
+  mastery.heatmapRows.slice(0, 14).forEach(function (row) {
+    html += '<div class="teacher-mastery-row"><span>' + escapeHtml(row.studentName) + '</span>';
+    row.cells.forEach(function (cell) {
+      html += '<span class="mastery-' + escapeHtml(cell.status) + '">' + escapeHtml(formatMasteryStatus(cell.status)) + '</span>';
+    });
+    html += '</div>';
+  });
+
+  return html + '</div>';
+}
+
+function buildAnalyticsEngagementPanel(snapshot) {
+  var html = '<section class="teacher-analytics-panel">'
+    + '<div class="teacher-analytics-card-grid compact">'
+    + buildAnalyticsMetric("Highly Engaged", snapshot.engagement.highlyEngaged, "Strong participation signals")
+    + buildAnalyticsMetric("Moderately Engaged", snapshot.engagement.moderatelyEngaged, "Steady participation")
+    + buildAnalyticsMetric("Needs Attention", snapshot.engagement.needsAttention, "Supportive follow-up may help")
+    + buildAnalyticsMetric("Class Score", snapshot.engagement.averageScore + "%", "Composite engagement score")
+    + '</div>';
+
+  html += '<div class="teacher-analytics-table"><div class="teacher-analytics-table-head"><span>Student</span><span>Engagement</span><span>Score</span><span>Completion</span><span>XP</span></div>';
+  snapshot.engagement.rows.forEach(function (student) {
+    html += '<button type="button" class="teacher-analytics-table-row" data-analytics-student-id="' + escapeHtml(student.studentId) + '"><span>' + escapeHtml(student.name) + '</span><span>' + escapeHtml(student.engagementLabel) + '</span><span>' + student.engagementScore + '%</span><span>' + student.completionPercent + '%</span><span>' + student.xpEarned + '</span></button>';
+  });
+
+  return html + '</div></section>';
+}
+
+function getAnalyticsSnapshot() {
+  return createTeacherAnalyticsSnapshot({
+    students: getKnownStudents(),
+    courses: getKnownCourses(),
+    submissions: state.submissions || [],
+    classes: state.classes || [],
+    summary: state.summary || {}
+  });
+}
+
+function readTopActivity(activities, key, descending) {
+  if (!activities || activities.length === 0) {
+    return "Not recorded";
+  }
+
+  var sorted = activities.slice().sort(function (left, right) {
+    return descending ? (right[key] || 0) - (left[key] || 0) : (left[key] || 0) - (right[key] || 0);
+  });
+
+  return sorted[0].title || "Activity";
+}
+
+function formatDuration(seconds) {
+  var value = Number(seconds) || 0;
+
+  if (value < 60) {
+    return Math.round(value) + "s";
+  }
+
+  return Math.round(value / 60) + "m";
+}
+
+function formatMasteryStatus(status) {
+  if (status === "mastered") return "Mastered";
+  if (status === "completed") return "Completed";
+  if (status === "in-progress") return "In Progress";
+  return "Needs Support";
+}
+
+function buildActivityTab() {
+  var recentItems = readRecentActivityItems();
+  var html = '<section class="teacher-card-section teacher-wide-section"><div class="teacher-section-title"><div><h2>Activity</h2><p>Recent classroom activity</p></div>' + buildSectionGlyphSvg("reviews") + '</div>';
+
+  if (recentItems.length === 0) {
+    return html + buildEmptyState("reviews", "No recent activity yet.", "Course progress, reviews, and student activity will appear here when available.") + '</section>';
+  }
+
+  html += '<div class="teacher-review-list">';
+  recentItems.forEach(function (item) {
+    html += '<article class="teacher-class-course-card"><strong>' + escapeHtml(item.title) + '</strong><span>' + escapeHtml(item.detail) + '</span><small>' + escapeHtml(item.dateLabel) + '</small></article>';
+  });
+
+  return html + '</div></section>';
+}
+
+function buildScheduleTab() {
+  return '<section class="teacher-card-section teacher-wide-section"><div class="teacher-section-title"><div><h2>Schedule</h2><p>Lessons and classroom timing</p></div>' + buildSectionGlyphSvg("classes") + '</div>'
+    + buildEmptyState("classes", "Schedule tools are not available yet.", "Class schedules will appear here when schedule data is connected.")
+    + '</section>';
 }
 
 function buildSubmissionCard(submission) {
@@ -1111,46 +2193,11 @@ function buildStatusOption(value, label) {
 function buildReviewEmptyState() {
   var hasRawSubmissions = (state.submissions || []).length > 0;
 
-  if (!hasRawSubmissions && hasBlockingSubmissionQueryErrors()) {
-    return buildEmptyState("reviews", "Could not load review queue.", "Open ?debug=true for the Firestore query details.");
-  }
-
   if (!hasRawSubmissions && state.statusFilter === "pending") {
     return buildEmptyState("reviews", "No pending reviews.", "Submitted External Task work that needs review will appear here.");
   }
 
   return buildEmptyState("reviews", "No submissions match these filters.", "Try a different class, course, status, or student search.");
-}
-
-function buildTeacherDebugPanel() {
-  var debug = state.debug || {};
-  var studentQueryErrors = readStudentQueryErrors();
-  var submissionQueryErrors = readSubmissionQueryErrors();
-
-  if (!isDebugEnabled()) {
-    return "";
-  }
-
-  return '<section class="teacher-card-section teacher-wide-section teacher-debug-panel">'
-    + '<div class="teacher-section-title"><div><h2>Debug</h2><p>Teacher dashboard data contract</p></div></div>'
-    + (studentQueryErrors.length || submissionQueryErrors.length ? '<div class="teacher-debug-warning">One or more optional teacher-scoped queries failed. Visible counts use the records that loaded successfully.</div>' : "")
-    + '<pre>' + escapeHtml(JSON.stringify({
-      authUid: readDebugValue(debug, "teacherIdentity.authUid"),
-      userDocId: readDebugValue(debug, "teacherIdentity.userDocId"),
-      teacherProfileId: debug.teacherProfileId || readDebugValue(debug, "teacherIdentity.teacherId") || readDebugValue(debug, "teacherIdentity.userDocId"),
-      teacherProfileIds: debug.teacherProfileIds || [],
-      teacherClassIdentifiers: debug.teacherClassIdentifiers || [],
-      teacherLocationIdentifiers: debug.teacherLocationIdentifiers || [],
-      assignedClassCount: debug.assignedClassCount || 0,
-      assignedCourseCount: debug.assignedCourseCount || 0,
-      studentCount: debug.studentCount || 0,
-      pendingReviewCount: debug.pendingReviewCount || 0,
-      studentQueryErrors: studentQueryErrors,
-      studentBlockingQueryErrors: readStudentBlockingQueryErrors(),
-      submissionQueryErrors: submissionQueryErrors,
-      submissionBlockingQueryErrors: readSubmissionBlockingQueryErrors()
-    }, null, 2)) + '</pre>'
-    + '</section>';
 }
 
 function getFilteredReviewSubmissions() {
@@ -1222,98 +2269,6 @@ function readReviewStatusForQuery() {
   return state.statusFilter === "all" ? "" : state.statusFilter;
 }
 
-function readDashboardQueryErrors() {
-  return state.debug && Array.isArray(state.debug.queryErrors) ? state.debug.queryErrors : [];
-}
-
-function readStudentQueryErrors() {
-  if (state.debug && Array.isArray(state.debug.studentQueryErrors)) {
-    return state.debug.studentQueryErrors;
-  }
-
-  return readDashboardQueryErrors().filter(function (error) {
-    return error && (error.collection === "users" || error.type === "students" || error.scope === "students");
-  });
-}
-
-function readStudentBlockingQueryErrors() {
-  if (state.debug && Array.isArray(state.debug.studentBlockingQueryErrors)) {
-    return state.debug.studentBlockingQueryErrors;
-  }
-
-  if ((state.students || []).length > 0) {
-    return [];
-  }
-
-  return readStudentQueryErrors();
-}
-
-function readSubmissionQueryErrors() {
-  if (state.debug && Array.isArray(state.debug.submissionQueryErrors)) {
-    return state.debug.submissionQueryErrors;
-  }
-
-  return readDashboardQueryErrors().filter(function (error) {
-    return error && (error.collection === "externalTaskSubmissions" || error.type === "submissions" || error.scope === "submissions");
-  });
-}
-
-function readSubmissionBlockingQueryErrors() {
-  if (state.debug && Array.isArray(state.debug.submissionBlockingQueryErrors)) {
-    return state.debug.submissionBlockingQueryErrors;
-  }
-
-  if ((state.submissions || []).length > 0) {
-    return [];
-  }
-
-  return readSubmissionQueryErrors();
-}
-
-function hasStudentQueryErrors() {
-  return readStudentQueryErrors().length > 0;
-}
-
-function hasSubmissionQueryErrors() {
-  return readSubmissionQueryErrors().length > 0;
-}
-
-function hasBlockingStudentQueryErrors() {
-  return readStudentBlockingQueryErrors().length > 0;
-}
-
-function hasBlockingSubmissionQueryErrors() {
-  return readSubmissionBlockingQueryErrors().length > 0;
-}
-
-function mergeDashboardDebug(currentDebug, nextDebug) {
-  if (!nextDebug) {
-    return currentDebug || null;
-  }
-
-  return Object.assign({}, currentDebug || {}, nextDebug || {});
-}
-
-function isDebugEnabled() {
-  return window.location && window.location.search.indexOf("debug=true") !== -1;
-}
-
-function readDebugValue(debug, path) {
-  var parts = path.split(".");
-  var value = debug;
-  var index = 0;
-
-  while (index < parts.length) {
-    if (!value || !Object.prototype.hasOwnProperty.call(value, parts[index])) {
-      return "";
-    }
-    value = value[parts[index]];
-    index = index + 1;
-  }
-
-  return value || "";
-}
-
 function buildOpenFileAction(file) {
   if (!file || !file.downloadUrl) {
     return '<button type="button" class="teacher-secondary-btn" disabled>Open file</button>';
@@ -1324,11 +2279,11 @@ function buildOpenFileAction(file) {
 
 function readFeedbackSaveStatus(submission) {
   var status = submission.reviewStatus || "";
-  if (status === "pending" || status === "complete" || status === "needsWork" || status === "incomplete") {
+  if (status === "complete" || status === "needsWork" || status === "incomplete") {
     return status;
   }
 
-  return "pending";
+  return "needsWork";
 }
 
 function buildStatusMessages() {
@@ -1345,45 +2300,679 @@ function buildStatusMessages() {
   return html;
 }
 
+function buildClassFilterOptions(selectedClassId) {
+  return (state.classes || []).map(function (classRecord) {
+    return '<option value="' + escapeHtml(classRecord.id) + '"' + selected(selectedClassId, classRecord.id) + '>' + escapeHtml(classRecord.name || "Class") + '</option>';
+  }).join("");
+}
+
+function buildGenericOption(value, label, currentValue) {
+  return '<option value="' + escapeHtml(value) + '"' + selected(currentValue, value) + '>' + escapeHtml(label) + '</option>';
+}
+
+function getStudentsForInlinePanel() {
+  if (state.selectedClassId) {
+    return getSelectedClassStudents();
+  }
+
+  return getKnownStudents().slice(0, 8);
+}
+
+function getFilteredStudentsForStudentsTab() {
+  var students = state.studentClassFilterId
+    ? readStudentsForClassFilter(state.studentClassFilterId)
+    : getKnownStudents();
+
+  return students.filter(matchesStudentStatusFilter);
+}
+
+function getFilteredCoursesForCoursesTab() {
+  if (state.courseClassFilterId) {
+    return readCoursesForClassFilter(state.courseClassFilterId);
+  }
+
+  return getKnownCourses();
+}
+
+function readStudentsForClassFilter(classId) {
+  if (!classId) {
+    return getKnownStudents();
+  }
+
+  if (state.studentsByClassId && Array.isArray(state.studentsByClassId[classId])) {
+    return state.studentsByClassId[classId];
+  }
+
+  return filterStudentsForClass(state.students || [], classId);
+}
+
+function readCoursesForClassFilter(classId) {
+  if (!classId) {
+    return getKnownCourses();
+  }
+
+  if (state.coursesByClassId && Array.isArray(state.coursesByClassId[classId])) {
+    return state.coursesByClassId[classId];
+  }
+
+  return filterCoursesForClass(state.courses || [], classId);
+}
+
+function getKnownStudents() {
+  var students = [];
+  appendUniqueRecords(students, state.allStudents || []);
+  appendUniqueRecords(students, state.students || []);
+  Object.keys(state.studentsByClassId || {}).forEach(function (classId) {
+    appendUniqueRecords(students, state.studentsByClassId[classId] || []);
+  });
+  return students;
+}
+
+function getKnownCourses() {
+  var courses = [];
+  appendUniqueRecords(courses, state.allCourses || []);
+  appendUniqueRecords(courses, state.courses || []);
+  Object.keys(state.coursesByClassId || {}).forEach(function (classId) {
+    appendUniqueRecords(courses, state.coursesByClassId[classId] || []);
+  });
+  return courses;
+}
+
+function countKnownStudents() {
+  return getKnownStudents().length;
+}
+
+function countKnownCourses() {
+  return getKnownCourses().length;
+}
+
+function countNeedsWorkStudents() {
+  return getKnownStudents().filter(function (student) {
+    return matchesStudentStatus(student, "needsWork");
+  }).length;
+}
+
+function countReviewsByStatus(status) {
+  return (state.submissions || []).filter(function (submission) {
+    return (submission.reviewStatus || "pending") === status;
+  }).length;
+}
+
+function matchesStudentStatusFilter(student) {
+  return matchesStudentStatus(student, state.studentStatusFilter || "all");
+}
+
+function matchesStudentStatus(student, filter) {
+  var progress = readStudentProgressPercent(student);
+  var statusLabel = readStudentStatusLabel(student).toLowerCase();
+
+  if (!filter || filter === "all") {
+    return true;
+  }
+
+  if (filter === "needsWork") {
+    return (student.pendingSubmissionsCount || 0) > 0 || statusLabel.indexOf("needs") !== -1;
+  }
+
+  if (filter === "noProgress") {
+    return progress === 0 || student.currentCourseProgress === "No progress yet";
+  }
+
+  if (filter === "steady") {
+    return statusLabel === "online" || statusLabel === "steady" || statusLabel === "unknown";
+  }
+
+  return true;
+}
+
+function appendUniqueRecords(target, records) {
+  (records || []).forEach(function (record) {
+    if (!record || !record.id) {
+      return;
+    }
+
+    if (!target.some(function (item) { return item && item.id === record.id; })) {
+      target.push(record);
+    }
+  });
+}
+
+function buildStudentsByClassId(students) {
+  var byClassId = {};
+
+  (students || []).forEach(function (student) {
+    (student.classIds || [student.classId || ""]).forEach(function (classId) {
+      if (!classId) {
+        return;
+      }
+
+      if (!byClassId[classId]) {
+        byClassId[classId] = [];
+      }
+
+      byClassId[classId].push(student);
+    });
+  });
+
+  return byClassId;
+}
+
+function buildCoursesByClassId(courses) {
+  var byClassId = {};
+
+  (courses || []).forEach(function (course) {
+    var classId = course.classId || course.targetId || course.targetClassId || "";
+
+    if (!classId) {
+      return;
+    }
+
+    if (!byClassId[classId]) {
+      byClassId[classId] = [];
+    }
+
+    byClassId[classId].push(course);
+  });
+
+  return byClassId;
+}
+
+function createSingleClassRecord(classId, records) {
+  var result = {};
+  result[classId] = records || [];
+  return result;
+}
+
+function getSelectedCourseDetail() {
+  if (!state.selectedCourseId || !state.courseDetailsById) {
+    return null;
+  }
+
+  return state.courseDetailsById[state.selectedCourseId] || null;
+}
+
+function findCourseByAssignmentOrCourseId(assignmentId, courseId) {
+  var courses = getKnownCourses();
+
+  return courses.find(function (course) {
+    return course && (
+      (assignmentId && course.id === assignmentId)
+      || (assignmentId && course.assignmentId === assignmentId)
+      || (assignmentId && course.courseAssignmentId === assignmentId)
+      || (courseId && course.courseId === courseId)
+      || (courseId && course.id === courseId)
+    );
+  }) || null;
+}
+
+function readStudentsForCourse(course) {
+  if (!course) {
+    return [];
+  }
+
+  if (course.classId || course.targetId || course.targetClassId) {
+    return readStudentsForClassFilter(course.classId || course.targetId || course.targetClassId);
+  }
+
+  return [];
+}
+
+function readCoursesForStudent(student) {
+  if (!student) {
+    return [];
+  }
+
+  var classId = student.classId || (student.classIds && student.classIds[0]) || "";
+
+  if (!classId) {
+    return [];
+  }
+
+  return readCoursesForClassFilter(classId);
+}
+
+function readCourseModulesFromDetail(detail, course) {
+  if (detail && Array.isArray(detail.modules)) {
+    return detail.modules;
+  }
+
+  if (detail && detail.course && Array.isArray(detail.course.modules)) {
+    return detail.course.modules;
+  }
+
+  if (course && Array.isArray(course.modules)) {
+    return course.modules;
+  }
+
+  return [];
+}
+
+function readModuleTitle(moduleRecord) {
+  return readFirstText(moduleRecord, ["title", "name", "displayName"]) || "Module";
+}
+
+function readCourseAssignedClassLabel(course) {
+  var classRecord = findClassForCourse(course);
+  return course && (course.targetName || course.className) ? (course.targetName || course.className) : (classRecord ? classRecord.name : "Assigned class");
+}
+
+function findClassForCourse(course) {
+  var classId = course ? (course.classId || course.targetId || course.targetClassId || "") : "";
+
+  if (!classId) {
+    return null;
+  }
+
+  return (state.classes || []).find(function (classRecord) {
+    return classRecord && classRecord.id === classId;
+  }) || null;
+}
+
+function readStudentClassName(student) {
+  var classId = student ? (student.classId || (student.classIds && student.classIds[0]) || "") : "";
+  var classRecord = (state.classes || []).find(function (item) {
+    return item && item.id === classId;
+  }) || null;
+
+  return student && (student.className || student.classLabel) ? (student.className || student.classLabel) : (classRecord ? classRecord.name : "");
+}
+
+function readRecentActivityItems() {
+  return getKnownStudents().filter(function (student) {
+    return readMillis(student.lastActiveAt) > 0;
+  }).sort(function (left, right) {
+    return readMillis(right.lastActiveAt) - readMillis(left.lastActiveAt);
+  }).slice(0, 8).map(function (student) {
+    return {
+      title: student.name || "Student",
+      detail: student.currentCourseProgress || "Student activity",
+      dateLabel: formatDate(student.lastActiveAt) || "Recently"
+    };
+  });
+}
+
+function getSelectedClassRecord() {
+  var detail = getSelectedClassDetail();
+
+  if (detail && detail.classRecord) {
+    return detail.classRecord;
+  }
+
+  return (state.classes || []).find(function (classRecord) {
+    return classRecord && classRecord.id === state.selectedClassId;
+  }) || null;
+}
+
+function getSelectedClassDetail() {
+  if (!state.selectedClassId || !state.classDetailsById) {
+    return null;
+  }
+
+  return state.classDetailsById[state.selectedClassId] || null;
+}
+
+function getSelectedClassDetailErrors() {
+  var detail = getSelectedClassDetail();
+
+  if (!detail || !detail.errors || typeof detail.errors !== "object") {
+    return {};
+  }
+
+  return detail.errors;
+}
+
+function getSelectedStudentRecord() {
+  var detailStudents = getSelectedClassStudents();
+  var detailStudent = detailStudents.find(function (student) {
+    return student && student.id === state.selectedStudentId;
+  }) || null;
+
+  if (detailStudent) {
+    return detailStudent;
+  }
+
+  return (state.students || []).find(function (student) {
+    return student && student.id === state.selectedStudentId;
+  }) || null;
+}
+
+function getSelectedClassStudents() {
+  var detail = getSelectedClassDetail();
+
+  if (detail && Array.isArray(detail.students)) {
+    return detail.students;
+  }
+
+  if (!state.selectedClassId) {
+    return [];
+  }
+
+  return filterStudentsForSelectedClass(state.students || []);
+}
+
+function getSelectedClassCourses() {
+  var detail = getSelectedClassDetail();
+
+  if (detail && Array.isArray(detail.courses)) {
+    return detail.courses;
+  }
+
+  if (!state.selectedClassId) {
+    return [];
+  }
+
+  return filterCoursesForClass(state.courses || [], state.selectedClassId);
+}
+
+function filterCoursesForClass(courses, classId) {
+  return (courses || []).filter(function (course) {
+    return course.classId === classId
+      || course.targetId === classId
+      || course.targetClassId === classId;
+  });
+}
+
+function formatToday() {
+  return new Date().toLocaleDateString(undefined, {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  });
+}
+
+function countStudentsWithMoodToday(students) {
+  var count = 0;
+  var index = 0;
+
+  while (index < students.length) {
+    if (readStudentMoodToday(students[index])) {
+      count = count + 1;
+    }
+    index = index + 1;
+  }
+
+  return count;
+}
+
+function countStudentsByAttendance(students, expectedStatus) {
+  var count = 0;
+  var index = 0;
+
+  while (index < students.length) {
+    if (readAttendanceToday(students[index]).toLowerCase() === expectedStatus) {
+      count = count + 1;
+    }
+    index = index + 1;
+  }
+
+  return count;
+}
+
+function buildMoodDistribution(students) {
+  var distribution = {};
+  var index = 0;
+
+  while (index < students.length) {
+    var label = normalizeMoodLabel(readStudentMoodToday(students[index]));
+    if (label) {
+      distribution[label] = (distribution[label] || 0) + 1;
+    }
+    index = index + 1;
+  }
+
+  return distribution;
+}
+
+function readStudentMoodToday(student) {
+  return readFirstText(student, [
+    "moodToday",
+    "todayMood",
+    "currentMood",
+    "mood",
+    "emotionalState",
+    "emotionalCheckInMood"
+  ]) || readNestedMood(student);
+}
+
+function readNestedMood(student) {
+  var checkIn = student && (student.todayCheckIn || student.latestCheckIn || student.emotionalCheckIn) ? (student.todayCheckIn || student.latestCheckIn || student.emotionalCheckIn) : null;
+
+  if (!checkIn || typeof checkIn !== "object") {
+    return "";
+  }
+
+  return readFirstText(checkIn, ["mood", "moodLabel", "feeling", "state"]);
+}
+
+function readAttendanceToday(student) {
+  var value = readFirstText(student, [
+    "attendanceToday",
+    "todayAttendance",
+    "attendanceStatus",
+    "statusToday"
+  ]);
+
+  if (!value && typeof (student && student.presentToday) === "boolean") {
+    value = student.presentToday ? "present" : "absent";
+  }
+
+  if (!value) {
+    return "Not recorded";
+  }
+
+  return formatTitle(value);
+}
+
+function readStudentCourseTitle(student) {
+  return readFirstText(student, [
+    "currentCourseTitle",
+    "currentCourseName",
+    "recentCourseTitle",
+    "latestCourseTitle"
+  ]) || readFirstSelectedClassCourseTitle();
+}
+
+function readFirstSelectedClassCourseTitle() {
+  var courses = getSelectedClassCourses();
+
+  if (courses.length === 0) {
+    return "";
+  }
+
+  return courses[0].courseTitle || courses[0].title || "";
+}
+
+function readStudentProgressPercent(student) {
+  var value = readFirstNumber(student, [
+    "progressPercent",
+    "currentCourseProgressPercent",
+    "courseProgressPercent",
+    "overallProgressPercent"
+  ]);
+
+  if (value == null) {
+    return null;
+  }
+
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function readStudentProfileProgress(student) {
+  var progress = readStudentProgressPercent(student);
+  var course = readStudentCourseTitle(student);
+
+  if (progress == null && !course) {
+    return student.currentCourseProgress || "Not recorded";
+  }
+
+  if (progress == null) {
+    return course + " | Progress not recorded";
+  }
+
+  return (course || "Assigned course") + " | " + progress + "% complete";
+}
+
+function readStudentStatusLabel(student) {
+  var rawStatus = readFirstText(student, ["todayStatus", "presenceStatus", "onlineStatus", "status"]);
+  var normalizedStatus = normalizeStatus(rawStatus);
+  var progress = readStudentProgressPercent(student);
+
+  if ((student.pendingSubmissionsCount || 0) > 0) {
+    return "Needs Help";
+  }
+
+  if (normalizedStatus) {
+    return normalizedStatus;
+  }
+
+  if (progress === 0 || student.currentCourseProgress === "No progress yet") {
+    return "Not Started";
+  }
+
+  return "Unknown";
+}
+
+function normalizeStatus(status) {
+  var value = String(status || "").trim().toLowerCase();
+
+  if (value === "online" || value === "active") return "Online";
+  if (value === "idle" || value === "away") return "Idle";
+  if (value === "needshelp" || value === "needs_help" || value === "needs help") return "Needs Help";
+  if (value === "notstarted" || value === "not_started" || value === "not started") return "Not Started";
+  if (value === "unknown") return "Unknown";
+  return "";
+}
+
+function readStudentStatusClass(statusLabel) {
+  var value = String(statusLabel || "").toLowerCase().replace(/\s+/g, "-");
+  return "status-" + (value || "unknown");
+}
+
+function normalizeMoodLabel(mood) {
+  var value = String(mood || "").trim().toLowerCase();
+
+  if (!value) return "";
+  if (value === "happy" || value === "good" || value === "great") return "Happy";
+  if (value === "neutral" || value === "okay" || value === "ok") return "Neutral";
+  if (value === "tired" || value === "sleepy") return "Tired";
+  if (value === "worried" || value === "anxious" || value === "nervous") return "Worried";
+  if (value === "overloaded" || value === "overwhelmed") return "Overloaded";
+  return formatTitle(value);
+}
+
+function readCourseModuleLabel(course) {
+  var moduleCount = readFirstNumber(course, ["moduleCount", "modulesCount", "totalModules"]);
+
+  if (moduleCount == null && Array.isArray(course.modules)) {
+    moduleCount = course.modules.length;
+  }
+
+  if (moduleCount == null) {
+    return "Modules not recorded";
+  }
+
+  return moduleCount + " module" + (moduleCount === 1 ? "" : "s");
+}
+
+function readCourseProgressSummary(course) {
+  var progress = readFirstNumber(course, ["progressPercent", "overallProgressPercent", "averageProgressPercent"]);
+
+  if (progress != null) {
+    return Math.round(progress) + "% average progress";
+  }
+
+  if ((course.pendingSubmissionsCount || 0) > 0) {
+    return course.pendingSubmissionsCount + " pending review" + (course.pendingSubmissionsCount === 1 ? "" : "s");
+  }
+
+  if ((course.studentCount || 0) > 0) {
+    return course.studentCount + " student" + (course.studentCount === 1 ? "" : "s") + " assigned";
+  }
+
+  return "Progress not recorded";
+}
+
+function formatCourseStatus(status) {
+  var value = String(status || "").trim();
+
+  if (!value) {
+    return "Not recorded";
+  }
+
+  if (value === "active") return "Ready";
+  if (value === "published") return "Published";
+  return formatTitle(value);
+}
+
+function readIntentionPointTotal(student) {
+  var directValue = readFirstNumber(student, ["intentionPoints", "points", "pointBalance", "totalPoints"]);
+
+  if (directValue != null) {
+    return directValue;
+  }
+
+  if (!student || typeof student.intentionPoints !== "object") {
+    return "Not recorded";
+  }
+
+  return Object.keys(student.intentionPoints).reduce(function (total, key) {
+    return total + (Number(student.intentionPoints[key]) || 0);
+  }, 0);
+}
+
+function readFirstText(source, keys) {
+  var index = 0;
+
+  while (source && index < keys.length) {
+    if (typeof source[keys[index]] === "string" && source[keys[index]].trim()) {
+      return source[keys[index]].trim();
+    }
+    index = index + 1;
+  }
+
+  return "";
+}
+
+function readFirstNumber(source, keys) {
+  var index = 0;
+
+  while (source && index < keys.length) {
+    if (typeof source[keys[index]] === "number" && Number.isFinite(source[keys[index]])) {
+      return source[keys[index]];
+    }
+
+    if (typeof source[keys[index]] === "string" && source[keys[index]].trim() && Number.isFinite(Number(source[keys[index]]))) {
+      return Number(source[keys[index]]);
+    }
+
+    index = index + 1;
+  }
+
+  return null;
+}
+
+function formatTitle(value) {
+  return String(value || "")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, function (letter) {
+      return letter.toUpperCase();
+    });
+}
+
 function filterStudentsForSelectedClass(students) {
   if (!state.selectedClassId) {
     return students;
   }
 
-  var classRecord = getSelectedClassRecord();
-  var identifiers = buildClassIdentifiers(classRecord);
-
-  return students.filter(function (student) {
-    return identifiers.indexOf(student.classId || "") !== -1
-      || identifiers.indexOf(student.primaryClassId || "") !== -1
-      || identifiers.indexOf(student.className || "") !== -1
-      || identifiers.indexOf(student.classCode || "") !== -1
-      || arraysIntersect(student.classIds || [], identifiers)
-      || arraysIntersect(student.assignedClassIds || [], identifiers);
-  });
+  return filterStudentsForClass(students, state.selectedClassId);
 }
 
-function getSelectedClassRecord() {
-  return (state.classes || []).find(function (classRecord) {
-    return classRecord.id === state.selectedClassId;
-  }) || null;
-}
-
-function buildClassIdentifiers(classRecord) {
-  var identifiers = [state.selectedClassId];
-
-  if (classRecord) {
-    identifiers.push(classRecord.id, classRecord.name, classRecord.code, classRecord.classCode);
-  }
-
-  return identifiers.filter(function (value, index, list) {
-    return value && list.indexOf(value) === index;
-  });
-}
-
-function arraysIntersect(values, identifiers) {
-  return (values || []).some(function (value) {
-    return identifiers.indexOf(value) !== -1;
+function filterStudentsForClass(students, classId) {
+  return (students || []).filter(function (student) {
+    return (student.classIds || []).indexOf(classId) !== -1 || student.classId === classId;
   });
 }
 
@@ -1428,22 +3017,6 @@ function countPending(submissions) {
   }).length;
 }
 
-function countByReviewStatus(status) {
-  return (state.submissions || []).filter(function (submission) {
-    return (submission.reviewStatus || "pending") === status;
-  }).length;
-}
-
-function readCount(primaryValue, fallbackValue) {
-  return typeof primaryValue === "number" ? primaryValue : fallbackValue;
-}
-
-function getRecentSubmissions(limit) {
-  return (state.submissions || []).slice().sort(function (left, right) {
-    return readMillis(right.createdAt || right.updatedAt) - readMillis(left.createdAt || left.updatedAt);
-  }).slice(0, limit);
-}
-
 function formatReviewStatus(status) {
   if (status === "complete") return "Complete";
   if (status === "needsWork") return "Needs Work";
@@ -1459,14 +3032,6 @@ function formatDate(value) {
   }
 
   return new Date(millis).toLocaleString();
-}
-
-function formatToday() {
-  return new Date().toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "short",
-    day: "numeric"
-  });
 }
 
 function readMillis(value) {
@@ -1532,3 +3097,5 @@ function escapeHtml(value) {
 }
 
 render();
+
+

@@ -1,194 +1,198 @@
-import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.162-modal-stack";
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.162-modal-stack";
-import { calculateCourseCompletion, calculateCourseProgressSummary } from "../../../../../../../domain/progress/index.js";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js";
+import {
+  isStudentDashboardProfile,
+  readStudentClassIdentifiers,
+  readStudentIdentifiers,
+  readStudentProfileRejectReason,
+  resolveStudentId
+} from "../../../../../../../domain/users/index.js";
 
 export async function processLoadStudentDashboard(executionState) {
-  var courseResult = null;
-
-  logStudentDashboardDebug("actor", executionState.actor);
-  logStudentDashboardDebug("payload", executionState.payload);
-  logStudentDashboardDebug("contextStudent", executionState.context && executionState.context.studentProfile);
-  logStudentDashboardDebug("resultBeforeProcess", executionState.result);
+  var actor = executionState.actor;
+  var studentProfile = executionState.context.studentProfile;
+  var resolvedStudentId = resolveStudentId(studentProfile, actor);
+  var resolvedActor = createResolvedStudentActor(actor, resolvedStudentId);
 
   try {
-    courseResult = await processLoadStudentCourse(executionState);
-    logStudentDashboardDebug("courseResult", courseResult);
-    logStudentDashboardDebug("executionState.result", executionState.result);
+    ensureWarnings(executionState);
+
+    if (!studentProfile && !isPreviewActor(actor)) {
+      return createValidationError("STUDENT_PROFILE_MISSING", "Student profile is required before the dashboard can be loaded.");
+    }
+
+    if (!isPreviewActor(actor)) {
+      var profileValidation = validateStudentProfileForDashboard(studentProfile);
+      if (!profileValidation.valid) {
+        return profileValidation;
+      }
+    }
+
+    var courseAssignmentResult = await loadAssignedCourseIds(resolvedActor, studentProfile, executionState);
+    appendWarnings(executionState, courseAssignmentResult.warnings || []);
+
+    var courses = await loadLightweightStudentCourses(courseAssignmentResult.courseIds || [], courseAssignmentResult.assignmentIdByCourseId || {}, executionState);
+    var progressSummary = buildProgressSummary(courses);
+    var debugInfo = buildStudentDashboardDebugInfo({
+      actor: actor,
+      studentProfile: studentProfile,
+      resolvedStudentId: resolvedStudentId,
+      courseAssignmentResult: courseAssignmentResult,
+      courses: courses
+    });
+
+    executionState.result = {
+      student: studentProfile,
+      courses: courses,
+      assignmentCount: courseAssignmentResult.assignmentCount || 0,
+      assignmentSource: courseAssignmentResult.source || "courseAssignments",
+      continueLearning: buildContinueLearning(courses),
+      intentionPoints: readIntentionPoints(studentProfile),
+      dailyBonus: readDailyBonus(studentProfile),
+      progressSummary: progressSummary,
+      debugInfo: shouldEmitDebug(executionState) ? debugInfo : null,
+      emptyStateMessage: courses.length === 0 ? "No courses assigned yet." : ""
+    };
+
+    logStudentDashboardDebug(debugInfo, executionState);
+
+    return {
+      valid: true,
+      data: executionState.result
+    };
   } catch (error) {
-    console.error("[student-dashboard-process-error]", error);
     return {
       valid: false,
       errors: [
         {
-          code: "STUDENT_DASHBOARD_PROCESS_FAILED",
-          message: error.message || String(error)
+          code: "STUDENT_DASHBOARD_LOAD_FAILED",
+          message: "Failed to load student dashboard: " + readErrorMessage(error)
         }
       ]
     };
   }
-
-  if (courseResult && courseResult.valid === false) {
-    console.error("[student-dashboard-process-error]", courseResult.errors || courseResult);
-    return courseResult;
-  }
-
-  var result = executionState.result || {};
-  var student = result.student || executionState.context.studentProfile || null;
-  var courses = dedupeCourses(result.courses || []);
-  var continueLearning = await selectContinueLearning(executionState, courses);
-
-  executionState.result = Object.assign({}, result, {
-    student: student,
-    courses: courses,
-    continueLearning: continueLearning,
-    intentionPoints: readIntentionPoints(student),
-    dailyBonus: readDailyBonus(student),
-    progressSummary: calculateCourseProgressSummary(courses),
-    actorIsPreview: result.actorIsPreview === true
-  });
-
-  return {
-    valid: true,
-    data: executionState.result
-  };
 }
 
-function logStudentDashboardDebug(label, value) {
-  if (!isStudentDashboardDebugEnabled()) {
-    return;
-  }
-
-  console.log("[student-dashboard-debug] " + label, safeDebugStringify(value));
-}
-
-function safeDebugStringify(value) {
-  var seen = [];
-
-  try {
-    return JSON.stringify(value, function (key, nestedValue) {
-      if (typeof nestedValue !== "object" || nestedValue === null) {
-        return nestedValue;
-      }
-
-      if (seen.indexOf(nestedValue) !== -1) {
-        return "[Circular]";
-      }
-
-      seen.push(nestedValue);
-      return nestedValue;
-    });
-  } catch (error) {
-    return JSON.stringify({
-      debugStringifyError: error && error.message ? error.message : String(error)
-    });
-  }
-}
-
-function isStudentDashboardDebugEnabled() {
-  if (typeof window === "undefined" || !window.location) {
-    return false;
-  }
-
-  return window.location.search.indexOf("debug=true") !== -1
-    || window.location.hostname === "localhost"
-    || window.location.hostname === "127.0.0.1"
-    || window.location.hostname === "";
-}
-
-async function selectContinueLearning(executionState, courses) {
-  var continueState = Object.assign({}, executionState, {
-    payload: { courses: courses },
-    result: {}
-  });
-  var result = await processContinueLearning(continueState);
-
-  if (result && result.valid && continueState.result && continueState.result.continueLearning) {
-    return continueState.result.continueLearning;
-  }
-
-  return buildContinueLearning(courses);
-}
-
-function dedupeCourses(courses) {
-  var safeCourses = Array.isArray(courses) ? courses : [];
-  var seen = [];
-  var uniqueCourses = [];
+async function loadLightweightStudentCourses(courseIds, assignmentIdByCourseId, executionState) {
+  var safeCourseIds = dedupeTextList(courseIds);
+  var courseCache = {};
+  var courses = [];
   var courseIndex = 0;
 
-  while (courseIndex < safeCourses.length) {
-    var course = safeCourses[courseIndex];
-    var courseId = course && course.id ? course.id : "";
+  while (courseIndex < safeCourseIds.length) {
+    var course = await loadCourseSummary(safeCourseIds[courseIndex], assignmentIdByCourseId, courseCache, executionState);
 
-    if (courseId && seen.indexOf(courseId) === -1) {
-      seen.push(courseId);
-      uniqueCourses.push(course);
+    if (course) {
+      courses.push(course);
     }
 
     courseIndex = courseIndex + 1;
   }
 
-  return uniqueCourses;
+  courses.sort(compareByOrderThenTitle);
+  return courses;
+}
+
+async function loadCourseSummary(courseId, assignmentIdByCourseId, cache, executionState) {
+  if (!courseId) {
+    return null;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(cache, courseId)) {
+    return cache[courseId];
+  }
+
+  cache[courseId] = await readCourseSummaryFromSource(courseId, "courses", assignmentIdByCourseId, executionState)
+    || await readCourseSummaryFromSource(courseId, "catalogCourses", assignmentIdByCourseId, executionState);
+
+  if (!cache[courseId]) {
+    executionState.warnings.push({
+      code: "ASSIGNED_COURSE_NOT_FOUND",
+      message: "Assigned course was skipped because it no longer exists: " + courseId
+    });
+  }
+
+  return cache[courseId];
+}
+
+async function readCourseSummaryFromSource(courseId, source, assignmentIdByCourseId, executionState) {
+  try {
+    var courseSnap = await getDoc(doc(db, source, courseId));
+
+    if (!courseSnap.exists()) {
+      return null;
+    }
+
+    return normalizeCourseSummary(courseSnap.id, courseSnap.data() || {}, source, assignmentIdByCourseId);
+  } catch (error) {
+    executionState.warnings.push({
+      code: "ASSIGNED_COURSE_READ_FAILED",
+      message: "Assigned course could not be read from " + source + ": " + readErrorMessage(error)
+    });
+    return null;
+  }
+}
+
+function normalizeCourseSummary(courseId, data, source, assignmentIdByCourseId) {
+  var assignmentId = assignmentIdByCourseId[courseId] || data.assignmentId || data.courseAssignmentId || "";
+
+  return {
+    id: courseId,
+    courseId: courseId,
+    source: source,
+    title: data.title || data.name || data.displayName || "Untitled Course",
+    description: data.description || data.summary || "",
+    status: data.status || data.state || "assigned",
+    order: readNumber(data.order, readNumber(data.sortOrder, 0)),
+    moduleCount: readCourseModuleCount(data),
+    progressPercent: readStoredProgressPercent(data),
+    assignmentId: assignmentId,
+    courseAssignmentId: assignmentId,
+    isLightweight: true
+  };
+}
+
+async function loadAssignedCourseIds(actor, studentProfile, executionState) {
+  var contextCourseIds = executionState && executionState.context ? executionState.context.assignedCourseIds : [];
+  var profileWithActor = Object.assign({}, studentProfile || {}, {
+    __actor: actor || null
+  });
+
+  return getAssignedCourseIds(actor && actor.id ? actor.id : "", profileWithActor, contextCourseIds);
 }
 
 function buildContinueLearning(courses) {
   var safeCourses = Array.isArray(courses) ? courses : [];
-  var bestInProgress = null;
   var firstCourse = safeCourses.length > 0 ? safeCourses[0] : null;
-  var courseIndex = 0;
 
-  while (courseIndex < safeCourses.length) {
-    var candidate = buildCourseRecommendation(safeCourses[courseIndex]);
-
-    if (candidate.status === "inProgress" && (!bestInProgress || candidate.lastOpenedAt > bestInProgress.lastOpenedAt)) {
-      bestInProgress = candidate;
-    }
-
-    courseIndex = courseIndex + 1;
-  }
-
-  if (bestInProgress) {
-    return bestInProgress;
-  }
-
-  if (firstCourse) {
-    return Object.assign(buildCourseRecommendation(firstCourse), {
+  if (!firstCourse) {
+    return {
+      courseId: "",
+      moduleId: "",
+      sessionId: "",
       title: "Start your first course",
-      actionLabel: "Start Learning"
-    });
+      courseTitle: "",
+      moduleTitle: "",
+      progressPercent: 0,
+      status: "empty",
+      actionLabel: "Start Learning",
+      lastOpenedAt: 0
+    };
   }
+
+  var progressPercent = readStoredProgressPercent(firstCourse);
 
   return {
-    courseId: "",
+    courseId: firstCourse.id,
     moduleId: "",
     sessionId: "",
-    title: "Start your first course",
-    courseTitle: "",
-    moduleTitle: "",
-    progressPercent: 0,
-    status: "empty",
-    actionLabel: "Start Learning",
-    lastOpenedAt: 0
-  };
-}
-
-function buildCourseRecommendation(course) {
-  var modules = Array.isArray(course && course.modules) ? course.modules : [];
-  var progressPercent = readCourseProgressPercent(course);
-  var firstModule = modules.length > 0 ? modules[0] : null;
-  var firstSession = firstModule && Array.isArray(firstModule.sessions) && firstModule.sessions.length > 0 ? firstModule.sessions[0] : null;
-  var lastOpenedAt = readCourseLastOpenedAt(course);
-
-  return {
-    courseId: course && course.id ? course.id : "",
-    moduleId: firstModule && firstModule.id ? firstModule.id : "",
-    sessionId: firstSession && firstSession.id ? firstSession.id : "",
     title: progressPercent > 0 ? "Continue Learning" : "Start your first course",
-    courseTitle: readLocalizedText(course ? course.title : "", "Untitled Course"),
-    moduleTitle: readLocalizedText(firstModule ? firstModule.title : "", "First module"),
+    courseTitle: readLocalizedText(firstCourse.title, "Untitled Course"),
+    moduleTitle: "Open course to load activities",
     progressPercent: progressPercent,
     status: progressPercent >= 100 ? "completed" : (progressPercent > 0 ? "inProgress" : "notStarted"),
     actionLabel: progressPercent > 0 ? "Continue" : "Start Learning",
-    lastOpenedAt: lastOpenedAt
+    lastOpenedAt: 0
   };
 }
 
@@ -201,7 +205,7 @@ function buildProgressSummary(courses) {
   var courseIndex = 0;
 
   while (courseIndex < safeCourses.length) {
-    var progressPercent = readCourseProgressPercent(safeCourses[courseIndex]);
+    var progressPercent = readStoredProgressPercent(safeCourses[courseIndex]);
     overallProgress = overallProgress + progressPercent;
 
     if (progressPercent >= 100) {
@@ -249,150 +253,135 @@ function readDailyBonus(student) {
   };
 }
 
-function readCourseProgressPercent(course) {
-  return calculateCourseCompletion(course);
+function buildStudentDashboardDebugInfo(details) {
+  var actor = details.actor || {};
+  var studentProfile = details.studentProfile || {};
+  var assignmentResult = details.courseAssignmentResult || {};
+  var courses = Array.isArray(details.courses) ? details.courses : [];
+
+  return {
+    resolvedStudentId: details.resolvedStudentId || "",
+    authUid: actor.id || "",
+    tokenStudentId: actor.claims && typeof actor.claims.studentId === "string" ? actor.claims.studentId : "",
+    profileId: studentProfile.id || "",
+    classIdentifiers: readStudentClassIdentifiers(studentProfile, actor),
+    studentIdentifiers: readStudentIdentifiers(studentProfile, actor),
+    directAssignmentCount: assignmentResult.directCount || 0,
+    classAssignmentCount: assignmentResult.classCount || 0,
+    locationAssignmentCount: assignmentResult.locationCount || 0,
+    mergedAssignmentCount: assignmentResult.mergedCount || assignmentResult.assignmentCount || 0,
+    loadedCourseCount: courses.length,
+    courseIds: courses.map(function (course) {
+      return course && course.id ? course.id : "";
+    }).filter(Boolean),
+    queryPaths: assignmentResult.queryPaths || [],
+    queryErrors: readQueryErrors(assignmentResult),
+    rejectionReasons: assignmentResult.rejectionReasons || []
+  };
 }
 
-function countCourseSteps(course) {
-  var modules = course && Array.isArray(course.modules) ? course.modules : [];
-  var total = 0;
-  var moduleIndex = 0;
+function readQueryErrors(assignmentResult) {
+  var errors = Array.isArray(assignmentResult && assignmentResult.queryErrors) ? assignmentResult.queryErrors.slice() : [];
+  var warnings = Array.isArray(assignmentResult && assignmentResult.warnings) ? assignmentResult.warnings : [];
+  var warningIndex = 0;
 
-  while (moduleIndex < modules.length) {
-    total = total + countModuleSteps(modules[moduleIndex]);
-    moduleIndex = moduleIndex + 1;
-  }
-
-  return total;
-}
-
-function countCourseCompletedSteps(course) {
-  var modules = course && Array.isArray(course.modules) ? course.modules : [];
-  var total = 0;
-  var moduleIndex = 0;
-
-  while (moduleIndex < modules.length) {
-    total = total + countModuleCompletedSteps(modules[moduleIndex]);
-    moduleIndex = moduleIndex + 1;
-  }
-
-  return total;
-}
-
-function countModuleSteps(module) {
-  var sessions = module && Array.isArray(module.sessions) ? module.sessions : [];
-  var total = 0;
-  var sessionIndex = 0;
-
-  while (sessionIndex < sessions.length) {
-    total = total + countSessionSteps(sessions[sessionIndex]);
-    sessionIndex = sessionIndex + 1;
-  }
-
-  return total;
-}
-
-function countModuleCompletedSteps(module) {
-  var sessions = module && Array.isArray(module.sessions) ? module.sessions : [];
-  var total = 0;
-  var sessionIndex = 0;
-
-  while (sessionIndex < sessions.length) {
-    total = total + countSessionCompletedSteps(sessions[sessionIndex]);
-    sessionIndex = sessionIndex + 1;
-  }
-
-  return total;
-}
-
-function countSessionSteps(session) {
-  var practiceModes = session && session.practiceModes && typeof session.practiceModes === "object" ? session.practiceModes : {};
-  var keys = Object.keys(practiceModes);
-  var total = 0;
-  var keyIndex = 0;
-
-  while (keyIndex < keys.length) {
-    total = total + (Array.isArray(practiceModes[keys[keyIndex]].steps) ? practiceModes[keys[keyIndex]].steps.length : 0);
-    keyIndex = keyIndex + 1;
-  }
-
-  return total;
-}
-
-function countSessionCompletedSteps(session) {
-  var practiceModes = session && session.progress && session.progress.practiceModes ? session.progress.practiceModes : {};
-  var keys = Object.keys(practiceModes);
-  var completedStepIds = [];
-  var keyIndex = 0;
-
-  while (keyIndex < keys.length) {
-    if (Array.isArray(practiceModes[keys[keyIndex]].completedStepIds)) {
-      completedStepIds = completedStepIds.concat(practiceModes[keys[keyIndex]].completedStepIds);
+  while (warningIndex < warnings.length) {
+    if (warnings[warningIndex] && warnings[warningIndex].code === "STUDENT_ASSIGNMENT_QUERY_FAILED") {
+      errors.push(warnings[warningIndex].message || warnings[warningIndex].code);
     }
-    keyIndex = keyIndex + 1;
+
+    warningIndex = warningIndex + 1;
   }
 
-  return completedStepIds.filter(function (stepId, index, list) {
-    return stepId && list.indexOf(stepId) === index;
-  }).length;
+  return errors;
 }
 
-function readCourseLastOpenedAt(course) {
-  var modules = course && Array.isArray(course.modules) ? course.modules : [];
-  var lastOpenedAt = 0;
-  var moduleIndex = 0;
-
-  while (moduleIndex < modules.length) {
-    lastOpenedAt = Math.max(lastOpenedAt, readModuleLastOpenedAt(modules[moduleIndex]));
-    moduleIndex = moduleIndex + 1;
+function logStudentDashboardDebug(debugInfo, executionState) {
+  if (!shouldEmitDebug(executionState) && !isDevelopmentHost()) {
+    return;
   }
 
-  return lastOpenedAt;
+  console.info("[student-dashboard:summary-load]", debugInfo);
 }
 
-function readModuleLastOpenedAt(module) {
-  var sessions = module && Array.isArray(module.sessions) ? module.sessions : [];
-  var lastOpenedAt = 0;
-  var sessionIndex = 0;
+function validateStudentProfileForDashboard(studentProfile) {
+  var reason = readStudentProfileRejectReason(studentProfile);
 
-  while (sessionIndex < sessions.length) {
-    lastOpenedAt = Math.max(lastOpenedAt, readTimestampMillis(sessions[sessionIndex].progress ? sessions[sessionIndex].progress.updatedAt : null));
-    sessionIndex = sessionIndex + 1;
+  if (isStudentDashboardProfile(studentProfile)) {
+    return { valid: true };
   }
 
-  return lastOpenedAt;
+  if (reason === "profile-missing") {
+    return createValidationError("STUDENT_PROFILE_MISSING", "Student profile is required.");
+  }
+
+  if (reason === "not-student-role") {
+    return createValidationError("STUDENT_ROLE_REQUIRED", "Only student accounts can open the student dashboard.");
+  }
+
+  if (reason === "inactive-status") {
+    return createValidationError("STUDENT_ACCOUNT_INACTIVE", "This student account is not active.");
+  }
+
+  if (reason === "missing-class") {
+    return createValidationError("STUDENT_CLASS_REQUIRED", "This student profile is missing a class.");
+  }
+
+  if (reason === "missing-location") {
+    return createValidationError("STUDENT_LOCATION_REQUIRED", "This student profile is missing a location.");
+  }
+
+  return createValidationError("STUDENT_PROFILE_INVALID", "Student profile is not valid for the dashboard.");
 }
 
-function readTimestampMillis(value) {
-  if (!value) {
-    return 0;
+function createResolvedStudentActor(actor, resolvedStudentId) {
+  return Object.assign({}, actor || {}, {
+    id: resolvedStudentId || (actor && actor.id ? actor.id : "preview-student"),
+    role: "ROLE_STUDENT"
+  });
+}
+
+function createValidationError(code, message) {
+  return {
+    valid: false,
+    errors: [
+      {
+        code: code,
+        message: message
+      }
+    ]
+  };
+}
+
+function readCourseModuleCount(data) {
+  if (typeof data.moduleCount === "number" && Number.isFinite(data.moduleCount)) {
+    return Math.max(0, Math.round(data.moduleCount));
   }
 
-  if (typeof value === "number") {
-    return value;
+  if (Array.isArray(data.modules)) {
+    return data.modules.length;
   }
 
-  if (typeof value.toMillis === "function") {
-    return value.toMillis();
+  if (Array.isArray(data.moduleIds)) {
+    return data.moduleIds.length;
   }
 
-  if (value.seconds) {
-    return value.seconds * 1000;
+  if (Array.isArray(data.moduleOrder)) {
+    return data.moduleOrder.length;
   }
 
   return 0;
 }
 
-function readLocalizedText(value, fallbackValue) {
-  if (typeof value === "string" && value.length > 0) {
-    return value;
-  }
+function readStoredProgressPercent(course) {
+  var progress = course && typeof course.progress === "object" ? course.progress : {};
 
-  if (value && typeof value.en === "string" && value.en.length > 0) {
-    return value.en;
-  }
-
-  return fallbackValue;
+  return clampPercent(
+    readNumber(
+      course ? course.progressPercent : 0,
+      readNumber(course ? course.completionPercent : 0, readNumber(course ? course.percentComplete : 0, progress.percent))
+    )
+  );
 }
 
 function readNumber(primaryValue, fallbackValue) {
@@ -405,4 +394,86 @@ function readNumber(primaryValue, fallbackValue) {
   }
 
   return 0;
+}
+
+function clampPercent(value) {
+  return Math.max(0, Math.min(100, readNumber(value, 0)));
+}
+
+function compareByOrderThenTitle(left, right) {
+  var leftOrder = typeof left.order === "number" ? left.order : 0;
+  var rightOrder = typeof right.order === "number" ? right.order : 0;
+
+  if (leftOrder !== rightOrder) {
+    return leftOrder - rightOrder;
+  }
+
+  return readLocalizedText(left.title, "").localeCompare(readLocalizedText(right.title, ""));
+}
+
+function dedupeTextList(values) {
+  var source = Array.isArray(values) ? values : [];
+  var output = [];
+  var index = 0;
+
+  while (index < source.length) {
+    if (typeof source[index] === "string" && source[index].length > 0 && output.indexOf(source[index]) === -1) {
+      output.push(source[index]);
+    }
+
+    index = index + 1;
+  }
+
+  return output;
+}
+
+function appendWarnings(executionState, warnings) {
+  var warningIndex = 0;
+
+  ensureWarnings(executionState);
+
+  while (warningIndex < warnings.length) {
+    executionState.warnings.push(warnings[warningIndex]);
+    warningIndex = warningIndex + 1;
+  }
+}
+
+function ensureWarnings(executionState) {
+  if (!Array.isArray(executionState.warnings)) {
+    executionState.warnings = [];
+  }
+}
+
+function isPreviewActor(actor) {
+  return actor && actor.id === "preview-student";
+}
+
+function shouldEmitDebug(executionState) {
+  return Boolean(executionState && executionState.payload && executionState.payload.debug === true);
+}
+
+function isDevelopmentHost() {
+  return typeof window !== "undefined"
+    && window.location
+    && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.hostname === "");
+}
+
+function readErrorMessage(error) {
+  if (!error) {
+    return "unknown error";
+  }
+
+  return error.code ? error.code + " " + error.message : error.message || String(error);
+}
+
+function readLocalizedText(value, fallbackValue) {
+  if (typeof value === "string" && value.length > 0) {
+    return value;
+  }
+
+  if (value && typeof value.en === "string" && value.en.length > 0) {
+    return value.en;
+  }
+
+  return fallbackValue;
 }

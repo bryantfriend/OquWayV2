@@ -1250,6 +1250,498 @@
             font-size: 1.35rem;
         }
 
+        .student-section-nav-item {
+            appearance: none;
+            width: 100%;
+            border: 0;
+            text-align: left;
+            font: inherit;
+        }
+
+        .student-profile-center {
+            display: grid;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .student-profile-hero-card,
+        .student-profile-card {
+            border: 1px solid rgba(219,229,242,0.96);
+            background: rgba(255,255,255,0.92);
+            box-shadow: 0 18px 48px rgba(23,32,51,0.08);
+            border-radius: 24px;
+        }
+
+        .student-profile-hero-card {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            gap: 1rem;
+            align-items: center;
+            padding: 1.2rem;
+        }
+
+        .student-profile-avatar-large {
+            width: 112px;
+            height: 112px;
+            border-radius: 28px;
+            overflow: hidden;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(191,219,254,0.8);
+        }
+
+        .student-profile-avatar-large .student-avatar-fallback,
+        .student-profile-avatar-large .student-avatar-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 0;
+        }
+
+        .student-profile-hero-copy {
+            min-width: 0;
+        }
+
+        .student-profile-hero-copy h2 {
+            margin: 0.15rem 0;
+            font-size: clamp(1.7rem, 4vw, 2.8rem);
+            line-height: 1;
+        }
+
+        .student-profile-hero-copy p,
+        .student-profile-hero-copy small,
+        .student-profile-muted {
+            color: var(--muted);
+            line-height: 1.55;
+        }
+
+        .student-profile-level-line,
+        .student-journey-course-head,
+        .student-skill-card > div,
+        .student-skill-card footer {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            font-weight: 900;
+        }
+
+        .student-profile-level-line {
+            margin-top: 0.8rem;
+        }
+
+        .student-profile-level-line span {
+            color: var(--blue);
+        }
+
+        .student-profile-level-bar {
+            height: 10px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: #e2e8f0;
+            margin: 0.5rem 0;
+        }
+
+        .student-profile-level-bar span {
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #2563eb, #059669);
+        }
+
+        .student-profile-hero-stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(74px, 1fr));
+            gap: 0.55rem;
+            min-width: 250px;
+        }
+
+        .student-profile-hero-stats span,
+        .student-profile-summary-card {
+            border: 1px solid rgba(191,219,254,0.8);
+            background: linear-gradient(135deg, #eff6ff, #f8fafc);
+            border-radius: 18px;
+            padding: 0.85rem;
+            display: grid;
+            gap: 0.2rem;
+            color: var(--muted);
+            font-weight: 800;
+        }
+
+        .student-profile-hero-stats strong,
+        .student-profile-summary-card strong {
+            color: var(--ink);
+            font-size: 1.45rem;
+        }
+
+        .student-profile-tabs {
+            display: flex;
+            gap: 0.45rem;
+            overflow-x: auto;
+            padding-bottom: 0.1rem;
+        }
+
+        .student-profile-tab {
+            border: 1px solid rgba(191,219,254,0.9);
+            background: rgba(255,255,255,0.84);
+            color: var(--blue);
+            border-radius: 999px;
+            padding: 0.62rem 0.8rem;
+            font-weight: 900;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .student-profile-tab-active {
+            background: var(--blue);
+            color: #fff;
+            box-shadow: 0 10px 22px rgba(37,99,235,0.20);
+        }
+
+        .student-profile-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 320px;
+            gap: 1rem;
+            align-items: start;
+        }
+
+        .student-profile-main-stack,
+        .student-profile-side-stack,
+        .student-title-list,
+        .student-achievement-mini-list,
+        .student-skill-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .student-profile-card {
+            padding: 1.1rem;
+            min-width: 0;
+        }
+
+        .student-profile-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+            gap: 0.65rem;
+        }
+
+        .student-avatar-picker {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(82px, 1fr));
+            gap: 0.65rem;
+        }
+
+        .student-avatar-option {
+            min-height: 88px;
+            border: 1px solid rgba(219,229,242,0.95);
+            background: #fff;
+            border-radius: 18px;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            gap: 0.25rem;
+            font-weight: 900;
+            color: var(--ink);
+            transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
+        }
+
+        .student-avatar-option:hover {
+            transform: translateY(-1px);
+            border-color: #93c5fd;
+            box-shadow: 0 10px 22px rgba(37,99,235,0.10);
+        }
+
+        .student-avatar-option span,
+        .student-built-avatar span {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            color: #fff;
+            background: linear-gradient(135deg, #2563eb, #059669);
+        }
+
+        .student-avatar-option small {
+            color: var(--muted);
+            font-size: 0.72rem;
+        }
+
+        .student-avatar-option-selected {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px rgba(5,150,105,0.14);
+        }
+
+        .student-built-avatar-blue span,
+        .student-built-avatar-sky span,
+        .student-built-avatar-ocean span,
+        .student-built-avatar-wave span,
+        .student-built-avatar-river span {
+            background: linear-gradient(135deg, #2563eb, #38bdf8);
+        }
+
+        .student-built-avatar-green span,
+        .student-built-avatar-forest span,
+        .student-built-avatar-mint span,
+        .student-built-avatar-clover span,
+        .student-built-avatar-leaf span {
+            background: linear-gradient(135deg, #059669, #84cc16);
+        }
+
+        .student-built-avatar-amber span,
+        .student-built-avatar-gold span,
+        .student-built-avatar-ember span,
+        .student-built-avatar-trail span {
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+        }
+
+        .student-built-avatar-purple span,
+        .student-built-avatar-orchid span,
+        .student-built-avatar-violet span,
+        .student-built-avatar-berry span,
+        .student-built-avatar-nova span {
+            background: linear-gradient(135deg, #7c3aed, #db2777);
+        }
+
+        .student-built-avatar-coral span,
+        .student-built-avatar-bloom span,
+        .student-built-avatar-beam span,
+        .student-built-avatar-quest span,
+        .student-built-avatar-north span,
+        .student-built-avatar-stone span,
+        .student-built-avatar-pixel span {
+            background: linear-gradient(135deg, #0f172a, #64748b);
+        }
+
+        .student-title-option,
+        .student-achievement-mini-list div,
+        .student-skill-card,
+        .student-journey-course {
+            border: 1px solid rgba(219,229,242,0.96);
+            background: #f8fafc;
+            border-radius: 18px;
+            padding: 0.85rem;
+        }
+
+        .student-title-option {
+            text-align: left;
+            cursor: pointer;
+            display: grid;
+            gap: 0.2rem;
+        }
+
+        .student-title-option strong,
+        .student-skill-card strong,
+        .student-journey-course-head strong {
+            color: var(--ink);
+        }
+
+        .student-title-option span,
+        .student-skill-card span,
+        .student-journey-module small {
+            color: var(--muted);
+            font-weight: 800;
+        }
+
+        .student-title-option-active {
+            border-color: var(--blue);
+            background: var(--soft-blue);
+        }
+
+        .student-title-option-locked {
+            opacity: 0.58;
+        }
+
+        .student-achievement-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .student-achievement-category h3 {
+            margin: 1rem 0 0.65rem;
+        }
+
+        .student-achievement-card {
+            border: 1px solid rgba(219,229,242,0.96);
+            background: #fff;
+            border-radius: 20px;
+            padding: 1rem;
+            display: grid;
+            gap: 0.45rem;
+        }
+
+        .student-achievement-card p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.45;
+        }
+
+        .student-achievement-card small {
+            color: var(--green);
+            font-weight: 900;
+        }
+
+        .student-achievement-locked {
+            background: #f8fafc;
+            opacity: 0.72;
+        }
+
+        .student-achievement-icon,
+        .student-achievement-mini-list span {
+            width: 38px;
+            height: 38px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--soft-green);
+            color: var(--green);
+        }
+
+        .student-achievement-icon svg,
+        .student-achievement-mini-list svg,
+        .student-journey-module svg {
+            width: 22px;
+            height: 22px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .student-achievement-mini-list div {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            gap: 0.2rem 0.65rem;
+            align-items: center;
+        }
+
+        .student-achievement-mini-list small {
+            grid-column: 2;
+            color: var(--muted);
+            font-weight: 800;
+        }
+
+        .student-journey-course + .student-journey-course {
+            margin-top: 0.85rem;
+        }
+
+        .student-journey-module-list {
+            display: grid;
+            gap: 0.55rem;
+            margin-top: 0.85rem;
+        }
+
+        .student-journey-module {
+            border: 1px solid rgba(219,229,242,0.96);
+            background: #fff;
+            border-radius: 16px;
+            padding: 0.75rem;
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 0.65rem;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .student-journey-module span {
+            width: 34px;
+            height: 34px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--soft-blue);
+            color: var(--blue);
+        }
+
+        .student-journey-completed span,
+        .student-journey-inProgress span {
+            background: var(--soft-green);
+            color: var(--green);
+        }
+
+        .student-journey-locked {
+            opacity: 0.56;
+        }
+
+        .student-skill-card {
+            display: grid;
+            gap: 0.65rem;
+        }
+
+        .student-skill-card footer span {
+            border-radius: 999px;
+            background: rgba(255,255,255,0.9);
+            border: 1px solid rgba(219,229,242,0.96);
+            padding: 0.35rem 0.55rem;
+            color: var(--muted);
+            font-size: 0.76rem;
+            font-weight: 900;
+        }
+
+        .student-profile-history-head label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--muted);
+            font-weight: 900;
+        }
+
+        .student-profile-history-head select {
+            border: 1px solid #bfdbfe;
+            border-radius: 999px;
+            background: #fff;
+            color: var(--blue);
+            padding: 0.5rem 0.7rem;
+            font-weight: 900;
+        }
+
+        .student-history-table {
+            display: grid;
+            gap: 0.45rem;
+            overflow-x: auto;
+        }
+
+        .student-history-head,
+        .student-history-row {
+            display: grid;
+            grid-template-columns: minmax(180px, 1.4fr) 120px 80px 90px 70px;
+            gap: 0.65rem;
+            align-items: center;
+            min-width: 620px;
+        }
+
+        .student-history-head {
+            color: var(--muted);
+            font-size: 0.74rem;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .student-history-row {
+            border: 1px solid rgba(219,229,242,0.96);
+            background: #fff;
+            border-radius: 16px;
+            padding: 0.75rem;
+            font-weight: 900;
+        }
+
+        .student-history-row span:first-child {
+            display: grid;
+            gap: 0.15rem;
+            min-width: 0;
+        }
+
+        .student-history-row small {
+            color: var(--muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
         .student-home-empty {
             min-height: 440px;
             display: grid;
@@ -4209,6 +4701,26 @@
                 overflow-x: visible;
             }
 
+            .student-profile-hero-card,
+            .student-profile-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .student-profile-hero-stats {
+                min-width: 0;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .student-profile-avatar-large {
+                width: 92px;
+                height: 92px;
+            }
+
+            .student-profile-tabs {
+                margin-right: -0.25rem;
+                padding-right: 0.25rem;
+            }
+
             .student-hero,
             .student-course-heading,
             .student-player-topbar {
@@ -4312,6 +4824,301 @@
                 grid-column: span 1;
             }
         }
+
+        .course-module-template {
+            overflow: visible;
+        }
+
+        .course-template-head span {
+            border-radius: 999px;
+            background: #f8fafc;
+            color: #475569;
+            padding: 0.32rem 0.65rem;
+            font-size: 0.72rem;
+            font-weight: 900;
+        }
+
+        .course-basic-module-list {
+            display: grid;
+            gap: 0.72rem;
+        }
+
+        .course-template-module-card {
+            width: 100%;
+            min-width: 0;
+            border: 1px solid rgba(148,163,184,0.28);
+            border-radius: 18px;
+            background: #ffffff;
+            color: var(--ink);
+            display: grid;
+            align-items: center;
+            gap: 0.72rem;
+            text-align: left;
+            cursor: pointer;
+            transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease, background 0.16s ease;
+        }
+
+        .course-template-module-card:hover,
+        .course-template-module-current {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 4px rgba(37,99,235,0.10), 0 18px 34px rgba(37,99,235,0.16);
+            transform: translateY(-1px);
+        }
+
+        .course-template-module-basic {
+            grid-template-columns: 52px minmax(0, 1fr) 92px 42px;
+            min-height: 82px;
+            padding: 0.82rem;
+        }
+
+        .course-template-module-grid {
+            grid-template-rows: auto minmax(58px, 1fr) auto auto;
+            justify-items: start;
+            min-height: 184px;
+            padding: 0.9rem;
+        }
+
+        .course-template-module-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            background: linear-gradient(145deg, #ecfdf5, #ffffff);
+            color: var(--green);
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+            box-shadow: inset 0 0 0 1px rgba(34,197,94,0.18);
+        }
+
+        .course-template-module-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .course-template-module-icon svg,
+        .course-template-module-badge svg {
+            width: 26px;
+            height: 26px;
+        }
+
+        .course-template-module-copy {
+            min-width: 0;
+            display: grid;
+            gap: 0.18rem;
+        }
+
+        .course-template-module-copy strong {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 0.96rem;
+            font-weight: 950;
+        }
+
+        .course-template-module-copy small {
+            color: #64748b;
+            font-size: 0.72rem;
+            font-weight: 850;
+            line-height: 1.35;
+        }
+
+        .course-template-module-progress {
+            width: 100%;
+            height: 8px;
+            border-radius: 999px;
+            background: #e2e8f0;
+            overflow: hidden;
+        }
+
+        .course-template-module-progress span {
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #22c55e, #0ea5e9);
+        }
+
+        .course-template-module-badge {
+            width: 38px;
+            height: 38px;
+            border-radius: 999px;
+            background: #f8fafc;
+            color: #64748b;
+            display: grid;
+            place-items: center;
+        }
+
+        .course-template-module-complete {
+            border-color: rgba(34,197,94,0.38);
+            background: linear-gradient(145deg, #ffffff, #f0fdf4);
+        }
+
+        .course-template-module-complete .course-template-module-badge,
+        .course-template-module-complete .course-template-module-icon {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .course-template-module-current {
+            position: relative;
+            z-index: 2;
+        }
+
+        .course-template-module-current .course-template-module-icon {
+            background: #eff6ff;
+            color: #2563eb;
+            box-shadow: 0 0 0 5px rgba(37,99,235,0.12);
+        }
+
+        .course-template-module-locked {
+            border-style: dashed;
+            background: #f8fafc;
+            color: #64748b;
+        }
+
+        .course-template-module-locked .course-template-module-icon,
+        .course-template-module-locked .course-template-module-badge {
+            background: #e2e8f0;
+            color: #64748b;
+            box-shadow: none;
+        }
+
+        .course-compact-module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+            gap: 0.8rem;
+        }
+
+        .course-compact-module-grid .course-template-module-progress {
+            align-self: end;
+        }
+
+        .course-adventure-path {
+            overflow: hidden;
+            background:
+                radial-gradient(circle at 16% 8%, rgba(250,204,21,0.12), transparent 20%),
+                linear-gradient(145deg, rgba(255,255,255,0.96), rgba(240,253,244,0.82));
+        }
+
+        .course-adventure-header {
+            display: grid;
+            grid-template-columns: 58px minmax(0, 1fr) auto;
+            gap: 0.85rem;
+            align-items: center;
+        }
+
+        .course-adventure-header h2 {
+            margin: 0.12rem 0 0;
+            font-size: 1.55rem;
+        }
+
+        .course-adventure-header > span {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            background: #ffffff;
+            color: #16a34a;
+            display: grid;
+            place-items: center;
+            font-weight: 950;
+            box-shadow: 0 14px 26px rgba(15,23,42,0.08);
+        }
+
+        .course-adventure-course-icon {
+            width: 58px;
+            height: 58px;
+            border-radius: 18px;
+        }
+
+        .course-adventure-stage {
+            position: relative;
+            margin-top: 0.5rem;
+        }
+
+        .course-adventure-path-line {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .course-adventure-path-line path {
+            fill: none;
+            stroke: #bbf7d0;
+            stroke-width: 2.4;
+            stroke-linecap: round;
+            stroke-dasharray: 7 8;
+            filter: drop-shadow(0 10px 12px rgba(34,197,94,0.16));
+        }
+
+        .course-template-module-adventure {
+            position: absolute;
+            left: var(--node-x);
+            top: var(--node-y);
+            width: min(250px, 42%);
+            min-height: 108px;
+            grid-template-columns: 62px minmax(0, 1fr) 36px;
+            grid-template-rows: auto auto;
+            padding: 0.78rem;
+            transform: translate(-50%, -50%);
+        }
+
+        .course-template-module-adventure:hover,
+        .course-template-module-adventure.course-template-module-current {
+            transform: translate(-50%, -50%) scale(1.04);
+        }
+
+        .course-template-module-adventure .course-template-module-icon {
+            grid-row: span 2;
+            width: 62px;
+            height: 62px;
+            border-radius: 22px;
+        }
+
+        .course-template-module-adventure .course-template-module-progress {
+            grid-column: 2 / 4;
+        }
+
+        .course-template-module-adventure .course-template-module-badge {
+            width: 34px;
+            height: 34px;
+        }
+
+        .course-template-module-adventure.course-template-module-current {
+            min-height: 124px;
+            box-shadow: 0 0 0 7px rgba(37,99,235,0.10), 0 22px 42px rgba(37,99,235,0.22);
+        }
+
+        .course-template-module-adventure.course-template-module-current .course-template-module-icon {
+            width: 74px;
+            height: 74px;
+        }
+
+        @media (min-width: 1260px) {
+            .course-compact-module-grid {
+                grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+            }
+        }
+
+        @media (max-width: 900px) {
+            .course-template-module-basic {
+                grid-template-columns: 48px minmax(0, 1fr) 38px;
+            }
+
+            .course-template-module-basic .course-template-module-progress {
+                grid-column: 1 / -1;
+            }
+
+            .course-template-module-adventure {
+                width: min(270px, 76%);
+                left: 50%;
+            }
+
+            .course-adventure-path-line path {
+                stroke-width: 2;
+            }
+        }
     </style>
 </head>
 
@@ -4324,7 +5131,7 @@
         <h1>Welcome to your Studies</h1>
         <p>Your educational journey continues here...</p>
     </main>
-    <script type="module" src="./src/main.js?v=1.1.164-course-builder-source-truth"></script>
+    <script type="module" src="./src/main.js?v=1.1.180-student-profile-center"></script>
 </body>
 
 </html>

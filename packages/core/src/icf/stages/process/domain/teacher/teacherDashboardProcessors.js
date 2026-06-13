@@ -1,18 +1,15 @@
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.162-modal-stack";
-import { getClassesForTeacherScope } from "../../../../../../../domain/classes/index.js?v=1.1.162-modal-stack";
-import { getExternalTaskSubmissionsForTeacher } from "../../../../../../../domain/externalTasks/index.js?v=1.1.162-modal-stack";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.178-teacher-analytics-dashboard";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.178-teacher-analytics-dashboard";
+import { getClassesForTeacher } from "../../../../../../../domain/classes/index.js";
+import { getExternalTaskSubmissionsForTeacher } from "../../../../../../../domain/externalTasks/index.js?v=1.1.178-teacher-analytics-dashboard";
 import {
-  buildStudentClassScope,
-  getStudentsForClassRosters,
-  getStudentsForClassScopes,
+  getStudentsForClasses,
   getUserProfileByAuthUid,
   getUserRoles,
   isStudentProfile as isStudentUserProfile,
-  resolveTeacherIdentity,
   userInClass as userProfileInClass
-} from "../../../../../../../domain/users/index.js?v=1.1.162-modal-stack";
+} from "../../../../../../../domain/users/index.js";
 
 export async function processTeacherLogin(executionState) {
   var payload = executionState.payload || {};
@@ -62,7 +59,7 @@ export async function processSendTeacherPasswordReset(executionState) {
 
 export async function processLoadTeacherDashboard(executionState) {
   try {
-    var data = await buildTeacherDashboardData(executionState);
+    var data = await buildTeacherClassListData(executionState);
     executionState.result = data;
     return { valid: true, data: data };
   } catch (error) {
@@ -72,7 +69,7 @@ export async function processLoadTeacherDashboard(executionState) {
 
 export async function processLoadTeacherClasses(executionState) {
   try {
-    var data = await buildTeacherDashboardData(executionState);
+    var data = await buildTeacherClassListData(executionState);
     executionState.result = {
       teacher: data.teacher,
       classes: data.classes,
@@ -86,12 +83,7 @@ export async function processLoadTeacherClasses(executionState) {
 
 export async function processLoadTeacherCourses(executionState) {
   try {
-    var data = await buildTeacherDashboardData(executionState);
-    executionState.result = {
-      teacher: data.teacher,
-      courses: data.courses,
-      summary: data.summary
-    };
+    executionState.result = await buildTeacherCoursesData(executionState);
     return { valid: true, data: executionState.result };
   } catch (error) {
     return createProcessError("TEACHER_COURSES_LOAD_FAILED", "Could not load teacher courses: " + readErrorMessage(error));
@@ -100,18 +92,7 @@ export async function processLoadTeacherCourses(executionState) {
 
 export async function processLoadTeacherClassDetail(executionState) {
   try {
-    var data = await buildTeacherDashboardData(executionState);
-    var requestedClassId = executionState.payload && executionState.payload.classId ? executionState.payload.classId : "";
-    executionState.result = {
-      teacher: data.teacher,
-      classRecord: findById(data.classes, requestedClassId),
-      students: data.students.filter(function (student) {
-        return !requestedClassId || studentInClass(student, requestedClassId);
-      }),
-      submissions: data.submissions.filter(function (submission) {
-        return !requestedClassId || submission.classId === requestedClassId;
-      })
-    };
+    executionState.result = await buildTeacherClassDetailData(executionState);
     return { valid: true, data: executionState.result };
   } catch (error) {
     return createProcessError("TEACHER_CLASS_DETAIL_LOAD_FAILED", "Could not load teacher class detail: " + readErrorMessage(error));
@@ -120,25 +101,52 @@ export async function processLoadTeacherClassDetail(executionState) {
 
 export async function processLoadTeacherCourseDetail(executionState) {
   try {
-    var data = await buildTeacherDashboardData(executionState);
     var payload = executionState.payload || {};
-    var courseCard = findById(data.courses, payload.assignmentId || payload.courseAssignmentId || "");
+    var scope = await loadTeacherOwnershipScope(executionState);
+    var assignmentId = payload.assignmentId || payload.courseAssignmentId || "";
+    var assignment = findById(scope.assignments, assignmentId);
+    var classId = "";
+    var classRecord = null;
+    var students = [];
+    var courseCards = [];
 
-    if (!courseCard && payload.courseId) {
-      courseCard = data.courses.find(function (item) {
-        return item.courseId === payload.courseId;
+    if (!assignment && payload.courseId) {
+      assignment = scope.assignments.find(function (item) {
+        return item && item.courseId === payload.courseId;
       }) || null;
     }
 
+    classId = assignment ? readAssignmentClassId(assignment) : "";
+    classRecord = classId ? findById(scope.classes, classId) : null;
+
+    if (assignment && classId) {
+      try {
+        students = await loadStudentsForClasses([classId]);
+      } catch (error) {
+        console.error("[teacher-course-detail:students-load-failed]", {
+          courseId: payload.courseId || "",
+          assignmentId: assignmentId,
+          errorMessage: readErrorMessage(error)
+        });
+        students = [];
+      }
+    }
+
+    if (assignment) {
+      courseCards = await normalizeCourseAssignmentCards([assignment], classRecord ? [classRecord] : scope.classes, students, {});
+    }
+
     executionState.result = {
-      teacher: data.teacher,
-      course: courseCard,
-      submissions: data.submissions.filter(function (submission) {
-        return !courseCard
-          || submission.courseAssignmentId === courseCard.id
-          || submission.assignmentId === courseCard.id
-          || submission.courseId === courseCard.courseId;
-      })
+      teacher: normalizeTeacherProfile(scope.profile),
+      course: courseCards.length > 0 ? courseCards[0] : null,
+      students: students.map(function (student) {
+        return normalizeStudentCard(student, null, 0);
+      }),
+      modules: [],
+      submissions: [],
+      errors: assignment ? {} : {
+        courseDetail: "The selected course assignment is no longer available for this teacher."
+      }
     };
     return { valid: true, data: executionState.result };
   } catch (error) {
@@ -151,20 +159,14 @@ export async function processLoadTeacherStudents(executionState) {
     var scope = await loadTeacherOwnershipScope(executionState);
     var profile = scope.profile;
     var classIds = resolveRequestedClassIds(executionState.payload, scope.classIds);
-    var studentResult = await loadStudentsForTeacherClasses(scope.classes.filter(function (classRecord) {
-      return classIds.indexOf(classRecord.id) !== -1;
-    }));
-    var students = studentResult.students;
+    var students = await loadStudentsForClasses(classIds);
     var progress = await loadProgressForStudents(students);
-    var submissionQueryErrors = [];
     var submissions = await loadScopedSubmissions({
       classIds: classIds,
       assignmentIds: scope.assignmentIds,
       courseIds: scope.courseIds,
       teacherIds: scope.teacherIds,
-      locationIds: scope.locationIds,
-      reviewStatus: "pending",
-      queryErrors: submissionQueryErrors
+      reviewStatus: "pending"
     });
     var pendingCounts = countSubmissionsByField(submissions, "studentId");
 
@@ -172,12 +174,7 @@ export async function processLoadTeacherStudents(executionState) {
       teacher: profile,
       students: students.map(function (student) {
         return normalizeStudentCard(student, progress[student.id] || null, pendingCounts[student.id] || 0);
-      }),
-      debug: {
-        studentQueryErrors: studentResult.queryErrors || [],
-        studentBlockingQueryErrors: studentResult.blockingQueryErrors || [],
-        submissionQueryErrors: submissionQueryErrors
-      }
+      })
     };
 
     return { valid: true, data: executionState.result };
@@ -190,27 +187,19 @@ export async function processLoadTeacherReviewQueue(executionState) {
   try {
     var payload = executionState.payload || {};
     var scope = await loadTeacherOwnershipScope(executionState);
-    var submissionQueryErrors = [];
     var submissions = await loadScopedSubmissions({
       classIds: resolveRequestedClassIds(payload, scope.classIds),
       assignmentIds: scope.assignmentIds,
       courseIds: scope.courseIds,
       teacherIds: scope.teacherIds,
-      locationIds: scope.locationIds,
       reviewStatus: payload.reviewStatus,
       courseId: payload.courseId,
       moduleId: payload.moduleId,
-      studentSearch: payload.studentSearch,
-      queryErrors: submissionQueryErrors
+      studentSearch: payload.studentSearch
     });
 
-    logExternalTaskTeacherDebug(executionState, scope, payload, submissions);
-
     executionState.result = {
-      submissions: submissions,
-      debug: {
-        submissionQueryErrors: submissionQueryErrors
-      }
+      submissions: submissions
     };
 
     return { valid: true, data: executionState.result };
@@ -219,29 +208,143 @@ export async function processLoadTeacherReviewQueue(executionState) {
   }
 }
 
+async function buildTeacherCoursesData(executionState) {
+  var scope = await loadTeacherOwnershipScope(executionState);
+  var courseCards = await normalizeCourseAssignmentCards(scope.assignments, scope.classes, [], {});
+
+  return {
+    teacher: normalizeTeacherProfile(scope.profile),
+    courses: courseCards,
+    summary: {
+      classCount: scope.classes.length,
+      courseCount: courseCards.length,
+      studentCount: 0,
+      pendingSubmissionsCount: 0
+    }
+  };
+}
+
+async function buildTeacherClassListData(executionState) {
+  var scope = await loadTeacherClassScope(executionState);
+  var classCards = scope.classes.map(function (classRecord) {
+    return normalizeClassListCard(classRecord);
+  });
+
+  return {
+    teacher: normalizeTeacherProfile(scope.profile),
+    classes: classCards,
+    courses: [],
+    students: [],
+    submissions: [],
+    filters: {
+      classIds: scope.classIds,
+      courseIds: [],
+      assignmentIds: []
+    },
+    summary: {
+      classCount: classCards.length,
+      courseCount: 0,
+      studentCount: countStoredClassStudents(classCards),
+      pendingSubmissionsCount: 0
+    }
+  };
+}
+
+async function buildTeacherClassDetailData(executionState) {
+  var payload = executionState.payload || {};
+  var requestedClassId = payload.classId || "";
+  var scope = await loadTeacherClassScope(executionState);
+  var classRecord = findById(scope.classes, requestedClassId);
+
+  if (!requestedClassId || !classRecord) {
+    console.warn("[teacher-dashboard:class-detail-missing]", {
+      classId: requestedClassId,
+      teacherId: scope.profile && scope.profile.id ? scope.profile.id : ""
+    });
+
+    return {
+      teacher: normalizeTeacherProfile(scope.profile),
+      classRecord: classRecord,
+      students: [],
+      courses: [],
+      submissions: [],
+      emotionalCheckIns: [],
+      errors: requestedClassId ? {
+        classInfo: "The selected class is no longer available for this teacher."
+      } : {},
+      summary: createClassDetailSummary([], [], [])
+    };
+  }
+
+  var errors = {};
+  var students = [];
+  var assignments = [];
+  var courseCards = [];
+
+  try {
+    students = await loadStudentsForClasses([requestedClassId]);
+  } catch (error) {
+    console.error("[teacher-class-detail:students-load-failed]", {
+      classId: requestedClassId,
+      errorMessage: readErrorMessage(error)
+    });
+    errors.students = readErrorMessage(error);
+  }
+
+  try {
+    assignments = await loadCourseAssignmentsForClass(requestedClassId);
+  } catch (error) {
+    console.error("[teacher-class-detail:courses-load-failed]", {
+      classId: requestedClassId,
+      errorMessage: readErrorMessage(error)
+    });
+    errors.courses = readErrorMessage(error);
+  }
+
+  try {
+    courseCards = await normalizeCourseAssignmentCards(assignments, [classRecord], students, {});
+  } catch (error) {
+    console.error("[teacher-class-detail:course-cards-load-failed]", {
+      classId: requestedClassId,
+      errorMessage: readErrorMessage(error)
+    });
+    errors.courses = readErrorMessage(error);
+    courseCards = [];
+  }
+
+  var studentCards = students.map(function (student) {
+    return normalizeStudentCard(student, null, 0);
+  });
+
+  return {
+    teacher: normalizeTeacherProfile(scope.profile),
+    classRecord: normalizeClassCard(classRecord, students, assignments, 0),
+    students: studentCards,
+    courses: courseCards,
+    submissions: [],
+    emotionalCheckIns: [],
+    errors: errors,
+    summary: createClassDetailSummary(studentCards, courseCards, [])
+  };
+}
+
 async function buildTeacherDashboardData(executionState) {
   var scope = await loadTeacherOwnershipScope(executionState);
   var profile = scope.profile;
   var classes = scope.classes;
   var effectiveClassIds = scope.classIds;
-  var submissionQueryErrors = [];
-  var studentResult = await loadStudentsForTeacherClasses(classes);
-  var students = studentResult.students;
+  var students = await loadStudentsForClasses(effectiveClassIds);
   var progress = await loadProgressForStudents(students);
   var submissions = await loadScopedSubmissions({
     classIds: effectiveClassIds,
     assignmentIds: scope.assignmentIds,
     courseIds: scope.courseIds,
     teacherIds: scope.teacherIds,
-    locationIds: scope.locationIds,
-    reviewStatus: (executionState.payload || {}).reviewStatus || "pending",
-    queryErrors: submissionQueryErrors
+    reviewStatus: (executionState.payload || {}).reviewStatus || "pending"
   });
   var pendingCountsByClass = countSubmissionsByField(submissions, "classId");
   var pendingCountsByStudent = countSubmissionsByField(submissions, "studentId");
   var pendingCountsByAssignment = countSubmissionsByAssignment(submissions);
-  var studentBlockingQueryErrors = readBlockingQueryErrors(studentResult.queryErrors, students);
-  var submissionBlockingQueryErrors = readBlockingQueryErrors(submissionQueryErrors, submissions);
   var classCards = classes.map(function (classRecord) {
     return normalizeClassCard(classRecord, students, scope.assignments, pendingCountsByClass[classRecord.id] || 0);
   });
@@ -259,12 +362,11 @@ async function buildTeacherDashboardData(executionState) {
     assignedClassCount: effectiveClassIds.length,
     ownedCourseAssignmentCount: courseCards.length,
     studentCount: studentCards.length,
-    pendingSubmissionsCount: submissions.length,
-    teacherIdentity: scope.teacherIdentity
+    pendingSubmissionsCount: submissions.length
   });
 
   return {
-    teacher: normalizeTeacherProfile(profile, scope),
+    teacher: normalizeTeacherProfile(profile),
     classes: classCards,
     courses: courseCards,
     students: studentCards,
@@ -272,7 +374,7 @@ async function buildTeacherDashboardData(executionState) {
     filters: {
       classIds: effectiveClassIds,
       courseIds: scope.courseIds,
-      assignmentIds: scope.assignmentIds.concat(scope.courseAssignmentIds || [])
+      assignmentIds: scope.assignmentIds
     },
     summary: {
       classCount: classCards.length,
@@ -280,171 +382,177 @@ async function buildTeacherDashboardData(executionState) {
       studentCount: studentCards.length,
       pendingSubmissionsCount: submissions.filter(function (submission) {
         return submission.reviewStatus === "pending";
-      }).length,
-      needsWorkSubmissionsCount: submissions.filter(function (submission) {
-        return submission.reviewStatus === "needsWork";
-      }).length,
-      completedSubmissionsCount: submissions.filter(function (submission) {
-        return submission.reviewStatus === "complete";
-      }).length,
-      studentQueryFailed: studentBlockingQueryErrors.length > 0,
-      submissionQueryFailed: submissionBlockingQueryErrors.length > 0
-    },
-    debug: {
-      teacherIdentity: scope.teacherIdentity,
-      authUid: scope.teacherIdentity.authUid || scope.authUid || "",
-      teacherProfileId: scope.profileUserId || (profile && profile.id ? profile.id : ""),
-      teacherProfileIds: scope.teacherIds,
-      teacherClassIdentifiers: scope.classIdentifiers,
-      teacherLocationIdentifiers: scope.locationIds,
-      teacherScope: scope.teacherScope,
-      assignedClassCount: classCards.length,
-      assignedCourseCount: courseCards.length,
-      studentCount: studentCards.length,
-      pendingReviewCount: submissions.filter(function (submission) {
-        return submission.reviewStatus === "pending";
-      }).length,
-      studentQueryErrors: studentResult.queryErrors || [],
-      studentBlockingQueryErrors: studentBlockingQueryErrors,
-      submissionQueryErrors: submissionQueryErrors,
-      submissionBlockingQueryErrors: submissionBlockingQueryErrors,
-      queryErrors: readQueryErrors([scope.queryErrors, studentResult.queryErrors, submissionQueryErrors])
+      }).length
     }
   };
 }
 
-async function loadStudentsForTeacherClasses(classes) {
-  var classScopes = (Array.isArray(classes) ? classes : []).map(buildStudentClassScope);
-  var studentResult = await getStudentsForClassScopes(classScopes);
-
-  if (studentResult.students.length > 0 || !studentResult.queryErrors || studentResult.queryErrors.length === 0) {
-    return Object.assign({}, studentResult, {
-      blockingQueryErrors: readBlockingQueryErrors(studentResult.queryErrors, studentResult.students)
-    });
-  }
-
-  var rosterResult = await getStudentsForClassRosters(classes);
-  var students = rosterResult.students;
-  var queryErrors = readQueryErrors([studentResult.queryErrors, rosterResult.queryErrors]);
+async function loadTeacherClassScope(executionState) {
+  var context = executionState.context || {};
+  var profile = context.teacherProfile || null;
+  var teacherIds = readTeacherOwnershipIds(context, profile, executionState.actor || {});
+  var classes = await loadTeacherClassesByOwnership(teacherIds, readTeacherRoles(profile));
+  var classIds = classes.map(function (classRecord) { return classRecord.id; });
 
   return {
-    students: students,
-    queryErrors: queryErrors,
-    blockingQueryErrors: readBlockingQueryErrors(queryErrors, students)
+    profile: profile,
+    authUid: context.authUid || "",
+    profileUserId: context.profileUserId || "",
+    teacherIds: teacherIds,
+    classes: classes,
+    classIds: classIds
   };
 }
 
 async function loadTeacherOwnershipScope(executionState) {
   var context = executionState.context || {};
   var profile = context.teacherProfile || null;
-  var teacherIdentity = resolveTeacherIdentity(context, profile, executionState.actor || {});
-  var teacherIds = teacherIdentity.teacherProfileIds;
-  var seedClassIds = teacherIdentity.teacherClassIdentifiers;
-  var classResult = await loadTeacherClassesByOwnership(teacherIds, readTeacherRoles(profile), seedClassIds);
-  var classes = classResult.classes || [];
-  classes = await enrichClassesWithLocationNames(classes);
-  var classIds = readOwnedClassIds(classes, []);
-  var assignmentQueryErrors = [];
-  var assignments = await loadOwnedCourseAssignments(teacherIds, classIds, assignmentQueryErrors);
+  var teacherIds = readTeacherOwnershipIds(context, profile, executionState.actor || {});
+  var classes = await loadTeacherClassesByOwnership(teacherIds, readTeacherRoles(profile));
+  var assignments = await loadOwnedCourseAssignments(teacherIds);
+  var classIds = readOwnedClassIds(classes, assignments);
   var assignmentIds = assignments.map(function (assignment) { return assignment.id; });
   var courseIds = readOwnedCourseIds(assignments);
-  var locationIds = readTextArray([teacherIdentity.teacherLocationIdentifiers, readClassLocationIds(classes)]);
-  var teacherScope = {
-    teacherProfileIds: teacherIds,
-    classIds: classIds,
-    locationIds: locationIds,
-    courseAssignmentIds: assignmentIds,
-    courseIds: courseIds
-  };
 
   console.info("[teacher-dashboard:ownership-scope]", {
     authUid: context.authUid || "",
     profileUserId: context.profileUserId || "",
-    teacherProfileIds: teacherIds,
+    teacherIds: teacherIds,
     ownedClassCount: classes.length,
     ownedCourseAssignmentCount: assignments.length,
     ownedClassIds: classIds,
-    ownedCourseIds: courseIds,
-    locationIds: locationIds,
-    queryPlan: "teacher profile -> classes -> students/courseAssignments -> submissions"
-  });
-
-  logTeacherDashboardDebug(teacherIdentity, {
-    classIdentifiers: classIds,
-    locationIds: locationIds
+    ownedCourseIds: courseIds
   });
 
   return {
     profile: profile,
     authUid: context.authUid || "",
     profileUserId: context.profileUserId || "",
-    teacherIdentity: teacherIdentity,
-    teacherScope: teacherScope,
     teacherIds: teacherIds,
     classes: classes,
     assignments: assignments,
     classIds: classIds,
-    classIdentifiers: classIds,
-    locationIds: locationIds,
     assignmentIds: assignmentIds,
-    courseAssignmentIds: assignmentIds,
-    courseIds: courseIds,
-    queryErrors: readQueryErrors([classResult.queryErrors, assignmentQueryErrors])
+    courseIds: courseIds
   };
 }
 
-async function loadTeacherClassesByOwnership(teacherIds, roles, classIdentifiers) {
-  return getClassesForTeacherScope({
-    teacherProfileIds: teacherIds,
-    roles: roles,
-    classIds: classIdentifiers
-  });
+async function loadTeacherClassesByOwnership(teacherIds, roles) {
+  return getClassesForTeacher(teacherIds, roles);
 }
 
-async function loadOwnedCourseAssignments(teacherIds, classIds, queryErrors) {
+async function appendClassOwnershipQuery(classes, classesQuery, details) {
+  console.info("[teacher-dashboard:classes-query]", {
+    teacherId: details && details.teacherId ? details.teacherId : "",
+    queryShape: details && details.queryShape ? details.queryShape : "classes ownership query"
+  });
+
+  try {
+    var snapshot = await getDocs(classesQuery);
+    snapshot.forEach(function (classSnap) {
+      addUniqueRecord(classes, Object.assign({
+        id: classSnap.id,
+        source: "classes",
+        ownershipRole: details && details.ownershipRole ? details.ownershipRole : "Assigned"
+      }, classSnap.data() || {}));
+    });
+  } catch (error) {
+    console.warn("[teacher-dashboard:classes-query-failed]", {
+      teacherId: details && details.teacherId ? details.teacherId : "",
+      queryShape: details && details.queryShape ? details.queryShape : "classes ownership query",
+      errorMessage: readErrorMessage(error)
+    });
+  }
+}
+
+async function loadStudentsForClasses(classIds) {
+  return getStudentsForClasses(classIds);
+}
+
+async function appendStudentQuery(students, studentsQuery, details) {
+  console.info("[teacher-dashboard:students-query]", {
+    classId: details && details.classId ? details.classId : "",
+    queryShape: details && details.queryShape ? details.queryShape : "users scoped query"
+  });
+
+  try {
+    var snapshot = await getDocs(studentsQuery);
+    snapshot.forEach(function (studentSnap) {
+      addUniqueRecord(students, Object.assign({ id: studentSnap.id }, studentSnap.data() || {}));
+    });
+  } catch (error) {
+    console.warn("[teacher-dashboard:students-query-failed]", {
+      classId: details && details.classId ? details.classId : "",
+      queryShape: details && details.queryShape ? details.queryShape : "users scoped query",
+      errorMessage: readErrorMessage(error)
+    });
+  }
+}
+
+async function loadOwnedCourseAssignments(teacherIds) {
   var assignments = [];
   var index = 0;
-  var teacherChunks = chunkValues(readTextArray([teacherIds]), 10);
-  var classChunks = chunkValues(readTextArray([classIds]), 10);
 
-  while (index < teacherChunks.length) {
-    await appendAssignmentOwnershipQuery(assignments, query(collection(db, "courseAssignments"), where("teacherOwnershipIds", "array-contains-any", teacherChunks[index])), {
-      teacherId: teacherChunks[index].join(","),
+  while (index < teacherIds.length) {
+    await appendAssignmentOwnershipQuery(assignments, query(collection(db, "courseAssignments"), where("teacherOwnershipIds", "array-contains", teacherIds[index])), {
+      teacherId: teacherIds[index],
       ownershipRole: "Assigned",
-      queryShape: "courseAssignments where teacherOwnershipIds array-contains-any teacherProfileIds"
-    }, queryErrors);
-    await appendAssignmentOwnershipQuery(assignments, query(collection(db, "courseAssignments"), where("responsibleTeacherId", "in", teacherChunks[index])), {
-      teacherId: teacherChunks[index].join(","),
+      queryShape: "courseAssignments where teacherOwnershipIds array-contains teacherId"
+    });
+    await appendAssignmentOwnershipQuery(assignments, query(collection(db, "courseAssignments"), where("responsibleTeacherId", "==", teacherIds[index])), {
+      teacherId: teacherIds[index],
       ownershipRole: "Responsible Teacher",
-      queryShape: "courseAssignments where responsibleTeacherId in teacherProfileIds"
-    }, queryErrors);
-    await appendAssignmentOwnershipQuery(assignments, query(collection(db, "courseAssignments"), where("assistantIds", "array-contains-any", teacherChunks[index])), {
-      teacherId: teacherChunks[index].join(","),
+      queryShape: "courseAssignments where responsibleTeacherId == teacherId"
+    });
+    await appendAssignmentOwnershipQuery(assignments, query(collection(db, "courseAssignments"), where("assistantIds", "array-contains", teacherIds[index])), {
+      teacherId: teacherIds[index],
       ownershipRole: "Assistant",
-      queryShape: "courseAssignments where assistantIds array-contains-any teacherProfileIds"
-    }, queryErrors);
-    index = index + 1;
-  }
-
-  index = 0;
-  while (index < classChunks.length) {
-    await appendAssignmentOwnershipQuery(assignments, query(collection(db, "courseAssignments"), where("targetType", "==", "class"), where("targetId", "in", classChunks[index])), {
-      teacherId: classChunks[index].join(","),
-      ownershipRole: "Class Assignment",
-      queryShape: "courseAssignments where targetType == class and targetId in classIds"
-    }, queryErrors);
-    await appendAssignmentOwnershipQuery(assignments, query(collection(db, "courseAssignments"), where("classId", "in", classChunks[index])), {
-      teacherId: classChunks[index].join(","),
-      ownershipRole: "Class Assignment",
-      queryShape: "courseAssignments where classId in classIds"
-    }, queryErrors);
+      queryShape: "courseAssignments where assistantIds array-contains teacherId"
+    });
     index = index + 1;
   }
 
   return assignments.filter(isVisibleCourseAssignment).sort(compareAssignmentByTitle);
 }
 
-async function appendAssignmentOwnershipQuery(assignments, assignmentsQuery, details, queryErrors) {
+async function loadCourseAssignmentsForClass(classId) {
+  var assignments = [];
+
+  if (!classId) {
+    return assignments;
+  }
+
+  await appendClassAssignmentQuery(assignments, query(collection(db, "courseAssignments"), where("targetType", "==", "class"), where("targetId", "==", classId)), {
+    classId: classId,
+    queryShape: "courseAssignments where targetType == class and targetId == classId"
+  });
+  await appendClassAssignmentQuery(assignments, query(collection(db, "courseAssignments"), where("classId", "==", classId)), {
+    classId: classId,
+    queryShape: "courseAssignments where classId == classId"
+  });
+
+  return assignments.filter(isVisibleCourseAssignment).sort(compareAssignmentByTitle);
+}
+
+async function appendClassAssignmentQuery(assignments, assignmentsQuery, details) {
+  try {
+    var snapshot = await getDocs(assignmentsQuery);
+    snapshot.forEach(function (assignmentSnap) {
+      addUniqueRecord(assignments, Object.assign({
+        id: assignmentSnap.id,
+        ownershipRole: "Assigned"
+      }, assignmentSnap.data() || {}));
+    });
+  } catch (error) {
+    console.warn("[teacher-dashboard:class-courses-query-failed]", {
+      classId: details && details.classId ? details.classId : "",
+      queryShape: details && details.queryShape ? details.queryShape : "courseAssignments class query",
+      errorMessage: readErrorMessage(error)
+    });
+  }
+}
+
+async function appendAssignmentOwnershipQuery(assignments, assignmentsQuery, details) {
   console.info("[teacher-dashboard:courses-query]", {
     teacherId: details && details.teacherId ? details.teacherId : "",
     queryShape: details && details.queryShape ? details.queryShape : "courseAssignments ownership query"
@@ -459,7 +567,6 @@ async function appendAssignmentOwnershipQuery(assignments, assignmentsQuery, det
       }, assignmentSnap.data() || {}));
     });
   } catch (error) {
-    appendQueryError(queryErrors, "courseAssignments", details && details.queryShape ? details.queryShape : "courseAssignments ownership query", error);
     console.warn("[teacher-dashboard:courses-query-failed]", {
       teacherId: details && details.teacherId ? details.teacherId : "",
       queryShape: details && details.queryShape ? details.queryShape : "courseAssignments ownership query",
@@ -508,90 +615,6 @@ async function readStudentProgressSummary(studentId) {
 
 async function loadScopedSubmissions(filters) {
   return await enrichSubmissionsWithCourseMetadata(await getExternalTaskSubmissionsForTeacher(filters));
-}
-
-async function enrichClassesWithLocationNames(classes) {
-  var locationCache = {};
-  var result = [];
-  var index = 0;
-
-  while (index < classes.length) {
-    var classRecord = classes[index];
-    var locationId = readClassLocationId(classRecord);
-    var locationName = classRecord.locationName || classRecord.schoolName || "";
-
-    if (!locationName && locationId) {
-      locationName = await readLocationName(locationId, locationCache);
-    }
-
-    result.push(Object.assign({}, classRecord, {
-      locationName: locationName || classRecord.locationName || ""
-    }));
-    index = index + 1;
-  }
-
-  return result;
-}
-
-async function readLocationName(locationId, cache) {
-  if (!locationId) {
-    return "";
-  }
-
-  if (Object.prototype.hasOwnProperty.call(cache, locationId)) {
-    return cache[locationId];
-  }
-
-  try {
-    var locationSnap = await getDoc(doc(db, "locations", locationId));
-    if (!locationSnap.exists()) {
-      cache[locationId] = "";
-      return "";
-    }
-
-    cache[locationId] = readTitleFromRecord(locationSnap.data() || {}, "");
-    return cache[locationId];
-  } catch (error) {
-    cache[locationId] = "";
-    return "";
-  }
-}
-
-function logTeacherDashboardDebug(teacherIdentity, scope) {
-  if (!isExternalTaskDebugEnabled()) {
-    return;
-  }
-
-  console.log("[teacher-dashboard-debug] teacherIdentity", teacherIdentity);
-  console.log("[teacher-dashboard-debug] teacherProfileIds", teacherIdentity.teacherProfileIds || []);
-  console.log("[teacher-dashboard-debug] teacherClassIdentifiers", scope.classIdentifiers || []);
-  console.log("[teacher-dashboard-debug] teacherLocationIdentifiers", scope.locationIds || []);
-}
-
-function logExternalTaskTeacherDebug(executionState, scope, payload, submissions) {
-  if (!isExternalTaskDebugEnabled()) {
-    return;
-  }
-
-  console.log("[external-task-teacher-debug]", {
-    teacherId: scope && scope.profile && scope.profile.id ? scope.profile.id : ((executionState.actor || {}).id || ""),
-    classIds: scope && Array.isArray(scope.classIds) ? scope.classIds.slice() : [],
-    locationIds: scope && Array.isArray(scope.locationIds) ? scope.locationIds.slice() : [],
-    filters: {
-      reviewStatus: payload && payload.reviewStatus ? payload.reviewStatus : "",
-      classId: payload && payload.classId ? payload.classId : "",
-      courseId: payload && payload.courseId ? payload.courseId : "",
-      moduleId: payload && payload.moduleId ? payload.moduleId : "",
-      studentSearch: payload && payload.studentSearch ? payload.studentSearch : ""
-    },
-    submissionCount: Array.isArray(submissions) ? submissions.length : 0
-  });
-}
-
-function isExternalTaskDebugEnabled() {
-  return typeof window !== "undefined"
-    && window.location
-    && window.location.search.indexOf("debug=true") !== -1;
 }
 
 async function loadUserProfile(uid) {
@@ -710,9 +733,7 @@ async function readModuleSummaryFromSource(courseId, moduleId, source) {
   }
 }
 
-function normalizeTeacherProfile(profile, scope) {
-  var locationName = readTeacherLocationName(profile, scope);
-
+function normalizeTeacherProfile(profile) {
   return {
     id: profile && profile.id ? profile.id : "",
     profileUserId: profile && profile.profileUserId ? profile.profileUserId : "",
@@ -722,43 +743,21 @@ function normalizeTeacherProfile(profile, scope) {
     role: readPrimaryRole(profile),
     roleLabel: formatRole(readPrimaryRole(profile)),
     locationId: profile && (profile.locationId || profile.primaryLocationId || profile.schoolId) ? (profile.locationId || profile.primaryLocationId || profile.schoolId) : "",
-    locationName: locationName || "Assigned school"
+    locationName: profile && (profile.locationName || profile.schoolName) ? (profile.locationName || profile.schoolName) : "Assigned school"
   };
 }
 
-function readTeacherLocationName(profile, scope) {
-  var profileLocationName = profile
-    ? (profile.locationName || profile.schoolName || profile.primaryLocationName || profile.assignedSchoolName || "")
-    : "";
-  var classes = scope && Array.isArray(scope.classes) ? scope.classes : [];
-  var index = 0;
-
-  if (profileLocationName) {
-    return profileLocationName;
-  }
-
-  while (index < classes.length) {
-    if (classes[index].locationName || classes[index].schoolName) {
-      return classes[index].locationName || classes[index].schoolName;
-    }
-    index = index + 1;
-  }
-
-  return "";
-}
-
 function normalizeClassCard(classRecord, students, assignments, pendingCount) {
-  var classIdentifiers = readClassIdentifiers(classRecord);
   var classStudents = students.filter(function (student) {
-    return studentInClass(student, classIdentifiers);
+    return studentInClass(student, classRecord.id);
   });
   var classAssignments = assignments.filter(function (assignment) {
-    return classIdentifiers.indexOf(assignment.targetId) !== -1 || classIdentifiers.indexOf(assignment.classId) !== -1;
+    return assignment.targetId === classRecord.id || assignment.classId === classRecord.id;
   });
 
   return {
     id: classRecord.id,
-    name: readClassName(classRecord, "Class " + classRecord.id),
+    name: readName(classRecord, "Class " + classRecord.id),
     locationId: readClassLocationId(classRecord),
     locationName: classRecord.locationName || classRecord.schoolName || classRecord.locationId || "Assigned location",
     studentCount: classStudents.length,
@@ -769,10 +768,23 @@ function normalizeClassCard(classRecord, students, assignments, pendingCount) {
   };
 }
 
+function normalizeClassListCard(classRecord) {
+  return {
+    id: classRecord.id,
+    name: readName(classRecord, "Class " + classRecord.id),
+    locationId: readClassLocationId(classRecord),
+    locationName: classRecord.locationName || classRecord.schoolName || classRecord.locationId || "Assigned location",
+    studentCount: readStoredCount(classRecord, ["studentCount", "studentsCount", "studentTotal"], classRecord.studentIds),
+    assignedCoursesCount: readStoredCount(classRecord, ["assignedCoursesCount", "courseCount", "coursesCount"], classRecord.assignedCourseIds),
+    pendingSubmissionsCount: readStoredCount(classRecord, ["pendingSubmissionsCount", "pendingReviewCount"], []),
+    ownershipRole: classRecord.ownershipRole || "Assigned",
+    source: classRecord.source || "classes"
+  };
+}
+
 async function normalizeCourseAssignmentCards(assignments, classes, students, pendingCountsByAssignment) {
   var courseCache = {};
   var cards = [];
-  var cardByCourseId = {};
   var index = 0;
 
   while (index < assignments.length) {
@@ -780,38 +792,24 @@ async function normalizeCourseAssignmentCards(assignments, classes, students, pe
     var course = await loadCourseSummary(assignment.courseId, courseCache);
     var targetClassId = readAssignmentClassId(assignment);
     var targetClass = findById(classes, targetClassId);
-    var targetClassIdentifiers = targetClass ? readClassIdentifiers(targetClass) : [targetClassId];
     var targetStudents = targetClassId
-      ? students.filter(function (student) { return studentInClass(student, targetClassIdentifiers); })
+      ? students.filter(function (student) { return studentInClass(student, targetClassId); })
       : [];
-    var courseId = assignment.courseId || assignment.id || "";
-    var existing = cardByCourseId[courseId];
-    var card = {
+
+    cards.push({
       id: assignment.id,
       assignmentId: assignment.id,
-      courseAssignmentId: assignment.id,
-      assignmentIds: [assignment.id],
-      courseAssignmentIds: [assignment.id],
       courseId: assignment.courseId || "",
       courseTitle: assignment.courseTitle || (course ? course.title : "Untitled Course"),
       targetType: assignment.targetType || (targetClassId ? "class" : ""),
       targetId: assignment.targetId || targetClassId,
       classId: targetClassId,
-      targetName: assignment.targetName || assignment.className || (targetClass ? readClassName(targetClass, targetClassId) : targetClassId || "Assigned target"),
+      targetName: assignment.targetName || assignment.className || (targetClass ? targetClass.name : targetClassId || "Assigned target"),
       ownershipRole: assignment.ownershipRole || "Assigned",
       studentCount: targetStudents.length,
       pendingSubmissionsCount: pendingCountsByAssignment[assignment.id] || 0,
       status: assignment.status || "active"
-    };
-
-    if (existing) {
-      mergeCourseAssignmentCard(existing, card);
-    } else if (courseId) {
-      cardByCourseId[courseId] = card;
-      cards.push(card);
-    } else {
-      cards.push(card);
-    }
+    });
     index = index + 1;
   }
 
@@ -821,138 +819,55 @@ async function normalizeCourseAssignmentCards(assignments, classes, students, pe
 }
 
 function normalizeStudentCard(student, progress, pendingCount) {
-  return {
+  return Object.assign({}, student, {
     id: student.id,
     name: readName(student, "Student " + student.id),
     photoUrl: student.photoUrl || student.avatarUrl || "",
     classId: student.classId || firstArrayValue(student.classIds) || firstArrayValue(student.assignedClassIds),
-    classIds: readTextArray([student.classId, student.primaryClassId, student.className, student.classIds, student.assignedClassIds]),
+    classIds: readTextArray([student.classId, student.classIds, student.assignedClassIds]),
     lastActiveAt: progress ? progress.lastActiveAt : null,
     currentCourseProgress: progress && progress.courseCount > 0 ? progress.courseCount + " course(s) active" : "No progress yet",
     pendingSubmissionsCount: pendingCount,
     status: pendingCount > 0 ? "needsReview" : "steady"
-  };
-}
-
-function mergeCourseAssignmentCard(existing, next) {
-  appendTextValues(existing.assignmentIds, next.assignmentIds);
-  appendTextValues(existing.courseAssignmentIds, next.courseAssignmentIds);
-  existing.studentCount = Math.max(existing.studentCount || 0, next.studentCount || 0);
-  existing.pendingSubmissionsCount = (existing.pendingSubmissionsCount || 0) + (next.pendingSubmissionsCount || 0);
-
-  if (next.targetType === "class" && existing.targetType !== "class") {
-    existing.targetType = next.targetType;
-    existing.targetId = next.targetId;
-    existing.classId = next.classId;
-    existing.targetName = next.targetName;
-  }
-}
-
-function readClassScopeIdentifiers(classes, seedIdentifiers) {
-  var identifiers = readTextArray([seedIdentifiers]);
-  var index = 0;
-
-  while (index < classes.length) {
-    appendTextValues(identifiers, readClassIdentifiers(classes[index]));
-    index = index + 1;
-  }
-
-  return identifiers;
-}
-
-function readClassIdentifiers(classRecord) {
-  if (!classRecord) {
-    return [];
-  }
-
-  return readTextArray([
-    classRecord.id,
-    classRecord.classId,
-    classRecord.name,
-    classRecord.subject,
-    classRecord.title,
-    classRecord.displayName,
-    classRecord.classCode,
-    classRecord.code
-  ]);
-}
-
-function readClassLocationIds(classes) {
-  var ids = [];
-  var index = 0;
-
-  while (index < classes.length) {
-    addText(ids, readClassLocationId(classes[index]));
-    index = index + 1;
-  }
-
-  return ids;
-}
-
-function readClassName(classRecord, fallback) {
-  if (!classRecord) {
-    return fallback;
-  }
-
-  return readTitle(classRecord.name || classRecord.subject || classRecord.title || classRecord.displayName, fallback);
-}
-
-function readQueryErrors(values) {
-  var result = [];
-  var index = 0;
-
-  while (index < values.length) {
-    if (Array.isArray(values[index])) {
-      values[index].forEach(function (item) {
-        result.push(item);
-      });
-    }
-    index = index + 1;
-  }
-
-  return result;
-}
-
-function readBlockingQueryErrors(queryErrors, records) {
-  if (Array.isArray(records) && records.length > 0) {
-    return [];
-  }
-
-  return Array.isArray(queryErrors) ? queryErrors : [];
-}
-
-function appendQueryError(queryErrors, collectionName, queryShape, error) {
-  if (!Array.isArray(queryErrors)) {
-    return;
-  }
-
-  queryErrors.push({
-    collection: collectionName,
-    queryShape: queryShape,
-    errorCode: error && error.code ? error.code : "",
-    errorMessage: readErrorMessage(error)
   });
 }
 
-function chunkValues(values, chunkSize) {
-  var chunks = [];
-  var index = 0;
-  var safeValues = Array.isArray(values) ? values : [];
-
-  while (index < safeValues.length) {
-    chunks.push(safeValues.slice(index, index + chunkSize));
-    index = index + chunkSize;
-  }
-
-  return chunks;
+function createClassDetailSummary(students, courses, emotionalCheckIns) {
+  return {
+    studentCount: students.length,
+    courseCount: courses.length,
+    emotionalCheckInCount: emotionalCheckIns.length
+  };
 }
 
-function readTitleFromRecord(record, fallback) {
-  if (!record) {
-    return fallback;
+function countStoredClassStudents(classCards) {
+  var total = 0;
+  var index = 0;
+
+  while (index < classCards.length) {
+    total = total + (Number(classCards[index].studentCount) || 0);
+    index = index + 1;
   }
 
-  return readTitle(record.name || record.title || record.displayName || record.schoolName || record.locationName, fallback);
+  return total;
+}
+
+function readStoredCount(record, fieldNames, fallbackArray) {
+  var index = 0;
+
+  while (record && index < fieldNames.length) {
+    if (typeof record[fieldNames[index]] === "number" && Number.isFinite(record[fieldNames[index]])) {
+      return record[fieldNames[index]];
+    }
+
+    if (typeof record[fieldNames[index]] === "string" && record[fieldNames[index]].trim() && Number.isFinite(Number(record[fieldNames[index]]))) {
+      return Number(record[fieldNames[index]]);
+    }
+
+    index = index + 1;
+  }
+
+  return Array.isArray(fallbackArray) ? fallbackArray.length : 0;
 }
 
 function readTeacherOwnershipIds(context, profile, actor) {
@@ -1319,3 +1234,5 @@ function readErrorMessage(error) {
 
   return error.code ? error.code + " " + error.message : error.message || String(error);
 }
+
+

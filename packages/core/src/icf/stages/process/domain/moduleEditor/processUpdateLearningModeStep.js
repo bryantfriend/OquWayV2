@@ -1,5 +1,6 @@
 import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
 import { createDefaultStepConfig } from "../../../../../../../domain/steps/index.js";
+import { normalizeActivityTemplateId } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.177-level-unlock-roadmap";
 
 export async function processUpdateLearningModeStep(executionState) {
   var payload = executionState.payload || {};
@@ -88,6 +89,12 @@ function createUpdatedStep(existingStep, updates) {
 
   if (Object.prototype.hasOwnProperty.call(updates, "config")) {
     nextStep.config = createDefaultStepConfig(stepType, updates.config);
+  }
+
+  if (Object.prototype.hasOwnProperty.call(updates, "activityTemplate")) {
+    nextStep.activityTemplate = normalizeActivityTemplateId(stepType, updates.activityTemplate);
+  } else if (!nextStep.activityTemplate) {
+    nextStep.activityTemplate = normalizeActivityTemplateId(stepType, "");
   }
 
   if (Object.prototype.hasOwnProperty.call(updates, "status")) {

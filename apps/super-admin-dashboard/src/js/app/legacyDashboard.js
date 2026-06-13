@@ -1,14 +1,13 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth, collection, db, deleteDoc, deleteObject, doc, functions, getDoc, getDocs, getDownloadURL, httpsCallable, ref, serverTimestamp, setDoc, storage, uploadBytes } from "../../../../../packages/firebase/index.js?v=1.1.162-modal-stack";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.162-modal-stack";
-import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.162-modal-stack";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.162-modal-stack";
-import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.162-modal-stack";
-import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.162-modal-stack";
-import { installModalStacking, syncModalStack } from "./modalStack.js?v=1.1.162-modal-stack";
+import { auth, collection, db, deleteDoc, doc, functions, getDoc, getDocs, httpsCallable, serverTimestamp, setDoc, storage } from "../../../../../packages/firebase/index.js?v=1.1.82-shared-command-center-shell";
+import { runAdminIntent as runRegisteredAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.82-shared-command-center-shell";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.82-shared-command-center-shell";
+import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.82-shared-command-center-shell";
+import { COURSE_CREATOR_URL, roleFilterCards, userManagementRoles, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.82-shared-command-center-shell";
+import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.82-shared-command-center-shell";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.162-modal-stack";
+var appVersion = "1.1.82";
 var adminCallableFunctions = functions;
 var state = {
   isLoading: true,
@@ -17,11 +16,14 @@ var state = {
   pendingAction: "",
   activeLocationId: "",
   locationCreateOpen: false,
+  locationCreateError: "",
   locationCommandCenter: createLocationCommandCenterState(),
   classCommandCenter: createClassCommandCenterState(),
+  classDelete: createClassDeleteState(),
   userCommandCenter: createUserCommandCenterState(),
   courseCommandCenter: createCourseCommandCenterState(),
   moduleCommandCenter: createModuleCommandCenterState(),
+  courseModuleDanger: createCourseModuleDangerState(),
   authPhase: "checkingAuth",
   needsLogin: false,
   activeTab: "overview",
@@ -58,11 +60,9 @@ var state = {
     status: ""
   },
   locationForm: createLocationForm(),
-  locationIconDrafts: {},
   userForm: createUserForm(),
   activeUserId: "",
   userCreateOpen: false,
-  userCreateError: "",
   userEditModal: createUserEditModalState(),
   classForm: createClassForm(),
   studentForm: createStudentForm(),
@@ -107,13 +107,6 @@ var state = {
     includeAllLocations: false,
     selectedIds: []
   },
-  userLocationPicker: {
-    isOpen: false,
-    formId: "",
-    mode: "scope",
-    searchText: "",
-    selectedIds: []
-  },
   classStaffPicker: {
     isOpen: false,
     classId: "",
@@ -124,8 +117,6 @@ var state = {
 };
 
 var tabs = ["overview", "locations", "users", "classes", "lessons", "assignments", "loginTools", "analytics", "reports", "settings", "auditLogs"];
-var locationIconAllowedTypes = ["image/png", "image/jpeg", "image/webp"];
-var locationIconMaxBytes = 2 * 1024 * 1024;
 var fruits = ["apple", "watermelon", "banana", "strawberry", "pineapple", "mango", "kiwi", "orange", "cherry"];
 var fruitLabels = {
   apple: "🍎",
@@ -143,10 +134,9 @@ if (appElement) {
   appElement.addEventListener("click", handleClick);
   appElement.addEventListener("input", handleInput);
   appElement.addEventListener("change", handleInput);
-  installModalStacking(appElement);
 }
 
-document.addEventListener("keydown", handleKeyDown);
+document.addEventListener("keydown", handleKeydown);
 
 onAuthStateChanged(auth, function (user) {
   initializeDashboard(user);
@@ -195,7 +185,7 @@ async function initializeDashboard(user) {
       return;
     }
 
-    if (!actorHasSuperAdminRole(actor)) {
+    if (!actorCanAccessAdminDashboard(actor)) {
       setState({
         isLoading: false,
         authPhase: "unauthorized",
@@ -350,7 +340,7 @@ async function refreshAllData() {
     status: state.assignmentFilters.status
   });
   var overviewData = await loadOverviewData();
-  var refreshMessage = readRefreshMessage([locationsResult, classesResult, studentsResult, coursesResult, assignmentsResult]);
+  var refreshMessage = readRefreshMessage([locationsResult, classesResult, studentsResult, coursesResult, assignmentsResult, overviewData.collectionStatus.users]);
 
   setState({
     isLoading: false,
@@ -367,9 +357,63 @@ async function refreshAllData() {
   });
 }
 
+async function refreshLocationsList(successMessage) {
+  setState({ isRefreshing: true, message: "Refreshing locations...", messageType: "info" });
+
+  try {
+    var locationsResult = await runAdminIntent("ListLocationsIntent", {});
+
+    if (!isSuccess(locationsResult)) {
+      console.error("[super-admin] location list refresh failed", locationsResult);
+      setState({ isRefreshing: false, message: readIntentError(locationsResult), messageType: "error" });
+      return false;
+    }
+
+    setState({
+      isRefreshing: false,
+      locations: readDataList(locationsResult, "locations"),
+      message: successMessage,
+      messageType: "success"
+    });
+    return true;
+  } catch (error) {
+    console.error("[super-admin] location list refresh failed", error);
+    setState({ isRefreshing: false, message: "Location was saved, but the list could not refresh.", messageType: "error" });
+    return false;
+  }
+}
+
+async function refreshClassesList(successMessage) {
+  setState({ isRefreshing: true, message: "Refreshing classes...", messageType: "info" });
+
+  try {
+    var classesResult = await runAdminIntent("ListClassesIntent", {
+      locationId: state.filters.locationId
+    });
+
+    if (!isSuccess(classesResult)) {
+      console.error("[super-admin] class list refresh failed", classesResult);
+      setState({ isRefreshing: false, message: readIntentError(classesResult), messageType: "error" });
+      return false;
+    }
+
+    setState({
+      isRefreshing: false,
+      classes: readDataList(classesResult, "classes"),
+      message: successMessage,
+      messageType: "success"
+    });
+    return true;
+  } catch (error) {
+    console.error("[super-admin] class list refresh failed", error);
+    setState({ isRefreshing: false, message: "Class was deleted, but the class list could not refresh.", messageType: "error" });
+    return false;
+  }
+}
+
 async function loadOverviewData() {
   var overviewData = createOverviewData();
-  var usersResult = await readOptionalCollection("users");
+  var usersResult = await loadUsersForManagement();
   var modulesResult = await readOptionalCollection("modules");
   var auditResult = await readOptionalCollection("auditLogs");
   var activityResult = await readOptionalCollection("activityLogs");
@@ -410,6 +454,32 @@ async function readOptionalCollection(collectionName) {
   } catch (error) {
     result.available = false;
     result.error = error && error.message ? error.message : "Collection unavailable.";
+  }
+
+  return result;
+}
+
+async function loadUsersForManagement() {
+  var result = {
+    name: "users",
+    available: true,
+    items: [],
+    error: ""
+  };
+
+  try {
+    var intentResult = await runRegisteredUserIntent("LoadUsersIntent", {});
+
+    if (isSuccess(intentResult)) {
+      result.items = Array.isArray(intentResult.emitted.data) ? intentResult.emitted.data : [];
+      return result;
+    }
+
+    result.available = false;
+    result.error = readIntentError(intentResult);
+  } catch (error) {
+    result.available = false;
+    result.error = error && error.message ? error.message : "Users unavailable.";
   }
 
   return result;
@@ -474,24 +544,20 @@ function render() {
 
   if (state.isLoading || state.authPhase === "checkingAuth" || state.authPhase === "profileLoading") {
     appElement.innerHTML = buildLoadingView();
-    syncModalStack(appElement);
     return;
   }
 
   if (state.needsLogin) {
     appElement.innerHTML = buildLoginView();
-    syncModalStack(appElement);
     return;
   }
 
-  if (!state.actor || !actorHasSuperAdminRole(state.actor)) {
+  if (!state.actor || !actorCanAccessAdminDashboard(state.actor)) {
     appElement.innerHTML = buildAccessDeniedView();
-    syncModalStack(appElement);
     return;
   }
 
   appElement.innerHTML = buildDashboardView();
-  syncModalStack(appElement);
 }
 
 function buildLoadingView() {
@@ -533,18 +599,19 @@ function buildDashboardView() {
   html += '</main>';
   html += buildResetModal();
   html += buildClassCommandCenterModal();
-  html += buildUserCreateModal();
+  html += buildClassDeleteModal();
   html += buildUserCommandCenterModal();
   html += buildUserEditModal();
   html += buildCourseCommandCenterModal();
   html += buildModuleCommandCenterModal();
+  html += buildCourseModuleDangerModal();
   html += buildClassPickerModal();
-  html += buildUserLocationPickerModal();
   html += buildClassStaffPickerModal();
   html += buildAssignmentCoursePickerModal();
   html += buildAssignmentTargetPickerModal();
   html += buildAssignmentStaffPickerModal();
   html += buildAssignmentDeleteModal();
+  html += buildLocationCreateModal();
   html += buildLocationCommandCenterModal();
   html += buildOperationToast();
   html += '</section>';
@@ -621,10 +688,6 @@ function readOperationDetails() {
   }
 
   if (action.indexOf("create-location") === 0 || action.indexOf("update-location") === 0) {
-    if (state.message === "Uploading icon...") {
-      return { title: "Uploading icon", note: "Saving the image to Firebase Storage before updating the location." };
-    }
-
     return { title: "Saving location", note: "Checking details and updating the location record." };
   }
 
@@ -910,15 +973,16 @@ function buildRoleUserRows(users, emptyMessage) {
 }
 
 function buildCourseInventoryRows() {
+  var visibleCourses = state.courses.filter(function (course) { return !isCourseHiddenFromActiveList(course); });
   var html = '<div class="sa-course-catalog-grid">';
   var index = 0;
 
-  if (state.courses.length === 0) {
+  if (visibleCourses.length === 0) {
     return '<div class="sa-empty"><strong>No courses loaded.</strong><span>Courses will appear here when the course collections are available.</span></div>';
   }
 
-  while (index < state.courses.length) {
-    html += buildCourseCatalogCard(state.courses[index]);
+  while (index < visibleCourses.length) {
+    html += buildCourseCatalogCard(visibleCourses[index]);
     index = index + 1;
   }
 
@@ -1310,7 +1374,6 @@ function buildLocationsTab() {
   return '<section class="sa-stack sa-location-page" aria-busy="' + (state.isRefreshing ? "true" : "false") + '">'
     + buildLocationsHeader()
     + buildLocationStats()
-    + buildLocationCreatePanel()
     + '<article class="sa-card sa-location-list-card"><div class="sa-section-title"><div><h2>All Locations</h2><p>Manage school profiles, login links, access, and subscription settings.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data"' + disabled(isBusy()) + '>' + buildButtonContent("Refresh", "refresh-data") + '</button></div>' + buildLocationRows() + '</article>'
     + '</section>';
 }
@@ -1319,12 +1382,13 @@ function buildUsersTab() {
   return '<section class="sa-stack sa-user-page" aria-busy="' + (state.isRefreshing ? "true" : "false") + '">'
     + buildUsersHeader()
     + buildUserRoleCards()
-    + '<article class="sa-card"><div class="sa-section-title"><div><h2>' + escapeHtml(readActiveUserRoleLabel()) + '</h2><p>Single source of truth for identity, role membership, class scope, login status, and recovery actions.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data"' + disabled(isBusy()) + '>' + buildButtonContent("Refresh", "refresh-data") + '</button></div>' + buildUserFilters() + '<div data-user-results="true">' + buildUserRows() + '</div></article>'
+    + buildUserCreatePanel()
+    + '<article class="sa-card"><div class="sa-section-title"><div><h2>' + escapeHtml(readActiveUserRoleLabel()) + '</h2><p>Single source of truth for identity, role membership, class scope, login status, and recovery actions.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data"' + disabled(isBusy()) + '>' + buildButtonContent("Refresh", "refresh-data") + '</button></div>' + buildUserFilters() + buildUserRows() + '</article>'
     + '</section>';
 }
 
 function buildUsersHeader() {
-  return '<div class="sa-page-head"><div><p class="sa-eyebrow">Identity & Access</p><h2>Users</h2><p>Unified management for students, teachers, parents, admins, and super admins.</p></div><button type="button" class="sa-btn" data-action="toggle-create-user"' + disabled(isBusy()) + '>Create User Profile</button></div>';
+  return '<div class="sa-page-head"><div><p class="sa-eyebrow">Identity & Access</p><h2>User Management</h2><p>Unified management for students, teachers, parents, school admins, and super admins.</p></div><button type="button" class="sa-btn" data-action="toggle-create-user"' + disabled(isBusy()) + '>' + (state.userCreateOpen ? "Close" : "New User") + '</button></div>';
 }
 
 function buildUserRoleCards() {
@@ -1403,26 +1467,12 @@ function readActiveUserRoleLabel() {
   return card && card.key ? card.label : "All Users";
 }
 
-function buildUserCreateModal() {
+function buildUserCreatePanel() {
   if (!state.userCreateOpen) {
     return "";
   }
 
-  var html = '<div class="sa-modal-backdrop sa-user-create-backdrop"' + buildModalStackAttributes("user-create") + ' data-user-create-backdrop="true"><section class="sa-modal sa-user-edit-modal sa-user-create-modal" role="dialog" aria-modal="true" aria-label="Create User Profile">';
-
-  html += '<div class="sa-user-edit-hero">';
-  html += '<div class="sa-user-edit-identity"><div class="sa-avatar sa-avatar-fallback">+</div><div><p class="sa-eyebrow">Identity & Access</p><h2>Create User Profile</h2><div class="sa-user-edit-meta"><span>This creates a Firestore profile only.</span></div></div></div>';
-  html += '<button type="button" class="sa-modal-close" data-action="close-user-create-modal" aria-label="Close create user profile">&times;</button>';
-  html += '</div>';
-
-  if (state.userCreateError) {
-    html += '<div class="sa-message sa-message-error">' + escapeHtml(state.userCreateError) + '</div>';
-  }
-
-  html += '<div class="sa-user-edit-body">' + buildUserForm("new", state.userForm, true) + '</div>';
-  html += '</section></div>';
-
-  return html;
+  return '<article class="sa-card"><div class="sa-section-title"><div><h2>New User</h2><p>Create the user profile in the shared Users collection. Link Firebase Auth with the existing account workflows when login access is needed.</p></div></div>' + buildUserForm("new", state.userForm, true) + '</article>';
 }
 
 function buildUserFilters() {
@@ -1437,7 +1487,7 @@ function buildUserFilters() {
 
 function buildUserRows() {
   var users = readFilteredUsers();
-  var html = '<div class="sa-user-table"><div class="sa-user-table-head"><span>Profile</span><span>Roles</span><span>Location</span><span>Class(es)</span><span>Status</span><span>Last Active</span><span>Actions</span></div>';
+  var html = '<div class="sa-user-table"><div class="sa-user-table-head"><span>Name</span><span>Email</span><span>Roles</span><span>Location</span><span>Status</span><span>Actions</span></div>';
   var index = 0;
 
   if (state.isRefreshing && state.users.length === 0) {
@@ -1465,12 +1515,11 @@ function buildUserCard(user) {
   var html = '<article class="sa-user-card">';
 
   html += '<div class="sa-user-summary">';
-  html += '<div class="sa-user-profile-cell">' + buildAvatar(user) + '<div class="sa-user-main"><h3>' + escapeHtml(user.displayName || user.name || user.email || user.id) + '</h3><p>' + escapeHtml(user.email || "No email") + '</p><small>' + escapeHtml(user.phone || "No phone") + '</small></div></div>';
+  html += '<div class="sa-user-profile-cell">' + buildAvatar(user) + '<div class="sa-user-main"><h3>' + escapeHtml(user.displayName || user.name || user.email || user.id) + '</h3><small>' + escapeHtml(user.id) + '</small></div></div>';
+  html += '<div class="sa-user-meta"><span>' + escapeHtml(user.email || "No email") + '</span></div>';
   html += '<div class="sa-role-badges">' + buildRoleBadges(user.roles) + '</div>';
   html += '<div class="sa-user-meta"><span>' + escapeHtml(readUserLocationSummary(user)) + '</span></div>';
-  html += '<div class="sa-user-meta"><span>' + escapeHtml(readUserClassSummary(user)) + '</span></div>';
   html += '<div>' + buildStatusBadge(user.status) + '</div>';
-  html += '<div class="sa-user-meta"><span>' + escapeHtml(formatDateTime(readUserLastActive(user))) + '</span></div>';
   html += '<div class="sa-row-actions">' + buildUserActionButtons(user) + '</div>';
   html += '</div>';
 
@@ -1480,25 +1529,13 @@ function buildUserCard(user) {
 
 function buildUserActionButtons(user) {
   var capabilities = readUserActionCapabilities(user);
-  var html = '<button type="button" class="sa-btn sa-btn-secondary" data-action="edit-user" data-id="' + escapeHtml(user.id) + '"' + disabled(!capabilities.canEdit) + '>Open</button>';
-
-  if (isTeacherUser(user)) {
-    logTeacherActionRender(user, capabilities);
-    html += buildTeacherLoginActionButton(user, capabilities);
-  }
-
-  if (user.roles.indexOf("student") !== -1 && user.roles.length === 1) {
-    html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="reset-fruit-user" data-id="' + escapeHtml(user.id) + '"' + disabled(isBusy()) + '>Reset Fruit</button>';
-  } else {
-    var resetLabel = isTeacherUser(user) && hasTeacherLoginAuthorization(user) ? "Send Password Reset" : "Reset Password";
-    html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="send-password-reset" data-id="' + escapeHtml(user.id) + '"' + disabled(!capabilities.canResetPassword) + '>' + escapeHtml(resetLabel) + '</button>';
-  }
+  var html = '<button type="button" class="sa-btn sa-btn-secondary" data-action="edit-user" data-id="' + escapeHtml(user.id) + '"' + disabled(!capabilities.canEdit) + '>View</button>';
+  html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="open-user-edit-modal" data-id="' + escapeHtml(user.id) + '"' + disabled(!capabilities.canEdit) + '>Edit</button>';
 
   if (user.status === "active") {
     html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="disable-user" data-id="' + escapeHtml(user.id) + '"' + disabled(!capabilities.canDisable) + '>Disable</button>';
   }
 
-  html += '<button type="button" class="sa-btn sa-danger-btn" data-action="delete-user" data-id="' + escapeHtml(user.id) + '"' + disabled(!capabilities.canDelete) + '>Delete</button>';
   return html;
 }
 
@@ -1521,15 +1558,13 @@ function readUserActionCapabilities(user) {
   var hasEmail = Boolean(safeUser.email);
   var hasAuthUid = Boolean(safeUser.authUid);
   var hasTeacherRequiredFields = readTeacherLoginMissingFields(safeUser).length === 0;
-  var canDeleteByRole = actorHasSuperAdminRole(state.actor);
-
   return {
     canEdit: true,
     canAuthorize: !busy && isTeacher && !hasTeacherLoginAuthorization(safeUser) && hasTeacherRequiredFields,
     canRepair: !busy && isTeacher && hasAuthUid && !isHealthyTeacherAuthProfile(safeUser),
     canResetPassword: !busy && hasEmail,
     canDisable: !busy && safeUser.status === "active",
-    canDelete: !busy && canDeleteByRole
+    canDelete: false
   };
 }
 
@@ -1577,12 +1612,12 @@ function buildUserCommandCenterModal() {
   var user = getSafeUser(findUser(command.userId));
 
   if (!user.id) {
-    return '<div class="sa-location-command-backdrop sa-user-command-backdrop"' + buildModalStackAttributes("user-command") + ' role="dialog" aria-modal="true" aria-label="User Command Center"><section class="sa-location-command-modal sa-user-command-modal">' + createEmptyState("User not found.", "Return to the user list and open a current profile.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '<button type="button" class="sa-location-command-close" data-action="close-user-command-center" aria-label="Close">x</button></section></div>';
+    return '<div class="sa-location-command-backdrop sa-user-command-backdrop" role="dialog" aria-modal="true" aria-label="User Command Center"><section class="sa-location-command-modal sa-user-command-modal">' + createEmptyState("User not found.", "Return to the user list and open a current profile.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '<button type="button" class="sa-location-command-close" data-action="close-user-command-center" aria-label="Close">x</button></section></div>';
   }
 
   var context = readUserCommandContext(user);
 
-  return '<div class="sa-location-command-backdrop sa-user-command-backdrop"' + buildModalStackAttributes("user-command") + ' role="dialog" aria-modal="true" aria-label="User Command Center">'
+  return '<div class="sa-location-command-backdrop sa-user-command-backdrop" role="dialog" aria-modal="true" aria-label="User Command Center">'
     + '<section class="sa-location-command-modal sa-user-command-modal">'
     + buildUserCommandHeader(user, context)
     + '<div class="sa-location-command-shell sa-user-command-shell">'
@@ -1643,7 +1678,6 @@ function buildUserCommandSideRail(user, context) {
     { role: "student", title: "Student", note: "Learning overview, courses, tasks, progress." },
     { role: "teacher", title: "Teacher", note: "Classes, reviews, assigned courses." },
     { role: "parent", title: "Parent", note: "Children and attendance signals." },
-    { role: "assistant", title: "Assistant", note: "Operational support and assigned classes." },
     { role: "admin", title: "Admin", note: "Operational management and login tools." }
   ];
   var html = '<aside class="sa-user-command-rail"><article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Role Adaptive Views</h3></div><p>The content adapts to this profile role.</p><div class="sa-user-role-view-list">';
@@ -1910,7 +1944,7 @@ function buildCourseCommandCenterModal() {
 
   var context = readCourseCommandContext(course);
 
-  return '<div class="sa-location-command-backdrop sa-course-command-backdrop"' + buildModalStackAttributes("course-command") + ' role="dialog" aria-modal="true" aria-label="Course Command Center">'
+  return '<div class="sa-location-command-backdrop sa-course-command-backdrop" role="dialog" aria-modal="true" aria-label="Course Command Center">'
     + '<section class="sa-location-command-modal sa-course-command-modal">'
     + buildCourseCommandHeader(course, context)
     + '<div class="sa-location-command-shell sa-course-command-shell">'
@@ -1936,7 +1970,7 @@ function buildModuleCommandCenterModal() {
 
   var context = readModuleCommandContext(course, moduleRecord);
 
-  return '<div class="sa-location-command-backdrop sa-module-command-backdrop"' + buildModalStackAttributes("module-command") + ' role="dialog" aria-modal="true" aria-label="Module Command Center">'
+  return '<div class="sa-location-command-backdrop sa-module-command-backdrop" role="dialog" aria-modal="true" aria-label="Module Command Center">'
     + '<section class="sa-location-command-modal sa-module-command-modal">'
     + buildModuleCommandHeader(moduleRecord, context)
     + '<div class="sa-location-command-shell sa-module-command-shell">'
@@ -1947,7 +1981,7 @@ function buildModuleCommandCenterModal() {
 }
 
 function buildMissingCommandModal(label, title, message, closeAction) {
-  return '<div class="sa-location-command-backdrop"' + buildModalStackAttributes("missing-" + closeAction) + ' role="dialog" aria-modal="true" aria-label="' + escapeHtml(label) + '"><section class="sa-location-command-modal sa-course-command-modal">'
+  return '<div class="sa-location-command-backdrop" role="dialog" aria-modal="true" aria-label="' + escapeHtml(label) + '"><section class="sa-location-command-modal sa-course-command-modal">'
     + createEmptyState(title, message, { className: "sa-command-empty", titleTag: "strong", messageTag: "span" })
     + '<button type="button" class="sa-location-command-close" data-action="' + escapeHtml(closeAction) + '" aria-label="Close">x</button></section></div>';
 }
@@ -2068,14 +2102,15 @@ function buildModuleOverviewTab(moduleRecord, context) {
 }
 
 function buildCourseModulesTab(course, context) {
+  var visibleModules = context.modules.filter(function (moduleRecord) { return !isModuleHiddenFromActiveList(moduleRecord); });
   var html = '<section class="sa-command-tab-stack">';
 
-  if (context.modules.length === 0) {
+  if (visibleModules.length === 0) {
     return html + createEmptyState("No modules found.", "Modules will appear here when connected to this course.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
   }
 
   html += '<div class="sa-command-table sa-course-modules-table"><div class="sa-command-table-head"><span>Module</span><span>Status</span><span>Tracks</span><span>Pages</span><span>Steps</span><span>Updated</span></div>';
-  context.modules.forEach(function (moduleRecord) {
+  visibleModules.forEach(function (moduleRecord) {
     var summary = readModuleStructureSummary(moduleRecord);
     html += '<button type="button" class="sa-command-table-row" data-action="open-module-command-center" data-id="' + escapeHtml(course.id + "::" + moduleRecord.id) + '"><span><strong>' + escapeHtml(readModuleTitle(moduleRecord)) + '</strong><small>' + escapeHtml(readModuleEstimatedTime(moduleRecord)) + '</small></span><span>' + buildStatusBadge(readModuleStatus(moduleRecord)) + '</span><span>' + summary.tracks + '</span><span>' + summary.pages + '</span><span>' + summary.steps + '</span><span>' + escapeHtml(formatDateTime(readModuleUpdatedAt(moduleRecord))) + '</span></button>';
   });
@@ -2134,7 +2169,10 @@ function buildCourseAuditTab(course, context) {
 }
 
 function buildCourseDangerTab(course, context) {
-  return '<section class="sa-command-tab-stack"><article class="sa-command-panel sa-command-danger-panel"><div class="sa-command-panel-head"><h3>Danger Zone</h3><span class="sa-user-command-super">ICF Only</span></div><p>Destructive course actions remain disabled unless an existing ICF intent is explicitly wired.</p><div class="sa-command-danger-actions"><button type="button" class="sa-btn sa-danger-btn" disabled>Archive Course</button><button type="button" class="sa-btn sa-danger-btn" disabled>Restore Course</button><button type="button" class="sa-btn sa-danger-btn" disabled>Delete Course</button></div><small>Course: ' + escapeHtml(readCourseTitle(course)) + '</small></article></section>';
+  var status = readCourseStatus(course);
+  var courseId = course.id || "";
+
+  return '<section class="sa-command-tab-stack"><article class="sa-command-panel sa-command-danger-panel"><div class="sa-command-panel-head"><h3>Danger Zone</h3><span class="sa-user-command-super">ICF Only</span></div><p>Archive is recoverable. Delete is blocked while active assignments, progress, modules, or related records exist.</p><div class="sa-command-danger-actions"><button type="button" class="sa-btn sa-danger-btn" data-action="archive-course-danger" data-id="' + escapeHtml(courseId) + '"' + disabled(isBusy() || status === "archived") + '>' + buildButtonContent(status === "archived" ? "Already Archived" : "Archive Course", "archive-course:" + courseId) + '</button><button type="button" class="sa-btn sa-danger-btn" data-action="restore-course-danger" data-id="' + escapeHtml(courseId) + '"' + disabled(isBusy() || status !== "archived") + '>' + buildButtonContent("Restore Course", "restore-course:" + courseId) + '</button><button type="button" class="sa-btn sa-danger-btn" data-action="open-course-delete-danger" data-id="' + escapeHtml(courseId) + '"' + disabled(isBusy()) + '>Delete Course</button></div><small>Course: ' + escapeHtml(readCourseTitle(course)) + '</small></article></section>';
 }
 
 function buildModuleTracksTab(moduleRecord, context) {
@@ -2199,7 +2237,10 @@ function buildModuleAuditTab(moduleRecord, context) {
 }
 
 function buildModuleDangerTab(moduleRecord, context) {
-  return '<section class="sa-command-tab-stack"><article class="sa-command-panel sa-command-danger-panel"><div class="sa-command-panel-head"><h3>Danger Zone</h3><span class="sa-user-command-super">ICF Only</span></div><p>Destructive module actions remain disabled unless an existing ICF intent is explicitly wired.</p><div class="sa-command-danger-actions"><button type="button" class="sa-btn sa-danger-btn" disabled>Archive Module</button><button type="button" class="sa-btn sa-danger-btn" disabled>Restore Module</button><button type="button" class="sa-btn sa-danger-btn" disabled>Delete Module</button></div><small>Module: ' + escapeHtml(readModuleTitle(moduleRecord)) + '</small></article></section>';
+  var status = readModuleStatus(moduleRecord);
+  var actionId = context.courseId + "::" + (moduleRecord.id || moduleRecord.moduleId || "");
+
+  return '<section class="sa-command-tab-stack"><article class="sa-command-panel sa-command-danger-panel"><div class="sa-command-panel-head"><h3>Danger Zone</h3><span class="sa-user-command-super">ICF Only</span></div><p>Archive is recoverable. Delete is blocked while active assignments, progress, sessions, or related records exist.</p><div class="sa-command-danger-actions"><button type="button" class="sa-btn sa-danger-btn" data-action="archive-module-danger" data-id="' + escapeHtml(actionId) + '"' + disabled(isBusy() || status === "archived") + '>' + buildButtonContent(status === "archived" ? "Already Archived" : "Archive Module", "archive-module:" + actionId) + '</button><button type="button" class="sa-btn sa-danger-btn" data-action="restore-module-danger" data-id="' + escapeHtml(actionId) + '"' + disabled(isBusy() || status !== "archived") + '>' + buildButtonContent("Restore Module", "restore-module:" + actionId) + '</button><button type="button" class="sa-btn sa-danger-btn" data-action="open-module-delete-danger" data-id="' + escapeHtml(actionId) + '"' + disabled(isBusy()) + '>Delete Module</button></div><small>Module: ' + escapeHtml(readModuleTitle(moduleRecord)) + '</small></article></section>';
 }
 
 function buildCourseCommandSideRail(course, context) {
@@ -2244,7 +2285,7 @@ function buildUserEditModal() {
   var title = form.displayName || form.email || form.userId || "User profile";
   var subtitle = (form.roles || []).map(readRoleLabel).join(" / ") || "No role";
   var actionKey = "update-user:" + modal.userId;
-  var html = '<div class="sa-modal-backdrop sa-user-edit-backdrop"' + buildModalStackAttributes("user-edit") + '><section class="sa-modal sa-user-edit-modal" role="dialog" aria-modal="true" aria-label="Edit user">';
+  var html = '<div class="sa-modal-backdrop sa-user-edit-backdrop"><section class="sa-modal sa-user-edit-modal" role="dialog" aria-modal="true" aria-label="Edit user">';
 
   html += '<div class="sa-user-edit-hero">';
   html += '<div class="sa-user-edit-identity">' + buildAvatar(Object.assign({}, user, form)) + '<div><p class="sa-eyebrow">Edit User</p><h2>' + escapeHtml(title || "Untitled User") + '</h2><div class="sa-user-edit-meta"><span>' + escapeHtml(subtitle) + '</span>' + buildStatusBadge(form.status) + '</div><div class="sa-role-badges">' + buildRoleBadges(form.roles) + '</div></div></div>';
@@ -2266,16 +2307,18 @@ function buildUserForm(formId, form, isCreate) {
   var html = '<div class="sa-user-form">';
 
   if (isCreate) {
-    html += '<section class="sa-location-form-section"><h3>Profile Identity</h3><div class="sa-user-fields">' + buildInput("user", formId, "userId", "UID / Profile ID", form.userId, "Leave blank to auto-generate") + buildInput("user", formId, "displayName", "Display Name", form.displayName) + buildInput("user", formId, "email", "Email", form.email, "name@example.com") + buildInput("user", formId, "phone", "Phone", form.phone) + buildInput("user", formId, "photoUrl", "Profile Photo", form.photoUrl, "https://example.com/photo.png") + '</div></section>';
+    html += '<section class="sa-location-form-section"><h3>Profile Identity</h3><div class="sa-user-fields">' + buildInput("user", formId, "displayName", "Display Name", form.displayName) + buildInput("user", formId, "email", "Email", form.email, "name@example.com") + '</div></section>';
   } else {
-    html += '<section class="sa-location-form-section"><h3>Profile Identity</h3><div class="sa-user-fields">' + buildInput("user", formId, "displayName", "Display Name", form.displayName) + buildInput("user", formId, "email", "Email", form.email, "name@example.com") + buildInput("user", formId, "phone", "Phone", form.phone) + buildInput("user", formId, "photoUrl", "Profile Photo", form.photoUrl, "https://example.com/photo.png") + '</div></section>';
+    html += '<section class="sa-location-form-section"><h3>Profile Identity</h3><div class="sa-user-fields"><label>UID<input value="' + escapeHtml(form.userId) + '" disabled></label><label>Display Name<input value="' + escapeHtml(form.displayName) + '" disabled></label><label>Email<input value="' + escapeHtml(form.email) + '" disabled></label></div></section>';
   }
 
-  html += '<section class="sa-location-form-section"><h3>Roles & Access</h3><div class="sa-user-fields">' + buildRoleMultiSelect(formId, form.roles) + buildLocationMultiSelect(formId, form.locationIds) + buildPrimaryLocationSelect(formId, form.primaryLocationId) + buildSelect("user", formId, "status", form.status, userStatuses) + '</div></section>';
-  html += buildRelationshipHints(formId, form);
+  html += '<section class="sa-location-form-section"><h3>Roles & Access</h3><div class="sa-user-fields">' + buildRoleMultiSelect(formId, form.roles) + (isCreate ? buildLocationMultiSelect(formId, form.locationIds) + buildPrimaryLocationSelect(formId, form.primaryLocationId) : "") + buildSelect("user", formId, "status", form.status, userStatuses) + '</div></section>';
+  if (isCreate) {
+    html += buildRelationshipHints(formId, form);
+  }
 
   if (isCreate) {
-    html += '<div class="sa-location-actions"><button type="button" class="sa-btn" data-action="create-user" data-id="' + escapeHtml(formId) + '"' + disabled(isBusy()) + '>' + buildButtonContent("Create Profile", "create-user:new") + '</button></div>';
+    html += '<div class="sa-location-actions"><button type="button" class="sa-btn" data-action="create-user" data-id="' + escapeHtml(formId) + '"' + disabled(isBusy()) + '>' + buildButtonContent("Create User", "create-user:new") + '</button></div>';
   }
 
   html += '</div>';
@@ -2286,8 +2329,8 @@ function buildRoleMultiSelect(formId, selectedRoles) {
   var html = '<label>Roles<select multiple size="8" data-field-kind="user" data-field-id="' + escapeHtml(formId) + '" data-field="roles">';
   var index = 0;
 
-  while (index < userRoles.length) {
-    html += '<option value="' + escapeHtml(userRoles[index]) + '"' + selected(selectedRoles.indexOf(userRoles[index]) !== -1 ? userRoles[index] : "", userRoles[index]) + '>' + escapeHtml(readRoleLabel(userRoles[index])) + '</option>';
+  while (index < userManagementRoles.length) {
+    html += '<option value="' + escapeHtml(userManagementRoles[index]) + '"' + selected(selectedRoles.indexOf(userManagementRoles[index]) !== -1 ? userManagementRoles[index] : "", userManagementRoles[index]) + '>' + escapeHtml(readRoleLabel(userManagementRoles[index])) + '</option>';
     index = index + 1;
   }
 
@@ -2296,32 +2339,31 @@ function buildRoleMultiSelect(formId, selectedRoles) {
 }
 
 function buildLocationMultiSelect(formId, selectedLocationIds) {
-  var ids = normalizeIdList(selectedLocationIds);
-  var label = ids.length > 0 ? ids.map(readLocationName).join(", ") : "No locations selected";
+  var html = '<label>Locations<select multiple size="6" data-field-kind="user" data-field-id="' + escapeHtml(formId) + '" data-field="locationIds">';
+  var index = 0;
 
-  return '<label>Locations<div class="sa-login-link-preview sa-picker-summary"><strong>' + escapeHtml(ids.length + " selected") + '</strong><span>' + escapeHtml(label) + '</span></div><button type="button" class="sa-btn sa-btn-secondary" data-action="open-user-location-picker" data-id="' + escapeHtml(formId) + '">Choose Locations</button></label>';
+  while (index < state.locations.length) {
+    html += '<option value="' + escapeHtml(state.locations[index].id) + '"' + selected(selectedLocationIds.indexOf(state.locations[index].id) !== -1 ? state.locations[index].id : "", state.locations[index].id) + '>' + escapeHtml(state.locations[index].name || state.locations[index].id) + '</option>';
+    index = index + 1;
+  }
+
+  html += '</select></label>';
+  return html;
 }
 
 function buildPrimaryLocationSelect(formId, selectedValue) {
-  var label = selectedValue ? readLocationName(selectedValue) : "None selected";
-  var note = selectedValue ? "Used as the profile default location" : "Choose a default location";
-
-  return '<label>Primary Location<div class="sa-login-link-preview sa-picker-summary"><strong>' + escapeHtml(label) + '</strong><span>' + escapeHtml(note) + '</span></div><button type="button" class="sa-btn sa-btn-secondary" data-action="open-user-primary-location-picker" data-id="' + escapeHtml(formId) + '">Choose Primary Location</button></label>';
+  return '<label>Primary Location' + buildOptionsSelect('data-field-kind="user" data-field-id="' + escapeHtml(formId) + '" data-field="primaryLocationId"', selectedValue, state.locations, "None") + '</label>';
 }
 
 function buildRelationshipHints(formId, form) {
   var html = "";
 
-  if (form.roles.indexOf("parent") !== -1) {
-    html += '<section class="sa-location-form-section"><h3>Parent Relationship Hints</h3><p>Optional for now. Add linked student IDs as comma-separated values when parent profile support is ready.</p><div class="sa-user-fields">' + buildInput("user", formId, "childStudentIdsText", "Child Student IDs", form.childStudentIdsText, "studentA, studentB") + '</div></section>';
-  }
-
   if (form.roles.indexOf("teacher") !== -1) {
-    html += '<section class="sa-location-form-section"><h3>Teacher Relationship Hints</h3><p>Optional for now. Add assigned class IDs as comma-separated values if teacher profile support exists.</p><div class="sa-user-fields">' + buildInput("user", formId, "classIdsText", "Class IDs", form.classIdsText, "classA, classB") + '</div></section>';
+    html += '<section class="sa-location-form-section"><h3>Classes</h3><div class="sa-user-fields">' + buildInput("user", formId, "classIdsText", "Class IDs", form.classIdsText, "classA, classB") + '</div></section>';
   }
 
   if (form.roles.indexOf("student") !== -1) {
-    html += '<section class="sa-location-form-section"><h3>Student Class Assignments</h3><p>Choose classes from a searchable list. Primary defaults to the student primary location; additional classes can span locations.</p><div class="sa-user-fields">'
+    html += '<section class="sa-location-form-section"><h3>Classes</h3><div class="sa-user-fields">'
       + buildClassPickerSummary(formId, form)
       + '</div></section>';
   }
@@ -2344,7 +2386,7 @@ function buildClassPickerSummary(formId, form) {
 }
 
 function buildLocationsHeader() {
-  return '<div class="sa-page-head"><div><p class="sa-eyebrow">Tenant Directory</p><h2>Locations</h2><p>Complete location records for student login, public details, features, and admin access.</p></div><button type="button" class="sa-btn" data-action="toggle-create-location"' + disabled(isBusy()) + '>' + (state.locationCreateOpen ? "Close Create" : "Create Location") + '</button></div>';
+  return '<div class="sa-page-head"><div><p class="sa-eyebrow">Tenant Directory</p><h2>Locations</h2><p>Complete location records for student login, public details, features, and admin access.</p></div><button type="button" class="sa-btn" data-action="open-create-location-modal"' + disabled(isBusy()) + '>Create Location</button></div>';
 }
 
 function buildLocationStats() {
@@ -2358,12 +2400,27 @@ function buildLocationStats() {
     + '</section>';
 }
 
-function buildLocationCreatePanel() {
+function buildLocationCreateModal() {
   if (!state.locationCreateOpen) {
     return "";
   }
 
-  return '<article class="sa-card sa-location-editor-card"><div class="sa-section-title"><div><h2>Create Location</h2><p>Name is required. Optional fields can stay blank and be filled later.</p></div></div>' + buildLocationDetailForm("new", state.locationForm, true) + '</article>';
+  var html = '<div class="sa-modal-backdrop sa-location-create-backdrop" data-location-create-backdrop="true"><section class="sa-modal sa-location-create-modal" role="dialog" aria-modal="true" aria-labelledby="sa-create-location-title">';
+
+  html += '<div class="sa-user-edit-hero">';
+  html += '<div class="sa-user-edit-identity"><div><p class="sa-eyebrow">Tenant Directory</p><h2 id="sa-create-location-title">Create Location</h2><p>Name is required. Optional fields can stay blank and be filled later.</p></div></div>';
+  html += '<button type="button" class="sa-modal-close" data-action="close-create-location-modal" aria-label="Close create location">&times;</button>';
+  html += '</div>';
+
+  if (state.locationCreateError) {
+    html += '<div class="sa-message sa-message-error">' + escapeHtml(state.locationCreateError) + '</div>';
+  }
+
+  html += '<div class="sa-user-edit-body">' + buildLocationDetailForm("new", state.locationForm, true, { hideActions: true }) + '</div>';
+  html += '<div class="sa-modal-actions sa-user-edit-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="close-create-location-modal"' + disabled(isBusy()) + '>Cancel</button><button type="button" class="sa-btn" data-action="create-location" data-id="new"' + disabled(isBusy()) + '>' + buildButtonContent("Create Location", "create-location:new") + '</button></div>';
+  html += '</section></div>';
+
+  return html;
 }
 
 function buildLocationRows() {
@@ -2412,53 +2469,11 @@ function buildLocationCard(location) {
 }
 
 function buildLocationPhoto(location) {
-  var imageUrl = readLocationImageUrl(location);
-
-  if (imageUrl) {
-    return '<img class="sa-location-photo" src="' + escapeHtml(imageUrl) + '" alt="">';
+  if (location.photoUrl) {
+    return '<img class="sa-location-photo" src="' + escapeHtml(location.photoUrl) + '" alt="">';
   }
 
   return '<div class="sa-location-photo sa-location-photo-fallback">' + escapeHtml(readInitials(location.name || "OQ")) + '</div>';
-}
-
-function buildLocationIconUploadSection(formId, form, isCreate) {
-  var location = getSafeLocation(form || {});
-  var draft = readLocationIconDraft(formId);
-  var previewUrl = draft.previewUrl || readLocationImageUrl(location);
-  var fileName = draft.fileName || readLocationIconFileName(location.iconStoragePath);
-  var disabledAttr = isCreate || isBusy() ? " disabled" : "";
-  var helperText = isCreate ? "Save the location before uploading an icon." : "PNG, JPG, or WEBP. Max 2 MB.";
-  var html = '<section class="sa-location-form-section sa-location-icon-section"><h3>Location Icon</h3>';
-
-  html += '<div class="sa-location-icon-editor">';
-  html += '<div class="sa-location-icon-preview">';
-
-  if (previewUrl) {
-    html += '<img src="' + escapeHtml(previewUrl) + '" alt="">';
-  } else {
-    html += '<span>' + escapeHtml(readInitials(location.name || "OQ")) + '</span>';
-  }
-
-  html += '</div>';
-  html += '<div class="sa-location-icon-controls">';
-  html += '<label class="sa-location-icon-upload"><span>Choose Icon</span><input type="file" data-location-icon-input="true" data-location-id="' + escapeHtml(formId) + '" accept="image/png,image/jpeg,image/webp"' + disabledAttr + '></label>';
-  html += '<p>PNG, JPG, or WEBP. Max 2 MB.</p>';
-  html += '<small>' + escapeHtml(helperText) + '</small>';
-
-  if (fileName) {
-    html += '<small>Selected: ' + escapeHtml(fileName) + '</small>';
-  }
-
-  if (draft.error) {
-    html += '<div class="sa-location-icon-error">' + escapeHtml(draft.error) + '</div>';
-  }
-
-  if (draft.file) {
-    html += '<button type="button" class="sa-text-link" data-action="clear-location-icon-draft" data-id="' + escapeHtml(formId) + '">Clear selected image</button>';
-  }
-
-  html += '</div></div></section>';
-  return html;
 }
 
 function buildStatusBadge(status) {
@@ -2474,7 +2489,8 @@ function buildStatusBadge(status) {
   return '<span class="' + className + '">' + escapeHtml(safeStatus) + '</span>';
 }
 
-function buildLocationDetailForm(formId, form, isCreate) {
+function buildLocationDetailForm(formId, form, isCreate, options) {
+  var formOptions = options || {};
   var saveAction = isCreate ? "create-location" : "update-location";
   var saveLabel = isCreate ? "Create Location" : "Save Location";
   var html = '<div class="sa-location-form">';
@@ -2486,8 +2502,6 @@ function buildLocationDetailForm(formId, form, isCreate) {
     + buildTextarea("location", formId, "description", "Description", form.description, "Short internal or public description")
     + buildInput("location", formId, "schoolCode", "School Code", form.schoolCode, "OIS")
     + buildInput("location", formId, "photoUrl", "Photo URL", form.photoUrl, "https://example.com/logo.png", "url"));
-
-  html += buildLocationIconUploadSection(formId, form, isCreate);
 
   html += buildLocationFormSection("Address",
     buildTextarea("location", formId, "address", "Address", form.address, "Street, building, district")
@@ -2528,7 +2542,10 @@ function buildLocationDetailForm(formId, form, isCreate) {
     + buildInput("location", formId, "subscription.maxStudents", "Max Students", stringifyOptionalNumber(form.subscription.maxStudents), "100", "number")
     + buildInput("location", formId, "subscription.expiresAt", "Expires At", form.subscription.expiresAt || "", "2026-12-31", "date"));
 
-  html += '<div class="sa-location-actions"><button type="button" class="sa-btn" data-action="' + saveAction + '" data-id="' + escapeHtml(formId) + '"' + disabled(isBusy()) + '>' + buildButtonContent(saveLabel, saveAction + ":" + formId) + '</button><button type="button" class="sa-btn sa-btn-secondary" data-action="' + (isCreate ? "toggle-create-location" : "close-location-editor") + '" data-id="' + escapeHtml(formId) + '"' + disabled(isBusy()) + '>Cancel</button></div>';
+  if (!formOptions.hideActions) {
+    html += '<div class="sa-location-actions"><button type="button" class="sa-btn" data-action="' + saveAction + '" data-id="' + escapeHtml(formId) + '"' + disabled(isBusy()) + '>' + buildButtonContent(saveLabel, saveAction + ":" + formId) + '</button><button type="button" class="sa-btn sa-btn-secondary" data-action="' + (isCreate ? "close-create-location-modal" : "close-location-editor") + '" data-id="' + escapeHtml(formId) + '"' + disabled(isBusy()) + '>Cancel</button></div>';
+  }
+
   html += '</div>';
 
   return html;
@@ -2559,7 +2576,7 @@ function buildLocationCommandCenterModal() {
   var location = getSafeLocation(findLocation(command.locationId));
   var stats = readLocationCommandStats(location.id);
 
-  return '<div class="sa-location-command-backdrop"' + buildModalStackAttributes("location-command") + ' role="dialog" aria-modal="true" aria-label="Location Command Center">'
+  return '<div class="sa-location-command-backdrop" role="dialog" aria-modal="true" aria-label="Location Command Center">'
     + '<section class="sa-location-command-modal">'
     + '<header class="sa-location-command-header">'
     + '<div class="sa-location-command-identity">'
@@ -2874,6 +2891,17 @@ function buildClassCommandCenterModal() {
 
 function buildClassCommandHeader(classRecord, context) {
   var form = context.form;
+  var actions = [
+    { label: "Edit Class", action: "class-command-tab", id: "overview", className: "sa-btn sa-btn-secondary" },
+    { label: "Assign Course", action: "class-command-tab", id: "assignments", className: "sa-btn sa-btn-secondary" },
+    { label: "Manage Students", action: "class-command-tab", id: "students", className: "sa-btn sa-btn-secondary" },
+    { label: "Open Teacher View", action: "class-command-tab", id: "teachers", className: "sa-btn sa-btn-secondary" },
+    { label: "More Actions", action: "class-command-tab", id: "danger", className: "sa-btn sa-btn-secondary" }
+  ];
+
+  if (actorHasSuperAdminRole(state.actor)) {
+    actions.push({ label: "Delete Class", action: "open-delete-class", id: form.classId, className: "sa-btn sa-danger-btn", disabled: isBusy() });
+  }
 
   return createCommandCenterHeader({
     title: form.name || form.classId || "Untitled class",
@@ -2886,13 +2914,7 @@ function buildClassCommandHeader(classRecord, context) {
       "Courses: " + context.courses.length,
       "Last Activity: " + readClassLastActivityLabel(context)
     ],
-    actions: [
-      { label: "Edit Class", action: "class-command-tab", id: "overview", className: "sa-btn sa-btn-secondary" },
-      { label: "Assign Course", action: "class-command-tab", id: "assignments", className: "sa-btn sa-btn-secondary" },
-      { label: "Manage Students", action: "class-command-tab", id: "students", className: "sa-btn sa-btn-secondary" },
-      { label: "Open Teacher View", action: "class-command-tab", id: "teachers", className: "sa-btn sa-btn-secondary" },
-      { label: "More Actions", action: "class-command-tab", id: "danger", className: "sa-btn sa-btn-secondary" }
-    ],
+    actions: actions,
     closeAction: "close-class-command-center",
     classNames: {
       header: "sa-location-command-header sa-class-command-header",
@@ -3057,15 +3079,19 @@ function buildClassAuditTab(classRecord, context) {
 }
 
 function buildClassDangerTab(classRecord, context) {
+  var deleteAction = actorHasSuperAdminRole(state.actor)
+    ? { label: "Delete Class", action: "open-delete-class", id: context.form.classId, className: "sa-btn sa-danger-btn", disabled: isBusy() }
+    : { label: "Delete Class", className: "sa-btn sa-danger-btn", disabled: true };
+
   return '<section class="sa-command-tab-stack">' + createCommandCenterDangerZone({
     className: "sa-command-panel sa-command-danger-panel",
     actionsClassName: "sa-command-danger-actions",
-    message: "Destructive class actions remain disabled unless the matching ICF intent is implemented and explicitly wired.",
+    message: "Delete only removes the class document after dependency checks pass. It will not cascade to students, assignments, progress, attendance, or check-ins.",
     actions: [
       { label: "Archive Class", className: "sa-btn sa-danger-btn", disabled: true },
       { label: "Restore Class", className: "sa-btn sa-danger-btn", disabled: true },
       { label: "Transfer Students", className: "sa-btn sa-danger-btn", disabled: true },
-      { label: "Delete Class", className: "sa-btn sa-danger-btn", disabled: true }
+      deleteAction
     ],
     footerHtml: '<small>Class: ' + escapeHtml(context.form.name || context.form.classId) + '</small>'
   }) + '</section>';
@@ -3620,10 +3646,6 @@ function buildCheckbox(kind, id, field, label, checked) {
   return '<label class="sa-check"><input type="checkbox" data-field-kind="' + kind + '" data-field-id="' + escapeHtml(id) + '" data-field="' + escapeHtml(field) + '"' + (checked ? " checked" : "") + '><span>' + escapeHtml(label) + '</span></label>';
 }
 
-function buildModalStackAttributes(key) {
-  return ' data-modal-stack-key="' + escapeHtml(key) + '"';
-}
-
 function buildResetModal() {
   if (!state.resetStudentId) {
     return "";
@@ -3633,7 +3655,7 @@ function buildResetModal() {
   var name = student ? student.name : state.resetStudentId;
   var isFruitResetLocked = state.fruitResetSaveStatus === "saving" || state.fruitResetSaveStatus === "saved";
 
-  return '<div class="sa-modal-backdrop"' + buildModalStackAttributes("fruit-reset") + '><section class="sa-modal sa-fruit-reset-modal"><h2>Reset Fruit Password</h2><p>' + escapeHtml(name) + '</p><p class="sa-summary">A random fruit password is ready locally. It will not be saved until you click Save Password.</p>' + buildFruitSelector("reset", state.resetFruitPassword) + buildFruitResetFeedback() + '<div class="sa-modal-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="regenerate-reset-fruit"' + disabled(isFruitResetLocked) + '>Regenerate</button><button type="button" class="sa-btn sa-btn-secondary" data-action="close-reset-fruit"' + disabled(isFruitResetLocked) + '>Cancel</button><button type="button" class="sa-btn" data-action="confirm-reset-fruit"' + disabled(state.resetFruitPassword.length !== 4 || isFruitResetLocked) + '>Save Password</button></div>' + buildFruitResetSavingOverlay() + '</section></div>';
+  return '<div class="sa-modal-backdrop"><section class="sa-modal sa-fruit-reset-modal"><h2>Reset Fruit Password</h2><p>' + escapeHtml(name) + '</p><p class="sa-summary">A random fruit password is ready locally. It will not be saved until you click Save Password.</p>' + buildFruitSelector("reset", state.resetFruitPassword) + buildFruitResetFeedback() + '<div class="sa-modal-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="regenerate-reset-fruit"' + disabled(isFruitResetLocked) + '>Regenerate</button><button type="button" class="sa-btn sa-btn-secondary" data-action="close-reset-fruit"' + disabled(isFruitResetLocked) + '>Cancel</button><button type="button" class="sa-btn" data-action="confirm-reset-fruit"' + disabled(state.resetFruitPassword.length !== 4 || isFruitResetLocked) + '>Save Password</button></div>' + buildFruitResetSavingOverlay() + '</section></div>';
 }
 
 function buildFruitResetFeedback() {
@@ -3660,7 +3682,7 @@ function buildStaffPasswordResetModal() {
     return "";
   }
 
-  return '<div class="sa-modal-backdrop"' + buildModalStackAttributes("staff-reset") + '><section class="sa-modal sa-staff-reset-modal" role="dialog" aria-modal="true" aria-labelledby="staff-reset-title"><p class="sa-eyebrow">Staff Access</p><h2 id="staff-reset-title">Reset password</h2><p>Enter the email for your staff account. Firebase will send the reset link.</p><div class="sa-form"><label>Email<input type="email" data-staff-reset-field="email" value="' + escapeHtml(state.staffResetEmail) + '" placeholder="admin@example.com"></label></div>' + buildStaffResetStatus() + '<div class="sa-modal-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="close-staff-login-reset"' + disabled(state.isSaving) + '>Cancel</button><button type="button" class="sa-btn" data-action="send-staff-login-reset"' + disabled(state.isSaving) + '>' + buildButtonContent("Send Reset Link", "staff-login-reset") + '</button></div></section></div>';
+  return '<div class="sa-modal-backdrop"><section class="sa-modal sa-staff-reset-modal" role="dialog" aria-modal="true" aria-labelledby="staff-reset-title"><p class="sa-eyebrow">Staff Access</p><h2 id="staff-reset-title">Reset password</h2><p>Enter the email for your staff account. Firebase will send the reset link.</p><div class="sa-form"><label>Email<input type="email" data-staff-reset-field="email" value="' + escapeHtml(state.staffResetEmail) + '" placeholder="admin@example.com"></label></div>' + buildStaffResetStatus() + '<div class="sa-modal-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="close-staff-login-reset"' + disabled(state.isSaving) + '>Cancel</button><button type="button" class="sa-btn" data-action="send-staff-login-reset"' + disabled(state.isSaving) + '>' + buildButtonContent("Send Reset Link", "staff-login-reset") + '</button></div></section></div>';
 }
 
 function buildStaffResetStatus() {
@@ -3679,7 +3701,7 @@ function buildClassPickerModal() {
   var picker = state.classPicker;
   var classes = readClassPickerClasses(picker);
   var title = picker.mode === "primary" ? "Choose Primary Class" : "Add Additional Classes";
-  var html = '<div class="sa-modal-backdrop"' + buildModalStackAttributes("class-picker") + '><section class="sa-modal"><h2>' + escapeHtml(title) + '</h2><p>Search classes and confirm the selection. Location names are shown beside each class.</p>';
+  var html = '<div class="sa-modal-backdrop"><section class="sa-modal"><h2>' + escapeHtml(title) + '</h2><p>Search classes and confirm the selection. Location names are shown beside each class.</p>';
   html += '<div class="sa-form sa-form-2"><label>Search<input type="search" data-class-picker-search="true" value="' + escapeHtml(picker.searchText) + '" placeholder="Search class or location"></label><label><span>Scope</span><span class="sa-check-row"><input type="checkbox" data-class-picker-all-locations="true"' + (picker.includeAllLocations ? " checked" : "") + '> Search all locations</span></label></div>';
   html += '<div class="sa-table" style="max-height:320px;overflow:auto;margin-top:12px">';
 
@@ -3700,47 +3722,6 @@ function buildClassPickerModal() {
   return html;
 }
 
-function buildUserLocationPickerModal() {
-  var picker = state.userLocationPicker;
-
-  if (!picker || !picker.isOpen) {
-    return "";
-  }
-
-  var isPrimary = picker.mode === "primary";
-  var title = isPrimary ? "Choose Primary Location" : "Choose Locations";
-  var locations = readUserLocationPickerLocations(picker);
-  var html = '<div class="sa-modal-backdrop sa-user-location-picker-backdrop"' + buildModalStackAttributes("user-location-picker") + ' data-user-location-picker-backdrop="true"><section class="sa-modal sa-user-location-picker-modal" role="dialog" aria-modal="true" aria-label="' + escapeHtml(title) + '">';
-
-  html += '<div class="sa-section-title"><div><p class="sa-eyebrow">Identity & Access</p><h2>' + escapeHtml(title) + '</h2><p>Search locations without scrolling through a long select list.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="close-user-location-picker">Close</button></div>';
-  html += '<div class="sa-form"><label>Search<input type="search" data-user-location-picker-search="true" value="' + escapeHtml(picker.searchText) + '" placeholder="Search location name or ID"></label></div>';
-  html += '<div class="sa-picker-list sa-user-location-picker-list">';
-
-  if (locations.length === 0) {
-    html += '<div class="sa-empty"><strong>No locations found.</strong><span>Try a different search.</span></div>';
-  } else {
-    locations.forEach(function (location) {
-      var safeLocation = getSafeLocation(location);
-      var isSelected = picker.selectedIds.indexOf(safeLocation.id) !== -1;
-      html += '<button type="button" class="sa-picker-row' + (isSelected ? ' sa-picker-row-selected' : '') + '" data-user-location-picker-id="' + escapeHtml(safeLocation.id) + '">'
-        + '<strong>' + escapeHtml(safeLocation.name || safeLocation.id) + '</strong>'
-        + '<span>' + escapeHtml(safeLocation.city || safeLocation.region || safeLocation.type || "Location") + '</span>'
-        + '<small>' + escapeHtml(safeLocation.id) + '</small>'
-        + '<em>' + (isSelected ? "Selected" : (isPrimary ? "Choose" : "Add")) + '</em>'
-        + '</button>';
-    });
-  }
-
-  html += '</div><div class="sa-modal-actions">';
-
-  if (isPrimary) {
-    html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="clear-user-primary-location-picker">Clear Primary</button>';
-  }
-
-  html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="close-user-location-picker">Cancel</button><button type="button" class="sa-btn" data-action="save-user-location-picker"' + disabled(isPrimary && picker.selectedIds.length > 1) + '>' + escapeHtml(isPrimary ? "Save Primary Location" : "Save Locations") + '</button></div></section></div>';
-  return html;
-}
-
 function buildClassStaffPickerModal() {
   var picker = state.classStaffPicker;
 
@@ -3752,7 +3733,7 @@ function buildClassStaffPickerModal() {
   var users = readClassStaffPickerUsers(picker);
   var isPrimary = picker.mode === "primary";
   var title = isPrimary ? "Assign Teacher" : "Manage Assistants";
-  var html = '<div class="sa-modal-backdrop sa-class-staff-backdrop"' + buildModalStackAttributes("class-staff-picker") + '><section class="sa-modal sa-class-staff-modal" role="dialog" aria-modal="true">';
+  var html = '<div class="sa-modal-backdrop sa-class-staff-backdrop"><section class="sa-modal sa-class-staff-modal" role="dialog" aria-modal="true">';
 
   html += '<div class="sa-section-title"><div><p class="sa-eyebrow">Class Staff</p><h2>' + escapeHtml(title) + '</h2><p>' + escapeHtml(classRecord.name || picker.classId || "Class") + '</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="close-class-staff-picker">Close</button></div>';
   html += '<div class="sa-form"><label>Search<input type="search" data-class-staff-picker-search="true" value="' + escapeHtml(picker.searchText) + '" placeholder="Search name, role, location, or email"></label></div>';
@@ -3785,9 +3766,9 @@ function buildAssignmentCoursePickerModal() {
   }
 
   var courses = readAssignmentPickerCourses();
-  var html = '<div class="sa-modal-backdrop"' + buildModalStackAttributes("assignment-course-picker") + '><section class="sa-modal sa-assignment-picker-modal sa-assignment-course-picker-modal"><div class="sa-section-title"><div><p class="sa-eyebrow">Course Assignment</p><h2>Select Course</h2><p>Search courses and choose the learning program to assign.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="close-assignment-course-picker">Close</button></div>';
+  var html = '<div class="sa-modal-backdrop"><section class="sa-modal sa-assignment-picker-modal"><div class="sa-section-title"><div><p class="sa-eyebrow">Course Assignment</p><h2>Select Course</h2><p>Search courses and choose the learning program to assign.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="close-assignment-course-picker">Close</button></div>';
   html += '<div class="sa-form sa-form-2"><label>Search<input type="search" data-assignment-course-picker-field="searchText" value="' + escapeHtml(picker.searchText) + '" placeholder="Search title or description"></label><label>Status<select data-assignment-course-picker-field="statusFilter"><option value="">All</option><option value="published"' + selected(picker.statusFilter, "published") + '>Published</option><option value="draft"' + selected(picker.statusFilter, "draft") + '>Draft</option><option value="archived"' + selected(picker.statusFilter, "archived") + '>Archived</option></select></label></div>';
-  html += '<div class="sa-picker-grid sa-assignment-course-grid">';
+  html += '<div class="sa-picker-grid">';
 
   if (picker.isLoading) {
     html += buildInlineLoadingState("Loading courses...", "Preparing the course picker.", "courses");
@@ -3812,7 +3793,7 @@ function buildAssignmentTargetPickerModal() {
   }
 
   var items = picker.targetType === "student" ? readAssignmentPickerStudents() : readAssignmentPickerClasses();
-  var html = '<div class="sa-modal-backdrop"' + buildModalStackAttributes("assignment-target-picker") + '><section class="sa-modal sa-assignment-picker-modal"><div class="sa-section-title"><div><p class="sa-eyebrow">Course Assignment</p><h2>Select Target</h2><p>Choose a class or an individual student without saving the assignment yet.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="close-assignment-target-picker">Close</button></div>';
+  var html = '<div class="sa-modal-backdrop"><section class="sa-modal sa-assignment-picker-modal"><div class="sa-section-title"><div><p class="sa-eyebrow">Course Assignment</p><h2>Select Target</h2><p>Choose a class or an individual student without saving the assignment yet.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="close-assignment-target-picker">Close</button></div>';
   html += '<div class="sa-form sa-form-2"><label>Target Type<select data-assignment-target-picker-field="targetType"><option value="class"' + selected(picker.targetType, "class") + '>Class</option><option value="student"' + selected(picker.targetType, "student") + '>Individual Student</option></select></label><label>Location' + buildOptionsSelectFromList('data-assignment-target-picker-field="locationId"', picker.locationId, state.locations, "Choose location") + '</label><label>Search<input type="search" data-assignment-target-picker-field="searchText" value="' + escapeHtml(picker.searchText) + '" placeholder="Search names"></label><label><span>Scope</span><span class="sa-check-row"><input type="checkbox" data-assignment-target-picker-check="includeAllLocations"' + (picker.includeAllLocations ? " checked" : "") + '> Search all locations</span></label></div>';
 
   if (picker.targetType === "student") {
@@ -3851,7 +3832,7 @@ function buildAssignmentStaffPickerModal() {
   var isResponsible = picker.mode === "responsible";
   var title = isResponsible ? "Assign Teacher" : "Manage Assistants";
   var assignmentLabel = assignment && assignment.courseId ? readCourseName(assignment.courseId) : "New assignment";
-  var html = '<div class="sa-modal-backdrop sa-assignment-staff-backdrop"' + buildModalStackAttributes("assignment-staff-picker") + '><section class="sa-modal sa-class-staff-modal" role="dialog" aria-modal="true">';
+  var html = '<div class="sa-modal-backdrop sa-assignment-staff-backdrop"><section class="sa-modal sa-class-staff-modal" role="dialog" aria-modal="true">';
 
   html += '<div class="sa-section-title"><div><p class="sa-eyebrow">Course Staff</p><h2>' + escapeHtml(title) + '</h2><p>' + escapeHtml(assignmentLabel) + '</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="close-assignment-staff-picker">Close</button></div>';
   html += '<div class="sa-form"><label>Search<input type="search" data-assignment-staff-picker-search="true" value="' + escapeHtml(picker.searchText) + '" placeholder="Search name, role, location, or email"></label></div>';
@@ -3887,7 +3868,7 @@ function buildAssignmentDeleteModal() {
   var isDeleting = modal.status === "deleting";
   var isDeleted = modal.status === "deleted";
 
-  return '<div class="sa-modal-backdrop"' + buildModalStackAttributes("assignment-delete") + '><section class="sa-modal sa-delete-assignment-modal"><h2>Delete Course Assignment?</h2><p>This will remove this assignment from students. This cannot be undone.</p><div class="sa-assignment-review-card"><strong>' + escapeHtml(assignment ? readCourseName(assignment.courseId) : modal.assignmentId) + '</strong><small>' + escapeHtml(assignment ? readAssignmentTargetName(assignment) : "") + '</small></div>' + buildAssignmentDeleteAnimation(isDeleting, isDeleted, modal.message) + '<div class="sa-modal-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="close-delete-assignment"' + disabled(isDeleting || isDeleted) + '>Cancel</button><button type="button" class="sa-btn sa-danger-btn" data-action="confirm-delete-assignment"' + disabled(isDeleting || isDeleted) + '>Delete Assignment</button></div></section></div>';
+  return '<div class="sa-modal-backdrop"><section class="sa-modal sa-delete-assignment-modal"><h2>Delete Course Assignment?</h2><p>This will remove this assignment from students. This cannot be undone.</p><div class="sa-assignment-review-card"><strong>' + escapeHtml(assignment ? readCourseName(assignment.courseId) : modal.assignmentId) + '</strong><small>' + escapeHtml(assignment ? readAssignmentTargetName(assignment) : "") + '</small></div>' + buildAssignmentDeleteAnimation(isDeleting, isDeleted, modal.message) + '<div class="sa-modal-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="close-delete-assignment"' + disabled(isDeleting || isDeleted) + '>Cancel</button><button type="button" class="sa-btn sa-danger-btn" data-action="confirm-delete-assignment"' + disabled(isDeleting || isDeleted) + '>Delete Assignment</button></div></section></div>';
 }
 
 function buildAssignmentDeleteAnimation(isDeleting, isDeleted, message) {
@@ -3896,6 +3877,77 @@ function buildAssignmentDeleteAnimation(isDeleting, isDeleted, message) {
   }
 
   return '<div class="sa-delete-animation' + (isDeleted ? ' sa-delete-animation-done' : '') + '"><span>▣</span><strong>' + escapeHtml(message || (isDeleted ? "Assignment deleted." : "Deleting assignment...")) + '</strong></div>';
+}
+
+function buildClassDeleteModal() {
+  var modal = state.classDelete || createClassDeleteState();
+
+  if (!modal.classId) {
+    return "";
+  }
+
+  var summary = readClassDeleteSummary(modal.classId);
+  var isDeleting = modal.status === "deleting";
+  var isDeleted = modal.status === "deleted";
+  var isBlocked = summary.hasDependencies || !actorHasSuperAdminRole(state.actor);
+  var className = summary.form.name || summary.form.classId || modal.classId;
+  var locationName = summary.locationName || "No location";
+  var blockMessage = !actorHasSuperAdminRole(state.actor)
+    ? "Only super admins or platform admins can delete classes."
+    : "This class cannot be deleted while it has assigned students, courses, or active records. Remove those assignments first.";
+  var html = '<div class="sa-modal-backdrop" data-class-delete-backdrop="true"><section class="sa-modal sa-delete-assignment-modal" role="dialog" aria-modal="true" aria-label="Delete class confirmation">';
+
+  html += '<h2>Delete Class?</h2><p>This will delete only the class document. Deletion cannot be undone.</p>';
+  html += '<div class="sa-assignment-review-card"><strong>' + escapeHtml(className) + '</strong><small>' + escapeHtml(locationName) + '</small><span>' + summary.studentCount + ' students</span><span>' + summary.courseCount + ' assigned courses</span><span>' + summary.activeRecordCount + ' active records</span></div>';
+
+  if (isBlocked) {
+    html += '<div class="sa-message sa-message-error">' + escapeHtml(blockMessage) + '</div>';
+  }
+
+  if (modal.message) {
+    html += '<div class="sa-message sa-message-' + escapeHtml(modal.status === "error" ? "error" : "info") + '">' + escapeHtml(modal.message) + '</div>';
+  }
+
+  html += buildAssignmentDeleteAnimation(isDeleting, isDeleted, modal.message);
+  html += '<div class="sa-modal-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="close-delete-class"' + disabled(isDeleting || isDeleted) + '>Cancel</button><button type="button" class="sa-btn sa-danger-btn" data-action="confirm-delete-class"' + disabled(isDeleting || isDeleted || isBlocked) + '>' + buildButtonContent("Delete Class", "delete-class:" + modal.classId) + '</button></div>';
+  html += '</section></div>';
+
+  return html;
+}
+
+function buildCourseModuleDangerModal() {
+  var modal = state.courseModuleDanger || createCourseModuleDangerState();
+
+  if (!modal.targetType || modal.action !== "delete") {
+    return "";
+  }
+
+  var summary = modal.targetType === "module"
+    ? readModuleDangerSummary(modal.courseId, modal.moduleId)
+    : readCourseDangerSummary(modal.courseId);
+  var isDeleting = modal.status === "deleting";
+  var isBlocked = summary.hasDependencies;
+  var title = modal.targetType === "module" ? "Delete Module?" : "Delete Course?";
+  var itemLabel = modal.targetType === "module" ? summary.moduleTitle : summary.courseTitle;
+  var actionLabel = modal.targetType === "module" ? "Delete Module" : "Delete Course";
+  var confirmAction = modal.targetType === "module" ? "confirm-module-delete-danger" : "confirm-course-delete-danger";
+  var html = '<div class="sa-modal-backdrop" data-course-module-danger-backdrop="true"><section class="sa-modal sa-delete-assignment-modal" role="dialog" aria-modal="true" aria-label="' + escapeHtml(title) + '">';
+
+  html += '<h2>' + escapeHtml(title) + '</h2><p>This item cannot be restored from this dashboard after deletion. Archive it instead when related records exist.</p>';
+  html += '<div class="sa-assignment-review-card"><strong>' + escapeHtml(itemLabel) + '</strong><small>' + escapeHtml(summary.detail) + '</small><span>' + summary.assignmentCount + ' assignments</span><span>' + summary.progressCount + ' progress records</span><span>' + summary.relatedCount + ' related records</span></div>';
+
+  if (isBlocked) {
+    html += '<div class="sa-message sa-message-error">This item cannot be deleted while it has active assignments, progress, or related records. Archive it instead.</div>';
+  }
+
+  if (modal.message) {
+    html += '<div class="sa-message sa-message-' + escapeHtml(modal.status === "error" ? "error" : "info") + '">' + escapeHtml(modal.message) + '</div>';
+  }
+
+  html += '<div class="sa-modal-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="close-course-module-danger"' + disabled(isDeleting) + '>Cancel</button><button type="button" class="sa-btn sa-danger-btn" data-action="' + confirmAction + '"' + disabled(isDeleting || isBlocked) + '>' + buildButtonContent(actionLabel, modal.targetType + "-delete:" + modal.courseId + ":" + modal.moduleId) + '</button></div>';
+  html += '</section></div>';
+
+  return html;
 }
 
 function buildFruitSelector(mode, values) {
@@ -3925,19 +3977,8 @@ function handleClick(event) {
   var fruitButton = event.target.closest("[data-fruit]");
   var fruitActionButton = event.target.closest("[data-fruit-action]");
   var classPickerButton = event.target.closest("[data-class-picker-id]");
-  var userLocationPickerButton = event.target.closest("[data-user-location-picker-id]");
   var classStaffPickerButton = event.target.closest("[data-class-staff-picker-id]");
   var assignmentStaffPickerButton = event.target.closest("[data-assignment-staff-picker-id]");
-
-  if (event.target && event.target.getAttribute("data-user-create-backdrop")) {
-    closeUserCreateModal();
-    return;
-  }
-
-  if (event.target && event.target.getAttribute("data-user-location-picker-backdrop")) {
-    closeUserLocationPicker();
-    return;
-  }
 
   if (tabButton) {
     var requestedTab = tabButton.getAttribute("data-tab");
@@ -3963,11 +4004,6 @@ function handleClick(event) {
     return;
   }
 
-  if (userLocationPickerButton) {
-    toggleUserLocationPickerSelection(userLocationPickerButton.getAttribute("data-user-location-picker-id"));
-    return;
-  }
-
   if (classStaffPickerButton) {
     toggleClassStaffSelection(classStaffPickerButton.getAttribute("data-class-staff-picker-id"));
     return;
@@ -3975,6 +4011,21 @@ function handleClick(event) {
 
   if (assignmentStaffPickerButton) {
     toggleAssignmentStaffSelection(assignmentStaffPickerButton.getAttribute("data-assignment-staff-picker-id"));
+    return;
+  }
+
+  if (event.target && event.target.getAttribute("data-location-create-backdrop") === "true") {
+    closeCreateLocationModal();
+    return;
+  }
+
+  if (event.target && event.target.getAttribute("data-class-delete-backdrop") === "true") {
+    closeClassDeleteModal();
+    return;
+  }
+
+  if (event.target && event.target.getAttribute("data-course-module-danger-backdrop") === "true") {
+    closeCourseModuleDangerModal();
     return;
   }
 
@@ -3987,28 +4038,12 @@ function handleClick(event) {
   }
 }
 
-function handleKeyDown(event) {
-  if (!event || event.key !== "Escape") {
-    return;
-  }
-
-  if (state.userLocationPicker && state.userLocationPicker.isOpen) {
-    closeUserLocationPicker();
-    return;
-  }
-
-  if (state.userCreateOpen) {
-    closeUserCreateModal();
-    return;
-  }
-}
-
 function canRunActionWhileBusy(action) {
   if (action === "copy-login-link") {
     return true;
   }
 
-  if (action === "edit-user" || action === "close-user-command-center" || action === "user-command-tab" || action === "open-user-edit-modal" || action === "close-user-edit-modal" || action === "open-user-location-picker" || action === "open-user-primary-location-picker" || action === "close-user-location-picker" || action === "save-user-location-picker" || action === "clear-user-primary-location-picker") {
+  if (action === "edit-user" || action === "close-user-command-center" || action === "user-command-tab" || action === "open-user-edit-modal" || action === "close-user-edit-modal") {
     return true;
   }
 
@@ -4025,6 +4060,20 @@ function canRunActionWhileBusy(action) {
   }
 
   return false;
+}
+
+function handleKeydown(event) {
+  if (event.key === "Escape" && state.locationCreateOpen) {
+    closeCreateLocationModal();
+  }
+
+  if (event.key === "Escape" && state.classDelete && state.classDelete.classId) {
+    closeClassDeleteModal();
+  }
+
+  if (event.key === "Escape" && state.courseModuleDanger && state.courseModuleDanger.targetType) {
+    closeCourseModuleDangerModal();
+  }
 }
 
 function handleInput(event) {
@@ -4088,11 +4137,6 @@ function handleInput(event) {
       return;
     }
 
-    if (target.getAttribute("data-user-filter") === "searchText") {
-      updateUserSearchFilter(target.value);
-      return;
-    }
-
     setState({
       userFilters: Object.assign({}, state.userFilters, {
         [target.getAttribute("data-user-filter")]: target.value
@@ -4136,21 +4180,9 @@ function handleInput(event) {
     return;
   }
 
-  if (target.getAttribute("data-user-location-picker-search")) {
-    state.userLocationPicker.searchText = target.value;
-    render();
-    focusInputAfterRender('[data-user-location-picker-search="true"]', target.value.length);
-    return;
-  }
-
   if (target.getAttribute("data-class-staff-picker-search")) {
     state.classStaffPicker.searchText = target.value;
     render();
-    return;
-  }
-
-  if (target.getAttribute("data-location-icon-input")) {
-    handleLocationIconSelection(target);
     return;
   }
 
@@ -4186,6 +4218,45 @@ function updateLocationCommandFilter(field, value) {
   render();
 }
 
+function openCreateLocationModal(changes) {
+  setState(Object.assign({
+    activeLocationId: "",
+    locationCreateOpen: true,
+    locationCreateError: "",
+    locationForm: createLocationForm(),
+    message: ""
+  }, changes || {}));
+  focusCreateLocationModal();
+}
+
+function closeCreateLocationModal() {
+  if (state.isSaving) {
+    return;
+  }
+
+  setState({
+    locationCreateOpen: false,
+    locationCreateError: "",
+    locationForm: createLocationForm(),
+    message: ""
+  });
+}
+
+function focusCreateLocationModal() {
+  window.setTimeout(function () {
+    var modal = appElement ? appElement.querySelector(".sa-location-create-modal") : null;
+    var firstField = modal ? modal.querySelector(".sa-user-edit-body input:not([disabled]), .sa-user-edit-body select:not([disabled]), .sa-user-edit-body textarea:not([disabled])") : null;
+
+    if (!firstField && modal) {
+      firstField = modal.querySelector("button:not([disabled])");
+    }
+
+    if (firstField && typeof firstField.focus === "function") {
+      firstField.focus();
+    }
+  }, 0);
+}
+
 function openLocationCommandCenter(locationId) {
   var location = findLocation(locationId);
 
@@ -4202,6 +4273,7 @@ function openLocationCommandCenter(locationId) {
   setState({
     activeLocationId: location.id,
     locationCreateOpen: false,
+    locationCreateError: "",
     locationCommandCenter: Object.assign(createLocationCommandCenterState(), {
       isOpen: true,
       locationId: location.id
@@ -4211,267 +4283,11 @@ function openLocationCommandCenter(locationId) {
 }
 
 function closeLocationCommandCenter() {
-  var command = state.locationCommandCenter || createLocationCommandCenterState();
-
-  clearLocationIconDraftInPlace(command.locationId || state.activeLocationId);
-
   setState({
     locationCommandCenter: createLocationCommandCenterState(),
     activeLocationId: "",
     message: ""
   });
-}
-
-function readLocationIconDraft(locationId) {
-  var safeLocationId = readSafeString(locationId);
-
-  if (!safeLocationId || !state.locationIconDrafts || !state.locationIconDrafts[safeLocationId]) {
-    return {
-      file: null,
-      previewUrl: "",
-      fileName: "",
-      error: ""
-    };
-  }
-
-  return state.locationIconDrafts[safeLocationId];
-}
-
-function setLocationIconDraft(locationId, draft) {
-  var safeLocationId = readSafeString(locationId);
-  var drafts = Object.assign({}, state.locationIconDrafts || {});
-
-  if (!safeLocationId) {
-    return;
-  }
-
-  drafts[safeLocationId] = Object.assign({
-    file: null,
-    previewUrl: "",
-    fileName: "",
-    error: ""
-  }, draft || {});
-
-  setState({
-    locationIconDrafts: drafts,
-    message: "",
-    messageType: "info"
-  });
-}
-
-function clearSelectedLocationIcon(locationId) {
-  var safeLocationId = readSafeString(locationId);
-  var drafts = Object.assign({}, state.locationIconDrafts || {});
-
-  if (!safeLocationId) {
-    return;
-  }
-
-  delete drafts[safeLocationId];
-  setState({
-    locationIconDrafts: drafts,
-    message: "",
-    messageType: "info"
-  });
-}
-
-function clearLocationIconDraftInPlace(locationId) {
-  var safeLocationId = readSafeString(locationId);
-  var drafts = Object.assign({}, state.locationIconDrafts || {});
-
-  if (!safeLocationId) {
-    return;
-  }
-
-  delete drafts[safeLocationId];
-  state.locationIconDrafts = drafts;
-}
-
-function handleLocationIconSelection(input) {
-  var locationId = readSafeString(input.getAttribute("data-location-id"));
-  var file = input.files && input.files.length > 0 ? input.files[0] : null;
-  var validationError = validateLocationIconFile(file);
-  var reader = null;
-
-  if (!locationId) {
-    return;
-  }
-
-  if (!file) {
-    clearSelectedLocationIcon(locationId);
-    return;
-  }
-
-  if (validationError) {
-    input.value = "";
-    setLocationIconDraft(locationId, {
-      file: null,
-      previewUrl: "",
-      fileName: file.name || "",
-      error: validationError
-    });
-    return;
-  }
-
-  reader = new FileReader();
-  reader.onload = function () {
-    setLocationIconDraft(locationId, {
-      file: file,
-      previewUrl: typeof reader.result === "string" ? reader.result : "",
-      fileName: file.name || "location-icon",
-      error: ""
-    });
-  };
-  reader.onerror = function () {
-    input.value = "";
-    setLocationIconDraft(locationId, {
-      file: null,
-      previewUrl: "",
-      fileName: file.name || "",
-      error: "The selected image could not be previewed. Please choose another file."
-    });
-  };
-  reader.readAsDataURL(file);
-}
-
-function validateLocationIconFile(file) {
-  if (!file) {
-    return "";
-  }
-
-  if (locationIconAllowedTypes.indexOf(file.type) === -1) {
-    return "Choose a PNG, JPG, or WEBP image.";
-  }
-
-  if (file.size > locationIconMaxBytes) {
-    return "Icon image must be 2 MB or smaller.";
-  }
-
-  return "";
-}
-
-async function uploadLocationIcon(locationId, file) {
-  var validationError = validateLocationIconFile(file);
-  var safeLocationId = readSafeString(locationId);
-  var storagePath = "";
-  var storageRef = null;
-
-  if (!safeLocationId) {
-    throw new Error("Location ID is required before uploading an icon.");
-  }
-
-  if (validationError) {
-    throw new Error(validationError);
-  }
-
-  storagePath = buildLocationIconStoragePath(safeLocationId, file);
-  storageRef = ref(storage, storagePath);
-
-  await uploadBytes(storageRef, file, {
-    contentType: file.type,
-    customMetadata: {
-      locationId: safeLocationId
-    }
-  });
-
-  return {
-    iconUrl: await getDownloadURL(storageRef),
-    iconStoragePath: storagePath
-  };
-}
-
-function buildLocationIconStoragePath(locationId, file) {
-  return "location-icons/" + normalizeStorageFileNameComponent(locationId) + "/" + Date.now() + "-" + normalizeStorageFileName(file && file.name, file && file.type);
-}
-
-function normalizeStorageFileName(fileName, contentType) {
-  var safeName = readSafeString(fileName).split("\\").pop().split("/").pop().toLowerCase();
-
-  safeName = safeName.replace(/[^a-z0-9._-]+/g, "-");
-  safeName = safeName.replace(/-+/g, "-");
-  safeName = safeName.replace(/^\.+/, "");
-  safeName = safeName.replace(/^-+/, "");
-  safeName = safeName.replace(/-+$/, "");
-
-  if (!safeName) {
-    safeName = "location-icon";
-  }
-
-  if (safeName.indexOf(".") === -1) {
-    safeName += readLocationIconExtension(contentType);
-  }
-
-  return safeName;
-}
-
-function normalizeStorageFileNameComponent(value) {
-  var safeValue = readSafeString(value).toLowerCase();
-
-  safeValue = safeValue.replace(/[^a-z0-9_-]+/g, "-");
-  safeValue = safeValue.replace(/-+/g, "-");
-  safeValue = safeValue.replace(/^-+/, "");
-  safeValue = safeValue.replace(/-+$/, "");
-
-  return safeValue || "location";
-}
-
-function readLocationIconExtension(contentType) {
-  if (contentType === "image/jpeg") {
-    return ".jpg";
-  }
-
-  if (contentType === "image/png") {
-    return ".png";
-  }
-
-  if (contentType === "image/webp") {
-    return ".webp";
-  }
-
-  return "";
-}
-
-async function deletePreviousLocationIcon(previousPath, nextPath) {
-  var safePreviousPath = readSafeString(previousPath);
-  var safeNextPath = readSafeString(nextPath);
-
-  if (!isAllowedLocationIconStoragePath(safePreviousPath) || safePreviousPath === safeNextPath) {
-    return;
-  }
-
-  try {
-    await deleteObject(ref(storage, safePreviousPath));
-  } catch (error) {
-    console.warn("[location-icon-delete-warning]", {
-      iconStoragePath: safePreviousPath,
-      message: error && error.message ? error.message : String(error)
-    });
-  }
-}
-
-function isAllowedLocationIconStoragePath(storagePath) {
-  return /^location-icons\/[^/]+\/[^/]+$/.test(readSafeString(storagePath));
-}
-
-function readLocationImageUrl(location) {
-  var safeLocation = location || {};
-  var branding = safeLocation.branding && typeof safeLocation.branding === "object" ? safeLocation.branding : {};
-
-  return readSafeString(
-    safeLocation.iconUrl ||
-    safeLocation.schoolIconUrl ||
-    safeLocation.logoUrl ||
-    branding.iconUrl ||
-    safeLocation.photoUrl ||
-    safeLocation.imageUrl
-  ).trim();
-}
-
-function readLocationIconFileName(storagePath) {
-  var safePath = readSafeString(storagePath);
-  var parts = safePath.split("/");
-
-  return parts.length > 0 ? parts[parts.length - 1] : "";
 }
 
 function setLocationCommandCenterTab(tabKey) {
@@ -4549,49 +4365,6 @@ function navigateFromLocationCommandCenter(target) {
   }
 }
 
-function openUserCreateModal() {
-  setState({
-    userCreateOpen: true,
-    activeUserId: "",
-    userCreateError: "",
-    userCommandCenter: createUserCommandCenterState(),
-    userEditModal: createUserEditModalState(),
-    message: ""
-  });
-}
-
-function closeUserCreateModal() {
-  if (isBusy()) {
-    return;
-  }
-
-  setState({
-    userCreateOpen: false,
-    userCreateError: "",
-    message: ""
-  });
-}
-
-function updateUserSearchFilter(value) {
-  state.userFilters = Object.assign({}, state.userFilters, {
-    searchText: value
-  });
-  state.activeUserId = "";
-  state.userEditModal = createUserEditModalState();
-  renderUserResultsOnly();
-}
-
-function renderUserResultsOnly() {
-  var resultsElement = appElement ? appElement.querySelector('[data-user-results="true"]') : null;
-
-  if (!resultsElement || state.activeTab !== "users") {
-    render();
-    return;
-  }
-
-  resultsElement.innerHTML = buildUserRows();
-}
-
 async function openClassCommandCenter(classId) {
   var classRecord = findById(state.classes, classId);
 
@@ -4622,6 +4395,7 @@ async function openClassCommandCenter(classId) {
       isOpen: true,
       classId: form.classId
     }),
+    classDelete: createClassDeleteState(),
     message: ""
   });
 }
@@ -4629,8 +4403,117 @@ async function openClassCommandCenter(classId) {
 function closeClassCommandCenter() {
   setState({
     classCommandCenter: createClassCommandCenterState(),
+    classDelete: createClassDeleteState(),
     message: ""
   });
+}
+
+function openClassDeleteModal(classId) {
+  var classRecord = findClass(classId);
+
+  if (!classRecord || !classRecord.id) {
+    setState({ message: "Class was not found.", messageType: "error" });
+    return;
+  }
+
+  setState({
+    classDelete: {
+      classId: classRecord.id,
+      status: "",
+      message: ""
+    },
+    message: ""
+  });
+}
+
+function closeClassDeleteModal() {
+  if (state.classDelete && state.classDelete.status === "deleting") {
+    return;
+  }
+
+  setState({
+    classDelete: createClassDeleteState(),
+    message: ""
+  });
+}
+
+async function confirmDeleteClass() {
+  var modal = state.classDelete || createClassDeleteState();
+  var classId = modal.classId;
+  var summary = readClassDeleteSummary(classId);
+
+  if (!classId) {
+    setState({ classDelete: Object.assign({}, modal, { status: "error", message: "Class ID is missing." }) });
+    return false;
+  }
+
+  if (!actorHasSuperAdminRole(state.actor)) {
+    setState({ classDelete: Object.assign({}, modal, { status: "error", message: "Only super admins or platform admins can delete classes." }) });
+    return false;
+  }
+
+  if (summary.hasDependencies) {
+    setState({ classDelete: Object.assign({}, modal, { status: "error", message: "This class cannot be deleted while it has assigned students, courses, or active records. Remove those assignments first." }) });
+    return false;
+  }
+
+  try {
+    setState({
+      isSaving: true,
+      pendingAction: "delete-class:" + classId,
+      classDelete: {
+        classId: classId,
+        status: "deleting",
+        message: "Deleting class..."
+      },
+      message: ""
+    });
+
+    var result = await deleteClassDocument(classId);
+
+    if (!isSuccess(result)) {
+      console.error("[super-admin] class delete failed", result);
+      setState({
+        isSaving: false,
+        pendingAction: "",
+        classDelete: {
+          classId: classId,
+          status: "error",
+          message: readIntentError(result)
+        },
+        message: ""
+      });
+      return false;
+    }
+
+    setState({
+      isSaving: false,
+      pendingAction: "",
+      classDelete: createClassDeleteState(),
+      classCommandCenter: createClassCommandCenterState(),
+      message: "Class deleted.",
+      messageType: "success"
+    });
+    await refreshClassesList("Class deleted.");
+    return true;
+  } catch (error) {
+    console.error("[super-admin] class delete failed", error);
+    setState({
+      isSaving: false,
+      pendingAction: "",
+      classDelete: {
+        classId: classId,
+        status: "error",
+        message: error && error.message ? error.message : "Class delete failed."
+      },
+      message: ""
+    });
+    return false;
+  }
+}
+
+async function deleteClassDocument(classId) {
+  return runAdminIntent("DeleteClassIntent", { classId: classId });
 }
 
 function setClassCommandCenterTab(tabKey) {
@@ -4644,20 +4527,25 @@ function setClassCommandCenterTab(tabKey) {
 
 async function openUserCommandCenter(userId) {
   var user = findUser(userId);
-  var commandUserId = "";
 
   if (!user || !user.id) {
     setState({ message: "User was not found.", messageType: "error" });
     return;
   }
 
-  commandUserId = readUserCommandProfileId(user);
-
   console.info("[user-command-center:open]", {
     userId: user.id,
-    commandUserId: commandUserId,
     roles: getSafeUser(user).roles
   });
+
+  try {
+    await runAdminIntent("OpenUserCommandCenterIntent", { userId: user.id });
+  } catch (error) {
+    console.warn("[user-command-center:intent-warning]", {
+      userId: user.id,
+      errorMessage: error && error.message ? error.message : String(error)
+    });
+  }
 
   setState({
     activeUserId: user.id,
@@ -4668,33 +4556,6 @@ async function openUserCommandCenter(userId) {
     }),
     message: ""
   });
-
-  runAdminIntent("OpenUserCommandCenterIntent", { userId: commandUserId }).then(function (result) {
-    if (!result || !result.emitted || result.emitted.success !== true) {
-      console.warn("[user-command-center:intent-warning]", {
-        userId: user.id,
-        commandUserId: commandUserId,
-        result: result
-      });
-    }
-  }).catch(function (error) {
-    console.warn("[user-command-center:intent-warning]", {
-      userId: user.id,
-      commandUserId: commandUserId,
-      errorMessage: error && error.message ? error.message : String(error)
-    });
-  });
-}
-
-function readUserCommandProfileId(user) {
-  var safeUser = user || {};
-
-  return readSafeString(safeUser.id)
-    || readSafeString(safeUser.profileUserId)
-    || readSafeString(safeUser.userId)
-    || readSafeString(safeUser.authUid)
-    || readSafeString(safeUser.uid)
-    || readSafeString(safeUser.studentId);
 }
 
 function closeUserCommandCenter() {
@@ -4787,6 +4648,7 @@ function closeCourseCommandCenter() {
   setState({
     courseCommandCenter: createCourseCommandCenterState(),
     moduleCommandCenter: createModuleCommandCenterState(),
+    courseModuleDanger: createCourseModuleDangerState(),
     message: ""
   });
 }
@@ -4841,6 +4703,7 @@ async function openModuleCommandCenter(value) {
 function closeModuleCommandCenter() {
   setState({
     moduleCommandCenter: createModuleCommandCenterState(),
+    courseModuleDanger: createCourseModuleDangerState(),
     message: ""
   });
 }
@@ -4852,6 +4715,136 @@ function setModuleCommandCenterTab(tabKey) {
     }),
     message: ""
   });
+}
+
+function openCourseDeleteDanger(courseId) {
+  setState({
+    courseModuleDanger: {
+      targetType: "course",
+      action: "delete",
+      courseId: readSafeString(courseId),
+      moduleId: "",
+      status: "",
+      message: ""
+    },
+    message: ""
+  });
+}
+
+function openModuleDeleteDanger(value) {
+  var ids = parseCourseModuleActionId(value);
+
+  setState({
+    courseModuleDanger: {
+      targetType: "module",
+      action: "delete",
+      courseId: ids.courseId,
+      moduleId: ids.moduleId,
+      status: "",
+      message: ""
+    },
+    message: ""
+  });
+}
+
+function closeCourseModuleDangerModal() {
+  if (state.courseModuleDanger && state.courseModuleDanger.status === "deleting") {
+    return;
+  }
+
+  setState({
+    courseModuleDanger: createCourseModuleDangerState(),
+    message: ""
+  });
+}
+
+async function archiveCourseFromDanger(courseId) {
+  await runCourseModuleDangerIntent("ArchiveCourseIntent", { courseId: courseId }, "Course archived.", "archive-course:" + courseId);
+}
+
+async function restoreCourseFromDanger(courseId) {
+  await runCourseModuleDangerIntent("UpdateCourseStatusIntent", { courseId: courseId, status: "draft" }, "Course restored.", "restore-course:" + courseId);
+}
+
+async function archiveModuleFromDanger(value) {
+  var ids = parseCourseModuleActionId(value);
+  await runCourseModuleDangerIntent("UpdateModuleStatusIntent", { courseId: ids.courseId, moduleId: ids.moduleId, status: "archived" }, "Module archived.", "archive-module:" + value);
+}
+
+async function restoreModuleFromDanger(value) {
+  var ids = parseCourseModuleActionId(value);
+  await runCourseModuleDangerIntent("UpdateModuleStatusIntent", { courseId: ids.courseId, moduleId: ids.moduleId, status: "draft" }, "Module restored.", "restore-module:" + value);
+}
+
+async function confirmCourseDeleteDanger() {
+  var modal = state.courseModuleDanger || createCourseModuleDangerState();
+  var summary = readCourseDangerSummary(modal.courseId);
+
+  if (summary.hasDependencies) {
+    setState({ courseModuleDanger: Object.assign({}, modal, { status: "error", message: "This item cannot be deleted while it has active assignments, progress, or related records. Archive it instead." }) });
+    return false;
+  }
+
+  return runCourseModuleDeleteIntent("DeleteCourseIntent", { courseId: modal.courseId }, "Course deleted.");
+}
+
+async function confirmModuleDeleteDanger() {
+  var modal = state.courseModuleDanger || createCourseModuleDangerState();
+  var summary = readModuleDangerSummary(modal.courseId, modal.moduleId);
+
+  if (summary.hasDependencies) {
+    setState({ courseModuleDanger: Object.assign({}, modal, { status: "error", message: "This item cannot be deleted while it has active assignments, progress, or related records. Archive it instead." }) });
+    return false;
+  }
+
+  return runCourseModuleDeleteIntent("UpdateModuleStatusIntent", { courseId: modal.courseId, moduleId: modal.moduleId, status: "deleted" }, "Module deleted.");
+}
+
+async function runCourseModuleDeleteIntent(intentType, payload, successMessage) {
+  var modal = state.courseModuleDanger || createCourseModuleDangerState();
+  var actionKey = modal.targetType + "-delete:" + modal.courseId + ":" + modal.moduleId;
+
+  try {
+    setState({ isSaving: true, pendingAction: actionKey, courseModuleDanger: Object.assign({}, modal, { status: "deleting", message: "Deleting..." }), message: "" });
+    var result = await runAdminIntent(intentType, payload);
+
+    if (!isSuccess(result)) {
+      console.error("[super-admin] course/module danger action failed", result);
+      setState({ isSaving: false, pendingAction: "", courseModuleDanger: Object.assign({}, modal, { status: "error", message: readIntentError(result) }), message: "" });
+      return false;
+    }
+
+    setState({ isSaving: false, pendingAction: "", courseModuleDanger: createCourseModuleDangerState(), courseCommandCenter: createCourseCommandCenterState(), moduleCommandCenter: createModuleCommandCenterState(), message: successMessage, messageType: "success" });
+    await refreshAllData();
+    setState({ message: successMessage, messageType: "success" });
+    return true;
+  } catch (error) {
+    console.error("[super-admin] course/module danger action failed", error);
+    setState({ isSaving: false, pendingAction: "", courseModuleDanger: Object.assign({}, modal, { status: "error", message: error && error.message ? error.message : "Action failed." }), message: "" });
+    return false;
+  }
+}
+
+async function runCourseModuleDangerIntent(intentType, payload, successMessage, actionKey) {
+  try {
+    setState({ isSaving: true, pendingAction: actionKey, message: "Saving...", messageType: "info" });
+    var result = await runAdminIntent(intentType, payload);
+
+    if (!isSuccess(result)) {
+      console.error("[super-admin] course/module danger action failed", result);
+      setState({ isSaving: false, pendingAction: "", message: readIntentError(result), messageType: "error" });
+      return false;
+    }
+
+    setState({ isSaving: false, pendingAction: "", message: successMessage, messageType: "success" });
+    await refreshAllData();
+    setState({ message: successMessage, messageType: "success" });
+    return true;
+  } catch (error) {
+    console.error("[super-admin] course/module danger action failed", error);
+    setState({ isSaving: false, pendingAction: "", message: error && error.message ? error.message : "Action failed.", messageType: "error" });
+    return false;
+  }
 }
 
 function parseCourseModuleActionId(value) {
@@ -4903,7 +4896,6 @@ function updateFormValue(target) {
     state.studentForm[field] = value;
   } else if (kind === "user" && id === "new") {
     setUserFormValue(state.userForm, field, value);
-    state.userCreateError = "";
     if (shouldRerenderUserFormField(field)) {
       render();
     }
@@ -4968,10 +4960,6 @@ function updateAssignmentFormValue(field, value) {
 function updateAssignmentCoursePicker(field, value) {
   state.assignmentCoursePicker[field] = value;
   render();
-
-  if (field === "searchText") {
-    focusInputAfterRender('[data-assignment-course-picker-field="searchText"]', value.length);
-  }
 }
 
 function updateAssignmentTargetPicker(field, value) {
@@ -5076,100 +5064,6 @@ function closeClassPicker() {
     selectedIds: []
   };
   render();
-}
-
-function openUserLocationPicker(formId, mode) {
-  var form = readUserFormDraft(formId);
-  var isPrimary = mode === "primary";
-  var selectedIds = isPrimary
-    ? (form.primaryLocationId ? [form.primaryLocationId] : [])
-    : normalizeIdList(form.locationIds);
-
-  state.userLocationPicker = {
-    isOpen: true,
-    formId: formId,
-    mode: isPrimary ? "primary" : "scope",
-    searchText: "",
-    selectedIds: selectedIds
-  };
-  render();
-}
-
-function closeUserLocationPicker() {
-  state.userLocationPicker = {
-    isOpen: false,
-    formId: "",
-    mode: "scope",
-    searchText: "",
-    selectedIds: []
-  };
-  render();
-}
-
-function clearUserPrimaryLocationPicker() {
-  var picker = state.userLocationPicker || {};
-
-  if (picker.mode !== "primary") {
-    return;
-  }
-
-  state.userLocationPicker = Object.assign({}, picker, { selectedIds: [] });
-  render();
-}
-
-function toggleUserLocationPickerSelection(locationId) {
-  var picker = state.userLocationPicker;
-  var selectedIds = picker.selectedIds.slice();
-  var index = selectedIds.indexOf(locationId);
-
-  if (picker.mode === "primary") {
-    selectedIds = index === -1 ? [locationId] : [];
-  } else if (index === -1) {
-    selectedIds.push(locationId);
-  } else {
-    selectedIds.splice(index, 1);
-  }
-
-  state.userLocationPicker = Object.assign({}, picker, { selectedIds: selectedIds });
-  render();
-}
-
-function saveUserLocationPicker() {
-  var picker = state.userLocationPicker;
-  var form = readMutableUserFormDraft(picker.formId);
-
-  if (!form) {
-    closeUserLocationPicker();
-    return;
-  }
-
-  if (picker.mode === "primary") {
-    setUserFormValue(form, "primaryLocationId", picker.selectedIds[0] || "");
-  } else {
-    setUserFormValue(form, "locationIds", picker.selectedIds);
-  }
-
-  closeUserLocationPicker();
-}
-
-function readUserLocationPickerLocations(picker) {
-  var query = readSafeString(picker.searchText).toLowerCase();
-
-  return state.locations.filter(function (location) {
-    var safeLocation = getSafeLocation(location);
-    var text = [
-      safeLocation.name,
-      safeLocation.id,
-      safeLocation.city,
-      safeLocation.region,
-      safeLocation.type,
-      safeLocation.loginSlug
-    ].join(" ").toLowerCase();
-
-    return !query || text.indexOf(query) !== -1;
-  }).sort(function (a, b) {
-    return readSafeString(a.name || a.id).localeCompare(readSafeString(b.name || b.id));
-  });
 }
 
 function openClassStaffPicker(classId, mode) {
@@ -5393,8 +5287,10 @@ async function handleAction(action, id) {
     await sendStaffLoginPasswordReset();
   } else if (action === "go-admin-login") {
     await goAdminLogin();
-  } else if (action === "toggle-create-location") {
-    setState({ locationCreateOpen: !state.locationCreateOpen, activeLocationId: "", message: "" });
+  } else if (action === "open-create-location-modal" || action === "toggle-create-location") {
+    openCreateLocationModal();
+  } else if (action === "close-create-location-modal") {
+    closeCreateLocationModal();
   } else if (action === "edit-location") {
     openLocationCommandCenter(id);
   } else if (action === "close-location-command-center") {
@@ -5404,12 +5300,9 @@ async function handleAction(action, id) {
   } else if (action === "location-command-navigate") {
     navigateFromLocationCommandCenter(id);
   } else if (action === "close-location-editor") {
-    clearLocationIconDraftInPlace(id);
     setState({ activeLocationId: "", locationCommandCenter: Object.assign({}, state.locationCommandCenter, { activeTab: "overview" }), message: "" });
-  } else if (action === "clear-location-icon-draft") {
-    clearSelectedLocationIcon(id);
   } else if (action === "create-location") {
-    await saveLocation("CreateLocationIntent", state.locationForm, "Location created.", "create-location:new");
+    await saveLocation("CreateLocationIntent", state.locationForm, "Location created.", "create-location:new", { errorTarget: "createLocationModal", refreshScope: "locations" });
   } else if (action === "update-location") {
     await saveLocation("UpdateLocationIntent", findLocation(id), "Location saved.", "update-location:" + id);
   } else if (action === "archive-location") {
@@ -5417,9 +5310,7 @@ async function handleAction(action, id) {
   } else if (action === "restore-location") {
     await archiveLocation(id, false);
   } else if (action === "toggle-create-user") {
-    openUserCreateModal();
-  } else if (action === "close-user-create-modal") {
-    closeUserCreateModal();
+    setState({ userCreateOpen: !state.userCreateOpen, activeUserId: "", message: "" });
   } else if (action === "edit-user") {
     await openUserCommandCenter(id);
   } else if (action === "close-user-command-center") {
@@ -5434,6 +5325,12 @@ async function handleAction(action, id) {
     closeClassCommandCenter();
   } else if (action === "class-command-tab") {
     setClassCommandCenterTab(id);
+  } else if (action === "open-delete-class") {
+    openClassDeleteModal(id);
+  } else if (action === "close-delete-class") {
+    closeClassDeleteModal();
+  } else if (action === "confirm-delete-class") {
+    await confirmDeleteClass();
   } else if (action === "open-course-command-center") {
     await openCourseCommandCenter(id);
   } else if (action === "close-course-command-center") {
@@ -5446,6 +5343,24 @@ async function handleAction(action, id) {
     closeModuleCommandCenter();
   } else if (action === "module-command-tab") {
     setModuleCommandCenterTab(id);
+  } else if (action === "archive-course-danger") {
+    await archiveCourseFromDanger(id);
+  } else if (action === "restore-course-danger") {
+    await restoreCourseFromDanger(id);
+  } else if (action === "open-course-delete-danger") {
+    openCourseDeleteDanger(id);
+  } else if (action === "confirm-course-delete-danger") {
+    await confirmCourseDeleteDanger();
+  } else if (action === "archive-module-danger") {
+    await archiveModuleFromDanger(id);
+  } else if (action === "restore-module-danger") {
+    await restoreModuleFromDanger(id);
+  } else if (action === "open-module-delete-danger") {
+    openModuleDeleteDanger(id);
+  } else if (action === "confirm-module-delete-danger") {
+    await confirmModuleDeleteDanger();
+  } else if (action === "close-course-module-danger") {
+    closeCourseModuleDangerModal();
   } else if (action === "open-course-creator-course") {
     openCourseCreatorCourse(id);
   } else if (action === "open-module-editor") {
@@ -5474,16 +5389,6 @@ async function handleAction(action, id) {
     closeClassPicker();
   } else if (action === "save-class-picker") {
     saveClassPicker();
-  } else if (action === "open-user-location-picker") {
-    openUserLocationPicker(id, "scope");
-  } else if (action === "open-user-primary-location-picker") {
-    openUserLocationPicker(id, "primary");
-  } else if (action === "close-user-location-picker") {
-    closeUserLocationPicker();
-  } else if (action === "clear-user-primary-location-picker") {
-    clearUserPrimaryLocationPicker();
-  } else if (action === "save-user-location-picker") {
-    saveUserLocationPicker();
   } else if (action === "reset-fruit-user") {
     openFruitPasswordReset(id);
   } else if (action === "authorize-teacher-login") {
@@ -5597,7 +5502,7 @@ function handleOverviewAction(action, id) {
   }
 
   if (action === "overview-create-location") {
-    setState({ activeTab: "locations", locationCreateOpen: true, activeLocationId: "", message: "" });
+    openCreateLocationModal({ activeTab: "locations" });
     return;
   }
 
@@ -5622,7 +5527,7 @@ function handleOverviewAction(action, id) {
   }
 
   if (action === "overview-open-location") {
-    setState({ activeTab: "locations", activeLocationId: id || "", locationCreateOpen: false, message: "" });
+    setState({ activeTab: "locations", activeLocationId: id || "", locationCreateOpen: false, locationCreateError: "", message: "" });
     return;
   }
 
@@ -6264,87 +6169,71 @@ async function deleteAssignmentWithConfirmation() {
   });
 }
 
-async function saveLocation(intentType, location, successMessage, actionKey) {
+async function saveLocation(intentType, location, successMessage, actionKey, options) {
+  var useCreateModalError = options && options.errorTarget === "createLocationModal";
   var payload = normalizeLocationForm(location);
-  var iconDraft = readLocationIconDraft(payload.locationId);
-  var previousLocation = getSafeLocation(location || {});
-  var previousIconStoragePath = previousLocation.iconStoragePath;
-  var saveMessage = payload.loginSlug ? "Checking login slug and saving..." : "Saving location...";
-  var uploadedIcon = null;
   var validationError = validateLocationForm(payload);
 
   if (validationError) {
-    setState({ message: validationError, messageType: "error" });
+    setLocationSaveError(validationError, useCreateModalError);
     return false;
   }
 
   if (payload.status !== "archived" && hasDuplicateLocationSlug(payload.loginSlug, payload.locationId)) {
-    setState({ message: "That loginSlug is already used by another active location.", messageType: "error" });
+    setLocationSaveError("That loginSlug is already used by another active location.", useCreateModalError);
     return false;
   }
 
-  if (iconDraft.error) {
-    setState({ message: iconDraft.error, messageType: "error" });
-    return false;
-  }
+  try {
+    setState({
+      isSaving: true,
+      pendingAction: actionKey,
+      locationCreateError: useCreateModalError ? "" : state.locationCreateError,
+      message: payload.loginSlug ? "Checking login slug and saving..." : "Saving location...",
+      messageType: "info"
+    });
+    var result = await runAdminIntent(intentType, payload);
 
-  if (iconDraft.file && !payload.locationId) {
-    setState({ message: "Save the location before uploading an icon.", messageType: "error" });
-    return false;
-  }
-
-  setState({ isSaving: true, pendingAction: actionKey, message: iconDraft.file ? "Uploading icon..." : saveMessage, messageType: "info" });
-
-  if (iconDraft.file) {
-    try {
-      uploadedIcon = await uploadLocationIcon(payload.locationId, iconDraft.file);
-      payload.photoUrl = uploadedIcon.iconUrl;
-      payload.imageUrl = uploadedIcon.iconUrl;
-      payload.iconUrl = uploadedIcon.iconUrl;
-      payload.iconStoragePath = uploadedIcon.iconStoragePath;
-      payload.iconUpdatedBy = state.actor ? state.actor.id : "";
-      payload.iconUploadChanged = true;
-      setState({ isSaving: true, pendingAction: actionKey, message: saveMessage, messageType: "info" });
-    } catch (error) {
-      var drafts = Object.assign({}, state.locationIconDrafts || {});
-
-      drafts[payload.locationId] = Object.assign({}, iconDraft, {
-        error: "Icon upload failed. Please try again."
-      });
-      console.warn("[location-icon-upload-warning]", {
-        locationId: payload.locationId,
-        message: error && error.message ? error.message : String(error)
-      });
-      setState({
-        isSaving: false,
-        pendingAction: "",
-        locationIconDrafts: drafts,
-        message: "Icon upload failed. Please try again.",
-        messageType: "error"
-      });
-      return false;
-    }
-  }
-
-  var result = await runAdminIntent(intentType, payload);
-
-  if (isSuccess(result)) {
-    if (uploadedIcon) {
-      await deletePreviousLocationIcon(previousIconStoragePath, uploadedIcon.iconStoragePath);
-      clearLocationIconDraftInPlace(payload.locationId);
+    if (isSuccess(result)) {
+      state.locationForm = createLocationForm();
+      state.locationCreateOpen = false;
+      state.locationCreateError = "";
+      state.activeLocationId = "";
+      setState({ isSaving: false, pendingAction: "", message: successMessage, messageType: "success" });
+      if (options && options.refreshScope === "locations") {
+        await refreshLocationsList(successMessage);
+      } else {
+        await refreshAllData();
+        setState({ message: successMessage, messageType: "success" });
+      }
+      return true;
     }
 
-    state.locationForm = createLocationForm();
-    state.locationCreateOpen = false;
-    state.activeLocationId = "";
-    setState({ isSaving: false, pendingAction: "", message: successMessage, messageType: "success" });
-    await refreshAllData();
-    setState({ message: successMessage, messageType: "success" });
-    return true;
+    console.error("[super-admin] location save failed", result);
+    setLocationSaveError(readIntentError(result), useCreateModalError, { isSaving: false, pendingAction: "" });
+    return false;
+  } catch (error) {
+    console.error("[super-admin] location save failed", error);
+    setLocationSaveError("Could not save location: " + (error && error.message ? error.message : "Unknown error"), useCreateModalError, { isSaving: false, pendingAction: "" });
+    return false;
+  }
+}
+
+function setLocationSaveError(message, useCreateModalError, changes) {
+  if (useCreateModalError) {
+    setState(Object.assign({
+      locationCreateError: message,
+      message: "",
+      messageType: "error"
+    }, changes || {}));
+    focusCreateLocationModal();
+    return;
   }
 
-  setState({ isSaving: false, pendingAction: "", message: readIntentError(result), messageType: "error" });
-  return false;
+  setState(Object.assign({
+    message: message,
+    messageType: "error"
+  }, changes || {}));
 }
 
 async function archiveLocation(locationId, shouldArchive) {
@@ -6374,6 +6263,7 @@ async function saveUserProfile(mode, userId) {
   var payload = normalizeUserProfilePayload(source, mode === "create" ? "" : userId);
   var validationError = validateUserProfile(payload, mode);
   var actionKey = mode === "create" ? "create-user:new" : "update-user:" + userId;
+  var intentType = mode === "create" ? "CreateUserIntent" : "EditUserIntent";
 
   if (validationError) {
     setUserSaveError(validationError, mode);
@@ -6386,16 +6276,18 @@ async function saveUserProfile(mode, userId) {
   }
 
   try {
-    setState({ isSaving: true, pendingAction: actionKey, userCreateError: "", userEditModal: clearUserEditModalError(), message: mode === "create" ? "Creating profile..." : "Saving user...", messageType: "info" });
-    var profileRef = mode === "create" && !payload.userId ? doc(collection(db, "users")) : doc(db, "users", payload.userId || userId);
-    var record = buildUserProfileRecord(payload, mode === "create");
+    setState({ isSaving: true, pendingAction: actionKey, userEditModal: clearUserEditModalError(), message: mode === "create" ? "Creating profile..." : "Saving user...", messageType: "info" });
+    var result = await runRegisteredUserIntent(intentType, payload);
 
-    await setDoc(profileRef, record, { merge: true });
+    if (!isSuccess(result)) {
+      setUserSaveError(readIntentError(result), mode);
+      setState({ isSaving: false, pendingAction: "" });
+      return false;
+    }
 
     if (mode === "create") {
       state.userForm = createUserForm();
       state.userCreateOpen = false;
-      state.userCreateError = "";
     }
 
     state.activeUserId = "";
@@ -6414,16 +6306,6 @@ function setUserSaveError(message, mode) {
   if (mode === "update" && state.userEditModal && state.userEditModal.isOpen) {
     setState({
       userEditModal: Object.assign({}, state.userEditModal, { error: message }),
-      message: "",
-      messageType: "error"
-    });
-    return;
-  }
-
-  if (mode === "create") {
-    setState({
-      userCreateError: message,
-      userCreateOpen: true,
       message: "",
       messageType: "error"
     });
@@ -6449,10 +6331,13 @@ async function updateUserStatus(userId, status) {
 
   try {
     setState({ isSaving: true, pendingAction: "disable-user:" + userId, message: "Updating user status...", messageType: "info" });
-    await setDoc(doc(db, "users", userId), {
-      status: status,
-      updatedAt: serverTimestamp()
-    }, { merge: true });
+    var result = await runRegisteredUserIntent("DisableUserIntent", { userId: userId, status: status });
+
+    if (!isSuccess(result)) {
+      setState({ isSaving: false, pendingAction: "", message: readIntentError(result), messageType: "error" });
+      return false;
+    }
+
     setState({ isSaving: false, pendingAction: "", activeUserId: "", message: "User disabled.", messageType: "success" });
     await refreshAllData();
     setState({ message: "User disabled.", messageType: "success" });
@@ -6714,6 +6599,7 @@ async function saveIntent(intentType, payload, successMessage) {
 function readSaveIntentActionKey(intentType, payload) {
   if (intentType === "CreateClassIntent") return "create-class:new";
   if (intentType === "UpdateClassIntent") return "update-class:" + readSafeString(payload.classId || payload.id);
+  if (intentType === "DeleteClassIntent") return "delete-class:" + readSafeString(payload.classId || payload.id);
   if (intentType === "AssignClassTeacherIntent" || intentType === "AssignClassAssistantsIntent") return "class-staff:" + readSafeString(payload.classId || payload.id);
   if (intentType === "AssignCourseTeacherIntent" || intentType === "AssignCourseAssistantsIntent") return "assignment-staff:" + readSafeString(payload.assignmentId || payload.id);
   if (intentType === "CreateStudentIntent") return "create-student:new";
@@ -6843,6 +6729,16 @@ async function runAdminIntent(intentType, payload) {
   });
 }
 
+async function runRegisteredUserIntent(intentType, payload) {
+  return runRegisteredAdminIntent(intentType, payload || {}, {
+    actor: state.actor,
+    meta: {
+      createdAt: Date.now(),
+      source: "super-admin-dashboard:user-management"
+    }
+  });
+}
+
 function readDataList(result, key) {
   if (!isSuccess(result)) {
     return [];
@@ -6919,22 +6815,6 @@ function readIntentError(result) {
 function setState(changes) {
   state = Object.assign({}, state, changes);
   render();
-}
-
-function focusInputAfterRender(selector, cursorPosition) {
-  window.setTimeout(function () {
-    var input = document.querySelector(selector);
-
-    if (!input) {
-      return;
-    }
-
-    input.focus();
-
-    if (input.setSelectionRange) {
-      input.setSelectionRange(cursorPosition, cursorPosition);
-    }
-  }, 0);
 }
 
 function createLocationForm() {
@@ -7020,9 +6900,6 @@ function normalizeLocationForm(location) {
     schoolCode: safeLocation.schoolCode,
     photoUrl: safeLocation.photoUrl,
     imageUrl: safeLocation.photoUrl,
-    iconUrl: safeLocation.iconUrl,
-    iconStoragePath: safeLocation.iconStoragePath,
-    iconUpdatedBy: safeLocation.iconUpdatedBy,
     address: safeLocation.address,
     city: safeLocation.city,
     region: safeLocation.region,
@@ -7121,6 +6998,14 @@ function createClassCommandCenterState() {
   };
 }
 
+function createClassDeleteState() {
+  return {
+    classId: "",
+    status: "",
+    message: ""
+  };
+}
+
 function createUserCommandCenterState() {
   return {
     isOpen: false,
@@ -7143,6 +7028,17 @@ function createModuleCommandCenterState() {
     courseId: "",
     moduleId: "",
     activeTab: "overview"
+  };
+}
+
+function createCourseModuleDangerState() {
+  return {
+    targetType: "",
+    action: "",
+    courseId: "",
+    moduleId: "",
+    status: "",
+    message: ""
   };
 }
 
@@ -8225,10 +8121,6 @@ function getDefaultLocation() {
     schoolCode: "",
     photoUrl: "",
     imageUrl: "",
-    iconUrl: "",
-    iconStoragePath: "",
-    iconUpdatedAt: null,
-    iconUpdatedBy: "",
     address: "",
     city: "",
     region: "",
@@ -8271,16 +8163,11 @@ function getSafeLocation(location) {
   var socialLinks = Object.assign({}, defaults.socialLinks, location && location.socialLinks ? location.socialLinks : {});
   var subscription = Object.assign({}, defaults.subscription, location && location.subscription ? location.subscription : {});
   var safeLocation = Object.assign({}, defaults, location || {});
-  var iconUrl = readLocationImageUrl(safeLocation);
 
   safeLocation.status = normalizeLocationStatus(safeLocation);
   safeLocation.isArchived = safeLocation.status === "archived";
-  safeLocation.photoUrl = readSafeString(safeLocation.photoUrl || safeLocation.imageUrl || iconUrl);
+  safeLocation.photoUrl = readSafeString(safeLocation.photoUrl || safeLocation.imageUrl);
   safeLocation.imageUrl = safeLocation.photoUrl;
-  safeLocation.iconUrl = readSafeString(safeLocation.iconUrl || safeLocation.photoUrl);
-  safeLocation.iconStoragePath = readSafeString(safeLocation.iconStoragePath);
-  safeLocation.iconUpdatedAt = safeLocation.iconUpdatedAt || null;
-  safeLocation.iconUpdatedBy = readSafeString(safeLocation.iconUpdatedBy);
   safeLocation.socialLinks = {
     instagram: readSafeString(socialLinks.instagram),
     facebook: readSafeString(socialLinks.facebook),
@@ -8666,7 +8553,7 @@ function readFilteredUsersForFilters(filters) {
       continue;
     }
 
-    var searchable = [user.displayName, user.name, user.email, user.phone, user.id].join(" ").toLowerCase();
+    var searchable = [user.displayName, user.email, user.phone, user.id].join(" ").toLowerCase();
     var matchesSearch = !query || searchable.indexOf(query) !== -1;
     var matchesRole = userMatchesRoleFilter(user, safeFilters.role);
     var matchesLocation = !safeFilters.locationId || user.locationIds.indexOf(safeFilters.locationId) !== -1 || user.primaryLocationId === safeFilters.locationId;
@@ -8940,6 +8827,33 @@ function readClassCommandContext(classRecord) {
     submissions: submissions,
     activity: activity,
     audit: audit
+  };
+}
+
+function readClassDeleteSummary(classId) {
+  var classRecord = findClass(classId);
+  var fallbackForm = normalizeClassForm({ id: classId });
+  var context = classRecord ? readClassCommandContext(classRecord) : {
+    form: fallbackForm,
+    students: [],
+    assignments: [],
+    courses: [],
+    submissions: [],
+    activity: []
+  };
+  var scheduleRecords = classRecord ? readClassScheduleRecords(classRecord) : [];
+  var activeRecordCount = context.submissions.length + context.activity.length + scheduleRecords.length;
+
+  return {
+    form: context.form,
+    classRecord: classRecord,
+    locationName: readLocationName(context.form.locationId),
+    studentCount: context.students.length,
+    assignmentCount: context.assignments.length,
+    courseCount: Math.max(context.courses.length, context.assignments.length),
+    scheduleCount: scheduleRecords.length,
+    activeRecordCount: activeRecordCount,
+    hasDependencies: context.students.length > 0 || context.assignments.length > 0 || activeRecordCount > 0
   };
 }
 
@@ -9824,7 +9738,7 @@ function getSafeUser(user) {
     displayName: readSafeString(safeUser.displayName || safeUser.name),
     email: readSafeString(safeUser.email),
     phone: readSafeString(safeUser.phone),
-    photoUrl: readSafeString(safeUser.photoUrl || safeUser.imageUrl),
+    photoUrl: readSafeString(safeUser.photoUrl || safeUser.photoURL || safeUser.imageUrl),
     roles: roles,
     role: readPrimaryRole(roles),
     locationIds: locationIds,
@@ -10276,7 +10190,19 @@ function readCourseUpdatedAt(course) {
 }
 
 function readCourseStatus(course) {
+  if (isCourseSoftDeleted(course)) {
+    return "deleted";
+  }
+
   return readSafeString(course && (course.status || course.lifecycleStatus || (course.published ? "published" : ""))) || "draft";
+}
+
+function isCourseSoftDeleted(course) {
+  return Boolean(course && (course.isDeleted === true || course.status === "deleted"));
+}
+
+function isCourseHiddenFromActiveList(course) {
+  return isCourseSoftDeleted(course) || readSafeString(course && course.status) === "archived" || course && course.isArchived === true;
 }
 
 function readCourseVisibility(course) {
@@ -10332,6 +10258,40 @@ function readCourseCommandContext(course) {
     draftModules: modules.length - publishedModules,
     activity: readCourseCommandActivity(course),
     audit: readCourseCommandAudit(course)
+  };
+}
+
+function readCourseDangerSummary(courseId) {
+  var course = findCourse(courseId) || { id: courseId };
+  var context = readCourseCommandContext(course);
+  var progressCount = context.submissions.length + context.activity.length;
+  var relatedCount = context.modules.length + context.students.length + context.classes.length + context.locations.length;
+
+  return {
+    courseTitle: readCourseTitle(course),
+    detail: readCourseStatus(course) + " course",
+    assignmentCount: context.assignments.length,
+    progressCount: progressCount,
+    relatedCount: relatedCount,
+    hasDependencies: context.assignments.length > 0 || context.modules.length > 0 || progressCount > 0 || context.students.length > 0
+  };
+}
+
+function readModuleDangerSummary(courseId, moduleId) {
+  var course = findCourse(courseId) || { id: courseId };
+  var moduleRecord = findModuleForCourse(courseId, moduleId) || { id: moduleId, courseId: courseId };
+  var context = readModuleCommandContext(course, moduleRecord);
+  var courseContext = readCourseCommandContext(course);
+  var progressCount = context.submissions.length + context.activity.length;
+  var relatedCount = context.steps.length + context.pages.length + context.tracks.length;
+
+  return {
+    moduleTitle: readModuleTitle(moduleRecord),
+    detail: "Course: " + readCourseTitle(course),
+    assignmentCount: courseContext.assignments.length,
+    progressCount: progressCount,
+    relatedCount: relatedCount,
+    hasDependencies: courseContext.assignments.length > 0 || progressCount > 0
   };
 }
 
@@ -10565,6 +10525,10 @@ function readModuleInitials(moduleRecord) {
 }
 
 function readModuleStatus(moduleRecord) {
+  if (isModuleSoftDeleted(moduleRecord)) {
+    return "deleted";
+  }
+
   var status = readSafeString(moduleRecord && (moduleRecord.status || moduleRecord.lifecycleStatus || moduleRecord.publishStatus));
 
   if (status) {
@@ -10576,6 +10540,14 @@ function readModuleStatus(moduleRecord) {
   }
 
   return "draft";
+}
+
+function isModuleSoftDeleted(moduleRecord) {
+  return Boolean(moduleRecord && (moduleRecord.isDeleted === true || moduleRecord.status === "deleted"));
+}
+
+function isModuleHiddenFromActiveList(moduleRecord) {
+  return isModuleSoftDeleted(moduleRecord) || readSafeString(moduleRecord && moduleRecord.status) === "archived" || moduleRecord && moduleRecord.isArchived === true;
 }
 
 function readModuleUpdatedAt(moduleRecord) {
@@ -11114,6 +11086,10 @@ function readVisibleTabs() {
     return tabs;
   }
 
+  if (actorHasUserManagementRole(state.actor)) {
+    return ["overview", "users", "assignments"];
+  }
+
   return ["overview", "assignments"];
 }
 
@@ -11298,6 +11274,19 @@ function actorHasSuperAdminRole(actor) {
   return isSuperAdminRole(actor.roles || [actor.role]);
 }
 
+function actorHasUserManagementRole(actor) {
+  return userHasRoleValue(actor, "schoolAdmin") || userHasRoleValue(actor, "superAdmin");
+}
+
+function actorCanAccessAdminDashboard(actor) {
+  return actorHasSuperAdminRole(actor) || actorHasUserManagementRole(actor);
+}
+
+function userHasRoleValue(user, role) {
+  var roles = normalizeRoles(user && user.roles, user && user.role);
+  return roles.indexOf(role) !== -1;
+}
+
 function isCurrentUserSelfDemotion(userId, nextRoles) {
   var currentUserId = state.actor ? state.actor.id : "";
 
@@ -11340,3 +11329,5 @@ window.goSuperAdmin = function () {
   state.activeTab = "overview";
   render();
 };
+
+

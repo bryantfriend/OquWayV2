@@ -1,5 +1,6 @@
 import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
 import { updatePracticeModeStep } from "./practiceModeShells.js?v=1.1.162-modal-stack";
+import { normalizeActivityTemplateId } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.177-level-unlock-roadmap";
 
 export async function processUpdatePracticeModeStep(executionState) {
   var payload = executionState.payload;
@@ -25,10 +26,13 @@ export async function processUpdatePracticeModeStep(executionState) {
 }
 
 function createStepPatch(payload) {
+  var stepType = payload.stepType || payload.stepTypeId || payload.type || "";
+
   return {
     title: payload.title,
     instructions: payload.instructions,
     config: payload.config,
+    activityTemplate: normalizeActivityTemplateId(stepType, payload.activityTemplate),
     status: payload.status
   };
 }
@@ -47,6 +51,7 @@ async function savePracticeModes(executionState, payload, practiceModes) {
       title: payload.title,
       instructions: payload.instructions,
       config: payload.config,
+      activityTemplate: normalizeActivityTemplateId(payload.stepType, payload.activityTemplate),
       status: payload.status,
       updatedAt: serverTimestamp()
     }, { merge: true });

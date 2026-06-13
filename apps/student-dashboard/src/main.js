@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.164-course-builder-source-truth";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.162-modal-stack";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.162-modal-stack";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.180-student-profile-center";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.180-student-profile-center";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.180-student-profile-center";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,17 +13,24 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.162-modal-stack";
+} from "../../../packages/domain/progress/index.js?v=1.1.180-student-profile-center";
 import {
   createEmptyState,
   createErrorState,
   createStatusBadge,
   formatStatusLabel,
   renderEmotionalCheckInGate
-} from "../../../packages/ui/index.js?v=1.1.162-modal-stack";
-import { emotionalCheckInService } from "../../../packages/shared/emotionalCheckIns/index.js?v=1.1.162-modal-stack";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.164-course-builder-source-truth";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.164-course-builder-source-truth";
+} from "../../../packages/ui/index.js?v=1.1.180-student-profile-center";
+import { emotionalCheckInService } from "../../../packages/shared/emotionalCheckIns/index.js?v=1.1.180-student-profile-center";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.180-student-profile-center";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.180-student-profile-center";
+import {
+  STUDENT_PROFILE_AVATARS,
+  createStudentProfileSnapshot,
+  readAvatarById,
+  readStudentProfilePreferences,
+  saveStudentProfilePreferences
+} from "./ui/services/profileService.js?v=1.1.180-student-profile-center";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -40,6 +47,7 @@ render(studentDashboardStore.getState());
 
 if (appElement) {
   appElement.addEventListener("click", handleAppClick);
+  appElement.addEventListener("change", handleAppChange);
 }
 
 onAuthStateChanged(auth, function (user) {
@@ -196,6 +204,33 @@ function handleAppClick(event) {
   var journeyScrollButton = event.target.closest(".course-journey-scroll-btn");
   var activityScrollButton = event.target.closest(".course-activity-scroll-btn");
   var bonusButton = event.target.closest(".student-bonus-claim-btn");
+  var sectionButton = event.target.closest("[data-student-section]");
+  var profileTabButton = event.target.closest("[data-profile-tab]");
+  var profileAvatarButton = event.target.closest("[data-profile-avatar-id]");
+  var profileTitleButton = event.target.closest("[data-profile-title-id]");
+
+  if (sectionButton) {
+    showStudentSection(sectionButton.getAttribute("data-student-section"));
+    return;
+  }
+
+  if (profileTabButton) {
+    studentDashboardStore.setState({
+      profileTab: profileTabButton.getAttribute("data-profile-tab") || "overview",
+      statusMessage: ""
+    });
+    return;
+  }
+
+  if (profileAvatarButton) {
+    selectProfileAvatar(profileAvatarButton.getAttribute("data-profile-avatar-id"));
+    return;
+  }
+
+  if (profileTitleButton) {
+    selectProfileTitle(profileTitleButton.getAttribute("data-profile-title-id"));
+    return;
+  }
 
   if (switchStudentButton) {
     resetStudentLogin();
@@ -290,6 +325,83 @@ function handleAppClick(event) {
   if (completeButton || playerCompleteButton) {
     completeCurrentStep();
   }
+}
+
+function handleAppChange(event) {
+  var historyRangeSelect = event.target.closest("[data-profile-history-range]");
+
+  if (historyRangeSelect) {
+    studentDashboardStore.setState({
+      activityHistoryRange: historyRangeSelect.value || "30"
+    });
+  }
+}
+
+function showStudentSection(sectionName) {
+  var safeSection = sectionName === "profile" || sectionName === "courses" ? sectionName : "home";
+
+  studentDashboardStore.setState({
+    activeStudentSection: safeSection,
+    courseFocusActive: false,
+    playerMode: false,
+    statusMessage: ""
+  });
+}
+
+function selectProfileAvatar(avatarId) {
+  var state = studentDashboardStore.getState();
+  var avatar = readAvatarById(avatarId);
+  var snapshot = createStudentProfileSnapshot({
+    student: state.student,
+    courses: state.courses,
+    progressSummary: state.progressSummary
+  });
+  var student = Object.assign({}, state.student || {}, {
+    avatarId: avatar.id
+  });
+
+  saveStudentProfilePreferences(student, {
+    avatarId: avatar.id,
+    activeTitleId: state.student && state.student.activeTitleId ? state.student.activeTitleId : snapshot.preferences.activeTitleId
+  });
+
+  studentDashboardStore.setState({
+    student: student,
+    statusMessage: "Avatar updated."
+  });
+}
+
+function selectProfileTitle(titleId) {
+  var state = studentDashboardStore.getState();
+  var snapshot = createStudentProfileSnapshot({
+    student: state.student,
+    courses: state.courses,
+    progressSummary: state.progressSummary
+  });
+  var title = snapshot.titles.find(function (item) {
+    return item.id === titleId;
+  });
+
+  if (!title || !title.unlocked) {
+    studentDashboardStore.setState({
+      statusMessage: "This title unlocks through learning progress."
+    });
+    return;
+  }
+
+  var student = Object.assign({}, state.student || {}, {
+    activeTitleId: title.id
+  });
+
+  saveStudentProfilePreferences(student, {
+    avatarId: state.student && state.student.avatarId ? state.student.avatarId : snapshot.preferences.avatarId,
+    activeTitleId: title.id
+  });
+
+  studentDashboardStore.setState({
+    student: student,
+    statusMessage: "Title updated."
+  });
 }
 
 function selectCourse(courseId) {
@@ -701,6 +813,7 @@ function buildDashboardView(state) {
   var courses = state.courses || [];
   var selectedCourse = readSelectedCourse(state);
   var studentName = readStudentName(state.student);
+  var activeSection = state.activeStudentSection || "home";
   var overallProgress = state.progressSummary && typeof state.progressSummary.overallProgressPercent === "number"
     ? state.progressSummary.overallProgressPercent
     : readOverallProgressPercent(courses);
@@ -742,6 +855,12 @@ function buildDashboardView(state) {
 
   html += buildStudentDebugPanel(state.assignmentDebug);
 
+  if (activeSection === "profile") {
+    html += buildStudentProfileCenter(state);
+    html += '</section></main>';
+    return html;
+  }
+
   if (courses.length === 0) {
     html += '<section class="student-dashboard-v2-grid student-dashboard-empty-grid">';
     html += '<div class="student-dashboard-main-stack">';
@@ -754,6 +873,12 @@ function buildDashboardView(state) {
     html += buildDailyBonusCard(state.dailyBonus, false);
     html += buildIntentionPoints(state.intentionPoints);
     html += '</aside></section></section></main>';
+    return html;
+  }
+
+  if (activeSection === "courses") {
+    html += buildStudentCoursesCenter(state, courses, selectedCourse, overallProgress);
+    html += '</section></main>';
     return html;
   }
 
@@ -779,15 +904,14 @@ function buildDashboardView(state) {
 function renderStudentHomeSidebar(state, courses, overallProgress) {
   var studentName = readStudentName(state.student);
   var courseCount = Array.isArray(courses) ? courses.length : 0;
+  var activeSection = state.activeStudentSection || "home";
 
   return '<aside class="course-focus-sidebar student-home-sidebar">'
     + '<div class="course-focus-brand"><span>' + renderSvgIcon("oquway") + '</span><strong>OquWay</strong></div>'
     + '<nav class="course-focus-nav" aria-label="Student dashboard navigation">'
-    + '<span class="course-focus-nav-item course-focus-nav-item-active">' + renderSvgIcon("home") + '<span>Home</span></span>'
-    + '<span class="course-focus-nav-item">' + renderSvgIcon("book") + '<span>Courses</span></span>'
-    + '<span class="course-focus-nav-item">' + renderSvgIcon("trophy") + '<span>Achievements</span></span>'
-    + '<span class="course-focus-nav-item">' + renderSvgIcon("gift") + '<span>Rewards</span></span>'
-    + '<span class="course-focus-nav-item">' + renderSvgIcon("calendar") + '<span>Calendar</span></span>'
+    + buildStudentSectionNavItem("home", "home", "Home", activeSection)
+    + buildStudentSectionNavItem("book", "courses", "Courses", activeSection)
+    + buildStudentSectionNavItem("trophy", "profile", "Profile", activeSection)
     + '</nav>'
     + '<div class="course-focus-profile student-home-profile">'
     + buildStudentAvatar(state.student, studentName)
@@ -798,6 +922,314 @@ function renderStudentHomeSidebar(state, courses, overallProgress) {
     + '<small>' + courseCount + ' assigned course' + (courseCount === 1 ? "" : "s") + '</small>'
     + '</div>'
     + '</aside>';
+}
+
+function buildStudentSectionNavItem(iconName, sectionName, label, activeSection) {
+  var activeClass = activeSection === sectionName ? " course-focus-nav-item-active" : "";
+
+  return '<button type="button" class="course-focus-nav-item student-section-nav-item' + activeClass + '" data-student-section="' + escapeHtml(sectionName) + '">' + renderSvgIcon(iconName) + '<span>' + escapeHtml(label) + '</span></button>';
+}
+
+function buildStudentCoursesCenter(state, courses, selectedCourse, overallProgress) {
+  return '<section class="student-dashboard-v2-grid">'
+    + '<div class="student-dashboard-main-stack">'
+    + '<section class="student-panel student-my-courses-panel"><div class="student-section-head"><div><p class="student-eyebrow">Courses</p><h2>Assigned Courses</h2></div><span>' + courses.length + ' course' + (courses.length === 1 ? "" : "s") + '</span></div>'
+    + buildCourseCards(courses, state.selectedCourseId)
+    + '</section>'
+    + '</div>'
+    + '<aside class="student-dashboard-side-stack">'
+    + buildDashboardCourseOverview(courses, selectedCourse)
+    + buildProgressCard(state.progressSummary, overallProgress)
+    + '</aside>'
+    + '</section>';
+}
+
+function buildStudentProfileCenter(state) {
+  var snapshot = createStudentProfileSnapshot({
+    student: state.student,
+    courses: state.courses,
+    progressSummary: state.progressSummary
+  });
+  var activeTab = state.profileTab || "overview";
+  var tabContent = "";
+
+  if (activeTab === "achievements") {
+    tabContent = buildProfileAchievementsTab(snapshot);
+  } else if (activeTab === "journey") {
+    tabContent = buildProfileJourneyTab(snapshot);
+  } else if (activeTab === "skills") {
+    tabContent = buildProfileSkillsTab(snapshot);
+  } else if (activeTab === "history") {
+    tabContent = buildProfileHistoryTab(snapshot, state.activityHistoryRange || "30");
+  } else {
+    tabContent = buildProfileOverviewTab(snapshot);
+  }
+
+  return '<section class="student-profile-center">'
+    + buildProfileHeader(snapshot)
+    + buildProfileTabs(activeTab)
+    + tabContent
+    + '</section>';
+}
+
+function buildProfileHeader(snapshot) {
+  var studentName = readStudentName(snapshot.student);
+  var title = snapshot.activeTitle && snapshot.activeTitle.label ? snapshot.activeTitle.label : "Learner";
+  var level = snapshot.level;
+
+  return '<section class="student-profile-hero-card">'
+    + '<div class="student-profile-avatar-large">' + buildStudentAvatar(snapshot.student, studentName) + '</div>'
+    + '<div class="student-profile-hero-copy"><p class="student-eyebrow">Learning Profile</p><h2>' + escapeHtml(studentName) + '</h2><p>' + escapeHtml(title) + '</p>'
+    + '<div class="student-profile-level-line"><strong>Level ' + level.level + '</strong><span>' + level.progressPercent + '% to Level ' + level.nextLevel + '</span></div>'
+    + '<div class="student-profile-level-bar"><span style="width:' + level.progressPercent + '%"></span></div>'
+    + '<small>' + level.xpToNextLevel + ' XP to Level ' + level.nextLevel + '</small></div>'
+    + '<div class="student-profile-hero-stats">'
+    + buildProfileMiniStat("XP", snapshot.metrics.xpEarned)
+    + buildProfileMiniStat("Stars", snapshot.metrics.starsEarned)
+    + buildProfileMiniStat("Achievements", snapshot.metrics.achievementsEarned)
+    + '</div>'
+    + '</section>';
+}
+
+function buildProfileMiniStat(label, value) {
+  return '<span><strong>' + escapeHtml(String(value)) + '</strong>' + escapeHtml(label) + '</span>';
+}
+
+function buildProfileTabs(activeTab) {
+  return '<div class="student-profile-tabs" role="tablist" aria-label="Profile sections">'
+    + buildProfileTabButton("overview", "Overview", activeTab)
+    + buildProfileTabButton("achievements", "Achievements", activeTab)
+    + buildProfileTabButton("journey", "Learning Journey", activeTab)
+    + buildProfileTabButton("skills", "Skills & Mastery", activeTab)
+    + buildProfileTabButton("history", "Activity History", activeTab)
+    + '</div>';
+}
+
+function buildProfileTabButton(tabName, label, activeTab) {
+  var activeClass = activeTab === tabName ? " student-profile-tab-active" : "";
+  var selected = activeTab === tabName ? "true" : "false";
+
+  return '<button type="button" class="student-profile-tab' + activeClass + '" role="tab" aria-selected="' + selected + '" data-profile-tab="' + escapeHtml(tabName) + '">' + escapeHtml(label) + '</button>';
+}
+
+function buildProfileOverviewTab(snapshot) {
+  var metrics = snapshot.metrics;
+
+  return '<section class="student-profile-grid">'
+    + '<div class="student-profile-main-stack">'
+    + '<section class="student-profile-card"><div class="student-section-head"><div><p class="student-eyebrow">Overview</p><h2>Your progress</h2></div><span>Level ' + snapshot.level.level + '</span></div>'
+    + '<div class="student-profile-summary-grid">'
+    + buildProfileSummaryCard("XP Earned", metrics.xpEarned)
+    + buildProfileSummaryCard("Stars Earned", metrics.starsEarned)
+    + buildProfileSummaryCard("Activities Completed", metrics.activitiesCompleted)
+    + buildProfileSummaryCard("Modules Completed", metrics.modulesCompleted)
+    + buildProfileSummaryCard("Achievements Earned", metrics.achievementsEarned)
+    + buildProfileSummaryCard("Current Streak", metrics.currentStreak)
+    + buildProfileSummaryCard("Longest Streak", metrics.longestStreak)
+    + '</div></section>'
+    + buildAvatarPicker(snapshot)
+    + '</div>'
+    + '<aside class="student-profile-side-stack">'
+    + buildTitlePicker(snapshot)
+    + buildProfileRecentAchievements(snapshot)
+    + '</aside>'
+    + '</section>';
+}
+
+function buildProfileSummaryCard(label, value) {
+  return '<div class="student-profile-summary-card"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(String(value)) + '</strong></div>';
+}
+
+function buildAvatarPicker(snapshot) {
+  var html = '<section class="student-profile-card"><div class="student-section-head"><div><p class="student-eyebrow">Avatar</p><h2>Choose your look</h2></div><span>' + STUDENT_PROFILE_AVATARS.length + ' options</span></div><div class="student-avatar-picker">';
+  var index = 0;
+
+  while (index < STUDENT_PROFILE_AVATARS.length) {
+    var avatar = STUDENT_PROFILE_AVATARS[index];
+    var selectedClass = snapshot.avatar.id === avatar.id ? " student-avatar-option-selected" : "";
+    html += '<button type="button" class="student-avatar-option student-built-avatar-' + escapeHtml(avatar.tone) + selectedClass + '" data-profile-avatar-id="' + escapeHtml(avatar.id) + '" aria-label="' + escapeHtml("Select " + avatar.label + " avatar") + '"><span>' + escapeHtml(avatar.initials) + '</span><small>' + escapeHtml(avatar.label) + '</small></button>';
+    index = index + 1;
+  }
+
+  return html + '</div></section>';
+}
+
+function buildTitlePicker(snapshot) {
+  var html = '<section class="student-profile-card"><div class="student-section-head"><div><p class="student-eyebrow">Title</p><h2>Active title</h2></div><span>' + escapeHtml(snapshot.activeTitle.label) + '</span></div><div class="student-title-list">';
+  var index = 0;
+
+  while (index < snapshot.titles.length) {
+    var title = snapshot.titles[index];
+    var className = "student-title-option" + (title.active ? " student-title-option-active" : "") + (!title.unlocked ? " student-title-option-locked" : "");
+    html += '<button type="button" class="' + className + '" data-profile-title-id="' + escapeHtml(title.id) + '"' + disabled(!title.unlocked) + '><strong>' + escapeHtml(title.label) + '</strong><span>' + escapeHtml(title.unlocked ? title.description : "Locked") + '</span></button>';
+    index = index + 1;
+  }
+
+  return html + '</div></section>';
+}
+
+function buildProfileRecentAchievements(snapshot) {
+  var earned = snapshot.achievements.filter(function (achievement) { return achievement.earned; }).slice(0, 3);
+  var html = '<section class="student-profile-card"><div class="student-section-head"><div><p class="student-eyebrow">Recently earned</p><h2>Achievements</h2></div></div>';
+
+  if (earned.length === 0) {
+    return html + '<p class="student-profile-muted">Complete your first activity to start earning achievements.</p></section>';
+  }
+
+  html += '<div class="student-achievement-mini-list">';
+  earned.forEach(function (achievement) {
+    html += '<div><span>' + renderSvgIcon("trophy") + '</span><strong>' + escapeHtml(achievement.name) + '</strong><small>' + escapeHtml(achievement.category) + '</small></div>';
+  });
+
+  return html + '</div></section>';
+}
+
+function buildProfileAchievementsTab(snapshot) {
+  var categories = ["Learning", "Participation", "Mastery", "Consistency", "Exploration"];
+  var html = '<section class="student-profile-card"><div class="student-section-head"><div><p class="student-eyebrow">Achievements</p><h2>Growth milestones</h2></div><span>' + snapshot.metrics.achievementsEarned + ' earned</span></div>';
+
+  categories.forEach(function (category) {
+    var items = snapshot.achievements.filter(function (achievement) { return achievement.category === category; });
+    html += '<div class="student-achievement-category"><h3>' + escapeHtml(category) + '</h3><div class="student-achievement-grid">';
+    items.forEach(function (achievement) {
+      var className = achievement.earned ? "student-achievement-card" : "student-achievement-card student-achievement-locked";
+      html += '<article class="' + className + '"><span class="student-achievement-icon">' + renderSvgIcon(achievement.earned ? "trophy" : "lock") + '</span><strong>' + escapeHtml(achievement.name) + '</strong><p>' + escapeHtml(achievement.description) + '</p><div class="student-progress-bar"><span style="width:' + achievement.progressPercent + '%"></span></div><small>' + escapeHtml(achievement.earned ? (formatProfileDate(achievement.dateEarned) || "Earned") : achievement.progress + " / " + achievement.threshold) + '</small></article>';
+    });
+    html += '</div></div>';
+  });
+
+  return html + '</section>';
+}
+
+function buildProfileJourneyTab(snapshot) {
+  var html = '<section class="student-profile-card"><div class="student-section-head"><div><p class="student-eyebrow">Learning Journey</p><h2>Course roadmap</h2></div><span>' + snapshot.journey.courses.length + ' course' + (snapshot.journey.courses.length === 1 ? "" : "s") + '</span></div>';
+
+  if (snapshot.journey.courses.length === 0) {
+    return html + '<p class="student-profile-muted">Your assigned course journey will appear here.</p></section>';
+  }
+
+  snapshot.journey.courses.forEach(function (course) {
+    html += '<article class="student-journey-course"><div class="student-journey-course-head"><strong>' + escapeHtml(course.title) + '</strong><span>' + course.progressPercent + '%</span></div><div class="student-progress-bar"><span style="width:' + course.progressPercent + '%"></span></div><div class="student-journey-module-list">';
+    course.modules.forEach(function (module) {
+      html += '<button type="button" class="student-journey-module student-journey-' + escapeHtml(module.status) + '" data-student-section="courses"><span>' + renderJourneyStatusIcon(module) + '</span><strong>' + escapeHtml(module.title) + '</strong><small>' + module.completedSteps + ' / ' + module.totalSteps + ' steps</small></button>';
+    });
+    html += '</div></article>';
+  });
+
+  return html + '</section>';
+}
+
+function renderJourneyStatusIcon(module) {
+  if (module.mastered) {
+    return renderSvgIcon("trophy");
+  }
+
+  if (module.status === "completed") {
+    return renderSvgIcon("check");
+  }
+
+  if (module.status === "inProgress") {
+    return renderSvgIcon("play");
+  }
+
+  if (module.status === "locked") {
+    return renderSvgIcon("lock");
+  }
+
+  return renderSvgIcon("book");
+}
+
+function buildProfileSkillsTab(snapshot) {
+  var html = '<section class="student-profile-card"><div class="student-section-head"><div><p class="student-eyebrow">Skills & Mastery</p><h2>Learning areas</h2></div><span>' + snapshot.skills.length + ' skills</span></div>';
+
+  if (snapshot.skills.length === 0) {
+    return html + '<p class="student-profile-muted">Skill progress will appear as you complete activities.</p></section>';
+  }
+
+  html += '<div class="student-skill-list">';
+  snapshot.skills.forEach(function (skill) {
+    html += '<article class="student-skill-card"><div><strong>' + escapeHtml(skill.name) + '</strong><span>' + skill.progressPercent + '% complete</span></div><div class="student-progress-bar"><span style="width:' + skill.progressPercent + '%"></span></div><footer><span>Mastered ' + skill.mastered + '</span><span>Completed ' + skill.completed + '</span><span>In progress ' + skill.inProgress + '</span></footer></article>';
+  });
+
+  return html + '</div></section>';
+}
+
+function buildProfileHistoryTab(snapshot, range) {
+  var filteredActivities = filterProfileActivities(snapshot.activities, range);
+  var html = '<section class="student-profile-card"><div class="student-section-head student-profile-history-head"><div><p class="student-eyebrow">Activity History</p><h2>Recent learning</h2></div><label><span>Show</span><select data-profile-history-range><option value="7"' + selected(range === "7") + '>Last 7 days</option><option value="30"' + selected(range === "30") + '>Last 30 days</option><option value="all"' + selected(range === "all") + '>All time</option></select></label></div>';
+
+  if (filteredActivities.length === 0) {
+    return html + '<p class="student-profile-muted">Completed activity history will appear here.</p></section>';
+  }
+
+  html += '<div class="student-history-table"><div class="student-history-head"><span>Activity</span><span>Date</span><span>Score</span><span>Stars</span><span>XP</span></div>';
+  filteredActivities.forEach(function (activity) {
+    html += '<div class="student-history-row"><span><strong>' + escapeHtml(activity.activity) + '</strong><small>' + escapeHtml(activity.courseTitle) + ' - ' + escapeHtml(activity.moduleTitle) + '</small></span><span>' + escapeHtml(formatProfileDate(activity.date) || "Recent") + '</span><span>' + activity.score + '%</span><span>' + buildStarText(activity.starsEarned) + '</span><span>+' + activity.xpEarned + '</span></div>';
+  });
+
+  return html + '</div></section>';
+}
+
+function filterProfileActivities(activities, range) {
+  var safeActivities = Array.isArray(activities) ? activities : [];
+  var days = range === "7" ? 7 : (range === "all" ? 0 : 30);
+  var cutoff = days > 0 ? Date.now() - days * 24 * 60 * 60 * 1000 : 0;
+
+  return safeActivities.filter(function (activity) {
+    if (!activity.completed) {
+      return false;
+    }
+
+    if (!cutoff || !activity.date) {
+      return true;
+    }
+
+    return readProfileDateMs(activity.date) >= cutoff;
+  }).slice(0, 25);
+}
+
+function buildStarText(starCount) {
+  var count = Math.max(0, Math.round(Number(starCount) || 0));
+  return count + " star" + (count === 1 ? "" : "s");
+}
+
+function selected(value) {
+  return value ? " selected" : "";
+}
+
+function formatProfileDate(value) {
+  var ms = readProfileDateMs(value);
+
+  if (!ms) {
+    return "";
+  }
+
+  return new Date(ms).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric"
+  });
+}
+
+function readProfileDateMs(value) {
+  if (!value) {
+    return 0;
+  }
+
+  if (typeof value === "number") {
+    return value;
+  }
+
+  if (value && typeof value.toMillis === "function") {
+    return value.toMillis();
+  }
+
+  if (value && typeof value.seconds === "number") {
+    return value.seconds * 1000;
+  }
+
+  var parsed = Date.parse(String(value));
+  return Number.isNaN(parsed) ? 0 : parsed;
 }
 
 function buildStudentDebugPanel(assignmentDebug) {
@@ -930,7 +1362,10 @@ function buildCourseFocusView(state) {
   html += '<section class="course-focus-main">';
   html += '<div class="course-focus-primary">';
   html += renderCourseHero(course, progress);
-  html += renderModuleRoadmap(modules, selectedModule ? selectedModule.id : state.selectedModuleId);
+  html += renderCourseModules(course, modules, {
+    selectedModuleId: selectedModule ? selectedModule.id : state.selectedModuleId,
+    progress: progress
+  });
   html += renderModuleActivities(course, selectedModule, state);
   html += renderSelectedModulePanel(course, selectedModule, state);
   html += '</div>';
@@ -1017,93 +1452,168 @@ function renderNextUpCard(nextAction) {
     + '</section>';
 }
 
-function renderModuleRoadmap(modules, selectedModuleId) {
+function renderCourseModules(course, modules, progress) {
+  var displayTemplate = readCourseDisplayTemplate(course);
+
+  if (displayTemplate === "adventurePath") {
+    return renderAdventurePathModules(course, modules, progress);
+  }
+
+  if (displayTemplate === "compactGrid") {
+    return renderCompactGridModules(course, modules, progress);
+  }
+
+  return renderBasicModuleList(course, modules, progress);
+}
+
+function renderBasicModuleList(course, modules, progress) {
   var safeModules = sortModulesForJourney(Array.isArray(modules) ? modules : []);
-  var journeyModules = createJourneyNodes(safeModules);
-  var html = '<section class="course-roadmap"><div class="student-section-head course-journey-head"><div><h2>Course Journey</h2></div><div class="course-journey-legend"><span><b></b>Main Path</span><span><b></b>Bonus Path</span><span><b></b>Extra Quest</span></div></div>';
+  var html = renderModuleTemplateShellStart("course-modules-basic", "Course Modules", "Top-to-bottom module list");
   var moduleIndex = 0;
 
   if (safeModules.length === 0) {
     return html + '<div class="course-roadmap-empty">This course is not ready yet.</div></section>';
   }
 
-  html += '<div class="course-journey-scroller"><button type="button" class="course-journey-scroll-btn" aria-label="Scroll course journey left">' + renderSvgIcon("arrowLeft") + '</button><div class="course-journey-track" tabindex="0">';
-  while (moduleIndex < journeyModules.length) {
-    html += renderModuleRoadmapItem(journeyModules[moduleIndex], selectedModuleId, moduleIndex);
+  html += '<div class="course-basic-module-list">';
+  while (moduleIndex < safeModules.length) {
+    html += renderTemplateModuleButton(safeModules[moduleIndex], moduleIndex, progress, "basic");
     moduleIndex = moduleIndex + 1;
   }
-  html += '<span class="course-journey-finish">More</span>';
-  html += '</div><button type="button" class="course-journey-scroll-btn" aria-label="Scroll course journey right">' + renderSvgIcon("arrowRight") + '</button></div>';
-  html += '<div class="course-journey-scrub" aria-hidden="true"><span style="width:' + calculatePercent(countJourneyCompleteModules(safeModules), safeModules.length) + '%"></span></div>';
-
-  html += '</section>';
+  html += '</div></section>';
   return html;
 }
 
-function createJourneyNodes(modules) {
-  var safeModules = Array.isArray(modules) ? modules.slice() : [];
-  var minimumNodeCount = 6;
-  var nodeIndex = safeModules.length;
+function renderAdventurePathModules(course, modules, progress) {
+  var safeModules = sortModulesForJourney(Array.isArray(modules) ? modules : []);
+  var pathHeight = Math.max(220, safeModules.length * 138 + 70);
+  var html = '<section class="course-roadmap course-adventure-path">';
+  var moduleIndex = 0;
 
-  while (nodeIndex < minimumNodeCount) {
-    safeModules.push(createFutureJourneyNode(nodeIndex));
-    nodeIndex = nodeIndex + 1;
+  html += '<div class="course-adventure-header">'
+    + renderCourseIcon(course, "course-adventure-course-icon")
+    + '<div><p class="student-eyebrow">Adventure Path</p><h2>' + escapeHtml(readLocalizedText(course && course.title, "Course Journey")) + '</h2></div>'
+    + '<span>' + calculatePercent(countJourneyCompleteModules(safeModules), safeModules.length || 1) + '%</span>'
+    + '</div>';
+
+  if (safeModules.length === 0) {
+    return html + '<div class="course-roadmap-empty">This course is not ready yet.</div></section>';
   }
 
-  return safeModules;
-}
+  html += '<div class="course-adventure-stage" style="min-height:' + pathHeight + 'px">';
+  html += '<svg class="course-adventure-path-line" viewBox="0 0 100 ' + pathHeight + '" preserveAspectRatio="none" aria-hidden="true">';
+  html += '<path d="' + escapeHtml(buildAdventurePathData(safeModules.length)) + '"></path>';
+  html += '</svg>';
 
-function createFutureJourneyNode(moduleIndex) {
-  var pathType = "main";
-
-  if (moduleIndex === 2) {
-    pathType = "bonus";
-  } else if (moduleIndex === 4) {
-    pathType = "extra";
+  while (moduleIndex < safeModules.length) {
+    html += renderAdventurePathNode(safeModules[moduleIndex], moduleIndex, progress);
+    moduleIndex = moduleIndex + 1;
   }
 
-  return {
-    id: "future-module-" + (moduleIndex + 1),
-    title: pathType === "bonus" ? "Bonus Path" : (pathType === "extra" ? "Extra Quest" : "Future Module"),
-    pathOrder: moduleIndex + 1,
-    pathType: pathType,
-    isJourneyPlaceholder: true,
-    locked: true,
-    sessions: []
-  };
+  html += '</div></section>';
+  return html;
 }
 
-function renderModuleRoadmapItem(module, selectedModuleId, moduleIndex) {
-  var readiness = module && module.isJourneyPlaceholder ? {
-    status: "future",
-    label: "Future",
-    completedSteps: 0,
-    totalSteps: 0
-  } : getModuleReadiness(module);
-  var activeClass = module && module.id === selectedModuleId ? " course-roadmap-item-active" : "";
+function renderCompactGridModules(course, modules, progress) {
+  var safeModules = sortModulesForJourney(Array.isArray(modules) ? modules : []);
+  var html = renderModuleTemplateShellStart("course-modules-grid", "Course Modules", "Compact grid");
+  var moduleIndex = 0;
+
+  if (safeModules.length === 0) {
+    return html + '<div class="course-roadmap-empty">This course is not ready yet.</div></section>';
+  }
+
+  html += '<div class="course-compact-module-grid">';
+  while (moduleIndex < safeModules.length) {
+    html += renderTemplateModuleButton(safeModules[moduleIndex], moduleIndex, progress, "grid");
+    moduleIndex = moduleIndex + 1;
+  }
+  html += '</div></section>';
+  return html;
+}
+
+function renderModuleTemplateShellStart(className, title, label) {
+  return '<section class="course-roadmap course-module-template ' + className + '">'
+    + '<div class="student-section-head course-template-head"><div><h2>' + escapeHtml(title) + '</h2></div><span>' + escapeHtml(label) + '</span></div>';
+}
+
+function renderAdventurePathNode(module, moduleIndex, progress) {
+  var x = moduleIndex % 2 === 0 ? 28 : 72;
+  var y = readAdventureNodeY(moduleIndex);
+  var sideClass = moduleIndex % 2 === 0 ? " course-adventure-node-left" : " course-adventure-node-right";
+
+  return renderTemplateModuleButton(module, moduleIndex, progress, "adventure", {
+    className: sideClass,
+    style: "--node-x:" + x + "%;--node-y:" + y + "px;"
+  });
+}
+
+function renderTemplateModuleButton(module, moduleIndex, progress, variant, options) {
+  var safeModule = module || {};
+  var readiness = getModuleReadiness(module);
+  var moduleId = readModuleIdValue(safeModule, moduleIndex);
+  var selectedModuleId = progress && progress.selectedModuleId ? progress.selectedModuleId : "";
+  var isActive = moduleId && moduleId === selectedModuleId;
+  var isComplete = readiness.status === "complete";
+  var locked = isModuleLocked(module);
   var progressPercent = readModuleProgressPercent(module);
-  var moduleNumber = moduleIndex + 1;
-  var pathType = readModulePathType(module);
-  var placeholderClass = module && module.isJourneyPlaceholder ? " course-roadmap-item-future" : "";
-  var lockedClass = isModuleLocked(module) ? " course-roadmap-item-locked" : "";
-  var pathClass = " course-roadmap-path-" + pathType;
-  var icon = renderModuleIcon(module, readiness.status);
-  var tagName = module && module.isJourneyPlaceholder ? "span" : "button";
-  var nodeClass = tagName === "button" ? " course-journey-node" : "";
-  var buttonType = tagName === "button" ? ' type="button"' : "";
-  var moduleData = tagName === "button" ? ' data-module-id="' + escapeHtml(module.id) + '"' : ' aria-disabled="true"';
-  var detailText = module && module.isJourneyPlaceholder ? "Locked future stop" : readiness.completedSteps + ' / ' + readiness.totalSteps + ' steps - ' + progressPercent + '%';
-  var ariaLabel = module && module.isJourneyPlaceholder
-    ? "Future locked module " + moduleNumber
-    : "Open module " + readLocalizedText(module.title, "Module");
+  var variantClass = " course-template-module-" + variant;
+  var activeClass = isActive ? " course-template-module-current" : "";
+  var completeClass = isComplete ? " course-template-module-complete" : "";
+  var lockedClass = locked ? " course-template-module-locked" : "";
+  var extraClass = options && options.className ? options.className : "";
+  var style = options && options.style ? ' style="' + escapeHtml(options.style) + '"' : "";
+  var title = readLocalizedText(safeModule.title || safeModule.name, "Module " + (moduleIndex + 1));
+  var detailText = readiness.completedSteps + " / " + readiness.totalSteps + " steps";
+  var statusIcon = locked ? renderSvgIcon("lock") : (isComplete ? renderSvgIcon("check") : renderModuleIcon(module, readiness.status));
 
-  return '<' + tagName + buttonType + ' class="course-roadmap-item' + nodeClass + activeClass + lockedClass + placeholderClass + pathClass + '"' + moduleData + ' aria-label="' + escapeHtml(ariaLabel) + '">'
-    + '<span class="course-journey-node-icon">' + icon + '</span>'
-    + '<span class="course-journey-node-number">' + moduleNumber + '</span>'
-    + '<span class="course-roadmap-status course-roadmap-status-' + escapeHtml(readiness.status) + '">' + escapeHtml(readiness.label) + '</span>'
-    + '<strong>' + escapeHtml(readLocalizedText(module.title, "Module")) + '</strong>'
-    + '<small>' + detailText + '</small>'
-    + '</' + tagName + '>';
+  if (!module) {
+    title = "Module data missing";
+    detailText = "This module could not be loaded.";
+  }
+
+  return '<button type="button" class="course-template-module-card course-journey-node' + variantClass + activeClass + completeClass + lockedClass + extraClass + '" data-module-id="' + escapeHtml(moduleId) + '"' + style + ' aria-label="' + escapeHtml("Open module " + title) + '">'
+    + '<span class="course-template-module-icon">' + renderStudentModuleVisual(module, statusIcon) + '</span>'
+    + '<span class="course-template-module-copy"><strong>' + escapeHtml(title) + '</strong><small>' + escapeHtml(readiness.label) + ' - ' + escapeHtml(detailText) + '</small></span>'
+    + '<span class="course-template-module-progress" aria-hidden="true"><span style="width:' + progressPercent + '%"></span></span>'
+    + '<span class="course-template-module-badge">' + statusIcon + '</span>'
+    + '</button>';
+}
+
+function renderStudentModuleVisual(module, fallbackIcon) {
+  var iconUrl = readImageUrl(module && module.iconUrl);
+
+  if (iconUrl) {
+    return '<img src="' + escapeHtml(iconUrl) + '" alt="">';
+  }
+
+  return fallbackIcon;
+}
+
+function buildAdventurePathData(moduleCount) {
+  var path = "";
+  var moduleIndex = 0;
+
+  while (moduleIndex < moduleCount) {
+    var x = moduleIndex % 2 === 0 ? 28 : 72;
+    var y = readAdventureNodeY(moduleIndex);
+
+    if (moduleIndex === 0) {
+      path += "M " + x + " " + y;
+    } else {
+      var previousX = (moduleIndex - 1) % 2 === 0 ? 28 : 72;
+      var previousY = readAdventureNodeY(moduleIndex - 1);
+      path += " C " + previousX + " " + (previousY + 78) + ", " + x + " " + (y - 78) + ", " + x + " " + y;
+    }
+
+    moduleIndex = moduleIndex + 1;
+  }
+
+  return path;
+}
+
+function readAdventureNodeY(moduleIndex) {
+  return 72 + moduleIndex * 138;
 }
 
 function renderModuleActivities(course, module, state) {
@@ -1404,6 +1914,30 @@ function readModulePathType(module) {
   }
 
   return "main";
+}
+
+function readCourseDisplayTemplate(course) {
+  var displayTemplate = course && typeof course.displayTemplate === "string" ? course.displayTemplate : "";
+
+  if (displayTemplate === "adventurePath" || displayTemplate === "compactGrid") {
+    return displayTemplate;
+  }
+
+  return "basic";
+}
+
+function readModuleIdValue(module, moduleIndex) {
+  var id = readFirstTextValue([
+    module && module.id,
+    module && module.moduleId,
+    module && module.uid
+  ]);
+
+  if (id) {
+    return id;
+  }
+
+  return "missing-module-" + (moduleIndex + 1);
 }
 
 function readFirstTextValue(values) {
@@ -1763,12 +2297,25 @@ function buildPointBalance(colorLabel, label, value, tone) {
 
 function buildStudentAvatar(student, studentName) {
   var imageUrl = readStudentAvatarUrl(student);
+  var preferences = readStudentProfilePreferences(student);
+  var avatarId = student && typeof student.avatarId === "string" ? student.avatarId : preferences.avatarId;
 
   if (imageUrl) {
     return '<img class="student-avatar-img" src="' + escapeHtml(imageUrl) + '" alt="">';
   }
 
+  if (avatarId) {
+    return renderBuiltInStudentAvatar(readAvatarById(avatarId), studentName);
+  }
+
   return '<div class="student-avatar-fallback">' + renderFriendlyAvatarSvg(readInitials(studentName)) + '</div>';
+}
+
+function renderBuiltInStudentAvatar(avatar, studentName) {
+  var safeAvatar = avatar || readAvatarById("");
+  var label = safeAvatar.initials || readInitials(studentName);
+
+  return '<div class="student-avatar-fallback student-built-avatar student-built-avatar-' + escapeHtml(safeAvatar.tone) + '"><span>' + escapeHtml(label) + '</span></div>';
 }
 
 function renderFriendlyAvatarSvg(initials) {
@@ -2021,8 +2568,6 @@ function buildCourseDetail(course, state) {
 
 function buildModules(course, state) {
   var modules = Array.isArray(course.modules) ? course.modules : [];
-  var html = "";
-  var moduleIndex = 0;
 
   if (modules.length === 0) {
     return createEmptyState("No modules ready yet", "This course does not have modules yet.", {
@@ -2030,25 +2575,10 @@ function buildModules(course, state) {
     });
   }
 
-  while (moduleIndex < modules.length) {
-    var module = modules[moduleIndex];
-    var activeClass = state.selectedModuleId === module.id ? " student-module-active" : "";
-    var moduleStatus = readModuleLearningStatus(module);
-    var completedSteps = countModuleCompletedSteps(module);
-    var totalSteps = countModuleSteps(module);
-    html += '<article class="student-module">';
-    html += '<button type="button" class="student-module-card' + activeClass + '" data-module-id="' + escapeHtml(module.id) + '">';
-    html += '<span>' + escapeHtml(readLocalizedText(module.title, "Module")) + '</span>';
-    html += '<small>' + escapeHtml(readLearningStatusLabel(moduleStatus)) + ' - ' + completedSteps + ' / ' + totalSteps + ' steps</small>';
-    html += '<small>' + escapeHtml(readModuleLastActivityLabel(module)) + '</small>';
-    html += buildStudentModuleActionBadge(moduleStatus, readModuleActionLabel(moduleStatus, completedSteps));
-    html += '</button>';
-    html += buildSessions(course, module, state);
-    html += '</article>';
-    moduleIndex = moduleIndex + 1;
-  }
-
-  return html;
+  return renderCourseModules(course, modules, {
+    selectedModuleId: state.selectedModuleId,
+    progress: readCourseFocusProgress(course)
+  });
 }
 
 function buildSessions(course, module, state) {

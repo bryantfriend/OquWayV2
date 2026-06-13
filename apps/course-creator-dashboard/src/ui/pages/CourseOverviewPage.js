@@ -144,6 +144,20 @@ export class CourseOverviewPage {
                 </div>
 
                 <div>
+                  <label class="block text-xs font-semibold text-gray-700 mb-1">Module Display Template</label>
+                  <select id="courseDisplayTemplateSelect" class="course-meta-input w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="basic">Basic</option>
+                    <option value="adventurePath">Adventure Path</option>
+                    <option value="compactGrid">Compact Grid</option>
+                  </select>
+                  <div class="mt-2 space-y-1 rounded-xl border border-gray-100 bg-gray-50 p-3 text-xs leading-5 text-gray-600">
+                    <p><strong class="text-gray-800">Basic:</strong> Traditional vertical list with modules top-to-bottom.</p>
+                    <p><strong class="text-gray-800">Adventure Path:</strong> Journey-style path with current, completed, and locked states.</p>
+                    <p><strong class="text-gray-800">Compact Grid:</strong> Responsive cards for courses with many modules.</p>
+                  </div>
+                </div>
+
+                <div>
                   <label class="block text-xs font-semibold text-gray-700 mb-1">Subject</label>
                   <input type="text" id="courseSubjectInput" class="course-meta-input w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="ICT, English, Math">
                 </div>
@@ -1197,6 +1211,7 @@ export class CourseOverviewPage {
       var subject = document.getElementById('courseSubjectInput').value.trim();
       var level = document.getElementById('courseLevelInput').value.trim();
       var status = document.getElementById('courseStatusSelect').value || 'draft';
+      var displayTemplate = normalizeCourseDisplayTemplate(document.getElementById('courseDisplayTemplateSelect').value);
       var langs = [];
       for (var i = 0; i < langsSelect.options.length; i++) {
         if (langsSelect.options[i].selected) {
@@ -1217,6 +1232,7 @@ export class CourseOverviewPage {
         level: level,
         language: defaultLang || 'en',
         status: status,
+        displayTemplate: displayTemplate,
         tags: self.localTags.slice(),
         languages: langs.length ? langs : ['en'],
         defaultLanguage: defaultLang || 'en',
@@ -1502,6 +1518,9 @@ export class CourseOverviewPage {
 
         var statusSelect = document.getElementById('courseStatusSelect');
         statusSelect.value = course.status || 'draft';
+
+        var displayTemplateSelect = document.getElementById('courseDisplayTemplateSelect');
+        displayTemplateSelect.value = normalizeCourseDisplayTemplate(course.displayTemplate);
 
         document.getElementById('courseSubjectInput').value = course.subject || '';
         document.getElementById('courseLevelInput').value = course.level || '';
@@ -2631,6 +2650,14 @@ function normalizeModuleTemplateKey(value) {
   }
 
   return 'custom';
+}
+
+function normalizeCourseDisplayTemplate(value) {
+  if (value === 'adventurePath' || value === 'compactGrid') {
+    return value;
+  }
+
+  return 'basic';
 }
 
 function buildCoursePreview(course) {

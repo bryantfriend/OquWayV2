@@ -1,12 +1,13 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
-import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.162-modal-stack";
-import { createDefaultProgressDocument } from "../../../process/domain/student/studentProgressHelpers.js?v=1.1.162-modal-stack";
-import { resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.162-modal-stack";
+import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
+import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.82-shared-command-center-shell";
+import { createDefaultProgressDocument } from "../../../process/domain/student/studentProgressHelpers.js?v=1.1.82-shared-command-center-shell";
+import { resolveStudentId } from "../../../../../../../domain/users/index.js";
 
 export async function attachStudentOpenCourseContext(executionState) {
   var payload = executionState.payload || {};
   var actor = executionState.actor || {};
-  var studentId = resolveActorStudentId(actor, executionState.context && executionState.context.studentProfile, payload);
+  var studentId = resolveStudentId(executionState.context ? executionState.context.studentProfile : null, actor) || readText(payload.studentId || actor.id);
+  var resolvedActor = Object.assign({}, actor, { id: studentId });
   var courseId = readText(payload.courseId);
   var attemptedCoursePaths = [];
   var attemptedModulePaths = [];
@@ -17,17 +18,21 @@ export async function attachStudentOpenCourseContext(executionState) {
     if (!courseContext.course) {
       logAddContextFailure(studentId, courseId, attemptedCoursePaths, attemptedModulePaths, "Course was not found.");
       return {
-        valid: false,
-        errors: [
-          {
-            code: "STUDENT_OPEN_COURSE_NOT_FOUND",
-            message: "Course not found: " + courseId
-          }
-        ]
+        valid: true,
+        data: {
+          studentOpenCourses: [],
+          studentOpenCourse: null,
+          studentOpenModules: [],
+          studentOpenCourseSource: "",
+          studentOpenModuleSource: "",
+          studentOpenFirstRunnableStep: null,
+          studentOpenProgressLoaded: false,
+          studentOpenCourseLoadError: "Course not found: " + courseId
+        }
       };
     }
 
-    var moduleContext = await loadModules(actor, courseId, attemptedModulePaths);
+    var moduleContext = await loadModules(resolvedActor, courseId, attemptedModulePaths);
     var course = Object.assign({}, courseContext.course, {
       modules: moduleContext.modules
     });
@@ -233,7 +238,7 @@ function createSessionFromLearningMode(moduleId, modeId, mode, modeIndex) {
   var practiceModes = normalizePracticeModes(null);
   var key = mapLearningModeToPracticeModeKey(mode, modeIndex);
   var title = mode.title || mode.name || mode.displayName || "Learning mode";
-  var steps = Array.isArray(mode.steps) ? mode.steps.slice() : [];
+  var steps = readPlayableStepsFromLearningMode(mode);
 
   practiceModes[key] = Object.assign({}, practiceModes[key], {
     key: key,
@@ -254,6 +259,75 @@ function createSessionFromLearningMode(moduleId, modeId, mode, modeIndex) {
     practiceModes: practiceModes,
     order: readOrder(mode)
   };
+}
+
+function readPlayableStepsFromLearningMode(mode) {
+  var steps = Array.isArray(mode && mode.steps) ? mode.steps.slice() : [];
+
+  if (steps.length > 0) {
+    return steps;
+  }
+
+  steps = steps.concat(createStepsFromPages(mode && mode.pages));
+  steps = steps.concat(createStepsFromBlocks(mode && mode.blocks));
+  steps = steps.concat(createStepsFromTracks(mode && mode.tracks));
+
+  return steps;
+}
+
+function createStepsFromTracks(tracks) {
+  var source = Array.isArray(tracks) ? tracks : [];
+  var steps = [];
+  var trackIndex = 0;
+
+  while (trackIndex < source.length) {
+    steps = steps.concat(createStepsFromPages(source[trackIndex] ? source[trackIndex].pages : null));
+    steps = steps.concat(createStepsFromBlocks(source[trackIndex] ? source[trackIndex].blocks : null));
+    trackIndex = trackIndex + 1;
+  }
+
+  return steps;
+}
+
+function createStepsFromPages(pages) {
+  var source = Array.isArray(pages) ? pages : [];
+  var steps = [];
+  var pageIndex = 0;
+
+  while (pageIndex < source.length) {
+    if (source[pageIndex] && Array.isArray(source[pageIndex].blocks)) {
+      steps = steps.concat(createStepsFromBlocks(source[pageIndex].blocks));
+    } else if (source[pageIndex]) {
+      steps.push(createStepFromBlock(source[pageIndex], steps.length));
+    }
+    pageIndex = pageIndex + 1;
+  }
+
+  return steps;
+}
+
+function createStepsFromBlocks(blocks) {
+  var source = Array.isArray(blocks) ? blocks : [];
+  var steps = [];
+  var blockIndex = 0;
+
+  while (blockIndex < source.length) {
+    steps.push(createStepFromBlock(source[blockIndex], blockIndex));
+    blockIndex = blockIndex + 1;
+  }
+
+  return steps;
+}
+
+function createStepFromBlock(block, index) {
+  var safeBlock = block && typeof block === "object" ? block : {};
+
+  return Object.assign({}, safeBlock, {
+    id: readText(safeBlock.id || safeBlock.blockId || safeBlock.stepId) || "block-step-" + (index + 1),
+    type: readText(safeBlock.type || safeBlock.blockType || safeBlock.stepType) || "text",
+    order: typeof safeBlock.order === "number" ? safeBlock.order : index + 1,
+    title: safeBlock.title || safeBlock.prompt || safeBlock.question || "Learning activity"
+  });
 }
 
 function mapLearningModeToPracticeModeKey(mode, modeIndex) {
@@ -282,7 +356,7 @@ async function loadProgress(actor, courseId, moduleId, sessionId) {
   }
 
   try {
-    var progressRef = doc(db, "studentProgress", resolveActorStudentId(actor), "courses", courseId, "sessions", sessionId);
+    var progressRef = doc(db, "studentProgress", actor.id, "courses", courseId, "sessions", sessionId);
     var progressSnap = await getDoc(progressRef);
 
     if (!progressSnap.exists()) {

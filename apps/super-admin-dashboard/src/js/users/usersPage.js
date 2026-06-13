@@ -36,9 +36,7 @@ function userMatchesRoleFilter(user, roleFilter) {
 
   if (roleFilter === "admin") {
     return roles.indexOf("schoolAdmin") !== -1
-      || roles.indexOf("regionalAdmin") !== -1
-      || roles.indexOf("ministryUser") !== -1
-      || roles.indexOf("platformAdmin") !== -1;
+      || roles.indexOf("superAdmin") !== -1;
   }
 
   return roles.indexOf(roleFilter) !== -1;

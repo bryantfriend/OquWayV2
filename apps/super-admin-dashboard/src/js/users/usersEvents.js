@@ -29,6 +29,20 @@ export async function routeUsersAction(action, id, handlers) {
     return runAdminIntent("ResetFruitPasswordIntent", { userId: id }, handlers.context);
   }
 
+  if (action === "edit-user") {
+    if (typeof handlers.onViewUser === "function") {
+      handlers.onViewUser(id);
+    }
+    return runAdminIntent("GetUserIntent", { userId: id }, handlers.context);
+  }
+
+  if (action === "open-user-edit-modal") {
+    if (typeof handlers.onEditUser === "function") {
+      handlers.onEditUser(id);
+    }
+    return runAdminIntent("GetUserIntent", { userId: id }, handlers.context);
+  }
+
   if (action === "disable-user") {
     return runAdminIntent("DisableUserIntent", { userId: id }, handlers.context);
   }

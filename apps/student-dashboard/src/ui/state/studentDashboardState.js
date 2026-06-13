@@ -59,6 +59,9 @@ function createInitialState() {
       social: 0
     },
     progressSummary: null,
+    activeStudentSection: "home",
+    profileTab: "overview",
+    activityHistoryRange: "30",
     courseFocusActive: false,
     selectedCourseId: null,
     selectedModuleId: null,

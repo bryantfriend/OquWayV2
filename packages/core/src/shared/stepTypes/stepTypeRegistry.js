@@ -19,7 +19,16 @@ import {
   ReflectionStep as MainPathReflectionStep,
   RoadmapStep,
   SortingStep
-} from "./InteractiveLearningSteps.js?v=1.1.164-course-builder-source-truth";
+} from "./InteractiveLearningSteps.js?v=1.1.177-level-unlock-roadmap";
+export {
+  getActivityTemplateDefinition,
+  getActivityTemplateOptions,
+  getActivityTemplateRegistry,
+  getDefaultActivityTemplateId,
+  isDefaultActivityTemplate,
+  isReadyActivityTemplate,
+  normalizeActivityTemplateId
+} from "./activityTemplateRegistry.js?v=1.1.177-level-unlock-roadmap";
 
 var stepTypes = {
   "intro-card": IntroCardStep,

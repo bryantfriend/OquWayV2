@@ -1,13 +1,19 @@
 import {
   createDefaultStepConfig,
+  getActivityTemplateOptions,
+  getDefaultActivityTemplateId,
   getStepTypeDefinition,
+  normalizeActivityTemplateId,
   isSupportedStepType,
   listStepTypeDefinitions
-} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.162-modal-stack";
+} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.177-level-unlock-roadmap";
 
 export {
   createDefaultStepConfig,
+  getActivityTemplateOptions,
+  getDefaultActivityTemplateId,
   getStepTypeDefinition,
+  normalizeActivityTemplateId,
   isSupportedStepType,
   listStepTypeDefinitions
 };

@@ -1,5 +1,5 @@
-import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.162-modal-stack";
-import { collection, db, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
+import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.82-shared-command-center-shell";
+import { collection, db, deleteDoc, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
 
 export async function processLoadAdminProfile(executionState) {
   var actor = executionState.actor;
@@ -75,7 +75,40 @@ export async function processUpdateLocation(executionState) {
       return createProcessError("LOCATION_LOGIN_SLUG_DUPLICATE", "That loginSlug is already used by another location.");
     }
 
-    await setDoc(doc(db, "locations", payload.locationId), buildLocationWriteData(payload, false), { merge: true });
+    await setDoc(doc(db, "locations", payload.locationId), {
+      name: payload.name,
+      type: payload.type,
+      status: payload.status,
+      isArchived: payload.isArchived,
+      description: payload.description,
+      schoolCode: payload.schoolCode,
+      photoUrl: payload.photoUrl,
+      imageUrl: payload.photoUrl,
+      address: payload.address,
+      city: payload.city,
+      region: payload.region,
+      country: payload.country,
+      twoGisUrl: payload.twoGisUrl,
+      latitude: payload.latitude,
+      longitude: payload.longitude,
+      contact: payload.contact,
+      email: payload.email,
+      website: payload.website,
+      hours: payload.hours,
+      socialLinks: payload.socialLinks,
+      loginMode: payload.loginMode,
+      loginSlug: payload.loginSlug,
+      loginPath: payload.loginPath,
+      allowStudentLogin: payload.allowStudentLogin,
+      languages: payload.languages,
+      intentionStoreEnabled: payload.intentionStoreEnabled,
+      parentPortalEnabled: payload.parentPortalEnabled,
+      courseEditorEnabled: payload.courseEditorEnabled,
+      gamificationEnabled: payload.gamificationEnabled,
+      adminUids: payload.adminUids,
+      subscription: payload.subscription,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
 
     executionState.result = {
       locationId: payload.locationId
@@ -122,9 +155,6 @@ function buildLocationWriteData(payload, includeCreatedAt) {
     schoolCode: payload.schoolCode,
     photoUrl: payload.photoUrl,
     imageUrl: payload.photoUrl,
-    iconUrl: payload.iconUrl || payload.photoUrl,
-    iconStoragePath: payload.iconStoragePath,
-    iconUpdatedBy: payload.iconUpdatedBy,
     address: payload.address,
     city: payload.city,
     region: payload.region,
@@ -150,10 +180,6 @@ function buildLocationWriteData(payload, includeCreatedAt) {
     subscription: payload.subscription,
     updatedAt: serverTimestamp()
   };
-
-  if (payload.iconUploadChanged === true) {
-    location.iconUpdatedAt = serverTimestamp();
-  }
 
   if (includeCreatedAt) {
     location.createdAt = serverTimestamp();
@@ -248,6 +274,29 @@ export async function processUpdateClass(executionState) {
     return { valid: true };
   } catch (error) {
     return createProcessError("CLASS_UPDATE_FAILED", error.message);
+  }
+}
+
+export async function processDeleteClass(executionState) {
+  var payload = executionState.payload;
+
+  try {
+    var classRef = doc(db, "classes", payload.classId);
+    var classSnap = await getDoc(classRef);
+
+    if (!classSnap.exists()) {
+      return createProcessError("CLASS_NOT_FOUND", "Class was not found.");
+    }
+
+    await deleteDoc(classRef);
+    executionState.result = {
+      classId: payload.classId,
+      deleted: true
+    };
+
+    return { valid: true };
+  } catch (error) {
+    return createProcessError("CLASS_DELETE_FAILED", "Failed to delete class: " + error.message);
   }
 }
 

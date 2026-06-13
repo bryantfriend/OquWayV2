@@ -1,7 +1,8 @@
 import {
   createDefaultStepConfig,
-  getStepTypeDefinition
-} from "../stepTypes/stepTypeRegistry.js?v=1.1.162-modal-stack";
+  getStepTypeDefinition,
+  normalizeActivityTemplateId
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.177-level-unlock-roadmap";
 
 export class PracticeModePlayer {
   constructor(options) {
@@ -99,9 +100,12 @@ export class PracticeModePlayer {
   renderCurrentStep() {
     var target = document.getElementById("course-player-step-render-target");
     var step = this.readCurrentStep();
-    var StepTypeDefinition = getStepTypeDefinition(readStepType(step));
-    var config = createDefaultStepConfig(readStepType(step), readStepConfig(step));
+    var stepType = readStepType(step);
+    var StepTypeDefinition = getStepTypeDefinition(stepType);
+    var config = createDefaultStepConfig(stepType, readStepConfig(step));
     var self = this;
+
+    config._activityTemplate = readStepActivityTemplate(step, stepType);
 
     if (!target) {
       return;
@@ -512,11 +516,19 @@ function readLocalizedText(value, fallbackText) {
 }
 
 function readStepType(step) {
-  if (!step || typeof step.type !== "string") {
+  if (!step) {
     return "";
   }
 
-  return step.type;
+  if (typeof step.type === "string" && step.type.length > 0) {
+    return step.type;
+  }
+
+  if (typeof step.stepTypeId === "string" && step.stepTypeId.length > 0) {
+    return step.stepTypeId;
+  }
+
+  return "";
 }
 
 function readStepId(step, fallbackText) {
@@ -533,6 +545,14 @@ function readStepConfig(step) {
   }
 
   return step.config;
+}
+
+function readStepActivityTemplate(step, stepType) {
+  if (!step || typeof step.activityTemplate !== "string") {
+    return normalizeActivityTemplateId(stepType, "");
+  }
+
+  return normalizeActivityTemplateId(stepType, step.activityTemplate);
 }
 
 function createDefaultCompletionResult() {
