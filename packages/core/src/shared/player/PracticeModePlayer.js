@@ -2,7 +2,7 @@ import {
   createDefaultStepConfig,
   getStepTypeDefinition,
   normalizeActivityTemplateId
-} from "../stepTypes/stepTypeRegistry.js?v=1.1.184-scenario-choice";
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.185-ready-templates";
 
 export class PracticeModePlayer {
   constructor(options) {

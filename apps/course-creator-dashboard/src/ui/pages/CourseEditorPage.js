@@ -1,5 +1,5 @@
 import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.160-lesson-paths";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.184-scenario-choice";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.185-ready-templates";
 import {
   getDefaultActivityTemplateId,
   getActivityTemplateOptions,
@@ -7,8 +7,8 @@ import {
   listStepTypeDefinitions,
   normalizeActivityTemplateId,
   validateStepConfig
-} from "../../../../../packages/domain/steps/index.js?v=1.1.184-scenario-choice";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.184-scenario-choice";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.185-ready-templates";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.185-ready-templates";
 import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.138-course-overview-title";
 
 const MAIN_PATH_PRACTICE_MODE_KEY = "beforeClass";
@@ -3011,7 +3011,7 @@ function buildActivityTemplateSelector(stepType, selectedTemplateId) {
     var checked = option.id === selectedId ? " checked" : "";
     var selectedClass = option.id === selectedId ? " is-selected" : "";
     var statusClass = option.status === "ready" ? "ready" : "soon";
-    var statusLabel = option.id === defaultTemplateId ? "Default" : (option.status === "ready" ? "Ready" : "Soon");
+    var statusLabel = option.id === defaultTemplateId ? "Default" : "Ready";
 
     html += '<label class="activity-template-option' + selectedClass + '">';
     html += '<input type="radio" class="inspector-activity-template" name="inspector-activity-template" value="' + escapeHtml(option.id) + '"' + checked + '>';

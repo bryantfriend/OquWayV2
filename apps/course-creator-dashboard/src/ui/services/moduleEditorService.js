@@ -1,5 +1,5 @@
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.184-scenario-choice";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.184-scenario-choice";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.185-ready-templates";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.185-ready-templates";
 import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.160-lesson-paths";
 import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.138-course-overview-title";
 

@@ -1,10 +1,10 @@
-import { validateAuthenticated, validateCourseId, validateModuleId, validatePracticeModeKey, validatePracticeModeStepId, validateSessionId } from "../../stages/validate/validators.js?v=1.1.184-scenario-choice";
-import { normalizeCourseId, normalizePracticeModeStep } from "../../stages/normalize/normalizers.js?v=1.1.184-scenario-choice";
-import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.184-scenario-choice";
-import { attachCourseDocumentForModule, attachModuleDocument, attachSessionDocument } from "../../stages/addContext/contexts.js?v=1.1.184-scenario-choice";
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.184-scenario-choice";
-import { processUpdatePracticeModeStep } from "../../stages/process/processors.js?v=1.1.184-scenario-choice";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.184-scenario-choice";
+import { validateAuthenticated, validateCourseId, validateModuleId, validatePracticeModeKey, validatePracticeModeStepId, validateSessionId } from "../../stages/validate/validators.js?v=1.1.185-ready-templates";
+import { normalizeCourseId, normalizePracticeModeStep } from "../../stages/normalize/normalizers.js?v=1.1.185-ready-templates";
+import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.185-ready-templates";
+import { attachCourseDocumentForModule, attachModuleDocument, attachSessionDocument } from "../../stages/addContext/contexts.js?v=1.1.185-ready-templates";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.185-ready-templates";
+import { processUpdatePracticeModeStep } from "../../stages/process/processors.js?v=1.1.185-ready-templates";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.185-ready-templates";
 
 export function UpdatePracticeModeStepIntent() {
   return {

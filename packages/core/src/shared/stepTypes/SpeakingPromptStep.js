@@ -72,7 +72,7 @@ export class SpeakingPromptStep extends BaseStep {
     html += '<span>Prepare: ' + preparationSeconds + 's</span>';
     html += '<span>Speak: ' + speakingSeconds + 's</span>';
     html += '</div>';
-    html += '<button type="button" class="oqu-player-record-shell">Recording Coming Soon</button>';
+    html += '<button type="button" class="oqu-player-record-shell" data-step-complete>Practice Complete</button>';
     html += '<button type="button" class="oqu-player-complete-btn">Complete</button>';
     html += '</article>';
 

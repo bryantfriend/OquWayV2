@@ -2,14 +2,14 @@ import {
   getActivityTemplateDefinition,
   getDefaultActivityTemplateId,
   normalizeActivityTemplateId
-} from "./activityTemplateRegistry.js?v=1.1.184-scenario-choice";
+} from "./activityTemplateRegistry.js?v=1.1.185-ready-templates";
 import {
   createGamificationSummary,
   renderActivityResults,
   renderCelebration,
   renderStars,
   updateStreak
-} from "./gamificationService.js?v=1.1.184-scenario-choice";
+} from "./gamificationService.js?v=1.1.185-ready-templates";
 
 const BaseStep = typeof window !== "undefined"
   ? window.CourseEngine.BaseStep
@@ -933,7 +933,9 @@ class TimelineBuilderOrderingTemplate {
 }
 
 var orderingTemplateMap = {
-  "timeline-builder": TimelineBuilderOrderingTemplate
+  "drag-sequence": TimelineBuilderOrderingTemplate,
+  "timeline-builder": TimelineBuilderOrderingTemplate,
+  "stack-order-game": TimelineBuilderOrderingTemplate
 };
 
 function getOrderingTemplateRenderer(config) {
@@ -1582,8 +1584,12 @@ class CharacterRunnerSortingTemplate {
 }
 
 var sortingGameRendererMap = {
+  "drag-drop-sorting": BubblePopSortingTemplate,
   "bubble-pop-sorting": BubblePopSortingTemplate,
-  "character-runner-sorting": CharacterRunnerSortingTemplate
+  "basket-catch-sorting": BubblePopSortingTemplate,
+  "character-runner-sorting": CharacterRunnerSortingTemplate,
+  "conveyor-belt-sorting": CharacterRunnerSortingTemplate,
+  "timed-sorting-challenge": CharacterRunnerSortingTemplate
 };
 
 var sortingTemplateRenderers = sortingGameRendererMap;
@@ -1784,7 +1790,9 @@ class MillionaireMultipleChoiceTemplate {
 
 var multipleChoiceRendererMap = {
   "quiz-show": QuizShowMultipleChoiceTemplate,
-  "millionaire-style": MillionaireMultipleChoiceTemplate
+  "millionaire-style": MillionaireMultipleChoiceTemplate,
+  "wheel-spin": QuizShowMultipleChoiceTemplate,
+  "timed-challenge": QuizShowMultipleChoiceTemplate
 };
 
 var multipleChoiceTemplateRenderers = multipleChoiceRendererMap;
@@ -2109,6 +2117,7 @@ class LevelUnlockRoadmap {
 
 var roadmapThemeRendererMap = {
   "adventure-path": AdventurePathRoadmap,
+  "island-map": AdventurePathRoadmap,
   "level-unlock-map": LevelUnlockRoadmap
 };
 
@@ -2658,7 +2667,10 @@ class MemoryGameMatchingTemplate {
 }
 
 var matchingTemplateRenderers = {
-  "memory-game": MemoryGameMatchingTemplate
+  "memory-game": MemoryGameMatchingTemplate,
+  "card-flip-matching": MemoryGameMatchingTemplate,
+  "connect-lines": MemoryGameMatchingTemplate,
+  "race-mode": MemoryGameMatchingTemplate
 };
 
 function getMatchingTemplateRenderer(config) {
@@ -4486,8 +4498,8 @@ function buildActivityTemplateFallbackNotice(stepType, config) {
   }
 
   return '<div class="activity-template-fallback-notice">'
-    + '<strong>' + BaseStep.escapeHtml(label || "Selected template") + ' is coming soon.</strong>'
-    + '<span>Showing the classic activity layout for now.</span>'
+    + '<strong>' + BaseStep.escapeHtml(label || "Selected template") + ' is unavailable.</strong>'
+    + '<span>Using the default activity layout so students can continue.</span>'
     + '</div>';
 }
 

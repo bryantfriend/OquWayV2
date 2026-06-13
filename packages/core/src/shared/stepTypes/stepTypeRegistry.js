@@ -1,15 +1,15 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.184-scenario-choice";
-import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.184-scenario-choice";
-import { VocabularyStep } from "./VocabularyStep.js?v=1.1.184-scenario-choice";
-import { PhraseStep } from "./PhraseStep.js?v=1.1.184-scenario-choice";
-import { ListeningStep } from "./ListeningStep.js?v=1.1.184-scenario-choice";
-import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.184-scenario-choice";
-import { ReflectionStep } from "./ReflectionStep.js?v=1.1.184-scenario-choice";
-import { EmotionalCheckInStep } from "./EmotionalCheckInStep.js?v=1.1.184-scenario-choice";
-import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.184-scenario-choice";
-import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.184-scenario-choice";
-import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.184-scenario-choice";
-import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.184-scenario-choice";
+import { BaseStep } from "./BaseStep.js?v=1.1.185-ready-templates";
+import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.185-ready-templates";
+import { VocabularyStep } from "./VocabularyStep.js?v=1.1.185-ready-templates";
+import { PhraseStep } from "./PhraseStep.js?v=1.1.185-ready-templates";
+import { ListeningStep } from "./ListeningStep.js?v=1.1.185-ready-templates";
+import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.185-ready-templates";
+import { ReflectionStep } from "./ReflectionStep.js?v=1.1.185-ready-templates";
+import { EmotionalCheckInStep } from "./EmotionalCheckInStep.js?v=1.1.185-ready-templates";
+import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.185-ready-templates";
+import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.185-ready-templates";
+import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.185-ready-templates";
+import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.185-ready-templates";
 import {
   CardRevealStep,
   IntroCardStep,
@@ -21,7 +21,7 @@ import {
   RoadmapStep,
   ScenarioChoiceStep,
   SortingStep
-} from "./InteractiveLearningSteps.js?v=1.1.184-scenario-choice";
+} from "./InteractiveLearningSteps.js?v=1.1.185-ready-templates";
 export {
   getActivityTemplateDefinition,
   getActivityTemplateOptions,
@@ -30,7 +30,7 @@ export {
   isDefaultActivityTemplate,
   isReadyActivityTemplate,
   normalizeActivityTemplateId
-} from "./activityTemplateRegistry.js?v=1.1.184-scenario-choice";
+} from "./activityTemplateRegistry.js?v=1.1.185-ready-templates";
 
 var stepTypes = {
   "intro-card": IntroCardStep,

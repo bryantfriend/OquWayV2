@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.184-scenario-choice";
+import * as IntentExports from "../intents/intents.js?v=1.1.185-ready-templates";
 
 const registry = {
   // Demo Verification
