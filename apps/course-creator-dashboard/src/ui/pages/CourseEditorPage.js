@@ -1,5 +1,5 @@
 import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.160-lesson-paths";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.160-lesson-paths";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.181-instant-step-reorder";
 import {
   getDefaultActivityTemplateId,
   getActivityTemplateOptions,
@@ -511,6 +511,10 @@ export class CourseEditorPage {
     // Step reorder controls use the ICF reorder intent
     var reorderBtn = event.target.closest(".step-reorder-btn");
     if (reorderBtn && session) {
+      if (state.isDraftSaving) {
+        return;
+      }
+
       var reorderStepId = reorderBtn.getAttribute("data-step-id");
       var direction = reorderBtn.getAttribute("data-direction");
       var practiceModeKey = MAIN_PATH_PRACTICE_MODE_KEY;
@@ -520,13 +524,12 @@ export class CourseEditorPage {
         return;
       }
 
-      reorderBtn.textContent = "Saving...";
-      reorderBtn.disabled = true;
-
+      self.showEditorSaveStatus("saving", "Saving order...");
       moduleEditorService.reorderPracticeModeSteps(
         self.courseId, self.moduleId, session.id, practiceModeKey, orderedStepIds, reorderStepId, readSelectedModeId(state)
-      ).catch(function (error) {
-        reorderBtn.disabled = false;
+      ).then(function () {
+        self.showEditorSaveStatus("success", "Saved");
+      }).catch(function (error) {
         self.showEditorSaveStatus("error", "Could not save step order");
         self.updateUi(moduleEditorStore.getState());
       });
@@ -677,7 +680,7 @@ export class CourseEditorPage {
     var state = moduleEditorStore.getState();
     var session = this.findSelectedSession(state);
 
-    if (!tile || !list || !session) {
+    if (!tile || !list || !session || state.isDraftSaving) {
       return;
     }
 
