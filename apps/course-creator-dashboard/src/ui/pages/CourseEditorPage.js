@@ -1248,7 +1248,8 @@ export class CourseEditorPage {
     }
 
     var selectedPracticeModeKey = MAIN_PATH_PRACTICE_MODE_KEY;
-    var practiceModes = readPracticeModes(session);
+    var renderSession = createRenderableSession(session, selectedLearningMode, selectedPracticeModeKey);
+    var practiceModes = readPracticeModes(renderSession);
     var selectedMode = practiceModes[selectedPracticeModeKey];
     var effectiveStepId = getEffectiveStepId(selectedMode, state.selectedStepId);
 
@@ -1257,24 +1258,24 @@ export class CourseEditorPage {
     }
 
     if (structurePane) {
-      structurePane.innerHTML = this.buildModuleStructureDetails(session, state, selectedPracticeModeKey, selectedMode, effectiveStepId);
+      structurePane.innerHTML = this.buildModuleStructureDetails(renderSession, state, selectedPracticeModeKey, selectedMode, effectiveStepId);
     }
 
-    workspace.innerHTML = this.buildWorkspaceHtml(session, state, selectedPracticeModeKey, selectedMode, effectiveStepId);
+    workspace.innerHTML = this.buildWorkspaceHtml(renderSession, state, selectedPracticeModeKey, selectedMode, effectiveStepId);
     if (this.practiceModePlaytestMode) {
-      propsPane.innerHTML = this.buildPracticeModePlaytestInspector(session, selectedPracticeModeKey);
+      propsPane.innerHTML = this.buildPracticeModePlaytestInspector(renderSession, selectedPracticeModeKey);
     } else if (this.studentPreviewMode && effectiveStepId) {
-      propsPane.innerHTML = this.buildStudentPreviewInspector(session, selectedPracticeModeKey, effectiveStepId);
+      propsPane.innerHTML = this.buildStudentPreviewInspector(renderSession, selectedPracticeModeKey, effectiveStepId);
     } else {
-      propsPane.innerHTML = this.buildInspectorHtml(session, state, selectedPracticeModeKey, selectedMode, effectiveStepId);
+      propsPane.innerHTML = this.buildInspectorHtml(renderSession, state, selectedPracticeModeKey, selectedMode, effectiveStepId);
     }
 
     if (this.practiceModePlaytestMode) {
-      this.renderPracticeModePlaytest(session, selectedPracticeModeKey);
+      this.renderPracticeModePlaytest(renderSession, selectedPracticeModeKey);
     } else if (this.studentPreviewMode && effectiveStepId) {
-      this.renderStudentPreview(session, selectedPracticeModeKey, effectiveStepId);
+      this.renderStudentPreview(renderSession, selectedPracticeModeKey, effectiveStepId);
     } else {
-      this.renderInlineStepPreview(session, selectedPracticeModeKey, effectiveStepId);
+      this.renderInlineStepPreview(renderSession, selectedPracticeModeKey, effectiveStepId);
     }
 
     // Sync step selection to store asynchronously to avoid recursive re-renders
@@ -3287,6 +3288,124 @@ function readLocalizedText(value, fallbackText) {
 
 function createPracticeModeKeys() {
   return ["beforeClass", "classroomLesson", "afterClass", "dailyPractice"];
+}
+
+function createRenderableSession(session, learningMode, practiceModeKey) {
+  if (!session || !learningMode || !Array.isArray(learningMode.steps)) {
+    return session;
+  }
+
+  var practiceModes = readPracticeModes(session);
+  var practiceMode = practiceModes[practiceModeKey];
+  var shellSteps = practiceMode && Array.isArray(practiceMode.steps) ? practiceMode.steps : [];
+  var canonicalSteps = readSortedSteps(learningMode.steps);
+  var renderSteps = createRenderableStepList(shellSteps, canonicalSteps);
+
+  if (!practiceMode || renderSteps.length === 0) {
+    return session;
+  }
+
+  practiceModes[practiceModeKey] = Object.assign({}, practiceMode, {
+    steps: renderSteps
+  });
+
+  return Object.assign({}, session, {
+    practiceModes: practiceModes
+  });
+}
+
+function createRenderableStepList(shellSteps, canonicalSteps) {
+  var safeShellSteps = Array.isArray(shellSteps) ? readSortedSteps(shellSteps) : [];
+  var safeCanonicalSteps = Array.isArray(canonicalSteps) ? readSortedSteps(canonicalSteps) : [];
+  var canonicalById = {};
+  var usedStepIds = {};
+  var renderSteps = [];
+
+  safeCanonicalSteps.forEach(function (step) {
+    var stepId = readStepId(step, "");
+    if (stepId) {
+      canonicalById[stepId] = step;
+    }
+  });
+
+  if (safeShellSteps.length === 0) {
+    return safeCanonicalSteps;
+  }
+
+  safeShellSteps.forEach(function (step) {
+    var stepId = readStepId(step, "");
+    if (!stepId) {
+      return;
+    }
+
+    usedStepIds[stepId] = true;
+    renderSteps.push(createRenderableStep(step, canonicalById[stepId]));
+  });
+
+  safeCanonicalSteps.forEach(function (step) {
+    var stepId = readStepId(step, "");
+    if (stepId && !usedStepIds[stepId]) {
+      renderSteps.push(step);
+    }
+  });
+
+  return renderSteps.map(function (step, index) {
+    return Object.assign({}, step, {
+      order: index + 1
+    });
+  });
+}
+
+function createRenderableStep(shellStep, canonicalStep) {
+  var safeShellStep = shellStep && typeof shellStep === "object" ? shellStep : {};
+  var safeCanonicalStep = canonicalStep && typeof canonicalStep === "object" ? canonicalStep : {};
+  var step = Object.assign({}, safeCanonicalStep, safeShellStep);
+
+  if (shouldUseCanonicalStepTitle(safeShellStep.title, safeCanonicalStep.title)) {
+    step.title = safeCanonicalStep.title;
+  }
+
+  if (!hasReadableLocalizedText(safeShellStep.instructions) && hasReadableLocalizedText(safeCanonicalStep.instructions)) {
+    step.instructions = safeCanonicalStep.instructions;
+  }
+
+  if (!hasUsableObject(safeShellStep.config) && hasUsableObject(safeCanonicalStep.config)) {
+    step.config = safeCanonicalStep.config;
+  }
+
+  if (!readStepType(safeShellStep) && readStepType(safeCanonicalStep)) {
+    step.type = readStepType(safeCanonicalStep);
+    step.stepTypeId = safeCanonicalStep.stepTypeId || safeCanonicalStep.type;
+  }
+
+  if (!safeShellStep.activityTemplate && safeCanonicalStep.activityTemplate) {
+    step.activityTemplate = safeCanonicalStep.activityTemplate;
+  }
+
+  return step;
+}
+
+function hasReadableLocalizedText(value) {
+  return readLocalizedText(value, "").trim().length > 0;
+}
+
+function shouldUseCanonicalStepTitle(shellTitle, canonicalTitle) {
+  var shellText = readLocalizedText(shellTitle, "").trim();
+  var canonicalText = readLocalizedText(canonicalTitle, "").trim();
+
+  if (canonicalText.length === 0) {
+    return false;
+  }
+
+  if (shellText.length === 0) {
+    return true;
+  }
+
+  return shellText === "New Step" && canonicalText !== shellText;
+}
+
+function hasUsableObject(value) {
+  return !!value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).length > 0;
 }
 
 function readPracticeModes(session) {

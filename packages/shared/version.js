@@ -1,1 +1,1 @@
-export const OQUWAY_BUILD_VERSION = "1.1.181-instant-step-reorder";
+export const OQUWAY_BUILD_VERSION = "1.1.182-step-title-hydration";
