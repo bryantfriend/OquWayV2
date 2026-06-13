@@ -19,7 +19,7 @@ import {
   ReflectionStep as MainPathReflectionStep,
   RoadmapStep,
   SortingStep
-} from "./InteractiveLearningSteps.js?v=1.1.163-main-path-step-editor";
+} from "./InteractiveLearningSteps.js?v=1.1.166-reveal-card-editor";
 
 var stepTypes = {
   "intro-card": IntroCardStep,

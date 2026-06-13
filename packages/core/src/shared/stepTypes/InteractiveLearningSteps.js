@@ -120,8 +120,10 @@ export class CardRevealStep extends InteractiveLearningStepBase {
     body += '<div class="card-reveal-grid">';
     cards.forEach(function (card, index) {
       body += '<button type="button" class="card-reveal-card" data-card-index="' + index + '" aria-expanded="false">';
-      body += '<span class="card-reveal-front"><span>' + BaseStep.escapeHtml(card.icon) + '</span><strong>' + BaseStep.escapeHtml(card.title) + '</strong></span>';
-      body += '<span class="card-reveal-back">' + BaseStep.escapeHtml(card.description) + '</span>';
+      body += '<span class="card-reveal-card-inner">';
+      body += '<span class="card-reveal-front"><span class="card-reveal-icon">' + BaseStep.escapeHtml(card.icon) + '</span><strong>' + BaseStep.escapeHtml(card.title) + '</strong><em>Tap to reveal</em></span>';
+      body += '<span class="card-reveal-back"><strong>' + BaseStep.escapeHtml(card.title) + '</strong><span>' + BaseStep.escapeHtml(card.description) + '</span></span>';
+      body += '</span>';
       body += '</button>';
     });
     body += '</div>';
@@ -141,8 +143,15 @@ export class CardRevealStep extends InteractiveLearningStepBase {
 
     forEachElement(cards, function (card) {
       card.addEventListener("click", function () {
+        if (card.classList.contains("is-revealed")) {
+          return;
+        }
         card.classList.add("is-revealed");
+        card.classList.add("is-reveal-pop");
         card.setAttribute("aria-expanded", "true");
+        window.setTimeout(function () {
+          card.classList.remove("is-reveal-pop");
+        }, 520);
         if (button && requireAllCards) {
           button.disabled = container.querySelectorAll(".card-reveal-card.is-revealed").length !== cards.length;
         }
@@ -696,13 +705,20 @@ function buildScopedCss(rootClass) {
     + scope + " .intro-card-subtitle{font-weight:800;color:#2563eb;}"
     + scope + " .intro-card-callout{margin:14px 0;padding:12px;border-radius:12px;background:#ecfdf5;border:1px solid #a7f3d0;color:#047857;font-weight:800;}"
     + scope + " .intro-card-button," + scope + " .card-reveal-button," + scope + " .sorting-button," + scope + " .multiple-choice-button," + scope + " .roadmap-button," + scope + " .matching-button," + scope + " .ordering-button," + scope + " .reflection-button{background:#111827;color:#fff;border-color:#111827;padding:0 18px;}"
-    + scope + " .card-reveal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:16px 0;}"
-    + scope + " .card-reveal-card{min-height:148px;padding:16px;text-align:left;}"
-    + scope + " .card-reveal-front{display:flex;gap:10px;align-items:center;font-size:18px;}"
-    + scope + " .card-reveal-front strong{font-size:16px;}"
-    + scope + " .card-reveal-back{display:none;margin-top:12px;color:#475569;line-height:1.45;font-weight:650;}"
-    + scope + " .card-reveal-card.is-revealed{background:#f0fdf4;border-color:#86efac;}"
-    + scope + " .card-reveal-card.is-revealed .card-reveal-back{display:block;}"
+    + scope + " .card-reveal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin:18px 0;perspective:1000px;}"
+    + scope + " .card-reveal-card{min-height:156px;padding:0;text-align:left;background:transparent;border:0;perspective:1000px;}"
+    + scope + " .card-reveal-card:hover:not(:disabled){background:transparent;border-color:transparent;transform:translateY(-2px);}"
+    + scope + " .card-reveal-card-inner{position:relative;display:block;min-height:156px;transform-style:preserve-3d;transition:transform .58s cubic-bezier(.2,.8,.2,1),filter .2s ease;}"
+    + scope + " .card-reveal-card.is-revealed .card-reveal-card-inner{transform:rotateY(180deg);}"
+    + scope + " .card-reveal-front," + scope + " .card-reveal-back{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;gap:10px;border:1px solid #dbeafe;border-radius:16px;padding:18px;backface-visibility:hidden;box-shadow:0 10px 22px rgba(15,23,42,.08);}"
+    + scope + " .card-reveal-front{background:linear-gradient(145deg,#eff6ff,#fff 62%);color:#0f172a;}"
+    + scope + " .card-reveal-front strong{font-size:17px;line-height:1.2;}"
+    + scope + " .card-reveal-front em{align-self:flex-start;border-radius:999px;background:#dbeafe;color:#1d4ed8;font-size:11px;font-style:normal;font-weight:900;padding:5px 9px;}"
+    + scope + " .card-reveal-icon{font-size:32px;line-height:1;}"
+    + scope + " .card-reveal-back{background:linear-gradient(145deg,#ecfdf5,#fff 68%);border-color:#86efac;color:#065f46;transform:rotateY(180deg);}"
+    + scope + " .card-reveal-back strong{font-size:13px;color:#047857;text-transform:uppercase;letter-spacing:.08em;}"
+    + scope + " .card-reveal-back span{color:#0f172a;line-height:1.5;font-weight:750;}"
+    + scope + " .card-reveal-card.is-reveal-pop .card-reveal-card-inner{animation:cardRevealPop .52s cubic-bezier(.2,.8,.2,1);}"
     + scope + " .sorting-workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:14px;margin:16px 0;}"
     + scope + " .sorting-items," + scope + " .sorting-categories," + scope + " .matching-column{display:flex;flex-direction:column;gap:10px;min-width:0;}"
     + scope + " .sorting-item{padding:10px 12px;text-align:left;background:#f8fafc;}"
@@ -734,6 +750,8 @@ function buildScopedCss(rootClass) {
     + scope + " .ordering-item button{min-height:36px;}"
     + scope + " .reflection-choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:16px 0;}"
     + scope + " .reflection-text{width:100%;min-height:120px;border:1px solid #cbd5e1;border-radius:12px;padding:12px;font:inherit;resize:vertical;}"
+    + "@keyframes cardRevealPop{0%{filter:brightness(1);transform:rotateY(0) scale(1);}58%{filter:brightness(1.05);transform:rotateY(180deg) scale(1.035);}100%{filter:brightness(1);transform:rotateY(180deg) scale(1);}}"
+    + "@media(prefers-reduced-motion:reduce){" + scope + " .card-reveal-card-inner{transition:none;}" + scope + " .card-reveal-card.is-reveal-pop .card-reveal-card-inner{animation:none;}}"
     + "@media(max-width:640px){" + scope + "{padding:18px;border-radius:12px;}" + scope + " h2{font-size:22px;}" + scope + " .sorting-workspace," + scope + " .matching-board{grid-template-columns:1fr;}}";
 }
 
