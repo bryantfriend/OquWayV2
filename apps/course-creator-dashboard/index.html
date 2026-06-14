@@ -3817,6 +3817,51 @@
       margin-bottom: 13px;
     }
 
+    .oqu-config-section {
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      background: #f8fafc;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .oqu-config-section summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 10px 11px;
+      color: #111827;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .oqu-config-section summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .oqu-config-section summary::after {
+      content: "+";
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .oqu-config-section[open] summary::after {
+      content: "-";
+    }
+
+    .oqu-config-section-body {
+      border-top: 1px solid #e5e7eb;
+      background: #fff;
+      padding: 11px 11px 1px;
+    }
+
     .oqu-inspector-label {
       display: block;
       font-size: 9px;
@@ -3825,6 +3870,14 @@
       text-transform: uppercase;
       letter-spacing: 0.07em;
       margin-bottom: 4px;
+    }
+
+    .oqu-inspector-help {
+      color: #64748b;
+      font-size: 10px;
+      font-weight: 650;
+      line-height: 1.35;
+      margin-top: 5px;
     }
 
     .oqu-inspector-input {
@@ -4138,7 +4191,7 @@
       </div>
     </section>
   </div>
-  <script type="module" src="./src/main.js?v=1.1.185-ready-templates"></script>
+  <script type="module" src="./src/main.js?v=1.1.192-timed-sequence"></script>
 </body>
 
 </html>

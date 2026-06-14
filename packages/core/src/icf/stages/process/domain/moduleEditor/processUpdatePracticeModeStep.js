@@ -1,6 +1,6 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.185-ready-templates";
-import { updatePracticeModeStep } from "./practiceModeShells.js?v=1.1.185-ready-templates";
-import { normalizeActivityTemplateId } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.185-ready-templates";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.192-timed-sequence";
+import { updatePracticeModeStep } from "./practiceModeShells.js?v=1.1.192-timed-sequence";
+import { normalizeActivityTemplateId } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.192-timed-sequence";
 
 export async function processUpdatePracticeModeStep(executionState) {
   var payload = executionState.payload;

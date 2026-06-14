@@ -1,15 +1,20 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.185-ready-templates";
-import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.185-ready-templates";
-import { VocabularyStep } from "./VocabularyStep.js?v=1.1.185-ready-templates";
-import { PhraseStep } from "./PhraseStep.js?v=1.1.185-ready-templates";
-import { ListeningStep } from "./ListeningStep.js?v=1.1.185-ready-templates";
-import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.185-ready-templates";
-import { ReflectionStep } from "./ReflectionStep.js?v=1.1.185-ready-templates";
-import { EmotionalCheckInStep } from "./EmotionalCheckInStep.js?v=1.1.185-ready-templates";
-import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.185-ready-templates";
-import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.185-ready-templates";
-import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.185-ready-templates";
-import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.185-ready-templates";
+import { BaseStep } from "./BaseStep.js?v=1.1.192-timed-sequence";
+import { TextBriefingStep } from "./TextBriefingStep.js?v=1.1.192-timed-sequence";
+import { VocabularyStep } from "./VocabularyStep.js?v=1.1.192-timed-sequence";
+import { PhraseStep } from "./PhraseStep.js?v=1.1.192-timed-sequence";
+import { ListeningStep } from "./ListeningStep.js?v=1.1.192-timed-sequence";
+import { SpeakingPromptStep } from "./SpeakingPromptStep.js?v=1.1.192-timed-sequence";
+import { ReflectionStep } from "./ReflectionStep.js?v=1.1.192-timed-sequence";
+import { EmotionalCheckInStep } from "./EmotionalCheckInStep.js?v=1.1.192-timed-sequence";
+import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.192-timed-sequence";
+import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.192-timed-sequence";
+import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.192-timed-sequence";
+import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.192-timed-sequence";
+import { PracticeChallengeStep } from "./PracticeChallengeStep.js?v=1.1.192-timed-sequence";
+import { CreativeCanvasStep } from "./CreativeCanvasStep.js?v=1.1.192-timed-sequence";
+import { ScenarioSimulatorStep } from "./ScenarioSimulatorStep.js?v=1.1.192-timed-sequence";
+import { SequenceMemoryStep } from "./SequenceMemoryStep.js?v=1.1.192-timed-sequence";
+import { TimedSequenceStep } from "./TimedSequenceStep.js?v=1.1.192-timed-sequence";
 import {
   CardRevealStep,
   IntroCardStep,
@@ -21,7 +26,7 @@ import {
   RoadmapStep,
   ScenarioChoiceStep,
   SortingStep
-} from "./InteractiveLearningSteps.js?v=1.1.185-ready-templates";
+} from "./InteractiveLearningSteps.js?v=1.1.192-timed-sequence";
 export {
   getActivityTemplateDefinition,
   getActivityTemplateOptions,
@@ -30,7 +35,7 @@ export {
   isDefaultActivityTemplate,
   isReadyActivityTemplate,
   normalizeActivityTemplateId
-} from "./activityTemplateRegistry.js?v=1.1.185-ready-templates";
+} from "./activityTemplateRegistry.js?v=1.1.192-timed-sequence";
 
 var stepTypes = {
   "intro-card": IntroCardStep,
@@ -39,6 +44,11 @@ var stepTypes = {
   "multiple-choice": MultipleChoiceStep,
   "multi-select": MultiSelectStep,
   "scenario-choice": ScenarioChoiceStep,
+  "scenario-simulator": ScenarioSimulatorStep,
+  "sequence-memory": SequenceMemoryStep,
+  "timed-sequence": TimedSequenceStep,
+  "practice-challenge": PracticeChallengeStep,
+  "creative-canvas": CreativeCanvasStep,
   roadmap: RoadmapStep,
   matching: MatchingStep,
   ordering: OrderingStep,
@@ -78,6 +88,11 @@ export function listStepTypeDefinitions() {
     MultipleChoiceStep,
     MultiSelectStep,
     ScenarioChoiceStep,
+    ScenarioSimulatorStep,
+    SequenceMemoryStep,
+    TimedSequenceStep,
+    PracticeChallengeStep,
+    CreativeCanvasStep,
     RoadmapStep,
     MatchingStep,
     OrderingStep,

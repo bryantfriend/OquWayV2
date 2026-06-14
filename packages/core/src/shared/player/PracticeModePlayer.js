@@ -2,7 +2,7 @@ import {
   createDefaultStepConfig,
   getStepTypeDefinition,
   normalizeActivityTemplateId
-} from "../stepTypes/stepTypeRegistry.js?v=1.1.185-ready-templates";
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.192-timed-sequence";
 
 export class PracticeModePlayer {
   constructor(options) {

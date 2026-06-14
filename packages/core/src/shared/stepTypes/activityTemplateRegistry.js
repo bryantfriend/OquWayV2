@@ -51,6 +51,52 @@ var activityTemplateRegistry = {
       createTemplate("classroom-hero", "Classroom Hero", "Students choose positive actions in classroom and digital citizenship scenarios.", "ready")
     ]
   },
+  "scenario-simulator": {
+    defaultTemplate: "rapid-decision",
+    templates: [
+      createTemplate("rapid-decision", "Rapid Decision", "Students read a scenario and choose the best action before time runs out.", "ready"),
+      createTemplate("branching-story", "Branching Story", "A future branching narrative simulation. Falls back safely to Rapid Decision.", "coming-soon"),
+      createTemplate("crisis-command", "Crisis Command", "A future high-pressure command simulation. Falls back safely to Rapid Decision.", "coming-soon"),
+      createTemplate("ethical-dilemma", "Ethical Dilemma", "A future ethics-focused scenario simulation. Falls back safely to Rapid Decision.", "coming-soon")
+    ]
+  },
+  "sequence-memory": {
+    defaultTemplate: "synth-sequence",
+    templates: [
+      createTemplate("synth-sequence", "Synth Sequence", "Students watch and repeat a sound-and-light pad sequence.", "ready"),
+      createTemplate("pattern-repeat", "Pattern Repeat", "Students repeat a visual sequence without sound.", "ready"),
+      createTemplate("rhythm-builder", "Rhythm Builder", "A future rhythm-focused sequence template. Falls back safely to Synth Sequence.", "coming-soon"),
+      createTemplate("algorithm-trace", "Algorithm Trace", "A future algorithm tracing template. Falls back safely to Pattern Repeat.", "coming-soon")
+    ]
+  },
+  "timed-sequence": {
+    defaultTemplate: "defusal-sequence",
+    templates: [
+      createTemplate("defusal-sequence", "Defusal Sequence", "Students complete a high-focus sequence before time runs out.", "ready"),
+      createTemplate("workflow-sequence", "Workflow Sequence", "Students complete real-world process steps in order.", "ready"),
+      createTemplate("code-execution-order", "Code Execution Order", "A future code-order challenge. Falls back safely to Workflow Sequence.", "coming-soon"),
+      createTemplate("emergency-response", "Emergency Response", "A future emergency-response sequence challenge. Falls back safely to Defusal Sequence.", "coming-soon")
+    ]
+  },
+  "practice-challenge": {
+    defaultTemplate: "competitive-collector",
+    templates: [
+      createTemplate("competitive-collector", "Competitive Collector", "A configurable collection challenge for many subjects, resources, and rule modes.", "ready"),
+      createTemplate("defense-challenge", "Defense Challenge", "Students protect a target by clearing threats, collecting power-ups, and surviving the round.", "ready"),
+      createTemplate("tuning-challenge", "Tuning Challenge", "Students adjust controls to match a target pattern, signal, value, or model.", "ready"),
+      createTemplate("falling-target-challenge", "Falling Target Challenge", "Students tap falling targets before they reach the danger zone.", "ready"),
+      createTemplate("navigation-challenge", "Navigation Challenge", "Students control an avatar, avoid obstacles, collect items, and complete a movement challenge.", "ready"),
+      createTemplate("care-simulator", "Care Simulator", "Students care for a character or system by giving it the correct resources.", "ready")
+    ]
+  },
+  "creative-canvas": {
+    defaultTemplate: "free-draw-canvas",
+    templates: [
+      createTemplate("free-draw-canvas", "Free Draw Canvas", "Open drawing space with creative canvas tools.", "ready"),
+      createTemplate("label-and-draw", "Label and Draw", "Students draw and add at least one label before submitting.", "ready"),
+      createTemplate("diagram-builder", "Diagram Builder", "A grid-friendly canvas for ICT, science, process, and network diagrams.", "ready")
+    ]
+  },
   roadmap: {
     defaultTemplate: "classic-roadmap",
     templates: [

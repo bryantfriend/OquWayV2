@@ -1,4 +1,4 @@
-import { isSupportedStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.185-ready-templates";
+import { isSupportedStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.192-timed-sequence";
 
 export function validatePracticeModeStepType(executionState) {
   var payload = executionState.payload;

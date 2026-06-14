@@ -1,6 +1,6 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.185-ready-templates";
-import { createDefaultStepConfig } from "../../../../../../../domain/steps/index.js?v=1.1.185-ready-templates";
-import { normalizeActivityTemplateId } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.185-ready-templates";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.192-timed-sequence";
+import { createDefaultStepConfig } from "../../../../../../../domain/steps/index.js?v=1.1.192-timed-sequence";
+import { normalizeActivityTemplateId } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.192-timed-sequence";
 
 export async function processUpdateLearningModeStep(executionState) {
   var payload = executionState.payload || {};

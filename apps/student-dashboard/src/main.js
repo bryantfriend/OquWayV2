@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.185-ready-templates";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.185-ready-templates";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.185-ready-templates";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.192-timed-sequence";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.192-timed-sequence";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.192-timed-sequence";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,24 +13,24 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.185-ready-templates";
+} from "../../../packages/domain/progress/index.js?v=1.1.192-timed-sequence";
 import {
   createEmptyState,
   createErrorState,
   createStatusBadge,
   formatStatusLabel,
   renderEmotionalCheckInGate
-} from "../../../packages/ui/index.js?v=1.1.185-ready-templates";
-import { emotionalCheckInService } from "../../../packages/shared/emotionalCheckIns/index.js?v=1.1.185-ready-templates";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.185-ready-templates";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.185-ready-templates";
+} from "../../../packages/ui/index.js?v=1.1.192-timed-sequence";
+import { emotionalCheckInService } from "../../../packages/shared/emotionalCheckIns/index.js?v=1.1.192-timed-sequence";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.192-timed-sequence";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.192-timed-sequence";
 import {
   STUDENT_PROFILE_AVATARS,
   createStudentProfileSnapshot,
   readAvatarById,
   readStudentProfilePreferences,
   saveStudentProfilePreferences
-} from "./ui/services/profileService.js?v=1.1.185-ready-templates";
+} from "./ui/services/profileService.js?v=1.1.192-timed-sequence";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;

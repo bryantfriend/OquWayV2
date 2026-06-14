@@ -2,14 +2,14 @@ import {
   getActivityTemplateDefinition,
   getDefaultActivityTemplateId,
   normalizeActivityTemplateId
-} from "./activityTemplateRegistry.js?v=1.1.185-ready-templates";
+} from "./activityTemplateRegistry.js?v=1.1.192-timed-sequence";
 import {
   createGamificationSummary,
   renderActivityResults,
   renderCelebration,
   renderStars,
   updateStreak
-} from "./gamificationService.js?v=1.1.185-ready-templates";
+} from "./gamificationService.js?v=1.1.192-timed-sequence";
 
 const BaseStep = typeof window !== "undefined"
   ? window.CourseEngine.BaseStep

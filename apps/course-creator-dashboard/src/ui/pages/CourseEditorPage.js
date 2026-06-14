@@ -1,5 +1,5 @@
 import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.160-lesson-paths";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.185-ready-templates";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.192-timed-sequence";
 import {
   getDefaultActivityTemplateId,
   getActivityTemplateOptions,
@@ -7,8 +7,8 @@ import {
   listStepTypeDefinitions,
   normalizeActivityTemplateId,
   validateStepConfig
-} from "../../../../../packages/domain/steps/index.js?v=1.1.185-ready-templates";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.185-ready-templates";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.192-timed-sequence";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.192-timed-sequence";
 import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.138-course-overview-title";
 
 const MAIN_PATH_PRACTICE_MODE_KEY = "beforeClass";
@@ -22,6 +22,11 @@ const SUPPORTED_MAIN_PATH_STEP_TYPES = [
   "multiple-choice",
   "multi-select",
   "scenario-choice",
+  "scenario-simulator",
+  "sequence-memory",
+  "timed-sequence",
+  "practice-challenge",
+  "creative-canvas",
   "reflection"
 ];
 
@@ -2087,9 +2092,13 @@ export class CourseEditorPage {
       return html;
     }
 
-    while (fieldIndex < schema.fields.length) {
-      html += buildStepConfigField(schema.fields[fieldIndex], config);
-      fieldIndex = fieldIndex + 1;
+    if (schemaHasSections(schema.fields)) {
+      html += buildSectionedStepConfigFields(schema.fields, config);
+    } else {
+      while (fieldIndex < schema.fields.length) {
+        html += buildStepConfigField(schema.fields[fieldIndex], config);
+        fieldIndex = fieldIndex + 1;
+      }
     }
 
     return html;
@@ -2986,8 +2995,64 @@ function buildStepConfigField(field, config) {
     html += buildMediaFieldControls(key, mediaKind, displayValue);
   }
 
+  if (typeof field.help === "string" && field.help.length > 0) {
+    html += '<div class="oqu-inspector-help">' + escapeHtml(field.help) + '</div>';
+  }
+
   html += '</div>';
   return html;
+}
+
+function schemaHasSections(fields) {
+  return Array.isArray(fields) && fields.some(function (field) {
+    return field && typeof field.section === "string" && field.section.length > 0;
+  });
+}
+
+function buildSectionedStepConfigFields(fields, config) {
+  var sections = [];
+  var html = "";
+
+  fields.forEach(function (field) {
+    var sectionName = field && typeof field.section === "string" && field.section.length > 0 ? field.section : "Settings";
+    var section = findConfigSection(sections, sectionName);
+
+    if (!section) {
+      section = {
+        name: sectionName,
+        fields: []
+      };
+      sections.push(section);
+    }
+
+    section.fields.push(field);
+  });
+
+  sections.forEach(function (section, index) {
+    html += '<details class="oqu-config-section" ' + (index < 2 ? "open" : "") + '>';
+    html += '<summary>' + escapeHtml(section.name) + '</summary>';
+    html += '<div class="oqu-config-section-body">';
+    section.fields.forEach(function (field) {
+      html += buildStepConfigField(field, config);
+    });
+    html += '</div>';
+    html += '</details>';
+  });
+
+  return html;
+}
+
+function findConfigSection(sections, name) {
+  var index = 0;
+
+  while (index < sections.length) {
+    if (sections[index].name === name) {
+      return sections[index];
+    }
+    index = index + 1;
+  }
+
+  return null;
 }
 
 function buildActivityTemplateSelector(stepType, selectedTemplateId) {
@@ -3635,6 +3700,11 @@ function readStepTypeIcon(stepType) {
   if (stepType === "multiple-choice") { return "✅"; }
   if (stepType === "multi-select") { return "☑️"; }
   if (stepType === "scenario-choice") { return "🧭"; }
+  if (stepType === "scenario-simulator") { return "🎛️"; }
+  if (stepType === "sequence-memory") { return "🔢"; }
+  if (stepType === "timed-sequence") { return "⏱️"; }
+  if (stepType === "practice-challenge") { return "🏁"; }
+  if (stepType === "creative-canvas") { return "🎨"; }
   if (stepType === "roadmap") { return "🗺️"; }
   if (stepType === "matching") { return "🔗"; }
   if (stepType === "ordering") { return "🔢"; }
@@ -3681,6 +3751,11 @@ function readStepDefinitionIcon(stepType) {
   if (stepType === "multiple-choice") { return "fa-solid fa-circle-check"; }
   if (stepType === "multi-select") { return "fa-solid fa-list-check"; }
   if (stepType === "scenario-choice") { return "fa-solid fa-route"; }
+  if (stepType === "scenario-simulator") { return "fa-solid fa-terminal"; }
+  if (stepType === "sequence-memory") { return "fa-solid fa-grip"; }
+  if (stepType === "timed-sequence") { return "fa-solid fa-stopwatch"; }
+  if (stepType === "practice-challenge") { return "fa-solid fa-trophy"; }
+  if (stepType === "creative-canvas") { return "fa-solid fa-palette"; }
   if (stepType === "roadmap") { return "fa-solid fa-route"; }
   if (stepType === "matching") { return "fa-solid fa-link"; }
   if (stepType === "ordering") { return "fa-solid fa-arrow-down-1-9"; }

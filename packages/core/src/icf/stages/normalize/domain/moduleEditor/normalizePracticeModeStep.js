@@ -1,7 +1,7 @@
 import {
   createDefaultStepConfig,
   normalizeActivityTemplateId
-} from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.185-ready-templates";
+} from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.192-timed-sequence";
 
 export function normalizePracticeModeStep(executionState) {
   var payload = executionState.payload;

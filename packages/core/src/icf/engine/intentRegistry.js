@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.185-ready-templates";
+import * as IntentExports from "../intents/intents.js?v=1.1.192-timed-sequence";
 
 const registry = {
   // Demo Verification
