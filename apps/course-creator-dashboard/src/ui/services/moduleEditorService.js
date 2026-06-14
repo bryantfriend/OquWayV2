@@ -291,6 +291,7 @@ export const moduleEditorService = {
       practiceModeKey: safeOptions.practiceModeKey || "beforeClass",
       stepType: stepTypeId,
       stepTypeId: stepTypeId,
+      activityTemplate: safeOptions.activityTemplate || "",
       courseContext: courseContext
     };
 

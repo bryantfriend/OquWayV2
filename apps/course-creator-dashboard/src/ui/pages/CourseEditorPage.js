@@ -1,5 +1,5 @@
 import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.160-lesson-paths";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.192-timed-sequence";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.193-step-library";
 import {
   getDefaultActivityTemplateId,
   getActivityTemplateOptions,
@@ -7,8 +7,8 @@ import {
   listStepTypeDefinitions,
   normalizeActivityTemplateId,
   validateStepConfig
-} from "../../../../../packages/domain/steps/index.js?v=1.1.192-timed-sequence";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.192-timed-sequence";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.193-step-library";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.193-step-library";
 import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.138-course-overview-title";
 
 const MAIN_PATH_PRACTICE_MODE_KEY = "beforeClass";
@@ -409,6 +409,18 @@ export class CourseEditorPage {
       return;
     }
 
+    var stepLibraryBackBtn = event.target.closest(".step-library-back-btn");
+    if (stepLibraryBackBtn) {
+      renderStepPickerLibraryPanel(MAIN_PATH_PRACTICE_MODE_KEY);
+      return;
+    }
+
+    var stepLibraryFilterChip = event.target.closest(".step-library-filter-chip");
+    if (stepLibraryFilterChip) {
+      toggleStepLibraryFilter(stepLibraryFilterChip);
+      return;
+    }
+
     // Back from student preview
     var backToEditorBtn = event.target.closest(".back-to-editor-btn");
     if (backToEditorBtn) {
@@ -602,10 +614,17 @@ export class CourseEditorPage {
       return;
     }
 
+    var stepLibraryCard = event.target.closest(".step-library-step-card");
+    if (stepLibraryCard) {
+      renderStepPickerTemplatePanel(stepLibraryCard.getAttribute("data-type"));
+      return;
+    }
+
     // Step type option chosen — creates the step via ICF
     var stepOption = event.target.closest(".step-type-option");
     if (stepOption) {
       var stepType = stepOption.getAttribute("data-type");
+      var activityTemplate = stepOption.getAttribute("data-activity-template") || "";
       var practiceModeKey = MAIN_PATH_PRACTICE_MODE_KEY;
       var selectedModeId = readSelectedModeId(state);
       var courseContext = readCourseContext(state, self.courseId, self.moduleId, selectedModeId);
@@ -626,7 +645,8 @@ export class CourseEditorPage {
         courseContext.courseId, courseContext.moduleId, courseContext.modeId, stepType, {
           courseContext: courseContext,
           sessionId: session ? session.id : null,
-          practiceModeKey: practiceModeKey
+          practiceModeKey: practiceModeKey,
+          activityTemplate: activityTemplate
         }
       ).then(function () {
         autoSelectNewestStep(practiceModeKey);
@@ -2657,26 +2677,69 @@ function buildStepPickerModal(practiceModeKey) {
   var html = "";
 
   html += '<div class="oqu-step-picker-backdrop">';
-  html += '<div class="oqu-step-picker-modal" role="dialog" aria-label="Choose a step type">';
+  html += '<div class="oqu-step-picker-modal" role="dialog" aria-label="Add Learning Activity">';
   html += '<div class="oqu-step-picker-header">';
   html += '<div>';
-  html += '<div class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Add Step</div>';
-  html += '<div class="text-lg font-black text-gray-950">Choose a Main Path step</div>';
-  html += '<div class="text-xs text-gray-500 mt-1">Add a reusable step to the module ordered list.</div>';
+  html += '<div class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Step Library</div>';
+  html += '<div class="text-lg font-black text-gray-950">Add Learning Activity</div>';
+  html += '<div class="text-xs text-gray-500 mt-1">Choose an activity for the current lesson path.</div>';
   html += '</div>';
   html += '<button type="button" class="close-step-picker-btn oqu-step-picker-close" aria-label="Close step picker">×</button>';
   html += '</div>';
-  html += '<div class="px-6 pb-4"><input type="search" class="step-picker-search w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:border-blue-300 focus:ring-4 focus:ring-blue-100" placeholder="Search supported steps..."></div>';
-  html += '<div class="px-6 pb-4 flex flex-wrap gap-2">';
-  html += '<span class="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-emerald-700">Basic / Content</span>';
-  html += '<span class="rounded-full bg-sky-50 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-sky-700">Practice</span>';
-  html += '<span class="rounded-full bg-violet-50 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-violet-700">Assessment / Check</span>';
+  html += '<div class="oqu-step-picker-content">';
+  html += buildStepLibraryPanel(practiceModeKey);
   html += '</div>';
-  html += '<div class="oqu-step-picker-category-list" data-key="' + practiceModeKey + '">';
+  html += '</div>';
+  html += '</div>';
+
+  return html;
+}
+
+function renderStepPickerLibraryPanel(practiceModeKey) {
+  var panel = document.querySelector(".oqu-step-picker-content");
+
+  if (panel) {
+    panel.innerHTML = buildStepLibraryPanel(practiceModeKey || MAIN_PATH_PRACTICE_MODE_KEY);
+  }
+}
+
+function renderStepPickerTemplatePanel(stepType) {
+  var panel = document.querySelector(".oqu-step-picker-content");
+
+  if (panel) {
+    panel.innerHTML = buildStepPickerTemplatePanel(stepType);
+  }
+}
+
+function buildStepLibraryPanel(practiceModeKey) {
+  var html = "";
+
+  html += '<div class="step-library-tools">';
+  html += '<div class="step-library-search-wrap">';
+  html += '<i class="fa-solid fa-magnifying-glass"></i>';
+  html += '<input type="search" class="step-picker-search step-library-search" placeholder="Search activities..." aria-label="Search activities">';
+  html += '</div>';
+  html += '<div class="step-library-filter-row" aria-label="Activity filters">';
+  html += buildStepLibraryFilterChips();
+  html += '</div>';
+  html += '</div>';
+  html += '<div class="oqu-step-picker-category-list" data-key="' + escapeHtml(practiceModeKey || "") + '">';
   html += buildStepPickerOptions();
+  html += '<div class="step-library-empty-state" hidden>No activities match this search.</div>';
   html += '</div>';
-  html += '</div>';
-  html += '</div>';
+
+  return html;
+}
+
+function buildStepLibraryFilterChips() {
+  var filters = createStepLibraryFilterOptions();
+  var html = "";
+  var index = 0;
+
+  while (index < filters.length) {
+    html += '<button type="button" class="step-library-filter-chip" data-filter="' + escapeHtml(filters[index].filter) + '" aria-pressed="false">' + escapeHtml(filters[index].label) + '</button>';
+    index = index + 1;
+  }
 
   return html;
 }
@@ -2687,10 +2750,42 @@ function buildStepPickerOptions() {
   var html = "";
   var categoryIndex = 0;
 
+  html += buildRecommendedStepPickerSection(types);
+
   while (categoryIndex < categories.length) {
     html += buildStepPickerCategory(categories[categoryIndex], types);
     categoryIndex = categoryIndex + 1;
   }
+
+  return html;
+}
+
+function buildRecommendedStepPickerSection(types) {
+  var recommendedTypes = createRecommendedStepTypeOrder();
+  var html = "";
+  var cards = "";
+  var index = 0;
+
+  while (index < recommendedTypes.length) {
+    cards += buildStepPickerCard(findStepTypeCard(types, recommendedTypes[index]), true);
+    index = index + 1;
+  }
+
+  if (!cards) {
+    return "";
+  }
+
+  html += '<section class="oqu-step-picker-category step-library-section step-library-recommended-section">';
+  html += '<div class="oqu-step-picker-category-heading">';
+  html += '<div>';
+  html += '<div class="oqu-step-picker-category-title">Recommended</div>';
+  html += '<div class="oqu-step-picker-category-subtitle">Fast starters for most lessons.</div>';
+  html += '</div>';
+  html += '</div>';
+  html += '<div class="oqu-step-picker-grid step-library-recommended-grid">';
+  html += cards;
+  html += '</div>';
+  html += '</section>';
 
   return html;
 }
@@ -2702,7 +2797,7 @@ function buildStepPickerCategory(category, types) {
 
   while (typeIndex < types.length) {
     if (types[typeIndex].category === category) {
-      categoryCards += buildStepPickerCard(types[typeIndex]);
+      categoryCards += buildStepPickerCard(types[typeIndex], false);
     }
 
     typeIndex = typeIndex + 1;
@@ -2712,8 +2807,13 @@ function buildStepPickerCategory(category, types) {
     return "";
   }
 
-  html += '<section class="oqu-step-picker-category">';
+  html += '<section class="oqu-step-picker-category step-library-section" data-category="' + escapeHtml(category) + '">';
+  html += '<div class="oqu-step-picker-category-heading">';
+  html += '<div>';
   html += '<div class="oqu-step-picker-category-title">' + escapeHtml(category) + '</div>';
+  html += '<div class="oqu-step-picker-category-subtitle">' + escapeHtml(readStepLibraryCategoryDescription(category)) + '</div>';
+  html += '</div>';
+  html += '</div>';
   html += '<div class="oqu-step-picker-grid">';
   html += categoryCards;
   html += '</div>';
@@ -2722,18 +2822,81 @@ function buildStepPickerCategory(category, types) {
   return html;
 }
 
-function buildStepPickerCard(type) {
+function buildStepPickerCard(type, isRecommended) {
   var html = "";
 
-  html += '<button type="button" class="step-type-option oqu-step-picker-card" data-type="' + type.type + '" data-search-text="' + escapeHtml((type.label + " " + type.description + " " + type.category + " " + type.complexity).toLowerCase()) + '">';
+  if (!type || !type.type) {
+    return "";
+  }
+
+  var readyTemplateCount = countReadyTemplates(type.type);
+  var templateLabel = readyTemplateCount === 1 ? "1 style" : readyTemplateCount + " styles";
+  var recommendedClass = isRecommended ? " is-recommended" : "";
+
+  html += '<button type="button" class="step-library-step-card oqu-step-picker-card' + recommendedClass + '" data-type="' + escapeHtml(type.type) + '" data-search-text="' + escapeHtml(createStepLibrarySearchText(type)) + '" data-filter-tags="' + escapeHtml(type.filterTags.join(" ")) + '">';
   html += '<span class="oqu-step-picker-card-icon"><i class="' + type.icon + '"></i></span>';
   html += '<span class="oqu-step-picker-card-body">';
   html += '<span class="oqu-step-picker-card-title">' + escapeHtml(type.label) + '</span>';
   html += '<span class="oqu-step-picker-card-description">' + escapeHtml(type.description) + '</span>';
+  html += '<span class="oqu-step-picker-card-best-for">Best for: ' + escapeHtml(type.bestFor) + '</span>';
   html += '<span class="oqu-step-picker-card-meta">';
-  html += '<span class="oqu-step-picker-card-category">' + escapeHtml(type.category) + '</span>';
-  html += '<span class="oqu-step-picker-card-complexity">' + escapeHtml(type.complexity) + '</span>';
+  html += '<span class="oqu-step-picker-card-category">' + escapeHtml(type.shortCategory) + '</span>';
+  html += '<span class="oqu-step-picker-card-complexity">' + escapeHtml(type.difficulty) + '</span>';
+  html += '<span class="oqu-step-picker-card-template-count">' + escapeHtml(templateLabel) + '</span>';
   html += '</span>';
+  html += '</span>';
+  html += '<span class="step-library-card-arrow"><i class="fa-solid fa-chevron-right"></i></span>';
+  html += '</button>';
+
+  return html;
+}
+
+function buildStepPickerTemplatePanel(stepType) {
+  var type = findStepTypeCard(createStepTypeCards(), stepType);
+  var templates = listReadyStepTemplates(stepType);
+  var html = "";
+  var index = 0;
+
+  if (!type) {
+    return buildStepLibraryPanel(MAIN_PATH_PRACTICE_MODE_KEY);
+  }
+
+  html += '<div class="step-library-template-panel">';
+  html += '<button type="button" class="step-library-back-btn"><i class="fa-solid fa-arrow-left"></i> Back to activities</button>';
+  html += '<div class="step-library-template-summary">';
+  html += '<span class="oqu-step-picker-card-icon"><i class="' + type.icon + '"></i></span>';
+  html += '<span class="step-library-template-summary-copy">';
+  html += '<span class="step-library-template-kicker">Choose Activity Style</span>';
+  html += '<span class="step-library-template-title">' + escapeHtml(type.label) + '</span>';
+  html += '<span class="step-library-template-description">' + escapeHtml(type.description) + '</span>';
+  html += '</span>';
+  html += '</div>';
+  html += '<div class="step-library-template-list">';
+
+  while (index < templates.length) {
+    html += buildStepTemplateOption(type.type, templates[index]);
+    index = index + 1;
+  }
+
+  html += '</div>';
+  html += '<div class="step-library-template-note">Styles use the same step content. You can change the activity template later in the step editor.</div>';
+  html += '</div>';
+
+  return html;
+}
+
+function buildStepTemplateOption(stepType, template) {
+  var isDefault = template.id === getDefaultActivityTemplateId(stepType);
+  var html = "";
+
+  html += '<button type="button" class="step-type-option step-library-template-option" data-type="' + escapeHtml(stepType) + '" data-activity-template="' + escapeHtml(template.id) + '">';
+  html += '<span class="step-library-template-radio"><i class="fa-solid fa-check"></i></span>';
+  html += '<span class="step-library-template-copy">';
+  html += '<span class="step-library-template-option-title">' + escapeHtml(template.name) + '</span>';
+  html += '<span class="step-library-template-option-description">' + escapeHtml(template.description) + '</span>';
+  html += '</span>';
+  html += '<span class="step-library-template-badges">';
+  html += '<span class="step-library-template-badge">' + (isDefault ? "Default" : "Ready") + '</span>';
   html += '</span>';
   html += '</button>';
 
@@ -2742,14 +2905,87 @@ function buildStepPickerCard(type) {
 
 function filterStepPicker(value) {
   var query = typeof value === "string" ? value.trim().toLowerCase() : "";
-  var cards = document.querySelectorAll(".oqu-step-picker-card");
+  var activeFilters = readActiveStepLibraryFilters();
+  var cards = document.querySelectorAll(".step-library-step-card");
+  var sections = document.querySelectorAll(".step-library-section");
+  var emptyState = document.querySelector(".step-library-empty-state");
   var index = 0;
+  var visibleCount = 0;
 
   while (index < cards.length) {
     var searchText = cards[index].getAttribute("data-search-text") || "";
-    cards[index].style.display = !query || searchText.indexOf(query) !== -1 ? "" : "none";
+    var filterTags = cards[index].getAttribute("data-filter-tags") || "";
+    var visible = (!query || searchText.indexOf(query) !== -1) && matchesStepLibraryFilters(filterTags, activeFilters);
+
+    cards[index].style.display = visible ? "" : "none";
+    if (visible) {
+      visibleCount = visibleCount + 1;
+    }
     index = index + 1;
   }
+
+  updateStepLibrarySectionVisibility(sections);
+
+  if (emptyState) {
+    emptyState.hidden = visibleCount !== 0;
+  }
+}
+
+function toggleStepLibraryFilter(chip) {
+  var searchInput = document.querySelector(".step-picker-search");
+  var active = chip.classList.toggle("is-active");
+
+  chip.setAttribute("aria-pressed", active ? "true" : "false");
+  filterStepPicker(searchInput ? searchInput.value : "");
+}
+
+function readActiveStepLibraryFilters() {
+  var chips = document.querySelectorAll(".step-library-filter-chip.is-active");
+  var filters = [];
+  var index = 0;
+
+  while (index < chips.length) {
+    filters.push(chips[index].getAttribute("data-filter") || "");
+    index = index + 1;
+  }
+
+  return filters;
+}
+
+function matchesStepLibraryFilters(filterTags, activeFilters) {
+  var index = 0;
+
+  while (index < activeFilters.length) {
+    if (filterTags.indexOf(activeFilters[index]) === -1) {
+      return false;
+    }
+    index = index + 1;
+  }
+
+  return true;
+}
+
+function updateStepLibrarySectionVisibility(sections) {
+  var index = 0;
+
+  while (index < sections.length) {
+    sections[index].style.display = hasVisibleStepLibraryCard(sections[index]) ? "" : "none";
+    index = index + 1;
+  }
+}
+
+function hasVisibleStepLibraryCard(section) {
+  var cards = section.querySelectorAll(".step-library-step-card");
+  var index = 0;
+
+  while (index < cards.length) {
+    if (cards[index].style.display !== "none") {
+      return true;
+    }
+    index = index + 1;
+  }
+
+  return false;
 }
 
 function createStepTypeCards() {
@@ -2769,37 +3005,149 @@ function createStepTypeCards() {
 
 function createStepTypeCard(StepTypeDefinition) {
   var stepType = readStepDefinitionText(StepTypeDefinition, "type", "");
+  var metadata = readStepLibraryMetadata(stepType);
 
   return {
     type: stepType || "unknown",
     label: readStepDefinitionText(StepTypeDefinition, "label", "Unknown Step"),
     icon: readStepDefinitionIcon(stepType),
     description: readStepDefinitionText(StepTypeDefinition, "description", "Reusable learning activity."),
-    category: normalizeStepPickerCategory(readStepDefinitionText(StepTypeDefinition, "category", "Custom")),
-    complexity: readStepDefinitionText(StepTypeDefinition, "complexity", "Easy")
+    category: metadata.category,
+    shortCategory: metadata.shortCategory,
+    bestFor: metadata.bestFor,
+    difficulty: metadata.difficulty || readStepDefinitionText(StepTypeDefinition, "complexity", "Easy"),
+    filterTags: metadata.filterTags
   };
 }
 
-function normalizeStepPickerCategory(category) {
-  var normalizedCategory = typeof category === "string" ? category.trim().toLowerCase() : "";
-
-  if (normalizedCategory === "basic" || normalizedCategory === "basic / content") {
-    return "Basic / Content";
-  }
-
-  if (normalizedCategory === "interactive" || normalizedCategory === "practice") {
-    return "Practice";
-  }
-
-  if (normalizedCategory === "assessment" || normalizedCategory === "assessment / check" || normalizedCategory === "reflection") {
-    return "Assessment / Check";
-  }
-
-  return category || "Custom";
+function createStepCategoryOrder() {
+  return ["Core Learning", "Knowledge Checks", "Sorting & Ordering", "Scenarios", "Creative", "Memory & Logic", "Game Challenges", "Simulations"];
 }
 
-function createStepCategoryOrder() {
-  return ["Basic / Content", "Practice", "Assessment / Check"];
+function createRecommendedStepTypeOrder() {
+  return ["intro-card", "multiple-choice", "sorting", "multi-select", "scenario-choice", "reflection"];
+}
+
+function createStepLibraryFilterOptions() {
+  return [
+    { filter: "quick", label: "Quick" },
+    { filter: "interactive", label: "Interactive" },
+    { filter: "game", label: "Game" },
+    { filter: "creative", label: "Creative" },
+    { filter: "assessment", label: "Assessment" },
+    { filter: "scenario", label: "Scenario" },
+    { filter: "simulation", label: "Simulation" },
+    { filter: "teacher-review", label: "Teacher Review" }
+  ];
+}
+
+function findStepTypeCard(types, stepType) {
+  var index = 0;
+
+  while (index < types.length) {
+    if (types[index].type === stepType) {
+      return types[index];
+    }
+    index = index + 1;
+  }
+
+  return null;
+}
+
+function createStepLibrarySearchText(type) {
+  return (type.label + " " + type.description + " " + type.category + " " + type.bestFor + " " + type.difficulty + " " + type.filterTags.join(" ") + " " + readStepTemplateSearchText(type.type)).toLowerCase();
+}
+
+function readStepTemplateSearchText(stepType) {
+  var templates = getActivityTemplateOptions(stepType);
+
+  return templates.map(function (template) {
+    return template.name + " " + template.description;
+  }).join(" ");
+}
+
+function countReadyTemplates(stepType) {
+  return listReadyStepTemplates(stepType).length;
+}
+
+function listReadyStepTemplates(stepType) {
+  var defaultTemplateId = getDefaultActivityTemplateId(stepType);
+  var readyTemplates = getActivityTemplateOptions(stepType).filter(function (template) {
+    return template.status === "ready";
+  });
+
+  readyTemplates.sort(function (first, second) {
+    if (first.id === defaultTemplateId) { return -1; }
+    if (second.id === defaultTemplateId) { return 1; }
+    return first.name.localeCompare(second.name);
+  });
+
+  if (readyTemplates.length > 0) {
+    return readyTemplates;
+  }
+
+  return getActivityTemplateOptions(stepType).slice(0, 1);
+}
+
+function readStepLibraryCategoryDescription(category) {
+  var descriptions = {
+    "Core Learning": "Introduce, guide, reflect, and frame lesson flow.",
+    "Knowledge Checks": "Check understanding with focused answer choices.",
+    "Sorting & Ordering": "Classify, match, sequence, and organize ideas.",
+    Scenarios: "Practice judgment in realistic classroom situations.",
+    Creative: "Let students draw, label, diagram, and explain.",
+    "Memory & Logic": "Build attention, patterns, and ordered thinking.",
+    "Game Challenges": "Use lightweight games for review and practice.",
+    Simulations: "Run applied decision-making activities."
+  };
+
+  return descriptions[category] || "Reusable learning activities.";
+}
+
+function readStepLibraryMetadata(stepType) {
+  var metadata = createStepLibraryMetadataMap()[stepType];
+
+  if (metadata) {
+    return metadata;
+  }
+
+  return {
+    category: "Core Learning",
+    shortCategory: "Core",
+    bestFor: "Reusable learning activities",
+    difficulty: "Standard",
+    filterTags: ["interactive"]
+  };
+}
+
+function createStepLibraryMetadataMap() {
+  return {
+    "intro-card": createStepLibraryMetadata("Core Learning", "Core", "Lesson openings, goals, context", "Quick", ["quick"]),
+    "card-reveal": createStepLibraryMetadata("Core Learning", "Core", "Vocabulary, concepts, guided discovery", "Quick", ["quick", "interactive"]),
+    roadmap: createStepLibraryMetadata("Core Learning", "Core", "Module structure, progression, objectives", "Standard", ["interactive"]),
+    reflection: createStepLibraryMetadata("Core Learning", "Reflect", "Exit tickets, check-ins, metacognition", "Quick", ["quick", "teacher-review"]),
+    "multiple-choice": createStepLibraryMetadata("Knowledge Checks", "Check", "Quick checks, recall, understanding", "Quick", ["quick", "assessment"]),
+    "multi-select": createStepLibraryMetadata("Knowledge Checks", "Check", "Selecting all correct examples", "Standard", ["interactive", "assessment"]),
+    sorting: createStepLibraryMetadata("Sorting & Ordering", "Sort", "Categories, examples, compare and contrast", "Standard", ["interactive", "game"]),
+    matching: createStepLibraryMetadata("Sorting & Ordering", "Match", "Terms, definitions, relationships", "Standard", ["interactive", "game"]),
+    ordering: createStepLibraryMetadata("Sorting & Ordering", "Order", "Procedures, sequences, timelines", "Standard", ["interactive"]),
+    "scenario-choice": createStepLibraryMetadata("Scenarios", "Scenario", "Judgment, behavior, real-world choices", "Standard", ["scenario", "assessment"]),
+    "creative-canvas": createStepLibraryMetadata("Creative", "Create", "Drawing, labeling, diagrams, explanation", "Standard", ["creative", "teacher-review"]),
+    "sequence-memory": createStepLibraryMetadata("Memory & Logic", "Memory", "Patterns, attention, working memory", "Game", ["interactive", "game"]),
+    "timed-sequence": createStepLibraryMetadata("Memory & Logic", "Logic", "Focused procedure practice", "Game", ["interactive", "game"]),
+    "practice-challenge": createStepLibraryMetadata("Game Challenges", "Game", "Skill practice, games, review", "Game", ["interactive", "game"]),
+    "scenario-simulator": createStepLibraryMetadata("Simulations", "Sim", "Fast decisions and applied judgment", "Simulation", ["scenario", "simulation", "game"])
+  };
+}
+
+function createStepLibraryMetadata(category, shortCategory, bestFor, difficulty, filterTags) {
+  return {
+    category: category,
+    shortCategory: shortCategory,
+    bestFor: bestFor,
+    difficulty: difficulty,
+    filterTags: filterTags
+  };
 }
 
 function buildUnsupportedStudentPreview(step) {
