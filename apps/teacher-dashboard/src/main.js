@@ -1,15 +1,15 @@
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.179-teacher-analytics-dashboard";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.194-lesson-monitor";
 import {
   createStudentAnalyticsDetail,
   createTeacherAnalyticsSnapshot,
   sortStudentAnalyticsRows
 } from "./ui/services/analyticsService.js?v=1.1.179-teacher-analytics-dashboard";
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.179-teacher-analytics-dashboard";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.194-lesson-monitor";
 import {
   createEmptyState,
   createLoadingState,
   createStatusBadge
-} from "../../../packages/ui/index.js?v=1.1.179-teacher-analytics-dashboard";
+} from "../../../packages/ui/index.js?v=1.1.194-lesson-monitor";
 
 var app = document.getElementById("app");
 var state = {
@@ -1505,10 +1505,12 @@ function buildCourseDetailView() {
   var students = detail && Array.isArray(detail.students) ? detail.students : readStudentsForCourse(course);
   var errors = detail && detail.errors ? detail.errors : {};
   var modules = readCourseModulesFromDetail(detail, course);
+  var summary = detail && detail.summary ? detail.summary : createCourseMonitorSummaryFallback(students, modules);
+  var courseDescription = course ? (course.description || course.summary || course.overview || "") : "";
 
   if (state.isCourseDetailLoading && !detail) {
     return '<section class="teacher-class-command">'
-      + '<div class="teacher-class-command-header"><div><p>Course Detail</p><h2>Loading course...</h2><span>Fetching course detail on demand.</span></div><button type="button" class="teacher-secondary-btn" data-action="back-to-courses">Back to Courses</button></div>'
+      + '<div class="teacher-class-command-header"><div><p>Lesson Monitor</p><h2>Loading course...</h2><span>Fetching course detail on demand.</span></div><button type="button" class="teacher-secondary-btn" data-action="back-to-courses">Back to Courses</button></div>'
       + createLoadingState("Loading course details...", {
         className: "teacher-review-loading",
         beforeHtml: buildSavingSvg()
@@ -1518,54 +1520,172 @@ function buildCourseDetailView() {
 
   if (!course) {
     return '<section class="teacher-class-command">'
-      + '<div class="teacher-class-command-header"><div><p>Course Detail</p><h2>Course not found</h2><span>This course assignment is no longer available.</span></div><button type="button" class="teacher-secondary-btn" data-action="back-to-courses">Back to Courses</button></div>'
+      + '<div class="teacher-class-command-header"><div><p>Lesson Monitor</p><h2>Course not found</h2><span>This course assignment is no longer available.</span></div><button type="button" class="teacher-secondary-btn" data-action="back-to-courses">Back to Courses</button></div>'
       + '</section>';
   }
 
   return '<section class="teacher-class-command">'
-    + '<div class="teacher-class-command-header"><div><p>Course Detail</p><h2>' + escapeHtml(course.courseTitle || course.title || "Untitled Course") + '</h2><span>' + escapeHtml(readCourseAssignedClassLabel(course)) + ' | ' + escapeHtml(formatCourseStatus(course.status || course.readinessStatus || course.publishedStatus || "Not recorded")) + '</span></div><button type="button" class="teacher-secondary-btn" data-action="back-to-courses">Back to Courses</button></div>'
+    + '<div class="teacher-class-command-header"><div><p>Lesson Monitor</p><h2>' + escapeHtml(course.courseTitle || course.title || "Untitled Course") + '</h2><span>' + escapeHtml(readCourseAssignedClassLabel(course)) + ' | ' + escapeHtml(formatCourseStatus(course.status || course.readinessStatus || course.publishedStatus || "Not recorded")) + '</span>' + (courseDescription ? '<small>' + escapeHtml(courseDescription) + '</small>' : "") + '</div><button type="button" class="teacher-secondary-btn" data-action="back-to-courses">Back to Courses</button></div>'
     + (errors.courseDetail ? '<div class="teacher-error">Course detail failed to load: ' + escapeHtml(errors.courseDetail) + '</div>' : "")
+    + (students.length === 0 ? '<div class="teacher-empty compact">No students assigned to this course yet.</div>' : "")
+    + (modules.length === 0 ? '<div class="teacher-empty compact">No modules found for this course yet.</div>' : "")
     + '<div class="teacher-class-summary">'
-    + buildClassSummaryCard("Students", students.length)
-    + buildClassSummaryCard("Modules", modules.length)
-    + buildClassSummaryCard("Pending reviews", course.pendingSubmissionsCount || 0)
-    + buildClassSummaryCard("Progress", readCourseProgressSummary(course))
+    + buildClassSummaryCard("Total Students", summary.totalStudents == null ? students.length : summary.totalStudents)
+    + buildClassSummaryCard("Active Now", summary.activeNow || 0)
+    + buildClassSummaryCard("Modules", summary.totalModules == null ? modules.length : summary.totalModules)
+    + buildClassSummaryCard("Completion Activity", formatMonitorCompletion(summary, course))
     + '</div>'
-    + '<div class="teacher-class-command-grid">'
+    + '<div class="teacher-course-monitor-grid">'
     + buildCourseModulesPanel(modules)
-    + '<aside class="teacher-class-side-panel">' + buildCourseStudentsPanel(students) + '</aside>'
+    + buildCourseStudentsPanel(students)
     + '</div>'
     + '</section>';
 }
 
 function buildCourseModulesPanel(modules) {
-  var html = '<section class="teacher-card-section"><div class="teacher-section-title"><div><h2>Modules</h2><p>Loaded course structure</p></div>' + buildSectionGlyphSvg("courses") + '</div>';
+  var html = '<section class="teacher-card-section teacher-course-module-panel"><div class="teacher-section-title"><div><h2>Module Progress</h2><p>Course structure and student movement</p></div>' + buildSectionGlyphSvg("courses") + '</div>';
 
   if (!Array.isArray(modules) || modules.length === 0) {
-    return html + buildEmptyState("courses", "This course is not ready yet.", "Modules are missing or have not been loaded for this assignment.") + '</section>';
+    return html + buildEmptyState("courses", "No modules found.", "Modules are missing or have not been loaded for this assignment.") + '</section>';
   }
 
-  html += '<div class="teacher-class-course-list">';
+  html += '<div class="teacher-monitor-module-list">';
   modules.forEach(function (moduleRecord) {
-    html += '<article class="teacher-class-course-card"><strong>' + escapeHtml(readModuleTitle(moduleRecord)) + '</strong><span>' + escapeHtml(formatCourseStatus(moduleRecord.status || "Not recorded")) + '</span></article>';
+    html += '<details class="teacher-monitor-module-card">'
+      + '<summary><div><span>Module ' + escapeHtml(String(moduleRecord.order || "")) + '</span><strong>' + escapeHtml(readModuleTitle(moduleRecord)) + '</strong></div><b>' + escapeHtml(formatPercent(moduleRecord.averageCompletionPercent || 0)) + '</b></summary>'
+      + '<div class="teacher-monitor-module-metrics">'
+      + '<span>Started <strong>' + escapeHtml(String(moduleRecord.studentsStartedCount || 0)) + '</strong></span>'
+      + '<span>Completed <strong>' + escapeHtml(String(moduleRecord.studentsCompletedCount || 0)) + '</strong></span>'
+      + '<span>Steps <strong>' + escapeHtml(String(moduleRecord.totalStepCount || 0)) + '</strong></span>'
+      + '</div>'
+      + buildModuleActiveStudentList(moduleRecord)
+      + '</details>';
   });
 
   return html + '</div></section>';
 }
 
 function buildCourseStudentsPanel(students) {
-  var html = '<section class="teacher-class-panel"><div class="teacher-section-title compact"><div><h2>Students</h2><p>Using this course</p></div></div>';
+  var html = '<section class="teacher-card-section teacher-course-student-panel"><div class="teacher-section-title"><div><h2>Student Monitoring</h2><p>Current activity in this lesson</p></div>' + buildSectionGlyphSvg("students") + '</div>';
 
   if (!students || students.length === 0) {
-    return html + '<div class="teacher-empty compact">No student usage is recorded yet.</div></section>';
+    return html + buildEmptyState("students", "No students assigned.", "Students connected through class enrollment, course assignment, or progress records will appear here.") + '</section>';
   }
 
-  html += '<div class="teacher-class-course-list">';
+  html += '<div class="teacher-monitor-table-wrap"><table class="teacher-monitor-table"><thead><tr>'
+    + '<th>Student</th>'
+    + '<th>Status</th>'
+    + '<th>Current Module</th>'
+    + '<th>Current Step</th>'
+    + '<th>Last Activity</th>'
+    + '<th>Modules</th>'
+    + '<th>Steps</th>'
+    + '<th>Time</th>'
+    + '<th>Engagement</th>'
+    + '</tr></thead><tbody>';
   students.forEach(function (student) {
-    html += '<button type="button" class="teacher-class-student-card" data-action="open-student-profile" data-student-id="' + escapeHtml(student.id || "") + '"><div class="teacher-avatar">' + buildStudentAvatar(student) + '</div><div class="teacher-class-student-copy"><strong>' + escapeHtml(student.name || "Student") + '</strong><span>' + escapeHtml(readStudentProfileProgress(student)) + '</span></div></button>';
+    html += buildCourseMonitorStudentRow(student);
   });
 
-  return html + '</div></section>';
+  return html + '</tbody></table></div></section>';
+}
+
+function buildModuleActiveStudentList(moduleRecord) {
+  var students = Array.isArray(moduleRecord.activeStudents) ? moduleRecord.activeStudents : [];
+  var html = "";
+
+  if (students.length === 0) {
+    return '<div class="teacher-monitor-module-empty">No student progress in this module yet.</div>';
+  }
+
+  html += '<div class="teacher-monitor-module-students">';
+  students.slice(0, 8).forEach(function (student) {
+    html += '<span>' + escapeHtml(student.name || "Student") + ' · ' + escapeHtml(formatPercent(student.progressPercent || 0)) + '</span>';
+  });
+
+  if (students.length > 8) {
+    html += '<span>+' + escapeHtml(String(students.length - 8)) + ' more</span>';
+  }
+
+  return html + '</div>';
+}
+
+function buildCourseMonitorStudentRow(student) {
+  return '<tr>'
+    + '<td><button type="button" class="teacher-monitor-student-link" data-action="open-student-profile" data-student-id="' + escapeHtml(student.id || "") + '"><span class="teacher-avatar">' + buildStudentAvatar(student) + '</span><span><strong>' + escapeHtml(student.name || "Student") + '</strong><small>' + escapeHtml(student.className || readStudentClassName(student) || "Assigned student") + '</small></span></button></td>'
+    + '<td>' + buildMonitorBadge(student.courseStatusLabel || "Not Started", student.courseStatus || "notStarted") + '</td>'
+    + '<td>' + escapeHtml(student.currentModuleTitle || "Not started") + '</td>'
+    + '<td>' + escapeHtml(student.currentStepTitle || "Not available") + '</td>'
+    + '<td>' + escapeHtml(formatDate(student.lastActivityAt) || "No progress yet") + '</td>'
+    + '<td>' + escapeHtml(student.moduleProgressCount || createProgressCount(student.completedModuleCount, student.totalModuleCount)) + '</td>'
+    + '<td>' + escapeHtml(student.stepProgressCount || createProgressCount(student.completedStepCount, student.totalStepCount)) + '</td>'
+    + '<td>' + escapeHtml(formatMonitorTime(student.timeOnTaskSeconds)) + '</td>'
+    + '<td>' + buildMonitorBadge(student.engagementStatus || "Inactive", normalizeEngagementClass(student.engagementStatus)) + '</td>'
+    + '</tr>';
+}
+
+function buildMonitorBadge(label, status) {
+  return '<span class="teacher-monitor-badge ' + escapeHtml(normalizeMonitorBadgeClass(status)) + '">' + escapeHtml(label || "Not Started") + '</span>';
+}
+
+function normalizeMonitorBadgeClass(status) {
+  var value = String(status || "").trim().toLowerCase();
+
+  if (value === "active" || value === "active now") return "active";
+  if (value === "inprogress" || value === "in-progress" || value === "in progress" || value === "recently active") return "in-progress";
+  if (value === "completed") return "completed";
+  return "not-started";
+}
+
+function normalizeEngagementClass(status) {
+  var value = String(status || "").trim().toLowerCase();
+
+  if (value === "active now") return "active";
+  if (value === "recently active") return "in-progress";
+  return "not-started";
+}
+
+function createProgressCount(completed, total) {
+  return String(Number(completed) || 0) + "/" + String(Number(total) || 0);
+}
+
+function createCourseMonitorSummaryFallback(students, modules) {
+  var activeNow = 0;
+  var progressTotal = 0;
+
+  (students || []).forEach(function (student) {
+    if (student.engagementStatus === "Active Now") {
+      activeNow = activeNow + 1;
+    }
+    progressTotal = progressTotal + (Number(student.progressPercent) || 0);
+  });
+
+  return {
+    totalStudents: students ? students.length : 0,
+    activeNow: activeNow,
+    totalModules: modules ? modules.length : 0,
+    averageCompletionPercent: students && students.length > 0 ? Math.round(progressTotal / students.length) : 0
+  };
+}
+
+function formatMonitorCompletion(summary, course) {
+  if (summary && typeof summary.averageCompletionPercent === "number") {
+    return formatPercent(summary.averageCompletionPercent);
+  }
+
+  return readCourseProgressSummary(course);
+}
+
+function formatPercent(value) {
+  return Math.round(Number(value) || 0) + "%";
+}
+
+function formatMonitorTime(seconds) {
+  if (!seconds || Number(seconds) <= 0) {
+    return "Not tracked";
+  }
+
+  return formatDuration(seconds);
 }
 
 function buildStudentsView() {

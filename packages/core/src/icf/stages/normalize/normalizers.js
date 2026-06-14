@@ -41,7 +41,7 @@ export {
   normalizeTeacherDashboardPayload,
   normalizeTeacherLoginPayload,
   normalizeTeacherPasswordResetPayload
-} from "./domain/teacher/normalizeTeacherPayloads.js?v=1.1.192-timed-sequence";
+} from "./domain/teacher/normalizeTeacherPayloads.js?v=1.1.194-lesson-monitor";
 export { normalizeBoolean } from "./domain/courseEditor/normalizeBoolean.js?v=1.1.192-timed-sequence";
 export { normalizeLanguagesArray } from "./domain/courseEditor/normalizeLanguagesArray.js?v=1.1.192-timed-sequence";
 export { normalizeModuleOrder } from "./domain/courseEditor/normalizeModuleOrder.js?v=1.1.192-timed-sequence";

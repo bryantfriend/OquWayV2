@@ -1,6 +1,6 @@
 import { getIdTokenResult, onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.179-teacher-analytics-dashboard";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.179-teacher-analytics-dashboard";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.194-lesson-monitor";
 
 var currentTeacherClaims = {};
 

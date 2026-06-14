@@ -84,7 +84,7 @@ export { RecordEmotionalCheckInIntent } from "./emotionalCheckIn/RecordEmotional
 // ----------------------
 export { TeacherLoginIntent } from "./teacher/TeacherLoginIntent.js?v=1.1.192-timed-sequence";
 export { LoadTeacherClassDetailIntent } from "./teacher/LoadTeacherClassDetailIntent.js?v=1.1.192-timed-sequence";
-export { LoadTeacherCourseDetailIntent } from "./teacher/LoadTeacherCourseDetailIntent.js?v=1.1.192-timed-sequence";
+export { LoadTeacherCourseDetailIntent } from "./teacher/LoadTeacherCourseDetailIntent.js?v=1.1.194-lesson-monitor";
 export { LoadTeacherCoursesIntent } from "./teacher/LoadTeacherCoursesIntent.js?v=1.1.192-timed-sequence";
 export { LoadTeacherDashboardIntent } from "./teacher/LoadTeacherDashboardIntent.js?v=1.1.192-timed-sequence";
 export { LoadTeacherClassesIntent } from "./teacher/LoadTeacherClassesIntent.js?v=1.1.192-timed-sequence";

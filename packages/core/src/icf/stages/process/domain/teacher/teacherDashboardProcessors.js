@@ -3,6 +3,7 @@ import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../
 import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.178-teacher-analytics-dashboard";
 import { getClassesForTeacher } from "../../../../../../../domain/classes/index.js";
 import { getExternalTaskSubmissionsForTeacher } from "../../../../../../../domain/externalTasks/index.js?v=1.1.178-teacher-analytics-dashboard";
+import { getModulesForCourse, readModuleTitle as readDomainModuleTitle } from "../../../../../../../domain/modules/index.js";
 import {
   getStudentsForClasses,
   getUserProfileByAuthUid,
@@ -109,6 +110,12 @@ export async function processLoadTeacherCourseDetail(executionState) {
     var classRecord = null;
     var students = [];
     var courseCards = [];
+    var courseRecord = null;
+    var modules = [];
+    var studentProgressById = {};
+    var studentCards = [];
+    var moduleSummaries = [];
+    var monitorSummary = {};
 
     if (!assignment && payload.courseId) {
       assignment = scope.assignments.find(function (item) {
@@ -133,19 +140,27 @@ export async function processLoadTeacherCourseDetail(executionState) {
     }
 
     if (assignment) {
+      courseRecord = await loadCourseDetailRecord(assignment.courseId);
+      modules = await loadCourseModulesForMonitor(assignment.courseId, courseRecord);
+      studentProgressById = await loadCourseProgressForStudents(students, assignment.courseId, modules);
+      studentCards = students.map(function (student) {
+        return normalizeCourseMonitorStudent(student, studentProgressById[student.id] || createEmptyCourseMonitorProgress(assignment.courseId, modules), modules, classRecord);
+      });
+      moduleSummaries = buildCourseMonitorModuleSummaries(modules, studentCards);
+      monitorSummary = createCourseMonitorSummary(studentCards, moduleSummaries);
       courseCards = await normalizeCourseAssignmentCards([assignment], classRecord ? [classRecord] : scope.classes, students, {});
     }
 
     executionState.result = {
       teacher: normalizeTeacherProfile(scope.profile),
-      course: courseCards.length > 0 ? courseCards[0] : null,
-      students: students.map(function (student) {
-        return normalizeStudentCard(student, null, 0);
-      }),
-      modules: [],
+      course: createCourseMonitorCourseRecord(courseCards.length > 0 ? courseCards[0] : null, courseRecord, monitorSummary),
+      classRecord: classRecord ? normalizeClassCard(classRecord, students, [assignment], 0) : null,
+      students: studentCards,
+      modules: moduleSummaries,
       submissions: [],
+      summary: monitorSummary,
       errors: assignment ? {} : {
-        courseDetail: "The selected course assignment is no longer available for this teacher."
+        courseDetail: "The selected course assignment is no longer available for this teacher or is outside your assigned scope."
       }
     };
     return { valid: true, data: executionState.result };
@@ -611,6 +626,597 @@ async function readStudentProgressSummary(studentId) {
       lastActiveAt: null
     };
   }
+}
+
+async function loadCourseDetailRecord(courseId) {
+  var course = await readCourseDetailFromSource(courseId, "catalogCourses")
+    || await readCourseDetailFromSource(courseId, "courses");
+
+  return course || null;
+}
+
+async function readCourseDetailFromSource(courseId, source) {
+  if (!courseId) {
+    return null;
+  }
+
+  try {
+    var courseSnap = await getDoc(doc(db, source, courseId));
+
+    if (!courseSnap.exists()) {
+      return null;
+    }
+
+    var data = courseSnap.data() || {};
+    return Object.assign({ id: courseSnap.id, source: source }, data, {
+      id: courseSnap.id,
+      source: source,
+      title: readTitle(data.title || data.name || data.displayName, "Untitled Course"),
+      description: readTitle(data.description || data.summary || data.overview, ""),
+      status: data.status || data.readinessStatus || data.publishedStatus || ""
+    });
+  } catch (error) {
+    console.warn("[teacher-course-detail:course-load-failed]", {
+      courseId: courseId,
+      source: source,
+      errorMessage: readErrorMessage(error)
+    });
+    return null;
+  }
+}
+
+async function loadCourseModulesForMonitor(courseId, courseRecord) {
+  var modules = [];
+  var index = 0;
+
+  try {
+    modules = await getModulesForCourse(courseId, {
+      course: courseRecord || {},
+      sources: ["catalogCourses", "courses"]
+    });
+  } catch (error) {
+    console.warn("[teacher-course-detail:modules-load-failed]", {
+      courseId: courseId,
+      errorMessage: readErrorMessage(error)
+    });
+    modules = [];
+  }
+
+  while (index < modules.length) {
+    modules[index] = await attachMonitorSessionsToModule(courseId, modules[index]);
+    index = index + 1;
+  }
+
+  return modules;
+}
+
+async function attachMonitorSessionsToModule(courseId, moduleRecord) {
+  var sessions = [];
+  var source = moduleRecord && moduleRecord.source ? moduleRecord.source : "catalogCourses";
+
+  try {
+    sessions = await readMonitorSessions(courseId, moduleRecord.id || moduleRecord.moduleId, source);
+  } catch (error) {
+    console.warn("[teacher-course-detail:sessions-load-failed]", {
+      courseId: courseId,
+      moduleId: moduleRecord && moduleRecord.id ? moduleRecord.id : "",
+      source: source,
+      errorMessage: readErrorMessage(error)
+    });
+    sessions = [];
+  }
+
+  if (sessions.length === 0 && source !== "catalogCourses") {
+    sessions = await readMonitorSessions(courseId, moduleRecord.id || moduleRecord.moduleId, "catalogCourses");
+  }
+
+  if (sessions.length === 0 && source !== "courses") {
+    sessions = await readMonitorSessions(courseId, moduleRecord.id || moduleRecord.moduleId, "courses");
+  }
+
+  if (sessions.length === 0) {
+    sessions = createMonitorSessionsFromModule(moduleRecord);
+  }
+
+  return Object.assign({}, moduleRecord, {
+    sessions: sessions,
+    totalStepCount: countMonitorModuleSteps(Object.assign({}, moduleRecord, { sessions: sessions }))
+  });
+}
+
+async function readMonitorSessions(courseId, moduleId, source) {
+  var snapshot = null;
+  var sessions = [];
+
+  if (!courseId || !moduleId || !source) {
+    return sessions;
+  }
+
+  snapshot = await getDocs(collection(db, source, courseId, "modules", moduleId, "sessions"));
+  snapshot.forEach(function (sessionSnap) {
+    sessions.push(Object.assign({ id: sessionSnap.id, source: source }, sessionSnap.data() || {}));
+  });
+  sessions.sort(compareMonitorOrder);
+
+  return sessions;
+}
+
+function createMonitorSessionsFromModule(moduleRecord) {
+  var learningModes = moduleRecord && moduleRecord.learningModes && typeof moduleRecord.learningModes === "object" ? moduleRecord.learningModes : {};
+  var keys = Object.keys(learningModes);
+  var sessions = [];
+  var index = 0;
+
+  while (index < keys.length) {
+    sessions.push({
+      id: learningModes[keys[index]].legacySessionId || keys[index],
+      learningModeId: keys[index],
+      learningModeType: learningModes[keys[index]].modeType || keys[index],
+      order: readNumber(learningModes[keys[index]].order, index + 1),
+      practiceModes: learningModes[keys[index]].practiceModes || {
+        beforeClass: {
+          steps: Array.isArray(learningModes[keys[index]].steps) ? learningModes[keys[index]].steps : []
+        }
+      }
+    });
+    index = index + 1;
+  }
+
+  sessions.sort(compareMonitorOrder);
+  return sessions;
+}
+
+async function loadCourseProgressForStudents(students, courseId, modules) {
+  var progressByStudent = {};
+  var index = 0;
+
+  while (index < students.length) {
+    progressByStudent[students[index].id] = await readStudentCourseMonitorProgress(students[index].id, courseId, modules);
+    index = index + 1;
+  }
+
+  return progressByStudent;
+}
+
+async function readStudentCourseMonitorProgress(studentId, courseId, modules) {
+  var summary = createEmptyCourseMonitorProgress(courseId, modules);
+
+  if (!studentId || !courseId) {
+    return summary;
+  }
+
+  try {
+    var snapshot = await getDocs(collection(db, "studentProgress", studentId, "courses", courseId, "sessions"));
+
+    snapshot.forEach(function (progressSnap) {
+      mergeSessionProgressIntoMonitor(summary, Object.assign({ id: progressSnap.id }, progressSnap.data() || {}), modules);
+    });
+  } catch (error) {
+    console.warn("[teacher-course-detail:progress-load-failed]", {
+      studentId: studentId,
+      courseId: courseId,
+      errorMessage: readErrorMessage(error)
+    });
+    summary.progressLoadError = readErrorMessage(error);
+  }
+
+  finalizeCourseMonitorProgress(summary, modules);
+  return summary;
+}
+
+function createEmptyCourseMonitorProgress(courseId, modules) {
+  return {
+    courseId: courseId || "",
+    completedModuleCount: 0,
+    totalModuleCount: Array.isArray(modules) ? modules.length : 0,
+    completedStepCount: 0,
+    totalStepCount: countMonitorCourseSteps(modules),
+    progressPercent: 0,
+    currentModuleId: "",
+    currentModuleTitle: "",
+    currentStepId: "",
+    currentStepTitle: "",
+    lastActivityAt: null,
+    timeOnTaskSeconds: 0,
+    moduleProgressById: {},
+    touchedModuleIds: [],
+    completedStepIdsByModuleId: {},
+    hasProgress: false,
+    progressLoadError: ""
+  };
+}
+
+function mergeSessionProgressIntoMonitor(summary, progress, modules) {
+  var moduleId = progress.moduleId || findModuleIdForSession(modules, progress.sessionId || progress.id);
+  var completedStepIds = readProgressCompletedStepIds(progress);
+  var updatedAt = progress.updatedAt || readProgressLatestModeTimestamp(progress);
+  var timeOnTaskSeconds = readProgressTimeOnTask(progress);
+
+  if (!moduleId) {
+    return;
+  }
+
+  summary.hasProgress = true;
+  addUniqueText(summary.touchedModuleIds, moduleId);
+  summary.timeOnTaskSeconds = summary.timeOnTaskSeconds + timeOnTaskSeconds;
+  appendCompletedStepIdsForModule(summary.completedStepIdsByModuleId, moduleId, completedStepIds);
+
+  if (!summary.moduleProgressById[moduleId]) {
+    summary.moduleProgressById[moduleId] = {
+      moduleId: moduleId,
+      completedStepCount: 0,
+      totalStepCount: countMonitorModuleSteps(findModuleById(modules, moduleId)),
+      lastActivityAt: null,
+      completed: false
+    };
+  }
+
+  if (readMillis(updatedAt) >= readMillis(summary.moduleProgressById[moduleId].lastActivityAt)) {
+    summary.moduleProgressById[moduleId].lastActivityAt = updatedAt;
+  }
+
+  if (readMillis(updatedAt) >= readMillis(summary.lastActivityAt)) {
+    summary.lastActivityAt = updatedAt;
+    summary.currentModuleId = moduleId;
+    summary.currentStepId = findCurrentStepIdForProgress(findModuleById(modules, moduleId), progress, completedStepIds);
+  }
+}
+
+function finalizeCourseMonitorProgress(summary, modules) {
+  var moduleIds = Object.keys(summary.moduleProgressById);
+  var completedStepTotal = 0;
+  var completedModuleTotal = 0;
+  var index = 0;
+
+  while (index < moduleIds.length) {
+    var moduleProgress = summary.moduleProgressById[moduleIds[index]];
+    moduleProgress.completedStepCount = countUniqueText(summary.completedStepIdsByModuleId[moduleIds[index]] || []);
+    moduleProgress.completed = moduleProgress.totalStepCount > 0
+      ? moduleProgress.completedStepCount >= moduleProgress.totalStepCount
+      : summary.touchedModuleIds.indexOf(moduleIds[index]) !== -1;
+    completedStepTotal = completedStepTotal + moduleProgress.completedStepCount;
+    if (moduleProgress.completed) {
+      completedModuleTotal = completedModuleTotal + 1;
+    }
+    index = index + 1;
+  }
+
+  summary.completedStepCount = completedStepTotal;
+  summary.completedModuleCount = completedModuleTotal;
+  summary.progressPercent = summary.totalStepCount > 0 ? Math.min(100, Math.round((completedStepTotal / summary.totalStepCount) * 100)) : 0;
+  summary.currentModuleTitle = readDomainModuleTitle(findModuleById(modules, summary.currentModuleId) || {});
+  summary.currentStepTitle = readMonitorStepTitle(findStepById(findModuleById(modules, summary.currentModuleId), summary.currentStepId));
+}
+
+function normalizeCourseMonitorStudent(student, progress, modules, classRecord) {
+  var base = normalizeStudentCard(student, {
+    courseCount: progress.hasProgress ? 1 : 0,
+    lastActiveAt: progress.lastActivityAt
+  }, 0);
+  var status = readCourseMonitorStatus(progress);
+
+  return Object.assign({}, base, {
+    classId: base.classId || (classRecord ? classRecord.id : ""),
+    className: student.className || (classRecord ? readName(classRecord, "Class") : ""),
+    courseStatus: status,
+    courseStatusLabel: formatCourseMonitorStatus(status),
+    engagementStatus: readEngagementStatus(progress.lastActivityAt),
+    currentModuleId: progress.currentModuleId,
+    currentModuleTitle: progress.currentModuleTitle || "Not started",
+    currentStepId: progress.currentStepId,
+    currentStepTitle: progress.currentStepTitle || "Not available",
+    lastActivityAt: progress.lastActivityAt,
+    moduleProgressCount: progress.completedModuleCount + "/" + progress.totalModuleCount,
+    stepProgressCount: progress.completedStepCount + "/" + progress.totalStepCount,
+    completedModuleCount: progress.completedModuleCount,
+    totalModuleCount: progress.totalModuleCount,
+    completedStepCount: progress.completedStepCount,
+    totalStepCount: progress.totalStepCount,
+    progressPercent: progress.progressPercent,
+    timeOnTaskSeconds: progress.timeOnTaskSeconds,
+    moduleProgressById: progress.moduleProgressById,
+    progressLoadError: progress.progressLoadError || ""
+  });
+}
+
+function buildCourseMonitorModuleSummaries(modules, students) {
+  return (modules || []).map(function (moduleRecord, index) {
+    var moduleId = moduleRecord.id || moduleRecord.moduleId || "";
+    var startedStudents = [];
+    var completedStudents = [];
+    var progressTotal = 0;
+
+    (students || []).forEach(function (student) {
+      var moduleProgress = student.moduleProgressById ? student.moduleProgressById[moduleId] : null;
+      var percent = moduleProgress && moduleProgress.totalStepCount > 0
+        ? Math.round((moduleProgress.completedStepCount / moduleProgress.totalStepCount) * 100)
+        : 0;
+
+      if (moduleProgress) {
+        startedStudents.push(createMonitorStudentReference(student, percent));
+        progressTotal = progressTotal + percent;
+      }
+
+      if (moduleProgress && moduleProgress.completed) {
+        completedStudents.push(createMonitorStudentReference(student, percent));
+      }
+    });
+
+    return Object.assign({}, moduleRecord, {
+      id: moduleId,
+      order: readNumber(moduleRecord.order, index + 1),
+      title: readDomainModuleTitle(moduleRecord),
+      totalStepCount: countMonitorModuleSteps(moduleRecord),
+      studentsStartedCount: startedStudents.length,
+      studentsCompletedCount: completedStudents.length,
+      averageCompletionPercent: startedStudents.length > 0 ? Math.round(progressTotal / startedStudents.length) : 0,
+      activeStudents: startedStudents,
+      completedStudents: completedStudents
+    });
+  });
+}
+
+function createMonitorStudentReference(student, progressPercent) {
+  return {
+    id: student.id || "",
+    name: student.name || "Student",
+    progressPercent: progressPercent || 0,
+    engagementStatus: student.engagementStatus || "Inactive"
+  };
+}
+
+function createCourseMonitorSummary(students, modules) {
+  var activeNow = 0;
+  var completedStudents = 0;
+  var progressTotal = 0;
+
+  (students || []).forEach(function (student) {
+    if (student.engagementStatus === "Active Now") {
+      activeNow = activeNow + 1;
+    }
+    if (student.courseStatus === "completed") {
+      completedStudents = completedStudents + 1;
+    }
+    progressTotal = progressTotal + (Number(student.progressPercent) || 0);
+  });
+
+  return {
+    totalStudents: students ? students.length : 0,
+    activeNow: activeNow,
+    totalModules: modules ? modules.length : 0,
+    completedStudents: completedStudents,
+    averageCompletionPercent: students && students.length > 0 ? Math.round(progressTotal / students.length) : 0
+  };
+}
+
+function createCourseMonitorCourseRecord(courseCard, courseRecord, summary) {
+  if (!courseCard && !courseRecord) {
+    return null;
+  }
+
+  return Object.assign({}, courseCard || {}, {
+    courseId: (courseCard && courseCard.courseId) || (courseRecord && courseRecord.id) || "",
+    courseTitle: (courseCard && courseCard.courseTitle) || (courseRecord && courseRecord.title) || "Untitled Course",
+    title: (courseRecord && courseRecord.title) || (courseCard && courseCard.courseTitle) || "Untitled Course",
+    description: courseRecord && courseRecord.description ? courseRecord.description : "",
+    status: (courseCard && courseCard.status) || (courseRecord && courseRecord.status) || "",
+    courseRecordSource: courseRecord && courseRecord.source ? courseRecord.source : "",
+    progressPercent: summary && typeof summary.averageCompletionPercent === "number" ? summary.averageCompletionPercent : null,
+    moduleCount: summary && typeof summary.totalModules === "number" ? summary.totalModules : 0,
+    studentCount: summary && typeof summary.totalStudents === "number" ? summary.totalStudents : (courseCard ? courseCard.studentCount : 0)
+  });
+}
+
+function readCourseMonitorStatus(progress) {
+  if (!progress || !progress.hasProgress) {
+    return "notStarted";
+  }
+
+  if (progress.totalStepCount > 0 && progress.completedStepCount >= progress.totalStepCount) {
+    return "completed";
+  }
+
+  if (readEngagementStatus(progress.lastActivityAt) === "Active Now") {
+    return "active";
+  }
+
+  return "inProgress";
+}
+
+function formatCourseMonitorStatus(status) {
+  if (status === "active") return "Active";
+  if (status === "inProgress") return "In Progress";
+  if (status === "completed") return "Completed";
+  return "Not Started";
+}
+
+function readEngagementStatus(lastActivityAt) {
+  var millis = readMillis(lastActivityAt);
+  var age = Date.now() - millis;
+
+  if (!millis) {
+    return "Inactive";
+  }
+
+  if (age <= 2 * 60 * 1000) {
+    return "Active Now";
+  }
+
+  if (age <= 30 * 60 * 1000) {
+    return "Recently Active";
+  }
+
+  return "Inactive";
+}
+
+function readProgressCompletedStepIds(progress) {
+  var ids = [];
+  var practiceModes = progress && progress.practiceModes && typeof progress.practiceModes === "object" ? progress.practiceModes : {};
+
+  Object.keys(practiceModes).forEach(function (key) {
+    appendTextValues(ids, practiceModes[key] && Array.isArray(practiceModes[key].completedStepIds) ? practiceModes[key].completedStepIds : []);
+  });
+
+  return ids;
+}
+
+function readProgressLatestModeTimestamp(progress) {
+  var latest = progress ? progress.updatedAt : null;
+  var practiceModes = progress && progress.practiceModes && typeof progress.practiceModes === "object" ? progress.practiceModes : {};
+
+  Object.keys(practiceModes).forEach(function (key) {
+    if (practiceModes[key] && readMillis(practiceModes[key].updatedAt) > readMillis(latest)) {
+      latest = practiceModes[key].updatedAt;
+    }
+  });
+
+  return latest;
+}
+
+function readProgressTimeOnTask(progress) {
+  var total = readNumber(progress ? (progress.timeOnTaskSeconds || progress.totalTimeSeconds || progress.durationSeconds) : 0, 0);
+  var practiceModes = progress && progress.practiceModes && typeof progress.practiceModes === "object" ? progress.practiceModes : {};
+
+  Object.keys(practiceModes).forEach(function (key) {
+    total = total + readNumber(practiceModes[key] ? (practiceModes[key].timeOnTaskSeconds || practiceModes[key].totalTimeSeconds || practiceModes[key].durationSeconds) : 0, 0);
+  });
+
+  return total;
+}
+
+function appendCompletedStepIdsForModule(completedStepIdsByModuleId, moduleId, stepIds) {
+  if (!completedStepIdsByModuleId[moduleId]) {
+    completedStepIdsByModuleId[moduleId] = [];
+  }
+
+  appendTextValues(completedStepIdsByModuleId[moduleId], stepIds);
+}
+
+function findCurrentStepIdForProgress(moduleRecord, progress, completedStepIds) {
+  var session = findSessionById(moduleRecord, progress.sessionId || progress.id);
+  var orderedSteps = flattenMonitorSessionSteps(session);
+  var index = 0;
+
+  while (index < orderedSteps.length) {
+    if (completedStepIds.indexOf(orderedSteps[index].id || orderedSteps[index].stepId || "") === -1) {
+      return orderedSteps[index].id || orderedSteps[index].stepId || "";
+    }
+    index = index + 1;
+  }
+
+  return orderedSteps.length > 0 ? (orderedSteps[orderedSteps.length - 1].id || orderedSteps[orderedSteps.length - 1].stepId || "") : "";
+}
+
+function findModuleIdForSession(modules, sessionId) {
+  var index = 0;
+
+  while (Array.isArray(modules) && index < modules.length) {
+    if (findSessionById(modules[index], sessionId)) {
+      return modules[index].id || modules[index].moduleId || "";
+    }
+    index = index + 1;
+  }
+
+  return "";
+}
+
+function findModuleById(modules, moduleId) {
+  return (modules || []).find(function (moduleRecord) {
+    return moduleRecord && (moduleRecord.id === moduleId || moduleRecord.moduleId === moduleId);
+  }) || null;
+}
+
+function findSessionById(moduleRecord, sessionId) {
+  var sessions = moduleRecord && Array.isArray(moduleRecord.sessions) ? moduleRecord.sessions : [];
+
+  return sessions.find(function (session) {
+    return session && (session.id === sessionId || session.sessionId === sessionId || session.learningModeId === sessionId);
+  }) || null;
+}
+
+function findStepById(moduleRecord, stepId) {
+  var sessions = moduleRecord && Array.isArray(moduleRecord.sessions) ? moduleRecord.sessions : [];
+  var sessionIndex = 0;
+
+  while (sessionIndex < sessions.length) {
+    var steps = flattenMonitorSessionSteps(sessions[sessionIndex]);
+    var step = steps.find(function (item) {
+      return item && (item.id === stepId || item.stepId === stepId);
+    });
+
+    if (step) {
+      return step;
+    }
+
+    sessionIndex = sessionIndex + 1;
+  }
+
+  return null;
+}
+
+function readMonitorStepTitle(step) {
+  if (!step) {
+    return "";
+  }
+
+  return readTitle(step.title || step.name || step.label, "Step");
+}
+
+function countMonitorCourseSteps(modules) {
+  var total = 0;
+
+  (modules || []).forEach(function (moduleRecord) {
+    total = total + countMonitorModuleSteps(moduleRecord);
+  });
+
+  return total;
+}
+
+function countMonitorModuleSteps(moduleRecord) {
+  var sessions = moduleRecord && Array.isArray(moduleRecord.sessions) ? moduleRecord.sessions : [];
+  var total = 0;
+
+  sessions.forEach(function (session) {
+    total = total + flattenMonitorSessionSteps(session).length;
+  });
+
+  return total;
+}
+
+function flattenMonitorSessionSteps(session) {
+  var practiceModes = session && session.practiceModes && typeof session.practiceModes === "object" ? session.practiceModes : {};
+  var steps = [];
+
+  Object.keys(practiceModes).forEach(function (key) {
+    var modeSteps = practiceModes[key] && Array.isArray(practiceModes[key].steps) ? practiceModes[key].steps.slice() : [];
+    modeSteps.sort(compareMonitorOrder);
+    steps = steps.concat(modeSteps);
+  });
+
+  return steps;
+}
+
+function compareMonitorOrder(first, second) {
+  return readNumber(first && first.order, readNumber(first && first.sessionNumber, 0)) - readNumber(second && second.order, readNumber(second && second.sessionNumber, 0));
+}
+
+function readNumber(value, fallback) {
+  var numeric = Number(value);
+
+  return Number.isFinite(numeric) ? numeric : (fallback || 0);
+}
+
+function addUniqueText(result, value) {
+  if (typeof value === "string" && value && result.indexOf(value) === -1) {
+    result.push(value);
+  }
+}
+
+function countUniqueText(values) {
+  var unique = [];
+
+  appendTextValues(unique, values || []);
+  return unique.length;
 }
 
 async function loadScopedSubmissions(filters) {

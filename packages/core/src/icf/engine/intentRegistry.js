@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.192-timed-sequence";
+import * as IntentExports from "../intents/intents.js?v=1.1.194-lesson-monitor";
 
 const registry = {
   // Demo Verification
