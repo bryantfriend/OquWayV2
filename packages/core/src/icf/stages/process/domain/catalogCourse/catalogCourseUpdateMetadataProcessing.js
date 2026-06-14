@@ -69,12 +69,58 @@ function appendOptionalVisualFields(metadataUpdate, payload) {
     appendOptionalText(metadataUpdate, payload, "heroImageUrl");
     appendOptionalText(metadataUpdate, payload, "themeColor");
     appendOptionalText(metadataUpdate, payload, "accentColor");
+    appendOptionalVisualTheme(metadataUpdate, payload);
 }
 
 function appendOptionalText(target, source, fieldName) {
     if (typeof source[fieldName] === "string") {
         target[fieldName] = readText(source[fieldName]);
     }
+}
+
+function appendOptionalVisualTheme(target, source) {
+    if (!source.visualTheme || typeof source.visualTheme !== "object" || Array.isArray(source.visualTheme)) {
+        return;
+    }
+
+    target.visualTheme = {
+        accentColor: readThemeAccentColor(source.visualTheme.accentColor),
+        moduleIconStyle: readModuleIconStyle(source.visualTheme.moduleIconStyle),
+        badgeStyle: readBadgeStyle(source.visualTheme.badgeStyle),
+        pathDensity: readPathDensity(source.visualTheme.pathDensity)
+    };
+}
+
+function readThemeAccentColor(accentColor) {
+    if (accentColor === "emerald" || accentColor === "rose" || accentColor === "amber") {
+        return accentColor;
+    }
+
+    return "blue";
+}
+
+function readModuleIconStyle(moduleIconStyle) {
+    if (moduleIconStyle === "courseIcon" || moduleIconStyle === "minimal") {
+        return moduleIconStyle;
+    }
+
+    return "numbered";
+}
+
+function readBadgeStyle(badgeStyle) {
+    if (badgeStyle === "soft" || badgeStyle === "solid") {
+        return badgeStyle;
+    }
+
+    return "pill";
+}
+
+function readPathDensity(pathDensity) {
+    if (pathDensity === "compact" || pathDensity === "spacious") {
+        return pathDensity;
+    }
+
+    return "comfortable";
 }
 
 function readLocalizedText(value) {

@@ -15,6 +15,11 @@ const MAIN_PATH_PRACTICE_MODE_KEY = "beforeClass";
 const SUPPORTED_MAIN_PATH_STEP_TYPES = [
   "intro-card",
   "card-reveal",
+  "vocabulary",
+  "phrase",
+  "listening",
+  "speakingPrompt",
+  "reflectionShell",
   "roadmap",
   "sorting",
   "matching",
@@ -38,6 +43,8 @@ export class CourseEditorPage {
     this.stepPickerOpen = false;
     this.studentPreviewMode = false;
     this.practiceModePlaytestMode = false;
+    this.previewDockTemplate = "basic";
+    this.previewDockDevice = "desktop";
     this.playtestStepIndex = 0;
     this.playtestCompleted = false;
     this.practiceModePlayer = null;
@@ -418,6 +425,20 @@ export class CourseEditorPage {
     var stepLibraryFilterChip = event.target.closest(".step-library-filter-chip");
     if (stepLibraryFilterChip) {
       toggleStepLibraryFilter(stepLibraryFilterChip);
+      return;
+    }
+
+    var previewDockTemplateBtn = event.target.closest(".preview-dock-template-btn");
+    if (previewDockTemplateBtn) {
+      this.previewDockTemplate = normalizePreviewDockTemplate(previewDockTemplateBtn.getAttribute("data-template"));
+      this.updateUi(moduleEditorStore.getState());
+      return;
+    }
+
+    var previewDockDeviceBtn = event.target.closest(".preview-dock-device-btn");
+    if (previewDockDeviceBtn) {
+      this.previewDockDevice = normalizePreviewDockDevice(previewDockDeviceBtn.getAttribute("data-device"));
+      this.updateUi(moduleEditorStore.getState());
       return;
     }
 
@@ -1565,11 +1586,15 @@ export class CourseEditorPage {
 
     var previewMode = readStepPreviewMode(readStepType(selectedStep));
     var canvasClass = previewMode === "full" ? "oqu-preview-canvas oqu-preview-canvas-full" : "oqu-preview-canvas";
+    var dockClass = readPreviewDockFrameClass(this.previewDockDevice);
     var html = '<div class="' + canvasClass + '" id="step-preview-canvas">';
     html += '<div class="oqu-preview-toolbar">';
     html += '<button type="button" class="preview-step-btn oqu-student-view-btn" data-step-id="' + readStepId(selectedStep, "") + '"><i class="fa-solid fa-play"></i> Preview</button>';
     html += '</div>';
+    html += buildLiveStudentPreviewDock(selectedStep, this.previewDockTemplate, this.previewDockDevice);
+    html += '<div class="' + dockClass + '">';
     html += this.buildStepPreviewCard(selectedStep);
+    html += '</div>';
     html += '</div>';
     return html;
   }
@@ -2087,6 +2112,8 @@ export class CourseEditorPage {
       html += '<i class="fa-solid fa-wand-magic-sparkles"></i> Pull From Learning Content';
       html += '</button>';
     }
+
+    html += buildStepQualityInspector(step);
 
     html += '<button type="button" class="save-practice-step-btn w-full bg-gray-900 hover:bg-black text-white font-bold py-2 rounded-lg text-xs transition mt-1">Save Step</button>';
 
@@ -2671,6 +2698,177 @@ function buildListEmptyState() {
     + '</div>';
 }
 
+function buildLiveStudentPreviewDock(step, template, device) {
+  var safeTemplate = normalizePreviewDockTemplate(template);
+  var safeDevice = normalizePreviewDockDevice(device);
+  var stepType = readStepType(step);
+  var stepTitle = readLocalizedText(step && step.title, "Step Preview");
+  var html = "";
+
+  html += '<section class="mb-4 rounded-2xl border border-blue-100 bg-white p-3 shadow-sm">';
+  html += '<div class="flex items-center justify-between gap-3">';
+  html += '<div class="min-w-0"><div class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">Live Student Preview Dock</div><div class="mt-1 truncate text-sm font-black text-slate-950">' + escapeHtml(stepTitle) + '</div><div class="mt-0.5 text-[11px] font-semibold text-slate-500">' + escapeHtml(readStepTypeLabel(stepType)) + '</div></div>';
+  html += '<div class="flex flex-wrap justify-end gap-2">';
+  html += buildPreviewDockButton("template", "basic", "Basic", safeTemplate === "basic");
+  html += buildPreviewDockButton("template", "adventurePath", "Path", safeTemplate === "adventurePath");
+  html += buildPreviewDockButton("template", "compactGrid", "Grid", safeTemplate === "compactGrid");
+  html += '<span class="mx-1 h-8 w-px bg-slate-100"></span>';
+  html += buildPreviewDockButton("device", "desktop", "Desktop", safeDevice === "desktop");
+  html += buildPreviewDockButton("device", "tablet", "Tablet", safeDevice === "tablet");
+  html += buildPreviewDockButton("device", "mobile", "Mobile", safeDevice === "mobile");
+  html += '</div>';
+  html += '</div>';
+  html += '<div class="mt-3 grid gap-2 sm:grid-cols-3">';
+  html += '<div class="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-[11px] font-bold text-slate-600">Template: ' + escapeHtml(readPreviewDockTemplateLabel(safeTemplate)) + '</div>';
+  html += '<div class="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-[11px] font-bold text-slate-600">Device: ' + escapeHtml(readPreviewDockDeviceLabel(safeDevice)) + '</div>';
+  html += '<div class="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-[11px] font-bold text-slate-600">Renderer: current step</div>';
+  html += '</div>';
+  html += '</section>';
+  return html;
+}
+
+function buildPreviewDockButton(kind, value, label, active) {
+  var className = active
+    ? "bg-blue-600 text-white border-blue-600"
+    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50";
+  var classPrefix = kind === "template" ? "preview-dock-template-btn" : "preview-dock-device-btn";
+  var dataAttr = kind === "template" ? "data-template" : "data-device";
+
+  return '<button type="button" class="' + classPrefix + ' rounded-xl border px-3 py-2 text-[10px] font-black transition ' + className + '" ' + dataAttr + '="' + escapeHtml(value) + '">' + escapeHtml(label) + '</button>';
+}
+
+function normalizePreviewDockTemplate(value) {
+  if (value === "adventurePath" || value === "compactGrid") {
+    return value;
+  }
+
+  return "basic";
+}
+
+function normalizePreviewDockDevice(value) {
+  if (value === "mobile" || value === "tablet") {
+    return value;
+  }
+
+  return "desktop";
+}
+
+function readPreviewDockFrameClass(device) {
+  if (device === "mobile") {
+    return "mx-auto max-w-[390px] rounded-[28px] border border-slate-200 bg-slate-50 p-3 shadow-inner";
+  }
+
+  if (device === "tablet") {
+    return "mx-auto max-w-[720px] rounded-[28px] border border-slate-200 bg-slate-50 p-3 shadow-inner";
+  }
+
+  return "mx-auto max-w-none";
+}
+
+function readPreviewDockTemplateLabel(template) {
+  if (template === "adventurePath") {
+    return "Adventure Path";
+  }
+
+  if (template === "compactGrid") {
+    return "Compact Grid";
+  }
+
+  return "Basic";
+}
+
+function readPreviewDockDeviceLabel(device) {
+  if (device === "mobile") {
+    return "Mobile";
+  }
+
+  if (device === "tablet") {
+    return "Tablet";
+  }
+
+  return "Desktop";
+}
+
+function buildStepQualityInspector(step) {
+  var checks = createStepQualityChecks(step);
+  var passedCount = checks.filter(function (check) { return check.passed; }).length;
+  var score = checks.length === 0 ? 0 : Math.round((passedCount / checks.length) * 100);
+  var scoreClass = score >= 80 ? "text-emerald-700 bg-emerald-50 border-emerald-100" : (score >= 55 ? "text-amber-700 bg-amber-50 border-amber-100" : "text-rose-700 bg-rose-50 border-rose-100");
+  var html = "";
+
+  html += '<div class="oqu-inspector-divider"></div>';
+  html += '<section class="rounded-2xl border border-slate-100 bg-white p-4">';
+  html += '<div class="flex items-start justify-between gap-3"><div><div class="text-[10px] font-black uppercase tracking-widest text-slate-400">Step Quality Inspector</div><div class="mt-1 text-sm font-black text-slate-950">Content readiness</div></div><span class="rounded-full border px-3 py-1 text-[10px] font-black ' + scoreClass + '">' + score + '%</span></div>';
+  html += '<div class="mt-3 grid gap-2">';
+  checks.forEach(function (check) {
+    var itemClass = check.passed ? "border-emerald-100 bg-emerald-50 text-emerald-800" : (check.required ? "border-rose-100 bg-rose-50 text-rose-800" : "border-amber-100 bg-amber-50 text-amber-800");
+    var icon = check.passed ? "fa-solid fa-check" : (check.required ? "fa-solid fa-xmark" : "fa-solid fa-circle-info");
+    html += '<div class="rounded-xl border px-3 py-2 text-[11px] font-bold ' + itemClass + '"><div class="flex items-center gap-2"><i class="' + icon + '"></i><span>' + escapeHtml(check.label) + '</span></div>' + (!check.passed ? '<p class="mt-1 font-semibold opacity-75">' + escapeHtml(check.message) + '</p>' : '') + '</div>';
+  });
+  html += '</div>';
+  html += '</section>';
+  return html;
+}
+
+function createStepQualityChecks(step) {
+  var stepType = readStepType(step);
+  var title = readLocalizedText(step && step.title, "");
+  var instructions = readLocalizedText(step && step.instructions, "");
+  var config = readStepConfig(step);
+  var validation = readStepValidation(step);
+
+  return [
+    createStepQualityCheck("Registered step type", validation.valid || Boolean(stepType), "Choose a supported activity type.", true),
+    createStepQualityCheck("Clear title", title.length >= 4 && title !== "New Step", "Add a learner-facing title.", true),
+    createStepQualityCheck("Student instructions", instructions.length >= 12 || hasInstructionLikeConfig(config), "Explain what the learner should do.", false),
+    createStepQualityCheck("Meaningful config", hasMeaningfulStepConfig(config), "Fill in the activity-specific fields.", true),
+    createStepQualityCheck("Media or interaction", hasMediaOrInteraction(stepType, config), "Add media or use an interactive activity type.", false),
+    createStepQualityCheck("Teacher review route", hasTeacherReviewRoute(stepType), "Use Speaking Recording, Creative Canvas, External Task, or reflection when teacher feedback is needed.", false)
+  ];
+}
+
+function createStepQualityCheck(label, passed, message, required) {
+  return {
+    label: label,
+    passed: Boolean(passed),
+    message: message,
+    required: Boolean(required)
+  };
+}
+
+function hasInstructionLikeConfig(config) {
+  return Boolean(readConfigText(config, "prompt", "") || readConfigText(config, "question", "") || readConfigText(config, "questionPrompt", "") || readConfigText(config, "bodyText", ""));
+}
+
+function hasMeaningfulStepConfig(config) {
+  if (!config || typeof config !== "object") {
+    return false;
+  }
+
+  return Object.keys(config).some(function (key) {
+    var value = config[key];
+    if (Array.isArray(value)) {
+      return value.length > 0;
+    }
+    if (typeof value === "string") {
+      return value.trim().length > 0;
+    }
+    return typeof value === "number" || typeof value === "boolean";
+  });
+}
+
+function hasMediaOrInteraction(stepType, config) {
+  if (readConfigText(config, "imageUrl", "") || readConfigText(config, "audioUrl", "") || readConfigText(config, "videoUrl", "")) {
+    return true;
+  }
+
+  return ["sorting", "matching", "ordering", "multiple-choice", "multi-select", "scenario-choice", "scenario-simulator", "sequence-memory", "timed-sequence", "practice-challenge", "creative-canvas", "listening", "speakingPrompt"].indexOf(stepType) !== -1;
+}
+
+function hasTeacherReviewRoute(stepType) {
+  return ["speakingPrompt", "creative-canvas", "externalTask", "reflection", "reflectionShell"].indexOf(stepType) !== -1;
+}
+
 // ── Step picker options ──────────────────────────────────────────────────────
 
 function buildStepPickerModal(practiceModeKey) {
@@ -2750,6 +2948,7 @@ function buildStepPickerOptions() {
   var html = "";
   var categoryIndex = 0;
 
+  html += buildPilotStepTemplateSection(types);
   html += buildRecommendedStepPickerSection(types);
 
   while (categoryIndex < categories.length) {
@@ -2758,6 +2957,92 @@ function buildStepPickerOptions() {
   }
 
   return html;
+}
+
+function buildPilotStepTemplateSection(types) {
+  var templates = createPilotStepTemplates();
+  var html = "";
+  var cards = "";
+  var index = 0;
+
+  while (index < templates.length) {
+    cards += buildPilotStepTemplateCard(findStepTypeCard(types, templates[index].type), templates[index]);
+    index = index + 1;
+  }
+
+  if (!cards) {
+    return "";
+  }
+
+  html += '<section class="oqu-step-picker-category step-library-section step-library-recommended-section">';
+  html += '<div class="oqu-step-picker-category-heading">';
+  html += '<div>';
+  html += '<div class="oqu-step-picker-category-title">Course Creator Templates</div>';
+  html += '<div class="oqu-step-picker-category-subtitle">Reusable pilot activities mapped to existing step types.</div>';
+  html += '</div>';
+  html += '</div>';
+  html += '<div class="oqu-step-picker-grid step-library-recommended-grid">';
+  html += cards;
+  html += '</div>';
+  html += '</section>';
+
+  return html;
+}
+
+function buildPilotStepTemplateCard(type, template) {
+  if (!type || !template) {
+    return "";
+  }
+
+  var card = Object.assign({}, type, {
+    label: template.label,
+    description: template.description,
+    bestFor: template.bestFor,
+    filterTags: type.filterTags.concat(["pilot", "template"])
+  });
+
+  return buildStepPickerCard(card, true);
+}
+
+function createPilotStepTemplates() {
+  return [
+    {
+      type: "vocabulary",
+      label: "Vocabulary Builder",
+      description: "Introduce a term with meaning, example, media, and pronunciation.",
+      bestFor: "New words and core concepts"
+    },
+    {
+      type: "phrase",
+      label: "Phrase Builder",
+      description: "Practice a reusable phrase with meaning, audio, and example usage.",
+      bestFor: "Language chunks and classroom phrases"
+    },
+    {
+      type: "listening",
+      label: "Listening Challenge",
+      description: "Let students listen, answer, and review transcript support.",
+      bestFor: "Audio comprehension"
+    },
+    {
+      type: "reflection",
+      label: "Discussion Prompt",
+      description: "Ask students to respond to an open prompt for class discussion.",
+      bestFor: "Opinions, reasoning, and check-ins"
+    },
+    {
+      type: "speakingPrompt",
+      label: "Speaking Recording",
+      description: "Capture a student recording for teacher review and feedback.",
+      bestFor: "Oral practice and teacher review"
+    },
+    {
+      type: "reflectionShell",
+      label: "Reflection Survey",
+      description: "Collect a quick written or scaled reflection from students.",
+      bestFor: "Exit tickets and self-assessment"
+    }
+  ];
 }
 
 function buildRecommendedStepPickerSection(types) {
@@ -2872,6 +3157,15 @@ function buildStepPickerTemplatePanel(stepType) {
   html += '</span>';
   html += '</div>';
   html += '<div class="step-library-template-list">';
+
+  if (templates.length === 0) {
+    templates.push({
+      id: getDefaultActivityTemplateId(stepType) || "default",
+      name: "Default",
+      description: "Use the standard renderer for this activity.",
+      status: "ready"
+    });
+  }
 
   while (index < templates.length) {
     html += buildStepTemplateOption(type.type, templates[index]);
@@ -3021,11 +3315,11 @@ function createStepTypeCard(StepTypeDefinition) {
 }
 
 function createStepCategoryOrder() {
-  return ["Core Learning", "Knowledge Checks", "Sorting & Ordering", "Scenarios", "Creative", "Memory & Logic", "Game Challenges", "Simulations"];
+  return ["Pilot Templates", "Core Learning", "Knowledge Checks", "Sorting & Ordering", "Scenarios", "Creative", "Memory & Logic", "Game Challenges", "Simulations"];
 }
 
 function createRecommendedStepTypeOrder() {
-  return ["intro-card", "multiple-choice", "sorting", "multi-select", "scenario-choice", "reflection"];
+  return ["vocabulary", "phrase", "listening", "intro-card", "multiple-choice", "reflection"];
 }
 
 function createStepLibraryFilterOptions() {
@@ -3091,6 +3385,7 @@ function listReadyStepTemplates(stepType) {
 
 function readStepLibraryCategoryDescription(category) {
   var descriptions = {
+    "Pilot Templates": "Ready-made course creator activity patterns.",
     "Core Learning": "Introduce, guide, reflect, and frame lesson flow.",
     "Knowledge Checks": "Check understanding with focused answer choices.",
     "Sorting & Ordering": "Classify, match, sequence, and organize ideas.",
@@ -3124,6 +3419,11 @@ function createStepLibraryMetadataMap() {
   return {
     "intro-card": createStepLibraryMetadata("Core Learning", "Core", "Lesson openings, goals, context", "Quick", ["quick"]),
     "card-reveal": createStepLibraryMetadata("Core Learning", "Core", "Vocabulary, concepts, guided discovery", "Quick", ["quick", "interactive"]),
+    vocabulary: createStepLibraryMetadata("Pilot Templates", "Vocabulary", "New words, examples, media, pronunciation", "Quick", ["quick", "interactive"]),
+    phrase: createStepLibraryMetadata("Pilot Templates", "Phrase", "Language chunks and reusable phrases", "Quick", ["quick", "interactive"]),
+    listening: createStepLibraryMetadata("Pilot Templates", "Listen", "Audio comprehension and response", "Standard", ["interactive", "assessment"]),
+    speakingPrompt: createStepLibraryMetadata("Pilot Templates", "Speak", "Recorded speaking practice", "Standard", ["teacher-review", "interactive"]),
+    reflectionShell: createStepLibraryMetadata("Pilot Templates", "Survey", "Reflection survey and exit-ticket responses", "Quick", ["quick", "teacher-review"]),
     roadmap: createStepLibraryMetadata("Core Learning", "Core", "Module structure, progression, objectives", "Standard", ["interactive"]),
     reflection: createStepLibraryMetadata("Core Learning", "Reflect", "Exit tickets, check-ins, metacognition", "Quick", ["quick", "teacher-review"]),
     "multiple-choice": createStepLibraryMetadata("Knowledge Checks", "Check", "Quick checks, recall, understanding", "Quick", ["quick", "assessment"]),
@@ -4062,6 +4362,7 @@ function readStepTypeIcon(stepType) {
   if (stepType === "phrase") { return "💬"; }
   if (stepType === "listening") { return "🎧"; }
   if (stepType === "speakingPrompt") { return "🎤"; }
+  if (stepType === "reflectionShell") { return "💭"; }
   if (isEmotionalCheckInStepType(stepType)) { return "💙"; }
   if (stepType === "customExperience") { return "✦"; }
   if (stepType === "cyberCodeMission") { return "⌨"; }
@@ -4113,6 +4414,7 @@ function readStepDefinitionIcon(stepType) {
   if (stepType === "phrase") { return "fa-solid fa-comment-dots"; }
   if (stepType === "listening") { return "fa-solid fa-headphones"; }
   if (stepType === "speakingPrompt") { return "fa-solid fa-microphone"; }
+  if (stepType === "reflectionShell") { return "fa-solid fa-clipboard-question"; }
   if (isEmotionalCheckInStepType(stepType)) { return "fa-regular fa-face-smile"; }
   if (stepType === "customExperience") { return "fa-solid fa-shapes"; }
   if (stepType === "cyberCodeMission") { return "fa-solid fa-code"; }
@@ -4307,6 +4609,8 @@ function buildLearningModesWorkspace(learningModes, sessions, selectedModeId) {
   html += '</div>';
   html += '</div>';
 
+  html += buildPracticeModeBuilderPanel(existingTypes);
+
   html += '<div class="grid grid-cols-2 gap-4">';
   modes.forEach(function (mode) {
     var meta = readLearningPathMeta(mode);
@@ -4352,9 +4656,74 @@ function buildLearningModesWorkspace(learningModes, sessions, selectedModeId) {
   return html;
 }
 
+function buildPracticeModeBuilderPanel(existingTypes) {
+  var modes = createPracticeModeBuilderOptions(existingTypes);
+  var html = "";
+
+  html += '<div class="rounded-3xl border border-blue-100 bg-white p-5 shadow-sm">';
+  html += '<div class="flex items-start justify-between gap-4">';
+  html += '<div><div class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">Practice Mode Builder</div><h3 class="mt-1 text-xl font-black text-slate-950">Before, after, and daily practice shells</h3><p class="mt-1 text-xs font-semibold leading-5 text-slate-500">Practice modes reuse lesson paths and steps. No duplicate module flow is created.</p></div>';
+  html += '<span class="rounded-full bg-blue-50 px-3 py-2 text-[10px] font-black uppercase text-blue-700">Presentation + authoring shell</span>';
+  html += '</div>';
+  html += '<div class="mt-4 grid gap-3 md:grid-cols-3">';
+  modes.forEach(function (mode) {
+    var disabled = mode.exists ? " disabled" : "";
+    var buttonClass = mode.exists
+      ? "border-emerald-100 bg-emerald-50 text-emerald-800"
+      : "border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50";
+    html += '<button type="button" class="create-learning-path-option-btn rounded-2xl border p-4 text-left transition ' + buttonClass + '" data-path-type="' + escapeHtml(mode.pathType) + '"' + disabled + '>';
+    html += '<div class="flex items-center justify-between gap-3"><span class="grid h-10 w-10 place-items-center rounded-2xl ' + escapeHtml(mode.iconBg) + '"><i class="' + escapeHtml(mode.icon) + '"></i></span><span class="rounded-full bg-white px-2 py-1 text-[9px] font-black uppercase tracking-wide">' + (mode.exists ? "Ready" : "Create") + '</span></div>';
+    html += '<div class="mt-3 text-sm font-black text-slate-950">' + escapeHtml(mode.title) + '</div>';
+    html += '<p class="mt-1 min-h-[40px] text-[11px] font-semibold leading-5 text-slate-500">' + escapeHtml(mode.purpose) + '</p>';
+    html += '<div class="mt-3 text-[10px] font-black uppercase tracking-wide text-blue-600">' + escapeHtml(mode.routeLabel) + '</div>';
+    html += '</button>';
+  });
+  html += '</div>';
+  html += '</div>';
+
+  return html;
+}
+
+function createPracticeModeBuilderOptions(existingTypes) {
+  var existing = existingTypes || {};
+  return [
+    {
+      title: "Before Class Warmup",
+      purpose: "Prepare students before the main lesson with a short entry sequence.",
+      pathType: "main",
+      routeLabel: "Main Path",
+      exists: true,
+      icon: "fa-solid fa-sun text-emerald-700",
+      iconBg: "bg-emerald-100 text-emerald-700"
+    },
+    {
+      title: "After Class Reinforcement",
+      purpose: "Review and strengthen the same module after the lesson.",
+      pathType: "review",
+      routeLabel: "Review Path",
+      exists: existing.review === true,
+      icon: "fa-solid fa-rotate text-sky-700",
+      iconBg: "bg-sky-100 text-sky-700"
+    },
+    {
+      title: "Five Minute Daily Practice",
+      purpose: "Create a compact recurring practice route for many-module courses.",
+      pathType: "challenge",
+      routeLabel: "Practice Path",
+      exists: existing.challenge === true,
+      icon: "fa-solid fa-stopwatch text-violet-700",
+      iconBg: "bg-violet-100 text-violet-700"
+    }
+  ];
+}
+
 function buildLearningModesInspector() {
   var html = "";
   html += '<div class="space-y-4">';
+  html += '<div class="rounded-3xl border border-blue-100 bg-blue-50 p-4">';
+  html += '<div class="text-xs font-black text-blue-900">Practice Mode Builder</div>';
+  html += '<div class="mt-2 text-xs leading-5 text-blue-800">Before Class, After Class, and Daily Practice are authoring shells over the same lesson path and step system.</div>';
+  html += '</div>';
   html += '<div class="rounded-3xl border border-emerald-100 bg-emerald-50 p-4">';
   html += '<div class="text-xs font-black text-emerald-900">Lesson Path Basics</div>';
   html += '<div class="mt-2 text-xs leading-5 text-emerald-800">Main Path is required. Add optional paths when students need review, challenge, or support routes through the same module.</div>';

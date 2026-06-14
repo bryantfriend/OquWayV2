@@ -30,6 +30,7 @@ export class CourseOverviewPage {
     this.externalTaskPendingId = "";
     this.externalTaskStatusFilter = "pending";
     this.courseArchivePending = false;
+    this.previewCourseData = null;
     this.ALL_LANGUAGES = [
       { code: 'en', name: 'English (en)' },
       { code: 'ru', name: 'Russian (ru)' },
@@ -79,7 +80,14 @@ export class CourseOverviewPage {
               </div>
             </div>
 
+            <div id="courseCommandCenter" class="mb-4"></div>
             <div id="moduleRepairBanner" class="hidden mb-4"></div>
+            <div id="publishReadinessPanel" class="mb-4"></div>
+            <div id="moduleMapEditor" class="mb-5"></div>
+            <div id="moduleDependencyBuilder" class="mb-5"></div>
+            <div id="courseVersionTimeline" class="mb-5"></div>
+            <div id="assignmentPreviewMatrix" class="mb-5"></div>
+            <div id="accessibilityLocalizationAudit" class="mb-5"></div>
 
             <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
               <table class="w-full text-left border-collapse">
@@ -154,6 +162,51 @@ export class CourseOverviewPage {
                     <p><strong class="text-gray-800">Basic:</strong> Traditional vertical list with modules top-to-bottom.</p>
                     <p><strong class="text-gray-800">Adventure Path:</strong> Journey-style path with current, completed, and locked states.</p>
                     <p><strong class="text-gray-800">Compact Grid:</strong> Responsive cards for courses with many modules.</p>
+                  </div>
+                </div>
+
+                <div class="rounded-xl border border-blue-100 bg-blue-50/60 p-3">
+                  <div class="mb-3 flex items-center justify-between gap-2">
+                    <div>
+                      <label class="block text-xs font-black text-blue-900">Template-Aware Theme</label>
+                      <p class="mt-1 text-[11px] font-semibold leading-4 text-blue-700">Visual controls for previews and student module renderers.</p>
+                    </div>
+                    <span id="courseThemeSwatch" class="h-9 w-9 rounded-2xl border-4 border-white bg-blue-500 shadow-sm"></span>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <label class="block text-[10px] font-black uppercase tracking-wide text-blue-800 mb-1">Accent</label>
+                      <select id="courseThemeAccentSelect" class="course-meta-input w-full rounded-lg border border-blue-100 bg-white px-2 py-2 text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="blue">Blue</option>
+                        <option value="emerald">Emerald</option>
+                        <option value="rose">Rose</option>
+                        <option value="amber">Amber</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-[10px] font-black uppercase tracking-wide text-blue-800 mb-1">Icons</label>
+                      <select id="courseIconStyleSelect" class="course-meta-input w-full rounded-lg border border-blue-100 bg-white px-2 py-2 text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="numbered">Numbered</option>
+                        <option value="courseIcon">Course Icon</option>
+                        <option value="minimal">Minimal</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-[10px] font-black uppercase tracking-wide text-blue-800 mb-1">Badges</label>
+                      <select id="courseBadgeStyleSelect" class="course-meta-input w-full rounded-lg border border-blue-100 bg-white px-2 py-2 text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="pill">Pill</option>
+                        <option value="soft">Soft</option>
+                        <option value="solid">Solid</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-[10px] font-black uppercase tracking-wide text-blue-800 mb-1">Density</label>
+                      <select id="coursePathDensitySelect" class="course-meta-input w-full rounded-lg border border-blue-100 bg-white px-2 py-2 text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="comfortable">Comfortable</option>
+                        <option value="compact">Compact</option>
+                        <option value="spacious">Spacious</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
 
@@ -272,7 +325,21 @@ export class CourseOverviewPage {
                 <p class="text-[10px] font-black text-blue-600 uppercase tracking-wide">Preview Mode</p>
                 <h2 class="text-xl font-black text-gray-950">Student Course Preview</h2>
               </div>
-              <button id="closeCoursePreviewBtn" class="border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 px-3 py-2 rounded-xl font-bold text-sm">Return to Editor</button>
+              <div class="flex items-center gap-2">
+                <label class="sr-only" for="coursePreviewTemplateSelect">Preview template</label>
+                <select id="coursePreviewTemplateSelect" class="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-black text-gray-700 shadow-sm">
+                  <option value="basic">Basic</option>
+                  <option value="adventurePath">Adventure Path</option>
+                  <option value="compactGrid">Compact Grid</option>
+                </select>
+                <label class="sr-only" for="coursePreviewDeviceSelect">Preview size</label>
+                <select id="coursePreviewDeviceSelect" class="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-black text-gray-700 shadow-sm">
+                  <option value="desktop">Desktop</option>
+                  <option value="tablet">Tablet</option>
+                  <option value="mobile">Mobile</option>
+                </select>
+                <button id="closeCoursePreviewBtn" class="border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 px-3 py-2 rounded-xl font-bold text-sm">Return to Editor</button>
+              </div>
             </div>
             <div id="coursePreviewBody" class="p-6 overflow-y-auto max-h-[72vh]"></div>
           </div>
@@ -470,9 +537,40 @@ export class CourseOverviewPage {
         return;
       }
 
-      body.innerHTML = buildCoursePreview(result.emitted.data.course);
+      self.previewCourseData = result.emitted.data.course;
+      self.syncCoursePreviewControls();
+      self.renderCoursePreviewBody();
     }).catch(function (error) {
       body.innerHTML = '<div class="text-center py-12 text-red-600 font-black">' + escapeHtml(error.message) + '</div>';
+    });
+  }
+
+  syncCoursePreviewControls() {
+    var templateSelect = document.getElementById('coursePreviewTemplateSelect');
+    var deviceSelect = document.getElementById('coursePreviewDeviceSelect');
+    var template = normalizeCourseDisplayTemplate(this.previewCourseData && this.previewCourseData.displayTemplate);
+
+    if (templateSelect) {
+      templateSelect.value = template;
+    }
+
+    if (deviceSelect && !deviceSelect.value) {
+      deviceSelect.value = 'desktop';
+    }
+  }
+
+  renderCoursePreviewBody() {
+    var body = document.getElementById('coursePreviewBody');
+    var templateSelect = document.getElementById('coursePreviewTemplateSelect');
+    var deviceSelect = document.getElementById('coursePreviewDeviceSelect');
+
+    if (!body || !this.previewCourseData) {
+      return;
+    }
+
+    body.innerHTML = buildCoursePreview(this.previewCourseData, {
+      displayTemplate: templateSelect ? templateSelect.value : this.previewCourseData.displayTemplate,
+      device: deviceSelect ? deviceSelect.value : 'desktop'
     });
   }
 
@@ -1011,6 +1109,14 @@ export class CourseOverviewPage {
       self.previewCourse();
     });
 
+    document.getElementById('coursePreviewTemplateSelect').addEventListener('change', function () {
+      self.renderCoursePreviewBody();
+    });
+
+    document.getElementById('coursePreviewDeviceSelect').addEventListener('change', function () {
+      self.renderCoursePreviewBody();
+    });
+
     document.getElementById('archiveCourseBtn').addEventListener('click', function () {
       self.archiveCourse();
     });
@@ -1033,6 +1139,90 @@ export class CourseOverviewPage {
       if (repairBtn) {
         self.repairCourseModules();
       }
+    });
+
+    var moduleMapEditor = document.getElementById('moduleMapEditor');
+    var draggedMapIndex = null;
+
+    moduleMapEditor.addEventListener('click', function (e) {
+      var openBtn = e.target.closest('.module-map-open-btn');
+      var reorderBtn = e.target.closest('.module-map-reorder-btn');
+
+      if (openBtn) {
+        window.location.hash = '#module-editor?courseId=' + self.courseId + '&moduleId=' + openBtn.getAttribute('data-id');
+        return;
+      }
+
+      if (reorderBtn) {
+        var fromIndex = parseInt(reorderBtn.getAttribute('data-index'), 10);
+        var direction = reorderBtn.getAttribute('data-direction') === 'up' ? -1 : 1;
+        var toIndex = fromIndex + direction;
+        if (toIndex >= 0) {
+          courseEditorService.reorderModules(self.courseId, fromIndex, toIndex).then(function () {
+            courseEditorService.saveDraft(self.courseId);
+          });
+        }
+      }
+    });
+
+    moduleMapEditor.addEventListener('dragstart', function (e) {
+      var card = e.target.closest('.module-map-card');
+      if (!card) {
+        return;
+      }
+      draggedMapIndex = parseInt(card.getAttribute('data-index'), 10);
+      e.dataTransfer.effectAllowed = 'move';
+      card.classList.add('opacity-50');
+    });
+
+    moduleMapEditor.addEventListener('dragover', function (e) {
+      var card = e.target.closest('.module-map-card');
+      if (!card) {
+        return;
+      }
+      e.preventDefault();
+      card.classList.add('ring-2', 'ring-blue-300');
+    });
+
+    moduleMapEditor.addEventListener('dragleave', function (e) {
+      var card = e.target.closest('.module-map-card');
+      if (card) {
+        card.classList.remove('ring-2', 'ring-blue-300');
+      }
+    });
+
+    moduleMapEditor.addEventListener('drop', function (e) {
+      var card = e.target.closest('.module-map-card');
+      if (!card) {
+        return;
+      }
+      e.preventDefault();
+      card.classList.remove('ring-2', 'ring-blue-300');
+      var dropIndex = parseInt(card.getAttribute('data-index'), 10);
+      if (draggedMapIndex !== null && draggedMapIndex !== dropIndex) {
+        courseEditorService.reorderModules(self.courseId, draggedMapIndex, dropIndex).then(function () {
+          courseEditorService.saveDraft(self.courseId);
+        });
+      }
+      draggedMapIndex = null;
+    });
+
+    moduleMapEditor.addEventListener('dragend', function () {
+      var cards = moduleMapEditor.querySelectorAll('.module-map-card');
+      for (var mapIndex = 0; mapIndex < cards.length; mapIndex++) {
+        cards[mapIndex].classList.remove('opacity-50', 'ring-2', 'ring-blue-300');
+      }
+      draggedMapIndex = null;
+    });
+
+    var dependencyBuilder = document.getElementById('moduleDependencyBuilder');
+    dependencyBuilder.addEventListener('click', function (e) {
+      var saveBtn = e.target.closest('.module-dependency-save-btn');
+      if (!saveBtn) {
+        return;
+      }
+
+      self.saveModuleDependencyRule(saveBtn);
     });
 
     document.getElementById('moduleWizardCloseBtn').addEventListener('click', function () {
@@ -1212,6 +1402,14 @@ export class CourseOverviewPage {
       var level = document.getElementById('courseLevelInput').value.trim();
       var status = document.getElementById('courseStatusSelect').value || 'draft';
       var displayTemplate = normalizeCourseDisplayTemplate(document.getElementById('courseDisplayTemplateSelect').value);
+      var visualTheme = normalizeCourseVisualTheme({
+        visualTheme: {
+          accentColor: document.getElementById('courseThemeAccentSelect').value,
+          moduleIconStyle: document.getElementById('courseIconStyleSelect').value,
+          badgeStyle: document.getElementById('courseBadgeStyleSelect').value,
+          pathDensity: document.getElementById('coursePathDensitySelect').value
+        }
+      });
       var langs = [];
       for (var i = 0; i < langsSelect.options.length; i++) {
         if (langsSelect.options[i].selected) {
@@ -1233,13 +1431,14 @@ export class CourseOverviewPage {
         language: defaultLang || 'en',
         status: status,
         displayTemplate: displayTemplate,
+        visualTheme: visualTheme,
         tags: self.localTags.slice(),
         languages: langs.length ? langs : ['en'],
         defaultLanguage: defaultLang || 'en',
         iconUrl: course.iconUrl || '',
         heroImageUrl: course.heroImageUrl || '',
-        themeColor: course.themeColor || '',
-        accentColor: course.accentColor || ''
+        themeColor: readThemeHexColor(visualTheme.accentColor),
+        accentColor: readThemeHexColor(visualTheme.accentColor)
       }).then(function (result) {
         btn.disabled = false;
         btn.classList.remove('oqu-btn-pending');
@@ -1485,6 +1684,13 @@ export class CourseOverviewPage {
     if (state.error && !state.course) {
       document.getElementById('headerContextualTitle').textContent = 'Could not load course';
       this.renderCourseSummary(null, state);
+      this.renderCourseCommandCenter(state);
+      this.renderPublishReadiness(state);
+      this.renderModuleMapEditor([], null);
+      this.renderModuleDependencyBuilder([], null);
+      this.renderCourseVersionTimeline(null, []);
+      this.renderAssignmentPreviewMatrix(null, []);
+      this.renderAccessibilityLocalizationAudit(null, []);
       document.getElementById('moduleTableBody').innerHTML = '<tr><td colspan="6" class="py-6 border-b bg-red-50">'
         + createErrorState('Could not load course', state.error, {
           className: 'rounded-xl border border-red-100 bg-red-50 p-4 text-sm font-bold text-red-700 flex flex-col gap-1'
@@ -1497,6 +1703,13 @@ export class CourseOverviewPage {
       this.logCourseHeaderRender(state, null, 'Loading course...');
       document.getElementById('headerContextualTitle').textContent = 'Loading course...';
       this.renderCourseSummary(null, state);
+      this.renderCourseCommandCenter(state);
+      this.renderPublishReadiness(state);
+      this.renderModuleMapEditor([], null);
+      this.renderModuleDependencyBuilder([], null);
+      this.renderCourseVersionTimeline(null, []);
+      this.renderAssignmentPreviewMatrix(null, []);
+      this.renderAccessibilityLocalizationAudit(null, []);
       document.getElementById('moduleTableBody').innerHTML = buildModuleSkeletonRows(3);
       return;
     }
@@ -1521,6 +1734,7 @@ export class CourseOverviewPage {
 
         var displayTemplateSelect = document.getElementById('courseDisplayTemplateSelect');
         displayTemplateSelect.value = normalizeCourseDisplayTemplate(course.displayTemplate);
+        this.renderThemeControls(course);
 
         document.getElementById('courseSubjectInput').value = course.subject || '';
         document.getElementById('courseLevelInput').value = course.level || '';
@@ -1541,11 +1755,15 @@ export class CourseOverviewPage {
       document.getElementById('courseVersionText').textContent = course.version || 1;
       document.getElementById('courseStatusText').textContent = course.status || 'draft';
       this.renderCourseSummary(course, state);
+      this.renderCourseCommandCenter(state);
+      this.renderPublishReadiness(state);
       this.refreshCourseArchiveControls(course);
     } else {
       this.logCourseHeaderRender(state, null, 'Untitled Course');
       document.getElementById('headerContextualTitle').textContent = 'Course not found';
       this.renderCourseSummary(null, state);
+      this.renderCourseCommandCenter(state);
+      this.renderPublishReadiness(state);
       this.refreshCourseArchiveControls(null);
     }
 
@@ -1565,7 +1783,26 @@ export class CourseOverviewPage {
     }
 
     this.renderModuleRepairBanner(state);
+    this.renderCourseCommandCenter(state);
+    this.renderPublishReadiness(state);
+    this.renderModuleMapEditor(state.modules, state.course);
+    this.renderModuleDependencyBuilder(state.modules, state.course);
+    this.renderCourseVersionTimeline(state.course, state.modules);
+    this.renderAssignmentPreviewMatrix(state.course, state.modules);
+    this.renderAccessibilityLocalizationAudit(state.course, state.modules);
     this.renderModuleList(state.modules, state.course, state.moduleSourceCheck);
+  }
+
+  renderThemeControls(course) {
+    var theme = normalizeCourseVisualTheme(course);
+    setInputValue('courseThemeAccentSelect', theme.accentColor);
+    setInputValue('courseIconStyleSelect', theme.moduleIconStyle);
+    setInputValue('courseBadgeStyleSelect', theme.badgeStyle);
+    setInputValue('coursePathDensitySelect', theme.pathDensity);
+    var swatch = document.getElementById('courseThemeSwatch');
+    if (swatch) {
+      swatch.className = 'h-9 w-9 rounded-2xl border-4 border-white shadow-sm ' + readThemeAccentBackgroundClass(theme.accentColor);
+    }
   }
 
   renderCourseSummary(course, state) {
@@ -1633,6 +1870,130 @@ export class CourseOverviewPage {
       + '</div>';
   }
 
+  renderPublishReadiness(state) {
+    var panel = document.getElementById('publishReadinessPanel');
+    var checklist = buildCourseReadinessChecklist(state ? state.course : null, state ? state.modules : [], this.assignments);
+
+    if (!panel) {
+      return;
+    }
+
+    if (!state || (!state.course && state.isFetching)) {
+      panel.innerHTML = '';
+      return;
+    }
+
+    panel.innerHTML = buildCourseReadinessPanel(checklist);
+  }
+
+  renderCourseCommandCenter(state) {
+    var panel = document.getElementById('courseCommandCenter');
+
+    if (!panel) {
+      return;
+    }
+
+    panel.innerHTML = buildCourseCommandCenter(state ? state.course : null, state ? state.modules : [], this.assignments, this.externalTaskSubmissions);
+  }
+
+  renderModuleMapEditor(modules, course) {
+    var panel = document.getElementById('moduleMapEditor');
+
+    if (!panel) {
+      return;
+    }
+
+    panel.innerHTML = buildVisualModuleMapEditor(modules, course);
+  }
+
+  renderModuleDependencyBuilder(modules, course) {
+    var panel = document.getElementById('moduleDependencyBuilder');
+
+    if (!panel) {
+      return;
+    }
+
+    panel.innerHTML = buildModuleDependencyBuilder(modules, course);
+  }
+
+  renderCourseVersionTimeline(course, modules) {
+    var panel = document.getElementById('courseVersionTimeline');
+
+    if (!panel) {
+      return;
+    }
+
+    panel.innerHTML = buildCourseVersionTimeline(course, modules, this.assignments);
+  }
+
+  renderAssignmentPreviewMatrix(course, modules) {
+    var panel = document.getElementById('assignmentPreviewMatrix');
+
+    if (!panel) {
+      return;
+    }
+
+    panel.innerHTML = buildAssignmentPreviewMatrix(course, modules, this.assignments);
+  }
+
+  renderAccessibilityLocalizationAudit(course, modules) {
+    var panel = document.getElementById('accessibilityLocalizationAudit');
+
+    if (!panel) {
+      return;
+    }
+
+    panel.innerHTML = buildAccessibilityLocalizationAudit(course, modules);
+  }
+
+  saveModuleDependencyRule(saveBtn) {
+    var row = saveBtn.closest('.module-dependency-row');
+    var moduleId = saveBtn.getAttribute('data-module-id');
+    var state = courseEditorStore.getState();
+    var modules = state && Array.isArray(state.modules) ? state.modules : [];
+    var module = modules.find(function (candidate) {
+      return readModuleId(candidate) === moduleId;
+    });
+
+    if (!row || !module) {
+      return;
+    }
+
+    var typeSelect = row.querySelector('.module-dependency-type');
+    var prerequisiteSelect = row.querySelector('.module-dependency-prerequisite');
+    var thresholdInput = row.querySelector('.module-dependency-threshold');
+    var unlockRuleType = normalizeModuleDependencyType(typeSelect ? typeSelect.value : 'open');
+    var prerequisiteModuleId = prerequisiteSelect && prerequisiteSelect.value ? prerequisiteSelect.value : '';
+    var threshold = thresholdInput ? parseInt(thresholdInput.value, 10) : 100;
+
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving';
+
+    courseEditorService.updateModule(this.courseId, moduleId, {
+      title: module.title || '',
+      description: module.description || '',
+      status: module.status || 'draft',
+      iconUrl: typeof module.iconUrl === 'string' ? module.iconUrl : '',
+      pathType: typeof module.pathType === 'string' ? module.pathType : '',
+      pathGroup: typeof module.pathGroup === 'string' ? module.pathGroup : '',
+      parentModuleId: typeof module.parentModuleId === 'string' ? module.parentModuleId : '',
+      pathOrder: typeof module.pathOrder === 'number' ? module.pathOrder : undefined,
+      unlockRuleType: unlockRuleType,
+      prerequisiteModuleId: unlockRuleType === 'moduleComplete' || unlockRuleType === 'previousComplete' ? prerequisiteModuleId : '',
+      unlockThresholdPercent: unlockRuleType === 'percentComplete' ? clampPercent(threshold) : 100
+    }).then(function () {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Saved';
+      setTimeout(function () {
+        saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save';
+      }, 1200);
+    }).catch(function (error) {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Retry';
+      console.error('[course-overview:dependency-save-failed]', error);
+    });
+  }
+
   renderModuleRepairBanner(state) {
     var banner = document.getElementById('moduleRepairBanner');
     var sourceCheck = state && state.moduleSourceCheck ? state.moduleSourceCheck : null;
@@ -1686,6 +2047,10 @@ export class CourseOverviewPage {
       self.assignmentsLoading = false;
       self.renderAssignments();
       self.renderCourseSummary(courseEditorStore.getState().course, courseEditorStore.getState());
+      self.renderCourseCommandCenter(courseEditorStore.getState());
+      self.renderPublishReadiness(courseEditorStore.getState());
+      self.renderCourseVersionTimeline(courseEditorStore.getState().course, courseEditorStore.getState().modules);
+      self.renderAssignmentPreviewMatrix(courseEditorStore.getState().course, courseEditorStore.getState().modules);
       self.showAssignmentStatus('success', 'Assignments loaded.');
       setTimeout(function () {
         self.hideAssignmentStatus();
@@ -1694,6 +2059,10 @@ export class CourseOverviewPage {
       self.assignmentsLoading = false;
       self.renderAssignments();
       self.renderCourseSummary(courseEditorStore.getState().course, courseEditorStore.getState());
+      self.renderCourseCommandCenter(courseEditorStore.getState());
+      self.renderPublishReadiness(courseEditorStore.getState());
+      self.renderCourseVersionTimeline(courseEditorStore.getState().course, courseEditorStore.getState().modules);
+      self.renderAssignmentPreviewMatrix(courseEditorStore.getState().course, courseEditorStore.getState().modules);
       self.showAssignmentStatus('error', error.message);
     });
   }
@@ -1817,11 +2186,13 @@ export class CourseOverviewPage {
       reviewStatus: this.externalTaskStatusFilter
     }).then(function (submissions) {
       self.externalTaskSubmissions = submissions;
+      self.renderCourseCommandCenter(courseEditorStore.getState());
       self.showExternalTaskStatus('success', 'Review queue loaded.');
       setTimeout(function () {
         self.hideExternalTaskStatus();
       }, 1400);
     }).catch(function (error) {
+      self.renderCourseCommandCenter(courseEditorStore.getState());
       self.showExternalTaskStatus('error', error.message);
     }).finally(function () {
       self.externalTaskLoading = false;
@@ -2660,34 +3031,826 @@ function normalizeCourseDisplayTemplate(value) {
   return 'basic';
 }
 
-function buildCoursePreview(course) {
-  var modules = Array.isArray(course && course.modules) ? course.modules : [];
-  var title = readPreviewText(course ? course.title : null, 'Untitled Course');
-  var description = readPreviewText(course ? course.description : null, 'Student preview shows the course exactly as learners will scan it.');
+function buildCourseCommandCenter(course, modules, assignments, submissions) {
+  var safeModules = Array.isArray(modules) ? modules : [];
+  var safeAssignments = Array.isArray(assignments) ? assignments : [];
+  var safeSubmissions = Array.isArray(submissions) ? submissions : [];
+  var checklist = buildCourseReadinessChecklist(course, safeModules, safeAssignments);
+  var blockers = checklist.filter(function (item) {
+    return !item.passed && item.severity === 'required';
+  }).length;
+  var activeAssignments = safeAssignments.filter(function (assignment) {
+    return assignment && assignment.status !== 'archived' && assignment.status !== 'deleted';
+  }).length;
+  var pendingReviews = safeSubmissions.filter(function (submission) {
+    return submission && (!submission.reviewStatus || submission.reviewStatus === 'pending' || submission.reviewStatus === 'needsWork');
+  }).length;
+  var theme = normalizeCourseVisualTheme(course);
+  var templateLabel = readCourseDisplayTemplateLabel(normalizeCourseDisplayTemplate(course && course.displayTemplate)).replace(' Preview', '');
 
-  var html = '<section class="space-y-6">';
-  html += '<div class="rounded-[28px] border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-emerald-50 p-6">';
-  html += '<div class="flex items-start justify-between gap-4"><div><p class="text-[10px] font-black uppercase tracking-wide text-blue-600">Preview Mode</p><h1 class="text-3xl font-black text-slate-950">' + escapeHtml(title) + '</h1><p class="mt-2 max-w-2xl text-sm font-semibold leading-6 text-slate-600">' + escapeHtml(description) + '</p></div><img src="./src/assets/preview-student.svg" alt="" class="w-32 h-32 object-contain"></div>';
-  html += '</div>';
+  return '<section class="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">'
+    + '<div class="flex items-start justify-between gap-4">'
+    + '<div><p class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">Course Builder Command Center</p><h2 class="mt-1 text-xl font-black text-slate-950">Build health at a glance</h2><p class="mt-1 text-xs font-semibold leading-5 text-slate-500">A quick scan of readiness, module structure, assignments, reviews, and visual style.</p></div>'
+    + '<span class="rounded-full px-3 py-2 text-[10px] font-black uppercase tracking-wide ' + (blockers === 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700') + '">' + (blockers === 0 ? 'Ready' : blockers + ' blockers') + '</span>'
+    + '</div>'
+    + '<div class="mt-4 grid gap-3 md:grid-cols-5">'
+    + buildCommandCenterMetric('Modules', String(safeModules.length), countCourseSteps(safeModules) + ' steps', 'fa-solid fa-layer-group', theme.accentColor)
+    + buildCommandCenterMetric('Publish', blockers === 0 ? 'Pass' : String(blockers), blockers === 0 ? 'No blockers' : 'Needs attention', 'fa-solid fa-circle-check', blockers === 0 ? 'emerald' : 'amber')
+    + buildCommandCenterMetric('Assignments', String(activeAssignments), 'active targets', 'fa-solid fa-user-group', theme.accentColor)
+    + buildCommandCenterMetric('Reviews', String(pendingReviews), 'pending items', 'fa-solid fa-inbox', pendingReviews > 0 ? 'rose' : theme.accentColor)
+    + buildCommandCenterMetric('Display', templateLabel, theme.pathDensity + ' density', 'fa-solid fa-wand-magic-sparkles', theme.accentColor)
+    + '</div>'
+    + '</section>';
+}
 
-  if (modules.length === 0) {
-    html += '<div class="rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-10 text-center"><h2 class="text-xl font-black text-slate-900">No modules yet</h2><p class="mt-2 text-sm font-semibold text-slate-500">Add a module and student steps before publishing.</p></div>';
-    html += '</section>';
+function buildCommandCenterMetric(label, value, detail, icon, accentColor) {
+  return '<div class="rounded-2xl border border-slate-100 bg-slate-50 p-3">'
+    + '<div class="flex items-center justify-between gap-2"><span class="text-[10px] font-black uppercase tracking-wide text-slate-400">' + escapeHtml(label) + '</span><span class="grid h-8 w-8 place-items-center rounded-xl text-xs ' + readThemeAccentSoftClass(accentColor) + '"><i class="' + escapeHtml(icon) + '"></i></span></div>'
+    + '<div class="mt-3 truncate text-lg font-black text-slate-950">' + escapeHtml(value) + '</div>'
+    + '<div class="mt-1 truncate text-[11px] font-bold text-slate-500">' + escapeHtml(detail) + '</div>'
+    + '</div>';
+}
+
+function buildVisualModuleMapEditor(modules, course) {
+  var safeModules = Array.isArray(modules) ? modules : [];
+  var theme = normalizeCourseVisualTheme(course);
+  var accentClass = readThemeAccentSoftClass(theme.accentColor);
+  var html = '<section class="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">';
+
+  html += '<div class="mb-4 flex items-start justify-between gap-4"><div><p class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">Visual Module Map Editor</p><h2 class="mt-1 text-lg font-black text-slate-950">Drag modules to reorder the journey</h2></div><span class="rounded-full bg-slate-50 px-3 py-2 text-[10px] font-black uppercase text-slate-500">' + safeModules.length + ' modules</span></div>';
+
+  if (safeModules.length === 0) {
+    html += '<div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm font-bold text-slate-500">Create modules to use the visual map.</div></section>';
     return html;
   }
 
-  html += modules.map(function (module, index) {
-    return buildPreviewModule(module, index);
+  html += '<div class="grid gap-3 md:grid-cols-3 xl:grid-cols-4">';
+  safeModules.forEach(function (module, index) {
+    var moduleId = readModuleId(module);
+    var title = readModuleTitle(module) || 'Untitled Module';
+    var stepCount = countModuleSteps(module);
+    html += '<article draggable="true" class="module-map-card rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:-translate-y-0.5 hover:shadow-md" data-index="' + index + '">';
+    html += '<div class="flex items-start justify-between gap-3"><span class="grid h-11 w-11 place-items-center rounded-2xl text-sm font-black ' + accentClass + '">' + buildThemedModuleIcon(module, course, index, theme) + '</span><span class="rounded-full bg-white px-2 py-1 text-[10px] font-black text-slate-500">' + stepCount + ' steps</span></div>';
+    html += '<h3 class="mt-3 min-h-[40px] text-sm font-black leading-5 text-slate-950">' + escapeHtml(title) + '</h3>';
+    html += '<div class="mt-4 flex items-center justify-between gap-2">';
+    html += '<div class="flex gap-1"><button type="button" class="module-map-reorder-btn rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10px] font-black text-slate-600 disabled:opacity-40" data-index="' + index + '" data-direction="up"' + (index === 0 ? ' disabled' : '') + '><i class="fa-solid fa-arrow-up"></i></button><button type="button" class="module-map-reorder-btn rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10px] font-black text-slate-600 disabled:opacity-40" data-index="' + index + '" data-direction="down"' + (index === safeModules.length - 1 ? ' disabled' : '') + '><i class="fa-solid fa-arrow-down"></i></button></div>';
+    html += '<button type="button" class="module-map-open-btn rounded-lg bg-slate-950 px-3 py-1.5 text-[10px] font-black text-white" data-id="' + escapeHtml(moduleId) + '">Edit</button>';
+    html += '</div>';
+    html += '</article>';
+  });
+  html += '</div></section>';
+  return html;
+}
+
+function buildModuleDependencyBuilder(modules, course) {
+  var safeModules = Array.isArray(modules) ? modules : [];
+  var html = '<section class="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">';
+
+  html += '<div class="mb-4 flex items-start justify-between gap-4"><div><p class="text-[10px] font-black uppercase tracking-[0.18em] text-indigo-600">Module Dependency Builder</p><h2 class="mt-1 text-lg font-black text-slate-950">Choose how modules unlock</h2><p class="mt-1 text-xs font-semibold text-slate-500">This edits module metadata through the existing course editor service.</p></div><span class="rounded-full bg-indigo-50 px-3 py-2 text-[10px] font-black uppercase text-indigo-700">' + safeModules.length + ' rules</span></div>';
+
+  if (safeModules.length === 0) {
+    html += '<div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm font-bold text-slate-500">Create modules before setting dependencies.</div></section>';
+    return html;
+  }
+
+  html += '<div class="grid gap-3">';
+  safeModules.forEach(function (module, index) {
+    var moduleId = readModuleId(module);
+    var rule = readModuleDependencyRule(module, index, safeModules);
+    html += '<article class="module-dependency-row rounded-2xl border border-slate-200 bg-slate-50 p-4" data-module-id="' + escapeHtml(moduleId) + '">';
+    html += '<div class="mb-3 flex flex-wrap items-start justify-between gap-3"><div><div class="text-[10px] font-black uppercase tracking-wide text-slate-400">Module ' + (index + 1) + '</div><h3 class="text-sm font-black text-slate-950">' + escapeHtml(readModuleTitle(module) || 'Untitled Module') + '</h3></div><span class="rounded-full bg-white px-2 py-1 text-[10px] font-black text-slate-500">' + countModuleSteps(module) + ' steps</span></div>';
+    html += '<div class="grid gap-3 md:grid-cols-[1.2fr_1.2fr_0.8fr_auto]">';
+    html += '<label class="text-[11px] font-black uppercase tracking-wide text-slate-500">Unlock rule<select class="module-dependency-type mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold normal-case tracking-normal text-slate-800">' + buildModuleDependencyTypeOptions(rule.type) + '</select></label>';
+    html += '<label class="text-[11px] font-black uppercase tracking-wide text-slate-500">Prerequisite<select class="module-dependency-prerequisite mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold normal-case tracking-normal text-slate-800">' + buildModuleDependencyModuleOptions(safeModules, moduleId, rule.prerequisiteModuleId) + '</select></label>';
+    html += '<label class="text-[11px] font-black uppercase tracking-wide text-slate-500">Percent<input type="number" min="0" max="100" step="5" class="module-dependency-threshold mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold normal-case tracking-normal text-slate-800" value="' + rule.thresholdPercent + '"></label>';
+    html += '<button type="button" class="module-dependency-save-btn self-end rounded-lg bg-slate-950 px-4 py-2 text-xs font-black text-white disabled:opacity-60" data-module-id="' + escapeHtml(moduleId) + '"><i class="fa-solid fa-floppy-disk"></i> Save</button>';
+    html += '</div>';
+    html += '<p class="mt-3 text-xs font-semibold text-slate-500">' + escapeHtml(readModuleDependencySummary(rule, safeModules)) + '</p>';
+    html += '</article>';
+  });
+  html += '</div></section>';
+  return html;
+}
+
+function buildCourseVersionTimeline(course, modules, assignments) {
+  var safeModules = Array.isArray(modules) ? modules : [];
+  var safeAssignments = Array.isArray(assignments) ? assignments : [];
+  var latestModules = safeModules.slice().sort(compareModuleDatesDesc).slice(0, 3);
+  var html = '<section class="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">';
+
+  html += '<div class="mb-4 flex items-start justify-between gap-4"><div><p class="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Course Version Timeline</p><h2 class="mt-1 text-lg font-black text-slate-950">Recent publishing context</h2></div><span class="rounded-full bg-slate-50 px-3 py-2 text-[10px] font-black uppercase text-slate-600">v' + escapeHtml(String(course && course.version || 1)) + '</span></div>';
+
+  if (!course) {
+    html += '<div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm font-bold text-slate-500">Load a course to view its timeline.</div></section>';
+    return html;
+  }
+
+  html += '<ol class="relative grid gap-3 border-l-2 border-slate-100 pl-5">';
+  html += buildTimelineItem('Created', formatCourseDate(course.createdAt), 'Initial course document and metadata.');
+  html += buildTimelineItem('Last Updated', formatCourseDate(course.updatedAt || course.modifiedAt || course.createdAt), 'Current status: ' + (course.status || 'draft') + '.');
+  html += buildTimelineItem('Display System', readCourseDisplayTemplateLabel(normalizeCourseDisplayTemplate(course.displayTemplate)), 'Theme: ' + normalizeCourseVisualTheme(course).accentColor + ', assignments: ' + safeAssignments.length + '.');
+  latestModules.forEach(function (module) {
+    html += buildTimelineItem(readModuleTitle(module) || 'Untitled Module', formatCourseDate(module.updatedAt || module.modifiedAt || module.createdAt), countModuleSteps(module) + ' steps in this module.');
+  });
+  html += '</ol></section>';
+  return html;
+}
+
+function buildAssignmentPreviewMatrix(course, modules, assignments) {
+  var safeModules = Array.isArray(modules) ? modules : [];
+  var safeAssignments = Array.isArray(assignments) ? assignments : [];
+  var checklist = buildCourseReadinessChecklist(course, safeModules, safeAssignments);
+  var blockers = checklist.filter(function (item) {
+    return !item.passed && item.severity === 'required';
+  });
+  var html = '<section class="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">';
+
+  html += '<div class="mb-4 flex items-start justify-between gap-4"><div><p class="text-[10px] font-black uppercase tracking-[0.18em] text-cyan-600">Assignment Preview Matrix</p><h2 class="mt-1 text-lg font-black text-slate-950">How learners will receive this course</h2></div><span class="rounded-full bg-cyan-50 px-3 py-2 text-[10px] font-black uppercase text-cyan-700">' + safeAssignments.length + ' assignments</span></div>';
+
+  if (safeAssignments.length === 0) {
+    html += '<div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm font-bold text-slate-500">No assignments yet. The matrix will populate when the course is assigned.</div></section>';
+    return html;
+  }
+
+  html += '<div class="overflow-hidden rounded-2xl border border-slate-200"><table class="w-full text-left text-sm"><thead class="bg-slate-50 text-[10px] font-black uppercase tracking-wide text-slate-500"><tr><th class="px-4 py-3">Target</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Visibility</th><th class="px-4 py-3">Publish State</th><th class="px-4 py-3">Readiness</th></tr></thead><tbody class="divide-y divide-slate-100">';
+  safeAssignments.forEach(function (assignment) {
+    var target = readAssignmentTargetLabel(assignment);
+    var status = assignment && assignment.status ? assignment.status : 'active';
+    var visibility = readCourseVisibility(course);
+    var publishState = course && course.status === 'published' ? 'Published' : 'Draft preview';
+    var readiness = blockers.length === 0 ? 'Ready' : blockers.length + ' blocker' + (blockers.length === 1 ? '' : 's');
+    var readinessClass = blockers.length === 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700';
+    html += '<tr class="bg-white"><td class="px-4 py-3 font-bold text-slate-900">' + escapeHtml(target) + '</td><td class="px-4 py-3 text-slate-600">' + escapeHtml(status) + '</td><td class="px-4 py-3 text-slate-600">' + escapeHtml(visibility) + '</td><td class="px-4 py-3 text-slate-600">' + escapeHtml(publishState) + '</td><td class="px-4 py-3"><span class="rounded-full px-2 py-1 text-[10px] font-black uppercase ' + readinessClass + '">' + escapeHtml(readiness) + '</span></td></tr>';
+  });
+  html += '</tbody></table></div></section>';
+  return html;
+}
+
+function buildAccessibilityLocalizationAudit(course, modules) {
+  var safeModules = Array.isArray(modules) ? modules : [];
+  var findings = collectAccessibilityLocalizationFindings(course, safeModules);
+  var issueCount = findings.filter(function (item) {
+    return item.level !== 'pass';
+  }).length;
+  var html = '<section class="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">';
+
+  html += '<div class="mb-4 flex items-start justify-between gap-4"><div><p class="text-[10px] font-black uppercase tracking-[0.18em] text-rose-600">Accessibility & Localization Audit</p><h2 class="mt-1 text-lg font-black text-slate-950">Content quality checks</h2></div><span class="rounded-full ' + (issueCount === 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700') + ' px-3 py-2 text-[10px] font-black uppercase">' + issueCount + ' issues</span></div>';
+
+  if (!course) {
+    html += '<div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm font-bold text-slate-500">Load a course to run the audit.</div></section>';
+    return html;
+  }
+
+  html += '<div class="grid gap-3 md:grid-cols-2">';
+  findings.forEach(function (finding) {
+    var className = finding.level === 'pass' ? 'border-emerald-100 bg-emerald-50 text-emerald-800' : (finding.level === 'warning' ? 'border-amber-100 bg-amber-50 text-amber-800' : 'border-rose-100 bg-rose-50 text-rose-800');
+    var icon = finding.level === 'pass' ? 'fa-solid fa-check' : (finding.level === 'warning' ? 'fa-solid fa-circle-info' : 'fa-solid fa-triangle-exclamation');
+    html += '<article class="rounded-2xl border p-4 ' + className + '"><div class="flex items-center gap-2 text-sm font-black"><i class="' + icon + '"></i><span>' + escapeHtml(finding.label) + '</span></div><p class="mt-2 text-xs font-semibold leading-5 opacity-80">' + escapeHtml(finding.detail) + '</p></article>';
+  });
+  html += '</div></section>';
+  return html;
+}
+
+function normalizeCourseVisualTheme(course) {
+  var theme = course && course.visualTheme && typeof course.visualTheme === 'object' ? course.visualTheme : {};
+  var accentColor = theme.accentColor || course && course.accentColor || 'blue';
+  var moduleIconStyle = theme.moduleIconStyle || 'numbered';
+  var badgeStyle = theme.badgeStyle || 'pill';
+  var pathDensity = theme.pathDensity || 'comfortable';
+
+  if (['blue', 'emerald', 'rose', 'amber'].indexOf(accentColor) === -1) {
+    accentColor = 'blue';
+  }
+
+  if (['numbered', 'courseIcon', 'minimal'].indexOf(moduleIconStyle) === -1) {
+    moduleIconStyle = 'numbered';
+  }
+
+  if (['pill', 'soft', 'solid'].indexOf(badgeStyle) === -1) {
+    badgeStyle = 'pill';
+  }
+
+  if (['comfortable', 'compact', 'spacious'].indexOf(pathDensity) === -1) {
+    pathDensity = 'comfortable';
+  }
+
+  return {
+    accentColor: accentColor,
+    moduleIconStyle: moduleIconStyle,
+    badgeStyle: badgeStyle,
+    pathDensity: pathDensity
+  };
+}
+
+function readThemeHexColor(accentColor) {
+  if (accentColor === 'emerald') { return '#10b981'; }
+  if (accentColor === 'rose') { return '#f43f5e'; }
+  if (accentColor === 'amber') { return '#f59e0b'; }
+  return '#2563eb';
+}
+
+function readThemeAccentBackgroundClass(accentColor) {
+  if (accentColor === 'emerald') { return 'bg-emerald-500'; }
+  if (accentColor === 'rose') { return 'bg-rose-500'; }
+  if (accentColor === 'amber') { return 'bg-amber-500'; }
+  return 'bg-blue-500';
+}
+
+function readThemeAccentSoftClass(accentColor) {
+  if (accentColor === 'emerald') { return 'bg-emerald-100 text-emerald-700'; }
+  if (accentColor === 'rose') { return 'bg-rose-100 text-rose-700'; }
+  if (accentColor === 'amber') { return 'bg-amber-100 text-amber-700'; }
+  return 'bg-blue-100 text-blue-700';
+}
+
+function readThemeAccentBorderClass(accentColor) {
+  if (accentColor === 'emerald') { return 'border-emerald-200 text-emerald-800'; }
+  if (accentColor === 'rose') { return 'border-rose-200 text-rose-800'; }
+  if (accentColor === 'amber') { return 'border-amber-200 text-amber-800'; }
+  return 'border-blue-200 text-blue-800';
+}
+
+function readThemeBadgeClass(state, theme) {
+  var accentColor = state === 'completed' ? 'emerald' : (state === 'locked' ? 'slate' : theme.accentColor);
+
+  if (accentColor === 'slate') {
+    return 'bg-slate-100 text-slate-500';
+  }
+
+  if (theme.badgeStyle === 'solid') {
+    if (accentColor === 'emerald') { return 'bg-emerald-600 text-white'; }
+    if (accentColor === 'rose') { return 'bg-rose-600 text-white'; }
+    if (accentColor === 'amber') { return 'bg-amber-500 text-white'; }
+    return 'bg-blue-600 text-white';
+  }
+
+  return readThemeAccentSoftClass(accentColor);
+}
+
+function readThemePathRowHeight(theme) {
+  if (theme.pathDensity === 'compact') { return 112; }
+  if (theme.pathDensity === 'spacious') { return 168; }
+  return 138;
+}
+
+function normalizeModuleDependencyType(value) {
+  if (value === 'previousComplete' || value === 'moduleComplete' || value === 'percentComplete') {
+    return value;
+  }
+
+  return 'open';
+}
+
+function readModuleDependencyRule(module, index, modules) {
+  var rule = module && module.unlockRules && typeof module.unlockRules === 'object' ? module.unlockRules : {};
+  var type = normalizeModuleDependencyType(module && module.unlockRuleType || rule.type || rule.unlockRuleType || (index === 0 ? 'open' : 'previousComplete'));
+  var prerequisiteModuleId = module && typeof module.prerequisiteModuleId === 'string' ? module.prerequisiteModuleId : (typeof rule.prerequisiteModuleId === 'string' ? rule.prerequisiteModuleId : '');
+
+  if (!prerequisiteModuleId && type === 'previousComplete' && index > 0) {
+    prerequisiteModuleId = readModuleId(modules[index - 1]);
+  }
+
+  return {
+    type: type,
+    prerequisiteModuleId: prerequisiteModuleId,
+    thresholdPercent: clampPercent(module && typeof module.unlockThresholdPercent === 'number' ? module.unlockThresholdPercent : (typeof rule.thresholdPercent === 'number' ? rule.thresholdPercent : 100))
+  };
+}
+
+function buildModuleDependencyTypeOptions(selectedType) {
+  var options = [
+    { value: 'open', label: 'Open immediately' },
+    { value: 'previousComplete', label: 'Previous module complete' },
+    { value: 'moduleComplete', label: 'Specific module complete' },
+    { value: 'percentComplete', label: 'Course percent complete' }
+  ];
+
+  return options.map(function (option) {
+    return '<option value="' + option.value + '"' + (option.value === selectedType ? ' selected' : '') + '>' + escapeHtml(option.label) + '</option>';
   }).join('');
+}
+
+function buildModuleDependencyModuleOptions(modules, currentModuleId, selectedModuleId) {
+  var html = '<option value="">No prerequisite</option>';
+
+  (modules || []).forEach(function (module, index) {
+    var moduleId = readModuleId(module);
+    if (!moduleId || moduleId === currentModuleId) {
+      return;
+    }
+
+    html += '<option value="' + escapeHtml(moduleId) + '"' + (moduleId === selectedModuleId ? ' selected' : '') + '>Module ' + (index + 1) + ': ' + escapeHtml(readModuleTitle(module) || 'Untitled Module') + '</option>';
+  });
+
+  return html;
+}
+
+function readModuleDependencySummary(rule, modules) {
+  if (rule.type === 'open') {
+    return 'Students can open this module as soon as the course is visible.';
+  }
+
+  if (rule.type === 'percentComplete') {
+    return 'Students unlock this module after reaching ' + rule.thresholdPercent + '% course completion.';
+  }
+
+  var prerequisite = (modules || []).find(function (module) {
+    return readModuleId(module) === rule.prerequisiteModuleId;
+  });
+  var prerequisiteTitle = prerequisite ? readModuleTitle(prerequisite) : 'the selected prerequisite';
+
+  if (rule.type === 'previousComplete') {
+    return 'Students unlock this module after completing ' + prerequisiteTitle + '.';
+  }
+
+  return 'Students unlock this module after completing ' + prerequisiteTitle + '.';
+}
+
+function clampPercent(value) {
+  var numberValue = parseInt(value, 10);
+
+  if (Number.isNaN(numberValue)) {
+    return 100;
+  }
+
+  return Math.max(0, Math.min(100, numberValue));
+}
+
+function buildThemedModuleIcon(module, course, index, theme) {
+  var moduleIconUrl = module && typeof module.iconUrl === 'string' ? module.iconUrl.trim() : '';
+  var courseIconUrl = course && typeof course.iconUrl === 'string' ? course.iconUrl.trim() : '';
+
+  if (theme.moduleIconStyle === 'minimal') {
+    return '<i class="fa-solid fa-circle"></i>';
+  }
+
+  if (theme.moduleIconStyle === 'courseIcon' && (moduleIconUrl || courseIconUrl)) {
+    return '<img src="' + escapeHtml(moduleIconUrl || courseIconUrl) + '" alt="" class="h-full w-full rounded-2xl object-cover">';
+  }
+
+  return String(index + 1);
+}
+
+function buildCourseReadinessChecklist(course, modules, assignments) {
+  var safeModules = Array.isArray(modules) ? modules : [];
+  var safeAssignments = Array.isArray(assignments) ? assignments : [];
+  var title = readPreviewText(course && course.title, '');
+  var displayTemplate = course && typeof course.displayTemplate === 'string' ? course.displayTemplate : '';
+  var normalizedTemplate = normalizeCourseDisplayTemplate(displayTemplate);
+  var activeAssignments = safeAssignments.filter(function (assignment) {
+    return assignment && assignment.status !== 'archived' && assignment.status !== 'deleted';
+  });
+  var invalidSteps = collectInvalidCourseSteps(safeModules);
+  var untitledModules = safeModules.filter(function (module) {
+    return !module || !readModuleTitle(module) || readModuleTitle(module) === 'Untitled Module';
+  });
+  var emptyModules = safeModules.filter(function (module) {
+    return countModuleSteps(module) === 0;
+  });
+
+  return [
+    createReadinessItem('Course title', Boolean(title), 'Add a clear course title before publishing.', 'required'),
+    createReadinessItem('At least one module', safeModules.length > 0, 'Create a module so students have a course path.', 'required'),
+    createReadinessItem('Module titles', untitledModules.length === 0, untitledModules.length + ' module title' + (untitledModules.length === 1 ? '' : 's') + ' need review.', 'required'),
+    createReadinessItem('Student steps', emptyModules.length === 0 && safeModules.length > 0, emptyModules.length + ' module' + (emptyModules.length === 1 ? '' : 's') + ' do not have student steps yet.', 'required'),
+    createReadinessItem('Step data', invalidSteps.length === 0, invalidSteps.length + ' step' + (invalidSteps.length === 1 ? '' : 's') + ' need a title or type.', 'required'),
+    createReadinessItem('Assignments', activeAssignments.length > 0, 'Assign the course to a class, student, or location when ready.', 'warning'),
+    createReadinessItem('Display template', !displayTemplate || displayTemplate === normalizedTemplate, 'Invalid template values fall back to Basic.', 'warning'),
+    createReadinessItem('Teacher review flow', hasReviewableCourseStep(safeModules), 'Add a Speaking Recording or teacher-review step if this course needs teacher feedback.', 'warning')
+  ];
+}
+
+function createReadinessItem(label, passed, message, severity) {
+  return {
+    label: label,
+    passed: Boolean(passed),
+    message: message,
+    severity: severity || 'required'
+  };
+}
+
+function buildCourseReadinessPanel(checklist) {
+  var items = Array.isArray(checklist) ? checklist : [];
+  var blockers = items.filter(function (item) {
+    return !item.passed && item.severity === 'required';
+  });
+  var warnings = items.filter(function (item) {
+    return !item.passed && item.severity !== 'required';
+  });
+  var ready = blockers.length === 0;
+  var panelClass = ready ? 'border-emerald-200 bg-emerald-50 text-emerald-900' : 'border-amber-200 bg-amber-50 text-amber-900';
+  var iconClass = ready ? 'fa-solid fa-circle-check text-emerald-600' : 'fa-solid fa-triangle-exclamation text-amber-600';
+  var headline = ready ? 'Ready to publish' : blockers.length + ' publish blocker' + (blockers.length === 1 ? '' : 's');
+  var subline = warnings.length > 0 ? warnings.length + ' advisory item' + (warnings.length === 1 ? '' : 's') + ' to review.' : 'Core course structure is ready.';
+  var html = '<section class="rounded-xl border px-4 py-3 shadow-sm ' + panelClass + '">';
+
+  html += '<div class="flex items-start justify-between gap-4">';
+  html += '<div><div class="flex items-center gap-2 text-sm font-black"><i class="' + iconClass + '"></i><span>Publish Readiness Checklist</span></div><p class="mt-1 text-xs font-bold opacity-80">' + escapeHtml(headline + '. ' + subline) + '</p></div>';
+  html += '<span class="rounded-full bg-white/80 px-3 py-1 text-[10px] font-black uppercase tracking-wide">' + (ready ? 'Pass' : 'Needs work') + '</span>';
+  html += '</div>';
+  html += '<div class="mt-3 grid gap-2 md:grid-cols-2">';
+  items.forEach(function (item) {
+    var itemClass = item.passed ? 'border-emerald-100 bg-white text-emerald-800' : (item.severity === 'required' ? 'border-amber-100 bg-white text-amber-800' : 'border-blue-100 bg-white text-blue-800');
+    var itemIcon = item.passed ? 'fa-solid fa-check' : (item.severity === 'required' ? 'fa-solid fa-xmark' : 'fa-solid fa-circle-info');
+    html += '<div class="rounded-lg border px-3 py-2 text-xs font-bold ' + itemClass + '"><div class="flex items-center gap-2"><i class="' + itemIcon + '"></i><span>' + escapeHtml(item.label) + '</span></div>' + (!item.passed ? '<p class="mt-1 font-semibold opacity-75">' + escapeHtml(item.message) + '</p>' : '') + '</div>';
+  });
+  html += '</div>';
   html += '</section>';
   return html;
 }
 
-function buildPreviewModule(module, index) {
+function buildTimelineItem(label, dateText, detail) {
+  return '<li class="relative rounded-2xl border border-slate-100 bg-slate-50 p-4"><span class="absolute -left-[29px] top-5 h-3 w-3 rounded-full border-2 border-white bg-blue-500"></span><div class="flex flex-wrap items-center justify-between gap-2"><strong class="text-sm font-black text-slate-950">' + escapeHtml(label) + '</strong><span class="rounded-full bg-white px-2 py-1 text-[10px] font-black uppercase text-slate-500">' + escapeHtml(dateText || 'Unknown') + '</span></div><p class="mt-2 text-xs font-semibold text-slate-500">' + escapeHtml(detail || '') + '</p></li>';
+}
+
+function compareModuleDatesDesc(a, b) {
+  return readTimeValue(b && (b.updatedAt || b.modifiedAt || b.createdAt)) - readTimeValue(a && (a.updatedAt || a.modifiedAt || a.createdAt));
+}
+
+function readTimeValue(value) {
+  if (!value) {
+    return 0;
+  }
+
+  if (typeof value.toDate === 'function') {
+    return value.toDate().getTime();
+  }
+
+  if (typeof value.seconds === 'number') {
+    return value.seconds * 1000;
+  }
+
+  var parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
+function readAssignmentTargetLabel(assignment) {
+  if (!assignment) {
+    return 'Unknown target';
+  }
+
+  return assignment.className || assignment.classTitle || assignment.studentName || assignment.groupName || assignment.targetName || assignment.classId || assignment.studentId || assignment.groupId || assignment.id || 'Assigned audience';
+}
+
+function collectAccessibilityLocalizationFindings(course, modules) {
+  var languages = normalizeCourseLanguages(course);
+  var findings = [];
+  var titleMissing = readLocalizedMissingCodes(course && course.title, languages);
+  var descriptionMissing = readLocalizedMissingCodes(course && course.description, languages);
+  var moduleTitleMissing = [];
+  var longTitles = [];
+  var missingInstructions = [];
+  var mediaNeedsAlt = [];
+
+  if (titleMissing.length > 0) {
+    findings.push(createAuditFinding('error', 'Course title translations', 'Missing title values for: ' + titleMissing.join(', ') + '.'));
+  } else {
+    findings.push(createAuditFinding('pass', 'Course title translations', 'All configured course languages have a title value.'));
+  }
+
+  if (descriptionMissing.length > 0) {
+    findings.push(createAuditFinding('warning', 'Course description translations', 'Missing description values for: ' + descriptionMissing.join(', ') + '.'));
+  } else {
+    findings.push(createAuditFinding('pass', 'Course description translations', 'All configured course languages have a description value.'));
+  }
+
+  modules.forEach(function (module, moduleIndex) {
+    var missingCodes = readLocalizedMissingCodes(module && module.title, languages);
+    var moduleTitle = readModuleTitle(module) || ('Module ' + (moduleIndex + 1));
+    if (missingCodes.length > 0) {
+      moduleTitleMissing.push(moduleTitle + ' (' + missingCodes.join(', ') + ')');
+    }
+
+    if (moduleTitle.length > 48) {
+      longTitles.push(moduleTitle);
+    }
+
+    collectPreviewModuleSteps(module).forEach(function (step) {
+      var stepTitle = readPreviewText(step && step.title, 'Untitled Step');
+      var instructions = readStepConfigValue(step, 'instructions') || readStepConfigValue(step, 'prompt') || readStepConfigValue(step, 'body');
+      var imageUrl = readStepConfigValue(step, 'imageUrl') || readStepConfigValue(step, 'iconUrl');
+      var audioUrl = readStepConfigValue(step, 'audioUrl') || readStepConfigValue(step, 'mediaUrl');
+      var altText = readStepConfigValue(step, 'altText') || readStepConfigValue(step, 'imageAlt');
+      var transcript = readStepConfigValue(step, 'transcript') || readStepConfigValue(step, 'caption');
+
+      if (!instructions) {
+        missingInstructions.push(stepTitle);
+      }
+
+      if (imageUrl && !altText) {
+        mediaNeedsAlt.push(stepTitle + ' image alt text');
+      }
+
+      if (audioUrl && !transcript) {
+        mediaNeedsAlt.push(stepTitle + ' transcript');
+      }
+
+      if (stepTitle.length > 64) {
+        longTitles.push(stepTitle);
+      }
+    });
+  });
+
+  findings.push(moduleTitleMissing.length === 0
+    ? createAuditFinding('pass', 'Module localization', 'Module titles cover the configured language set.')
+    : createAuditFinding('warning', 'Module localization', moduleTitleMissing.slice(0, 4).join('; ') + (moduleTitleMissing.length > 4 ? ' and more.' : '.')));
+
+  findings.push(missingInstructions.length === 0
+    ? createAuditFinding('pass', 'Step instructions', 'Student-facing steps include readable prompts or instructions.')
+    : createAuditFinding('warning', 'Step instructions', missingInstructions.slice(0, 5).join(', ') + (missingInstructions.length > 5 ? ' and more need prompts.' : ' need prompts.')));
+
+  findings.push(mediaNeedsAlt.length === 0
+    ? createAuditFinding('pass', 'Media support text', 'Images and audio with detectable media fields include alt text or transcripts.')
+    : createAuditFinding('error', 'Media support text', mediaNeedsAlt.slice(0, 5).join(', ') + (mediaNeedsAlt.length > 5 ? ' and more need support text.' : ' need support text.')));
+
+  findings.push(longTitles.length === 0
+    ? createAuditFinding('pass', 'Mobile text fit', 'Module and step titles fit expected compact layouts.')
+    : createAuditFinding('warning', 'Mobile text fit', longTitles.slice(0, 5).join(', ') + (longTitles.length > 5 ? ' and more may wrap heavily.' : ' may wrap heavily.')));
+
+  return findings;
+}
+
+function createAuditFinding(level, label, detail) {
+  return {
+    level: level,
+    label: label,
+    detail: detail
+  };
+}
+
+function normalizeCourseLanguages(course) {
+  var languages = course && Array.isArray(course.languages) && course.languages.length > 0 ? course.languages.slice() : [course && course.defaultLanguage || 'en'];
+
+  if (languages.indexOf(course && course.defaultLanguage || 'en') === -1) {
+    languages.unshift(course && course.defaultLanguage || 'en');
+  }
+
+  return languages.filter(Boolean);
+}
+
+function readLocalizedMissingCodes(value, languages) {
+  if (typeof value === 'string') {
+    return value.trim() ? [] : languages.slice();
+  }
+
+  if (!value || typeof value !== 'object') {
+    return languages.slice();
+  }
+
+  return languages.filter(function (languageCode) {
+    return !value[languageCode] || typeof value[languageCode] !== 'string' || !value[languageCode].trim();
+  });
+}
+
+function readStepConfigValue(step, fieldName) {
+  if (!step || typeof step !== 'object') {
+    return '';
+  }
+
+  if (typeof step[fieldName] === 'string' && step[fieldName].trim()) {
+    return step[fieldName].trim();
+  }
+
+  if (step.config && typeof step.config[fieldName] === 'string' && step.config[fieldName].trim()) {
+    return step.config[fieldName].trim();
+  }
+
+  if (step.content && typeof step.content[fieldName] === 'string' && step.content[fieldName].trim()) {
+    return step.content[fieldName].trim();
+  }
+
+  return '';
+}
+
+function collectInvalidCourseSteps(modules) {
+  var invalidSteps = [];
+
+  (modules || []).forEach(function (module) {
+    collectPreviewModuleSteps(module).forEach(function (step) {
+      if (!step || !readPreviewStepType(step) || !readPreviewText(step.title, '')) {
+        invalidSteps.push(step || {});
+      }
+    });
+  });
+
+  return invalidSteps;
+}
+
+function hasReviewableCourseStep(modules) {
+  var found = false;
+
+  (modules || []).forEach(function (module) {
+    collectPreviewModuleSteps(module).forEach(function (step) {
+      var stepType = readPreviewStepType(step);
+      if (stepType === 'speakingPrompt' || stepType === 'creative-canvas' || stepType === 'reflection' || stepType === 'reflectionShell' || stepType === 'externalTask') {
+        found = true;
+      }
+    });
+  });
+
+  return found;
+}
+
+function collectPreviewModuleSteps(module) {
+  var steps = [];
+  var learningModes = module && module.learningModes && typeof module.learningModes === 'object' ? module.learningModes : {};
+
+  if (module && Array.isArray(module.steps)) {
+    steps = steps.concat(module.steps);
+  }
+
+  Object.keys(learningModes).forEach(function (modeId) {
+    if (learningModes[modeId] && Array.isArray(learningModes[modeId].steps)) {
+      steps = steps.concat(learningModes[modeId].steps);
+    }
+  });
+
+  if (module && Array.isArray(module.sessions)) {
+    module.sessions.forEach(function (session) {
+      steps = steps.concat(readPreviewSteps(session));
+    });
+  }
+
+  return steps;
+}
+
+function readPreviewStepType(step) {
+  if (!step || typeof step !== 'object') {
+    return '';
+  }
+
+  return step.type || step.stepType || step.kind || '';
+}
+
+function buildCoursePreview(course, options) {
+  var modules = Array.isArray(course && course.modules) ? course.modules : [];
+  var title = readPreviewText(course ? course.title : null, 'Untitled Course');
+  var description = readPreviewText(course ? course.description : null, 'Student preview shows the course exactly as learners will scan it.');
+  var template = normalizeCourseDisplayTemplate(options && options.displayTemplate ? options.displayTemplate : course && course.displayTemplate);
+  var theme = normalizeCourseVisualTheme(course);
+  var device = normalizePreviewDevice(options && options.device);
+  var frameClass = readPreviewDeviceFrameClass(device);
+
+  var html = '<section class="mx-auto ' + frameClass + ' transition-all">';
+  html += '<div class="space-y-6 rounded-[28px] border border-slate-200 bg-slate-50 p-4 shadow-inner">';
+  html += buildCoursePreviewHero(course, title, description, template, theme);
+
+  if (modules.length === 0) {
+    html += '<div class="rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-10 text-center"><h2 class="text-xl font-black text-slate-900">No modules yet</h2><p class="mt-2 text-sm font-semibold text-slate-500">Add a module and student steps before publishing.</p></div>';
+    html += '</div>';
+    html += '</section>';
+    return html;
+  }
+
+  html += renderCourseModules(course, modules, {
+    displayTemplate: template,
+    visualTheme: theme
+  });
+  html += '</div>';
+  html += '</section>';
+  return html;
+}
+
+function buildCoursePreviewHero(course, title, description, template, theme) {
+  var iconUrl = course && typeof course.iconUrl === 'string' ? course.iconUrl.trim() : '';
+  var templateLabel = readCourseDisplayTemplateLabel(template);
+  var accentClass = readThemeAccentSoftClass(theme.accentColor);
+  var iconHtml = iconUrl
+    ? '<img src="' + escapeHtml(iconUrl) + '" alt="" class="h-20 w-20 rounded-3xl object-cover ring-4 ring-white shadow-sm">'
+    : '<div class="grid h-20 w-20 place-items-center rounded-3xl text-2xl font-black shadow-sm ring-1 ring-white ' + accentClass + '">' + escapeHtml(title.charAt(0).toUpperCase() || 'C') + '</div>';
+
+  return '<div class="rounded-[28px] border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-emerald-50 p-6">'
+    + '<div class="flex items-start justify-between gap-4">'
+    + '<div class="min-w-0">'
+    + '<p class="text-[10px] font-black uppercase tracking-wide text-blue-600">' + escapeHtml(templateLabel) + '</p>'
+    + '<h1 class="text-3xl font-black text-slate-950">' + escapeHtml(title) + '</h1>'
+    + '<p class="mt-2 max-w-2xl text-sm font-semibold leading-6 text-slate-600">' + escapeHtml(description) + '</p>'
+    + '</div>'
+    + iconHtml
+    + '</div>'
+    + '</div>';
+}
+
+function renderCourseModules(course, modules, progress) {
+  var template = normalizeCourseDisplayTemplate(progress && progress.displayTemplate ? progress.displayTemplate : course && course.displayTemplate);
+  var theme = progress && progress.visualTheme ? progress.visualTheme : normalizeCourseVisualTheme(course);
+
+  if (template === 'adventurePath') {
+    return renderAdventurePathModules(course, modules, theme);
+  }
+
+  if (template === 'compactGrid') {
+    return renderCompactGridModules(course, modules, theme);
+  }
+
+  return renderBasicModuleList(course, modules, theme);
+}
+
+function renderBasicModuleList(course, modules, theme) {
+  return modules.map(function (module, index) {
+    return buildPreviewModule(module, index, course, theme);
+  }).join('');
+}
+
+function renderAdventurePathModules(course, modules, theme) {
+  var rowHeight = readThemePathRowHeight(theme);
+  var pathHeight = Math.max(160, modules.length * rowHeight);
+  var html = '<div class="rounded-[28px] border bg-white p-5 shadow-sm ' + readThemeAccentBorderClass(theme.accentColor) + '">';
+
+  html += '<div class="mb-4 flex items-center justify-between gap-4"><div><p class="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-600">Adventure Path</p><h2 class="text-xl font-black text-slate-950">' + escapeHtml(readPreviewText(course && course.title, 'Course Journey')) + '</h2></div><span class="rounded-full bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700">' + modules.length + ' modules</span></div>';
+  html += '<div class="relative overflow-hidden rounded-[26px] bg-gradient-to-b from-emerald-50 via-sky-50 to-white px-4 py-8" style="min-height:' + pathHeight + 'px">';
+  html += buildAdventurePathSvg(modules.length, rowHeight);
+
+  modules.forEach(function (module, index) {
+    html += buildAdventurePathNode(module, index, rowHeight, course, theme);
+  });
+
+  html += '</div>';
+  html += '</div>';
+  return html;
+}
+
+function buildAdventurePathSvg(moduleCount, rowHeight) {
+  var height = Math.max(160, moduleCount * rowHeight);
+  var points = [];
+  var index = 0;
+
+  while (index < moduleCount) {
+    points.push({
+      x: index % 2 === 0 ? 32 : 68,
+      y: 68 + (index * rowHeight)
+    });
+    index = index + 1;
+  }
+
+  var path = '';
+  if (points.length > 0) {
+    path = 'M ' + points[0].x + ' ' + points[0].y;
+    index = 1;
+    while (index < points.length) {
+      var previous = points[index - 1];
+      var current = points[index];
+      var midY = previous.y + ((current.y - previous.y) / 2);
+      path += ' C ' + previous.x + ' ' + midY + ', ' + current.x + ' ' + midY + ', ' + current.x + ' ' + current.y;
+      index = index + 1;
+    }
+  }
+
+  return '<svg class="absolute inset-0 h-full w-full" viewBox="0 0 100 ' + height + '" preserveAspectRatio="none" aria-hidden="true">'
+    + '<path d="' + path + '" fill="none" stroke="#93c5fd" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="0 0"></path>'
+    + '</svg>';
+}
+
+function buildAdventurePathNode(module, index, rowHeight, course, theme) {
+  var state = readPreviewModuleState(module, index);
+  var sideClass = index % 2 === 0 ? 'left-[8%]' : 'right-[8%]';
+  var stateClass = state.state === 'completed'
+    ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+    : state.state === 'current'
+      ? 'scale-110 bg-white shadow-[0_0_36px_rgba(37,99,235,0.20)] ring-4 ring-white ' + readThemeAccentBorderClass(theme.accentColor)
+      : 'border-slate-200 bg-slate-100 text-slate-400 opacity-75';
+  var icon = state.state === 'completed' ? 'fa-solid fa-check' : (state.state === 'locked' ? 'fa-solid fa-lock' : 'fa-solid fa-play');
+  var top = 24 + (index * rowHeight);
+
+  return '<article class="absolute w-[42%] ' + sideClass + ' rounded-[24px] border p-4 transition ' + stateClass + '" style="top:' + top + 'px">'
+    + '<div class="flex items-start gap-3">'
+    + '<div class="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white/80 text-sm font-black shadow-sm">' + (theme.moduleIconStyle === 'numbered' ? '<i class="' + icon + '"></i>' : buildThemedModuleIcon(module, course, index, theme)) + '</div>'
+    + '<div class="min-w-0"><div class="text-[10px] font-black uppercase tracking-wide">' + escapeHtml(state.label) + '</div><h3 class="mt-1 truncate text-base font-black">' + escapeHtml(readPreviewText(module && (module.title || (module.config && module.config.title)), 'Untitled Module')) + '</h3><p class="mt-1 text-xs font-bold opacity-75">' + countPreviewModuleSteps(module) + ' steps</p></div>'
+    + '</div>'
+    + '</article>';
+}
+
+function renderCompactGridModules(course, modules, theme) {
+  var html = '<div class="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(150px,1fr))]">';
+
+  modules.forEach(function (module, index) {
+    var state = readPreviewModuleState(module, index);
+    var stepCount = countPreviewModuleSteps(module);
+    var progressPercent = modules.length <= 1 ? 0 : Math.round((index / Math.max(1, modules.length - 1)) * 100);
+    var stateClass = state.state === 'completed' ? 'border-emerald-200 bg-emerald-50' : (state.state === 'locked' ? 'border-slate-200 bg-slate-100 opacity-75' : 'border-blue-200 bg-white ring-2 ring-blue-100');
+    var iconUrl = module && typeof module.iconUrl === 'string' ? module.iconUrl.trim() : '';
+    var iconHtml = iconUrl && theme.moduleIconStyle !== 'numbered'
+      ? '<img src="' + escapeHtml(iconUrl) + '" alt="" class="h-11 w-11 rounded-2xl object-cover">'
+      : '<div class="grid h-11 w-11 place-items-center overflow-hidden rounded-2xl text-xs font-black ' + readThemeAccentSoftClass(theme.accentColor) + '">' + buildThemedModuleIcon(module, course, index, theme) + '</div>';
+
+    html += '<article class="rounded-[22px] border p-4 shadow-sm ' + stateClass + '">'
+      + '<div class="flex items-start justify-between gap-3">' + iconHtml + '<span class="rounded-full px-2 py-1 text-[10px] font-black uppercase ' + readThemeBadgeClass(state.state, theme) + '">' + escapeHtml(state.label) + '</span></div>'
+      + '<h3 class="mt-4 min-h-[42px] text-sm font-black leading-5 text-slate-950">' + escapeHtml(readPreviewText(module && (module.title || (module.config && module.config.title)), 'Untitled Module')) + '</h3>'
+      + '<div class="mt-3 text-[11px] font-bold text-slate-500">' + stepCount + ' step' + (stepCount === 1 ? '' : 's') + '</div>'
+      + '<div class="mt-3 h-2 rounded-full bg-white ring-1 ring-slate-100"><div class="h-2 rounded-full bg-emerald-500" style="width:' + progressPercent + '%"></div></div>'
+      + '</article>';
+  });
+
+  html += '</div>';
+  return html;
+}
+
+function buildPreviewModule(module, index, course, theme) {
+  module = module || {};
   var sessions = Array.isArray(module.sessions) ? module.sessions : [];
   var stepCount = countPreviewModuleSteps(module);
   var html = '<article class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">';
-  html += '<div class="flex items-start gap-4"><div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-sm font-black text-blue-700">' + (index + 1) + '</div><div class="min-w-0 flex-1"><h2 class="text-xl font-black text-slate-950">' + escapeHtml(readPreviewText(module.title || (module.config && module.config.title), 'Untitled Module')) + '</h2><p class="mt-1 text-sm font-semibold text-slate-500">' + stepCount + ' student step' + (stepCount === 1 ? '' : 's') + '</p></div></div>';
+  html += '<div class="flex items-start gap-4"><div class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl text-sm font-black ' + readThemeAccentSoftClass(theme.accentColor) + '">' + buildThemedModuleIcon(module, course, index, theme) + '</div><div class="min-w-0 flex-1"><h2 class="text-xl font-black text-slate-950">' + escapeHtml(readPreviewText(module.title || (module.config && module.config.title), 'Untitled Module')) + '</h2><p class="mt-1 text-sm font-semibold text-slate-500">' + stepCount + ' student step' + (stepCount === 1 ? '' : 's') + '</p></div></div>';
 
   if (sessions.length === 0) {
     html += '<div class="mt-4 rounded-2xl bg-slate-50 p-4 text-sm font-semibold text-slate-500">No sessions or steps yet.</div>';
@@ -2717,6 +3880,68 @@ function buildPreviewSession(session) {
   return html;
 }
 
+function readPreviewModuleState(module, index) {
+  var rawStatus = module && typeof module.status === 'string' ? module.status.toLowerCase() : '';
+
+  if (rawStatus === 'complete' || rawStatus === 'completed') {
+    return {
+      state: 'completed',
+      label: 'Complete'
+    };
+  }
+
+  if (rawStatus === 'locked') {
+    return {
+      state: 'locked',
+      label: 'Locked'
+    };
+  }
+
+  if (index === 0) {
+    return {
+      state: 'current',
+      label: 'Current'
+    };
+  }
+
+  return {
+    state: 'locked',
+    label: 'Locked'
+  };
+}
+
+function normalizePreviewDevice(value) {
+  if (value === 'mobile' || value === 'tablet') {
+    return value;
+  }
+
+  return 'desktop';
+}
+
+function readPreviewDeviceFrameClass(device) {
+  if (device === 'mobile') {
+    return 'max-w-[420px]';
+  }
+
+  if (device === 'tablet') {
+    return 'max-w-[720px]';
+  }
+
+  return 'max-w-none';
+}
+
+function readCourseDisplayTemplateLabel(template) {
+  if (template === 'adventurePath') {
+    return 'Adventure Path Preview';
+  }
+
+  if (template === 'compactGrid') {
+    return 'Compact Grid Preview';
+  }
+
+  return 'Basic Preview';
+}
+
 function readPreviewSteps(session) {
   var practiceModes = session && session.practiceModes ? session.practiceModes : {};
   var steps = [];
@@ -2734,14 +3959,7 @@ function readPreviewSteps(session) {
 }
 
 function countPreviewModuleSteps(module) {
-  var sessions = Array.isArray(module.sessions) ? module.sessions : [];
-  var count = 0;
-
-  sessions.forEach(function (session) {
-    count = count + readPreviewSteps(session).length;
-  });
-
-  return count;
+  return collectPreviewModuleSteps(module).length;
 }
 
 function countCourseSteps(modules) {

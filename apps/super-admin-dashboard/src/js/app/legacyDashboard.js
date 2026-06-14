@@ -59,6 +59,7 @@ var state = {
     targetType: "",
     status: ""
   },
+  auditFilters: createAuditFilters(),
   locationForm: createLocationForm(),
   userForm: createUserForm(),
   activeUserId: "",
@@ -886,6 +887,7 @@ function buildOverviewTab() {
   html += '<section class="sa-overview-grid sa-analytics-row">' + renderEngagementChart() + renderCategoryDonut() + renderSchoolsByRegion() + '</section>';
   html += '<section class="sa-overview-grid sa-ops-row">' + renderActionCenter() + renderHealthCards() + '</section>';
   html += renderLearningActivityOverview();
+  html += renderDataQualityCommandCenter("overview");
   html += '<section class="sa-overview-grid sa-overview-grid-2">' + renderTopSchools() + renderRecentActivity() + '</section>';
   html += renderExecutiveSummaryStrip();
   html += renderQuickActions();
@@ -943,6 +945,7 @@ function buildReportsTab() {
 function buildSettingsTab() {
   return '<section class="sa-stack">'
     + '<div class="sa-page-head"><div><p class="sa-eyebrow">System Management</p><h2>Settings</h2><p>Platform configuration snapshot and service readiness.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data"' + disabled(isBusy()) + '>' + buildButtonContent("Refresh", "refresh-data") + '</button></div>'
+    + renderDataQualityCommandCenter("settings")
     + '<section class="sa-overview-grid sa-overview-grid-2">' + renderHealthCards() + renderCompletionScore() + '</section>'
     + renderRoadmap()
     + '</section>';
@@ -950,9 +953,58 @@ function buildSettingsTab() {
 
 function buildAuditLogsTab() {
   return '<section class="sa-stack">'
-    + '<div class="sa-page-head"><div><p class="sa-eyebrow">Audit Logs</p><h2>Operational Activity</h2><p>Recent records and activity logs when the Firestore collections are available.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data"' + disabled(isBusy()) + '>' + buildButtonContent("Refresh", "refresh-data") + '</button></div>'
+    + '<div class="sa-page-head"><div><p class="sa-eyebrow">Audit Logs</p><h2>Admin Action Timeline</h2><p>Searchable operational history across users, classes, assignments, locations, courses, and modules.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data"' + disabled(isBusy()) + '>' + buildButtonContent("Refresh", "refresh-data") + '</button></div>'
+    + buildAuditTimelineFilters()
+    + buildAuditTimeline()
     + '<section class="sa-overview-grid sa-overview-grid-2">' + renderRecentActivity() + renderRecentlyCreated() + '</section>'
     + '</section>';
+}
+
+function buildAuditTimelineFilters() {
+  var filters = state.auditFilters || createAuditFilters();
+
+  return '<article class="sa-card sa-audit-filter-card"><div class="sa-section-title"><div><h2>Timeline Filters</h2><p>Filter by admin, date window, object, and action.</p></div></div><div class="sa-filters sa-audit-filters">'
+    + '<label>Search<input data-audit-filter="searchText" value="' + escapeHtml(filters.searchText) + '" placeholder="Action, admin, record, or message"></label>'
+    + '<label>Admin<select data-audit-filter="actorId">' + buildAuditActorOptions(filters.actorId) + '</select></label>'
+    + '<label>Date' + buildBasicOptionsSelect('data-audit-filter="dateRange"', filters.dateRange, ["all", "today", "7d", "30d"], "All dates") + '</label>'
+    + '<label>Object' + buildBasicOptionsSelect('data-audit-filter="objectType"', filters.objectType, ["user", "class", "assignment", "location", "course", "module", "system"], "All objects") + '</label>'
+    + '<label>Action' + buildBasicOptionsSelect('data-audit-filter="actionType"', filters.actionType, ["create", "update", "delete", "archive", "restore", "login", "assign", "disable"], "All actions") + '</label>'
+    + '<button type="button" class="sa-btn sa-btn-secondary" data-action="clear-audit-filters">Clear</button>'
+    + '</div></article>';
+}
+
+function buildAuditActorOptions(selectedActorId) {
+  var events = readAuditTimelineEvents();
+  var actors = [];
+  var html = '<option value="">All admins</option>';
+
+  events.forEach(function (event) {
+    if (event.actorId && !actors.some(function (actor) { return actor.id === event.actorId; })) {
+      actors.push({ id: event.actorId, label: event.actorName || event.actorId });
+    }
+  });
+
+  actors.sort(function (a, b) { return a.label.localeCompare(b.label); }).forEach(function (actor) {
+    html += '<option value="' + escapeHtml(actor.id) + '"' + selected(selectedActorId, actor.id) + '>' + escapeHtml(actor.label) + '</option>';
+  });
+
+  return html;
+}
+
+function buildAuditTimeline() {
+  var events = readFilteredAuditTimelineEvents();
+  var html = '<article class="sa-card sa-audit-timeline-card"><div class="sa-section-title"><div><h2>Filtered Timeline</h2><p>' + events.length + ' matching records from audit and activity sources.</p></div></div>';
+
+  if (events.length === 0) {
+    return html + '<div class="sa-empty"><strong>No timeline records match.</strong><span>Clear filters or refresh when audit collections are available.</span></div></article>';
+  }
+
+  html += '<div class="sa-audit-timeline">';
+  events.slice(0, 80).forEach(function (event) {
+    html += '<div class="sa-audit-row"><span>' + escapeHtml(event.objectType) + '</span><div><strong>' + escapeHtml(event.action || event.title) + '</strong><small>' + escapeHtml(event.detail || event.objectId || "No detail") + '</small></div><div><strong>' + escapeHtml(event.actorName || "System") + '</strong><small>' + escapeHtml(event.actorId || event.source) + '</small></div><div><strong>' + escapeHtml(formatDateTime(event.time)) + '</strong><small>' + escapeHtml(event.status || event.source) + '</small></div></div>';
+  });
+  html += '</div></article>';
+  return html;
 }
 
 function buildRoleUserRows(users, emptyMessage) {
@@ -1098,6 +1150,47 @@ function renderHealthCards() {
 
   html += buildOverviewCollectionErrors();
   html += '</div></article>';
+  return html;
+}
+
+function renderDataQualityCommandCenter(surface) {
+  var issues = readDataQualityIssues();
+  var openIssues = issues.filter(function (issue) { return issue.count > 0; });
+  var visibleIssues = openIssues.length > 0 ? openIssues : issues.slice(0, 4);
+  var html = '<article class="sa-card sa-overview-card sa-data-quality-card"><div class="sa-section-title"><div><h2>Data Quality Command Center</h2><p>Broken links, missing ownership, incomplete setup, and records that need admin attention.</p></div><button type="button" class="sa-btn sa-btn-secondary" data-action="overview-view-all-issues">Summarize</button></div>';
+
+  html += '<div class="sa-data-quality-summary">'
+    + buildMiniMetric(openIssues.length, "Issue groups")
+    + buildMiniMetric(sumBy(openIssues, function (issue) { return issue.count; }), "Records to review")
+    + buildMiniMetric(countItems(issues, function (issue) { return issue.tone === "danger" && issue.count > 0; }), "High priority")
+    + '</div><div class="sa-data-quality-grid">';
+
+  visibleIssues.forEach(function (issue) {
+    html += buildDataQualityIssueCard(issue);
+  });
+
+  html += '</div>';
+
+  if (surface === "overview" && openIssues.length > 4) {
+    html += '<p class="sa-data-quality-note">' + (openIssues.length - 4) + ' more issue groups are visible in Settings.</p>';
+  }
+
+  html += '</article>';
+  return html;
+}
+
+function buildDataQualityIssueCard(issue) {
+  var html = '<section class="sa-data-quality-row sa-data-quality-' + escapeHtml(issue.tone) + '"><div><span>' + escapeHtml(issue.icon) + '</span><strong>' + escapeHtml(String(issue.count)) + '</strong></div><h3>' + escapeHtml(issue.title) + '</h3><p>' + escapeHtml(issue.detail) + '</p>';
+
+  if (issue.samples.length > 0) {
+    html += '<ul>';
+    issue.samples.slice(0, 3).forEach(function (sample) {
+      html += '<li>' + escapeHtml(sample) + '</li>';
+    });
+    html += '</ul>';
+  }
+
+  html += '<button type="button" class="sa-btn sa-btn-secondary" data-action="' + escapeHtml(issue.action) + '">' + escapeHtml(issue.button) + '</button></section>';
   return html;
 }
 
@@ -1337,7 +1430,7 @@ function renderRecentlyCreated() {
 
 function renderGlobalSearch() {
   var results = buildSearchResults(state.overviewSearchText);
-  var html = '<article class="sa-card sa-overview-card"><div class="sa-section-title"><div><h2>Global Search</h2><p>Search loaded locations, classes, students, teachers, admins, and courses.</p></div></div><label class="sa-overview-search">Search<input data-overview-search="true" value="' + escapeHtml(state.overviewSearchText) + '" placeholder="Search locations, classes, students, teachers, courses..."></label>';
+  var html = '<article class="sa-card sa-overview-card"><div class="sa-section-title"><div><h2>Global Admin Search</h2><p>Search users, students, classes, locations, courses, modules, assignments, and audit records.</p></div></div><label class="sa-overview-search">Search<input data-overview-search="true" value="' + escapeHtml(state.overviewSearchText) + '" placeholder="Search names, emails, courses, assignments, modules, audit actions..."></label>';
 
   if (!state.overviewSearchText.trim()) {
     return html + '<div class="sa-empty">Start typing to search across loaded admin data.</div></article>';
@@ -1349,6 +1442,9 @@ function renderGlobalSearch() {
   html += buildSearchGroup("Students", results.students);
   html += buildSearchGroup("Teachers / Admins", results.users);
   html += buildSearchGroup("Courses", results.courses);
+  html += buildSearchGroup("Modules", results.modules);
+  html += buildSearchGroup("Assignments", results.assignments);
+  html += buildSearchGroup("Audit", results.audit);
   html += '</div></article>';
   return html;
 }
@@ -1362,7 +1458,7 @@ function buildSearchGroup(title, items) {
   }
 
   while (index < items.length && index < 6) {
-    html += '<button type="button" data-action="' + escapeHtml(items[index].action) + '" data-id="' + escapeHtml(items[index].id) + '"><strong>' + escapeHtml(items[index].title) + '</strong><span>' + escapeHtml(items[index].detail) + '</span></button>';
+    html += '<button type="button" data-action="' + escapeHtml(items[index].action) + '" data-id="' + escapeHtml(items[index].id) + '"><strong>' + escapeHtml(items[index].title) + '</strong><span>' + escapeHtml(items[index].detail) + '</span><em>' + escapeHtml(items[index].actionLabel || "Open") + '</em></button>';
     index = index + 1;
   }
 
@@ -1659,6 +1755,7 @@ function buildUserCommandTabs(activeTab) {
     { key: "courses", label: "Courses", icon: "B" },
     { key: "activity", label: "Activity", icon: "A" },
     { key: "schedule", label: "Schedule", icon: "S" },
+    { key: "diagnostics", label: "Diagnostics", icon: "D" },
     { key: "permissions", label: "Permissions", icon: "P" },
     { key: "audit", label: "Audit Log", icon: "L" },
     { key: "danger", label: "Danger Zone", icon: "!" }
@@ -1689,6 +1786,7 @@ function buildUserCommandSideRail(user, context) {
 
   html += '</div></article><article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Quick Actions</h3></div><div class="sa-user-command-quick-list">'
     + '<button type="button" data-action="send-password-reset" data-id="' + escapeHtml(user.id) + '"' + disabled(!readUserActionCapabilities(user).canResetPassword) + '>Send password reset</button>'
+    + '<button type="button" data-action="user-command-tab" data-id="diagnostics">Run access diagnostics</button>'
     + '<button type="button" data-action="open-user-edit-modal" data-id="' + escapeHtml(user.id) + '">Edit profile fields</button>'
     + '<button type="button" data-action="user-command-tab" data-id="audit">View audit trail</button>'
     + '<button type="button" data-action="user-command-tab" data-id="danger">Sensitive actions</button>'
@@ -1702,6 +1800,7 @@ function buildUserCommandBody(activeTab, user, context) {
   if (activeTab === "courses") return buildUserCommandCoursesTab(user, context);
   if (activeTab === "activity") return buildUserCommandActivityTab(user, context);
   if (activeTab === "schedule") return buildUserCommandScheduleTab(user, context);
+  if (activeTab === "diagnostics") return buildUserCommandDiagnosticsTab(user, context);
   if (activeTab === "permissions") return buildUserCommandPermissionsTab(user, context);
   if (activeTab === "audit") return buildUserCommandAuditTab(user, context);
   if (activeTab === "danger") return buildUserCommandDangerTab(user, context);
@@ -1887,6 +1986,48 @@ function buildUserCommandActivityTab(user, context) {
 
 function buildUserCommandScheduleTab(user, context) {
   return '<section class="sa-command-tab-stack">' + createEmptyState("No schedule data yet.", "Schedule records are not connected to this user profile yet.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
+}
+
+function buildUserCommandDiagnosticsTab(user, context) {
+  var diagnostics = readUserAccessDiagnostics(user, context);
+  var html = '<section class="sa-command-tab-stack">';
+
+  html += '<article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Access Diagnostics</h3><span class="sa-user-command-super">' + escapeHtml(diagnostics.statusLabel) + '</span></div>'
+    + '<div class="sa-diagnostic-score"><strong>' + diagnostics.score + '</strong><span>' + escapeHtml(diagnostics.summary) + '</span></div>'
+    + '<div class="sa-diagnostic-grid">'
+    + buildDiagnosticMetric("Roles", diagnostics.roleSummary, diagnostics.roleTone)
+    + buildDiagnosticMetric("Login", diagnostics.loginSummary, diagnostics.loginTone)
+    + buildDiagnosticMetric("Location", diagnostics.locationSummary, diagnostics.locationTone)
+    + buildDiagnosticMetric("Class Scope", diagnostics.classSummary, diagnostics.classTone)
+    + '</div></article>';
+
+  html += '<article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Likely Access Blockers</h3></div>' + buildDiagnosticCheckRows(diagnostics.checks) + '</article>';
+  html += '<article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Profile & Claims Snapshot</h3></div>'
+    + '<dl class="sa-command-summary-list">'
+    + '<dt>Dashboard Routes</dt><dd>' + escapeHtml(diagnostics.dashboardRoutes.join(", ") || "No dashboard route detected") + '</dd>'
+    + '<dt>Profile Status</dt><dd>' + escapeHtml(diagnostics.profileStatus) + '</dd>'
+    + '<dt>Auth Link</dt><dd>' + escapeHtml(diagnostics.authLink) + '</dd>'
+    + '<dt>Claims Visibility</dt><dd>' + escapeHtml(diagnostics.claimsSummary) + '</dd>'
+    + '<dt>Last Activity</dt><dd>' + escapeHtml(formatDateTime(readUserLastActive(user))) + '</dd>'
+    + '<dt>Recovery</dt><dd>' + escapeHtml(diagnostics.recoverySummary) + '</dd>'
+    + '</dl></article></section>';
+
+  return html;
+}
+
+function buildDiagnosticMetric(label, value, tone) {
+  return '<div class="sa-diagnostic-metric sa-diagnostic-' + escapeHtml(tone) + '"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong></div>';
+}
+
+function buildDiagnosticCheckRows(checks) {
+  var html = '<div class="sa-diagnostic-checks">';
+
+  checks.forEach(function (check) {
+    html += '<div class="sa-diagnostic-row sa-diagnostic-' + escapeHtml(check.tone) + '"><span>' + escapeHtml(check.status) + '</span><div><strong>' + escapeHtml(check.label) + '</strong><small>' + escapeHtml(check.detail) + '</small></div></div>';
+  });
+
+  html += '</div>';
+  return html;
 }
 
 function buildUserCommandPermissionsTab(user, context) {
@@ -3342,6 +3483,7 @@ function buildAssignmentForm() {
     + '</section>';
   html += '<section class="sa-assignment-step sa-assignment-review"><span>3</span><h3>Review & Assign</h3><p>' + escapeHtml(targetSummary) + '</p>'
     + '<div class="sa-assignment-review-card"><strong>' + escapeHtml(readCourseName(form.courseId) || "Choose a course") + '</strong><small>' + escapeHtml(targetSummary) + '</small><small>Status: ' + escapeHtml(form.status || "active") + '</small></div>'
+    + buildAssignmentImpactPanel(form, "create")
     + buildSelect("assignment", "new", "status", form.status, ["active", "paused", "archived"])
     + '<button type="button" class="sa-btn" data-action="create-assignment"' + disabled(!canCreateAssignment()) + '>' + buildButtonContent("Assign Course", "create-assignment") + '</button>'
     + '</section>';
@@ -3446,9 +3588,10 @@ function buildAssignmentRows() {
     var assignment = state.assignments[index];
     var targetLabel = readAssignmentTargetName(assignment);
     var assignedDate = formatDateTime(assignment.assignedAt || assignment.createdAt || assignment.updatedAt);
+    var impact = readAssignmentImpactPreview(assignment, "existing");
     html += '<article class="sa-assignment-row">';
     html += '<div><strong>' + escapeHtml(readCourseName(assignment.courseId)) + '</strong><small>Course ID: ' + escapeHtml(assignment.courseId) + '</small></div>';
-    html += '<div><span class="sa-pill">' + escapeHtml(assignment.targetType || "class") + '</span><strong>' + escapeHtml(targetLabel) + '</strong><small>' + escapeHtml(readAssignmentScopeLine(assignment)) + '</small></div>';
+    html += '<div><span class="sa-pill">' + escapeHtml(assignment.targetType || "class") + '</span><strong>' + escapeHtml(targetLabel) + '</strong><small>' + escapeHtml(readAssignmentScopeLine(assignment)) + '</small><small>' + escapeHtml(readAssignmentImpactSummary(impact)) + '</small></div>';
     html += '<div class="sa-assignment-staff-cell">' + buildAssignmentStaffSummary(assignment) + '</div>';
     html += '<div><span class="sa-status sa-status-' + escapeHtml(assignment.status || "active") + '">' + escapeHtml(assignment.status || "active") + '</span><small>Assigned: ' + escapeHtml(assignedDate || "unknown") + '</small></div>';
     html += '<div class="sa-row-actions">';
@@ -3868,7 +4011,7 @@ function buildAssignmentDeleteModal() {
   var isDeleting = modal.status === "deleting";
   var isDeleted = modal.status === "deleted";
 
-  return '<div class="sa-modal-backdrop"><section class="sa-modal sa-delete-assignment-modal"><h2>Delete Course Assignment?</h2><p>This will remove this assignment from students. This cannot be undone.</p><div class="sa-assignment-review-card"><strong>' + escapeHtml(assignment ? readCourseName(assignment.courseId) : modal.assignmentId) + '</strong><small>' + escapeHtml(assignment ? readAssignmentTargetName(assignment) : "") + '</small></div>' + buildAssignmentDeleteAnimation(isDeleting, isDeleted, modal.message) + '<div class="sa-modal-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="close-delete-assignment"' + disabled(isDeleting || isDeleted) + '>Cancel</button><button type="button" class="sa-btn sa-danger-btn" data-action="confirm-delete-assignment"' + disabled(isDeleting || isDeleted) + '>Delete Assignment</button></div></section></div>';
+  return '<div class="sa-modal-backdrop"><section class="sa-modal sa-delete-assignment-modal"><h2>Delete Course Assignment?</h2><p>This will remove this assignment from students. This cannot be undone.</p><div class="sa-assignment-review-card"><strong>' + escapeHtml(assignment ? readCourseName(assignment.courseId) : modal.assignmentId) + '</strong><small>' + escapeHtml(assignment ? readAssignmentTargetName(assignment) : "") + '</small></div>' + (assignment ? buildAssignmentImpactPanel(assignment, "delete") : "") + buildAssignmentDeleteAnimation(isDeleting, isDeleted, modal.message) + '<div class="sa-modal-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="close-delete-assignment"' + disabled(isDeleting || isDeleted) + '>Cancel</button><button type="button" class="sa-btn sa-danger-btn" data-action="confirm-delete-assignment"' + disabled(isDeleting || isDeleted) + '>Delete Assignment</button></div></section></div>';
 }
 
 function buildAssignmentDeleteAnimation(isDeleting, isDeleted, message) {
@@ -4106,6 +4249,14 @@ function handleInput(event) {
 
   if (target.getAttribute("data-assignment-filter")) {
     state.assignmentFilters[target.getAttribute("data-assignment-filter")] = target.value;
+    render();
+    return;
+  }
+
+  if (target.getAttribute("data-audit-filter")) {
+    state.auditFilters = Object.assign({}, state.auditFilters || createAuditFilters(), {
+      [target.getAttribute("data-audit-filter")]: target.value
+    });
     render();
     return;
   }
@@ -5277,6 +5428,8 @@ async function handleAction(action, id) {
     state.pendingAction = "refresh-data";
     await refreshAllData();
     setState({ pendingAction: "" });
+  } else if (action === "clear-audit-filters") {
+    setState({ auditFilters: createAuditFilters() });
   } else if (action === "admin-login") {
     await loginAdmin();
   } else if (action === "open-staff-login-reset") {
@@ -5479,13 +5632,13 @@ async function handleAction(action, id) {
   } else if (action === "overview-export-report") {
     await exportOverviewReport();
   } else if (action.indexOf("overview-") === 0) {
-    handleOverviewAction(action, id);
+    await handleOverviewAction(action, id);
   } else if (action === "sign-out") {
     await signOutAdmin();
   }
 }
 
-function handleOverviewAction(action, id) {
+async function handleOverviewAction(action, id) {
   if (action === "overview-chart-week") {
     setState({ overviewChartRange: "week" });
     return;
@@ -5506,12 +5659,28 @@ function handleOverviewAction(action, id) {
     return;
   }
 
-  if (action === "overview-create-class" || action === "overview-open-classes" || action === "overview-open-class") {
+  if (action === "overview-create-class" || action === "overview-open-classes") {
+    setState({ activeTab: "classes", message: "" });
+    return;
+  }
+
+  if (action === "overview-open-class") {
+    if (id) {
+      await openClassCommandCenter(id);
+      return;
+    }
+
     setState({ activeTab: "classes", message: "" });
     return;
   }
 
   if (action === "overview-create-student" || action === "overview-open-students" || action === "overview-open-student") {
+    if (action === "overview-open-student" && id) {
+      await openUserCommandCenter(id);
+      setUserCommandCenterTab("diagnostics");
+      return;
+    }
+
     setState({ activeTab: "users", activeUserId: action === "overview-open-student" ? id || "" : "", userFilters: Object.assign({}, state.userFilters, { role: "student" }), userCreateOpen: action === "overview-create-student", userForm: Object.assign(createUserForm(), { roles: ["student"] }), message: "" });
     return;
   }
@@ -5527,6 +5696,11 @@ function handleOverviewAction(action, id) {
   }
 
   if (action === "overview-open-location") {
+    if (id) {
+      openLocationCommandCenter(id);
+      return;
+    }
+
     setState({ activeTab: "locations", activeLocationId: id || "", locationCreateOpen: false, locationCreateError: "", message: "" });
     return;
   }
@@ -5536,18 +5710,34 @@ function handleOverviewAction(action, id) {
     return;
   }
 
+  if (action === "overview-open-assignments") {
+    setState({ activeTab: "assignments", message: "" });
+    return;
+  }
+
   if (action === "overview-create-course" || action === "overview-open-course-creator") {
     openCourseCreatorApp();
     return;
   }
 
   if (action === "overview-open-course") {
-    openCourseCommandCenter(id || "");
+    await openCourseCommandCenter(id || "");
     return;
   }
 
   if (action === "overview-open-users") {
     setState({ activeTab: "users", activeUserId: id || "", message: "" });
+    return;
+  }
+
+  if (action === "overview-open-user-command") {
+    await openUserCommandCenter(id || "");
+    setUserCommandCenterTab("diagnostics");
+    return;
+  }
+
+  if (action === "overview-open-audit-logs") {
+    setState({ activeTab: "auditLogs", auditFilters: Object.assign({}, state.auditFilters || createAuditFilters(), { searchText: state.overviewSearchText }), message: "" });
     return;
   }
 
@@ -5562,8 +5752,8 @@ function handleOverviewAction(action, id) {
   }
 
   if (action === "overview-view-all-issues") {
-    var count = sumBy(buildActionCenterItems(), function (item) { return item.count; });
-    setState({ message: count ? "There are " + count + " open setup and data quality signals across the dashboard." : "No critical setup issues are currently detected.", messageType: count ? "info" : "success" });
+    var count = sumBy(buildActionCenterItems(), function (item) { return item.count; }) + sumBy(readDataQualityIssues(), function (item) { return item.count; });
+    setState({ activeTab: "settings", message: count ? "There are " + count + " open setup and data quality signals across the dashboard." : "No critical setup issues are currently detected.", messageType: count ? "info" : "success" });
     return;
   }
 
@@ -6979,6 +7169,16 @@ function createOverviewData() {
   };
 }
 
+function createAuditFilters() {
+  return {
+    searchText: "",
+    actorId: "",
+    objectType: "",
+    actionType: "",
+    dateRange: "all"
+  };
+}
+
 function createLocationCommandCenterState() {
   return {
     isOpen: false,
@@ -7815,15 +8015,18 @@ function buildSearchResults(queryText) {
   var query = queryText.trim().toLowerCase();
 
   return {
-    locations: searchRecords(state.locations, query, "overview-open-location", function (location) { return [location.name, location.city, location.region, location.loginSlug].join(" "); }, function (location) { return [location.city, location.region].filter(Boolean).join(", ") || location.loginSlug || "Location"; }),
-    classes: searchRecords(state.classes, query, "overview-open-class", function (classRecord) { return classRecord.name || ""; }, function (classRecord) { return readLocationName(classRecord.locationId); }),
-    students: searchRecords(state.students, query, "overview-open-student", function (student) { return [student.name, student.displayName, student.email, student.username].join(" "); }, function (student) { return readClassName(student.classId); }),
-    users: searchRecords(state.users, query, "overview-open-users", function (user) { return [user.name, user.displayName, user.email, user.phone, normalizeRoles(user.roles, user.role).join(" ")].join(" "); }, function (user) { return normalizeRoles(user.roles, user.role).map(readRoleLabel).join(", ") || "User"; }),
-    courses: searchRecords(state.courses, query, "overview-open-course", function (course) { return [readCourseTitle(course), course.id, course.status].join(" "); }, function (course) { return course.status || "Course"; })
+    locations: searchRecords(state.locations, query, "overview-open-location", function (location) { return [location.name, location.city, location.region, location.loginSlug].join(" "); }, function (location) { return [location.city, location.region].filter(Boolean).join(", ") || location.loginSlug || "Location"; }, "Open location"),
+    classes: searchRecords(state.classes, query, "overview-open-class", function (classRecord) { return [classRecord.name, classRecord.id, readLocationName(readClassLocationId(classRecord))].join(" "); }, function (classRecord) { return readLocationName(readClassLocationId(classRecord)); }, "Open class"),
+    students: searchRecords(state.students, query, "overview-open-student", function (student) { return [student.name, student.displayName, student.email, student.username, student.id].join(" "); }, function (student) { return readClassName(student.classId); }, "Open student"),
+    users: searchRecords(state.users, query, "overview-open-user-command", function (user) { return [user.name, user.displayName, user.email, user.phone, user.id, normalizeRoles(user.roles, user.role).join(" ")].join(" "); }, function (user) { return normalizeRoles(user.roles, user.role).map(readRoleLabel).join(", ") || "User"; }, "Diagnose"),
+    courses: searchRecords(state.courses, query, "overview-open-course", function (course) { return [readCourseTitle(course), course.id, course.status, readCourseDescription(course)].join(" "); }, function (course) { return (course.status || "Course") + " / " + readCourseModuleCount(course) + " modules"; }, "Open course"),
+    modules: searchModuleRecords(query),
+    assignments: searchAssignmentRecords(query),
+    audit: searchAuditRecords(query)
   };
 }
 
-function searchRecords(items, query, action, makeText, makeDetail) {
+function searchRecords(items, query, action, makeText, makeDetail, actionLabel) {
   var result = [];
   var index = 0;
 
@@ -7837,13 +8040,360 @@ function searchRecords(items, query, action, makeText, makeDetail) {
         id: items[index].id,
         title: readRecordTitle(items[index]),
         detail: makeDetail(items[index]),
-        action: action
+        action: action,
+        actionLabel: actionLabel || "Open"
       });
     }
     index = index + 1;
   }
 
   return result;
+}
+
+function searchModuleRecords(query) {
+  var result = [];
+
+  if (!query) {
+    return result;
+  }
+
+  readAllSearchableModules().forEach(function (item) {
+    var text = [readModuleTitle(item.module), item.module.id, item.module.moduleId, item.courseId, readCourseName(item.courseId), readModuleStatus(item.module)].join(" ").toLowerCase();
+
+    if (text.indexOf(query) === -1) {
+      return;
+    }
+
+    result.push({
+      id: item.courseId + "::" + readSafeString(item.module.id || item.module.moduleId),
+      title: readModuleTitle(item.module),
+      detail: "Course: " + readCourseName(item.courseId) + " / " + readModuleStatus(item.module),
+      action: "open-module-command-center",
+      actionLabel: "Open module"
+    });
+  });
+
+  return result;
+}
+
+function searchAssignmentRecords(query) {
+  var result = [];
+
+  if (!query) {
+    return result;
+  }
+
+  state.assignments.forEach(function (assignment) {
+    var text = [assignment.id, assignment.courseId, readCourseName(assignment.courseId), assignment.targetType, assignment.targetId, assignment.classId, assignment.studentId, readAssignmentTargetName(assignment), readAssignmentScopeLine(assignment), assignment.status].join(" ").toLowerCase();
+
+    if (text.indexOf(query) === -1) {
+      return;
+    }
+
+    result.push({
+      id: assignment.id || "",
+      title: readCourseName(assignment.courseId) || "Course assignment",
+      detail: readAssignmentTargetName(assignment) + " / " + readAssignmentImpactSummary(readAssignmentImpactPreview(assignment, "existing")),
+      action: "view-assignment",
+      actionLabel: "View"
+    });
+  });
+
+  return result;
+}
+
+function searchAuditRecords(query) {
+  var result = [];
+
+  if (!query) {
+    return result;
+  }
+
+  readAuditTimelineEvents().forEach(function (event) {
+    var text = [event.action, event.title, event.detail, event.actorName, event.actorId, event.objectType, event.objectId, event.status].join(" ").toLowerCase();
+
+    if (text.indexOf(query) === -1) {
+      return;
+    }
+
+    result.push({
+      id: event.id || event.objectId || "",
+      title: event.action || event.title || "Audit record",
+      detail: event.actorName + " / " + event.objectType + " / " + formatDateTime(event.time),
+      action: "overview-open-audit-logs",
+      actionLabel: "Audit"
+    });
+  });
+
+  return result;
+}
+
+function readAllSearchableModules() {
+  var modules = [];
+
+  state.courses.forEach(function (course) {
+    readCourseCommandModules(course).forEach(function (moduleRecord) {
+      var moduleId = readSafeString(moduleRecord.id || moduleRecord.moduleId);
+
+      if (moduleId) {
+        modules.push({
+          courseId: course.id,
+          module: moduleRecord
+        });
+      }
+    });
+  });
+
+  return dedupeModuleSearchRecords(modules);
+}
+
+function dedupeModuleSearchRecords(records) {
+  var seen = {};
+  var result = [];
+
+  records.forEach(function (record) {
+    var key = record.courseId + "::" + readSafeString(record.module && (record.module.id || record.module.moduleId));
+
+    if (!seen[key]) {
+      seen[key] = true;
+      result.push(record);
+    }
+  });
+
+  return result;
+}
+
+function readAuditTimelineEvents() {
+  var events = [];
+
+  (state.overviewData.auditLogs || []).forEach(function (record) {
+    events.push(normalizeAuditEvent(record, "auditLogs"));
+  });
+
+  (state.overviewData.activityLogs || []).forEach(function (record) {
+    events.push(normalizeAuditEvent(record, "activityLogs"));
+  });
+
+  return events.filter(function (event) {
+    return Boolean(event.time || event.action || event.title);
+  }).sort(compareByTimeDesc);
+}
+
+function readFilteredAuditTimelineEvents() {
+  var filters = state.auditFilters || createAuditFilters();
+  var query = readSafeString(filters.searchText).trim().toLowerCase();
+  var now = Date.now();
+
+  return readAuditTimelineEvents().filter(function (event) {
+    var text = [event.action, event.title, event.detail, event.actorName, event.actorId, event.objectType, event.objectId, event.status, event.source].join(" ").toLowerCase();
+    var actionText = readSafeString(event.action).toLowerCase();
+    var afterTime = 0;
+
+    if (filters.dateRange === "today") {
+      afterTime = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()).getTime();
+    } else if (filters.dateRange === "7d") {
+      afterTime = now - (7 * 24 * 60 * 60 * 1000);
+    } else if (filters.dateRange === "30d") {
+      afterTime = now - (30 * 24 * 60 * 60 * 1000);
+    }
+
+    return (!query || text.indexOf(query) !== -1)
+      && (!filters.actorId || event.actorId === filters.actorId)
+      && (!filters.objectType || filters.objectType === "all" || event.objectType === filters.objectType)
+      && (!filters.actionType || filters.actionType === "all" || actionText.indexOf(filters.actionType) !== -1)
+      && (!afterTime || (event.time || 0) >= afterTime);
+  });
+}
+
+function normalizeAuditEvent(record, source) {
+  var safeRecord = record || {};
+  var objectType = readAuditObjectType(safeRecord);
+  var objectId = readAuditObjectId(safeRecord);
+  var actorId = readSafeString(safeRecord.performedBy || safeRecord.actorId || safeRecord.adminId || safeRecord.updatedBy || safeRecord.createdBy || safeRecord.userId);
+  var actor = actorId ? findUser(actorId) : null;
+  var action = readSafeString(safeRecord.action || safeRecord.type || safeRecord.event || safeRecord.operation || "Activity");
+
+  return {
+    id: readSafeString(safeRecord.id || safeRecord.logId || objectId),
+    action: action,
+    objectType: objectType,
+    objectId: objectId,
+    title: readSafeString(safeRecord.title || safeRecord.message || safeRecord.description || action),
+    detail: readSafeString(safeRecord.message || safeRecord.description || objectId || source),
+    actorId: actorId,
+    actorName: readSafeString(safeRecord.performedByName || safeRecord.actorName || safeRecord.adminName || (actor ? readUserCommandName(getSafeUser(actor)) : actorId || "System")),
+    status: readSafeString(safeRecord.status || safeRecord.result || "recorded"),
+    source: source,
+    time: normalizeTimestamp(safeRecord.createdAt || safeRecord.updatedAt || safeRecord.timestamp || safeRecord.time)
+  };
+}
+
+function readAuditObjectType(record) {
+  var explicitType = readSafeString(record && (record.objectType || record.targetType || record.entityType || record.resourceType)).toLowerCase();
+  var actionText = [record && record.action, record && record.type, record && record.message, record && record.description].join(" ").toLowerCase();
+
+  if (explicitType.indexOf("assignment") !== -1 || actionText.indexOf("assignment") !== -1 || record && (record.assignmentId || record.courseAssignmentId)) return "assignment";
+  if (explicitType.indexOf("location") !== -1 || actionText.indexOf("location") !== -1 || record && (record.locationId || record.schoolId)) return "location";
+  if (explicitType.indexOf("class") !== -1 || actionText.indexOf("class") !== -1 || record && (record.classId || record.targetClassId)) return "class";
+  if (explicitType.indexOf("module") !== -1 || actionText.indexOf("module") !== -1 || record && record.moduleId) return "module";
+  if (explicitType.indexOf("course") !== -1 || actionText.indexOf("course") !== -1 || record && (record.courseId || record.catalogCourseId || record.targetCourseId)) return "course";
+  if (explicitType.indexOf("user") !== -1 || explicitType.indexOf("student") !== -1 || explicitType.indexOf("teacher") !== -1 || actionText.indexOf("user") !== -1 || record && (record.userId || record.targetUserId || record.studentId || record.teacherId)) return "user";
+
+  return "system";
+}
+
+function readAuditObjectId(record) {
+  return readSafeString(record && (
+    record.objectId
+    || record.targetId
+    || record.targetUserId
+    || record.assignmentId
+    || record.courseAssignmentId
+    || record.locationId
+    || record.schoolId
+    || record.classId
+    || record.targetClassId
+    || record.moduleId
+    || record.courseId
+    || record.catalogCourseId
+    || record.userId
+    || record.studentId
+    || record.teacherId
+  ));
+}
+
+function readDataQualityIssues() {
+  var studentProfiles = readAllStudentProfilesForQuality();
+  var orphanLocationSamples = readOrphanLocationReferences();
+  var missingCourseAssignments = state.assignments.filter(function (assignment) { return assignment.courseId && !findCourse(assignment.courseId); });
+  var missingTargetAssignments = state.assignments.filter(function (assignment) { return !assignmentTargetExists(assignment); });
+  var missingStaffAssignments = state.assignments.filter(function (assignment) { return !normalizeAssignmentOwnership(assignment).responsibleTeacherId; });
+  var duplicateAssignments = readDuplicateAssignmentGroups();
+  var courseModuleIssues = state.courses.filter(function (course) { return readCourseCommandModules(course).length === 0 && !isCourseHiddenFromActiveList(course); });
+
+  return [
+    createDataQualityIssue("Students without classes", studentProfiles.filter(function (student) { return !studentAssignedToClass(student); }), "student", "warning", "overview-open-students", "Students", "Learners need a class to receive class-scoped courses."),
+    createDataQualityIssue("Classes without teachers", state.classes.filter(classMissingTeacher), "class", "warning", "overview-open-classes", "Classes", "Classes need a primary teacher or staff owner."),
+    createDataQualityIssue("Assignments missing courses", missingCourseAssignments, "course", "danger", "overview-open-assignments", "Assignments", "Assignment records point to course IDs that are not loaded."),
+    createDataQualityIssue("Assignments missing targets", missingTargetAssignments, "target", "danger", "overview-open-assignments", "Assignments", "Course links point to missing classes, students, or locations."),
+    createDataQualityIssue("Assignments without teachers", missingStaffAssignments, "staff", "warning", "overview-open-assignments", "Assignments", "Course assignments should have a responsible teacher."),
+    createDataQualityIssue("Duplicate active assignments", duplicateAssignments, "copy", "warning", "overview-open-assignments", "Assignments", "Same course and target are assigned more than once."),
+    createDataQualityIssue("Courses without modules", courseModuleIssues, "module", "warning", "overview-open-course-creator", "Courses", "Published learning should include at least one module."),
+    createDataQualityIssue("Orphaned location references", orphanLocationSamples, "location", "danger", "overview-open-locations", "Locations", "Profiles or records reference locations that are not loaded.")
+  ];
+}
+
+function createDataQualityIssue(title, records, icon, tone, action, button, detail) {
+  var safeRecords = Array.isArray(records) ? records : [];
+
+  return {
+    title: title,
+    count: safeRecords.length,
+    icon: icon,
+    tone: safeRecords.length > 0 ? tone : "good",
+    action: action,
+    button: button,
+    detail: safeRecords.length > 0 ? detail : "No issues detected for this check.",
+    samples: safeRecords.slice(0, 3).map(readDataQualitySampleLabel)
+  };
+}
+
+function readDataQualitySampleLabel(record) {
+  if (!record) {
+    return "Unknown record";
+  }
+
+  if (typeof record === "string") {
+    return record;
+  }
+
+  if (record.key && record.count) {
+    return record.key + " (" + record.count + " duplicates)";
+  }
+
+  return readRecordTitle(record) || readSafeString(record.id || record.userId || record.courseId) || "Untitled record";
+}
+
+function readAllStudentProfilesForQuality() {
+  return dedupeRecords(state.students.concat(state.users.map(getSafeUser).filter(function (user) {
+    return user.roles.indexOf("student") !== -1;
+  })));
+}
+
+function assignmentTargetExists(assignment) {
+  var targetType = readSafeString(assignment && (assignment.targetType || (assignment.studentId ? "student" : assignment.classId ? "class" : "")));
+  var targetId = readSafeString(assignment && (assignment.targetId || assignment.studentId || assignment.classId || assignment.locationId));
+
+  if (!targetId) {
+    return false;
+  }
+
+  if (targetType === "student") {
+    return Boolean(findStudent(targetId) || findUser(targetId));
+  }
+
+  if (targetType === "location") {
+    return Boolean(findById(state.locations, targetId));
+  }
+
+  return Boolean(findById(state.classes, assignment.classId || targetId));
+}
+
+function readDuplicateAssignmentGroups() {
+  var counts = {};
+  var duplicates = [];
+
+  state.assignments.forEach(function (assignment) {
+    if (readSafeString(assignment.status || "active") !== "active") {
+      return;
+    }
+
+    var key = [assignment.courseId, assignment.targetType || "class", assignment.targetId || assignment.classId || assignment.studentId || assignment.locationId].join(" / ");
+    counts[key] = (counts[key] || 0) + 1;
+  });
+
+  Object.keys(counts).forEach(function (key) {
+    if (counts[key] > 1) {
+      duplicates.push({ key: key, count: counts[key] });
+    }
+  });
+
+  return duplicates;
+}
+
+function readOrphanLocationReferences() {
+  var known = {};
+  var missing = [];
+
+  state.locations.forEach(function (location) {
+    if (location.id) known[location.id] = true;
+  });
+
+  state.users.map(getSafeUser).forEach(function (user) {
+    user.locationIds.forEach(function (locationId) {
+      addMissingLocationReference(missing, known, locationId, "User " + readUserCommandName(user));
+    });
+  });
+
+  state.classes.forEach(function (classRecord) {
+    readClassLocationIds(classRecord).forEach(function (locationId) {
+      addMissingLocationReference(missing, known, locationId, "Class " + readClassName(classRecord.id));
+    });
+  });
+
+  state.assignments.forEach(function (assignment) {
+    addMissingLocationReference(missing, known, readAssignmentLocationId(assignment), "Assignment " + readSafeString(assignment.id || assignment.courseId));
+  });
+
+  return missing;
+}
+
+function addMissingLocationReference(missing, known, locationId, label) {
+  var safeLocationId = readSafeString(locationId);
+
+  if (safeLocationId && !known[safeLocationId]) {
+    missing.push(label + ": " + safeLocationId);
+  }
 }
 
 function readRecordTitle(record) {
@@ -9475,6 +10025,127 @@ function readUserLoginMethod(user) {
   return "Not authorized";
 }
 
+function readUserAccessDiagnostics(user, context) {
+  var safeUser = getSafeUser(user);
+  var checks = readUserDiagnosticChecks(safeUser, context);
+  var passing = countItems(checks, function (check) { return check.tone === "good"; });
+  var score = checks.length ? Math.round((passing / checks.length) * 100) : 0;
+  var blockers = checks.filter(function (check) { return check.tone === "danger"; });
+  var warnings = checks.filter(function (check) { return check.tone === "warning"; });
+
+  return {
+    score: score,
+    statusLabel: blockers.length ? "Blocked" : warnings.length ? "Review" : "Ready",
+    summary: blockers.length ? blockers[0].detail : warnings.length ? warnings[0].detail : "No obvious access blockers detected.",
+    roleSummary: safeUser.roles.map(readRoleLabel).join(", ") || "No roles",
+    roleTone: safeUser.roles.length > 0 ? "good" : "danger",
+    loginSummary: readUserLoginDiagnosticLabel(safeUser),
+    loginTone: readUserLoginDiagnosticTone(safeUser),
+    locationSummary: context.locations.length ? context.locations.map(function (location) { return location.name || location.id; }).join(", ") : readUserLocationSummary(safeUser),
+    locationTone: context.locations.length || safeUser.roles.indexOf("student") !== -1 ? "good" : "warning",
+    classSummary: context.classes.length ? context.classes.map(function (classRecord) { return classRecord.name || classRecord.id; }).join(", ") : readUserClassSummary(safeUser),
+    classTone: context.classes.length || isAdminLikeUser(safeUser) ? "good" : "warning",
+    checks: checks,
+    dashboardRoutes: readUserDashboardRoutes(safeUser),
+    profileStatus: safeUser.status || "No status",
+    authLink: safeUser.authUid ? "Linked to " + safeUser.authUid : "No Firebase Auth UID",
+    claimsSummary: readUserClaimsSummary(safeUser),
+    recoverySummary: safeUser.email ? "Password reset can be sent." : safeUser.roles.indexOf("student") !== -1 ? "Use fruit password reset." : "Add email before password reset."
+  };
+}
+
+function readUserDiagnosticChecks(user, context) {
+  var checks = [];
+  var isStudent = user.roles.indexOf("student") !== -1;
+  var isTeacher = user.roles.indexOf("teacher") !== -1;
+  var isParent = user.roles.indexOf("parent") !== -1;
+  var isAdmin = isAdminLikeUser(user);
+
+  checks.push(createDiagnosticCheck("Role membership", user.roles.length > 0, "At least one normalized role is present.", "No normalized roles found."));
+  checks.push(createDiagnosticCheck("Active profile", isActiveUserStatus(user.status), "Profile status allows access.", "Inactive profiles may be blocked from dashboards."));
+
+  if (isStudent) {
+    checks.push(createDiagnosticCheck("Student class scope", context.classes.length > 0 || Boolean(user.classId), "Student has at least one class.", "Student is not linked to a class."));
+    checks.push(createDiagnosticCheck("Student login credentials", !studentMissingCredentials(user), "Fruit, username, or email credentials are present.", "Student is missing fruit, username, and email credentials."));
+  }
+
+  if (isTeacher) {
+    var missingTeacherFields = readTeacherLoginMissingFields(user);
+    checks.push(createDiagnosticCheck("Teacher login profile", missingTeacherFields.length === 0, "Teacher has required login fields.", "Complete: " + missingTeacherFields.join(", ") + "."));
+    checks.push(createDiagnosticCheck("Teacher course ownership", context.assignments.length > 0 || context.classes.length > 0, "Teacher is connected to classes or assignments.", "Teacher has no class or course assignment scope."));
+  }
+
+  if (isParent) {
+    checks.push(createDiagnosticCheck("Parent children", context.children.length > 0, "Parent has linked child profiles.", "Parent has no linked students."));
+  }
+
+  if (isAdmin) {
+    checks.push(createDiagnosticCheck("Admin location scope", user.locationIds.length > 0 || user.roles.indexOf("platformAdmin") !== -1 || user.roles.indexOf("superAdmin") !== -1, "Admin has location or platform scope.", "Admin has no location scope."));
+  }
+
+  if (!isStudent) {
+    checks.push(createDiagnosticCheck("Firebase Auth link", Boolean(user.authUid || user.loginEnabled), "Email/password login appears linked.", "No Auth UID or loginEnabled flag found."));
+    checks.push(createDiagnosticCheck("Email for recovery", Boolean(user.email), "Password recovery email is present.", "Add an email before sending password reset."));
+  }
+
+  return checks;
+}
+
+function createDiagnosticCheck(label, passes, passDetail, failDetail) {
+  var isCritical = !passes && (label === "Role membership" || label === "Active profile" || label === "Firebase Auth link" || label === "Student login credentials");
+
+  return {
+    label: label,
+    status: passes ? "Ready" : "Review",
+    tone: passes ? "good" : isCritical ? "danger" : "warning",
+    detail: passes ? passDetail : failDetail
+  };
+}
+
+function readUserLoginDiagnosticLabel(user) {
+  if (user.roles.indexOf("student") !== -1 && user.roles.length === 1) {
+    return studentMissingCredentials(user) ? "Missing fruit login" : "Student login ready";
+  }
+
+  if (user.authUid && user.loginEnabled) {
+    return "Auth linked";
+  }
+
+  if (user.authUid) {
+    return "Auth UID only";
+  }
+
+  return "Not linked";
+}
+
+function readUserLoginDiagnosticTone(user) {
+  if (user.roles.indexOf("student") !== -1 && user.roles.length === 1) {
+    return studentMissingCredentials(user) ? "warning" : "good";
+  }
+
+  return user.authUid && user.loginEnabled ? "good" : "warning";
+}
+
+function readUserDashboardRoutes(user) {
+  var routes = [];
+
+  if (user.roles.indexOf("student") !== -1) routes.push("Student Dashboard");
+  if (user.roles.indexOf("teacher") !== -1) routes.push("Teacher Dashboard");
+  if (user.roles.indexOf("courseCreator") !== -1) routes.push("Course Creator");
+  if (user.roles.indexOf("schoolAdmin") !== -1 || user.roles.indexOf("platformAdmin") !== -1 || user.roles.indexOf("superAdmin") !== -1) routes.push("Admin Panel");
+  if (user.roles.indexOf("parent") !== -1) routes.push("Parent Portal");
+
+  return routes;
+}
+
+function readUserClaimsSummary(user) {
+  if (state.actor && user.id === state.actor.id) {
+    return "Current admin claims: " + mergeRoleLists(state.actor.role ? [state.actor.role] : [], state.actor.roles || []).map(readRoleLabel).join(", ");
+  }
+
+  return "Other users' token claims are not loaded client-side; compare roles, authUid, and loginEnabled.";
+}
+
 function dedupeRecords(records) {
   var seen = {};
   var deduped = [];
@@ -10825,6 +11496,124 @@ function readAssignmentFormTargetSummary(form) {
   }
 
   return "Assign to " + (form.classId ? readClassName(form.classId) : "a class") + ".";
+}
+
+function buildAssignmentImpactPanel(record, mode) {
+  var impact = readAssignmentImpactPreview(record || {}, mode || "create");
+  var html = '<div class="sa-impact-card sa-impact-' + escapeHtml(impact.tone) + '"><div class="sa-impact-head"><strong>' + escapeHtml(impact.title) + '</strong><span>' + escapeHtml(impact.statusLabel) + '</span></div>'
+    + '<div class="sa-impact-metrics">'
+    + buildMiniMetric(impact.locations, "Locations")
+    + buildMiniMetric(impact.classes, "Classes")
+    + buildMiniMetric(impact.students, "Students")
+    + buildMiniMetric(impact.staff, "Staff")
+    + '</div>';
+
+  if (impact.warnings.length > 0) {
+    html += '<ul class="sa-impact-warnings">';
+    impact.warnings.forEach(function (warning) {
+      html += '<li>' + escapeHtml(warning) + '</li>';
+    });
+    html += '</ul>';
+  } else {
+    html += '<small>No duplicate or missing-link warnings detected.</small>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+function readAssignmentImpactPreview(record, mode) {
+  var safeRecord = record || {};
+  var courseId = readSafeString(safeRecord.courseId);
+  var targetType = readSafeString(safeRecord.targetType || (safeRecord.studentId ? "student" : safeRecord.locationId && !safeRecord.classId ? "location" : "class")) || "class";
+  var targetId = readSafeString(safeRecord.targetId || safeRecord.studentId || safeRecord.classId || safeRecord.locationId);
+  var locationIds = [];
+  var classes = [];
+  var students = [];
+  var staffIds = normalizeMixedIdList([safeRecord.responsibleTeacherId, safeRecord.assistantIds, safeRecord.teacherOwnershipIds]);
+  var warnings = [];
+  var existingAssignmentId = readSafeString(safeRecord.id);
+
+  if (safeRecord.locationId) {
+    addUniqueValue(locationIds, safeRecord.locationId);
+  }
+
+  if (targetType === "location") {
+    addUniqueValue(locationIds, targetId);
+    classes = state.classes.filter(function (classRecord) { return readClassLocationId(classRecord) === targetId; });
+    classes.forEach(function (classRecord) {
+      readClassCommandStudents(classRecord.id).forEach(function (student) { students.push(student); });
+    });
+  } else if (targetType === "student") {
+    var student = findStudent(targetId) || findUser(targetId);
+
+    if (student) {
+      students.push(student);
+      if (student.classId) {
+        var studentClass = findById(state.classes, student.classId);
+        if (studentClass) classes.push(studentClass);
+      }
+      addUniqueValue(locationIds, readStudentLocationId(student));
+    }
+  } else {
+    var classId = readSafeString(safeRecord.classId || targetId);
+    var classRecord = findById(state.classes, classId);
+
+    if (classRecord) {
+      classes.push(classRecord);
+      addUniqueValue(locationIds, readClassLocationId(classRecord));
+      readClassCommandStudents(classId).forEach(function (student) { students.push(student); });
+    }
+  }
+
+  students = dedupeRecords(students);
+  classes = dedupeRecords(classes);
+
+  if (courseId && !findCourse(courseId)) {
+    warnings.push("Course record is not loaded.");
+  }
+
+  if (courseId && targetId) {
+    var duplicates = state.assignments.filter(function (assignment) {
+      var assignmentTarget = readSafeString(assignment.targetId || assignment.studentId || assignment.classId || assignment.locationId);
+      return readSafeString(assignment.id) !== existingAssignmentId
+        && readSafeString(assignment.courseId) === courseId
+        && readSafeString(assignment.targetType || "class") === targetType
+        && assignmentTarget === targetId
+        && readSafeString(assignment.status || "active") === "active";
+    });
+
+    if (duplicates.length > 0) {
+      warnings.push(duplicates.length + " duplicate active assignment already exists for this course and target.");
+    }
+  }
+
+  if (!targetId || (targetType === "class" && classes.length === 0) || (targetType === "student" && students.length === 0) || (targetType === "location" && locationIds.length === 0)) {
+    warnings.push("Assignment target is missing or not loaded.");
+  }
+
+  if (staffIds.length === 0) {
+    warnings.push("No responsible teacher or assistants selected.");
+  }
+
+  if (targetType === "class" && students.length === 0) {
+    warnings.push("Selected class currently has no loaded students.");
+  }
+
+  return {
+    title: mode === "delete" ? "Removal Impact" : "Assignment Impact Preview",
+    statusLabel: warnings.length > 0 ? "Review" : "Ready",
+    tone: warnings.length > 0 ? "warning" : "good",
+    locations: locationIds.filter(Boolean).length,
+    classes: classes.length,
+    students: students.length,
+    staff: staffIds.length,
+    warnings: warnings
+  };
+}
+
+function readAssignmentImpactSummary(impact) {
+  return impact.locations + " locations / " + impact.classes + " classes / " + impact.students + " students affected";
 }
 
 function readAssignmentPickerCourses() {

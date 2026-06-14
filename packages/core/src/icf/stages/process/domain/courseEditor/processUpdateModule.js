@@ -40,9 +40,15 @@ function appendOptionalModuleVisualFields(moduleUpdate, payload) {
   appendOptionalString(moduleUpdate, payload, "pathType");
   appendOptionalString(moduleUpdate, payload, "pathGroup");
   appendOptionalString(moduleUpdate, payload, "parentModuleId");
+  appendOptionalString(moduleUpdate, payload, "unlockRuleType");
+  appendOptionalString(moduleUpdate, payload, "prerequisiteModuleId");
 
   if (typeof payload.pathOrder === "number") {
     moduleUpdate.pathOrder = payload.pathOrder;
+  }
+
+  if (typeof payload.unlockThresholdPercent === "number") {
+    moduleUpdate.unlockThresholdPercent = Math.max(0, Math.min(100, payload.unlockThresholdPercent));
   }
 }
 

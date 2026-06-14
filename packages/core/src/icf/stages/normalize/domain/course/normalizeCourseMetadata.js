@@ -40,6 +40,52 @@ function appendOptionalVisualFields(courseData, payload) {
   if ("accentColor" in payload) {
     courseData.accentColor = normalizeTextValue(payload.accentColor);
   }
+
+  if ("visualTheme" in payload) {
+    courseData.visualTheme = normalizeVisualTheme(payload.visualTheme);
+  }
+}
+
+function normalizeVisualTheme(visualTheme) {
+  const theme = visualTheme && typeof visualTheme === "object" && !Array.isArray(visualTheme) ? visualTheme : {};
+  return {
+    accentColor: normalizeThemeAccentColor(theme.accentColor),
+    moduleIconStyle: normalizeModuleIconStyle(theme.moduleIconStyle),
+    badgeStyle: normalizeBadgeStyle(theme.badgeStyle),
+    pathDensity: normalizePathDensity(theme.pathDensity)
+  };
+}
+
+function normalizeThemeAccentColor(accentColor) {
+  if (accentColor === "emerald" || accentColor === "rose" || accentColor === "amber") {
+    return accentColor;
+  }
+
+  return "blue";
+}
+
+function normalizeModuleIconStyle(moduleIconStyle) {
+  if (moduleIconStyle === "courseIcon" || moduleIconStyle === "minimal") {
+    return moduleIconStyle;
+  }
+
+  return "numbered";
+}
+
+function normalizeBadgeStyle(badgeStyle) {
+  if (badgeStyle === "soft" || badgeStyle === "solid") {
+    return badgeStyle;
+  }
+
+  return "pill";
+}
+
+function normalizePathDensity(pathDensity) {
+  if (pathDensity === "compact" || pathDensity === "spacious") {
+    return pathDensity;
+  }
+
+  return "comfortable";
 }
 
 function readPayload(executionState) {

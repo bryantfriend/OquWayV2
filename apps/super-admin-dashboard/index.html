@@ -574,7 +574,7 @@
         }
 
         .sa-search-groups {
-            grid-template-columns: repeat(5, minmax(0, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             align-items: start;
         }
 
@@ -604,6 +604,196 @@
             color: var(--muted);
             font-size: 0.78rem;
             font-weight: 800;
+        }
+
+        .sa-search-group button em {
+            justify-self: start;
+            border-radius: 999px;
+            padding: 3px 8px;
+            background: #eef2ff;
+            color: #3730a3;
+            font-size: 0.68rem;
+            font-style: normal;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .sa-data-quality-summary,
+        .sa-impact-metrics,
+        .sa-diagnostic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .sa-data-quality-grid,
+        .sa-audit-timeline,
+        .sa-diagnostic-checks {
+            display: grid;
+            gap: 10px;
+        }
+
+        .sa-data-quality-row,
+        .sa-impact-card,
+        .sa-audit-row,
+        .sa-diagnostic-row,
+        .sa-diagnostic-metric {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #fbfdff;
+            padding: 12px;
+        }
+
+        .sa-data-quality-row {
+            display: grid;
+            gap: 8px;
+            align-content: start;
+        }
+
+        .sa-data-quality-row > div,
+        .sa-impact-head,
+        .sa-diagnostic-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .sa-data-quality-row h3,
+        .sa-data-quality-row p,
+        .sa-data-quality-row ul,
+        .sa-impact-warnings {
+            margin: 0;
+        }
+
+        .sa-data-quality-row h3 {
+            font-size: 1rem;
+        }
+
+        .sa-data-quality-row p,
+        .sa-data-quality-row li,
+        .sa-impact-card small,
+        .sa-impact-warnings li,
+        .sa-diagnostic-row small {
+            color: var(--muted);
+            font-weight: 800;
+        }
+
+        .sa-data-quality-row ul,
+        .sa-impact-warnings {
+            padding-left: 18px;
+        }
+
+        .sa-data-quality-row span,
+        .sa-impact-head span,
+        .sa-diagnostic-row > span {
+            border-radius: 999px;
+            padding: 4px 8px;
+            background: #eef2ff;
+            color: #3730a3;
+            font-size: 0.7rem;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .sa-data-quality-row strong {
+            font-size: 1.6rem;
+        }
+
+        .sa-data-quality-good,
+        .sa-impact-good,
+        .sa-diagnostic-good {
+            border-color: #bbf7d0;
+            background: #f0fdf4;
+        }
+
+        .sa-data-quality-warning,
+        .sa-impact-warning,
+        .sa-diagnostic-warning {
+            border-color: #fed7aa;
+            background: #fffaf0;
+        }
+
+        .sa-data-quality-danger,
+        .sa-diagnostic-danger {
+            border-color: #fecaca;
+            background: #fff7f7;
+        }
+
+        .sa-data-quality-note {
+            margin: 0;
+            color: var(--muted);
+            font-weight: 900;
+        }
+
+        .sa-audit-filters {
+            grid-template-columns: minmax(180px, 1.4fr) repeat(4, minmax(130px, 1fr)) auto;
+        }
+
+        .sa-audit-row {
+            display: grid;
+            grid-template-columns: 110px minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sa-audit-row > span {
+            border-radius: 999px;
+            padding: 5px 9px;
+            background: #e0f2fe;
+            color: #0369a1;
+            font-size: 0.72rem;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .sa-audit-row strong,
+        .sa-audit-row small,
+        .sa-diagnostic-row strong,
+        .sa-diagnostic-row small {
+            display: block;
+            overflow-wrap: anywhere;
+        }
+
+        .sa-audit-row small {
+            color: var(--muted);
+            font-weight: 800;
+        }
+
+        .sa-impact-card {
+            display: grid;
+            gap: 10px;
+        }
+
+        .sa-impact-head strong,
+        .sa-diagnostic-metric strong {
+            display: block;
+            overflow-wrap: anywhere;
+        }
+
+        .sa-diagnostic-score {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            gap: 14px;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .sa-diagnostic-score strong {
+            width: 78px;
+            height: 78px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: #eff6ff;
+            color: #1d4ed8;
+            font-size: 1.7rem;
+        }
+
+        .sa-diagnostic-score span,
+        .sa-diagnostic-metric span {
+            color: var(--muted);
+            font-weight: 900;
         }
 
         .sa-form,
@@ -2743,9 +2933,12 @@
             .sa-form-assignment,
             .sa-form-student,
             .sa-filters,
+            .sa-audit-filters,
             .sa-assignment-row,
             .sa-assignment-summary-grid,
             .sa-assignment-builder-grid,
+            .sa-data-quality-summary,
+            .sa-diagnostic-grid,
             .sa-location-summary,
             .sa-location-icon-editor,
             .sa-location-fields,
@@ -2792,6 +2985,7 @@
 
             .sa-action-item,
             .sa-assignment-row,
+            .sa-audit-row,
             .sa-health-row,
             .sa-feed-row,
             .sa-roadmap-row,

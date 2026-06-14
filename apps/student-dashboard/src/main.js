@@ -1,5 +1,5 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.192-timed-sequence";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.198-course-creator-advanced-upgrades";
 import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.192-timed-sequence";
 import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.192-timed-sequence";
 import {
@@ -1454,16 +1454,21 @@ function renderNextUpCard(nextAction) {
 
 function renderCourseModules(course, modules, progress) {
   var displayTemplate = readCourseDisplayTemplate(course);
+  var renderContext = Object.assign({}, progress || {}, {
+    visualTheme: readCourseVisualTheme(course),
+    course: course
+  });
+  var html = "";
 
   if (displayTemplate === "adventurePath") {
-    return renderAdventurePathModules(course, modules, progress);
+    html = renderAdventurePathModules(course, modules, renderContext);
+  } else if (displayTemplate === "compactGrid") {
+    html = renderCompactGridModules(course, modules, renderContext);
+  } else {
+    html = renderBasicModuleList(course, modules, renderContext);
   }
 
-  if (displayTemplate === "compactGrid") {
-    return renderCompactGridModules(course, modules, progress);
-  }
-
-  return renderBasicModuleList(course, modules, progress);
+  return '<div class="course-theme-scope" style="' + escapeHtml(readCourseThemeStyle(course)) + '">' + html + '</div>';
 }
 
 function renderBasicModuleList(course, modules, progress) {
@@ -1486,7 +1491,9 @@ function renderBasicModuleList(course, modules, progress) {
 
 function renderAdventurePathModules(course, modules, progress) {
   var safeModules = sortModulesForJourney(Array.isArray(modules) ? modules : []);
-  var pathHeight = Math.max(220, safeModules.length * 138 + 70);
+  var visualTheme = progress && progress.visualTheme ? progress.visualTheme : readCourseVisualTheme(course);
+  var rowHeight = readCourseThemePathSpacing(visualTheme);
+  var pathHeight = Math.max(220, safeModules.length * rowHeight + 70);
   var html = '<section class="course-roadmap course-adventure-path">';
   var moduleIndex = 0;
 
@@ -1502,11 +1509,11 @@ function renderAdventurePathModules(course, modules, progress) {
 
   html += '<div class="course-adventure-stage" style="min-height:' + pathHeight + 'px">';
   html += '<svg class="course-adventure-path-line" viewBox="0 0 100 ' + pathHeight + '" preserveAspectRatio="none" aria-hidden="true">';
-  html += '<path d="' + escapeHtml(buildAdventurePathData(safeModules.length)) + '"></path>';
+  html += '<path d="' + escapeHtml(buildAdventurePathData(safeModules.length, rowHeight)) + '"></path>';
   html += '</svg>';
 
   while (moduleIndex < safeModules.length) {
-    html += renderAdventurePathNode(safeModules[moduleIndex], moduleIndex, progress);
+    html += renderAdventurePathNode(safeModules[moduleIndex], moduleIndex, progress, rowHeight);
     moduleIndex = moduleIndex + 1;
   }
 
@@ -1537,9 +1544,9 @@ function renderModuleTemplateShellStart(className, title, label) {
     + '<div class="student-section-head course-template-head"><div><h2>' + escapeHtml(title) + '</h2></div><span>' + escapeHtml(label) + '</span></div>';
 }
 
-function renderAdventurePathNode(module, moduleIndex, progress) {
+function renderAdventurePathNode(module, moduleIndex, progress, rowHeight) {
   var x = moduleIndex % 2 === 0 ? 28 : 72;
-  var y = readAdventureNodeY(moduleIndex);
+  var y = readAdventureNodeY(moduleIndex, rowHeight);
   var sideClass = moduleIndex % 2 === 0 ? " course-adventure-node-left" : " course-adventure-node-right";
 
   return renderTemplateModuleButton(module, moduleIndex, progress, "adventure", {
@@ -1555,9 +1562,11 @@ function renderTemplateModuleButton(module, moduleIndex, progress, variant, opti
   var selectedModuleId = progress && progress.selectedModuleId ? progress.selectedModuleId : "";
   var isActive = moduleId && moduleId === selectedModuleId;
   var isComplete = readiness.status === "complete";
-  var locked = isModuleLocked(module);
+  var locked = isModuleLocked(module, moduleIndex, progress && progress.course && Array.isArray(progress.course.modules) ? progress.course.modules : []);
   var progressPercent = readModuleProgressPercent(module);
   var variantClass = " course-template-module-" + variant;
+  var theme = progress && progress.visualTheme ? progress.visualTheme : readCourseVisualTheme(progress && progress.course);
+  var themeClass = " course-theme-icon-" + theme.moduleIconStyle + " course-theme-badge-" + theme.badgeStyle + " course-theme-density-" + theme.pathDensity;
   var activeClass = isActive ? " course-template-module-current" : "";
   var completeClass = isComplete ? " course-template-module-complete" : "";
   var lockedClass = locked ? " course-template-module-locked" : "";
@@ -1572,16 +1581,25 @@ function renderTemplateModuleButton(module, moduleIndex, progress, variant, opti
     detailText = "This module could not be loaded.";
   }
 
-  return '<button type="button" class="course-template-module-card course-journey-node' + variantClass + activeClass + completeClass + lockedClass + extraClass + '" data-module-id="' + escapeHtml(moduleId) + '"' + style + ' aria-label="' + escapeHtml("Open module " + title) + '">'
-    + '<span class="course-template-module-icon">' + renderStudentModuleVisual(module, statusIcon) + '</span>'
+  return '<button type="button" class="course-template-module-card course-journey-node' + variantClass + themeClass + activeClass + completeClass + lockedClass + extraClass + '" data-module-id="' + escapeHtml(moduleId) + '"' + style + ' aria-label="' + escapeHtml("Open module " + title) + '">'
+    + '<span class="course-template-module-icon">' + renderStudentModuleVisual(module, statusIcon, moduleIndex, progress) + '</span>'
     + '<span class="course-template-module-copy"><strong>' + escapeHtml(title) + '</strong><small>' + escapeHtml(readiness.label) + ' - ' + escapeHtml(detailText) + '</small></span>'
     + '<span class="course-template-module-progress" aria-hidden="true"><span style="width:' + progressPercent + '%"></span></span>'
     + '<span class="course-template-module-badge">' + statusIcon + '</span>'
     + '</button>';
 }
 
-function renderStudentModuleVisual(module, fallbackIcon) {
+function renderStudentModuleVisual(module, fallbackIcon, moduleIndex, progress) {
+  var theme = progress && progress.visualTheme ? progress.visualTheme : readCourseVisualTheme(progress && progress.course);
   var iconUrl = readImageUrl(module && module.iconUrl);
+
+  if (theme.moduleIconStyle === "minimal") {
+    return '<span class="course-template-module-number">' + (moduleIndex + 1) + '</span>';
+  }
+
+  if (theme.moduleIconStyle === "numbered" && !iconUrl) {
+    return '<span class="course-template-module-number">' + (moduleIndex + 1) + '</span>';
+  }
 
   if (iconUrl) {
     return '<img src="' + escapeHtml(iconUrl) + '" alt="">';
@@ -1590,19 +1608,19 @@ function renderStudentModuleVisual(module, fallbackIcon) {
   return fallbackIcon;
 }
 
-function buildAdventurePathData(moduleCount) {
+function buildAdventurePathData(moduleCount, rowHeight) {
   var path = "";
   var moduleIndex = 0;
 
   while (moduleIndex < moduleCount) {
     var x = moduleIndex % 2 === 0 ? 28 : 72;
-    var y = readAdventureNodeY(moduleIndex);
+    var y = readAdventureNodeY(moduleIndex, rowHeight);
 
     if (moduleIndex === 0) {
       path += "M " + x + " " + y;
     } else {
       var previousX = (moduleIndex - 1) % 2 === 0 ? 28 : 72;
-      var previousY = readAdventureNodeY(moduleIndex - 1);
+      var previousY = readAdventureNodeY(moduleIndex - 1, rowHeight);
       path += " C " + previousX + " " + (previousY + 78) + ", " + x + " " + (y - 78) + ", " + x + " " + y;
     }
 
@@ -1612,8 +1630,8 @@ function buildAdventurePathData(moduleCount) {
   return path;
 }
 
-function readAdventureNodeY(moduleIndex) {
-  return 72 + moduleIndex * 138;
+function readAdventureNodeY(moduleIndex, rowHeight) {
+  return 72 + moduleIndex * (rowHeight || 138);
 }
 
 function renderModuleActivities(course, module, state) {
@@ -1761,7 +1779,7 @@ function renderModuleIcon(module, readinessStatus) {
     return renderSvgIcon("rocket");
   }
 
-  if (isModuleLocked(module)) {
+  if (hasExplicitModuleLock(module)) {
     return renderSvgIcon("lock");
   }
 
@@ -1781,6 +1799,60 @@ function readCourseThemeStyle(course) {
   var accentColor = readSafeCssColor(course && course.accentColor, "#22c55e");
 
   return "--course-theme:" + themeColor + ";--course-accent:" + accentColor + ";";
+}
+
+function readCourseVisualTheme(course) {
+  var theme = course && course.visualTheme && typeof course.visualTheme === "object" ? course.visualTheme : {};
+  return {
+    accentColor: readVisualThemeAccentColor(theme.accentColor),
+    moduleIconStyle: readVisualThemeIconStyle(theme.moduleIconStyle),
+    badgeStyle: readVisualThemeBadgeStyle(theme.badgeStyle),
+    pathDensity: readVisualThemePathDensity(theme.pathDensity)
+  };
+}
+
+function readVisualThemeAccentColor(accentColor) {
+  if (accentColor === "emerald" || accentColor === "rose" || accentColor === "amber") {
+    return accentColor;
+  }
+
+  return "blue";
+}
+
+function readVisualThemeIconStyle(moduleIconStyle) {
+  if (moduleIconStyle === "courseIcon" || moduleIconStyle === "minimal") {
+    return moduleIconStyle;
+  }
+
+  return "numbered";
+}
+
+function readVisualThemeBadgeStyle(badgeStyle) {
+  if (badgeStyle === "soft" || badgeStyle === "solid") {
+    return badgeStyle;
+  }
+
+  return "pill";
+}
+
+function readVisualThemePathDensity(pathDensity) {
+  if (pathDensity === "compact" || pathDensity === "spacious") {
+    return pathDensity;
+  }
+
+  return "comfortable";
+}
+
+function readCourseThemePathSpacing(theme) {
+  if (theme && theme.pathDensity === "compact") {
+    return 112;
+  }
+
+  if (theme && theme.pathDensity === "spacious") {
+    return 168;
+  }
+
+  return 138;
 }
 
 function readSafeCssColor(value, fallback) {
@@ -1954,12 +2026,111 @@ function readFirstTextValue(values) {
   return "";
 }
 
-function isModuleLocked(module) {
+function isModuleLocked(module, moduleIndex, modules) {
   if (!module) {
     return true;
   }
 
-  return module.locked === true || module.isLocked === true || module.status === "locked" || module.visibility === "locked";
+  if (hasExplicitModuleLock(module)) {
+    return true;
+  }
+
+  if (readModuleLearningStatus(module) === "complete") {
+    return false;
+  }
+
+  return isModuleLockedByDependency(module, moduleIndex, modules);
+}
+
+function hasExplicitModuleLock(module) {
+  return module && (module.locked === true || module.isLocked === true || module.status === "locked" || module.visibility === "locked");
+}
+
+function isModuleLockedByDependency(module, moduleIndex, modules) {
+  var safeModules = Array.isArray(modules) ? sortModulesForJourney(modules) : [];
+  var ruleType = normalizeStudentModuleUnlockRule(module && module.unlockRuleType || module && module.unlockRules && (module.unlockRules.type || module.unlockRules.unlockRuleType));
+
+  if (ruleType === "open") {
+    return false;
+  }
+
+  if (ruleType === "percentComplete") {
+    return readCourseModulesProgressPercent(safeModules) < readUnlockThresholdPercent(module);
+  }
+
+  if (ruleType === "previousComplete") {
+    return !isDependencyModuleComplete(readPreviousModuleDependencyId(module, moduleIndex, safeModules), safeModules);
+  }
+
+  if (ruleType === "moduleComplete") {
+    return !isDependencyModuleComplete(readPrerequisiteModuleId(module), safeModules);
+  }
+
+  return false;
+}
+
+function normalizeStudentModuleUnlockRule(value) {
+  if (value === "previousComplete" || value === "moduleComplete" || value === "percentComplete") {
+    return value;
+  }
+
+  return "open";
+}
+
+function readUnlockThresholdPercent(module) {
+  var rules = module && module.unlockRules && typeof module.unlockRules === "object" ? module.unlockRules : {};
+  var value = typeof module.unlockThresholdPercent === "number" ? module.unlockThresholdPercent : rules.thresholdPercent;
+
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return 100;
+  }
+
+  return Math.max(0, Math.min(100, value));
+}
+
+function readPrerequisiteModuleId(module) {
+  var rules = module && module.unlockRules && typeof module.unlockRules === "object" ? module.unlockRules : {};
+  return readFirstTextValue([
+    module && module.prerequisiteModuleId,
+    rules.prerequisiteModuleId,
+    rules.moduleId
+  ]);
+}
+
+function readPreviousModuleDependencyId(module, moduleIndex, modules) {
+  var prerequisiteModuleId = readPrerequisiteModuleId(module);
+
+  if (prerequisiteModuleId) {
+    return prerequisiteModuleId;
+  }
+
+  if (typeof moduleIndex === "number" && moduleIndex > 0 && modules[moduleIndex - 1]) {
+    return readModuleIdValue(modules[moduleIndex - 1], moduleIndex - 1);
+  }
+
+  return "";
+}
+
+function isDependencyModuleComplete(moduleId, modules) {
+  if (!moduleId) {
+    return false;
+  }
+
+  return modules.some(function (module, index) {
+    return readModuleIdValue(module, index) === moduleId && readModuleLearningStatus(module) === "complete";
+  });
+}
+
+function readCourseModulesProgressPercent(modules) {
+  var completedSteps = 0;
+  var totalSteps = 0;
+
+  (modules || []).forEach(function (module) {
+    completedSteps = completedSteps + countModuleCompletedSteps(module);
+    totalSteps = totalSteps + countModuleSteps(module);
+  });
+
+  return calculatePercent(completedSteps, totalSteps);
 }
 
 function countJourneyCompleteModules(modules) {

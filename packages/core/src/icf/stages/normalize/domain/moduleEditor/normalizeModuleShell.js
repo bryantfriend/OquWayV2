@@ -94,6 +94,18 @@ function appendOptionalModuleVisualFields(moduleData, payload) {
   if ("parentModuleId" in payload) {
     moduleData.parentModuleId = normalizeTextValue(payload.parentModuleId);
   }
+
+  if ("unlockRuleType" in payload) {
+    moduleData.unlockRuleType = normalizeUnlockRuleType(payload.unlockRuleType);
+  }
+
+  if ("prerequisiteModuleId" in payload) {
+    moduleData.prerequisiteModuleId = normalizeTextValue(payload.prerequisiteModuleId);
+  }
+
+  if ("unlockThresholdPercent" in payload) {
+    moduleData.unlockThresholdPercent = normalizePercent(payload.unlockThresholdPercent);
+  }
 }
 
 function normalizeTextValue(value) {
@@ -122,4 +134,22 @@ function normalizeOptionalNumber(value) {
   }
 
   return null;
+}
+
+function normalizeUnlockRuleType(value) {
+  if (value === "previousComplete" || value === "moduleComplete" || value === "percentComplete") {
+    return value;
+  }
+
+  return "open";
+}
+
+function normalizePercent(value) {
+  const numberValue = normalizeOptionalNumber(value);
+
+  if (typeof numberValue !== "number") {
+    return 100;
+  }
+
+  return Math.max(0, Math.min(100, numberValue));
 }

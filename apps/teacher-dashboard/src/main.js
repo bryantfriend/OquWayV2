@@ -1,17 +1,20 @@
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.194-lesson-monitor";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.197-teacher-dashboard-tools";
 import {
   createStudentAnalyticsDetail,
   createTeacherAnalyticsSnapshot,
   sortStudentAnalyticsRows
 } from "./ui/services/analyticsService.js?v=1.1.179-teacher-analytics-dashboard";
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.194-lesson-monitor";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.197-teacher-dashboard-tools";
 import {
   createEmptyState,
   createLoadingState,
   createStatusBadge
-} from "../../../packages/ui/index.js?v=1.1.194-lesson-monitor";
+} from "../../../packages/ui/index.js?v=1.1.197-teacher-dashboard-tools";
 
 var app = document.getElementById("app");
+var courseMonitorRefreshTimer = null;
+var isCourseMonitorRefreshInFlight = false;
+var COURSE_MONITOR_REFRESH_MS = 30000;
 var state = {
   authReady: false,
   isLoading: true,
@@ -41,7 +44,18 @@ var state = {
   selectedTab: "overview",
   selectedClassId: "",
   selectedCourseId: "",
+  selectedCourseModuleId: "",
+  courseMonitorStatusFilter: "all",
+  courseMonitorModuleFilter: "",
+  courseMonitorEngagementFilter: "all",
+  courseMonitorPendingFilter: "all",
+  courseMonitorStudentSearch: "",
+  courseMonitorGroupFilter: "all",
+  showCourseEndSummary: false,
   selectedStudentId: "",
+  supportActionsByStudentId: {},
+  teacherNotesByStudentId: {},
+  courseMonitorLastRefreshedAt: null,
   activeTab: "overview",
   studentClassFilterId: "",
   studentStatusFilter: "all",
@@ -109,7 +123,18 @@ async function handleAuthState(user) {
       selectedTab: "overview",
       selectedClassId: "",
       selectedCourseId: "",
+      selectedCourseModuleId: "",
+      courseMonitorStatusFilter: "all",
+      courseMonitorModuleFilter: "",
+      courseMonitorEngagementFilter: "all",
+      courseMonitorPendingFilter: "all",
+      courseMonitorStudentSearch: "",
+      courseMonitorGroupFilter: "all",
+      showCourseEndSummary: false,
       selectedStudentId: "",
+      supportActionsByStudentId: {},
+      teacherNotesByStudentId: {},
+      courseMonitorLastRefreshedAt: null,
       selectedAnalyticsStudentId: "",
       analyticsTab: "overview",
       analyticsRange: "week",
@@ -144,6 +169,7 @@ async function loadDashboard() {
       isLoggingIn: false,
       currentTeacher: data.teacher,
       teacher: data.teacher,
+      teacherNotesByStudentId: readStoredTeacherNotes(readCurrentTeacherStorageId()),
       classes: data.classes || [],
       allStudents: data.students || [],
       studentsByClassId: buildStudentsByClassId(data.students || []),
@@ -303,7 +329,7 @@ function createClassDetailFallback(classId, error) {
   };
 }
 
-async function loadCourseDetail(assignmentId, courseId, forceRefresh) {
+async function loadCourseDetail(assignmentId, courseId, forceRefresh, silent) {
   var cacheKey = assignmentId || courseId || "";
 
   if (!cacheKey) {
@@ -320,11 +346,13 @@ async function loadCourseDetail(assignmentId, courseId, forceRefresh) {
     return;
   }
 
-  setState({
-    isCourseDetailLoading: true,
-    message: "Loading course detail...",
-    error: ""
-  });
+  if (!silent) {
+    setState({
+      isCourseDetailLoading: true,
+      message: "Loading course detail...",
+      error: ""
+    });
+  }
 
   try {
     var data = await teacherDashboardService.loadCourseDetail(assignmentId, courseId);
@@ -335,6 +363,7 @@ async function loadCourseDetail(assignmentId, courseId, forceRefresh) {
       courseDetailsById: nextDetails,
       courseDetailCache: nextDetails,
       isCourseDetailLoading: false,
+      courseMonitorLastRefreshedAt: Date.now(),
       message: "",
       error: ""
     });
@@ -352,6 +381,7 @@ async function loadCourseDetail(assignmentId, courseId, forceRefresh) {
       courseDetailsById: fallbackDetails,
       courseDetailCache: fallbackDetails,
       isCourseDetailLoading: false,
+      courseMonitorLastRefreshedAt: Date.now(),
       message: "",
       error: ""
     });
@@ -489,6 +519,7 @@ async function sendPasswordReset(form) {
 async function handleClick(event) {
   var logoutButton = event.target.closest("[data-action=logout]");
   var refreshButton = event.target.closest("[data-action=refresh]");
+  var refreshCourseMonitorButton = event.target.closest("[data-action=refresh-course-monitor]");
   var overviewButton = event.target.closest("[data-overview-target]");
   var backToClassesButton = event.target.closest("[data-action=back-to-classes]");
   var backToCoursesButton = event.target.closest("[data-action=back-to-courses]");
@@ -498,6 +529,13 @@ async function handleClick(event) {
   var analyticsTabButton = event.target.closest("[data-analytics-tab]");
   var analyticsStudentButton = event.target.closest("[data-analytics-student-id]");
   var closeAnalyticsStudentButton = event.target.closest("[data-action=close-analytics-student]");
+  var moduleDrilldownButton = event.target.closest("[data-course-module-id]");
+  var clearModuleDrilldownButton = event.target.closest("[data-action=clear-course-module]");
+  var clearCourseMonitorFiltersButton = event.target.closest("[data-action=clear-course-monitor-filters]");
+  var quickCourseMonitorFilterButton = event.target.closest("[data-course-monitor-quick-filter]");
+  var courseMonitorGroupButton = event.target.closest("[data-course-monitor-group]");
+  var toggleCourseSummaryButton = event.target.closest("[data-action=toggle-course-end-summary]");
+  var supportActionButton = event.target.closest("[data-support-action]");
   var classButton = event.target.closest("[data-class-id]");
   var courseButton = event.target.closest("[data-course-assignment-id]");
   var tabButton = event.target.closest("[data-teacher-tab]");
@@ -508,11 +546,18 @@ async function handleClick(event) {
     return;
   }
 
+  if (refreshCourseMonitorButton) {
+    await refreshSelectedCourseMonitor();
+    return;
+  }
+
   if (refreshButton) {
     var refreshClassId = state.selectedClassId;
+    var refreshCourseId = state.selectedCourseId;
     var refreshTab = state.activeTab;
     setState({
       classDetailsById: {},
+      courseDetailsById: {},
       courses: [],
       selectedStudentId: "",
       selectedAnalyticsStudentId: ""
@@ -523,6 +568,10 @@ async function handleClick(event) {
     }
     if (refreshTab === "courses") {
       await loadCourses();
+      if (refreshCourseId) {
+        var refreshCourse = findCourseByAssignmentOrCourseId(refreshCourseId, "");
+        await loadCourseDetail(refreshCourseId, refreshCourse ? refreshCourse.courseId || "" : "", true);
+      }
     }
     return;
   }
@@ -535,6 +584,7 @@ async function handleClick(event) {
   if (backToClassesButton) {
     setState({
       selectedClassId: "",
+      selectedCourseModuleId: "",
       selectedStudentId: "",
       activeTab: "classes"
     });
@@ -544,6 +594,14 @@ async function handleClick(event) {
   if (backToCoursesButton) {
     setState({
       selectedCourseId: "",
+      selectedCourseModuleId: "",
+      courseMonitorStatusFilter: "all",
+      courseMonitorModuleFilter: "",
+      courseMonitorEngagementFilter: "all",
+      courseMonitorPendingFilter: "all",
+      courseMonitorStudentSearch: "",
+      courseMonitorGroupFilter: "all",
+      showCourseEndSummary: false,
       activeTab: "courses",
       selectedTab: "courses"
     });
@@ -592,6 +650,56 @@ async function handleClick(event) {
     return;
   }
 
+  if (clearModuleDrilldownButton) {
+    setState({
+      selectedCourseModuleId: ""
+    });
+    return;
+  }
+
+  if (clearCourseMonitorFiltersButton) {
+    setState({
+      courseMonitorStatusFilter: "all",
+      courseMonitorModuleFilter: "",
+      courseMonitorEngagementFilter: "all",
+      courseMonitorPendingFilter: "all",
+      courseMonitorStudentSearch: "",
+      courseMonitorGroupFilter: "all"
+    });
+    return;
+  }
+
+  if (courseMonitorGroupButton) {
+    setState({
+      courseMonitorGroupFilter: courseMonitorGroupButton.getAttribute("data-course-monitor-group") || "all"
+    });
+    return;
+  }
+
+  if (toggleCourseSummaryButton) {
+    setState({
+      showCourseEndSummary: !state.showCourseEndSummary
+    });
+    return;
+  }
+
+  if (quickCourseMonitorFilterButton) {
+    applyCourseMonitorQuickFilter(quickCourseMonitorFilterButton.getAttribute("data-course-monitor-quick-filter") || "all");
+    return;
+  }
+
+  if (supportActionButton) {
+    await handleTeacherSupportAction(supportActionButton);
+    return;
+  }
+
+  if (moduleDrilldownButton && !event.target.closest("[data-support-action]")) {
+    setState({
+      selectedCourseModuleId: moduleDrilldownButton.getAttribute("data-course-module-id") || ""
+    });
+    return;
+  }
+
   if (analyticsStudentButton) {
     setState({
       analyticsTab: "student-detail",
@@ -607,6 +715,8 @@ async function handleClick(event) {
       selectedTab: nextTab,
       selectedClassId: nextTab === "classes" ? state.selectedClassId : "",
       selectedCourseId: nextTab === "courses" ? state.selectedCourseId : "",
+      selectedCourseModuleId: nextTab === "courses" ? state.selectedCourseModuleId : "",
+      courseMonitorModuleFilter: nextTab === "courses" ? state.courseMonitorModuleFilter : "",
       selectedStudentId: "",
       selectedAnalyticsStudentId: nextTab === "analytics" ? state.selectedAnalyticsStudentId : ""
     });
@@ -644,6 +754,14 @@ async function handleClick(event) {
     var courseId = courseButton.getAttribute("data-course-id") || "";
     setState({
       selectedCourseId: assignmentId || courseId,
+      selectedCourseModuleId: "",
+      courseMonitorStatusFilter: "all",
+      courseMonitorModuleFilter: "",
+      courseMonitorEngagementFilter: "all",
+      courseMonitorPendingFilter: "all",
+      courseMonitorStudentSearch: "",
+      courseMonitorGroupFilter: "all",
+      showCourseEndSummary: false,
       selectedStudentId: "",
       activeTab: "courses",
       selectedTab: "courses"
@@ -657,10 +775,91 @@ async function handleClick(event) {
   }
 }
 
+function applyCourseMonitorQuickFilter(filter) {
+  if (filter === "active") {
+    setState({
+      courseMonitorStatusFilter: "all",
+      courseMonitorEngagementFilter: "active",
+      courseMonitorPendingFilter: "all",
+      courseMonitorGroupFilter: "all"
+    });
+    return;
+  }
+
+  if (filter === "attention") {
+    setState({
+      courseMonitorStatusFilter: "all",
+      courseMonitorEngagementFilter: "all",
+      courseMonitorPendingFilter: "needsAttention",
+      courseMonitorGroupFilter: "needsHelp"
+    });
+    return;
+  }
+
+  if (filter === "completed") {
+    setState({
+      courseMonitorStatusFilter: "completed",
+      courseMonitorEngagementFilter: "all",
+      courseMonitorPendingFilter: "all",
+      courseMonitorGroupFilter: "all"
+    });
+    return;
+  }
+
+  setState({
+    courseMonitorStatusFilter: "all",
+    courseMonitorEngagementFilter: "all",
+    courseMonitorPendingFilter: "all",
+    courseMonitorGroupFilter: "all"
+  });
+}
+
+async function handleTeacherSupportAction(button) {
+  var action = button.getAttribute("data-support-action") || "";
+  var studentId = button.getAttribute("data-student-id") || "";
+  var studentName = button.getAttribute("data-student-name") || studentId || "student";
+
+  if (!studentId) {
+    return;
+  }
+
+  if (action === "review-work") {
+    setState({
+      activeTab: "reviews",
+      selectedTab: "reviews",
+      statusFilter: "all",
+      reviewClassId: "",
+      reviewCourseId: readSelectedCourseIdForReview(),
+      reviewModuleId: "",
+      reviewStudentSearch: studentName,
+      selectedStudentId: "",
+      selectedAnalyticsStudentId: ""
+    });
+    await refreshReviewQueue();
+    return;
+  }
+
+  var nextActions = Object.assign({}, state.supportActionsByStudentId || {});
+  nextActions[studentId] = {
+    action: action,
+    label: action === "needs-help" ? "Needs help" : "Follow-up",
+    createdAt: Date.now()
+  };
+
+  setState({
+    supportActionsByStudentId: nextActions,
+    message: (action === "needs-help" ? "Marked needs help for " : "Marked follow-up for ") + studentName + "."
+  });
+}
+
 async function handleChange(event) {
   var studentClassFilter = event.target.closest("#studentClassFilter");
   var studentStatusFilter = event.target.closest("#studentStatusFilter");
   var courseClassFilter = event.target.closest("#courseClassFilter");
+  var courseMonitorStatusFilter = event.target.closest("#courseMonitorStatusFilter");
+  var courseMonitorModuleFilter = event.target.closest("#courseMonitorModuleFilter");
+  var courseMonitorEngagementFilter = event.target.closest("#courseMonitorEngagementFilter");
+  var courseMonitorPendingFilter = event.target.closest("#courseMonitorPendingFilter");
   var analyticsRange = event.target.closest("#analyticsRangeFilter");
   var analyticsStudentSort = event.target.closest("#analyticsStudentSort");
   var statusSelect = event.target.closest("#reviewStatusFilter");
@@ -668,7 +867,7 @@ async function handleChange(event) {
   var courseSelect = event.target.closest("#reviewCourseFilter");
   var moduleSelect = event.target.closest("#reviewModuleFilter");
 
-  if (!studentClassFilter && !studentStatusFilter && !courseClassFilter && !analyticsRange && !analyticsStudentSort && !statusSelect && !classSelect && !courseSelect && !moduleSelect) {
+  if (!studentClassFilter && !studentStatusFilter && !courseClassFilter && !courseMonitorStatusFilter && !courseMonitorModuleFilter && !courseMonitorEngagementFilter && !courseMonitorPendingFilter && !analyticsRange && !analyticsStudentSort && !statusSelect && !classSelect && !courseSelect && !moduleSelect) {
     return;
   }
 
@@ -698,6 +897,34 @@ async function handleChange(event) {
     if (nextCourseClassId) {
       await loadClassDetail(nextCourseClassId, false);
     }
+    return;
+  }
+
+  if (courseMonitorStatusFilter) {
+    setState({
+      courseMonitorStatusFilter: courseMonitorStatusFilter.value || "all"
+    });
+    return;
+  }
+
+  if (courseMonitorModuleFilter) {
+    setState({
+      courseMonitorModuleFilter: courseMonitorModuleFilter.value || ""
+    });
+    return;
+  }
+
+  if (courseMonitorEngagementFilter) {
+    setState({
+      courseMonitorEngagementFilter: courseMonitorEngagementFilter.value || "all"
+    });
+    return;
+  }
+
+  if (courseMonitorPendingFilter) {
+    setState({
+      courseMonitorPendingFilter: courseMonitorPendingFilter.value || "all"
+    });
     return;
   }
 
@@ -757,6 +984,7 @@ async function openOverviewTarget(button) {
     selectedTab: targetTab,
     selectedClassId: "",
     selectedCourseId: "",
+    selectedCourseModuleId: "",
     selectedStudentId: ""
   });
 
@@ -780,8 +1008,22 @@ async function openOverviewTarget(button) {
 
 function handleInput(event) {
   var studentSearch = event.target.closest("#reviewStudentSearch");
+  var courseMonitorStudentSearch = event.target.closest("#courseMonitorStudentSearch");
+  var teacherStudentNoteInput = event.target.closest("#teacherStudentNoteInput");
 
-  if (!studentSearch) {
+  if (!studentSearch && !courseMonitorStudentSearch && !teacherStudentNoteInput) {
+    return;
+  }
+
+  if (teacherStudentNoteInput) {
+    updateTeacherNote(teacherStudentNoteInput.getAttribute("data-student-id") || "", teacherStudentNoteInput.value || "");
+    return;
+  }
+
+  if (courseMonitorStudentSearch) {
+    setState({
+      courseMonitorStudentSearch: courseMonitorStudentSearch.value
+    });
     return;
   }
 
@@ -854,6 +1096,46 @@ function setState(patch) {
   }
 
   render();
+  syncCourseMonitorRefresh();
+}
+
+function syncCourseMonitorRefresh() {
+  var shouldRefresh = Boolean(teacherDashboardService.getCurrentUser() && state.activeTab === "courses" && state.selectedCourseId);
+
+  if (!shouldRefresh && courseMonitorRefreshTimer) {
+    clearInterval(courseMonitorRefreshTimer);
+    courseMonitorRefreshTimer = null;
+    return;
+  }
+
+  if (shouldRefresh && !courseMonitorRefreshTimer) {
+    courseMonitorRefreshTimer = setInterval(function () {
+      refreshSelectedCourseMonitor();
+    }, COURSE_MONITOR_REFRESH_MS);
+  }
+}
+
+async function refreshSelectedCourseMonitor() {
+  var detail = getSelectedCourseDetail();
+  var course = detail && detail.course ? detail.course : findCourseByAssignmentOrCourseId(state.selectedCourseId, "");
+  var assignmentId = course ? (course.assignmentId || course.courseAssignmentId || state.selectedCourseId) : state.selectedCourseId;
+  var courseId = course ? (course.courseId || course.id || "") : "";
+
+  if (!state.selectedCourseId || state.activeTab !== "courses" || isCourseMonitorRefreshInFlight) {
+    return;
+  }
+
+  isCourseMonitorRefreshInFlight = true;
+  try {
+    await loadCourseDetail(assignmentId, courseId, true, true);
+  } catch (error) {
+    console.error("[teacher-course-monitor:auto-refresh-failed]", {
+      selectedCourseId: state.selectedCourseId,
+      errorMessage: error.message
+    });
+  } finally {
+    isCourseMonitorRefreshInFlight = false;
+  }
 }
 
 function render() {
@@ -1503,6 +1785,7 @@ function buildCourseDetailView() {
   var detail = getSelectedCourseDetail();
   var course = detail && detail.course ? detail.course : findCourseByAssignmentOrCourseId(state.selectedCourseId, "");
   var students = detail && Array.isArray(detail.students) ? detail.students : readStudentsForCourse(course);
+  var filteredStudents = getFilteredCourseMonitorStudents(students);
   var errors = detail && detail.errors ? detail.errors : {};
   var modules = readCourseModulesFromDetail(detail, course);
   var summary = detail && detail.summary ? detail.summary : createCourseMonitorSummaryFallback(students, modules);
@@ -1527,17 +1810,26 @@ function buildCourseDetailView() {
   return '<section class="teacher-class-command">'
     + '<div class="teacher-class-command-header"><div><p>Lesson Monitor</p><h2>' + escapeHtml(course.courseTitle || course.title || "Untitled Course") + '</h2><span>' + escapeHtml(readCourseAssignedClassLabel(course)) + ' | ' + escapeHtml(formatCourseStatus(course.status || course.readinessStatus || course.publishedStatus || "Not recorded")) + '</span>' + (courseDescription ? '<small>' + escapeHtml(courseDescription) + '</small>' : "") + '</div><button type="button" class="teacher-secondary-btn" data-action="back-to-courses">Back to Courses</button></div>'
     + (errors.courseDetail ? '<div class="teacher-error">Course detail failed to load: ' + escapeHtml(errors.courseDetail) + '</div>' : "")
-    + (students.length === 0 ? '<div class="teacher-empty compact">No students assigned to this course yet.</div>' : "")
-    + (modules.length === 0 ? '<div class="teacher-empty compact">No modules found for this course yet.</div>' : "")
+    + buildCourseMonitorRefreshBar()
+    + buildLiveLessonNowBar(course, students, modules, summary)
+    + (students.length === 0 ? '<div class="teacher-empty compact"><strong>No students assigned.</strong><span>Assign this course to a class or confirm students are enrolled. Progress records will appear here after students open the course.</span></div>' : "")
+    + (modules.length === 0 ? '<div class="teacher-empty compact"><strong>No modules found.</strong><span>Check that this course has published modules in Course Creator. Modules from catalogCourses and legacy courses are both checked.</span></div>' : "")
     + '<div class="teacher-class-summary">'
     + buildClassSummaryCard("Total Students", summary.totalStudents == null ? students.length : summary.totalStudents)
     + buildClassSummaryCard("Active Now", summary.activeNow || 0)
     + buildClassSummaryCard("Modules", summary.totalModules == null ? modules.length : summary.totalModules)
     + buildClassSummaryCard("Completion Activity", formatMonitorCompletion(summary, course))
     + '</div>'
+    + buildLessonPacingView(modules, students)
+    + buildSelectedModuleDrilldown(modules, students)
+    + buildCourseMonitorFilters(modules, students, filteredStudents)
+    + buildQuickGroupingTool(students)
+    + buildNeedsAttentionPanel(students)
+    + buildCourseReviewPreview(course)
+    + buildEndOfLessonSummary(course, students, modules, summary)
     + '<div class="teacher-course-monitor-grid">'
     + buildCourseModulesPanel(modules)
-    + buildCourseStudentsPanel(students)
+    + buildCourseStudentsPanel(filteredStudents, students)
     + '</div>'
     + '</section>';
 }
@@ -1546,13 +1838,15 @@ function buildCourseModulesPanel(modules) {
   var html = '<section class="teacher-card-section teacher-course-module-panel"><div class="teacher-section-title"><div><h2>Module Progress</h2><p>Course structure and student movement</p></div>' + buildSectionGlyphSvg("courses") + '</div>';
 
   if (!Array.isArray(modules) || modules.length === 0) {
-    return html + buildEmptyState("courses", "No modules found.", "Modules are missing or have not been loaded for this assignment.") + '</section>';
+    return html + buildEmptyState("courses", "No modules found.", "Open Course Creator and confirm this course has modules saved and published.") + '</section>';
   }
 
   html += '<div class="teacher-monitor-module-list">';
   modules.forEach(function (moduleRecord) {
-    html += '<details class="teacher-monitor-module-card">'
-      + '<summary><div><span>Module ' + escapeHtml(String(moduleRecord.order || "")) + '</span><strong>' + escapeHtml(readModuleTitle(moduleRecord)) + '</strong></div><b>' + escapeHtml(formatPercent(moduleRecord.averageCompletionPercent || 0)) + '</b></summary>'
+    var moduleId = readMonitorModuleId(moduleRecord);
+    var selectedClass = state.selectedCourseModuleId === moduleId ? " selected" : "";
+    html += '<details class="teacher-monitor-module-card' + selectedClass + '"' + (selectedClass ? " open" : "") + '>'
+      + '<summary data-course-module-id="' + escapeHtml(moduleId) + '"><div><span>Module ' + escapeHtml(String(moduleRecord.order || "")) + '</span><strong>' + escapeHtml(readModuleTitle(moduleRecord)) + '</strong></div><b>' + escapeHtml(formatPercent(moduleRecord.averageCompletionPercent || 0)) + '</b></summary>'
       + '<div class="teacher-monitor-module-metrics">'
       + '<span>Started <strong>' + escapeHtml(String(moduleRecord.studentsStartedCount || 0)) + '</strong></span>'
       + '<span>Completed <strong>' + escapeHtml(String(moduleRecord.studentsCompletedCount || 0)) + '</strong></span>'
@@ -1565,11 +1859,15 @@ function buildCourseModulesPanel(modules) {
   return html + '</div></section>';
 }
 
-function buildCourseStudentsPanel(students) {
+function buildCourseStudentsPanel(students, allStudents) {
   var html = '<section class="teacher-card-section teacher-course-student-panel"><div class="teacher-section-title"><div><h2>Student Monitoring</h2><p>Current activity in this lesson</p></div>' + buildSectionGlyphSvg("students") + '</div>';
 
+  if (!allStudents || allStudents.length === 0) {
+    return html + buildEmptyState("students", "No students assigned.", "Assign this course to a class, then ask students to open the course. Students with existing course progress will appear when records are available.") + '</section>';
+  }
+
   if (!students || students.length === 0) {
-    return html + buildEmptyState("students", "No students assigned.", "Students connected through class enrollment, course assignment, or progress records will appear here.") + '</section>';
+    return html + buildEmptyState("students", "No students match these filters.", "Try clearing filters or choosing a different status, module, engagement, or student search.") + '</section>';
   }
 
   html += '<div class="teacher-monitor-table-wrap"><table class="teacher-monitor-table"><thead><tr>'
@@ -1582,6 +1880,7 @@ function buildCourseStudentsPanel(students) {
     + '<th>Steps</th>'
     + '<th>Time</th>'
     + '<th>Engagement</th>'
+    + '<th>Actions</th>'
     + '</tr></thead><tbody>';
   students.forEach(function (student) {
     html += buildCourseMonitorStudentRow(student);
@@ -1610,6 +1909,593 @@ function buildModuleActiveStudentList(moduleRecord) {
   return html + '</div>';
 }
 
+function buildCourseMonitorRefreshBar() {
+  return '<div class="teacher-monitor-refresh-bar">'
+    + '<span><i class="fa-solid fa-rotate"></i> Live refresh every 30s</span>'
+    + '<strong>Last updated: ' + escapeHtml(formatDate(state.courseMonitorLastRefreshedAt) || "Just now") + '</strong>'
+    + '<button type="button" class="teacher-secondary-btn compact" data-action="refresh-course-monitor">Refresh now</button>'
+    + '</div>';
+}
+
+function buildLiveLessonNowBar(course, students, modules, summary) {
+  var activeCount = countCourseMonitorStudentsByEngagement(students, "active");
+  var attentionCount = getNeedsAttentionStudents(students).length;
+  var completedCount = countCourseMonitorStudentsByStatus(students, "completed");
+  var currentLesson = readCurrentLessonLabel(course, students, modules);
+
+  return '<section class="teacher-monitor-now-bar" aria-label="Live lesson status">'
+    + '<div><p>Live Lesson Now</p><strong>' + escapeHtml(currentLesson) + '</strong><span>' + escapeHtml(String(students.length || 0)) + ' students | ' + escapeHtml(formatMonitorCompletion(summary, course)) + ' completion activity</span></div>'
+    + '<div class="teacher-monitor-now-stats">'
+    + buildMonitorNowStat("Active Now", activeCount)
+    + buildMonitorNowStat("Needs Attention", attentionCount)
+    + buildMonitorNowStat("Completed", completedCount)
+    + '</div>'
+    + '<div class="teacher-monitor-now-actions" aria-label="Quick monitor filters">'
+    + buildMonitorQuickFilter("all", "All", students.length)
+    + buildMonitorQuickFilter("active", "Active Now", activeCount)
+    + buildMonitorQuickFilter("attention", "Needs Attention", attentionCount)
+    + buildMonitorQuickFilter("completed", "Completed", completedCount)
+    + '</div>'
+    + '</section>';
+}
+
+function buildMonitorNowStat(label, value) {
+  return '<span><b>' + escapeHtml(String(value || 0)) + '</b>' + escapeHtml(label) + '</span>';
+}
+
+function buildMonitorQuickFilter(filter, label, count) {
+  var active = isCourseMonitorQuickFilterActive(filter) ? " active" : "";
+
+  return '<button type="button" class="teacher-monitor-filter-chip' + active + '" data-course-monitor-quick-filter="' + escapeHtml(filter) + '">'
+    + '<strong>' + escapeHtml(label) + '</strong><span>' + escapeHtml(String(count || 0)) + '</span>'
+    + '</button>';
+}
+
+function buildLessonPacingView(modules, students) {
+  if (!modules || modules.length === 0) {
+    return "";
+  }
+
+  return '<section class="teacher-monitor-pacing-panel"><div><p>Lesson Pacing</p><h3>Where the class is right now</h3><span>Use this to decide whether to pause, support, or move ahead.</span></div>'
+    + '<div class="teacher-monitor-pacing-list">'
+    + modules.map(function (moduleRecord) {
+      return buildPacingModuleCard(moduleRecord, students);
+    }).join("")
+    + '</div></section>';
+}
+
+function buildPacingModuleCard(moduleRecord, students) {
+  var moduleId = readMonitorModuleId(moduleRecord);
+  var currentCount = countStudentsCurrentlyInModule(students, moduleRecord);
+  var completedCount = countStudentsCompletedModule(students, moduleRecord);
+  var totalCount = (students || []).length;
+  var percent = totalCount > 0 ? Math.round(((currentCount + completedCount) / totalCount) * 100) : 0;
+
+  return '<button type="button" class="teacher-monitor-pacing-card" data-course-module-id="' + escapeHtml(moduleId) + '">'
+    + '<span>Module ' + escapeHtml(String(moduleRecord.order || "")) + '</span>'
+    + '<strong>' + escapeHtml(readModuleTitle(moduleRecord)) + '</strong>'
+    + '<small>' + escapeHtml(String(currentCount)) + ' here · ' + escapeHtml(String(completedCount)) + ' completed</small>'
+    + '<b style="--pacing-width:' + escapeHtml(String(percent)) + '%"></b>'
+    + '</button>';
+}
+
+function buildQuickGroupingTool(students) {
+  if (!students || students.length === 0) {
+    return "";
+  }
+
+  var groups = buildCourseMonitorGroups(students);
+
+  return '<section class="teacher-monitor-group-panel"><div><p>Quick Groups</p><h3>Plan small-group support</h3><span>Private planning groups based on current lesson signals.</span></div>'
+    + '<div class="teacher-monitor-group-list">'
+    + buildMonitorGroupCard("readyExtension", "Ready for extension", groups.readyExtension)
+    + buildMonitorGroupCard("needsHelp", "Needs help", groups.needsHelp)
+    + buildMonitorGroupCard("waitingReview", "Waiting for review", groups.waitingReview)
+    + buildMonitorGroupCard("notStarted", "Not started", groups.notStarted)
+    + '</div></section>';
+}
+
+function buildMonitorGroupCard(groupId, label, students) {
+  var active = state.courseMonitorGroupFilter === groupId ? " active" : "";
+  var names = students.slice(0, 3).map(function (student) {
+    return student.name || "Student";
+  }).join(", ");
+
+  return '<button type="button" class="teacher-monitor-group-card' + active + '" data-course-monitor-group="' + escapeHtml(groupId) + '">'
+    + '<strong>' + escapeHtml(label) + '</strong>'
+    + '<span>' + escapeHtml(String(students.length)) + ' student' + (students.length === 1 ? "" : "s") + '</span>'
+    + '<small>' + escapeHtml(names || "No students in this group") + '</small>'
+    + '</button>';
+}
+
+function buildCourseReviewPreview(course) {
+  var submissions = getCourseMonitorReviewSubmissions(course);
+  var html = '<section class="teacher-monitor-review-preview"><div><p>Review Preview</p><h3>Pending work for this course</h3><span>Quick view from the lesson monitor.</span></div>';
+
+  if (submissions.length === 0) {
+    return html + '<div class="teacher-monitor-review-empty">No pending submissions loaded for this course.</div></section>';
+  }
+
+  html += '<div class="teacher-monitor-review-list">';
+  submissions.slice(0, 4).forEach(function (submission) {
+    html += '<article class="teacher-monitor-review-card">'
+      + '<strong>' + escapeHtml(submission.studentName || "Student") + '</strong>'
+      + '<span>' + escapeHtml(submission.moduleTitle || submission.moduleName || "Course submission") + '</span>'
+      + '<small>' + escapeHtml(formatDate(submission.submittedAt || submission.createdAt) || "Submitted") + '</small>'
+      + '</article>';
+  });
+
+  if (submissions.length > 4) {
+    html += '<span class="teacher-monitor-review-more">+' + escapeHtml(String(submissions.length - 4)) + ' more pending submissions</span>';
+  }
+
+  return html + '<button type="button" class="teacher-secondary-btn compact" data-support-action="review-work" data-student-id="course-review" data-student-name="">Open Review Queue</button></div></section>';
+}
+
+function buildEndOfLessonSummary(course, students, modules, summary) {
+  if (!state.showCourseEndSummary) {
+    return '<section class="teacher-monitor-end-summary collapsed"><div><p>End-of-Lesson Summary</p><h3>Ready when class is wrapping up</h3><span>Generate a compact snapshot for follow-up planning.</span></div><button type="button" class="teacher-secondary-btn compact" data-action="toggle-course-end-summary">Show Summary</button></section>';
+  }
+
+  var attentionStudents = getNeedsAttentionStudents(students);
+  var pendingReviews = getCourseMonitorReviewSubmissions(course);
+  var bottleneck = findCourseMonitorBottleneckModule(modules, students);
+
+  return '<section class="teacher-monitor-end-summary"><div class="teacher-monitor-end-summary-head"><div><p>End-of-Lesson Summary</p><h3>' + escapeHtml(course.courseTitle || course.title || "Course") + '</h3><span>' + escapeHtml(formatDate(Date.now())) + '</span></div><button type="button" class="teacher-secondary-btn compact" data-action="toggle-course-end-summary">Hide Summary</button></div>'
+    + '<div class="teacher-monitor-summary-grid">'
+    + buildEndSummaryMetric("Completion", formatMonitorCompletion(summary, course))
+    + buildEndSummaryMetric("Active now", countCourseMonitorStudentsByEngagement(students, "active"))
+    + buildEndSummaryMetric("Needs follow-up", attentionStudents.length)
+    + buildEndSummaryMetric("Pending reviews", pendingReviews.length)
+    + '</div>'
+    + '<div class="teacher-monitor-summary-notes">'
+    + '<span><strong>Bottleneck module</strong>' + escapeHtml(bottleneck ? readModuleTitle(bottleneck.moduleRecord) + " · " + bottleneck.count + " students" : "Not enough module progress yet") + '</span>'
+    + '<span><strong>Follow-up students</strong>' + escapeHtml(attentionStudents.slice(0, 5).map(function (student) { return student.name || "Student"; }).join(", ") || "None right now") + '</span>'
+    + '</div></section>';
+}
+
+function buildEndSummaryMetric(label, value) {
+  return '<article><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(String(value == null ? 0 : value)) + '</strong></article>';
+}
+
+function isCourseMonitorQuickFilterActive(filter) {
+  if (filter === "active") {
+    return state.courseMonitorEngagementFilter === "active" && state.courseMonitorPendingFilter === "all" && state.courseMonitorStatusFilter === "all";
+  }
+
+  if (filter === "attention") {
+    return state.courseMonitorPendingFilter === "needsAttention";
+  }
+
+  if (filter === "completed") {
+    return state.courseMonitorStatusFilter === "completed";
+  }
+
+  return state.courseMonitorStatusFilter === "all"
+    && state.courseMonitorEngagementFilter === "all"
+    && state.courseMonitorPendingFilter === "all";
+}
+
+function buildCourseMonitorFilters(modules, students, filteredStudents) {
+  if (!students || students.length === 0) {
+    return "";
+  }
+
+  return '<section class="teacher-monitor-filter-panel">'
+    + '<div><p>Monitor Filters</p><strong>' + escapeHtml(String(filteredStudents.length)) + ' of ' + escapeHtml(String(students.length)) + ' students shown</strong>' + (state.courseMonitorGroupFilter !== "all" ? '<span>Group: ' + escapeHtml(formatCourseMonitorGroupLabel(state.courseMonitorGroupFilter)) + '</span>' : "") + '</div>'
+    + '<div class="teacher-monitor-filters teacher-filters">'
+    + '<label>Student<input id="courseMonitorStudentSearch" type="search" value="' + escapeHtml(state.courseMonitorStudentSearch || "") + '" placeholder="Search by name"></label>'
+    + '<label>Status<select id="courseMonitorStatusFilter">' + buildCourseMonitorStatusOptions() + '</select></label>'
+    + '<label>Module<select id="courseMonitorModuleFilter"><option value="">All modules</option>' + buildCourseMonitorModuleOptions(modules) + '</select></label>'
+    + '<label>Engagement<select id="courseMonitorEngagementFilter">' + buildCourseMonitorEngagementOptions() + '</select></label>'
+    + '<label>Attention<select id="courseMonitorPendingFilter">' + buildCourseMonitorAttentionOptions() + '</select></label>'
+    + '<button type="button" class="teacher-secondary-btn compact" data-action="clear-course-monitor-filters">Clear</button>'
+    + '</div>'
+    + '</section>';
+}
+
+function buildCourseMonitorStatusOptions() {
+  return buildGenericOption("all", "All statuses", state.courseMonitorStatusFilter)
+    + buildGenericOption("notStarted", "Not Started", state.courseMonitorStatusFilter)
+    + buildGenericOption("active", "Active", state.courseMonitorStatusFilter)
+    + buildGenericOption("inProgress", "In Progress", state.courseMonitorStatusFilter)
+    + buildGenericOption("completed", "Completed", state.courseMonitorStatusFilter);
+}
+
+function buildCourseMonitorModuleOptions(modules) {
+  return (modules || []).map(function (moduleRecord) {
+    var moduleId = readMonitorModuleId(moduleRecord);
+    return '<option value="' + escapeHtml(moduleId) + '"' + selected(state.courseMonitorModuleFilter, moduleId) + '>' + escapeHtml(readModuleTitle(moduleRecord)) + '</option>';
+  }).join("");
+}
+
+function buildCourseMonitorEngagementOptions() {
+  return buildGenericOption("all", "All engagement", state.courseMonitorEngagementFilter)
+    + buildGenericOption("active", "Active Now", state.courseMonitorEngagementFilter)
+    + buildGenericOption("recent", "Recently Active", state.courseMonitorEngagementFilter)
+    + buildGenericOption("inactive", "Inactive", state.courseMonitorEngagementFilter);
+}
+
+function buildCourseMonitorAttentionOptions() {
+  return buildGenericOption("all", "All students", state.courseMonitorPendingFilter)
+    + buildGenericOption("needsAttention", "Needs Attention", state.courseMonitorPendingFilter)
+    + buildGenericOption("pendingReview", "Pending Review", state.courseMonitorPendingFilter);
+}
+
+function buildNeedsAttentionPanel(students) {
+  var attentionStudents = getNeedsAttentionStudents(students);
+  var html = '<section class="teacher-monitor-attention-panel"><div><p>Needs Attention</p><h3>Support signals</h3><span>Gentle prompts for students who may need a check-in.</span></div>';
+
+  if (attentionStudents.length === 0) {
+    return html + '<div class="teacher-monitor-attention-empty">No attention signals right now.</div></section>';
+  }
+
+  html += '<div class="teacher-monitor-attention-list">';
+  attentionStudents.slice(0, 4).forEach(function (student) {
+    var reasons = readNeedsAttentionReasons(student);
+    html += '<article class="teacher-monitor-attention-card">'
+      + '<button type="button" data-action="open-student-profile" data-student-id="' + escapeHtml(student.id || "") + '"><strong>' + escapeHtml(student.name || "Student") + '</strong><span>' + escapeHtml(reasons[0] || "Check in when possible") + '</span></button>'
+      + '<small>' + escapeHtml(formatDate(student.lastActivityAt || student.lastActiveAt) || "No recent activity") + '</small>'
+      + '<div class="teacher-monitor-actions mini">'
+      + '<button type="button" data-support-action="follow-up" data-student-id="' + escapeHtml(student.id || "") + '" data-student-name="' + escapeHtml(student.name || "Student") + '">Follow-up</button>'
+      + '<button type="button" data-support-action="needs-help" data-student-id="' + escapeHtml(student.id || "") + '" data-student-name="' + escapeHtml(student.name || "Student") + '">Needs help</button>'
+      + '</div>'
+      + '</article>';
+  });
+
+  if (attentionStudents.length > 4) {
+    html += '<span class="teacher-monitor-attention-more">+' + escapeHtml(String(attentionStudents.length - 4)) + ' more students with support signals</span>';
+  }
+
+  return html + '</div></section>';
+}
+
+function buildSelectedModuleDrilldown(modules, students) {
+  var moduleRecord = findMonitorModuleById(modules, state.selectedCourseModuleId);
+  var moduleId = readMonitorModuleId(moduleRecord);
+  var activeStudents = moduleRecord ? readStudentsForMonitorModule(moduleRecord, students) : [];
+  var html = "";
+
+  if (!moduleRecord) {
+    return "";
+  }
+
+  html += '<section class="teacher-monitor-drilldown">'
+    + '<div><p>Module Drilldown</p><h3>' + escapeHtml(readModuleTitle(moduleRecord)) + '</h3><span>' + escapeHtml(String(activeStudents.length)) + ' student' + (activeStudents.length === 1 ? "" : "s") + ' with progress in this module</span></div>'
+    + '<button type="button" class="teacher-secondary-btn compact" data-action="clear-course-module">Clear</button>'
+    + '<div class="teacher-monitor-drilldown-students">';
+
+  if (activeStudents.length === 0) {
+    html += '<span>No students are currently recorded in this module.</span>';
+  } else {
+    activeStudents.forEach(function (student) {
+      var moduleProgress = student.moduleProgressById ? student.moduleProgressById[moduleId] : null;
+      var percent = moduleProgress && moduleProgress.totalStepCount > 0 ? Math.round((moduleProgress.completedStepCount / moduleProgress.totalStepCount) * 100) : 0;
+      html += '<button type="button" data-action="open-student-profile" data-student-id="' + escapeHtml(student.id || "") + '">'
+        + '<strong>' + escapeHtml(student.name || "Student") + '</strong>'
+        + '<small>' + escapeHtml(formatPercent(percent)) + ' · ' + escapeHtml(student.engagementStatus || "Inactive") + '</small>'
+        + '</button>';
+    });
+  }
+
+  return html + '</div></section>';
+}
+
+function findMonitorModuleById(modules, moduleId) {
+  if (!moduleId) {
+    return null;
+  }
+
+  return (modules || []).find(function (moduleRecord) {
+    return moduleRecord && (readMonitorModuleId(moduleRecord) === moduleId || moduleRecord.moduleId === moduleId);
+  }) || null;
+}
+
+function readStudentsForMonitorModule(moduleRecord, students) {
+  var moduleId = readMonitorModuleId(moduleRecord);
+
+  return (students || []).filter(function (student) {
+    return student.moduleProgressById && student.moduleProgressById[moduleId];
+  });
+}
+
+function readMonitorModuleId(moduleRecord) {
+  return moduleRecord ? (moduleRecord.id || moduleRecord.moduleId || moduleRecord.sourceModuleId || "") : "";
+}
+
+function getFilteredCourseMonitorStudents(students) {
+  var search = String(state.courseMonitorStudentSearch || "").trim().toLowerCase();
+
+  return (students || []).filter(function (student) {
+    return matchesCourseMonitorStatus(student)
+      && matchesCourseMonitorModule(student)
+      && matchesCourseMonitorEngagement(student)
+      && matchesCourseMonitorAttention(student)
+      && matchesCourseMonitorGroup(student)
+      && matchesCourseMonitorSearch(student, search);
+  });
+}
+
+function matchesCourseMonitorStatus(student) {
+  var filter = state.courseMonitorStatusFilter || "all";
+
+  if (filter === "all") {
+    return true;
+  }
+
+  return normalizeCourseMonitorStatus(student) === filter;
+}
+
+function matchesCourseMonitorModule(student) {
+  var moduleId = state.courseMonitorModuleFilter || "";
+
+  if (!moduleId) {
+    return true;
+  }
+
+  return student.currentModuleId === moduleId
+    || student.moduleId === moduleId
+    || Boolean(student.moduleProgressById && student.moduleProgressById[moduleId]);
+}
+
+function matchesCourseMonitorEngagement(student) {
+  var filter = state.courseMonitorEngagementFilter || "all";
+
+  if (filter === "all") {
+    return true;
+  }
+
+  return normalizeCourseMonitorEngagement(student) === filter;
+}
+
+function matchesCourseMonitorAttention(student) {
+  var filter = state.courseMonitorPendingFilter || "all";
+
+  if (filter === "pendingReview") {
+    return Number(student.pendingSubmissionsCount || student.pendingReviewCount || 0) > 0 || Boolean(student.hasPendingReview);
+  }
+
+  if (filter === "needsAttention") {
+    return readNeedsAttentionReasons(student).length > 0;
+  }
+
+  return true;
+}
+
+function matchesCourseMonitorGroup(student) {
+  var filter = state.courseMonitorGroupFilter || "all";
+
+  if (filter === "all") {
+    return true;
+  }
+
+  return readCourseMonitorGroupIds(student).indexOf(filter) !== -1;
+}
+
+function matchesCourseMonitorSearch(student, search) {
+  if (!search) {
+    return true;
+  }
+
+  return String(student.name || student.displayName || student.email || student.id || "").toLowerCase().indexOf(search) !== -1;
+}
+
+function normalizeCourseMonitorStatus(student) {
+  var value = String(student.courseStatus || student.courseStatusLabel || student.status || "").trim().toLowerCase().replace(/[\s_-]+/g, "");
+
+  if (value === "completed" || value === "complete") return "completed";
+  if (value === "active") return "active";
+  if (value === "inprogress" || value === "started") return "inProgress";
+  if (value === "notstarted" || value === "none") return "notStarted";
+
+  if (Number(student.completedStepCount || 0) > 0 || Number(student.completedModuleCount || 0) > 0) {
+    return "inProgress";
+  }
+
+  return "notStarted";
+}
+
+function normalizeCourseMonitorEngagement(student) {
+  var value = String(student.engagementStatus || "").trim().toLowerCase();
+
+  if (value === "active now" || value === "active") return "active";
+  if (value === "recently active" || value === "recent") return "recent";
+  return "inactive";
+}
+
+function countCourseMonitorStudentsByEngagement(students, engagement) {
+  return (students || []).filter(function (student) {
+    return normalizeCourseMonitorEngagement(student) === engagement;
+  }).length;
+}
+
+function countCourseMonitorStudentsByStatus(students, status) {
+  return (students || []).filter(function (student) {
+    return normalizeCourseMonitorStatus(student) === status;
+  }).length;
+}
+
+function getNeedsAttentionStudents(students) {
+  return (students || []).filter(function (student) {
+    return readNeedsAttentionReasons(student).length > 0;
+  });
+}
+
+function buildCourseMonitorGroups(students) {
+  var groups = {
+    readyExtension: [],
+    needsHelp: [],
+    waitingReview: [],
+    notStarted: []
+  };
+
+  (students || []).forEach(function (student) {
+    readCourseMonitorGroupIds(student).forEach(function (groupId) {
+      if (groups[groupId]) {
+        groups[groupId].push(student);
+      }
+    });
+  });
+
+  return groups;
+}
+
+function readCourseMonitorGroupIds(student) {
+  var groups = [];
+  var status = normalizeCourseMonitorStatus(student);
+  var pendingReviews = Number(student && (student.pendingSubmissionsCount || student.pendingReviewCount || 0)) || 0;
+  var progress = readCourseMonitorProgressPercent(student);
+
+  if (status === "completed" || progress >= 80) {
+    groups.push("readyExtension");
+  }
+
+  if (readNeedsAttentionReasons(student).length > 0) {
+    groups.push("needsHelp");
+  }
+
+  if (pendingReviews > 0 || Boolean(student && student.hasPendingReview)) {
+    groups.push("waitingReview");
+  }
+
+  if (status === "notStarted") {
+    groups.push("notStarted");
+  }
+
+  return groups;
+}
+
+function formatCourseMonitorGroupLabel(groupId) {
+  if (groupId === "readyExtension") return "Ready for extension";
+  if (groupId === "needsHelp") return "Needs help";
+  if (groupId === "waitingReview") return "Waiting for review";
+  if (groupId === "notStarted") return "Not started";
+  return "All groups";
+}
+
+function readCourseMonitorProgressPercent(student) {
+  var direct = readFirstNumber(student, ["progressPercent", "courseProgressPercent", "completionPercent"]);
+  var totalSteps = Number(student && student.totalStepCount) || 0;
+  var completedSteps = Number(student && student.completedStepCount) || 0;
+
+  if (direct != null) {
+    return Math.max(0, Math.min(100, Math.round(direct)));
+  }
+
+  if (totalSteps > 0) {
+    return Math.round((completedSteps / totalSteps) * 100);
+  }
+
+  return 0;
+}
+
+function countStudentsCurrentlyInModule(students, moduleRecord) {
+  var moduleId = readMonitorModuleId(moduleRecord);
+  var moduleTitle = readModuleTitle(moduleRecord);
+
+  return (students || []).filter(function (student) {
+    return student.currentModuleId === moduleId
+      || student.moduleId === moduleId
+      || student.currentModuleTitle === moduleTitle;
+  }).length;
+}
+
+function countStudentsCompletedModule(students, moduleRecord) {
+  var moduleId = readMonitorModuleId(moduleRecord);
+
+  return (students || []).filter(function (student) {
+    var progress = student.moduleProgressById ? student.moduleProgressById[moduleId] : null;
+    if (!progress) {
+      return false;
+    }
+
+    return Boolean(progress.completed)
+      || Number(progress.progressPercent || 0) >= 100
+      || (Number(progress.totalStepCount || 0) > 0 && Number(progress.completedStepCount || 0) >= Number(progress.totalStepCount || 0));
+  }).length;
+}
+
+function getCourseMonitorReviewSubmissions(course) {
+  var courseId = course ? (course.courseId || course.id || "") : readSelectedCourseIdForReview();
+  var assignmentId = course ? (course.assignmentId || course.courseAssignmentId || "") : state.selectedCourseId;
+
+  return (state.submissions || []).filter(function (submission) {
+    var status = submission.reviewStatus || "pending";
+    var matchesCourse = !courseId || submission.courseId === courseId || submission.courseId === assignmentId || submission.courseAssignmentId === assignmentId;
+    return matchesCourse && status === "pending";
+  });
+}
+
+function findCourseMonitorBottleneckModule(modules, students) {
+  var best = null;
+
+  (modules || []).forEach(function (moduleRecord) {
+    var count = countStudentsCurrentlyInModule(students, moduleRecord);
+    if (!best || count > best.count) {
+      best = {
+        moduleRecord: moduleRecord,
+        count: count
+      };
+    }
+  });
+
+  return best && best.count > 0 ? best : null;
+}
+
+function readNeedsAttentionReasons(student) {
+  var reasons = [];
+  var supportAction = student && state.supportActionsByStudentId ? state.supportActionsByStudentId[student.id] : null;
+  var pendingReviews = Number(student && (student.pendingSubmissionsCount || student.pendingReviewCount || 0)) || 0;
+  var attemptCount = readFirstNumber(student, ["incorrectAttemptCount", "incompleteAttemptCount", "failedAttemptCount", "retryCount", "attempts"]);
+  var lastActivityMillis = readMillis(student && (student.lastActivityAt || student.lastActiveAt));
+
+  if (supportAction) {
+    reasons.push(supportAction.label || "Teacher follow-up marked");
+  }
+
+  if (pendingReviews > 0 || Boolean(student && student.hasPendingReview)) {
+    reasons.push("Waiting on teacher review");
+  }
+
+  if (attemptCount != null && attemptCount >= 2 && normalizeCourseMonitorStatus(student) !== "completed") {
+    reasons.push("Multiple attempts recorded");
+  }
+
+  if (String(student && (student.courseStatusLabel || student.courseStatus || "") || "").toLowerCase().indexOf("help") !== -1) {
+    reasons.push("Student may need help");
+  }
+
+  if (lastActivityMillis && Date.now() - lastActivityMillis > 30 * 60 * 1000 && normalizeCourseMonitorStatus(student) !== "completed") {
+    reasons.push("No activity in the last 30 minutes");
+  }
+
+  if (!lastActivityMillis && normalizeCourseMonitorStatus(student) !== "notStarted") {
+    reasons.push("Progress exists without recent activity");
+  }
+
+  return reasons.slice(0, 3);
+}
+
+function readCurrentLessonLabel(course, students, modules) {
+  var activeStudent = (students || []).find(function (student) {
+    return normalizeCourseMonitorEngagement(student) === "active" && (student.currentModuleTitle || student.currentStepTitle);
+  }) || null;
+
+  if (activeStudent && activeStudent.currentModuleTitle) {
+    return activeStudent.currentModuleTitle;
+  }
+
+  if (activeStudent && activeStudent.currentStepTitle) {
+    return activeStudent.currentStepTitle;
+  }
+
+  if (modules && modules.length > 0) {
+    return readModuleTitle(modules[0]);
+  }
+
+  return course ? (course.courseTitle || course.title || "Current lesson") : "Current lesson";
+}
+
 function buildCourseMonitorStudentRow(student) {
   return '<tr>'
     + '<td><button type="button" class="teacher-monitor-student-link" data-action="open-student-profile" data-student-id="' + escapeHtml(student.id || "") + '"><span class="teacher-avatar">' + buildStudentAvatar(student) + '</span><span><strong>' + escapeHtml(student.name || "Student") + '</strong><small>' + escapeHtml(student.className || readStudentClassName(student) || "Assigned student") + '</small></span></button></td>'
@@ -1621,7 +2507,22 @@ function buildCourseMonitorStudentRow(student) {
     + '<td>' + escapeHtml(student.stepProgressCount || createProgressCount(student.completedStepCount, student.totalStepCount)) + '</td>'
     + '<td>' + escapeHtml(formatMonitorTime(student.timeOnTaskSeconds)) + '</td>'
     + '<td>' + buildMonitorBadge(student.engagementStatus || "Inactive", normalizeEngagementClass(student.engagementStatus)) + '</td>'
+    + '<td>' + buildMonitorSupportActions(student) + '</td>'
     + '</tr>';
+}
+
+function buildMonitorSupportActions(student) {
+  var supportAction = state.supportActionsByStudentId ? state.supportActionsByStudentId[student.id] : null;
+  var teacherNote = readTeacherNoteForStudent(student && student.id);
+  var studentName = student.name || "Student";
+
+  return '<div class="teacher-monitor-actions">'
+    + (supportAction ? '<span>' + escapeHtml(supportAction.label || "Marked") + '</span>' : "")
+    + (teacherNote ? '<span>Note saved</span>' : "")
+    + '<button type="button" data-support-action="follow-up" data-student-id="' + escapeHtml(student.id || "") + '" data-student-name="' + escapeHtml(studentName) + '">Follow-up</button>'
+    + '<button type="button" data-support-action="needs-help" data-student-id="' + escapeHtml(student.id || "") + '" data-student-name="' + escapeHtml(studentName) + '">Needs help</button>'
+    + '<button type="button" data-support-action="review-work" data-student-id="' + escapeHtml(student.id || "") + '" data-student-name="' + escapeHtml(studentName) + '">Review work</button>'
+    + '</div>';
 }
 
 function buildMonitorBadge(label, status) {
@@ -1746,6 +2647,9 @@ function buildStudentRow(student) {
 function buildStudentProfileModal() {
   var student = getSelectedStudentRecord();
   var studentCourses = readCoursesForStudent(student);
+  var courseContext = readSelectedCourseStudentContext(student);
+  var supportAction = student && state.supportActionsByStudentId ? state.supportActionsByStudentId[student.id] : null;
+  var teacherNote = readTeacherNoteForStudent(student && student.id);
 
   if (!student) {
     return "";
@@ -1762,14 +2666,58 @@ function buildStudentProfileModal() {
     + buildStudentProfileRow("Mood today", readStudentMoodToday(student) || "Not recorded")
     + buildStudentProfileRow("Attendance today", readAttendanceToday(student) || "Not recorded")
     + buildStudentProfileRow("Assigned progress", readStudentProfileProgress(student))
+    + (courseContext ? buildStudentProfileRow("Current course status", courseContext.courseStatusLabel || "Not Started") : "")
+    + (courseContext ? buildStudentProfileRow("Current module", courseContext.currentModuleTitle || "Not started") : "")
+    + (courseContext ? buildStudentProfileRow("Current step", courseContext.currentStepTitle || "Not available") : "")
+    + (courseContext ? buildStudentProfileRow("Course modules", courseContext.moduleProgressCount || "0/0") : "")
+    + (courseContext ? buildStudentProfileRow("Course steps", courseContext.stepProgressCount || "0/0") : "")
+    + (courseContext ? buildStudentProfileRow("Course engagement", courseContext.engagementStatus || "Inactive") : "")
+    + (courseContext ? buildStudentProfileRow("Course time", formatMonitorTime(courseContext.timeOnTaskSeconds)) : "")
+    + (supportAction ? buildStudentProfileRow("Teacher note", supportAction.label + " · " + (formatDate(supportAction.createdAt) || "just now")) : "")
     + buildStudentProfileRow("Intention points", readIntentionPointTotal(student))
     + buildStudentProfileRow("Recent activity", formatDate(student.lastActiveAt) || "No recent activity")
     + '</div>'
+    + buildTeacherNoteEditor(student, teacherNote)
+    + buildStudentStatusTimeline(student, courseContext)
     + '</section></div>';
 }
 
 function buildStudentProfileRow(label, value) {
   return '<div class="teacher-student-profile-row"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(String(value == null || value === "" ? "Not recorded" : value)) + '</strong></div>';
+}
+
+function buildTeacherNoteEditor(student, note) {
+  return '<section class="teacher-student-note-panel">'
+    + '<div><p>Private Teacher Note</p><h3>Only visible in this teacher dashboard</h3><span>Use this for quick lesson support reminders.</span></div>'
+    + '<textarea id="teacherStudentNoteInput" data-student-id="' + escapeHtml(student && student.id || "") + '" rows="4" placeholder="Add a private note for this student...">' + escapeHtml(note || "") + '</textarea>'
+    + '<small>Saved locally for this teacher browser.</small>'
+    + '</section>';
+}
+
+function buildStudentStatusTimeline(student, courseContext) {
+  var timelineSource = courseContext || student || {};
+  var items = [
+    createTimelineItem("Course opened", formatDate(timelineSource.startedAt || timelineSource.courseStartedAt || timelineSource.firstActivityAt) || "Not recorded", timelineSource.startedAt || timelineSource.courseStartedAt || timelineSource.firstActivityAt ? "complete" : "quiet"),
+    createTimelineItem("Current module", timelineSource.currentModuleTitle || "Not started", timelineSource.currentModuleTitle ? "active" : "quiet"),
+    createTimelineItem("Current step", timelineSource.currentStepTitle || "Not available", timelineSource.currentStepTitle ? "active" : "quiet"),
+    createTimelineItem("Last activity", formatDate(timelineSource.lastActivityAt || timelineSource.lastActiveAt) || "No recent activity", timelineSource.lastActivityAt || timelineSource.lastActiveAt ? "complete" : "quiet"),
+    createTimelineItem("Support signal", readNeedsAttentionReasons(timelineSource)[0] || "No attention signal", readNeedsAttentionReasons(timelineSource).length > 0 ? "attention" : "quiet")
+  ];
+
+  return '<section class="teacher-student-timeline"><div><p>Student Status Timeline</p><h3>Lesson movement</h3></div>'
+    + '<ol>' + items.map(buildStudentTimelineItem).join("") + '</ol></section>';
+}
+
+function createTimelineItem(label, detail, status) {
+  return {
+    label: label,
+    detail: detail,
+    status: status || "quiet"
+  };
+}
+
+function buildStudentTimelineItem(item) {
+  return '<li class="' + escapeHtml(item.status || "quiet") + '"><span></span><div><strong>' + escapeHtml(item.label) + '</strong><small>' + escapeHtml(item.detail) + '</small></div></li>';
 }
 
 function buildReviewQueue() {
@@ -2192,6 +3140,7 @@ function buildSubmissionCard(submission) {
     + '<span>Submitted: ' + escapeHtml(formatDate(submission.createdAt) || "Recently") + '</span>'
     + '<span>Attempt: ' + escapeHtml(String(submission.attemptNumber || 1)) + '</span>'
     + '</div>'
+    + buildSubmissionReviewContext(submission, file)
     + buildProofPreview(file)
     + '<div class="teacher-submission-notes"><p class="teacher-note"><strong>Student note</strong><span>' + escapeHtml(submission.studentNote || "No student note.") + '</span></p>'
     + '<p class="teacher-note teacher-feedback-note"><strong>Teacher feedback</strong><span>' + escapeHtml(submission.teacherFeedback || "No feedback saved yet.") + '</span></p></div>'
@@ -2208,6 +3157,70 @@ function buildSubmissionCard(submission) {
     + buildReviewButton(submission.id, "incomplete", "Incomplete", isPending)
     + '</div>'
     + '</article>';
+}
+
+function buildSubmissionReviewContext(submission, file) {
+  var stepType = submission.stepType || submission.taskType || submission.type || "externalTask";
+  var practiceMode = readSubmissionPracticeModeLabel(submission);
+  var responseType = readSubmissionResponseType(submission, file);
+
+  return '<div class="teacher-review-context">'
+    + '<span><strong>Practice mode</strong>' + escapeHtml(practiceMode) + '</span>'
+    + '<span><strong>Step type</strong>' + escapeHtml(formatTeacherReviewToken(stepType)) + '</span>'
+    + '<span><strong>Response</strong>' + escapeHtml(responseType) + '</span>'
+    + '</div>';
+}
+
+function readSubmissionPracticeModeLabel(submission) {
+  var value = submission.practiceModeKey || submission.practiceMode || submission.learningModeTitle || submission.learningModeId || "";
+
+  if (value === "beforeClass") {
+    return "Before Class Warmup";
+  }
+
+  if (value === "afterClass") {
+    return "After Class Reinforcement";
+  }
+
+  if (value === "dailyPractice") {
+    return "Five Minute Daily Practice";
+  }
+
+  if (value === "classroomLesson") {
+    return "Classroom Lesson";
+  }
+
+  return value ? formatTeacherReviewToken(value) : "Main Path";
+}
+
+function readSubmissionResponseType(submission, file) {
+  if (submission.responseType) {
+    return formatTeacherReviewToken(submission.responseType);
+  }
+
+  if (file && file.contentType && file.contentType.indexOf("image/") === 0) {
+    return "Image proof";
+  }
+
+  if (file && file.contentType && file.contentType.indexOf("audio/") === 0) {
+    return "Audio recording";
+  }
+
+  if (file) {
+    return "Uploaded file";
+  }
+
+  return "Written response";
+}
+
+function formatTeacherReviewToken(value) {
+  var token = String(value || "").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[-_]/g, " ").trim();
+
+  if (!token) {
+    return "";
+  }
+
+  return token.charAt(0).toUpperCase() + token.slice(1);
 }
 
 function buildReviewButton(submissionId, status, label, isPending) {
@@ -2420,6 +3433,61 @@ function buildStatusMessages() {
   return html;
 }
 
+function updateTeacherNote(studentId, note) {
+  var nextNotes = Object.assign({}, state.teacherNotesByStudentId || {});
+
+  if (!studentId) {
+    return;
+  }
+
+  if (String(note || "").trim()) {
+    nextNotes[studentId] = String(note || "");
+  } else {
+    delete nextNotes[studentId];
+  }
+
+  state.teacherNotesByStudentId = nextNotes;
+  persistTeacherNotes(nextNotes);
+}
+
+function readTeacherNoteForStudent(studentId) {
+  if (!studentId || !state.teacherNotesByStudentId) {
+    return "";
+  }
+
+  return state.teacherNotesByStudentId[studentId] || "";
+}
+
+function readStoredTeacherNotes(teacherId) {
+  try {
+    return JSON.parse(localStorage.getItem(readTeacherNotesStorageKey(teacherId)) || "{}") || {};
+  } catch (error) {
+    console.warn("[teacher-notes:read-failed]", {
+      errorMessage: error.message
+    });
+    return {};
+  }
+}
+
+function persistTeacherNotes(notes) {
+  try {
+    localStorage.setItem(readTeacherNotesStorageKey(readCurrentTeacherStorageId()), JSON.stringify(notes || {}));
+  } catch (error) {
+    console.warn("[teacher-notes:save-failed]", {
+      errorMessage: error.message
+    });
+  }
+}
+
+function readTeacherNotesStorageKey(teacherId) {
+  return "oquway.teacherDashboard.notes." + (teacherId || "local");
+}
+
+function readCurrentTeacherStorageId() {
+  var user = teacherDashboardService.getCurrentUser ? teacherDashboardService.getCurrentUser() : null;
+  return user && user.uid ? user.uid : "local";
+}
+
 function buildClassFilterOptions(selectedClassId) {
   return (state.classes || []).map(function (classRecord) {
     return '<option value="' + escapeHtml(classRecord.id) + '"' + selected(selectedClassId, classRecord.id) + '>' + escapeHtml(classRecord.name || "Class") + '</option>';
@@ -2625,6 +3693,13 @@ function findCourseByAssignmentOrCourseId(assignmentId, courseId) {
   }) || null;
 }
 
+function readSelectedCourseIdForReview() {
+  var detail = getSelectedCourseDetail();
+  var course = detail && detail.course ? detail.course : findCourseByAssignmentOrCourseId(state.selectedCourseId, "");
+
+  return course ? (course.courseId || course.id || "") : "";
+}
+
 function readStudentsForCourse(course) {
   if (!course) {
     return [];
@@ -2742,6 +3817,12 @@ function getSelectedClassDetailErrors() {
 }
 
 function getSelectedStudentRecord() {
+  var courseContext = readSelectedCourseStudentContextById(state.selectedStudentId);
+
+  if (courseContext) {
+    return courseContext;
+  }
+
   var detailStudents = getSelectedClassStudents();
   var detailStudent = detailStudents.find(function (student) {
     return student && student.id === state.selectedStudentId;
@@ -2753,6 +3834,23 @@ function getSelectedStudentRecord() {
 
   return (state.students || []).find(function (student) {
     return student && student.id === state.selectedStudentId;
+  }) || null;
+}
+
+function readSelectedCourseStudentContext(student) {
+  return readSelectedCourseStudentContextById(student && student.id ? student.id : "");
+}
+
+function readSelectedCourseStudentContextById(studentId) {
+  var detail = getSelectedCourseDetail();
+  var students = detail && Array.isArray(detail.students) ? detail.students : [];
+
+  if (!studentId) {
+    return null;
+  }
+
+  return students.find(function (student) {
+    return student && student.id === studentId;
   }) || null;
 }
 

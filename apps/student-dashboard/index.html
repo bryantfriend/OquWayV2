@@ -4860,8 +4860,8 @@
 
         .course-template-module-card:hover,
         .course-template-module-current {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 4px rgba(37,99,235,0.10), 0 18px 34px rgba(37,99,235,0.16);
+            border-color: var(--course-theme, #2563eb);
+            box-shadow: 0 0 0 4px color-mix(in srgb, var(--course-theme, #2563eb) 14%, transparent), 0 18px 34px rgba(37,99,235,0.16);
             transform: translateY(-1px);
         }
 
@@ -4882,8 +4882,8 @@
             width: 52px;
             height: 52px;
             border-radius: 16px;
-            background: linear-gradient(145deg, #ecfdf5, #ffffff);
-            color: var(--green);
+            background: linear-gradient(145deg, color-mix(in srgb, var(--course-accent, #22c55e) 16%, #ffffff), #ffffff);
+            color: var(--course-theme, var(--green));
             display: grid;
             place-items: center;
             overflow: hidden;
@@ -4935,7 +4935,7 @@
             display: block;
             height: 100%;
             border-radius: inherit;
-            background: linear-gradient(90deg, #22c55e, #0ea5e9);
+            background: linear-gradient(90deg, var(--course-accent, #22c55e), var(--course-theme, #0ea5e9));
         }
 
         .course-template-module-badge {
@@ -4946,6 +4946,46 @@
             color: #64748b;
             display: grid;
             place-items: center;
+        }
+
+        .course-template-module-number {
+            font-size: 0.92rem;
+            font-weight: 950;
+        }
+
+        .course-theme-badge-soft .course-template-module-badge {
+            border-radius: 12px;
+            background: color-mix(in srgb, var(--course-theme, #2563eb) 12%, #ffffff);
+            color: var(--course-theme, #2563eb);
+        }
+
+        .course-theme-badge-solid .course-template-module-badge {
+            background: var(--course-theme, #2563eb);
+            color: #ffffff;
+        }
+
+        .course-theme-icon-minimal .course-template-module-icon {
+            border-radius: 999px;
+            background: #ffffff;
+            box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--course-theme, #2563eb) 28%, #ffffff);
+        }
+
+        .course-theme-density-compact.course-template-module-basic {
+            min-height: 68px;
+            padding: 0.62rem;
+        }
+
+        .course-theme-density-spacious.course-template-module-basic {
+            min-height: 98px;
+            padding: 1.05rem;
+        }
+
+        .course-theme-density-compact.course-template-module-grid {
+            min-height: 160px;
+        }
+
+        .course-theme-density-spacious.course-template-module-grid {
+            min-height: 212px;
         }
 
         .course-template-module-complete {
@@ -4966,8 +5006,8 @@
 
         .course-template-module-current .course-template-module-icon {
             background: #eff6ff;
-            color: #2563eb;
-            box-shadow: 0 0 0 5px rgba(37,99,235,0.12);
+            color: var(--course-theme, #2563eb);
+            box-shadow: 0 0 0 5px color-mix(in srgb, var(--course-theme, #2563eb) 14%, transparent);
         }
 
         .course-template-module-locked {
@@ -5045,7 +5085,7 @@
 
         .course-adventure-path-line path {
             fill: none;
-            stroke: #bbf7d0;
+            stroke: color-mix(in srgb, var(--course-accent, #22c55e) 38%, #ffffff);
             stroke-width: 2.4;
             stroke-linecap: round;
             stroke-dasharray: 7 8;
@@ -5131,7 +5171,7 @@
         <h1>Welcome to your Studies</h1>
         <p>Your educational journey continues here...</p>
     </main>
-    <script type="module" src="./src/main.js?v=1.1.192-timed-sequence"></script>
+    <script type="module" src="./src/main.js?v=1.1.198-course-creator-advanced-upgrades"></script>
 </body>
 
 </html>
