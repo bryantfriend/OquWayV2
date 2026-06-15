@@ -38,13 +38,15 @@ function createStepPatch(payload) {
 }
 
 async function savePracticeModes(executionState, payload, practiceModes) {
+  var collectionName = readCourseCollectionName(executionState);
+
   await setDoc(doc(db, readCourseCollectionName(executionState), payload.courseId, "modules", payload.moduleId, "sessions", payload.sessionId), {
     practiceModes: practiceModes,
     updatedAt: serverTimestamp()
   }, { merge: true });
 
   if (payload.modeId) {
-    await setDoc(doc(db, "catalogCourses", payload.courseId, "modules", payload.moduleId, "learningModes", payload.modeId, "steps", payload.stepId), {
+    await setDoc(doc(db, collectionName, payload.courseId, "modules", payload.moduleId, "learningModes", payload.modeId, "steps", payload.stepId), {
       id: payload.stepId,
       type: payload.stepType,
       stepTypeId: payload.stepType,

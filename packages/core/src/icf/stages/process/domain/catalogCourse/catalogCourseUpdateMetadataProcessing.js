@@ -48,6 +48,7 @@ function createMetadataUpdate(payload, context) {
         description: readLocalizedText(payload.description),
         subject: readText(payload.subject),
         level: readText(payload.level),
+        grade: readText(payload.grade || payload.level),
         language: readDefaultLanguage(payload.language || payload.defaultLanguage),
         status: readStatus(payload.status),
         defaultLanguage: readDefaultLanguage(payload.defaultLanguage),

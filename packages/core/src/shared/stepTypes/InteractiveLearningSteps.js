@@ -72,6 +72,7 @@ export class IntroCardStep extends InteractiveLearningStepBase {
     title: "Welcome",
     subtitle: "",
     bodyText: "Start your learning journey.",
+    imageUrl: "",
     icon: "🚀",
     calloutText: "",
     buttonText: "Continue"
@@ -80,6 +81,7 @@ export class IntroCardStep extends InteractiveLearningStepBase {
     { key: "title", label: "Title", type: "text" },
     { key: "subtitle", label: "Subtitle", type: "text" },
     { key: "bodyText", label: "Body Text", type: "textarea" },
+    { key: "imageUrl", label: "Hero Image", type: "image" },
     { key: "icon", label: "Icon", type: "text" },
     { key: "calloutText", label: "Callout Text", type: "textarea" },
     { key: "buttonText", label: "Button Text", type: "text" }
@@ -87,6 +89,30 @@ export class IntroCardStep extends InteractiveLearningStepBase {
 
   static renderPlayerShell(config) {
     var body = "";
+    var templateId = normalizeActivityTemplateId("intro-card", readRawActivityTemplateId(config));
+    var imageUrl = readText(config, "imageUrl", "");
+
+    if (templateId === "visual-hero-intro") {
+      body += '<div class="intro-card-hero-layout">';
+      if (imageUrl) {
+        body += '<img class="intro-card-hero-image" src="' + this.escapeHtml(imageUrl) + '" alt="">';
+      } else {
+        body += '<div class="intro-card-hero-placeholder">' + this.escapeHtml(readText(config, "icon", "🚀")) + '</div>';
+      }
+      body += '<div class="intro-card-hero-copy">';
+      body += '<h2>' + this.escapeHtml(readText(config, "title", "Welcome")) + '</h2>';
+      if (readText(config, "subtitle", "")) {
+        body += '<p class="intro-card-subtitle">' + this.escapeHtml(readText(config, "subtitle", "")) + '</p>';
+      }
+      body += '<p>' + this.escapeHtml(readText(config, "bodyText", "Start your learning journey.")) + '</p>';
+      if (readText(config, "calloutText", "")) {
+        body += '<div class="intro-card-callout">' + this.escapeHtml(readText(config, "calloutText", "")) + '</div>';
+      }
+      body += '<button type="button" class="intro-card-button" data-step-complete>' + this.escapeHtml(readText(config, "buttonText", "Continue")) + '</button>';
+      body += '</div></div>';
+
+      return buildShell(this, config, body);
+    }
 
     body += '<div class="intro-card-icon">' + this.escapeHtml(readText(config, "icon", "🚀")) + '</div>';
     body += '<h2>' + this.escapeHtml(readText(config, "title", "Welcome")) + '</h2>';
@@ -213,6 +239,9 @@ export class SortingStep extends InteractiveLearningStepBase {
 
     var categories = parseLines(config.categoriesText, ["ICT", "Not ICT"]);
     var items = parseSortItems(config.itemsText);
+    var isDragDropTemplate = normalizeActivityTemplateId("sorting", readRawActivityTemplateId(config)) === "drag-drop-sorting";
+    var itemDragAttr = isDragDropTemplate ? ' draggable="true"' : "";
+    var categoryDropAttr = isDragDropTemplate ? ' data-sorting-drop-target="true"' : "";
     var body = "";
 
     body += '<h2>' + this.escapeHtml(readText(config, "title", "Sort the Items")) + '</h2>';
@@ -220,11 +249,11 @@ export class SortingStep extends InteractiveLearningStepBase {
     body += '<div class="sorting-workspace">';
     body += '<div class="sorting-items" aria-label="Items to sort">';
     items.forEach(function (item, index) {
-      body += '<button type="button" class="sorting-item" data-item-index="' + index + '" data-answer="' + BaseStep.escapeHtml(item.category) + '">' + BaseStep.escapeHtml(item.label) + '</button>';
+      body += '<button type="button" class="sorting-item' + (isDragDropTemplate ? ' sorting-item-draggable' : '') + '" data-item-index="' + index + '" data-answer="' + BaseStep.escapeHtml(item.category) + '"' + itemDragAttr + '>' + BaseStep.escapeHtml(item.label) + '</button>';
     });
     body += '</div><div class="sorting-categories">';
     categories.forEach(function (category) {
-      body += '<button type="button" class="sorting-category" data-category="' + BaseStep.escapeHtml(category) + '"><strong>' + BaseStep.escapeHtml(category) + '</strong><span></span></button>';
+      body += '<button type="button" class="sorting-category" data-category="' + BaseStep.escapeHtml(category) + '"' + categoryDropAttr + '><strong>' + BaseStep.escapeHtml(category) + '</strong><span></span></button>';
     });
     body += '</div></div>';
     body += '<div class="sorting-feedback" aria-live="polite"></div>';
@@ -246,6 +275,7 @@ export class SortingStep extends InteractiveLearningStepBase {
     var categories = container.querySelectorAll(".sorting-category");
     var checkButton = container.querySelector("[data-check-sorting]");
     var feedback = container.querySelector(".sorting-feedback");
+    var isDragDropTemplate = normalizeActivityTemplateId("sorting", readRawActivityTemplateId(config)) === "drag-drop-sorting";
 
     forEachElement(items, function (item) {
       item.addEventListener("click", function () {
@@ -256,24 +286,67 @@ export class SortingStep extends InteractiveLearningStepBase {
         item.classList.add("is-selected");
         selectedItem = item;
       });
+
+      if (isDragDropTemplate) {
+        item.addEventListener("dragstart", function (event) {
+          selectedItem = item;
+          item.classList.add("is-selected");
+          if (event.dataTransfer) {
+            event.dataTransfer.setData("text/plain", item.getAttribute("data-item-index") || "");
+            event.dataTransfer.effectAllowed = "move";
+          }
+        });
+
+        item.addEventListener("dragend", function () {
+          item.classList.remove("is-selected");
+        });
+      }
     });
 
     forEachElement(categories, function (category) {
+      if (isDragDropTemplate) {
+        category.addEventListener("dragover", function (event) {
+          event.preventDefault();
+          category.classList.add("is-selected");
+          if (event.dataTransfer) {
+            event.dataTransfer.dropEffect = "move";
+          }
+        });
+
+        category.addEventListener("dragleave", function () {
+          category.classList.remove("is-selected");
+        });
+
+        category.addEventListener("drop", function (event) {
+          event.preventDefault();
+          category.classList.remove("is-selected");
+          placeSelectedSortingItem(category);
+        });
+      }
+
       category.addEventListener("click", function () {
-        var count;
         if (!selectedItem) {
           return;
         }
-        selectedItem.setAttribute("data-choice", category.getAttribute("data-category") || "");
-        selectedItem.classList.remove("is-selected");
-        selectedItem.classList.add("is-placed");
-        selectedItem.querySelector("span");
-        category.appendChild(selectedItem);
-        count = category.querySelectorAll(".sorting-item").length;
-        setCategoryCount(category, count);
-        selectedItem = null;
+        placeSelectedSortingItem(category);
       });
     });
+
+    function placeSelectedSortingItem(category) {
+      var count;
+
+      if (!selectedItem) {
+        return;
+      }
+
+      selectedItem.setAttribute("data-choice", category.getAttribute("data-category") || "");
+      selectedItem.classList.remove("is-selected");
+      selectedItem.classList.add("is-placed");
+      category.appendChild(selectedItem);
+      count = category.querySelectorAll(".sorting-item").length;
+      setCategoryCount(category, count);
+      selectedItem = null;
+    }
 
     if (checkButton) {
       checkButton.addEventListener("click", function () {
@@ -1584,7 +1657,6 @@ class CharacterRunnerSortingTemplate {
 }
 
 var sortingGameRendererMap = {
-  "drag-drop-sorting": BubblePopSortingTemplate,
   "bubble-pop-sorting": BubblePopSortingTemplate,
   "basket-catch-sorting": BubblePopSortingTemplate,
   "character-runner-sorting": CharacterRunnerSortingTemplate,
@@ -4535,6 +4607,10 @@ function buildScopedCss(rootClass) {
     + scope + " .intro-card-icon{font-size:42px;margin-bottom:12px;}"
     + scope + " .intro-card-subtitle{font-weight:800;color:#2563eb;}"
     + scope + " .intro-card-callout{margin:14px 0;padding:12px;border-radius:12px;background:#ecfdf5;border:1px solid #a7f3d0;color:#047857;font-weight:800;}"
+    + scope + " .intro-card-hero-layout{display:grid;grid-template-columns:minmax(160px,.85fr) minmax(0,1.15fr);gap:20px;align-items:center;text-align:left;}"
+    + scope + " .intro-card-hero-image{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:20px;border:1px solid #dbeafe;box-shadow:0 18px 38px rgba(15,23,42,.12);}"
+    + scope + " .intro-card-hero-placeholder{display:grid;place-items:center;min-height:180px;border-radius:20px;background:linear-gradient(145deg,#dbeafe,#ecfdf5);font-size:56px;border:1px solid #bfdbfe;}"
+    + scope + " .intro-card-hero-copy{min-width:0;}"
     + scope + " .intro-card-button," + scope + " .card-reveal-button," + scope + " .sorting-button," + scope + " .multiple-choice-button," + scope + " .roadmap-button," + scope + " .matching-button," + scope + " .ordering-button," + scope + " .reflection-button{background:#111827;color:#fff;border-color:#111827;padding:0 18px;}"
     + scope + " .card-reveal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin:18px 0;perspective:1000px;}"
     + scope + " .card-reveal-card{min-height:156px;padding:0;text-align:left;background:transparent;border:0;perspective:1000px;}"

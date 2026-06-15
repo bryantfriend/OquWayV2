@@ -3,6 +3,7 @@ import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.
 import { courseEditorStore } from "../state/courseEditorState.js?v=1.1.153-student-course-journey-polish";
 import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.153-student-course-journey-polish";
 import { getDownloadURL, ref, storage, uploadBytes } from "../../../../../packages/firebase/storage/index.js?v=1.1.153-student-course-journey-polish";
+import { compressImageFile } from "./imageCompression.js?v=1.1.198-course-creator-advanced-upgrades";
 
 var openCourseRequestId = 0;
 var OPEN_COURSE_TIMEOUT_MS = 20000;
@@ -245,16 +246,32 @@ export const courseEditorService = {
     }
   },
 
-  uploadCourseIcon: async function (courseId, file) {
+  uploadCourseIcon: async function (courseId, file, options) {
     var state = courseEditorStore.getState();
     var course = state.course || {};
-    var iconUrl = await uploadEditorImageFile("course-icons/" + courseId, file);
+    var iconFile = file;
+
+    if (!options || options.autoCompress !== false) {
+      try {
+        iconFile = await compressImageFile(file, {
+          maxDimension: 768,
+          quality: 0.82,
+          outputType: readCompressionOutputType(file)
+        });
+      } catch (error) {
+        console.warn("[course-icon] Compression failed; uploading the original image.", error);
+        iconFile = file;
+      }
+    }
+
+    var iconUrl = await uploadEditorImageFile("course-icons/" + courseId, iconFile);
 
     return await this.updateCourseMetadata(courseId, {
       title: course.title,
       description: course.description,
       subject: course.subject || "",
       level: course.level || "",
+      grade: course.grade || course.level || "",
       language: course.language || course.defaultLanguage || "en",
       status: course.status || "draft",
       tags: Array.isArray(course.tags) ? course.tags.slice() : [],
@@ -595,6 +612,14 @@ function findModuleById(modules, moduleId) {
   }
 
   return null;
+}
+
+function readCompressionOutputType(file) {
+  if (file && (file.type === "image/jpeg" || file.type === "image/webp")) {
+    return file.type;
+  }
+
+  return "image/jpeg";
 }
 
 async function uploadEditorImageFile(folderPath, file) {

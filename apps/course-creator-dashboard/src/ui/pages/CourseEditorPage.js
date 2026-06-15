@@ -155,6 +155,18 @@ export class CourseEditorPage {
           </div>
 
         </div>
+        <div id="stepPreviewModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/70 p-6">
+          <div class="w-full max-w-3xl overflow-hidden rounded-3xl bg-white shadow-2xl">
+            <div class="flex items-center justify-between gap-4 border-b border-slate-100 px-5 py-4">
+              <div>
+                <div class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">Step Preview</div>
+                <h2 id="stepPreviewModalTitle" class="mt-1 text-lg font-black text-slate-950">Student activity</h2>
+              </div>
+              <button type="button" class="close-step-preview-modal rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-600 hover:bg-slate-50">Close</button>
+            </div>
+            <div id="stepPreviewModalBody" class="max-h-[72vh] overflow-y-auto bg-slate-50 p-6"></div>
+          </div>
+        </div>
       </div>
     `;
   }
@@ -258,6 +270,12 @@ export class CourseEditorPage {
     document.getElementById("configEditorPane").addEventListener("change", function (e) {
       self.handleInspectorChange(e);
     });
+
+    document.getElementById("stepPreviewModal").addEventListener("click", function (e) {
+      if (e.target.id === "stepPreviewModal" || e.target.closest(".close-step-preview-modal")) {
+        self.closeStepPreviewModal();
+      }
+    });
   }
 
   // ── Workspace click dispatcher ─────────────────────────────────────────
@@ -266,6 +284,36 @@ export class CourseEditorPage {
     var self = this;
     var state = moduleEditorStore.getState();
     var session = self.findSelectedSession(state);
+
+    var addVocabularyPairBtn = event.target.closest(".add-vocabulary-pair-btn");
+    if (addVocabularyPairBtn) {
+      openVocabularyPairModal("");
+      return;
+    }
+
+    var editVocabularyPairBtn = event.target.closest(".edit-vocabulary-pair-btn");
+    if (editVocabularyPairBtn) {
+      openVocabularyPairModal(editVocabularyPairBtn.getAttribute("data-index"));
+      return;
+    }
+
+    var closeVocabularyPairBtn = event.target.closest(".close-vocabulary-pair-modal");
+    if (closeVocabularyPairBtn || event.target.id === "vocabularyPairModal") {
+      closeVocabularyPairModal();
+      return;
+    }
+
+    var saveVocabularyPairBtn = event.target.closest(".save-vocabulary-pair-btn");
+    if (saveVocabularyPairBtn) {
+      saveVocabularyPairFromModal();
+      return;
+    }
+
+    var removeVocabularyPairBtn = event.target.closest(".remove-vocabulary-pair-btn");
+    if (removeVocabularyPairBtn) {
+      removeVocabularyPair(removeVocabularyPairBtn.getAttribute("data-index"));
+      return;
+    }
 
     var saveLearningContentBtn = event.target.closest(".save-learning-content-btn");
     if (saveLearningContentBtn) {
@@ -505,13 +553,16 @@ export class CourseEditorPage {
         courseId: this.courseId,
         moduleId: this.moduleId,
         modeId: previewModeId,
-        stepId: previewStepId
+          stepId: previewStepId
       });
 
-      window.location.hash = "#step-preview?courseId=" + encodeURIComponent(this.courseId)
-        + "&moduleId=" + encodeURIComponent(this.moduleId)
-        + "&modeId=" + encodeURIComponent(previewModeId)
-        + "&stepId=" + encodeURIComponent(previewStepId);
+      this.openStepPreviewModal(previewStepId);
+      return;
+    }
+
+    var closeStepPreviewBtn = event.target.closest(".close-step-preview-modal");
+    if (closeStepPreviewBtn || event.target.id === "stepPreviewModal") {
+      this.closeStepPreviewModal();
       return;
     }
 
@@ -1084,6 +1135,7 @@ export class CourseEditorPage {
     previewCanvas.innerHTML = '<div class="oqu-preview-toolbar">'
       + '<button type="button" class="student-view-btn oqu-student-view-btn">▶ Student View</button>'
       + '</div>'
+      + buildLiveStudentPreviewDock(mockStep, this.previewDockTemplate, this.previewDockDevice)
       + this.buildStepPreviewCard(mockStep);
     this.renderInlineStepPreviewFromStep(mockStep);
   }
@@ -2149,6 +2201,40 @@ export class CourseEditorPage {
     }
 
     return html;
+  }
+
+  openStepPreviewModal(stepId) {
+    var state = moduleEditorStore.getState();
+    var selectedMode = this.findSelectedLearningMode(state);
+    var steps = selectedMode && Array.isArray(selectedMode.steps) ? readSortedSteps(selectedMode.steps) : [];
+    var step = findStepByIdInList(steps, stepId);
+    var modal = document.getElementById("stepPreviewModal");
+    var body = document.getElementById("stepPreviewModalBody");
+    var title = document.getElementById("stepPreviewModalTitle");
+
+    if (!modal || !body || !step) {
+      alert("Select a saved step before opening preview.");
+      return;
+    }
+
+    if (title) {
+      title.textContent = readLocalizedText(step.title, "Student activity");
+    }
+
+    body.innerHTML = '<div class="mx-auto max-w-xl">' + this.buildStepPreviewCard(step) + '</div>';
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+  }
+
+  closeStepPreviewModal() {
+    var modal = document.getElementById("stepPreviewModal");
+
+    if (!modal) {
+      return;
+    }
+
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
   }
 
   buildPracticeModeInspector(mode, session, practiceModeKey) {
@@ -4515,13 +4601,12 @@ function buildLearningContentWorkspace(learningContent) {
   html += '</div>';
   html += '</div>';
 
-  html += '<div class="grid grid-cols-2 gap-4">';
-  html += buildLearningContentTextarea("Vocabulary", "vocabulary", content.vocabulary, "One word or phrase per line");
-  html += buildLearningContentTextarea("Definitions", "definitions", content.definitions, "Match definitions by line order");
-  html += buildLearningContentTextarea("Concepts", "concepts", content.concepts, "Concepts students should understand");
-  html += buildLearningContentTextarea("Rules", "rules", content.rules, "Grammar, usage, or behavior rules");
-  html += buildLearningContentTextarea("Examples", "examples", content.examples, "Sample sentences or worked examples");
-  html += buildLearningContentTextarea("Custom Content", "customContent", content.customContent, "Any extra authoring notes or source items");
+  html += '<div class="grid gap-4">';
+  html += buildVocabularyPairsEditor(content);
+  html += buildLearningContentCollapsibleEditor("Concepts", "concepts", content.concepts, "Concepts students should understand and apply.");
+  html += buildLearningContentCollapsibleEditor("Rules", "rules", content.rules, "Grammar, usage, or behavior rules that activities can reference.");
+  html += buildLearningContentCollapsibleEditor("Examples", "examples", content.examples, "Sample sentences, worked examples, or model answers.");
+  html += buildLearningContentCollapsibleEditor("Custom Content", "customContent", content.customContent, "Extra source notes that do not fit the structured sections.");
   html += '</div>';
 
   html += '<div class="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">';
@@ -4544,11 +4629,199 @@ function buildLearningContentWorkspace(learningContent) {
   return html;
 }
 
+function buildVocabularyPairsEditor(content) {
+  var pairs = createVocabularyPairsForUi(content.vocabulary, content.definitions);
+  var html = '<section class="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">';
+
+  html += '<div class="mb-4 flex items-start justify-between gap-4">';
+  html += '<div><div class="text-xs font-black uppercase tracking-widest text-slate-400">Vocabulary</div><p class="mt-1 text-xs font-semibold leading-5 text-slate-500">Add word and definition pairs used by vocabulary activities.</p></div>';
+  html += '<button type="button" class="add-vocabulary-pair-btn rounded-xl bg-emerald-600 px-3 py-2 text-xs font-black text-white shadow-sm hover:bg-emerald-700"><i class="fa-solid fa-plus"></i></button>';
+  html += '</div>';
+  html += '<textarea id="learningContentVocabularyHidden" data-learning-content-field="vocabulary" class="hidden">' + escapeHtml(content.vocabulary.join("\n")) + '</textarea>';
+  html += '<textarea id="learningContentDefinitionsHidden" data-learning-content-field="definitions" class="hidden">' + escapeHtml(content.definitions.join("\n")) + '</textarea>';
+  html += '<div id="vocabularyPairList" class="max-h-72 overflow-y-auto rounded-2xl border border-slate-100 bg-slate-50 p-3">' + buildVocabularyPairList(pairs) + '</div>';
+  html += buildVocabularyPairModal();
+  html += '</section>';
+
+  return html;
+}
+
+function buildVocabularyPairList(pairs) {
+  if (!pairs || pairs.length === 0) {
+    return '<div class="rounded-2xl border border-dashed border-slate-200 bg-white p-5 text-center text-sm font-semibold text-slate-500">No vocabulary pairs yet.</div>';
+  }
+
+  return pairs.map(function (pair, index) {
+    return '<button type="button" class="edit-vocabulary-pair-btn mb-2 flex w-full items-start gap-3 rounded-2xl border border-slate-100 bg-white p-3 text-left shadow-sm transition hover:bg-emerald-50" data-index="' + index + '">'
+      + '<span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-50 text-xs font-black text-emerald-700">' + (index + 1) + '</span>'
+      + '<span class="min-w-0 flex-1"><strong class="block truncate text-sm text-slate-950">' + escapeHtml(pair.word) + '</strong><small class="mt-1 block text-xs font-semibold leading-5 text-slate-500">' + escapeHtml(pair.definition) + '</small></span>'
+      + '<i class="fa-solid fa-pen text-xs text-slate-400"></i>'
+      + '</button>';
+  }).join('');
+}
+
+function buildVocabularyPairModal() {
+  return '<div id="vocabularyPairModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/70 p-6">'
+    + '<div class="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">'
+    + '<div class="flex items-center justify-between border-b border-slate-100 px-5 py-4"><h3 id="vocabularyPairModalTitle" class="text-lg font-black text-slate-950">Vocabulary pair</h3><button type="button" class="close-vocabulary-pair-modal rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-600">Close</button></div>'
+    + '<div class="grid gap-4 p-5">'
+    + '<input type="hidden" id="vocabularyPairEditIndex" value="">'
+    + '<div><label class="text-xs font-black uppercase tracking-widest text-slate-400">Vocabulary word</label><input id="vocabularyPairWordInput" class="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"></div>'
+    + '<div><label class="text-xs font-black uppercase tracking-widest text-slate-400">Definition</label><textarea id="vocabularyPairDefinitionInput" class="mt-2 min-h-[110px] w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"></textarea></div>'
+    + '<p id="vocabularyPairModalError" class="hidden rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-bold text-red-700"></p>'
+    + '<div class="flex justify-between gap-2"><button type="button" class="remove-vocabulary-pair-btn rounded-xl border border-red-100 bg-red-50 px-4 py-2 text-xs font-black text-red-700">Remove</button><button type="button" class="save-vocabulary-pair-btn rounded-xl bg-emerald-600 px-4 py-2 text-xs font-black text-white">Save Pair</button></div>'
+    + '</div></div></div>';
+}
+
+function openVocabularyPairModal(indexValue) {
+  var modal = document.getElementById("vocabularyPairModal");
+  var indexInput = document.getElementById("vocabularyPairEditIndex");
+  var title = document.getElementById("vocabularyPairModalTitle");
+  var wordInput = document.getElementById("vocabularyPairWordInput");
+  var definitionInput = document.getElementById("vocabularyPairDefinitionInput");
+  var removeButton = document.querySelector(".remove-vocabulary-pair-btn");
+  var pairs = readVocabularyPairsFromHiddenFields();
+  var index = indexValue === "" || indexValue == null ? -1 : parseInt(indexValue, 10);
+  var pair = index >= 0 && pairs[index] ? pairs[index] : { word: "", definition: "" };
+
+  if (indexInput) { indexInput.value = index >= 0 ? String(index) : ""; }
+  if (title) { title.textContent = index >= 0 ? "Edit vocabulary pair" : "Add vocabulary pair"; }
+  if (wordInput) { wordInput.value = pair.word; }
+  if (definitionInput) { definitionInput.value = pair.definition; }
+  if (removeButton) { removeButton.style.display = index >= 0 ? "inline-flex" : "none"; }
+  hideVocabularyPairError();
+
+  if (modal) {
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+  }
+}
+
+function closeVocabularyPairModal() {
+  var modal = document.getElementById("vocabularyPairModal");
+
+  if (modal) {
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  }
+}
+
+function saveVocabularyPairFromModal() {
+  var word = readElementValue("vocabularyPairWordInput").trim();
+  var definition = readElementValue("vocabularyPairDefinitionInput").trim();
+  var indexValue = readElementValue("vocabularyPairEditIndex");
+  var index = indexValue ? parseInt(indexValue, 10) : -1;
+  var pairs = readVocabularyPairsFromHiddenFields();
+
+  if (!word || !definition) {
+    showVocabularyPairError("Add both a word and a definition before saving.");
+    return;
+  }
+
+  if (index >= 0 && pairs[index]) {
+    pairs[index] = { word: word, definition: definition };
+  } else {
+    pairs.push({ word: word, definition: definition });
+  }
+
+  writeVocabularyPairsToHiddenFields(pairs);
+  closeVocabularyPairModal();
+}
+
+function removeVocabularyPair(indexValue) {
+  var index = parseInt(indexValue, 10);
+  var pairs = readVocabularyPairsFromHiddenFields();
+
+  if (!Number.isFinite(index) || !pairs[index]) {
+    return;
+  }
+
+  pairs.splice(index, 1);
+  writeVocabularyPairsToHiddenFields(pairs);
+  closeVocabularyPairModal();
+}
+
+function readVocabularyPairsFromHiddenFields() {
+  return createVocabularyPairsForUi(
+    parseLines(readElementValue("learningContentVocabularyHidden")),
+    parseLines(readElementValue("learningContentDefinitionsHidden"))
+  );
+}
+
+function writeVocabularyPairsToHiddenFields(pairs) {
+  var safePairs = Array.isArray(pairs) ? pairs : [];
+  var vocabulary = safePairs.map(function (pair) { return pair.word; });
+  var definitions = safePairs.map(function (pair) { return pair.definition; });
+  var vocabularyField = document.getElementById("learningContentVocabularyHidden");
+  var definitionsField = document.getElementById("learningContentDefinitionsHidden");
+  var list = document.getElementById("vocabularyPairList");
+
+  if (vocabularyField) { vocabularyField.value = vocabulary.join("\n"); }
+  if (definitionsField) { definitionsField.value = definitions.join("\n"); }
+  if (list) { list.innerHTML = buildVocabularyPairList(safePairs); }
+}
+
+function createVocabularyPairsForUi(vocabulary, definitions) {
+  var words = Array.isArray(vocabulary) ? vocabulary : [];
+  var defs = Array.isArray(definitions) ? definitions : [];
+  var maxLength = Math.max(words.length, defs.length);
+  var pairs = [];
+  var index = 0;
+
+  while (index < maxLength) {
+    pairs.push({
+      word: readString(words[index], ""),
+      definition: readString(defs[index], "")
+    });
+    index = index + 1;
+  }
+
+  return pairs.filter(function (pair) {
+    return pair.word || pair.definition;
+  });
+}
+
+function showVocabularyPairError(message) {
+  var error = document.getElementById("vocabularyPairModalError");
+
+  if (error) {
+    error.textContent = message;
+    error.classList.remove("hidden");
+  }
+}
+
+function hideVocabularyPairError() {
+  var error = document.getElementById("vocabularyPairModalError");
+
+  if (error) {
+    error.textContent = "";
+    error.classList.add("hidden");
+  }
+}
+
+function readElementValue(id) {
+  var element = document.getElementById(id);
+
+  if (!element || typeof element.value !== "string") {
+    return "";
+  }
+
+  return element.value;
+}
+
 function buildLearningContentTextarea(label, field, items, placeholder) {
   return '<div class="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">'
     + '<label class="text-xs font-black uppercase tracking-widest text-slate-400">' + escapeHtml(label) + '</label>'
     + '<textarea data-learning-content-field="' + field + '" class="mt-3 min-h-[150px] w-full resize-y rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 outline-none focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100" placeholder="' + escapeHtml(placeholder) + '">' + escapeHtml(items.join("\n")) + '</textarea>'
     + '</div>';
+}
+
+function buildLearningContentCollapsibleEditor(label, field, items, helperText) {
+  return '<details class="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">'
+    + '<summary class="cursor-pointer text-xs font-black uppercase tracking-widest text-slate-500">' + escapeHtml(label) + '</summary>'
+    + '<p class="mt-3 text-xs font-semibold leading-5 text-slate-500">' + escapeHtml(helperText) + '</p>'
+    + '<textarea data-learning-content-field="' + field + '" class="mt-3 min-h-[130px] w-full resize-y rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 outline-none focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100">' + escapeHtml(items.join("\n")) + '</textarea>'
+    + '</details>';
 }
 
 function buildLearningContentInspector(learningContent) {
@@ -4654,6 +4927,21 @@ function buildLearningModesWorkspace(learningModes, sessions, selectedModeId) {
   html += '</div>';
 
   return html;
+}
+
+function findStepByIdInList(steps, stepId) {
+  var safeSteps = Array.isArray(steps) ? steps : [];
+  var index = 0;
+
+  while (index < safeSteps.length) {
+    if (readStepId(safeSteps[index], "") === stepId) {
+      return safeSteps[index];
+    }
+
+    index = index + 1;
+  }
+
+  return null;
 }
 
 function buildPracticeModeBuilderPanel(existingTypes) {

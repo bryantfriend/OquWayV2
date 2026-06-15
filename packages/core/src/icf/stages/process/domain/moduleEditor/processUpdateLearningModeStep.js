@@ -5,6 +5,7 @@ import { normalizeActivityTemplateId } from "../../../../../shared/stepTypes/ste
 export async function processUpdateLearningModeStep(executionState) {
   var payload = executionState.payload || {};
   var learningMode = executionState.context.learningMode || {};
+  var collectionName = readCourseCollectionName(executionState);
   var existingStep = findStepById(learningMode.steps, payload.stepId);
 
   if (!existingStep) {
@@ -24,13 +25,13 @@ export async function processUpdateLearningModeStep(executionState) {
 
   try {
     await setDoc(
-      doc(db, "catalogCourses", payload.courseId, "modules", payload.moduleId, "learningModes", payload.modeId, "steps", payload.stepId),
+      doc(db, collectionName, payload.courseId, "modules", payload.moduleId, "learningModes", payload.modeId, "steps", payload.stepId),
       Object.assign({}, updatedStep, { updatedAt: serverTimestamp() }),
       { merge: true }
     );
 
     await setDoc(
-      doc(db, "catalogCourses", payload.courseId, "modules", payload.moduleId, "learningModes", payload.modeId),
+      doc(db, collectionName, payload.courseId, "modules", payload.moduleId, "learningModes", payload.modeId),
       {
         stepCount: updatedLearningMode.stepCount,
         stepOrder: updatedLearningMode.stepOrder,
@@ -40,7 +41,7 @@ export async function processUpdateLearningModeStep(executionState) {
     );
 
     await setDoc(
-      doc(db, "catalogCourses", payload.courseId, "modules", payload.moduleId),
+      doc(db, collectionName, payload.courseId, "modules", payload.moduleId),
       {
         learningModes: {
           [payload.modeId]: updatedLearningMode
@@ -165,4 +166,10 @@ function normalizeStatus(status) {
   }
 
   return "draft";
+}
+
+function readCourseCollectionName(executionState) {
+  return executionState.context && executionState.context.courseCollectionName
+    ? executionState.context.courseCollectionName
+    : "catalogCourses";
 }

@@ -1,5 +1,7 @@
 import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.152-course-builder-loading-timeout";
 import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.152-course-builder-loading-timeout";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.160-lesson-paths";
+import { signOut } from "firebase/auth";
 
 export class CatalogCoursePage {
   constructor() {
@@ -12,6 +14,11 @@ export class CatalogCoursePage {
         <nav class="builder-nav">
           <div class="builder-brand"><span>OquWay</span><small>Course Builder 2.0</small></div>
           <div class="builder-nav-actions">
+            <div class="builder-user-area">
+              <span id="builderUserName">${escapeHtml(readCurrentUserName())}</span>
+              <small>${escapeHtml(readCurrentUserRoleLabel())}</small>
+            </div>
+            <button id="courseBuilderLogoutBtn" class="builder-btn builder-btn-ghost"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</button>
             <a href="#location-login-settings" class="builder-btn builder-btn-ghost">Login Modes</a>
             <button id="openCreateModalBtn" class="builder-btn builder-btn-primary"><i class="fa-solid fa-plus"></i> New Course</button>
           </div>
@@ -178,6 +185,25 @@ export class CatalogCoursePage {
     this.bindCreateModal();
     this.bindArchivedModal();
     this.bindCourseActions();
+    this.bindSessionControls();
+  }
+
+  bindSessionControls() {
+    var logoutButton = document.getElementById("courseBuilderLogoutBtn");
+
+    if (!logoutButton) {
+      return;
+    }
+
+    logoutButton.addEventListener("click", function () {
+      logoutButton.disabled = true;
+      logoutButton.textContent = "Logging out...";
+      signOut(auth).catch(function (error) {
+        logoutButton.disabled = false;
+        logoutButton.innerHTML = '<i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out';
+        showPageStatus("error", error.message);
+      });
+    });
   }
 
   bindFilters() {
@@ -761,7 +787,11 @@ function readCourseStatus(course) {
 }
 
 function readVerifiedCount(course, key) {
-  if (!course || course.countsVerified !== true) {
+  if (!course) {
+    return null;
+  }
+
+  if (course.countError) {
     return null;
   }
 
@@ -770,10 +800,24 @@ function readVerifiedCount(course, key) {
 
 function buildCountLabel(count, label) {
   if (count === null) {
-    return "Counting...";
+    return "Unavailable";
   }
 
   return count + " " + label + (count === 1 ? "" : "s");
+}
+
+function readCurrentUserName() {
+  var user = auth.currentUser;
+
+  if (!user) {
+    return "Signed in";
+  }
+
+  return user.displayName || user.email || "Signed in";
+}
+
+function readCurrentUserRoleLabel() {
+  return "Course Creator";
 }
 
 function readUpdatedLabel(value) {

@@ -111,8 +111,28 @@ service firebase.storage {
         );
     }
 
+    function isAllowedCourseBuilderIcon() {
+      return request.resource.size <= 5 * 1024 * 1024
+        && (
+          request.resource.contentType == 'image/png' ||
+          request.resource.contentType == 'image/jpeg' ||
+          request.resource.contentType == 'image/jpg' ||
+          request.resource.contentType == 'image/webp'
+        );
+    }
+
     function canWriteLocationIcon() {
       return request.auth != null && (
+        isSchoolAdmin() ||
+        isPlatformAdmin() ||
+        isSuperAdmin()
+      );
+    }
+
+    function canWriteCourseBuilderIcon() {
+      return request.auth != null && (
+        isCourseCreator() ||
+        isAssistant() ||
         isSchoolAdmin() ||
         isPlatformAdmin() ||
         isSuperAdmin()
@@ -157,6 +177,24 @@ service firebase.storage {
         && isAllowedLocationIcon();
 
       allow delete: if canWriteLocationIcon();
+    }
+
+    match /course-icons/{courseId}/{fileName} {
+      allow read: if true;
+
+      allow create, update: if canWriteCourseBuilderIcon()
+        && isAllowedCourseBuilderIcon();
+
+      allow delete: if canWriteCourseBuilderIcon();
+    }
+
+    match /module-icons/{courseId}/{moduleId}/{fileName} {
+      allow read: if true;
+
+      allow create, update: if canWriteCourseBuilderIcon()
+        && isAllowedCourseBuilderIcon();
+
+      allow delete: if canWriteCourseBuilderIcon();
     }
 
     match /{allPaths=**} {

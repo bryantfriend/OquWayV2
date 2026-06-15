@@ -25,6 +25,16 @@ export class CourseOverviewPage {
     this.assignmentsLoading = false;
     this.assignmentPendingId = "";
     this.assignmentPendingAction = "";
+    this.assignmentModalOpen = false;
+    this.selectedAssignmentTargetId = "";
+    this.assignmentTargetsLoading = false;
+    this.assignmentTargetsError = "";
+    this.assignmentTargets = {
+      classes: [],
+      students: [],
+      locations: [],
+      warnings: []
+    };
     this.externalTaskSubmissions = [];
     this.externalTaskLoading = false;
     this.externalTaskPendingId = "";
@@ -89,23 +99,6 @@ export class CourseOverviewPage {
             <div id="assignmentPreviewMatrix" class="mb-5"></div>
             <div id="accessibilityLocalizationAudit" class="mb-5"></div>
 
-            <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-              <table class="w-full text-left border-collapse">
-                <thead>
-                  <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-200">
-                    <th class="py-3 px-6 font-semibold w-12 text-center">Order</th>
-                    <th class="py-3 px-6 font-semibold">Module Title</th>
-                    <th class="py-3 px-6 font-semibold text-center w-24">Status</th>
-                    <th class="py-3 px-6 font-semibold text-center w-24">Steps</th>
-                    <th class="py-3 px-6 font-semibold text-center w-32">Updated</th>
-                    <th class="py-3 px-6 font-semibold text-right w-32">Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="moduleTableBody" class="divide-y divide-gray-100 text-sm">
-                  ${buildModuleSkeletonRows(3)}
-                </tbody>
-              </table>
-            </div>
           </div>
 
           <!-- Right Column: Course Settings -->
@@ -137,6 +130,10 @@ export class CourseOverviewPage {
                     <div id="courseIconPreview" class="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-gray-200 bg-white grid place-items-center text-xs font-black text-gray-400">Icon</div>
                     <div class="min-w-0 flex-1">
                       <input type="file" id="courseIconUploadInput" accept="image/*" class="w-full text-xs font-semibold text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-xs file:font-black file:text-blue-700 hover:file:bg-blue-100">
+                      <label class="mt-2 flex items-center gap-2 text-[11px] font-bold text-gray-600">
+                        <input id="courseIconAutoCompressInput" type="checkbox" checked class="h-3.5 w-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        Auto compress picture
+                      </label>
                       <p id="courseIconUploadStatus" class="mt-1 hidden text-xs font-semibold"></p>
                     </div>
                   </div>
@@ -158,11 +155,7 @@ export class CourseOverviewPage {
                     <option value="adventurePath">Adventure Path</option>
                     <option value="compactGrid">Compact Grid</option>
                   </select>
-                  <div class="mt-2 space-y-1 rounded-xl border border-gray-100 bg-gray-50 p-3 text-xs leading-5 text-gray-600">
-                    <p><strong class="text-gray-800">Basic:</strong> Traditional vertical list with modules top-to-bottom.</p>
-                    <p><strong class="text-gray-800">Adventure Path:</strong> Journey-style path with current, completed, and locked states.</p>
-                    <p><strong class="text-gray-800">Compact Grid:</strong> Responsive cards for courses with many modules.</p>
-                  </div>
+                  <div id="moduleDisplayTemplatePreview" class="mt-2"></div>
                 </div>
 
                 <div class="rounded-xl border border-blue-100 bg-blue-50/60 p-3">
@@ -171,8 +164,12 @@ export class CourseOverviewPage {
                       <label class="block text-xs font-black text-blue-900">Template-Aware Theme</label>
                       <p class="mt-1 text-[11px] font-semibold leading-4 text-blue-700">Visual controls for previews and student module renderers.</p>
                     </div>
-                    <span id="courseThemeSwatch" class="h-9 w-9 rounded-2xl border-4 border-white bg-blue-500 shadow-sm"></span>
+                    <div class="flex items-center gap-2">
+                      <span id="courseThemeSwatch" class="h-9 w-9 rounded-2xl border-4 border-white bg-blue-500 shadow-sm"></span>
+                      <button id="editCourseThemeBtn" type="button" class="rounded-lg border border-blue-100 bg-white px-3 py-2 text-[11px] font-black text-blue-700 shadow-sm hover:bg-blue-50">Edit</button>
+                    </div>
                   </div>
+                  <div id="courseThemePreview" class="mb-3"></div>
                   <div class="grid grid-cols-2 gap-2">
                     <div>
                       <label class="block text-[10px] font-black uppercase tracking-wide text-blue-800 mb-1">Accent</label>
@@ -265,28 +262,10 @@ export class CourseOverviewPage {
                 <div id="assignmentStatusMessage" class="hidden mb-3 text-xs font-semibold"></div>
 
                 <div class="space-y-3">
-                  <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Target Type</label>
-                    <select id="assignmentTargetTypeSelect" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                      <option value="class">Class</option>
-                      <option value="student">Student</option>
-                      <option value="location">Location</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Target ID</label>
-                    <input id="assignmentTargetIdInput" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Paste class, student, or location ID">
-                  </div>
-                  <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Initial Status</label>
-                    <select id="assignmentStatusSelect" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                      <option value="active">Active</option>
-                      <option value="paused">Paused</option>
-                    </select>
-                  </div>
-                  <button id="createAssignmentBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg shadow-sm transition text-sm">
+                  <button id="openAssignmentModalBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg shadow-sm transition text-sm">
                     Assign Course
                   </button>
+                  <p class="text-[11px] font-semibold leading-4 text-gray-500">Choose from available classes, students, or locations instead of pasting an ID.</p>
                 </div>
 
                 <div id="assignmentList" class="mt-5 space-y-2">
@@ -342,6 +321,103 @@ export class CourseOverviewPage {
               </div>
             </div>
             <div id="coursePreviewBody" class="p-6 overflow-y-auto max-h-[72vh]"></div>
+          </div>
+        </div>
+
+        <div id="assignmentModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/70 p-6">
+          <div class="w-full max-w-3xl overflow-hidden rounded-[28px] bg-white shadow-2xl">
+            <div class="flex items-center justify-between gap-4 border-b border-gray-100 bg-blue-50 px-6 py-4">
+              <div>
+                <p class="text-[10px] font-black uppercase tracking-wide text-blue-600">Assign Course</p>
+                <h2 class="text-xl font-black text-gray-950">Choose an audience</h2>
+              </div>
+              <button id="closeAssignmentModalBtn" class="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50">Close</button>
+            </div>
+            <div class="grid gap-4 p-6">
+              <div id="assignmentModalStatus" class="hidden rounded-xl border px-3 py-2 text-xs font-semibold"></div>
+              <div class="grid gap-3 md:grid-cols-[180px_1fr_140px]">
+                <div>
+                  <label class="block text-xs font-semibold text-gray-700 mb-1">Target Type</label>
+                  <select id="assignmentTargetTypeSelect" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="class">Class</option>
+                    <option value="student">Student</option>
+                    <option value="location">Location</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-700 mb-1">Search</label>
+                  <input id="assignmentTargetSearchInput" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Filter available targets">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-700 mb-1">Initial Status</label>
+                  <select id="assignmentStatusSelect" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="active">Active</option>
+                    <option value="paused">Paused</option>
+                  </select>
+                </div>
+              </div>
+              <div id="assignmentTargetList" class="max-h-[42vh] overflow-y-auto rounded-2xl border border-gray-200 bg-gray-50 p-3"></div>
+              <div class="flex items-center justify-end gap-2 border-t border-gray-100 pt-4">
+                <button id="cancelAssignmentModalBtn" class="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50">Cancel</button>
+                <button id="createAssignmentBtn" class="rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300" disabled>
+                  Assign Course
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="courseThemeModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/70 p-6">
+          <div class="w-full max-w-2xl overflow-hidden rounded-[28px] bg-white shadow-2xl">
+            <div class="flex items-center justify-between gap-4 border-b border-gray-100 bg-blue-50 px-6 py-4">
+              <div>
+                <p class="text-[10px] font-black uppercase tracking-wide text-blue-600">Template-Aware Theme</p>
+                <h2 class="text-xl font-black text-gray-950">Edit course visual theme</h2>
+              </div>
+              <button id="closeCourseThemeModalBtn" class="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50">Close</button>
+            </div>
+            <div class="grid gap-4 p-6">
+              <div id="courseThemeModalPreview"></div>
+              <div class="grid gap-3 md:grid-cols-2">
+                <div>
+                  <label class="block text-[10px] font-black uppercase tracking-wide text-blue-800 mb-1">Accent</label>
+                  <select id="themeModalAccentSelect" class="w-full rounded-lg border border-blue-100 bg-white px-3 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="blue">Blue</option>
+                    <option value="emerald">Emerald</option>
+                    <option value="rose">Rose</option>
+                    <option value="amber">Amber</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[10px] font-black uppercase tracking-wide text-blue-800 mb-1">Icons</label>
+                  <select id="themeModalIconStyleSelect" class="w-full rounded-lg border border-blue-100 bg-white px-3 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="numbered">Numbered</option>
+                    <option value="courseIcon">Course Icon</option>
+                    <option value="minimal">Minimal</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[10px] font-black uppercase tracking-wide text-blue-800 mb-1">Badges</label>
+                  <select id="themeModalBadgeStyleSelect" class="w-full rounded-lg border border-blue-100 bg-white px-3 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="pill">Pill</option>
+                    <option value="soft">Soft</option>
+                    <option value="solid">Solid</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[10px] font-black uppercase tracking-wide text-blue-800 mb-1">Density</label>
+                  <select id="themeModalDensitySelect" class="w-full rounded-lg border border-blue-100 bg-white px-3 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="comfortable">Comfortable</option>
+                    <option value="compact">Compact</option>
+                    <option value="spacious">Spacious</option>
+                  </select>
+                </div>
+              </div>
+              <div class="flex items-center justify-end gap-2 border-t border-gray-100 pt-4">
+                <button id="cancelCourseThemeModalBtn" class="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50">Cancel</button>
+                <button id="saveCourseThemeModalBtn" class="rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-blue-700">Save Theme</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1034,7 +1110,7 @@ export class CourseOverviewPage {
 
     if (this.options.focusAssignment) {
       setTimeout(function () {
-        var assignmentButton = document.getElementById('createAssignmentBtn');
+        var assignmentButton = document.getElementById('openAssignmentModalBtn');
         if (assignmentButton) {
           assignmentButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
@@ -1080,6 +1156,40 @@ export class CourseOverviewPage {
       }
     });
 
+    document.getElementById('openAssignmentModalBtn').addEventListener('click', function () {
+      self.openAssignmentModal();
+    });
+
+    document.getElementById('closeAssignmentModalBtn').addEventListener('click', function () {
+      self.closeAssignmentModal();
+    });
+
+    document.getElementById('cancelAssignmentModalBtn').addEventListener('click', function () {
+      self.closeAssignmentModal();
+    });
+
+    document.getElementById('assignmentModal').addEventListener('click', function (e) {
+      if (e.target.id === 'assignmentModal') {
+        self.closeAssignmentModal();
+      }
+    });
+
+    document.getElementById('assignmentTargetTypeSelect').addEventListener('change', function () {
+      self.clearSelectedAssignmentTarget();
+      self.renderAssignmentTargets();
+    });
+
+    document.getElementById('assignmentTargetSearchInput').addEventListener('input', function () {
+      self.renderAssignmentTargets();
+    });
+
+    document.getElementById('assignmentTargetList').addEventListener('click', function (e) {
+      var targetBtn = e.target.closest('.assignment-target-option');
+      if (targetBtn) {
+        self.selectAssignmentTarget(targetBtn.getAttribute('data-target-id'));
+      }
+    });
+
     document.getElementById('createAssignmentBtn').addEventListener('click', function () {
       self.createAssignment();
     });
@@ -1101,6 +1211,13 @@ export class CourseOverviewPage {
       }
     });
 
+    document.getElementById('accessibilityLocalizationAudit').addEventListener('click', function (e) {
+      var target = e.target.closest('[data-quality-target]');
+      if (target) {
+        self.handleQualityCheckClick(target.getAttribute('data-quality-target'));
+      }
+    });
+
     document.getElementById('publishCourseBtn').addEventListener('click', function () {
       courseEditorService.publishCourse(self.courseId);
     });
@@ -1115,6 +1232,45 @@ export class CourseOverviewPage {
 
     document.getElementById('coursePreviewDeviceSelect').addEventListener('change', function () {
       self.renderCoursePreviewBody();
+    });
+
+    document.getElementById('courseDisplayTemplateSelect').addEventListener('change', function () {
+      self.renderTemplatePreviewControls();
+    });
+
+    document.getElementById('editCourseThemeBtn').addEventListener('click', function () {
+      self.openCourseThemeModal();
+    });
+
+    document.getElementById('closeCourseThemeModalBtn').addEventListener('click', function () {
+      self.closeCourseThemeModal();
+    });
+
+    document.getElementById('cancelCourseThemeModalBtn').addEventListener('click', function () {
+      self.closeCourseThemeModal();
+    });
+
+    document.getElementById('saveCourseThemeModalBtn').addEventListener('click', function () {
+      self.saveCourseThemeModal();
+    });
+
+    document.getElementById('courseThemeModal').addEventListener('click', function (e) {
+      if (e.target.id === 'courseThemeModal') {
+        self.closeCourseThemeModal();
+      }
+    });
+
+    ['themeModalAccentSelect', 'themeModalIconStyleSelect', 'themeModalBadgeStyleSelect', 'themeModalDensitySelect'].forEach(function (id) {
+      document.getElementById(id).addEventListener('change', function () {
+        self.renderCourseThemeModalPreview();
+      });
+    });
+
+    ['courseThemeAccentSelect', 'courseIconStyleSelect', 'courseBadgeStyleSelect', 'coursePathDensitySelect'].forEach(function (id) {
+      document.getElementById(id).addEventListener('change', function () {
+        self.renderThemePreviewControls();
+        self.renderTemplatePreviewControls();
+      });
     });
 
     document.getElementById('archiveCourseBtn').addEventListener('click', function () {
@@ -1261,85 +1417,87 @@ export class CourseOverviewPage {
 
     // Event delegation for opening Module Step Editor and Title Modal
     var tbody = document.getElementById('moduleTableBody');
-    tbody.addEventListener('click', function (e) {
-      var editBtn = e.target.closest('.open-module-btn');
-      if (editBtn) {
-        var moduleId = editBtn.getAttribute('data-id');
-        window.location.hash = '#module-editor?courseId=' + self.courseId + '&moduleId=' + moduleId;
-        return;
-      }
-
-      var titleBtn = e.target.closest('.edit-module-name-btn');
-      if (titleBtn) {
-        var moduleId = titleBtn.getAttribute('data-id');
-        self.openModuleTitleModal(moduleId);
-      }
-    });
-
-    tbody.addEventListener('change', function (e) {
-      var iconInput = e.target.closest('.module-icon-upload-input');
-      if (iconInput) {
-        self.uploadModuleIcon(iconInput.getAttribute('data-id'), iconInput.files && iconInput.files[0] ? iconInput.files[0] : null, iconInput);
-      }
-    });
-
-    // Drag and Drop Module Reordering
-    var draggedRowIndex = null;
-
-    tbody.addEventListener('dragstart', function (e) {
-      var row = e.target.closest('tr.module-row');
-      if (!row) {
-        return;
-      }
-      draggedRowIndex = parseInt(row.getAttribute('data-index'), 10);
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/html', row.innerHTML);
-      row.classList.add('opacity-50');
-    });
-
-    tbody.addEventListener('dragover', function (e) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      var row = e.target.closest('tr.module-row');
-      if (row && row.getAttribute('data-index') !== String(draggedRowIndex)) {
-        row.classList.add('bg-blue-50', 'border-t-2', 'border-blue-400');
-      }
-      return false;
-    });
-
-    tbody.addEventListener('dragleave', function (e) {
-      var row = e.target.closest('tr.module-row');
-      if (row) {
-        row.classList.remove('bg-blue-50', 'border-t-2', 'border-blue-400');
-      }
-    });
-
-    tbody.addEventListener('drop', function (e) {
-      e.stopPropagation();
-      var row = e.target.closest('tr.module-row');
-      if (row) {
-        row.classList.remove('bg-blue-50', 'border-t-2', 'border-blue-400');
-        var dropIndex = parseInt(row.getAttribute('data-index'), 10);
-        if (draggedRowIndex !== null && draggedRowIndex !== dropIndex) {
-          courseEditorService.reorderModules(self.courseId, draggedRowIndex, dropIndex).then(function () {
-            courseEditorService.saveDraft(self.courseId);
-          });
+    if (tbody) {
+      tbody.addEventListener('click', function (e) {
+        var editBtn = e.target.closest('.open-module-btn');
+        if (editBtn) {
+          var moduleId = editBtn.getAttribute('data-id');
+          window.location.hash = '#module-editor?courseId=' + self.courseId + '&moduleId=' + moduleId;
+          return;
         }
-      }
-      return false;
-    });
 
-    tbody.addEventListener('dragend', function (e) {
-      var row = e.target.closest('tr.module-row');
-      if (row) {
-        row.classList.remove('opacity-50');
-      }
-      var rows = tbody.querySelectorAll('tr.module-row');
-      for (var i = 0; i < rows.length; i++) {
-        rows[i].classList.remove('bg-blue-50', 'border-t-2', 'border-blue-400');
-      }
-      draggedRowIndex = null;
-    });
+        var titleBtn = e.target.closest('.edit-module-name-btn');
+        if (titleBtn) {
+          var moduleId = titleBtn.getAttribute('data-id');
+          self.openModuleTitleModal(moduleId);
+        }
+      });
+
+      tbody.addEventListener('change', function (e) {
+        var iconInput = e.target.closest('.module-icon-upload-input');
+        if (iconInput) {
+          self.uploadModuleIcon(iconInput.getAttribute('data-id'), iconInput.files && iconInput.files[0] ? iconInput.files[0] : null, iconInput);
+        }
+      });
+
+      // Drag and Drop Module Reordering
+      var draggedRowIndex = null;
+
+      tbody.addEventListener('dragstart', function (e) {
+        var row = e.target.closest('tr.module-row');
+        if (!row) {
+          return;
+        }
+        draggedRowIndex = parseInt(row.getAttribute('data-index'), 10);
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', row.innerHTML);
+        row.classList.add('opacity-50');
+      });
+
+      tbody.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        var row = e.target.closest('tr.module-row');
+        if (row && row.getAttribute('data-index') !== String(draggedRowIndex)) {
+          row.classList.add('bg-blue-50', 'border-t-2', 'border-blue-400');
+        }
+        return false;
+      });
+
+      tbody.addEventListener('dragleave', function (e) {
+        var row = e.target.closest('tr.module-row');
+        if (row) {
+          row.classList.remove('bg-blue-50', 'border-t-2', 'border-blue-400');
+        }
+      });
+
+      tbody.addEventListener('drop', function (e) {
+        e.stopPropagation();
+        var row = e.target.closest('tr.module-row');
+        if (row) {
+          row.classList.remove('bg-blue-50', 'border-t-2', 'border-blue-400');
+          var dropIndex = parseInt(row.getAttribute('data-index'), 10);
+          if (draggedRowIndex !== null && draggedRowIndex !== dropIndex) {
+            courseEditorService.reorderModules(self.courseId, draggedRowIndex, dropIndex).then(function () {
+              courseEditorService.saveDraft(self.courseId);
+            });
+          }
+        }
+        return false;
+      });
+
+      tbody.addEventListener('dragend', function (e) {
+        var row = e.target.closest('tr.module-row');
+        if (row) {
+          row.classList.remove('opacity-50');
+        }
+        var rows = tbody.querySelectorAll('tr.module-row');
+        for (var i = 0; i < rows.length; i++) {
+          rows[i].classList.remove('bg-blue-50', 'border-t-2', 'border-blue-400');
+        }
+        draggedRowIndex = null;
+      });
+    }
 
     // Track when user is typing/editing locally so we don't accidentally overwrite with state polling
     var inputs = document.querySelectorAll('.course-meta-input');
@@ -1444,6 +1602,7 @@ export class CourseOverviewPage {
         btn.classList.remove('oqu-btn-pending');
 
         if (!result || !result.emitted || !result.emitted.success) {
+          self.setSaveSettingsError(self.readResultErrorMessage(result));
           btn.textContent = 'Save Settings';
           return;
         }
@@ -1459,6 +1618,7 @@ export class CourseOverviewPage {
         btn.textContent = 'Save Settings';
         btn.disabled = false;
         btn.classList.remove('oqu-btn-pending');
+        self.setSaveSettingsError(err.message || 'Could not save changes.');
         console.error('[CourseOverview] Save settings failed:', err);
       });
     });
@@ -1596,7 +1756,9 @@ export class CourseOverviewPage {
       input.disabled = true;
     }
 
-    courseEditorService.uploadCourseIcon(this.courseId, file).then(function (result) {
+    courseEditorService.uploadCourseIcon(this.courseId, file, {
+      autoCompress: isCheckboxChecked('courseIconAutoCompressInput', true)
+    }).then(function (result) {
       if (!result || !result.emitted || !result.emitted.success) {
         throw new Error(self.readResultErrorMessage(result));
       }
@@ -1691,11 +1853,11 @@ export class CourseOverviewPage {
       this.renderCourseVersionTimeline(null, []);
       this.renderAssignmentPreviewMatrix(null, []);
       this.renderAccessibilityLocalizationAudit(null, []);
-      document.getElementById('moduleTableBody').innerHTML = '<tr><td colspan="6" class="py-6 border-b bg-red-50">'
+      setOptionalElementHtml('moduleTableBody', '<tr><td colspan="6" class="py-6 border-b bg-red-50">'
         + createErrorState('Could not load course', state.error, {
           className: 'rounded-xl border border-red-100 bg-red-50 p-4 text-sm font-bold text-red-700 flex flex-col gap-1'
         })
-        + '</td></tr>';
+        + '</td></tr>');
       return;
     }
 
@@ -1710,7 +1872,7 @@ export class CourseOverviewPage {
       this.renderCourseVersionTimeline(null, []);
       this.renderAssignmentPreviewMatrix(null, []);
       this.renderAccessibilityLocalizationAudit(null, []);
-      document.getElementById('moduleTableBody').innerHTML = buildModuleSkeletonRows(3);
+      setOptionalElementHtml('moduleTableBody', buildModuleSkeletonRows(3));
       return;
     }
 
@@ -1802,6 +1964,84 @@ export class CourseOverviewPage {
     var swatch = document.getElementById('courseThemeSwatch');
     if (swatch) {
       swatch.className = 'h-9 w-9 rounded-2xl border-4 border-white shadow-sm ' + readThemeAccentBackgroundClass(theme.accentColor);
+    }
+    this.renderThemePreviewControls();
+    this.renderTemplatePreviewControls();
+  }
+
+  renderThemePreviewControls() {
+    var preview = document.getElementById('courseThemePreview');
+    var theme = readThemeFromControls();
+    var swatch = document.getElementById('courseThemeSwatch');
+
+    if (swatch) {
+      swatch.className = 'h-9 w-9 rounded-2xl border-4 border-white shadow-sm ' + readThemeAccentBackgroundClass(theme.accentColor);
+    }
+
+    if (preview) {
+      preview.innerHTML = buildCourseThemeMiniPreview(theme);
+    }
+  }
+
+  renderTemplatePreviewControls() {
+    var preview = document.getElementById('moduleDisplayTemplatePreview');
+    var select = document.getElementById('courseDisplayTemplateSelect');
+    var template = normalizeCourseDisplayTemplate(select ? select.value : '');
+    var theme = readThemeFromControls();
+
+    if (preview) {
+      preview.innerHTML = buildModuleDisplayTemplateMiniPreview(template, theme);
+    }
+  }
+
+  openCourseThemeModal() {
+    var modal = document.getElementById('courseThemeModal');
+    var theme = readThemeFromControls();
+
+    setInputValue('themeModalAccentSelect', theme.accentColor);
+    setInputValue('themeModalIconStyleSelect', theme.moduleIconStyle);
+    setInputValue('themeModalBadgeStyleSelect', theme.badgeStyle);
+    setInputValue('themeModalDensitySelect', theme.pathDensity);
+    this.renderCourseThemeModalPreview();
+
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+  }
+
+  closeCourseThemeModal() {
+    var modal = document.getElementById('courseThemeModal');
+
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+  }
+
+  renderCourseThemeModalPreview() {
+    var preview = document.getElementById('courseThemeModalPreview');
+
+    if (preview) {
+      preview.innerHTML = buildCourseThemeMiniPreview(readThemeFromThemeModalControls());
+    }
+  }
+
+  saveCourseThemeModal() {
+    var theme = readThemeFromThemeModalControls();
+    var saveButton = document.getElementById('saveMetadataBtn');
+
+    setInputValue('courseThemeAccentSelect', theme.accentColor);
+    setInputValue('courseIconStyleSelect', theme.moduleIconStyle);
+    setInputValue('courseBadgeStyleSelect', theme.badgeStyle);
+    setInputValue('coursePathDensitySelect', theme.pathDensity);
+    this.userHasEditedMetadata = true;
+    this.renderThemePreviewControls();
+    this.renderTemplatePreviewControls();
+    this.closeCourseThemeModal();
+
+    if (saveButton) {
+      saveButton.click();
     }
   }
 
@@ -2067,22 +2307,177 @@ export class CourseOverviewPage {
     });
   }
 
+  handleQualityCheckClick(target) {
+    var safeTarget = target || "";
+    var state = courseEditorStore.getState();
+    var modules = Array.isArray(state.modules) ? state.modules : [];
+
+    if (safeTarget === "course-settings") {
+      scrollElementIntoView('courseTitleInput');
+      return;
+    }
+
+    if (safeTarget === "module-map") {
+      scrollElementIntoView('moduleMapEditor');
+      return;
+    }
+
+    if (safeTarget === "assignment") {
+      scrollElementIntoView('assignmentList');
+      return;
+    }
+
+    if (safeTarget === "first-module-editor" && modules.length > 0) {
+      var moduleId = readModuleId(modules[0]);
+      if (moduleId) {
+        window.location.hash = "#module-editor?courseId=" + encodeURIComponent(this.courseId) + "&moduleId=" + encodeURIComponent(moduleId);
+        return;
+      }
+    }
+
+    this.showAssignmentStatus('error', 'That quality check does not have a direct editor target yet.');
+  }
+
+  openAssignmentModal() {
+    var modal = document.getElementById('assignmentModal');
+
+    this.assignmentModalOpen = true;
+    this.clearSelectedAssignmentTarget();
+
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    this.loadAssignmentTargets();
+  }
+
+  closeAssignmentModal() {
+    var modal = document.getElementById('assignmentModal');
+
+    this.assignmentModalOpen = false;
+
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+  }
+
+  loadAssignmentTargets() {
+    var self = this;
+
+    if (this.assignmentTargetsLoading) {
+      return;
+    }
+
+    this.assignmentTargetsLoading = true;
+    this.assignmentTargetsError = "";
+    this.renderAssignmentTargets();
+    this.showAssignmentModalStatus('loading', 'Loading available assignment targets...');
+
+    courseAssignmentService.listAssignableTargets().then(function (targets) {
+      self.assignmentTargets = Object.assign({
+        classes: [],
+        students: [],
+        locations: [],
+        warnings: []
+      }, targets || {});
+      self.assignmentTargetsLoading = false;
+      self.renderAssignmentTargets();
+
+      if (self.assignmentTargets.warnings && self.assignmentTargets.warnings.length > 0) {
+        self.showAssignmentModalStatus('error', self.assignmentTargets.warnings[0]);
+      } else {
+        self.hideAssignmentModalStatus();
+      }
+    }).catch(function (error) {
+      self.assignmentTargetsLoading = false;
+      self.assignmentTargetsError = error.message;
+      self.renderAssignmentTargets();
+      self.showAssignmentModalStatus('error', error.message);
+    });
+  }
+
+  renderAssignmentTargets() {
+    var list = document.getElementById('assignmentTargetList');
+    var typeSelect = document.getElementById('assignmentTargetTypeSelect');
+    var searchInput = document.getElementById('assignmentTargetSearchInput');
+    var createButton = document.getElementById('createAssignmentBtn');
+    var targetType = typeSelect ? typeSelect.value : 'class';
+    var query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+    var targets = this.readAssignmentTargetsForType(targetType).filter(function (target) {
+      return !query || readAssignmentTargetSearchText(target).indexOf(query) !== -1;
+    });
+
+    if (createButton) {
+      createButton.disabled = !this.selectedAssignmentTargetId;
+    }
+
+    if (!list) {
+      return;
+    }
+
+    if (this.assignmentTargetsLoading) {
+      list.innerHTML = buildAssignmentTargetLoadingRows();
+      return;
+    }
+
+    if (this.assignmentTargetsError) {
+      list.innerHTML = '<div class="rounded-xl border border-red-100 bg-red-50 p-4 text-sm font-bold text-red-700">' + escapeHtml(this.assignmentTargetsError) + '</div>';
+      return;
+    }
+
+    if (targets.length === 0) {
+      list.innerHTML = '<div class="rounded-xl border border-dashed border-gray-300 bg-white p-5 text-center text-sm font-semibold text-gray-500">No available ' + escapeHtml(readAssignmentTargetTypeLabel(targetType).toLowerCase()) + ' targets found.</div>';
+      return;
+    }
+
+    list.innerHTML = targets.map(function (target) {
+      return buildAssignmentTargetOption(target, targetType, target.id === this.selectedAssignmentTargetId);
+    }, this).join('');
+  }
+
+  readAssignmentTargetsForType(targetType) {
+    if (targetType === 'student') {
+      return Array.isArray(this.assignmentTargets.students) ? this.assignmentTargets.students : [];
+    }
+
+    if (targetType === 'location') {
+      return Array.isArray(this.assignmentTargets.locations) ? this.assignmentTargets.locations : [];
+    }
+
+    return Array.isArray(this.assignmentTargets.classes) ? this.assignmentTargets.classes : [];
+  }
+
+  selectAssignmentTarget(targetId) {
+    this.selectedAssignmentTargetId = targetId || "";
+    this.renderAssignmentTargets();
+  }
+
+  clearSelectedAssignmentTarget() {
+    this.selectedAssignmentTargetId = "";
+    var createButton = document.getElementById('createAssignmentBtn');
+
+    if (createButton) {
+      createButton.disabled = true;
+    }
+  }
+
   createAssignment() {
     var self = this;
     var targetTypeSelect = document.getElementById('assignmentTargetTypeSelect');
-    var targetIdInput = document.getElementById('assignmentTargetIdInput');
     var statusSelect = document.getElementById('assignmentStatusSelect');
     var createButton = document.getElementById('createAssignmentBtn');
-    var targetId = targetIdInput.value.trim();
+    var targetId = this.selectedAssignmentTargetId || "";
 
     if (!targetId) {
-      this.showAssignmentStatus('error', 'Add a target ID before assigning the course.');
+      this.showAssignmentModalStatus('error', 'Choose a class, student, or location before assigning the course.');
       return;
     }
 
     createButton.disabled = true;
     createButton.textContent = 'Assigning...';
-    this.showAssignmentStatus('loading', 'Creating assignment...');
+    this.showAssignmentModalStatus('loading', 'Creating assignment...');
 
     courseAssignmentService.createCourseAssignment(
       this.courseId,
@@ -2090,15 +2485,16 @@ export class CourseOverviewPage {
       targetId,
       statusSelect.value
     ).then(function () {
-      targetIdInput.value = '';
       createButton.disabled = false;
       createButton.textContent = 'Assign Course';
+      self.clearSelectedAssignmentTarget();
+      self.closeAssignmentModal();
       self.showAssignmentStatus('success', 'Course assignment saved.');
       self.loadAssignments();
     }).catch(function (error) {
       createButton.disabled = false;
       createButton.textContent = 'Assign Course';
-      self.showAssignmentStatus('error', error.message);
+      self.showAssignmentModalStatus('error', error.message);
     });
   }
 
@@ -2160,7 +2556,7 @@ export class CourseOverviewPage {
     }
 
     if (!this.assignments || this.assignments.length === 0) {
-      list.innerHTML = '<div class="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-center text-xs text-gray-500 font-medium">No assignments yet. Add a class, student, or location target above.</div>';
+      list.innerHTML = '<div class="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-center text-xs text-gray-500 font-medium">No assignments yet. Use Assign Course to choose a class, student, or location.</div>';
       return;
     }
 
@@ -2316,6 +2712,40 @@ export class CourseOverviewPage {
     }
   }
 
+  showAssignmentModalStatus(type, message) {
+    var statusMessage = document.getElementById('assignmentModalStatus');
+
+    if (!statusMessage) {
+      return;
+    }
+
+    var colorClass = 'text-blue-700 bg-blue-50 border-blue-100';
+
+    if (type === 'error') {
+      colorClass = 'text-red-700 bg-red-50 border-red-100';
+    }
+
+    if (type === 'success') {
+      colorClass = 'text-green-700 bg-green-50 border-green-100';
+    }
+
+    statusMessage.className = 'rounded-xl border px-3 py-2 text-xs font-semibold ' + colorClass;
+    statusMessage.textContent = message;
+  }
+
+  hideAssignmentModalStatus() {
+    var statusMessage = document.getElementById('assignmentModalStatus');
+
+    if (statusMessage) {
+      statusMessage.className = 'hidden rounded-xl border px-3 py-2 text-xs font-semibold';
+      statusMessage.textContent = '';
+    }
+  }
+
+  setSaveSettingsError(message) {
+    this.showAssignmentStatus('error', message || 'Could not save changes.');
+  }
+
   renderModuleList(modules, course, moduleSourceCheck) {
     var tbody = document.getElementById('moduleTableBody');
     var safeModules = Array.isArray(modules) ? modules : [];
@@ -2332,6 +2762,10 @@ export class CourseOverviewPage {
       renderedModuleTitles: safeModules.map(readModuleTitle),
       moduleSource: moduleSourceCheck && moduleSourceCheck.moduleSource ? moduleSourceCheck.moduleSource : 'catalogCourses'
     });
+
+    if (!tbody) {
+      return;
+    }
 
     if (safeModules.length === 0) {
       var courseModuleCount = course && typeof course.moduleCount === 'number' ? course.moduleCount : 0;
@@ -2744,6 +3178,100 @@ function buildModuleSkeletonRows(rowCount) {
   return rows;
 }
 
+function buildAssignmentTargetLoadingRows() {
+  return '<div class="grid gap-2">'
+    + '<div class="h-16 animate-pulse rounded-xl bg-white"></div>'
+    + '<div class="h-16 animate-pulse rounded-xl bg-white"></div>'
+    + '<div class="h-16 animate-pulse rounded-xl bg-white"></div>'
+    + '</div>';
+}
+
+function buildAssignmentTargetOption(target, targetType, isSelected) {
+  var label = readAssignmentTargetName(target, targetType);
+  var meta = readAssignmentTargetMeta(target, targetType);
+  var selectedClass = isSelected ? 'border-blue-300 bg-blue-50 ring-2 ring-blue-100' : 'border-gray-200 bg-white hover:bg-gray-50';
+  var iconClass = targetType === 'student' ? 'fa-solid fa-user-graduate' : (targetType === 'location' ? 'fa-solid fa-location-dot' : 'fa-solid fa-users');
+
+  return '<button type="button" class="assignment-target-option mb-2 flex w-full items-center gap-3 rounded-xl border p-3 text-left transition ' + selectedClass + '" data-target-id="' + escapeHtml(target.id || '') + '">'
+    + '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-700"><i class="' + iconClass + '"></i></span>'
+    + '<span class="min-w-0 flex-1">'
+    + '<strong class="block truncate text-sm text-gray-950">' + escapeHtml(label) + '</strong>'
+    + '<small class="mt-0.5 block truncate text-[11px] font-semibold text-gray-500">' + escapeHtml(meta) + '</small>'
+    + '</span>'
+    + (isSelected ? '<i class="fa-solid fa-circle-check text-blue-600"></i>' : '')
+    + '</button>';
+}
+
+function readAssignmentTargetName(target, targetType) {
+  if (!target) {
+    return 'Untitled ' + readAssignmentTargetTypeLabel(targetType);
+  }
+
+  if (typeof target.name === 'string' && target.name.trim()) {
+    return target.name.trim();
+  }
+
+  if (typeof target.displayName === 'string' && target.displayName.trim()) {
+    return target.displayName.trim();
+  }
+
+  if (target.title) {
+    return readPreviewText(target.title, '');
+  }
+
+  if (targetType === 'student') {
+    return [target.firstName, target.lastName].filter(Boolean).join(' ') || target.email || target.id || 'Student';
+  }
+
+  return target.id || 'Untitled ' + readAssignmentTargetTypeLabel(targetType);
+}
+
+function readAssignmentTargetMeta(target, targetType) {
+  var parts = [readAssignmentTargetTypeLabel(targetType)];
+
+  if (target && target.locationName) {
+    parts.push(target.locationName);
+  } else if (target && target.locationId) {
+    parts.push('Location ' + target.locationId);
+  }
+
+  if (target && target.className && targetType !== 'class') {
+    parts.push(target.className);
+  } else if (target && target.classId && targetType !== 'class') {
+    parts.push('Class ' + target.classId);
+  }
+
+  if (target && target.email) {
+    parts.push(target.email);
+  }
+
+  return parts.join(' - ');
+}
+
+function readAssignmentTargetSearchText(target) {
+  return [
+    target && target.id,
+    target && target.name,
+    target && target.displayName,
+    target && target.email,
+    target && target.className,
+    target && target.locationName,
+    target && target.title && readPreviewText(target.title, '')
+  ].filter(Boolean).join(' ').toLowerCase();
+}
+
+function readAssignmentTargetTypeLabel(targetType) {
+  if (targetType === 'student') {
+    return 'Student';
+  }
+
+  if (targetType === 'location') {
+    return 'Location';
+  }
+
+  return 'Class';
+}
+
 function buildAssignmentRow(assignment, options) {
   var rowOptions = options || {};
   var assignmentId = escapeHtml(assignment.id || '');
@@ -2917,6 +3445,40 @@ function setInputValue(id, value) {
   var element = document.getElementById(id);
   if (element) {
     element.value = value;
+  }
+}
+
+function setOptionalElementHtml(id, html) {
+  var element = document.getElementById(id);
+
+  if (element) {
+    element.innerHTML = html;
+  }
+}
+
+function isCheckboxChecked(id, fallbackValue) {
+  var element = document.getElementById(id);
+
+  if (!element) {
+    return Boolean(fallbackValue);
+  }
+
+  return element.checked === true;
+}
+
+function scrollElementIntoView(id) {
+  var element = document.getElementById(id);
+
+  if (!element) {
+    return;
+  }
+
+  element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  if (typeof element.focus === 'function') {
+    setTimeout(function () {
+      element.focus();
+    }, 250);
   }
 }
 
@@ -3205,10 +3767,70 @@ function buildAccessibilityLocalizationAudit(course, modules) {
   findings.forEach(function (finding) {
     var className = finding.level === 'pass' ? 'border-emerald-100 bg-emerald-50 text-emerald-800' : (finding.level === 'warning' ? 'border-amber-100 bg-amber-50 text-amber-800' : 'border-rose-100 bg-rose-50 text-rose-800');
     var icon = finding.level === 'pass' ? 'fa-solid fa-check' : (finding.level === 'warning' ? 'fa-solid fa-circle-info' : 'fa-solid fa-triangle-exclamation');
-    html += '<article class="rounded-2xl border p-4 ' + className + '"><div class="flex items-center gap-2 text-sm font-black"><i class="' + icon + '"></i><span>' + escapeHtml(finding.label) + '</span></div><p class="mt-2 text-xs font-semibold leading-5 opacity-80">' + escapeHtml(finding.detail) + '</p></article>';
+    html += '<button type="button" data-quality-target="' + escapeHtml(finding.target || '') + '" class="text-left rounded-2xl border p-4 transition hover:-translate-y-0.5 hover:shadow-sm ' + className + '"><div class="flex items-center gap-2 text-sm font-black"><i class="' + icon + '"></i><span>' + escapeHtml(finding.label) + '</span></div><p class="mt-2 text-xs font-semibold leading-5 opacity-80">' + escapeHtml(finding.detail) + '</p></button>';
   });
   html += '</div></section>';
   return html;
+}
+
+function readThemeFromControls() {
+  return normalizeCourseVisualTheme({
+    visualTheme: {
+      accentColor: readInputValue('courseThemeAccentSelect') || 'blue',
+      moduleIconStyle: readInputValue('courseIconStyleSelect') || 'numbered',
+      badgeStyle: readInputValue('courseBadgeStyleSelect') || 'pill',
+      pathDensity: readInputValue('coursePathDensitySelect') || 'comfortable'
+    }
+  });
+}
+
+function readThemeFromThemeModalControls() {
+  return normalizeCourseVisualTheme({
+    visualTheme: {
+      accentColor: readInputValue('themeModalAccentSelect') || 'blue',
+      moduleIconStyle: readInputValue('themeModalIconStyleSelect') || 'numbered',
+      badgeStyle: readInputValue('themeModalBadgeStyleSelect') || 'pill',
+      pathDensity: readInputValue('themeModalDensitySelect') || 'comfortable'
+    }
+  });
+}
+
+function buildCourseThemeMiniPreview(theme) {
+  var accent = readThemeAccentSoftClass(theme.accentColor);
+  var badge = readThemeBadgeClass('current', theme);
+  var densityText = theme.pathDensity === 'compact' ? 'Tight path spacing' : (theme.pathDensity === 'spacious' ? 'Wide path spacing' : 'Balanced path spacing');
+
+  return '<div class="rounded-2xl border border-white bg-white p-3 shadow-sm">'
+    + '<div class="flex items-center justify-between gap-3">'
+    + '<div class="flex min-w-0 items-center gap-3">'
+    + '<span class="grid h-11 w-11 place-items-center rounded-2xl text-sm font-black ' + accent + '">' + (theme.moduleIconStyle === 'minimal' ? '<i class="fa-solid fa-minus"></i>' : '1') + '</span>'
+    + '<div class="min-w-0"><div class="truncate text-sm font-black text-slate-950">Sample module card</div><div class="text-[11px] font-bold text-slate-500">' + escapeHtml(densityText) + '</div></div>'
+    + '</div>'
+    + '<span class="rounded-full px-2 py-1 text-[10px] font-black uppercase ' + badge + '">Current</span>'
+    + '</div>'
+    + '</div>';
+}
+
+function buildModuleDisplayTemplateMiniPreview(template, theme) {
+  if (template === 'adventurePath') {
+    return '<div class="rounded-xl border border-emerald-100 bg-emerald-50 p-3">'
+      + '<div class="relative h-24 rounded-lg bg-white/70">'
+      + '<div class="absolute left-[18%] top-3 h-8 w-20 rounded-xl border border-emerald-200 bg-white"></div>'
+      + '<div class="absolute right-[18%] top-14 h-8 w-20 rounded-xl border border-blue-200 bg-white"></div>'
+      + '<div class="absolute left-[34%] top-8 h-10 w-[32%] rounded-full border-2 border-dashed border-blue-200"></div>'
+      + '</div><p class="mt-2 text-[11px] font-bold text-emerald-800">Journey-style path with visible progression.</p></div>';
+  }
+
+  if (template === 'compactGrid') {
+    return '<div class="rounded-xl border border-slate-200 bg-slate-50 p-3">'
+      + '<div class="grid grid-cols-3 gap-2">'
+      + '<span class="h-14 rounded-lg bg-white shadow-sm"></span><span class="h-14 rounded-lg bg-white shadow-sm"></span><span class="h-14 rounded-lg bg-white shadow-sm"></span>'
+      + '</div><p class="mt-2 text-[11px] font-bold text-slate-600">Dense card grid for courses with many modules.</p></div>';
+  }
+
+  return '<div class="rounded-xl border border-blue-100 bg-blue-50 p-3">'
+    + '<div class="grid gap-2"><span class="h-8 rounded-lg bg-white shadow-sm"></span><span class="h-8 rounded-lg bg-white shadow-sm"></span><span class="h-8 rounded-lg bg-white shadow-sm"></span></div>'
+    + '<p class="mt-2 text-[11px] font-bold text-blue-800">Simple vertical module list.</p></div>';
 }
 
 function normalizeCourseVisualTheme(course) {
@@ -3503,15 +4125,15 @@ function collectAccessibilityLocalizationFindings(course, modules) {
   var mediaNeedsAlt = [];
 
   if (titleMissing.length > 0) {
-    findings.push(createAuditFinding('error', 'Course title translations', 'Missing title values for: ' + titleMissing.join(', ') + '.'));
+    findings.push(createAuditFinding('error', 'Course title translations', 'Missing title values for: ' + titleMissing.join(', ') + '.', 'course-settings'));
   } else {
-    findings.push(createAuditFinding('pass', 'Course title translations', 'All configured course languages have a title value.'));
+    findings.push(createAuditFinding('pass', 'Course title translations', 'All configured course languages have a title value.', 'course-settings'));
   }
 
   if (descriptionMissing.length > 0) {
-    findings.push(createAuditFinding('warning', 'Course description translations', 'Missing description values for: ' + descriptionMissing.join(', ') + '.'));
+    findings.push(createAuditFinding('warning', 'Course description translations', 'Missing description values for: ' + descriptionMissing.join(', ') + '.', 'course-settings'));
   } else {
-    findings.push(createAuditFinding('pass', 'Course description translations', 'All configured course languages have a description value.'));
+    findings.push(createAuditFinding('pass', 'Course description translations', 'All configured course languages have a description value.', 'course-settings'));
   }
 
   modules.forEach(function (module, moduleIndex) {
@@ -3552,29 +4174,30 @@ function collectAccessibilityLocalizationFindings(course, modules) {
   });
 
   findings.push(moduleTitleMissing.length === 0
-    ? createAuditFinding('pass', 'Module localization', 'Module titles cover the configured language set.')
-    : createAuditFinding('warning', 'Module localization', moduleTitleMissing.slice(0, 4).join('; ') + (moduleTitleMissing.length > 4 ? ' and more.' : '.')));
+    ? createAuditFinding('pass', 'Module localization', 'Module titles cover the configured language set.', 'module-map')
+    : createAuditFinding('warning', 'Module localization', moduleTitleMissing.slice(0, 4).join('; ') + (moduleTitleMissing.length > 4 ? ' and more.' : '.'), 'module-map'));
 
   findings.push(missingInstructions.length === 0
-    ? createAuditFinding('pass', 'Step instructions', 'Student-facing steps include readable prompts or instructions.')
-    : createAuditFinding('warning', 'Step instructions', missingInstructions.slice(0, 5).join(', ') + (missingInstructions.length > 5 ? ' and more need prompts.' : ' need prompts.')));
+    ? createAuditFinding('pass', 'Step instructions', 'Student-facing steps include readable prompts or instructions.', 'first-module-editor')
+    : createAuditFinding('warning', 'Step instructions', missingInstructions.slice(0, 5).join(', ') + (missingInstructions.length > 5 ? ' and more need prompts.' : ' need prompts.'), 'first-module-editor'));
 
   findings.push(mediaNeedsAlt.length === 0
-    ? createAuditFinding('pass', 'Media support text', 'Images and audio with detectable media fields include alt text or transcripts.')
-    : createAuditFinding('error', 'Media support text', mediaNeedsAlt.slice(0, 5).join(', ') + (mediaNeedsAlt.length > 5 ? ' and more need support text.' : ' need support text.')));
+    ? createAuditFinding('pass', 'Media support text', 'Images and audio with detectable media fields include alt text or transcripts.', 'first-module-editor')
+    : createAuditFinding('error', 'Media support text', mediaNeedsAlt.slice(0, 5).join(', ') + (mediaNeedsAlt.length > 5 ? ' and more need support text.' : ' need support text.'), 'first-module-editor'));
 
   findings.push(longTitles.length === 0
-    ? createAuditFinding('pass', 'Mobile text fit', 'Module and step titles fit expected compact layouts.')
-    : createAuditFinding('warning', 'Mobile text fit', longTitles.slice(0, 5).join(', ') + (longTitles.length > 5 ? ' and more may wrap heavily.' : ' may wrap heavily.')));
+    ? createAuditFinding('pass', 'Mobile text fit', 'Module and step titles fit expected compact layouts.', 'module-map')
+    : createAuditFinding('warning', 'Mobile text fit', longTitles.slice(0, 5).join(', ') + (longTitles.length > 5 ? ' and more may wrap heavily.' : ' may wrap heavily.'), 'module-map'));
 
   return findings;
 }
 
-function createAuditFinding(level, label, detail) {
+function createAuditFinding(level, label, detail, target) {
   return {
     level: level,
     label: label,
-    detail: detail
+    detail: detail,
+    target: target || ""
   };
 }
 

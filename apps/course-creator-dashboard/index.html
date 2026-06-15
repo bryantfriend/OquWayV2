@@ -280,7 +280,39 @@
     .builder-modal-actions {
       display: flex;
       flex-wrap: wrap;
+      align-items: center;
       gap: 0.55rem;
+    }
+
+    .builder-user-area {
+      display: grid;
+      gap: 0.05rem;
+      max-width: 220px;
+      border: 1px solid #dbe5f2;
+      border-radius: 16px;
+      background: #fff;
+      padding: 0.48rem 0.75rem;
+      color: #172033;
+      box-shadow: 0 8px 24px rgba(23,32,51,0.06);
+    }
+
+    .builder-user-area span,
+    .builder-user-area small {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .builder-user-area span {
+      font-size: 0.78rem;
+      font-weight: 900;
+    }
+
+    .builder-user-area small {
+      color: #64748b;
+      font-size: 0.66rem;
+      font-weight: 800;
+      text-transform: uppercase;
     }
 
     .builder-btn,
@@ -1851,6 +1883,7 @@
       background: #f4f6f9;
       flex: 1;
       display: flex;
+      flex-direction: column;
       align-items: flex-start;
       justify-content: center;
       padding: 20px 16px 28px;
@@ -1868,9 +1901,11 @@
     .oqu-preview-toolbar {
       position: sticky;
       top: 0;
-      align-self: flex-start;
+      align-self: stretch;
       z-index: 2;
-      margin-right: 12px;
+      margin: 0 0 12px;
+      display: flex;
+      justify-content: flex-end;
     }
 
     .oqu-student-view-btn,

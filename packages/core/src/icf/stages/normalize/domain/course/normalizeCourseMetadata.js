@@ -7,6 +7,7 @@ export function normalizeCourseMetadata(executionState) {
     description: normalizeLocalizedText(payload.description, defaultLanguage),
     subject: normalizeTextValue(payload.subject),
     level: normalizeTextValue(payload.level),
+    grade: normalizeTextValue(payload.grade || payload.level),
     language: normalizeLanguage(payload.language, defaultLanguage),
     status: normalizeStatus(payload.status),
     defaultLanguage: defaultLanguage,

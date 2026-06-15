@@ -3,6 +3,21 @@ import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.
 import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.152-course-builder-loading-timeout";
 
 export const courseAssignmentService = {
+  listAssignableTargets: async function () {
+    var results = await Promise.allSettled([
+      runCourseAssignmentIntent("ListClassesIntent", {}),
+      runCourseAssignmentIntent("ListStudentsIntent", {}),
+      runCourseAssignmentIntent("ListLocationsIntent", {})
+    ]);
+
+    return {
+      classes: readListResult(results[0], "classes"),
+      students: readListResult(results[1], "students"),
+      locations: readListResult(results[2], "locations"),
+      warnings: readListWarnings(results)
+    };
+  },
+
   createCourseAssignment: async function (courseId, targetType, targetId, status) {
     var result = await runCourseAssignmentIntent("CreateCourseAssignmentIntent", {
       courseId: courseId,
@@ -81,6 +96,42 @@ function readIntentDataOrThrow(result) {
   }
 
   throw new Error(readIntentErrorMessage(result));
+}
+
+function readListResult(settledResult, key) {
+  if (!settledResult || settledResult.status !== "fulfilled") {
+    return [];
+  }
+
+  try {
+    var data = readIntentDataOrThrow(settledResult.value);
+    return data && Array.isArray(data[key]) ? data[key] : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function readListWarnings(results) {
+  var warnings = [];
+
+  results.forEach(function (settledResult) {
+    if (!settledResult) {
+      return;
+    }
+
+    if (settledResult.status === "rejected") {
+      warnings.push(settledResult.reason && settledResult.reason.message ? settledResult.reason.message : "Could not load an assignment target list.");
+      return;
+    }
+
+    try {
+      readIntentDataOrThrow(settledResult.value);
+    } catch (error) {
+      warnings.push(error.message);
+    }
+  });
+
+  return warnings;
 }
 
 function readIntentErrorMessage(result) {
