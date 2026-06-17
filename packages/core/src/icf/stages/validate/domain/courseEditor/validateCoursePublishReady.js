@@ -1,3 +1,5 @@
+import { countModuleSteps as countSharedModuleSteps } from "../../../../../../../domain/progress/index.js";
+
 export function validateCoursePublishReady(executionState) {
     const payload = executionState.payload || {};
     const context = executionState.context || {};
@@ -29,7 +31,7 @@ export function validateCoursePublishReady(executionState) {
                 errors.push({ field: "modules[" + index + "].title", message: "Module title is required." });
             }
 
-            if (countModuleSteps(moduleRecord) === 0) {
+            if (countSharedModuleSteps(moduleRecord) === 0) {
                 errors.push({ field: "modules[" + index + "].steps", message: "Module must have at least one student step." });
             }
         });
@@ -67,59 +69,3 @@ function hasLocalizedText(value) {
     return Boolean(value.en || value.ru || value.ky);
 }
 
-function countModuleSteps(moduleRecord) {
-    const stepIds = {};
-    let count = 0;
-
-    collectModuleSteps(moduleRecord).forEach(function (step) {
-        const stepId = step && step.id ? step.id : "";
-        if (stepId && stepIds[stepId]) {
-            return;
-        }
-
-        if (stepId) {
-            stepIds[stepId] = true;
-        }
-        count = count + 1;
-    });
-
-    if (count === 0 && moduleRecord && typeof moduleRecord.stepCount === "number") {
-        return moduleRecord.stepCount;
-    }
-
-    return count;
-}
-
-function collectModuleSteps(moduleRecord) {
-    let steps = [];
-
-    if (!moduleRecord || typeof moduleRecord !== "object") {
-        return steps;
-    }
-
-    if (Array.isArray(moduleRecord.steps)) {
-        steps = steps.concat(moduleRecord.steps);
-    }
-
-    if (moduleRecord.learningModes && typeof moduleRecord.learningModes === "object") {
-        Object.keys(moduleRecord.learningModes).forEach(function (modeId) {
-            const mode = moduleRecord.learningModes[modeId];
-            if (mode && Array.isArray(mode.steps)) {
-                steps = steps.concat(mode.steps);
-            }
-        });
-    }
-
-    if (Array.isArray(moduleRecord.sessions)) {
-        moduleRecord.sessions.forEach(function (session) {
-            const practiceModes = session && session.practiceModes && typeof session.practiceModes === "object" ? session.practiceModes : {};
-            Object.keys(practiceModes).forEach(function (modeKey) {
-                if (practiceModes[modeKey] && Array.isArray(practiceModes[modeKey].steps)) {
-                    steps = steps.concat(practiceModes[modeKey].steps);
-                }
-            });
-        });
-    }
-
-    return steps;
-}

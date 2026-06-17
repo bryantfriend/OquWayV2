@@ -7,12 +7,9 @@ const MODE_COUNT_CONCURRENCY = 6;
 export async function catalogCourseFetchAllProcessing(executionState) {
   try {
     const courses = await readCatalogCoursesWithLegacyFallback();
-    const shouldVerifyCounts = shouldRunDeepCountVerification(executionState);
 
     const countedCourses = await mapWithLimit(courses, COURSE_COUNT_CONCURRENCY, async function (course) {
-      const counts = shouldVerifyCounts || shouldVerifyPotentiallyStaleCounts(course)
-        ? await readCourseCounts(course)
-        : readStoredCourseCounts(course);
+      const counts = await readCourseCounts(course);
       return Object.assign({}, course, {
         moduleCount: counts.moduleCount,
         stepCount: counts.stepCount,
@@ -38,38 +35,6 @@ export async function catalogCourseFetchAllProcessing(executionState) {
   }
 }
 
-function shouldVerifyPotentiallyStaleCounts(course) {
-  const moduleCount = readStoredCount(course && course.moduleCount);
-  const stepCount = readStoredCount(course && course.stepCount);
-
-  return moduleCount === 0 || stepCount === 0;
-}
-
-function readStoredCourseCounts(course) {
-  return {
-    moduleCount: readStoredCount(course.moduleCount),
-    stepCount: readStoredCount(course.stepCount),
-    countsVerifiedAt: course.countsVerifiedAt || null,
-    countsVerified: false,
-    source: course.courseRecordSource || "catalogCourses"
-  };
-}
-
-function shouldRunDeepCountVerification(executionState) {
-  var payload = executionState && executionState.payload ? executionState.payload : {};
-  var meta = executionState && executionState.meta ? executionState.meta : {};
-
-  if (payload.verifyCounts === true || meta.verifyCounts === true) {
-    return true;
-  }
-
-  if (typeof window === "undefined" || !window.location) {
-    return false;
-  }
-
-  return window.location.search.indexOf("debugCounts=1") !== -1;
-}
-
 async function readCourseCounts(course) {
   const courseId = course.id;
   const storedModuleCount = readStoredCount(course.moduleCount);
@@ -87,7 +52,7 @@ async function readCourseCounts(course) {
     return total + count;
   }, 0);
 
-  if (storedModuleCount !== modules.length || storedStepCount !== actualStepCount) {
+  if (isCountDebugEnabled() && (storedModuleCount !== modules.length || storedStepCount !== actualStepCount)) {
     console.warn("[course-counts:mismatch]", {
       courseId: courseId,
       storedModuleCount: storedModuleCount,
@@ -98,7 +63,7 @@ async function readCourseCounts(course) {
     });
   }
 
-  if (source === "courses" && modules.length > 0) {
+  if (isCountDebugEnabled() && source === "courses" && modules.length > 0) {
     console.warn("[course-counts:legacy-source]", {
       courseId: courseId,
       moduleCount: modules.length,
@@ -151,6 +116,7 @@ async function readModulesFromSource(source, courseId) {
 
 async function countModuleSteps(source, courseId, module) {
   const moduleId = module.id || module.moduleId;
+  const seenStepIds = {};
   if (!moduleId) {
     return 0;
   }
@@ -159,7 +125,7 @@ async function countModuleSteps(source, courseId, module) {
 
   if (learningModeIds.length > 0) {
     const modeStepCounts = await mapWithLimit(learningModeIds, MODE_COUNT_CONCURRENCY, async function (modeId) {
-      return await countLearningModeSteps(source, courseId, moduleId, modeId, module.learningModes);
+      return await countLearningModeSteps(source, courseId, moduleId, modeId, module.learningModes, seenStepIds);
     });
 
     return modeStepCounts.reduce(function (total, count) {
@@ -192,16 +158,28 @@ async function readLearningModeIds(source, courseId, moduleId, embeddedLearningM
   return modeIds;
 }
 
-async function countLearningModeSteps(source, courseId, moduleId, modeId, embeddedLearningModes) {
+async function countLearningModeSteps(source, courseId, moduleId, modeId, embeddedLearningModes, seenStepIds) {
   const stepsSnapshot = await getDocs(collection(db, source, courseId, "modules", moduleId, "learningModes", modeId, "steps"));
+  let count = 0;
 
   if (!stepsSnapshot.empty) {
-    return stepsSnapshot.size;
+    stepsSnapshot.forEach(function (stepDoc) {
+      if (trackUniqueStepId(stepDoc.id, seenStepIds)) {
+        count = count + 1;
+      }
+    });
+    return count;
   }
 
   const embeddedMode = embeddedLearningModes && embeddedLearningModes[modeId] ? embeddedLearningModes[modeId] : null;
   if (embeddedMode && Array.isArray(embeddedMode.steps)) {
-    return embeddedMode.steps.length;
+    embeddedMode.steps.forEach(function (step, index) {
+      const stepId = step && step.id ? step.id : modeId + "-embedded-" + index;
+      if (trackUniqueStepId(stepId, seenStepIds)) {
+        count = count + 1;
+      }
+    });
+    return count;
   }
 
   return 0;
@@ -246,6 +224,23 @@ function countPracticeModeSteps(practiceModes) {
 
 function readStoredCount(value) {
   return typeof value === "number" ? value : 0;
+}
+
+function trackUniqueStepId(stepId, seenStepIds) {
+  if (!stepId || seenStepIds[stepId]) {
+    return false;
+  }
+
+  seenStepIds[stepId] = true;
+  return true;
+}
+
+function isCountDebugEnabled() {
+  if (typeof window === "undefined" || !window.location) {
+    return false;
+  }
+
+  return window.location.search.indexOf("debugCounts=1") !== -1;
 }
 
 async function mapWithLimit(items, limit, iterator) {

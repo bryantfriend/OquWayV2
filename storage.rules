@@ -145,6 +145,29 @@ service firebase.storage {
         && canEditCourseMedia(courseId);
     }
 
+    function courseIsPublished(courseDoc) {
+      return courseDoc != null && (
+        courseDoc.data.status == "published" ||
+        courseDoc.data.isPublished == true ||
+        courseDoc.data.published == true
+      );
+    }
+
+    function canReadPublishedCourseMedia(courseId) {
+      return isStudent() && (
+        courseIsPublished(catalogCourseDoc(courseId)) ||
+        courseIsPublished(legacyCourseDoc(courseId))
+      );
+    }
+
+    function canReadStepMedia(courseId) {
+      return request.auth != null && (
+        canEditCourseMedia(courseId) ||
+        isTeacher() ||
+        canReadPublishedCourseMedia(courseId)
+      );
+    }
+
     function isAllowedLocationIcon() {
       return request.resource.size <= 2 * 1024 * 1024
         && (
@@ -197,15 +220,7 @@ service firebase.storage {
     }
 
     match /step-media/{courseId}/{moduleId}/{modeId}/{stepId}/{fileName} {
-      allow read: if request.auth != null && (
-        isStudent() ||
-        isTeacher() ||
-        isCourseCreator() ||
-        isAssistant() ||
-        isSchoolAdmin() ||
-        isPlatformAdmin() ||
-        isSuperAdmin()
-      );
+      allow read: if canReadStepMedia(courseId);
 
       allow create, update: if canWriteStepMedia(courseId)
         && isAllowedStepMediaFile();

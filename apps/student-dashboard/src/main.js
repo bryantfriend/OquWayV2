@@ -1,5 +1,5 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.198-course-creator-advanced-upgrades";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.201-course-creator-stability-followup";
 import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.192-timed-sequence";
 import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.192-timed-sequence";
 import {
@@ -13,7 +13,7 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.192-timed-sequence";
+} from "../../../packages/domain/progress/index.js?v=1.1.201-course-creator-stability-followup";
 import {
   createEmptyState,
   createErrorState,

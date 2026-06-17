@@ -1,1 +1,1 @@
-export const OQUWAY_BUILD_VERSION = "1.1.200-course-creator-stability-publish";
+export const OQUWAY_BUILD_VERSION = "1.1.201-course-creator-stability-followup";

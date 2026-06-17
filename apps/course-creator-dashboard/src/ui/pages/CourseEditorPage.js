@@ -54,6 +54,11 @@ export class CourseEditorPage {
     this.stepDragState = null;
     this.boundStepDragMove = null;
     this.boundStepDragEnd = null;
+    this.learningContentAutosaveTimer = null;
+    this.learningContentAutosaveInFlight = false;
+    this.learningContentAutosaveQueued = false;
+    this.learningContentAutosaveDirty = false;
+    this.learningContentLastSavedSignature = "";
   }
 
   render() {
@@ -244,6 +249,17 @@ export class CourseEditorPage {
       if (e.target.closest("[data-learning-content-line-field]")) {
         updateLearningContentLineHidden(e.target.getAttribute("data-learning-content-line-field"));
       }
+
+      if (isLearningContentInput(e.target)) {
+        self.markLearningContentDirty("Unsaved changes");
+        self.scheduleLearningContentAutosave();
+      }
+    });
+
+    document.getElementById("workspaceContent").addEventListener("focusout", function (e) {
+      if (isLearningContentInput(e.target)) {
+        self.flushLearningContentAutosave();
+      }
     });
 
     // ── Inspector delegation (attached once) ───────────────────────────
@@ -344,12 +360,16 @@ export class CourseEditorPage {
     var saveVocabularyPairBtn = event.target.closest(".save-vocabulary-pair-btn");
     if (saveVocabularyPairBtn) {
       saveVocabularyPairFromModal();
+      self.markLearningContentDirty("Unsaved changes");
+      self.scheduleLearningContentAutosave();
       return;
     }
 
     var removeVocabularyPairBtn = event.target.closest(".remove-vocabulary-pair-btn");
     if (removeVocabularyPairBtn) {
       removeVocabularyPair(removeVocabularyPairBtn.getAttribute("data-index"));
+      self.markLearningContentDirty("Unsaved changes");
+      self.scheduleLearningContentAutosave();
       return;
     }
 
@@ -362,21 +382,19 @@ export class CourseEditorPage {
     var removeLearningContentLineBtn = event.target.closest(".remove-learning-content-line-btn");
     if (removeLearningContentLineBtn) {
       removeLearningContentLine(removeLearningContentLineBtn);
+      self.markLearningContentDirty("Unsaved changes");
+      self.scheduleLearningContentAutosave();
       return;
     }
 
     var saveLearningContentBtn = event.target.closest(".save-learning-content-btn");
     if (saveLearningContentBtn) {
-      var learningContent = readLearningContentFromWorkspace();
       saveLearningContentBtn.disabled = true;
       saveLearningContentBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving';
-      self.showEditorSaveStatus("saving", "Saving...");
-      moduleEditorService.saveLearningContent(this.courseId, this.moduleId, learningContent).then(function () {
-        self.showEditorSaveStatus("success", "Saved");
+      self.flushLearningContentAutosave().then(function () {
         self.updateUi(moduleEditorStore.getState());
       }).catch(function (error) {
-        self.showEditorSaveStatus("error", "Could not save changes");
-        alert("Learning content save failed: " + error.message);
+        self.showLearningContentAutosaveStatus("error", "Error — Retry: " + error.message);
       }).finally(function () {
         saveLearningContentBtn.disabled = false;
         saveLearningContentBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Learning Content';
@@ -1308,6 +1326,111 @@ export class CourseEditorPage {
     el.className = "text-green-600 font-medium flex items-center gap-1.5 text-xs";
   }
 
+  markLearningContentDirty(message) {
+    this.learningContentAutosaveDirty = true;
+    this.showLearningContentAutosaveStatus("dirty", message || "Unsaved changes");
+  }
+
+  scheduleLearningContentAutosave() {
+    var self = this;
+
+    if (this.activeEditorTab !== "learningContent") {
+      return;
+    }
+
+    if (this.learningContentAutosaveTimer) {
+      clearTimeout(this.learningContentAutosaveTimer);
+    }
+
+    this.learningContentAutosaveTimer = setTimeout(function () {
+      self.flushLearningContentAutosave().catch(function () {});
+    }, 1000);
+  }
+
+  flushLearningContentAutosave() {
+    if (this.learningContentAutosaveTimer) {
+      clearTimeout(this.learningContentAutosaveTimer);
+      this.learningContentAutosaveTimer = null;
+    }
+
+    return this.runLearningContentAutosave();
+  }
+
+  runLearningContentAutosave() {
+    var self = this;
+    var learningContent = null;
+    var validation = null;
+    var signature = "";
+
+    if (this.activeEditorTab !== "learningContent") {
+      return Promise.resolve();
+    }
+
+    if (this.learningContentAutosaveInFlight) {
+      this.learningContentAutosaveQueued = true;
+      return Promise.resolve();
+    }
+
+    learningContent = readLearningContentFromWorkspace();
+    validation = validateLearningContentForAutosave(learningContent);
+
+    if (!validation.valid) {
+      this.showLearningContentAutosaveStatus("error", validation.message);
+      return Promise.resolve();
+    }
+
+    signature = JSON.stringify(learningContent);
+    if (!this.learningContentAutosaveDirty && signature === this.learningContentLastSavedSignature) {
+      this.showLearningContentAutosaveStatus("saved", "Saved");
+      return Promise.resolve();
+    }
+
+    this.learningContentAutosaveInFlight = true;
+    this.learningContentAutosaveDirty = false;
+    this.showLearningContentAutosaveStatus("saving", "Saving...");
+    this.showEditorSaveStatus("saving", "Saving...");
+
+    return moduleEditorService.saveLearningContent(this.courseId, this.moduleId, learningContent).then(function () {
+      self.learningContentLastSavedSignature = signature;
+      self.showLearningContentAutosaveStatus("saved", "Saved");
+      self.showEditorSaveStatus("success", "Saved");
+    }).catch(function (error) {
+      self.learningContentAutosaveDirty = true;
+      self.showEditorSaveStatus("error", "Could not save changes");
+      self.showLearningContentAutosaveStatus("error", "Error — Retry: " + error.message);
+      throw error;
+    }).finally(function () {
+      self.learningContentAutosaveInFlight = false;
+      if (self.learningContentAutosaveQueued) {
+        self.learningContentAutosaveQueued = false;
+        self.scheduleLearningContentAutosave();
+      }
+    });
+  }
+
+  showLearningContentAutosaveStatus(type, message) {
+    var status = document.getElementById("learningContentAutosaveStatus");
+    var safeType = type || "saved";
+
+    if (!status) {
+      return;
+    }
+
+    status.textContent = message || "Saved";
+    status.setAttribute("data-status", safeType);
+    status.className = "rounded-2xl border px-3 py-2 text-xs font-black";
+
+    if (safeType === "error") {
+      status.className += " border-red-100 bg-red-50 text-red-700";
+    } else if (safeType === "saving") {
+      status.className += " border-amber-100 bg-amber-50 text-amber-700";
+    } else if (safeType === "dirty") {
+      status.className += " border-sky-100 bg-sky-50 text-sky-700";
+    } else {
+      status.className += " border-emerald-100 bg-emerald-50 text-emerald-700";
+    }
+  }
+
   renderSessionList(state) {
     var el = document.getElementById("sessionList");
     var sessions = state.sessions || [];
@@ -1356,6 +1479,7 @@ export class CourseEditorPage {
         structurePane.innerHTML = buildModuleStructureIdleHtml("Open Learning Activities to edit this module's path activities.");
       }
       workspace.innerHTML = buildLearningContentWorkspace(state.learningContent);
+      this.learningContentLastSavedSignature = JSON.stringify(readLearningContentFromWorkspace());
       propsPane.innerHTML = buildLearningContentInspector(state.learningContent);
       return;
     }
@@ -4656,7 +4780,10 @@ function buildLearningContentWorkspace(learningContent) {
   html += '<p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Hidden from students. Use this as the reusable source material for activities, review, assessment, and future AI-assisted creation.</p>';
   html += '</div>';
   html += '<img src="./src/assets/learning-content.svg" alt="" class="hidden md:block h-28 w-40 object-contain">';
+  html += '<div class="flex shrink-0 flex-col items-end gap-2">';
+  html += '<span id="learningContentAutosaveStatus" class="rounded-2xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700">Saved</span>';
   html += '<button type="button" class="save-learning-content-btn rounded-2xl bg-slate-950 px-4 py-2 text-xs font-black text-white shadow-sm hover:bg-slate-800"><i class="fa-solid fa-floppy-disk"></i> Save Learning Content</button>';
+  html += '</div>';
   html += '</div>';
   html += '</div>';
 
@@ -5295,6 +5422,34 @@ function readLearningContentFromWorkspace() {
   }
 
   return content;
+}
+
+function isLearningContentInput(target) {
+  if (!target || typeof target.closest !== "function") {
+    return false;
+  }
+
+  return Boolean(
+    target.closest("[data-learning-content-line-field]") ||
+    target.closest("[data-learning-content-field]")
+  );
+}
+
+function validateLearningContentForAutosave(content) {
+  var vocabulary = Array.isArray(content && content.vocabulary) ? content.vocabulary : [];
+  var definitions = Array.isArray(content && content.definitions) ? content.definitions : [];
+
+  if (vocabulary.length !== definitions.length) {
+    return {
+      valid: false,
+      message: "Error — Retry: every vocabulary word needs one definition."
+    };
+  }
+
+  return {
+    valid: true,
+    message: ""
+  };
 }
 
 function normalizeLearningContentForUi(learningContent) {

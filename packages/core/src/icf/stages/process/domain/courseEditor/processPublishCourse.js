@@ -1,4 +1,5 @@
 import { db, writeBatch, doc, serverTimestamp } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
+import { countModuleSteps as countSharedModuleSteps } from "../../../../../../../domain/progress/index.js";
 
 export async function processPublishCourse(executionState) {
     const { payload, context } = executionState;
@@ -117,65 +118,8 @@ function isFirestoreSentinel(value) {
 
 function countCourseSteps(modules) {
     return modules.reduce(function (total, moduleRecord) {
-        return total + countModuleSteps(moduleRecord);
+        return total + countSharedModuleSteps(moduleRecord);
     }, 0);
-}
-
-function countModuleSteps(moduleRecord) {
-    const stepIds = {};
-    let count = 0;
-
-    collectModuleSteps(moduleRecord).forEach(function (step) {
-        const stepId = step && step.id ? step.id : "";
-        if (stepId && stepIds[stepId]) {
-            return;
-        }
-
-        if (stepId) {
-            stepIds[stepId] = true;
-        }
-        count = count + 1;
-    });
-
-    if (count === 0 && moduleRecord && typeof moduleRecord.stepCount === "number") {
-        return moduleRecord.stepCount;
-    }
-
-    return count;
-}
-
-function collectModuleSteps(moduleRecord) {
-    let steps = [];
-
-    if (!moduleRecord || typeof moduleRecord !== "object") {
-        return steps;
-    }
-
-    if (Array.isArray(moduleRecord.steps)) {
-        steps = steps.concat(moduleRecord.steps);
-    }
-
-    if (moduleRecord.learningModes && typeof moduleRecord.learningModes === "object") {
-        Object.keys(moduleRecord.learningModes).forEach(function (modeId) {
-            const mode = moduleRecord.learningModes[modeId];
-            if (mode && Array.isArray(mode.steps)) {
-                steps = steps.concat(mode.steps);
-            }
-        });
-    }
-
-    if (Array.isArray(moduleRecord.sessions)) {
-        moduleRecord.sessions.forEach(function (session) {
-            const practiceModes = session && session.practiceModes && typeof session.practiceModes === "object" ? session.practiceModes : {};
-            Object.keys(practiceModes).forEach(function (modeKey) {
-                if (practiceModes[modeKey] && Array.isArray(practiceModes[modeKey].steps)) {
-                    steps = steps.concat(practiceModes[modeKey].steps);
-                }
-            });
-        });
-    }
-
-    return steps;
 }
 
 function readCourseCollectionName(executionState) {

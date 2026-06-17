@@ -1,5 +1,6 @@
 import { db, doc, serverTimestamp, writeBatch } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
 import { reorderPracticeModeSteps } from "./practiceModeShells.js?v=1.1.162-modal-stack";
+import { countModuleSteps as countSharedModuleSteps } from "../../../../../../../domain/progress/index.js";
 
 export async function processReorderPracticeModeSteps(executionState) {
   var payload = executionState.payload || {};
@@ -216,23 +217,15 @@ function readFirstStepId(steps) {
 function readUpdatedModuleStepCount(executionState, updatedModeId, updatedModeStepCount) {
   var module = executionState.context.module || {};
   var modes = module.learningModes && typeof module.learningModes === "object" ? module.learningModes : {};
-  var modeIds = Object.keys(modes);
-  var total = 0;
-
-  modeIds.forEach(function (modeId) {
-    if (modeId === updatedModeId) {
-      total = total + readNumber(updatedModeStepCount, 0);
-      return;
-    }
-
-    total = total + readNumber(modes[modeId] && modes[modeId].stepCount, 0);
+  var nextModes = Object.assign({}, modes, {
+    [updatedModeId]: Object.assign({}, modes[updatedModeId] || {}, {
+      stepCount: readNumber(updatedModeStepCount, 0)
+    })
   });
 
-  if (modeIds.indexOf(updatedModeId) === -1) {
-    total = total + readNumber(updatedModeStepCount, 0);
-  }
-
-  return total;
+  return countSharedModuleSteps(Object.assign({}, module, {
+    learningModes: nextModes
+  }));
 }
 
 function readNumber(value, fallbackValue) {

@@ -8,6 +8,10 @@ import {
   createLoadingState,
   createStatusBadge
 } from '../../../../../packages/ui/index.js?v=1.1.153-student-course-journey-polish';
+import {
+  countModuleSteps as countSharedModuleSteps
+} from '../../../../../packages/domain/progress/index.js?v=1.1.201-course-creator-stability-followup';
+import { PracticeModePlayer } from '../../../../../packages/shared/player/index.js?v=1.1.201-course-creator-stability-followup';
 
 export class CourseOverviewPage {
   constructor(courseId, options) {
@@ -41,6 +45,8 @@ export class CourseOverviewPage {
     this.externalTaskStatusFilter = "pending";
     this.courseArchivePending = false;
     this.previewCourseData = null;
+    this.coursePreviewPlayer = null;
+    this.coursePreviewPlayerSignature = '';
     this.ALL_LANGUAGES = [
       { code: 'en', name: 'English (en)' },
       { code: 'ru', name: 'Russian (ru)' },
@@ -648,6 +654,56 @@ export class CourseOverviewPage {
       displayTemplate: templateSelect ? templateSelect.value : this.previewCourseData.displayTemplate,
       device: deviceSelect ? deviceSelect.value : 'desktop'
     });
+    this.mountCoursePreviewPlayer();
+  }
+
+  mountCoursePreviewPlayer() {
+    var target = document.getElementById('coursePreviewPlayerRoot');
+    var preview = createCoursePreviewPlayerData(this.previewCourseData);
+    var self = this;
+
+    if (!target || !preview || preview.steps.length === 0) {
+      return;
+    }
+
+    if (!this.coursePreviewPlayer || this.coursePreviewPlayerSignature !== preview.signature) {
+      if (this.coursePreviewPlayer) {
+        this.coursePreviewPlayer.destroy();
+      }
+
+      this.coursePreviewPlayer = new PracticeModePlayer({
+        courseId: this.courseId,
+        moduleId: preview.moduleId,
+        sessionId: preview.sessionId,
+        practiceModeKey: preview.modeId,
+        practiceMode: preview.practiceMode,
+        steps: preview.steps,
+        actor: {
+          id: 'course-creator-preview',
+          role: 'courseCreator'
+        },
+        mode: 'student',
+        backLabel: 'Course Preview',
+        onBack: function () {
+          self.renderCoursePreviewBody();
+        },
+        onStepComplete: function () {
+          return null;
+        }
+      });
+      this.coursePreviewPlayerSignature = preview.signature;
+    }
+
+    this.coursePreviewPlayer.mount(target);
+  }
+
+  destroyCoursePreviewPlayer() {
+    if (this.coursePreviewPlayer) {
+      this.coursePreviewPlayer.destroy();
+    }
+
+    this.coursePreviewPlayer = null;
+    this.coursePreviewPlayerSignature = '';
   }
 
   openModuleTitleModal(moduleId) {
@@ -1283,6 +1339,7 @@ export class CourseOverviewPage {
     });
 
     document.getElementById('closeCoursePreviewBtn').addEventListener('click', function () {
+      self.destroyCoursePreviewPlayer();
       document.getElementById('coursePreviewModal').classList.add('hidden');
     });
 
@@ -2086,12 +2143,16 @@ export class CourseOverviewPage {
     var stepCount = countCourseSteps(safeModules);
     var updatedAt = formatCourseDate(course.updatedAt || course.modifiedAt || course.createdAt);
     var assignmentsSummary = summarizeAssignments(this.assignments);
+    var iconHtml = buildCourseOverviewIcon(course, title);
 
     summary.innerHTML = '<div class="space-y-3">'
       + '<div class="flex items-start justify-between gap-3">'
+      + '<div class="flex min-w-0 items-start gap-3">'
+      + iconHtml
       + '<div class="min-w-0">'
       + '<div class="text-sm font-black text-gray-900 truncate">' + escapeHtml(title) + '</div>'
       + '<p class="mt-1 line-clamp-2 text-xs font-medium text-gray-500">' + escapeHtml(description) + '</p>'
+      + '</div>'
       + '</div>'
       + createStatusBadge(status, {
         className: 'shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wide bg-white text-gray-700 border-gray-200',
@@ -4317,6 +4378,10 @@ function buildCoursePreview(course, options) {
   var html = '<section class="mx-auto ' + frameClass + ' transition-all">';
   html += '<div class="space-y-6 rounded-[28px] border border-slate-200 bg-slate-50 p-4 shadow-inner">';
   html += buildCoursePreviewHero(course, title, description, template, theme);
+  html += '<section class="rounded-[28px] border border-emerald-100 bg-white p-4 shadow-sm">';
+  html += '<div class="mb-3"><p class="text-[10px] font-black uppercase tracking-wide text-emerald-600">Interactive Student Preview</p><h2 class="text-lg font-black text-slate-950">First available learning path</h2><p class="mt-1 text-xs font-semibold text-slate-500">Local preview only. No student progress, diagnostics, scores, or analytics are written.</p></div>';
+  html += '<div id="coursePreviewPlayerRoot" class="course-player-root"></div>';
+  html += '</section>';
 
   if (modules.length === 0) {
     html += '<div class="rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-10 text-center"><h2 class="text-xl font-black text-slate-900">No modules yet</h2><p class="mt-2 text-sm font-semibold text-slate-500">Add a module and student steps before publishing.</p></div>';
@@ -4352,6 +4417,122 @@ function buildCoursePreviewHero(course, title, description, template, theme) {
     + iconHtml
     + '</div>'
     + '</div>';
+}
+
+function createCoursePreviewPlayerData(course) {
+  var modules = Array.isArray(course && course.modules) ? course.modules : [];
+  var moduleIndex = 0;
+
+  while (moduleIndex < modules.length) {
+    var module = modules[moduleIndex];
+    var previewMode = readFirstPreviewLearningMode(module);
+
+    if (previewMode && previewMode.steps.length > 0) {
+      return {
+        moduleId: readModuleId(module) || String(moduleIndex),
+        modeId: previewMode.modeId,
+        sessionId: previewMode.sessionId,
+        practiceMode: {
+          key: previewMode.modeId,
+          title: previewMode.title || { en: 'Student Preview', ru: '', ky: '' },
+          steps: previewMode.steps
+        },
+        steps: previewMode.steps,
+        signature: [
+          readModuleId(module) || String(moduleIndex),
+          previewMode.modeId,
+          previewMode.steps.map(function (step) { return readStepIdValue(step); }).join(',')
+        ].join('|')
+      };
+    }
+
+    moduleIndex = moduleIndex + 1;
+  }
+
+  return null;
+}
+
+function readFirstPreviewLearningMode(module) {
+  var modes = module && module.learningModes && typeof module.learningModes === 'object' && !Array.isArray(module.learningModes)
+    ? module.learningModes
+    : {};
+  var modeIds = Object.keys(modes).sort(function (firstModeId, secondModeId) {
+    var first = modes[firstModeId] || {};
+    var second = modes[secondModeId] || {};
+    return readModeSortOrder(firstModeId, first) - readModeSortOrder(secondModeId, second);
+  });
+  var index = 0;
+
+  while (index < modeIds.length) {
+    var modeId = modeIds[index];
+    var mode = modes[modeId];
+    var steps = readPlayerPreviewSteps(mode && mode.steps);
+
+    if (steps.length > 0) {
+      return {
+        modeId: modeId,
+        sessionId: mode && mode.legacySessionId ? mode.legacySessionId : '',
+        title: mode && mode.title ? mode.title : { en: 'Student Preview', ru: '', ky: '' },
+        steps: steps
+      };
+    }
+
+    index = index + 1;
+  }
+
+  return readFirstPreviewSessionMode(module);
+}
+
+function readFirstPreviewSessionMode(module) {
+  var sessions = module && Array.isArray(module.sessions) ? module.sessions : [];
+  var sessionIndex = 0;
+
+  while (sessionIndex < sessions.length) {
+    var session = sessions[sessionIndex];
+    var practiceModes = session && session.practiceModes && typeof session.practiceModes === 'object' ? session.practiceModes : {};
+    var keys = Object.keys(practiceModes);
+    var keyIndex = 0;
+
+    while (keyIndex < keys.length) {
+      var mode = practiceModes[keys[keyIndex]];
+      var steps = readPlayerPreviewSteps(mode && mode.steps);
+
+      if (steps.length > 0) {
+        return {
+          modeId: keys[keyIndex],
+          sessionId: session.id || '',
+          title: mode.title || session.title || { en: 'Student Preview', ru: '', ky: '' },
+          steps: steps
+        };
+      }
+
+      keyIndex = keyIndex + 1;
+    }
+
+    sessionIndex = sessionIndex + 1;
+  }
+
+  return null;
+}
+
+function readPlayerPreviewSteps(steps) {
+  return Array.isArray(steps)
+    ? steps.slice().sort(function (firstStep, secondStep) {
+      return (firstStep.order || 0) - (secondStep.order || 0);
+    })
+    : [];
+}
+
+function readModeSortOrder(modeId, mode) {
+  if (modeId === 'primary') {
+    return -1000;
+  }
+
+  return typeof mode.order === 'number' ? mode.order : 99;
+}
+
+function readStepIdValue(step) {
+  return step && typeof step.id === 'string' ? step.id : '';
 }
 
 function renderCourseModules(course, modules, progress) {
@@ -4597,71 +4778,7 @@ function countCourseSteps(modules) {
 }
 
 function countModuleSteps(module) {
-  return calculateModuleStepSummary(module).stepCount;
-}
-
-function calculateModuleStepSummary(module) {
-  var learningModeCount = countLearningModeSteps(module && module.learningModes);
-
-  if (learningModeCount > 0) {
-    return {
-      stepCount: learningModeCount,
-      source: 'learningModes'
-    };
-  }
-
-  if (module && Array.isArray(module.steps)) {
-    return {
-      stepCount: module.steps.length,
-      source: 'module.steps'
-    };
-  }
-
-  if (module && Array.isArray(module.sessions)) {
-    return {
-      stepCount: countPreviewModuleSteps(module),
-      source: 'sessions'
-    };
-  }
-
-  if (module && typeof module.stepCount === 'number') {
-    return {
-      stepCount: module.stepCount,
-      source: 'storedStepCount'
-    };
-  }
-
-  return {
-    stepCount: 0,
-    source: 'none'
-  };
-}
-
-function countLearningModeSteps(learningModes) {
-  if (!learningModes || typeof learningModes !== 'object') {
-    return 0;
-  }
-
-  var count = 0;
-  Object.keys(learningModes).forEach(function (modeId) {
-    var mode = learningModes[modeId];
-
-    if (mode && Array.isArray(mode.stepOrder) && mode.stepOrder.length > 0) {
-      count = count + mode.stepOrder.length;
-      return;
-    }
-
-    if (mode && Array.isArray(mode.steps)) {
-      count = count + mode.steps.length;
-      return;
-    }
-
-    if (mode && typeof mode.stepCount === 'number') {
-      count = count + mode.stepCount;
-    }
-  });
-
-  return count;
+  return countSharedModuleSteps(module);
 }
 
 function readPreviewText(value, fallback) {
@@ -4869,6 +4986,16 @@ function summarizeAssignments(assignments) {
   }
 
   return activeAssignments.length + ' active assignment' + (activeAssignments.length === 1 ? '' : 's') + ' connected to this course.';
+}
+
+function buildCourseOverviewIcon(course, title) {
+  var iconUrl = course && typeof course.iconUrl === 'string' ? course.iconUrl.trim() : '';
+
+  if (iconUrl) {
+    return '<span class="h-12 w-12 shrink-0 overflow-hidden rounded-2xl border border-blue-100 bg-blue-50 shadow-sm"><img src="' + escapeHtml(iconUrl) + '" alt="" class="h-full w-full object-cover"></span>';
+  }
+
+  return '<span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-blue-100 bg-blue-50 text-sm font-black text-blue-700 shadow-sm">' + escapeHtml(readPreviewText(title, 'C').charAt(0).toUpperCase() || 'C') + '</span>';
 }
 
 function buildCourseSummaryItem(label, value) {

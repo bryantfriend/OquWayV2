@@ -577,11 +577,12 @@ function buildCourseCard(course, state) {
   var moduleLabel = buildCountLabel(moduleCount, "module");
   var stepLabel = buildCountLabel(stepCount, "learning activity");
   var legacySourceLabel = countSource === "courses" ? '<span class="builder-count-source">Legacy source</span>' : "";
+  var iconHtml = buildCourseIconHtml(course, title, "builder-course-card-icon");
 
   return `
     <article class="builder-course-card${cardClass}" aria-busy="${isArchivePending ? "true" : "false"}">
       <div class="builder-course-card-top">
-        <img src="./src/assets/module-stack.svg" alt="">
+        ${iconHtml}
         <span class="builder-badge builder-badge-${escapeHtml(status)}">${escapeHtml(status)}</span>
       </div>
       ${isArchivePending ? '<div class="builder-archive-overlay"><span class="oqu-spinner oqu-spinner-blue"></span><strong>Archiving course...</strong></div>' : ''}
@@ -602,6 +603,27 @@ function buildCourseCard(course, state) {
       </div>
     </article>
   `;
+}
+
+function buildCourseIconHtml(course, title, className) {
+  var iconUrl = readCourseIconUrl(course);
+  var safeClassName = className || "builder-course-card-icon";
+
+  if (iconUrl) {
+    return '<span class="' + escapeHtml(safeClassName) + '"><img src="' + escapeHtml(iconUrl) + '" alt=""></span>';
+  }
+
+  return '<span class="' + escapeHtml(safeClassName) + ' builder-course-card-icon-fallback">' + escapeHtml(readCourseInitial(title)) + '</span>';
+}
+
+function readCourseIconUrl(course) {
+  var value = course && (course.iconUrl || course.heroImageUrl || course.imageUrl || course.thumbnailUrl);
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function readCourseInitial(title) {
+  var value = typeof title === "string" ? title.trim() : "";
+  return value ? value.charAt(0).toUpperCase() : "C";
 }
 
 function filterCourses(courses, searchQuery, statusFilter) {
