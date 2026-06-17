@@ -152,15 +152,16 @@ export class CardRevealStep extends InteractiveLearningStepBase {
 
   static renderPlayerShell(config) {
     var cards = parseCardLines(config.cardsText);
+    var templateId = normalizeActivityTemplateId("card-reveal", readRawActivityTemplateId(config));
     var body = "";
 
     body += '<h2>' + this.escapeHtml(readText(config, "title", "Reveal the Cards")) + '</h2>';
     body += '<p>' + this.escapeHtml(readText(config, "instructions", "Click each card to reveal more information.")) + '</p>';
-    body += '<div class="card-reveal-grid">';
+    body += '<div class="card-reveal-grid' + (templateId === "mystery-flip-cards" ? ' mystery-flip-grid' : '') + '">';
     cards.forEach(function (card, index) {
-      body += '<button type="button" class="card-reveal-card" data-card-index="' + index + '" aria-expanded="false">';
+      body += '<button type="button" class="card-reveal-card' + (templateId === "mystery-flip-cards" ? ' mystery-flip-card' : '') + '" data-card-index="' + index + '" aria-expanded="false">';
       body += '<span class="card-reveal-card-inner">';
-      body += '<span class="card-reveal-front"><span class="card-reveal-icon">' + BaseStep.escapeHtml(card.icon) + '</span><strong>' + BaseStep.escapeHtml(card.title) + '</strong><em>Tap to reveal</em></span>';
+      body += '<span class="card-reveal-front"><span class="card-reveal-icon">' + BaseStep.escapeHtml(card.icon) + '</span><strong>' + BaseStep.escapeHtml(card.title) + '</strong><em>' + BaseStep.escapeHtml(templateId === "mystery-flip-cards" ? "Unlock clue" : "Tap to reveal") + '</em></span>';
       body += '<span class="card-reveal-back"><strong>' + BaseStep.escapeHtml(card.title) + '</strong><span>' + BaseStep.escapeHtml(card.description) + '</span></span>';
       body += '</span>';
       body += '</button>';
@@ -1465,8 +1466,65 @@ class EmojiCheckInReflectionTemplate {
   }
 }
 
+class SentenceStarterReflectionTemplate {
+  static renderPlayerShell(StepType, config) {
+    var choices = parseLines(config.choicesText, ["I learned that...", "I noticed...", "I still wonder..."]);
+    var body = "";
+
+    body += '<div class="sentence-starter-shell">';
+    body += '<div class="sentence-starter-header">';
+    body += '<span>Guided reflection</span>';
+    body += '<h2>' + StepType.escapeHtml(readText(config, "title", "Sentence Starter")) + '</h2>';
+    body += '<p>' + StepType.escapeHtml(readText(config, "promptText", "Choose a starter, then finish your thought.")) + '</p>';
+    body += '</div>';
+    body += '<div class="reflection-choices sentence-starter-choices">';
+    choices.forEach(function (choice, index) {
+      body += '<button type="button" class="reflection-choice sentence-starter-choice" data-reflection-choice="' + index + '">' + BaseStep.escapeHtml(choice) + '</button>';
+    });
+    body += '</div>';
+    body += '<textarea class="reflection-text sentence-starter-text" placeholder="Finish your reflection here"></textarea>';
+    body += '<div class="reflection-feedback sentence-starter-feedback" aria-live="polite"></div>';
+    body += '<button type="button" class="reflection-button sentence-starter-submit" data-submit-reflection>' + StepType.escapeHtml(readText(config, "buttonText", "Finish Reflection")) + '</button>';
+    body += '</div>';
+
+    return buildShell(StepType, config, body);
+  }
+}
+
+class ExitTicketReflectionTemplate {
+  static renderPlayerShell(StepType, config) {
+    var responseMode = readText(config, "responseMode", "choice");
+    var choices = parseLines(config.choicesText, ["I understand it", "I need more practice", "I have a question"]);
+    var body = "";
+
+    body += '<div class="exit-ticket-shell">';
+    body += '<div class="exit-ticket-stub">Exit Ticket</div>';
+    body += '<div class="exit-ticket-card">';
+    body += '<h2>' + StepType.escapeHtml(readText(config, "title", "Exit Ticket")) + '</h2>';
+    body += '<p>' + StepType.escapeHtml(readText(config, "promptText", "Before you go, share one quick check-in.")) + '</p>';
+    if (responseMode === "choice" || responseMode === "both") {
+      body += '<div class="reflection-choices exit-ticket-choices">';
+      choices.forEach(function (choice, index) {
+        body += '<button type="button" class="reflection-choice exit-ticket-choice" data-reflection-choice="' + index + '">' + BaseStep.escapeHtml(choice) + '</button>';
+      });
+      body += '</div>';
+    }
+    if (responseMode === "short-text" || responseMode === "both") {
+      body += '<textarea class="reflection-text exit-ticket-text" placeholder="One thing I learned or still wonder"></textarea>';
+    }
+    body += '<div class="reflection-feedback exit-ticket-feedback" aria-live="polite"></div>';
+    body += '<button type="button" class="reflection-button exit-ticket-submit" data-submit-reflection>' + StepType.escapeHtml(readText(config, "buttonText", "Turn In Ticket")) + '</button>';
+    body += '</div>';
+    body += '</div>';
+
+    return buildShell(StepType, config, body);
+  }
+}
+
 var reflectionTemplateRenderers = {
-  "emoji-check-in": EmojiCheckInReflectionTemplate
+  "emoji-check-in": EmojiCheckInReflectionTemplate,
+  "sentence-starter": SentenceStarterReflectionTemplate,
+  "exit-ticket": ExitTicketReflectionTemplate
 };
 
 function getReflectionTemplateRenderer(config) {
@@ -1656,12 +1714,45 @@ class CharacterRunnerSortingTemplate {
   }
 }
 
+class BasketCatchSortingTemplate extends BubblePopSortingTemplate {
+  static renderPlayerShell(StepType, config) {
+    return insertTemplateBadge(
+      BubblePopSortingTemplate.renderPlayerShell(StepType, config),
+      "Basket Catch",
+      "Catch each example in the matching basket.",
+      "basket-catch-shell"
+    );
+  }
+}
+
+class ConveyorBeltSortingTemplate extends CharacterRunnerSortingTemplate {
+  static renderPlayerShell(StepType, config) {
+    return insertTemplateBadge(
+      CharacterRunnerSortingTemplate.renderPlayerShell(StepType, config),
+      "Conveyor Belt",
+      "Sort each item as it arrives on the belt.",
+      "conveyor-belt-shell"
+    );
+  }
+}
+
+class TimedSortingChallengeTemplate extends CharacterRunnerSortingTemplate {
+  static renderPlayerShell(StepType, config) {
+    return insertTemplateBadge(
+      CharacterRunnerSortingTemplate.renderPlayerShell(StepType, config),
+      "Timed Challenge",
+      "Answer quickly and accurately to finish the round.",
+      "timed-sorting-shell"
+    );
+  }
+}
+
 var sortingGameRendererMap = {
   "bubble-pop-sorting": BubblePopSortingTemplate,
-  "basket-catch-sorting": BubblePopSortingTemplate,
+  "basket-catch-sorting": BasketCatchSortingTemplate,
   "character-runner-sorting": CharacterRunnerSortingTemplate,
-  "conveyor-belt-sorting": CharacterRunnerSortingTemplate,
-  "timed-sorting-challenge": CharacterRunnerSortingTemplate
+  "conveyor-belt-sorting": ConveyorBeltSortingTemplate,
+  "timed-sorting-challenge": TimedSortingChallengeTemplate
 };
 
 var sortingTemplateRenderers = sortingGameRendererMap;
@@ -1860,11 +1951,33 @@ class MillionaireMultipleChoiceTemplate {
   }
 }
 
+class WheelSpinMultipleChoiceTemplate extends QuizShowMultipleChoiceTemplate {
+  static renderPlayerShell(StepType, config) {
+    return insertTemplateBadge(
+      QuizShowMultipleChoiceTemplate.renderPlayerShell(StepType, config),
+      "Wheel Spin",
+      "A spin-style reveal frames each question like a game round.",
+      "wheel-spin-shell"
+    );
+  }
+}
+
+class TimedChallengeMultipleChoiceTemplate extends QuizShowMultipleChoiceTemplate {
+  static renderPlayerShell(StepType, config) {
+    return insertTemplateBadge(
+      QuizShowMultipleChoiceTemplate.renderPlayerShell(StepType, config),
+      "Timed Challenge",
+      "A faster answer round with visible progress pressure.",
+      "timed-choice-shell"
+    );
+  }
+}
+
 var multipleChoiceRendererMap = {
   "quiz-show": QuizShowMultipleChoiceTemplate,
   "millionaire-style": MillionaireMultipleChoiceTemplate,
-  "wheel-spin": QuizShowMultipleChoiceTemplate,
-  "timed-challenge": QuizShowMultipleChoiceTemplate
+  "wheel-spin": WheelSpinMultipleChoiceTemplate,
+  "timed-challenge": TimedChallengeMultipleChoiceTemplate
 };
 
 var multipleChoiceTemplateRenderers = multipleChoiceRendererMap;
@@ -2187,9 +2300,20 @@ class LevelUnlockRoadmap {
   }
 }
 
+class IslandMapRoadmap extends AdventurePathRoadmap {
+  static renderPlayerShell(StepType, config) {
+    return insertTemplateBadge(
+      AdventurePathRoadmap.renderPlayerShell(StepType, config),
+      "Island Map",
+      "Travel between learning islands and unlock each stop.",
+      "island-map-shell"
+    );
+  }
+}
+
 var roadmapThemeRendererMap = {
   "adventure-path": AdventurePathRoadmap,
-  "island-map": AdventurePathRoadmap,
+  "island-map": IslandMapRoadmap,
   "level-unlock-map": LevelUnlockRoadmap
 };
 
@@ -2207,6 +2331,7 @@ function createAdventurePathData(config) {
 
   return {
     items: items,
+    templateId: normalizeActivityTemplateId("roadmap", readRawActivityTemplateId(config)),
     valid: items.length > 0
   };
 }
@@ -2302,7 +2427,7 @@ function completeAdventurePath(container, data, state, complete) {
     score: 100,
     data: {
       completedItems: data.items.length,
-      template: "adventure-path"
+      template: data.templateId
     }
   });
 }
@@ -3572,6 +3697,7 @@ function createQuizShowData(config) {
 
   return {
     questions: questions,
+    templateId: normalizeActivityTemplateId("multiple-choice", readRawActivityTemplateId(config)),
     feedbackCorrect: readText(config, "feedbackCorrect", "Correct!"),
     feedbackIncorrect: readText(config, "feedbackIncorrect", "Try again."),
     valid: questions.length > 0
@@ -3770,7 +3896,7 @@ function renderQuizShowResults(container, data, state, complete) {
       totalQuestions: total,
       maxStreak: state.maxStreak,
       gamification: summary,
-      template: "quiz-show"
+      template: data.templateId
     }
   });
 }
@@ -4122,7 +4248,7 @@ function renderMillionaireResults(container, data, state, complete) {
       maxStreak: state.maxStreak,
       gamification: summary,
       achievementCandidates: summary.perfect ? ["first-perfect-score", "millionaire-master"] : [],
-      template: "millionaire-style"
+      template: data.templateId
     }
   });
 }
@@ -4165,6 +4291,7 @@ function createSortingTemplateData(config) {
   return {
     categories: categories,
     items: items,
+    templateId: normalizeActivityTemplateId("sorting", readRawActivityTemplateId(config)),
     successText: readText(config, "successText", "Great sorting!"),
     valid: categories.length > 0 && items.length > 0 && countCategoriesWithItems(categories, items) === categories.length
   };
@@ -4176,6 +4303,7 @@ function createCharacterRunnerData(config) {
   return {
     categories: data.categories,
     items: data.items,
+    templateId: data.templateId,
     successText: data.successText,
     valid: data.valid && data.categories.length === 2
   };
@@ -4347,7 +4475,7 @@ function completeCharacterRunner(container, data, state, complete) {
       totalAnswers: state.totalAnswers,
       accuracy: accuracy,
       gamification: gamification,
-      template: "character-runner-sorting"
+      template: data.templateId
     }
   });
 }
@@ -4504,7 +4632,7 @@ function advanceBubbleRoundIfNeeded(container, data, state, target, progress, fe
       data: {
         sortedItems: data.items.length,
         gamification: readGamificationSummary("Bubble Pop Sorting", data.items.length, data.items.length + state.incorrectCount, true),
-        template: "bubble-pop-sorting"
+        template: data.templateId
       }
     });
   }
@@ -4556,6 +4684,21 @@ function buildShell(StepType, config, bodyHtml) {
     + '</article>';
 }
 
+function insertTemplateBadge(html, label, description, modifierClass) {
+  var safeHtml = typeof html === "string" ? html : "";
+  var safeModifierClass = typeof modifierClass === "string" ? modifierClass : "";
+  var badgeHtml = '<div class="activity-template-mode-badge">'
+    + '<strong>' + BaseStep.escapeHtml(label || "Activity Style") + '</strong>'
+    + '<span>' + BaseStep.escapeHtml(description || "Same content, different student experience.") + '</span>'
+    + '</div>';
+
+  if (safeModifierClass) {
+    safeHtml = safeHtml.replace('<article class="', '<article class="' + safeModifierClass + ' ');
+  }
+
+  return safeHtml.replace(/(<article[^>]*>)/, "$1" + badgeHtml);
+}
+
 function buildActivityTemplateFallbackNotice(stepType, config) {
   var rawTemplateId = readRawActivityTemplateId(config);
   var normalizedTemplateId = normalizeActivityTemplateId(stepType, rawTemplateId);
@@ -4604,6 +4747,9 @@ function buildScopedCss(rootClass) {
     + scope + " .activity-template-fallback-notice{display:grid;gap:3px;margin:0 0 16px;padding:10px 12px;border:1px solid #fed7aa;border-radius:12px;background:#fff7ed;color:#9a3412;}"
     + scope + " .activity-template-fallback-notice strong{font-size:12px;font-weight:900;line-height:1.3;}"
     + scope + " .activity-template-fallback-notice span{font-size:11px;font-weight:750;line-height:1.35;color:#c2410c;}"
+    + scope + " .activity-template-mode-badge{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 14px;padding:10px 12px;border:1px solid #bfdbfe;border-radius:12px;background:#eff6ff;color:#1d4ed8;}"
+    + scope + " .activity-template-mode-badge strong{font-size:12px;font-weight:950;line-height:1.2;}"
+    + scope + " .activity-template-mode-badge span{font-size:11px;font-weight:800;line-height:1.35;color:#475569;text-align:right;}"
     + scope + " .intro-card-icon{font-size:42px;margin-bottom:12px;}"
     + scope + " .intro-card-subtitle{font-weight:800;color:#2563eb;}"
     + scope + " .intro-card-callout{margin:14px 0;padding:12px;border-radius:12px;background:#ecfdf5;border:1px solid #a7f3d0;color:#047857;font-weight:800;}"
@@ -4615,6 +4761,8 @@ function buildScopedCss(rootClass) {
     + scope + " .card-reveal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin:18px 0;perspective:1000px;}"
     + scope + " .card-reveal-card{min-height:156px;padding:0;text-align:left;background:transparent;border:0;perspective:1000px;}"
     + scope + " .card-reveal-card:hover:not(:disabled){background:transparent;border-color:transparent;transform:translateY(-2px);}"
+    + scope + " .mystery-flip-card .card-reveal-front{background:linear-gradient(145deg,#111827,#334155);color:#fff;border-color:#475569;}"
+    + scope + " .mystery-flip-card .card-reveal-back{background:linear-gradient(145deg,#ecfdf5,#ffffff);border-color:#34d399;}"
     + scope + " .card-reveal-card-inner{position:relative;display:block;min-height:156px;transform-style:preserve-3d;transition:transform .58s cubic-bezier(.2,.8,.2,1),filter .2s ease;}"
     + scope + " .card-reveal-card.is-revealed .card-reveal-card-inner{transform:rotateY(180deg);}"
     + scope + " .card-reveal-front," + scope + " .card-reveal-back{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;gap:10px;border:1px solid #dbeafe;border-radius:16px;padding:18px;backface-visibility:hidden;box-shadow:0 10px 22px rgba(15,23,42,.08);}"
@@ -5026,6 +5174,15 @@ function buildScopedCss(rootClass) {
     + scope + " .timeline-builder-empty span{font-size:13px;font-weight:750;line-height:1.45;}"
     + scope + " .reflection-choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:16px 0;}"
     + scope + " .reflection-text{width:100%;min-height:120px;border:1px solid #cbd5e1;border-radius:12px;padding:12px;font:inherit;resize:vertical;}"
+    + scope + " .sentence-starter-shell," + scope + " .exit-ticket-shell{display:grid;gap:14px;}"
+    + scope + " .sentence-starter-header{display:grid;gap:5px;border:1px solid #dbeafe;border-radius:16px;background:#eff6ff;padding:14px;}"
+    + scope + " .sentence-starter-header span{color:#2563eb;font-size:11px;font-weight:950;text-transform:uppercase;}"
+    + scope + " .sentence-starter-header h2," + scope + " .sentence-starter-header p{margin:0;}"
+    + scope + " .sentence-starter-choice{justify-content:flex-start;text-align:left;}"
+    + scope + " .sentence-starter-submit," + scope + " .exit-ticket-submit{justify-self:start;background:#111827;color:#fff;border-color:#111827;padding:0 16px;}"
+    + scope + " .exit-ticket-stub{justify-self:start;border:1px dashed #60a5fa;border-radius:999px;background:#eff6ff;color:#1d4ed8;padding:6px 10px;font-size:11px;font-weight:950;text-transform:uppercase;}"
+    + scope + " .exit-ticket-card{display:grid;gap:12px;border:1px solid #e2e8f0;border-left:5px solid #22c55e;border-radius:16px;background:#ffffff;padding:16px;box-shadow:0 10px 22px rgba(15,23,42,.06);}"
+    + scope + " .exit-ticket-card h2," + scope + " .exit-ticket-card p{margin:0;}"
     + scope + " .emoji-checkin-shell{display:grid;gap:14px;}"
     + scope + " .emoji-checkin-header{display:grid;gap:6px;}"
     + scope + " .emoji-checkin-header h2{margin:0;font-size:24px;}"

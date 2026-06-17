@@ -56,6 +56,11 @@ async function moduleHasSteps(executionState, courseId, module) {
         return true;
     }
 
+    const learningModeStepCount = await countModuleLearningModeSteps(executionState, courseId, module.id || module.moduleId);
+    if (learningModeStepCount > 0) {
+        return true;
+    }
+
     const sessionStepCount = await countModuleSessionSteps(executionState, courseId, module.id || module.moduleId);
     return sessionStepCount > 0;
 }
@@ -70,6 +75,33 @@ function countModuleInlineSteps(module) {
     }
 
     return 0;
+}
+
+async function countModuleLearningModeSteps(executionState, courseId, moduleId) {
+    if (!courseId || !moduleId) {
+        return 0;
+    }
+
+    const modesRef = collection(db, readCourseCollectionName(executionState), courseId, "modules", moduleId, "learningModes");
+    const modesSnap = await getDocs(modesRef);
+    let stepCount = 0;
+    const modeIds = [];
+
+    modesSnap.forEach(function (modeDoc) {
+        modeIds.push(modeDoc.id);
+
+        if (modeDoc.data() && Array.isArray(modeDoc.data().steps)) {
+            stepCount = stepCount + modeDoc.data().steps.length;
+        }
+    });
+
+    for (let index = 0; index < modeIds.length; index++) {
+        const stepsRef = collection(db, readCourseCollectionName(executionState), courseId, "modules", moduleId, "learningModes", modeIds[index], "steps");
+        const stepsSnap = await getDocs(stepsRef);
+        stepCount = stepCount + stepsSnap.size;
+    }
+
+    return stepCount;
 }
 
 async function countModuleSessionSteps(executionState, courseId, moduleId) {

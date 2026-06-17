@@ -10,7 +10,7 @@ export async function catalogCourseFetchAllProcessing(executionState) {
     const shouldVerifyCounts = shouldRunDeepCountVerification(executionState);
 
     const countedCourses = await mapWithLimit(courses, COURSE_COUNT_CONCURRENCY, async function (course) {
-      const counts = shouldVerifyCounts
+      const counts = shouldVerifyCounts || shouldVerifyPotentiallyStaleCounts(course)
         ? await readCourseCounts(course)
         : readStoredCourseCounts(course);
       return Object.assign({}, course, {
@@ -36,6 +36,13 @@ export async function catalogCourseFetchAllProcessing(executionState) {
       ]
     };
   }
+}
+
+function shouldVerifyPotentiallyStaleCounts(course) {
+  const moduleCount = readStoredCount(course && course.moduleCount);
+  const stepCount = readStoredCount(course && course.stepCount);
+
+  return moduleCount === 0 || stepCount === 0;
 }
 
 function readStoredCourseCounts(course) {

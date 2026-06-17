@@ -14,10 +14,10 @@ export class CatalogCoursePage {
         <nav class="builder-nav">
           <div class="builder-brand"><span>OquWay</span><small>Course Builder 2.0</small></div>
           <div class="builder-nav-actions">
-            <div class="builder-user-area">
+            <button type="button" id="builderUserProfileBtn" class="builder-user-area" aria-label="Open profile">
               <span id="builderUserName">${escapeHtml(readCurrentUserName())}</span>
               <small>${escapeHtml(readCurrentUserRoleLabel())}</small>
-            </div>
+            </button>
             <button id="courseBuilderLogoutBtn" class="builder-btn builder-btn-ghost"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</button>
             <a href="#location-login-settings" class="builder-btn builder-btn-ghost">Login Modes</a>
             <button id="openCreateModalBtn" class="builder-btn builder-btn-primary"><i class="fa-solid fa-plus"></i> New Course</button>
@@ -105,6 +105,24 @@ export class CatalogCoursePage {
             </div>
           </div>
         </div>
+
+        <div id="builderProfileModal" class="builder-modal hidden">
+          <div class="builder-modal-panel">
+            <div class="builder-modal-head">
+              <div>
+                <p class="builder-eyebrow">Profile</p>
+                <h2>Your profile</h2>
+              </div>
+              <button id="closeBuilderProfileBtn" class="builder-icon-btn" aria-label="Close profile"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <section class="builder-profile-view">
+              ${buildProfileModalContent()}
+            </section>
+            <div class="builder-modal-actions">
+              <button id="doneBuilderProfileBtn" class="builder-btn builder-btn-primary">Done</button>
+            </div>
+          </div>
+        </div>
       </div>
     `;
   }
@@ -186,6 +204,32 @@ export class CatalogCoursePage {
     this.bindArchivedModal();
     this.bindCourseActions();
     this.bindSessionControls();
+    this.bindProfileModal();
+  }
+
+  bindProfileModal() {
+    var modal = document.getElementById("builderProfileModal");
+    var openButton = document.getElementById("builderUserProfileBtn");
+    var closeButton = document.getElementById("closeBuilderProfileBtn");
+    var doneButton = document.getElementById("doneBuilderProfileBtn");
+
+    openButton.addEventListener("click", function () {
+      modal.classList.remove("hidden");
+    });
+
+    closeButton.addEventListener("click", function () {
+      modal.classList.add("hidden");
+    });
+
+    doneButton.addEventListener("click", function () {
+      modal.classList.add("hidden");
+    });
+
+    modal.addEventListener("click", function (event) {
+      if (event.target === modal) {
+        modal.classList.add("hidden");
+      }
+    });
   }
 
   bindSessionControls() {
@@ -531,7 +575,7 @@ function buildCourseCard(course, state) {
   var stepCount = readVerifiedCount(course, "stepCount");
   var countSource = course.countSource || course.moduleCountSource || "catalogCourses";
   var moduleLabel = buildCountLabel(moduleCount, "module");
-  var stepLabel = buildCountLabel(stepCount, "step");
+  var stepLabel = buildCountLabel(stepCount, "learning activity");
   var legacySourceLabel = countSource === "courses" ? '<span class="builder-count-source">Legacy source</span>' : "";
 
   return `
@@ -610,7 +654,7 @@ function buildArchivedCourseRow(course, state) {
         <p>${escapeHtml(description)}</p>
         <div class="builder-course-meta">
           <span>${escapeHtml(buildCountLabel(moduleCount, "module"))}</span>
-          <span>${escapeHtml(buildCountLabel(stepCount, "step"))}</span>
+          <span>${escapeHtml(buildCountLabel(stepCount, "learning activity"))}</span>
           <span>${escapeHtml(readUpdatedLabel(course.updatedAt || course.createdAt))}</span>
         </div>
       </div>
@@ -804,6 +848,45 @@ function buildCountLabel(count, label) {
   }
 
   return count + " " + label + (count === 1 ? "" : "s");
+}
+
+function buildProfileModalContent() {
+  var user = auth.currentUser;
+  var displayName = user && user.displayName ? user.displayName : "Not set";
+  var email = user && user.email ? user.email : "Not available";
+  var photoUrl = user && user.photoURL ? user.photoURL : "";
+  var initials = readProfileInitials(displayName, email);
+  var html = "";
+
+  html += '<div class="builder-profile-card">';
+  html += photoUrl
+    ? '<img class="builder-profile-avatar" src="' + escapeHtml(photoUrl) + '" alt="">'
+    : '<div class="builder-profile-avatar builder-profile-avatar-fallback">' + escapeHtml(initials) + '</div>';
+  html += '<div class="builder-profile-fields">';
+  html += '<label>Display name<span>' + escapeHtml(displayName) + '</span></label>';
+  html += '<label>Email<span>' + escapeHtml(email) + '</span></label>';
+  html += '<label>Profile photo<span>' + escapeHtml(photoUrl || "Not set") + '</span></label>';
+  html += '</div>';
+  html += '</div>';
+  html += '<p class="builder-profile-note">Profile editing is view-only here until an own-profile update intent is available for this dashboard.</p>';
+
+  return html;
+}
+
+function readProfileInitials(displayName, email) {
+  var source = displayName && displayName !== "Not set" ? displayName : email;
+  var parts = String(source || "User").split(/[ .@_-]+/).filter(Boolean);
+  var initials = "";
+
+  if (parts.length > 0) {
+    initials += parts[0].charAt(0);
+  }
+
+  if (parts.length > 1) {
+    initials += parts[1].charAt(0);
+  }
+
+  return initials.toUpperCase() || "U";
 }
 
 function readCurrentUserName() {

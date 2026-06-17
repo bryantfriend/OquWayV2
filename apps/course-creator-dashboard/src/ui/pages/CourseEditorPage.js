@@ -83,7 +83,7 @@ export class CourseEditorPage {
         <div id="editorTabBar" class="bg-white border-b border-gray-100 px-6 py-2 flex items-center gap-2 shrink-0">
           <button type="button" class="editor-tab-btn oqu-editor-tab-active" data-tab="learningContent"><i class="fa-solid fa-layer-group"></i> Learning Content</button>
           <button type="button" class="editor-tab-btn" data-tab="learningModes"><i class="fa-solid fa-route"></i> Lesson Paths</button>
-          <button type="button" class="editor-tab-btn" data-tab="steps"><i class="fa-solid fa-shapes"></i> Steps</button>
+          <button type="button" class="editor-tab-btn" data-tab="steps"><i class="fa-solid fa-shapes"></i> Learning Activities</button>
         </div>
 
         <!-- ── THREE-PANEL BODY ───────────────────────────────────── -->
@@ -111,7 +111,7 @@ export class CourseEditorPage {
                 </div>
               </section>
               <div id="moduleStructureDetails" class="course-structure-details">
-                <div class="course-structure-idle">Select a path, then edit its steps.</div>
+                <div class="course-structure-idle">Select a path, then edit its learning activities.</div>
               </div>
               <div class="course-structure-footer">
                 <div id="sessionCountText" class="course-structure-count">0 Paths</div>
@@ -128,7 +128,7 @@ export class CourseEditorPage {
                     <i class="fa-solid fa-desktop text-gray-300"></i>
                     Student Preview
                   </div>
-                  <div class="text-[11px] text-gray-400 font-semibold mt-1">Selected step, desktop learner view</div>
+                  <div class="text-[11px] text-gray-400 font-semibold mt-1">Selected learning activity, desktop learner view</div>
                 </div>
               </div>
               <div id="workspaceContent" class="flex-1 overflow-y-auto min-h-0">
@@ -145,7 +145,7 @@ export class CourseEditorPage {
               <div class="px-5 py-4 border-b border-gray-100 shrink-0">
                 <div class="text-[9px] font-black text-gray-400 uppercase tracking-[0.12em] flex items-center gap-1.5">
                   <i class="fa-solid fa-sliders text-gray-300"></i>
-                  Step Settings
+                  Activity Settings
                 </div>
               </div>
               <div id="configEditorPane" class="flex-1 overflow-y-auto p-5 min-h-0">
@@ -159,7 +159,7 @@ export class CourseEditorPage {
           <div class="w-full max-w-3xl overflow-hidden rounded-3xl bg-white shadow-2xl">
             <div class="flex items-center justify-between gap-4 border-b border-slate-100 px-5 py-4">
               <div>
-                <div class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">Step Preview</div>
+                <div class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">Preview</div>
                 <h2 id="stepPreviewModalTitle" class="mt-1 text-lg font-black text-slate-950">Student activity</h2>
               </div>
               <button type="button" class="close-step-preview-modal rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-600 hover:bg-slate-50">Close</button>
@@ -167,6 +167,7 @@ export class CourseEditorPage {
             <div id="stepPreviewModalBody" class="max-h-[72vh] overflow-y-auto bg-slate-50 p-6"></div>
           </div>
         </div>
+        ${buildAddPathModalHtml()}
       </div>
     `;
   }
@@ -192,29 +193,12 @@ export class CourseEditorPage {
       self.stepPickerOpen = false;
       self.resetPracticeModePlayer();
       self.updateUi(moduleEditorStore.getState());
+      resetWorkspaceScroll();
     });
 
     // ── Add Lesson Path ───────────────────────────────────────────────
     document.getElementById("addSessionBtn").addEventListener("click", function () {
-      var btn = document.getElementById("addSessionBtn");
-      var banner = document.getElementById("sessionCreateStatusBanner");
-      showSessionBtnPending(btn, "Creating path\u2026");
-      showSessionBanner(banner, "creating", '<span class="oqu-spinner oqu-spinner-blue"></span> Creating lesson path\u2026');
-      moduleEditorService.createLearningMode(self.courseId, self.moduleId, {
-        title: "Custom Path",
-        purpose: "A custom step sequence inside this module.",
-        modeType: "custom"
-      }).then(function () {
-        self.activeEditorTab = "learningModes";
-        showSessionBanner(banner, "success", '<span class="oqu-success-icon">&#10003;</span> Path created!');
-        restoreSessionBtn(btn, '<i class="fa-solid fa-plus text-xs"></i> Add Path');
-        setTimeout(function () {
-          banner.style.display = "none";
-        }, 2000);
-      }).catch(function (err) {
-        showSessionBanner(banner, "error", "&#9888; Failed: " + err.message);
-        restoreSessionBtn(btn, '<i class="fa-solid fa-plus text-xs"></i> Add Path');
-      });
+      openAddPathModal(moduleEditorStore.getState().learningModes);
     });
 
     // ── Session list delegation (attached once) ────────────────────────
@@ -231,7 +215,7 @@ export class CourseEditorPage {
       self.resetPracticeModePlayer();
       var modeId = item.getAttribute("data-mode-id");
       if (modeId) {
-        self.activeEditorTab = "steps";
+        self.activeEditorTab = "learningModes";
         moduleEditorService.selectLearningMode(modeId);
       } else {
         moduleEditorService.selectSession(item.getAttribute("data-id"));
@@ -256,6 +240,10 @@ export class CourseEditorPage {
       if (search) {
         filterStepPicker(search.value);
       }
+
+      if (e.target.closest("[data-learning-content-line-field]")) {
+        updateLearningContentLineHidden(e.target.getAttribute("data-learning-content-line-field"));
+      }
     });
 
     // ── Inspector delegation (attached once) ───────────────────────────
@@ -276,9 +264,59 @@ export class CourseEditorPage {
         self.closeStepPreviewModal();
       }
     });
+
+    document.getElementById("addPathModal").addEventListener("click", function (e) {
+      var closeBtn = e.target.closest(".close-add-path-modal");
+      var createBtn = e.target.closest(".create-learning-path-option-btn");
+
+      if (closeBtn || e.target.id === "addPathModal") {
+        closeAddPathModal();
+        return;
+      }
+
+      if (createBtn) {
+        self.createLearningPathFromButton(createBtn);
+      }
+    });
   }
 
   // ── Workspace click dispatcher ─────────────────────────────────────────
+
+  createLearningPathFromButton(createPathOptionBtn) {
+    var self = this;
+    var pathType = createPathOptionBtn.getAttribute("data-path-type") || "custom";
+    var pathMeta = readLearningPathOption(pathType);
+    var originalPathOptionHtml = createPathOptionBtn.innerHTML;
+    var banner = document.getElementById("sessionCreateStatusBanner");
+
+    if (createPathOptionBtn.disabled || pathMeta.exists) {
+      return;
+    }
+
+    createPathOptionBtn.disabled = true;
+    createPathOptionBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Creating';
+    showSessionBanner(banner, "creating", '<span class="oqu-spinner oqu-spinner-blue"></span> Creating lesson path...');
+    moduleEditorService.createLearningMode(self.courseId, self.moduleId, {
+      title: pathMeta.title,
+      purpose: pathMeta.purpose,
+      modeType: pathMeta.modeType
+    }).then(function () {
+      self.activeEditorTab = "learningModes";
+      closeAddPathModal();
+      showSessionBanner(banner, "success", '<span class="oqu-success-icon">&#10003;</span> Path created.');
+      self.updateUi(moduleEditorStore.getState());
+      setTimeout(function () {
+        if (banner) {
+          banner.style.display = "none";
+        }
+      }, 2000);
+    }).catch(function (error) {
+      showSessionBanner(banner, "error", "Create path failed: " + error.message);
+    }).finally(function () {
+      createPathOptionBtn.disabled = false;
+      createPathOptionBtn.innerHTML = originalPathOptionHtml;
+    });
+  }
 
   handleWorkspaceClick(event) {
     var self = this;
@@ -315,6 +353,18 @@ export class CourseEditorPage {
       return;
     }
 
+    var addLearningContentLineBtn = event.target.closest(".add-learning-content-line-btn");
+    if (addLearningContentLineBtn) {
+      addLearningContentLine(addLearningContentLineBtn.getAttribute("data-field"));
+      return;
+    }
+
+    var removeLearningContentLineBtn = event.target.closest(".remove-learning-content-line-btn");
+    if (removeLearningContentLineBtn) {
+      removeLearningContentLine(removeLearningContentLineBtn);
+      return;
+    }
+
     var saveLearningContentBtn = event.target.closest(".save-learning-content-btn");
     if (saveLearningContentBtn) {
       var learningContent = readLearningContentFromWorkspace();
@@ -336,7 +386,7 @@ export class CourseEditorPage {
 
     var modeCard = event.target.closest(".learning-mode-card");
     if (modeCard && !event.target.closest("button")) {
-      self.activeEditorTab = "steps";
+      self.activeEditorTab = "learningModes";
       moduleEditorService.selectLearningMode(modeCard.getAttribute("data-mode-id"));
       return;
     }
@@ -350,29 +400,7 @@ export class CourseEditorPage {
 
     var createPathOptionBtn = event.target.closest(".create-learning-path-option-btn");
     if (createPathOptionBtn) {
-      var pathType = createPathOptionBtn.getAttribute("data-path-type") || "custom";
-      var pathMeta = readLearningPathOption(pathType);
-      var originalPathOptionHtml = createPathOptionBtn.innerHTML;
-
-      if (createPathOptionBtn.disabled || pathMeta.exists) {
-        return;
-      }
-
-      createPathOptionBtn.disabled = true;
-      createPathOptionBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Creating';
-      moduleEditorService.createLearningMode(self.courseId, self.moduleId, {
-        title: pathMeta.title,
-        purpose: pathMeta.purpose,
-        modeType: pathMeta.modeType
-      }).then(function () {
-        self.activeEditorTab = "learningModes";
-        self.updateUi(moduleEditorStore.getState());
-      }).catch(function (error) {
-        alert("Create path failed: " + error.message);
-      }).finally(function () {
-        createPathOptionBtn.disabled = false;
-        createPathOptionBtn.innerHTML = originalPathOptionHtml;
-      });
+      self.createLearningPathFromButton(createPathOptionBtn);
       return;
     }
 
@@ -1053,6 +1081,13 @@ export class CourseEditorPage {
   }
 
   handleInspectorChange(event) {
+    var activityTemplateInput = event.target.closest(".inspector-activity-template");
+    if (activityTemplateInput) {
+      syncActivityTemplateSelectedState(activityTemplateInput);
+      this.handleInspectorInput(event);
+      return;
+    }
+
     var mediaInput = event.target.closest(".inspector-media-upload");
     if (!mediaInput) {
       this.handleInspectorInput(event);
@@ -1133,7 +1168,7 @@ export class CourseEditorPage {
       previewCanvas.className = "oqu-preview-canvas";
     }
     previewCanvas.innerHTML = '<div class="oqu-preview-toolbar">'
-      + '<button type="button" class="student-view-btn oqu-student-view-btn">▶ Student View</button>'
+      + '<button type="button" class="student-view-btn oqu-student-view-btn">▶ Preview</button>'
       + '</div>'
       + buildLiveStudentPreviewDock(mockStep, this.previewDockTemplate, this.previewDockDevice)
       + this.buildStepPreviewCard(mockStep);
@@ -1318,7 +1353,7 @@ export class CourseEditorPage {
 
     if (this.activeEditorTab === "learningContent") {
       if (structurePane) {
-        structurePane.innerHTML = buildModuleStructureIdleHtml("Open Steps to edit this module's path activities.");
+        structurePane.innerHTML = buildModuleStructureIdleHtml("Open Learning Activities to edit this module's path activities.");
       }
       workspace.innerHTML = buildLearningContentWorkspace(state.learningContent);
       propsPane.innerHTML = buildLearningContentInspector(state.learningContent);
@@ -1327,7 +1362,7 @@ export class CourseEditorPage {
 
     if (this.activeEditorTab === "learningModes") {
       if (structurePane) {
-        structurePane.innerHTML = buildModuleStructureIdleHtml("Choose a lesson path, then edit its steps.");
+        structurePane.innerHTML = buildModuleStructureIdleHtml("Choose a lesson path, then edit its learning activities.");
       }
       workspace.innerHTML = buildLearningModesWorkspace(state.learningModes, state.sessions, readSelectedModeId(state));
       propsPane.innerHTML = selectedLearningMode
@@ -1338,7 +1373,7 @@ export class CourseEditorPage {
 
     if (!session) {
       if (structurePane) {
-        structurePane.innerHTML = buildModuleStructureIdleHtml("Create or select a lesson path to add steps.");
+        structurePane.innerHTML = buildModuleStructureIdleHtml("Create or select a lesson path to add learning activities.");
       }
       workspace.innerHTML = '<div class="flex items-center justify-center min-h-full p-12">' + buildModeReadyEmptyHtml(selectedLearningMode) + '</div>';
       propsPane.innerHTML = selectedLearningMode
@@ -1858,7 +1893,7 @@ export class CourseEditorPage {
     html += '<div class="oqu-student-preview-topbar">';
     html += '<button type="button" class="back-to-editor-btn oqu-back-editor-btn">Back to Editor</button>';
     html += '<div class="min-w-0">';
-    html += '<div class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Student View</div>';
+    html += '<div class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Preview</div>';
     html += '<div class="text-sm font-bold text-gray-900 truncate">' + escapeHtml(title) + '</div>';
     html += '</div>';
     html += '</div>';
@@ -1912,7 +1947,7 @@ export class CourseEditorPage {
     var stepType = readStepTypeLabel(readStepType(step));
     var html = "";
 
-    html += '<div class="oqu-inspector-section">Student View</div>';
+    html += '<div class="oqu-inspector-section">Preview</div>';
     html += '<div class="rounded-xl border border-blue-100 bg-blue-50 p-3 mb-4">';
     html += '<div class="text-xs font-bold text-blue-900 mb-1">Previewing one selected step</div>';
     html += '<div class="text-[11px] text-blue-700 leading-relaxed">Editor controls are hidden in the center canvas. Use Back to Editor to return to editing.</div>';
@@ -3810,7 +3845,7 @@ function buildActivityTemplateSelector(stepType, selectedTemplateId) {
     var checked = option.id === selectedId ? " checked" : "";
     var selectedClass = option.id === selectedId ? " is-selected" : "";
     var statusClass = option.status === "ready" ? "ready" : "soon";
-    var statusLabel = option.id === defaultTemplateId ? "Default" : "Ready";
+    var statusLabel = readActivityTemplateStatusLabel(option, option.id === defaultTemplateId);
 
     html += '<label class="activity-template-option' + selectedClass + '">';
     html += '<input type="radio" class="inspector-activity-template" name="inspector-activity-template" value="' + escapeHtml(option.id) + '"' + checked + '>';
@@ -3826,6 +3861,30 @@ function buildActivityTemplateSelector(stepType, selectedTemplateId) {
   html += '</div>';
 
   return html;
+}
+
+function readActivityTemplateStatusLabel(option, isDefault) {
+  if (isDefault) {
+    return "Default";
+  }
+
+  if (option && option.status === "ready") {
+    return "Ready";
+  }
+
+  return "Fallback";
+}
+
+function syncActivityTemplateSelectedState(input) {
+  var section = input ? input.closest(".activity-template-section") : null;
+  var options = section ? section.querySelectorAll(".activity-template-option") : [];
+  var index = 0;
+
+  while (index < options.length) {
+    var optionInput = options[index].querySelector(".inspector-activity-template");
+    options[index].classList.toggle("is-selected", Boolean(optionInput && optionInput.checked));
+    index = index + 1;
+  }
 }
 
 function formatConfigEditorValue(value, type) {
@@ -4817,11 +4876,87 @@ function buildLearningContentTextarea(label, field, items, placeholder) {
 }
 
 function buildLearningContentCollapsibleEditor(label, field, items, helperText) {
-  return '<details class="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">'
-    + '<summary class="cursor-pointer text-xs font-black uppercase tracking-widest text-slate-500">' + escapeHtml(label) + '</summary>'
-    + '<p class="mt-3 text-xs font-semibold leading-5 text-slate-500">' + escapeHtml(helperText) + '</p>'
-    + '<textarea data-learning-content-field="' + field + '" class="mt-3 min-h-[130px] w-full resize-y rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 outline-none focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100">' + escapeHtml(items.join("\n")) + '</textarea>'
-    + '</details>';
+  var safeItems = Array.isArray(items) && items.length > 0 ? items : [""];
+  var html = "";
+
+  html += '<details class="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm" open>';
+  html += '<summary class="cursor-pointer text-xs font-black uppercase tracking-widest text-slate-500"><span class="mr-2 text-emerald-600">✓</span>' + escapeHtml(label) + '</summary>';
+  html += '<p class="mt-3 text-xs font-semibold leading-5 text-slate-500">' + escapeHtml(helperText) + '</p>';
+  html += '<textarea id="learningContentHidden-' + escapeHtml(field) + '" data-learning-content-field="' + escapeHtml(field) + '" class="hidden">' + escapeHtml(items.join("\n")) + '</textarea>';
+  html += '<div class="mt-3 space-y-2" data-learning-content-line-list="' + escapeHtml(field) + '">';
+  safeItems.forEach(function (item) {
+    html += buildLearningContentLineItem(field, item);
+  });
+  html += '</div>';
+  html += '<button type="button" class="add-learning-content-line-btn mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700 hover:bg-emerald-100" data-field="' + escapeHtml(field) + '"><i class="fa-solid fa-plus"></i> Add Item</button>';
+  html += '</details>';
+
+  return html;
+}
+
+function buildLearningContentLineItem(field, value) {
+  return '<div class="flex items-center gap-2 rounded-2xl border border-slate-100 bg-slate-50 p-2">'
+    + '<input type="text" class="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100" data-learning-content-line-field="' + escapeHtml(field) + '" value="' + escapeHtml(value || "") + '">'
+    + '<button type="button" class="remove-learning-content-line-btn rounded-xl border border-rose-100 bg-white px-3 py-2 text-xs font-black text-rose-600 hover:bg-rose-50" data-field="' + escapeHtml(field) + '" aria-label="Remove item"><i class="fa-solid fa-trash-can"></i></button>'
+    + '</div>';
+}
+
+function addLearningContentLine(field) {
+  var safeField = field || "";
+  var list = document.querySelector('[data-learning-content-line-list="' + safeField + '"]');
+
+  if (!list) {
+    return;
+  }
+
+  list.insertAdjacentHTML("beforeend", buildLearningContentLineItem(safeField, ""));
+  updateLearningContentLineHidden(safeField);
+  var inputs = list.querySelectorAll("[data-learning-content-line-field]");
+  if (inputs.length > 0) {
+    inputs[inputs.length - 1].focus();
+  }
+}
+
+function removeLearningContentLine(button) {
+  var field = button ? button.getAttribute("data-field") : "";
+  var row = button ? button.closest("div") : null;
+  var list = field ? document.querySelector('[data-learning-content-line-list="' + field + '"]') : null;
+
+  if (row && row.parentNode) {
+    row.parentNode.removeChild(row);
+  }
+
+  if (list && list.querySelectorAll("[data-learning-content-line-field]").length === 0) {
+    list.insertAdjacentHTML("beforeend", buildLearningContentLineItem(field, ""));
+  }
+
+  updateLearningContentLineHidden(field);
+}
+
+function updateLearningContentLineHidden(field) {
+  var safeField = field || "";
+  var hidden = document.getElementById("learningContentHidden-" + safeField);
+
+  if (!hidden) {
+    return;
+  }
+
+  hidden.value = readLearningContentLineValues(safeField).join("\n");
+}
+
+function readLearningContentLineValues(field) {
+  var inputs = document.querySelectorAll('[data-learning-content-line-field="' + field + '"]');
+  var values = [];
+  var index = 0;
+
+  while (index < inputs.length) {
+    if (inputs[index].value.trim()) {
+      values.push(inputs[index].value.trim());
+    }
+    index = index + 1;
+  }
+
+  return values;
 }
 
 function buildLearningContentInspector(learningContent) {
@@ -4855,7 +4990,7 @@ function buildLearningModesWorkspace(learningModes, sessions, selectedModeId) {
   html += '<div class="rounded-[28px] border border-emerald-100 bg-gradient-to-br from-emerald-50 via-sky-50 to-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">';
   html += '<div class="flex items-start justify-between gap-5">';
   html += '<div>';
-  html += '<div class="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-600">Course → Modules → Lesson Paths → Steps</div>';
+  html += '<div class="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-600">Course -> Modules -> Lesson Paths -> Learning Activities</div>';
   html += '<h2 class="mt-2 text-3xl font-black text-slate-950">Lesson Paths</h2>';
   html += '<p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Paths let you offer review, challenge, or support versions of the same module without creating duplicate modules.</p>';
   html += '</div>';
@@ -4902,14 +5037,13 @@ function buildLearningModesWorkspace(learningModes, sessions, selectedModeId) {
     html += '</div>';
     html += '<div class="mt-5 grid grid-cols-3 gap-2">';
     html += '<div class="rounded-2xl border border-slate-100 bg-slate-50 p-3"><div class="text-[9px] font-black uppercase tracking-widest text-slate-400">Path Type</div><div class="mt-1 text-xs font-black text-slate-800">' + escapeHtml(meta.title) + '</div></div>';
-    html += '<div class="rounded-2xl border border-slate-100 bg-slate-50 p-3"><div class="text-[9px] font-black uppercase tracking-widest text-slate-400">Steps</div><div class="mt-1 text-xs font-black text-slate-800">' + stepCount + '</div></div>';
+    html += '<div class="rounded-2xl border border-slate-100 bg-slate-50 p-3"><div class="text-[9px] font-black uppercase tracking-widest text-slate-400">Activities</div><div class="mt-1 text-xs font-black text-slate-800">' + stepCount + '</div></div>';
     html += '<div class="rounded-2xl border border-slate-100 bg-slate-50 p-3"><div class="text-[9px] font-black uppercase tracking-widest text-slate-400">Status</div><div class="mt-1 text-xs font-black text-slate-800">' + escapeHtml(readString(mode.status, "draft")) + '</div></div>';
     html += '</div>';
     html += '<div class="mt-4 flex items-center justify-between gap-2">';
     html += '<span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Alternate route inside this module</span>';
     html += '<div class="flex gap-2">';
-    html += '<button type="button" class="edit-learning-path-steps-btn rounded-xl bg-emerald-600 px-3 py-1.5 text-[10px] font-black text-white hover:bg-emerald-700" data-mode-id="' + escapeHtml(mode.id) + '">Edit Steps</button>';
-    html += '<button type="button" class="rename-learning-mode-btn rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-black text-slate-600 hover:bg-slate-50" data-mode-id="' + escapeHtml(mode.id) + '">Rename</button>';
+    html += '<button type="button" class="edit-learning-path-steps-btn rounded-xl bg-emerald-600 px-3 py-1.5 text-[10px] font-black text-white hover:bg-emerald-700" data-mode-id="' + escapeHtml(mode.id) + '">Edit Learning Activities</button>';
     html += '<button type="button" class="duplicate-learning-mode-btn rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-black text-slate-600 hover:bg-slate-50" data-mode-id="' + escapeHtml(mode.id) + '">Duplicate</button>';
     if (!mode.required) {
       html += '<button type="button" class="delete-learning-mode-btn rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[10px] font-black text-rose-600 hover:bg-rose-100" data-mode-id="' + escapeHtml(mode.id) + '">Delete</button>';
@@ -4922,11 +5056,75 @@ function buildLearningModesWorkspace(learningModes, sessions, selectedModeId) {
 
   html += '<div class="rounded-3xl border border-sky-100 bg-white p-5 shadow-sm">';
   html += '<div class="text-sm font-black text-slate-900">How Lesson Paths Work</div>';
-  html += '<p class="mt-2 text-xs leading-5 text-slate-500">Main Path is required. Review, Challenge, Support, and Custom paths are optional alternate step sequences inside the same module. Existing internal mode fields stay in place for compatibility.</p>';
+  html += '<p class="mt-2 text-xs leading-5 text-slate-500">Main Path is required. Review, Challenge, Support, and Custom paths are optional alternate learning activity sequences inside the same module. Existing internal mode fields stay in place for compatibility.</p>';
   html += '</div>';
   html += '</div>';
 
   return html;
+}
+
+function buildAddPathModalHtml() {
+  return '<div id="addPathModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/70 p-6">'
+    + '<div class="w-full max-w-3xl overflow-hidden rounded-3xl bg-white shadow-2xl">'
+    + '<div class="flex items-center justify-between gap-4 border-b border-slate-100 px-5 py-4">'
+    + '<div><div class="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-600">Add Path</div><h2 class="mt-1 text-lg font-black text-slate-950">Choose a lesson path type</h2></div>'
+    + '<button type="button" class="close-add-path-modal rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-600 hover:bg-slate-50">Close</button>'
+    + '</div>'
+    + '<div id="addPathModalBody" class="bg-slate-50 p-5"></div>'
+    + '</div>'
+    + '</div>';
+}
+
+function openAddPathModal(learningModes) {
+  var modal = document.getElementById("addPathModal");
+  var body = document.getElementById("addPathModalBody");
+  var modes = createLearningModeList(learningModes, []);
+  var existingTypes = createExistingPathTypeMap(modes);
+  var options = createLearningPathOptions(existingTypes);
+  var html = "";
+
+  if (!modal || !body) {
+    return;
+  }
+
+  html += '<div class="grid gap-3 md:grid-cols-2">';
+  options.forEach(function (option) {
+    var disabled = option.required || option.exists ? " disabled" : "";
+    var stateLabel = option.required ? "Required" : (option.exists ? "Added" : "Create");
+    var optionClass = option.required || option.exists
+      ? "border-slate-200 bg-white text-slate-500"
+      : "border-emerald-200 bg-white text-slate-800 hover:-translate-y-0.5 hover:border-emerald-400 hover:shadow-md";
+
+    html += '<button type="button" class="create-learning-path-option-btn rounded-2xl border p-4 text-left transition ' + optionClass + '" data-path-type="' + escapeHtml(option.pathType) + '"' + disabled + '>';
+    html += '<div class="flex items-center justify-between gap-3"><span class="grid h-11 w-11 place-items-center rounded-2xl ' + escapeHtml(option.iconBg) + '"><i class="' + escapeHtml(option.icon) + '"></i></span><span class="rounded-full bg-slate-100 px-2 py-1 text-[9px] font-black uppercase tracking-wide text-slate-500">' + escapeHtml(stateLabel) + '</span></div>';
+    html += '<div class="mt-3 text-sm font-black text-slate-950">' + escapeHtml(option.title) + '</div>';
+    html += '<p class="mt-1 min-h-[38px] text-xs font-semibold leading-5 text-slate-500">' + escapeHtml(option.purpose) + '</p>';
+    html += '</button>';
+  });
+  html += '</div>';
+
+  body.innerHTML = html;
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+function closeAddPathModal() {
+  var modal = document.getElementById("addPathModal");
+
+  if (!modal) {
+    return;
+  }
+
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}
+
+function resetWorkspaceScroll() {
+  var workspace = document.getElementById("workspaceContent");
+
+  if (workspace) {
+    workspace.scrollTop = 0;
+  }
 }
 
 function findStepByIdInList(steps, stepId) {
@@ -4950,7 +5148,7 @@ function buildPracticeModeBuilderPanel(existingTypes) {
 
   html += '<div class="rounded-3xl border border-blue-100 bg-white p-5 shadow-sm">';
   html += '<div class="flex items-start justify-between gap-4">';
-  html += '<div><div class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">Practice Mode Builder</div><h3 class="mt-1 text-xl font-black text-slate-950">Before, after, and daily practice shells</h3><p class="mt-1 text-xs font-semibold leading-5 text-slate-500">Practice modes reuse lesson paths and steps. No duplicate module flow is created.</p></div>';
+  html += '<div><div class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">Practice Mode Builder</div><h3 class="mt-1 text-xl font-black text-slate-950">Before, after, and daily practice shells</h3><p class="mt-1 text-xs font-semibold leading-5 text-slate-500">Practice modes reuse lesson paths and learning activities. No duplicate module flow is created.</p></div>';
   html += '<span class="rounded-full bg-blue-50 px-3 py-2 text-[10px] font-black uppercase text-blue-700">Presentation + authoring shell</span>';
   html += '</div>';
   html += '<div class="mt-4 grid gap-3 md:grid-cols-3">';
@@ -5010,7 +5208,7 @@ function buildLearningModesInspector() {
   html += '<div class="space-y-4">';
   html += '<div class="rounded-3xl border border-blue-100 bg-blue-50 p-4">';
   html += '<div class="text-xs font-black text-blue-900">Practice Mode Builder</div>';
-  html += '<div class="mt-2 text-xs leading-5 text-blue-800">Before Class, After Class, and Daily Practice are authoring shells over the same lesson path and step system.</div>';
+  html += '<div class="mt-2 text-xs leading-5 text-blue-800">Before Class, After Class, and Daily Practice are authoring shells over the same lesson path and learning activity system.</div>';
   html += '</div>';
   html += '<div class="rounded-3xl border border-emerald-100 bg-emerald-50 p-4">';
   html += '<div class="text-xs font-black text-emerald-900">Lesson Path Basics</div>';
@@ -5073,7 +5271,7 @@ function buildSelectedLearningModeInspector(mode, tab) {
   html += '<div class="mt-1">' + buildStatusPill(readString(mode.status, "draft")) + '</div>';
   html += '</div>';
   html += '<div class="rounded-2xl border border-slate-100 p-4 text-xs leading-5 text-slate-500">';
-  html += tab === "learningModes" ? 'Click Edit Steps to build the step sequence for this path.' : 'The main panel and inspector are synced to this selected path.';
+  html += tab === "learningModes" ? 'Click Edit Learning Activities to build the activity sequence for this path.' : 'The main panel and inspector are synced to this selected path.';
   html += '</div>';
   html += '</div>';
   return html;
@@ -5088,6 +5286,8 @@ function readLearningContentFromWorkspace() {
     var field = fields[index].getAttribute("data-learning-content-field");
     if (field === "notes") {
       content[field] = fields[index].value.trim();
+    } else if (document.querySelector('[data-learning-content-line-field="' + field + '"]')) {
+      content[field] = readLearningContentLineValues(field);
     } else {
       content[field] = parseLines(fields[index].value);
     }

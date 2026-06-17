@@ -294,6 +294,15 @@
       padding: 0.48rem 0.75rem;
       color: #172033;
       box-shadow: 0 8px 24px rgba(23,32,51,0.06);
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .builder-user-area:hover,
+    .builder-user-area:focus-visible {
+      border-color: #93c5fd;
+      outline: none;
+      box-shadow: 0 10px 28px rgba(37,99,235,0.14);
     }
 
     .builder-user-area span,
@@ -313,6 +322,72 @@
       font-size: 0.66rem;
       font-weight: 800;
       text-transform: uppercase;
+    }
+
+    .builder-profile-view {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .builder-profile-card {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 1rem;
+      align-items: start;
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 1rem;
+      background: #f8fafc;
+    }
+
+    .builder-profile-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      object-fit: cover;
+      border: 1px solid #dbe5f2;
+      background: #fff;
+    }
+
+    .builder-profile-avatar-fallback {
+      display: grid;
+      place-items: center;
+      color: #1d4ed8;
+      font-weight: 950;
+      background: #eff6ff;
+    }
+
+    .builder-profile-fields {
+      display: grid;
+      gap: 0.7rem;
+      min-width: 0;
+    }
+
+    .builder-profile-fields label {
+      display: grid;
+      gap: 0.25rem;
+      color: #64748b;
+      font-size: 0.68rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .builder-profile-fields span {
+      color: #0f172a;
+      font-size: 0.86rem;
+      font-weight: 800;
+      text-transform: none;
+      letter-spacing: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .builder-profile-note {
+      margin: 0;
+      color: #475569;
+      font-size: 0.82rem;
+      font-weight: 700;
+      line-height: 1.5;
     }
 
     .builder-btn,
@@ -4569,7 +4644,7 @@
       </div>
     </section>
   </div>
-  <script type="module" src="./src/main.js?v=1.1.199-course-creator-phase-1-stabilization"></script>
+  <script type="module" src="./src/main.js?v=1.1.200-course-creator-stability-publish"></script>
 </body>
 
 </html>

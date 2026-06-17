@@ -92,14 +92,57 @@ service firebase.storage {
         );
     }
 
-    function canWriteStepMedia() {
-      return request.auth != null && (
-        isCourseCreator() ||
-        isAssistant() ||
-        isSchoolAdmin() ||
-        isPlatformAdmin() ||
-        isSuperAdmin()
+    function isAllowedStepMediaAudio() {
+      return request.resource.size <= 10 * 1024 * 1024
+        && (
+          request.resource.contentType == 'audio/mpeg' ||
+          request.resource.contentType == 'audio/mp3' ||
+          request.resource.contentType == 'audio/wav' ||
+          request.resource.contentType == 'audio/ogg' ||
+          request.resource.contentType == 'audio/webm' ||
+          request.resource.contentType == 'audio/mp4'
+        );
+    }
+
+    function isAllowedStepMediaFile() {
+      return isAllowedStepMediaImage() || isAllowedStepMediaAudio();
+    }
+
+    function catalogCourseDoc(courseId) {
+      return firestore.exists(/databases/(default)/documents/catalogCourses/$(courseId))
+        ? firestore.get(/databases/(default)/documents/catalogCourses/$(courseId))
+        : null;
+    }
+
+    function legacyCourseDoc(courseId) {
+      return firestore.exists(/databases/(default)/documents/courses/$(courseId))
+        ? firestore.get(/databases/(default)/documents/courses/$(courseId))
+        : null;
+    }
+
+    function courseAllowsEditor(courseDoc) {
+      return courseDoc != null && (
+        courseDoc.data.createdBy == request.auth.uid ||
+        courseDoc.data.ownerId == request.auth.uid ||
+        courseDoc.data.updatedBy == request.auth.uid ||
+        (courseDoc.data.editorIds is list && request.auth.uid in courseDoc.data.editorIds) ||
+        (courseDoc.data.courseCreatorIds is list && request.auth.uid in courseDoc.data.courseCreatorIds) ||
+        (courseDoc.data.assistantIds is list && request.auth.uid in courseDoc.data.assistantIds)
       );
+    }
+
+    function canEditCourseMedia(courseId) {
+      return isSchoolAdmin() ||
+        isPlatformAdmin() ||
+        isSuperAdmin() ||
+        courseAllowsEditor(catalogCourseDoc(courseId)) ||
+        courseAllowsEditor(legacyCourseDoc(courseId));
+    }
+
+    function canWriteStepMedia(courseId) {
+      return request.auth != null
+        && (isCourseCreator() || isAssistant() || isSchoolAdmin() || isPlatformAdmin() || isSuperAdmin())
+        && canEditCourseMedia(courseId);
     }
 
     function isAllowedLocationIcon() {
@@ -164,10 +207,10 @@ service firebase.storage {
         isSuperAdmin()
       );
 
-      allow create, update: if canWriteStepMedia()
-        && isAllowedStepMediaImage();
+      allow create, update: if canWriteStepMedia(courseId)
+        && isAllowedStepMediaFile();
 
-      allow delete: if canWriteStepMedia();
+      allow delete: if canWriteStepMedia(courseId);
     }
 
     match /location-icons/{locationId}/{fileName} {
