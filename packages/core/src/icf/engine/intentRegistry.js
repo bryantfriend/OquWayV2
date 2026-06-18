@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.202-step-media-read";
+import * as IntentExports from "../intents/intents.js?v=1.1.203-step-media-upload";
 
 const registry = {
   // Demo Verification

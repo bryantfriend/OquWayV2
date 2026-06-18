@@ -91,7 +91,7 @@ export { processUpdateSession } from "./domain/moduleEditor/processUpdateSession
 export { processUpdatePracticeMode } from "./domain/moduleEditor/processUpdatePracticeMode.js?v=1.1.192-timed-sequence";
 export { processUpdatePracticeModeStep } from "./domain/moduleEditor/processUpdatePracticeModeStep.js?v=1.1.192-timed-sequence";
 export { processUpdateStepField } from "./domain/moduleEditor/processUpdateStepField.js?v=1.1.192-timed-sequence";
-export { processUploadStepMedia } from "./domain/moduleEditor/processUploadStepMedia.js?v=1.1.202-step-media-read";
+export { processUploadStepMedia } from "./domain/moduleEditor/processUploadStepMedia.js?v=1.1.203-step-media-upload";
 export { processLoadStudentCourse } from "./domain/student/processLoadStudentCourse.js?v=1.1.192-timed-sequence";
 export { processLoadStudentDashboard } from "./domain/student/processLoadStudentDashboard.js?v=1.1.192-timed-sequence";
 export { processContinueLearning } from "./domain/student/processContinueLearning.js?v=1.1.192-timed-sequence";
