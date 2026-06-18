@@ -45,10 +45,10 @@ service firebase.storage {
       );
     }
 
-    function isSuperAdmin() { return hasAnyRole('superAdmin', 'ROLE_SUPER_ADMIN'); }
-    function isPlatformAdmin() { return hasAnyRole('platformAdmin', 'ROLE_PLATFORM_ADMIN'); }
-    function isSchoolAdmin() { return hasAnyRole('schoolAdmin', 'ROLE_SCHOOL_ADMIN'); }
-    function isCourseCreator() { return hasAnyRole('courseCreator', 'ROLE_COURSE_CREATOR'); }
+    function isSuperAdmin() { return hasAnyRole('superAdmin', 'ROLE_SUPER_ADMIN') || profileHasAnyRole('superAdmin', 'ROLE_SUPER_ADMIN'); }
+    function isPlatformAdmin() { return hasAnyRole('platformAdmin', 'ROLE_PLATFORM_ADMIN') || profileHasAnyRole('platformAdmin', 'ROLE_PLATFORM_ADMIN'); }
+    function isSchoolAdmin() { return hasAnyRole('schoolAdmin', 'ROLE_SCHOOL_ADMIN') || profileHasAnyRole('schoolAdmin', 'ROLE_SCHOOL_ADMIN'); }
+    function isCourseCreator() { return hasAnyRole('courseCreator', 'ROLE_COURSE_CREATOR') || profileHasAnyRole('courseCreator', 'ROLE_COURSE_CREATOR'); }
     function isAssistant() { return hasAnyRole('assistant', 'ROLE_ASSISTANT') || profileHasAnyRole('assistant', 'ROLE_ASSISTANT'); }
     function isTeacher() { return hasAnyRole('teacher', 'ROLE_TEACHER') || profileHasAnyRole('teacher', 'ROLE_TEACHER'); }
     function hasStudentToken() {
@@ -162,7 +162,9 @@ service firebase.storage {
 
     function canReadStepMedia(courseId) {
       return request.auth != null && (
+        canWriteStepMedia(courseId) ||
         canEditCourseMedia(courseId) ||
+        isReviewer() ||
         isTeacher() ||
         canReadPublishedCourseMedia(courseId)
       );

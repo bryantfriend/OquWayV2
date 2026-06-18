@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.194-lesson-monitor";
+import * as IntentExports from "../intents/intents.js?v=1.1.202-step-media-read";
 
 const registry = {
   // Demo Verification

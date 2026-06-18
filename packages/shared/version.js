@@ -1,1 +1,1 @@
-export const OQUWAY_BUILD_VERSION = "1.1.201-course-creator-stability-followup";
+export const OQUWAY_BUILD_VERSION = "1.1.202-step-media-read";

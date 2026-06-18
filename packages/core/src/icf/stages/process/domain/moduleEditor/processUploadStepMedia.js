@@ -1,5 +1,5 @@
 import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
-import { getDownloadURL, ref, storage, uploadBytes } from "../../../../../infrastructure/firebase/storage.js?v=1.1.162-modal-stack";
+import { ref, storage, uploadBytes } from "../../../../../infrastructure/firebase/storage.js?v=1.1.162-modal-stack";
 import { createDefaultStepConfig } from "../../../../../../../domain/steps/index.js";
 
 export async function processUploadStepMedia(executionState) {
@@ -19,13 +19,17 @@ export async function processUploadStepMedia(executionState) {
     var collectionName = readCourseCollectionName(executionState);
     var storagePath = buildStoragePath(payload);
     var storageRef = ref(storage, storagePath);
+    var downloadToken = createDownloadToken();
     var metadata = {
-      contentType: payload.file.type
+      contentType: payload.file.type,
+      customMetadata: {
+        firebaseStorageDownloadTokens: downloadToken
+      }
     };
 
     await uploadBytes(storageRef, payload.file, metadata);
 
-    var downloadUrl = await getDownloadURL(storageRef);
+    var downloadUrl = buildDownloadUrl(storagePath, downloadToken);
     var config = createUpdatedConfig(step, payload.mediaField, downloadUrl, storagePath);
     var updatedStep = Object.assign({}, step, {
       config: config,
@@ -141,6 +145,31 @@ function createSafeFileName(fileName) {
   }
 
   return fileName.replace(/[^a-zA-Z0-9._-]/g, "-");
+}
+
+function createDownloadToken() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+
+  return "step-media-" + Date.now() + "-" + Math.random().toString(36).slice(2);
+}
+
+function buildDownloadUrl(storagePath, downloadToken) {
+  return "https://firebasestorage.googleapis.com/v0/b/"
+    + encodeURIComponent(readStorageBucket())
+    + "/o/"
+    + encodeURIComponent(storagePath)
+    + "?alt=media&token="
+    + encodeURIComponent(downloadToken);
+}
+
+function readStorageBucket() {
+  if (storage && storage.app && storage.app.options && storage.app.options.storageBucket) {
+    return storage.app.options.storageBucket;
+  }
+
+  return "oquway-c1160.firebasestorage.app";
 }
 
 function createUpdatedLearningMode(learningMode, updatedStep) {

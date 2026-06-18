@@ -1,5 +1,5 @@
 import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.160-lesson-paths";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.193-step-library";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.202-step-media-read";
 import {
   getDefaultActivityTemplateId,
   getActivityTemplateOptions,
