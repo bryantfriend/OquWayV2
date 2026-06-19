@@ -121,7 +121,6 @@ export function isOpenableCourseStatus(status) {
   return !normalized
     || normalized === "active"
     || normalized === "assigned"
-    || normalized === "draft"
     || normalized === "published"
     || normalized === "ready";
 }

@@ -1,8 +1,8 @@
 import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.180-student-profile-center";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.180-student-profile-center";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.180-student-profile-center";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.204-student-dashboard-load";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.204-student-dashboard-load";
 import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.180-student-profile-center";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.180-student-profile-center";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.204-student-dashboard-load";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
@@ -58,15 +58,21 @@ export const studentDashboardService = {
       }
 
       if (!isPreviewMode() && !isValidStudentProfile(profile)) {
+        studentDashboardStore.setState({
+          isLoading: false,
+          error: "Please log in with your student account first.",
+          statusMessage: "",
+          actorIsPreview: false
+        });
         redirectToStudentLogin("Please log in with your student account first.");
         return null;
       }
 
-      await ensureAuthenticatedFirestoreToken();
+      await waitForStudentDashboardLoad(ensureAuthenticatedFirestoreToken(), "student token refresh");
 
-      var result = await runStudentIntent("LoadStudentDashboardIntent", {
+      var result = await waitForStudentDashboardLoad(runStudentIntent("LoadStudentDashboardIntent", {
         studentProfile: profile
-      }, profile);
+      }, profile), "LoadStudentDashboardIntent");
 
       if (result && result.emitted && result.emitted.success) {
         var courses = result.emitted.data.courses || [];
@@ -91,9 +97,10 @@ export const studentDashboardService = {
 
       throw new Error(readIntentErrorMessage(result));
     } catch (error) {
+      logStudentDashboardLoadFailure(error, verifiedStudentProfile);
       studentDashboardStore.setState({
         isLoading: false,
-        error: "Could not load courses.",
+        error: readDashboardLoadErrorMessage(error),
         statusMessage: "",
         actorIsPreview: auth.currentUser ? false : true
       });
@@ -133,10 +140,10 @@ export const studentDashboardService = {
     });
 
     try {
-      var result = await runStudentIntent("StudentOpenCourseIntent", {
+      var result = await waitForStudentDashboardLoad(runStudentIntent("StudentOpenCourseIntent", {
         studentId: readCurrentDashboardStudentId(),
         courseId: courseId
-      });
+      }), "StudentOpenCourseIntent");
 
       if (result && result.emitted && result.emitted.success) {
         console.info("[student-course:open-result]", {
@@ -654,6 +661,68 @@ async function ensureAuthenticatedFirestoreToken() {
   }
 
   await auth.currentUser.getIdToken(true);
+}
+
+function waitForStudentDashboardLoad(promise, label) {
+  var timeoutMs = 15000;
+
+  return new Promise(function (resolve, reject) {
+    var settled = false;
+    var timer = setTimeout(function () {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      reject(new Error(label + " timed out while loading the Student Dashboard."));
+    }, timeoutMs);
+
+    Promise.resolve(promise).then(function (value) {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      clearTimeout(timer);
+      resolve(value);
+    }).catch(function (error) {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      clearTimeout(timer);
+      reject(error);
+    });
+  });
+}
+
+function readDashboardLoadErrorMessage(error) {
+  if (error && error.message && error.message.indexOf("timed out") !== -1) {
+    return "Courses are taking too long to load. Try again, or ask your teacher to check the assignment.";
+  }
+
+  if (error && error.code === "permission-denied") {
+    return "We could not verify your course access. Try again or ask your teacher for help.";
+  }
+
+  return "Could not load courses. Try again in a moment.";
+}
+
+function logStudentDashboardLoadFailure(error, studentProfile) {
+  if (!isStudentCourseDebugEnabled()) {
+    return;
+  }
+
+  console.warn("[student-dashboard:load-failed]", {
+    message: error && error.message ? error.message : String(error || "unknown"),
+    code: error && error.code ? error.code : "",
+    hasAuthUser: Boolean(auth.currentUser),
+    authUidPresent: Boolean(auth.currentUser && auth.currentUser.uid),
+    profileIdPresent: Boolean(readStudentProfileId(studentProfile)),
+    classIdPresent: Boolean(studentProfile && studentProfile.classId),
+    locationIdPresent: Boolean(studentProfile && (studentProfile.locationId || studentProfile.primaryLocationId))
+  });
 }
 
 function summarizeCoursesForContinue(courses) {

@@ -1,5 +1,5 @@
 import { processContinueLearning } from "./processContinueLearning.js?v=1.1.82-shared-command-center-shell";
-import { getAssignedCourseIds, validateStudentCourseOpen } from "../../../../../../../domain/courses/index.js";
+import { getAssignedCourseIds, validateStudentCourseOpen } from "../../../../../../../domain/courses/index.js?v=1.1.204-student-dashboard-load";
 import { resolveStudentId } from "../../../../../../../domain/users/index.js";
 
 export async function processStudentOpenCourse(executionState) {
@@ -10,7 +10,10 @@ export async function processStudentOpenCourse(executionState) {
   var profileWithActor = Object.assign({}, executionState.context.studentProfile || {}, {
     __actor: Object.assign({}, executionState.actor || {}, { id: studentId })
   });
-  var assignmentResult = await getAssignedCourseIds(studentId, profileWithActor);
+  var assignmentResult = await waitForStudentCourseOpenRead(
+    getAssignedCourseIds(studentId, profileWithActor),
+    "student course assignment lookup"
+  );
   var assignmentId = assignmentResult.assignmentIdByCourseId[courseId] || readText(payload.assignmentId || payload.courseAssignmentId);
   var isAssignedCourse = assignmentResult.courseIds.indexOf(courseId) !== -1;
   var course = executionState.context.studentOpenCourse || findCourseById(courses, courseId);
@@ -298,4 +301,38 @@ function createModuleOnlyTarget(course, module) {
 
 function readText(value) {
   return typeof value === "string" ? value : "";
+}
+
+function waitForStudentCourseOpenRead(promise, label) {
+  var timeoutMs = 12000;
+
+  return new Promise(function (resolve, reject) {
+    var settled = false;
+    var timer = setTimeout(function () {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      reject(new Error(label + " timed out."));
+    }, timeoutMs);
+
+    Promise.resolve(promise).then(function (value) {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      clearTimeout(timer);
+      resolve(value);
+    }).catch(function (error) {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      clearTimeout(timer);
+      reject(error);
+    });
+  });
 }

@@ -1,6 +1,6 @@
 import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
 import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.82-shared-command-center-shell";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.204-student-dashboard-load";
 import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.82-shared-command-center-shell";
 import {
   isStudentDashboardProfile,
@@ -674,7 +674,6 @@ function isStudentVisibleCourse(courseData) {
   }
 
   return courseData.status === "active"
-    || courseData.status === "draft"
     || courseData.status === "published"
     || courseData.status === "ready";
 }

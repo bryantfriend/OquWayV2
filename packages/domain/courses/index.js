@@ -26,4 +26,4 @@ export function readCourseTitle(course) {
 
 export * from "./courseQueries.js";
 export * from "./courseRepository.js";
-export * from "./courseOpenValidation.js";
+export * from "./courseOpenValidation.js?v=1.1.204-student-dashboard-load";

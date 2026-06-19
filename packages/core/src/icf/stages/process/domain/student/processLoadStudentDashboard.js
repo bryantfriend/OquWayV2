@@ -28,10 +28,16 @@ export async function processLoadStudentDashboard(executionState) {
       }
     }
 
-    var courseAssignmentResult = await loadAssignedCourseIds(resolvedActor, studentProfile, executionState);
+    var courseAssignmentResult = await waitForStudentDashboardRead(
+      loadAssignedCourseIds(resolvedActor, studentProfile, executionState),
+      "student course assignment lookup"
+    );
     appendWarnings(executionState, courseAssignmentResult.warnings || []);
 
-    var courses = await loadLightweightStudentCourses(courseAssignmentResult.courseIds || [], courseAssignmentResult.assignmentIdByCourseId || {}, executionState);
+    var courses = await waitForStudentDashboardRead(
+      loadLightweightStudentCourses(courseAssignmentResult.courseIds || [], courseAssignmentResult.assignmentIdByCourseId || {}, executionState),
+      "student course summary lookup"
+    );
     var progressSummary = buildProgressSummary(courses);
     var debugInfo = buildStudentDashboardDebugInfo({
       actor: actor,
@@ -51,7 +57,7 @@ export async function processLoadStudentDashboard(executionState) {
       dailyBonus: readDailyBonus(studentProfile),
       progressSummary: progressSummary,
       debugInfo: shouldEmitDebug(executionState) ? debugInfo : null,
-      emptyStateMessage: courses.length === 0 ? "No courses assigned yet." : ""
+      emptyStateMessage: courses.length === 0 ? "No courses are ready yet. Your teacher will assign learning soon." : ""
     };
 
     logStudentDashboardDebug(debugInfo, executionState);
@@ -120,6 +126,14 @@ async function readCourseSummaryFromSource(courseId, source, assignmentIdByCours
     var courseSnap = await getDoc(doc(db, source, courseId));
 
     if (!courseSnap.exists()) {
+      return null;
+    }
+
+    if (!isStudentVisibleCourseSummary(courseSnap.data() || {})) {
+      executionState.warnings.push({
+        code: "ASSIGNED_COURSE_NOT_READY",
+        message: "Assigned course is not published or ready for students: " + courseId
+      });
       return null;
     }
 
@@ -373,6 +387,20 @@ function readCourseModuleCount(data) {
   return 0;
 }
 
+function isStudentVisibleCourseSummary(data) {
+  var status = readText(data && (data.status || data.state)).toLowerCase();
+
+  if (!data || typeof data !== "object") {
+    return false;
+  }
+
+  if (data.isPublished === true || data.published === true) {
+    return true;
+  }
+
+  return status === "published" || status === "active" || status === "ready" || status === "assigned";
+}
+
 function readStoredProgressPercent(course) {
   var progress = course && typeof course.progress === "object" ? course.progress : {};
 
@@ -476,4 +504,42 @@ function readLocalizedText(value, fallbackValue) {
   }
 
   return fallbackValue;
+}
+
+function readText(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function waitForStudentDashboardRead(promise, label) {
+  var timeoutMs = 12000;
+
+  return new Promise(function (resolve, reject) {
+    var settled = false;
+    var timer = setTimeout(function () {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      reject(new Error(label + " timed out."));
+    }, timeoutMs);
+
+    Promise.resolve(promise).then(function (value) {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      clearTimeout(timer);
+      resolve(value);
+    }).catch(function (error) {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      clearTimeout(timer);
+      reject(error);
+    });
+  });
 }

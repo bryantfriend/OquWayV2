@@ -1,5 +1,5 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.201-course-creator-stability-followup";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.204-student-dashboard-load";
 import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.192-timed-sequence";
 import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.192-timed-sequence";
 import {
@@ -22,8 +22,8 @@ import {
   renderEmotionalCheckInGate
 } from "../../../packages/ui/index.js?v=1.1.192-timed-sequence";
 import { emotionalCheckInService } from "../../../packages/shared/emotionalCheckIns/index.js?v=1.1.192-timed-sequence";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.192-timed-sequence";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.192-timed-sequence";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.204-student-dashboard-load";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.204-student-dashboard-load";
 import {
   STUDENT_PROFILE_AVATARS,
   createStudentProfileSnapshot,
@@ -843,10 +843,7 @@ function buildDashboardView(state) {
   }
 
   if (state.error) {
-    html += createErrorState(state.error, "", {
-      className: "student-error",
-      titleTag: "span"
-    });
+    html += buildStudentDashboardErrorState(state.error);
   }
 
   if (state.statusMessage) {
@@ -864,7 +861,7 @@ function buildDashboardView(state) {
   if (courses.length === 0) {
     html += '<section class="student-dashboard-v2-grid student-dashboard-empty-grid">';
     html += '<div class="student-dashboard-main-stack">';
-    html += createEmptyState("No assigned courses yet", "No courses assigned yet.", {
+    html += createEmptyState("No courses are ready yet", "Your teacher will assign learning soon.", {
       className: "student-empty student-home-empty",
       beforeHtml: '<div class="student-empty-illustration student-empty-svg">' + renderSvgIcon("book") + '</div>'
     });
@@ -928,6 +925,16 @@ function buildStudentSectionNavItem(iconName, sectionName, label, activeSection)
   var activeClass = activeSection === sectionName ? " course-focus-nav-item-active" : "";
 
   return '<button type="button" class="course-focus-nav-item student-section-nav-item' + activeClass + '" data-student-section="' + escapeHtml(sectionName) + '">' + renderSvgIcon(iconName) + '<span>' + escapeHtml(label) + '</span></button>';
+}
+
+function buildStudentDashboardErrorState(message) {
+  return '<section class="student-error-wrap">'
+    + createErrorState(message, "Use Refresh to try again. If this keeps happening, ask your teacher to check your course assignment.", {
+      className: "student-error",
+      titleTag: "span"
+    })
+    + '<button type="button" class="student-reload-btn student-error-retry-btn">Retry</button>'
+    + '</section>';
 }
 
 function buildStudentCoursesCenter(state, courses, selectedCourse, overallProgress) {

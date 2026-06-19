@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.203-step-media-upload";
+import * as IntentExports from "../intents/intents.js?v=1.1.204-student-dashboard-load";
 
 const registry = {
   // Demo Verification
