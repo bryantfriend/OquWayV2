@@ -1,8 +1,8 @@
 import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.180-student-profile-center";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.205-student-course-open";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.205-student-course-open";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.206-student-canonical-course-open";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.206-student-canonical-course-open";
 import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.180-student-profile-center";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.205-student-course-open";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.206-student-canonical-course-open";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
@@ -149,6 +149,9 @@ export const studentDashboardService = {
         courseId: courseId,
         assignmentId: courseSummary ? courseSummary.assignmentId || courseSummary.courseAssignmentId || "" : "",
         courseAssignmentId: courseSummary ? courseSummary.courseAssignmentId || courseSummary.assignmentId || "" : "",
+        canonicalCourseId: readCourseCanonicalCourseId(courseSummary),
+        moduleCourseId: readCourseModuleCourseId(courseSummary),
+        moduleSource: readCourseModuleSource(courseSummary),
         courseRecordSource: readCourseRecordSource(courseSummary),
         source: readCourseRecordSource(courseSummary),
         debug: isStudentCourseDebugEnabled()
@@ -677,6 +680,24 @@ function readDashboardCourseById(courseId) {
 
 function readCourseRecordSource(course) {
   var source = course && (course.courseRecordSource || course.source || course.courseSource);
+
+  if (source === "courses" || source === "catalogCourses") {
+    return source;
+  }
+
+  return "";
+}
+
+function readCourseCanonicalCourseId(course) {
+  return course && typeof course.canonicalCourseId === "string" ? course.canonicalCourseId : "";
+}
+
+function readCourseModuleCourseId(course) {
+  return course && typeof course.moduleCourseId === "string" ? course.moduleCourseId : "";
+}
+
+function readCourseModuleSource(course) {
+  var source = course && course.moduleSource;
 
   if (source === "courses" || source === "catalogCourses") {
     return source;

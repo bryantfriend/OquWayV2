@@ -10,6 +10,7 @@ export async function attachStudentOpenCourseContext(executionState) {
   var resolvedActor = Object.assign({}, actor, { id: studentId });
   var courseId = readText(payload.courseId);
   var preferredSource = readText(payload.courseRecordSource || payload.source || payload.courseSource);
+  var preferredModuleSource = readText(payload.moduleSource || payload.studentOpenModuleSource || preferredSource);
   var attemptedCoursePaths = [];
   var attemptedModulePaths = [];
   var timing = createStudentOpenCourseTiming("StudentOpenCourseIntent:addContext", executionState);
@@ -35,9 +36,23 @@ export async function attachStudentOpenCourseContext(executionState) {
       };
     }
 
-    var moduleContext = await loadModules(resolvedActor, courseId, attemptedModulePaths, courseContext.courseSource, preferredSource);
+    var moduleCourseIds = buildCourseIdentityCandidates(courseId, payload, courseContext.course);
+    var moduleContext = await loadModules(
+      resolvedActor,
+      courseId,
+      moduleCourseIds,
+      attemptedModulePaths,
+      courseContext.courseSource,
+      preferredModuleSource
+    );
     timing.mark("module tree hydration");
     var course = Object.assign({}, courseContext.course, {
+      id: courseId || courseContext.course.id,
+      canonicalCourseId: moduleContext.canonicalCourseId || courseContext.course.id || courseId,
+      moduleCourseId: moduleContext.moduleCourseId || courseId,
+      moduleSource: moduleContext.moduleSource,
+      moduleOrder: moduleContext.moduleOrder.length > 0 ? moduleContext.moduleOrder : courseContext.course.moduleOrder,
+      moduleCount: moduleContext.modules.length,
       modules: moduleContext.modules
     });
 
@@ -46,7 +61,8 @@ export async function attachStudentOpenCourseContext(executionState) {
       courseId: courseId,
       courseSource: courseContext.courseSource,
       moduleCount: moduleContext.modules.length,
-      moduleSource: moduleContext.moduleSource
+      moduleSource: moduleContext.moduleSource,
+      moduleCourseId: moduleContext.moduleCourseId
     });
 
     return {
@@ -106,40 +122,53 @@ async function loadCourse(courseId, attemptedCoursePaths, preferredSource) {
   };
 }
 
-async function loadModules(actor, courseId, attemptedModulePaths, courseSource, preferredSource) {
+async function loadModules(actor, progressCourseId, courseIds, attemptedModulePaths, courseSource, preferredSource) {
   var sources = buildCourseSourceOrder(preferredSource, courseSource);
-  var sourceIndex = 0;
+  var courseIndex = 0;
 
-  while (sourceIndex < sources.length) {
-    var source = sources[sourceIndex];
-    var path = source + "/" + courseId + "/modules";
-    attemptedModulePaths.push(path);
+  while (courseIndex < courseIds.length) {
+    var courseId = courseIds[courseIndex];
+    var sourceIndex = 0;
 
-    try {
-      var modules = await loadModulesFromSource(actor, source, courseId);
+    while (sourceIndex < sources.length) {
+      var source = sources[sourceIndex];
+      var path = source + "/" + courseId + "/modules";
+      attemptedModulePaths.push(path);
 
-      if (modules.length > 0 || source === sources[sources.length - 1]) {
-        return {
-          modules: modules,
-          moduleSource: source
-        };
+      try {
+        var modules = await loadModulesFromSource(actor, source, courseId, progressCourseId);
+
+        if (modules.length > 0) {
+          return {
+            modules: modules,
+            moduleSource: source,
+            moduleCourseId: courseId,
+            canonicalCourseId: courseId,
+            moduleOrder: modules.map(readModuleId).filter(Boolean)
+          };
+        }
+      } catch (error) {
+        if (source === sources[sources.length - 1] && courseIndex === courseIds.length - 1) {
+          throw error;
+        }
       }
-    } catch (error) {
-      if (source === sources[sources.length - 1]) {
-        throw error;
-      }
+
+      sourceIndex = sourceIndex + 1;
     }
 
-    sourceIndex = sourceIndex + 1;
+    courseIndex = courseIndex + 1;
   }
 
   return {
     modules: [],
-    moduleSource: "none"
+    moduleSource: "none",
+    moduleCourseId: progressCourseId,
+    canonicalCourseId: progressCourseId,
+    moduleOrder: []
   };
 }
 
-async function loadModulesFromSource(actor, source, courseId) {
+async function loadModulesFromSource(actor, source, courseId, progressCourseId) {
   var modulesSnap = await getDocs(collection(db, source, courseId, "modules"));
   var modules = [];
 
@@ -150,19 +179,21 @@ async function loadModulesFromSource(actor, source, courseId) {
   modules.sort(compareByOrderThenTitle);
 
   modules = await Promise.all(modules.map(function (module) {
-    return hydrateOpenModule(actor, source, courseId, module);
+    return hydrateOpenModule(actor, source, courseId, progressCourseId, module);
   }));
 
   return modules;
 }
 
-async function hydrateOpenModule(actor, source, courseId, module) {
+async function hydrateOpenModule(actor, source, courseId, progressCourseId, module) {
   var learningModes = await loadLearningModes(source, courseId, module.id, module.learningModes);
   var hydratedModule = Object.assign({}, module, {
+    source: source,
+    moduleCourseId: courseId,
     learningModes: learningModes
   });
 
-  hydratedModule.sessions = await loadSessions(actor, source, courseId, hydratedModule);
+  hydratedModule.sessions = await loadSessions(actor, source, courseId, progressCourseId, hydratedModule);
   return hydratedModule;
 }
 
@@ -198,7 +229,7 @@ async function loadLearningModeSteps(source, courseId, moduleId, modeId, embedde
   return steps;
 }
 
-async function loadSessions(actor, source, courseId, module) {
+async function loadSessions(actor, source, courseId, progressCourseId, module) {
   var sessionsSnap = await getDocs(collection(db, source, courseId, "modules", module.id, "sessions"));
   var sessions = [];
 
@@ -215,7 +246,7 @@ async function loadSessions(actor, source, courseId, module) {
   sessions.sort(compareSessionOrder);
 
   sessions = await Promise.all(sessions.map(function (session) {
-    return loadProgress(actor, courseId, module.id, session.id).then(function (progress) {
+    return loadProgress(actor, progressCourseId, module.id, session.id).then(function (progress) {
       return Object.assign({}, session, {
         progress: progress
       });
@@ -223,6 +254,61 @@ async function loadSessions(actor, source, courseId, module) {
   }));
 
   return sessions;
+}
+
+function buildCourseIdentityCandidates(courseId, payload, course) {
+  var courseIds = [];
+
+  addCourseIdentity(courseIds, payload && payload.moduleCourseId);
+  addCourseIdentity(courseIds, payload && payload.canonicalCourseId);
+  addCourseIdentity(courseIds, payload && payload.catalogCourseId);
+  addCourseIdentity(courseIds, payload && payload.sourceCourseId);
+  addCourseIdentity(courseIds, payload && payload.publishedCourseId);
+  addCourseIdentity(courseIds, courseId);
+  addCourseIdentityFields(courseIds, course);
+
+  return courseIds;
+}
+
+function addCourseIdentityFields(courseIds, source) {
+  if (!source || typeof source !== "object") {
+    return;
+  }
+
+  addCourseIdentity(courseIds, source.moduleCourseId);
+  addCourseIdentity(courseIds, source.canonicalCourseId);
+  addCourseIdentity(courseIds, source.catalogCourseId);
+  addCourseIdentity(courseIds, source.courseId);
+  addCourseIdentity(courseIds, source.sourceCourseId);
+  addCourseIdentity(courseIds, source.publishedCourseId);
+  addCourseIdentity(courseIds, source.targetCourseId);
+  addCourseIdentity(courseIds, source.linkedCourseId);
+  addCourseIdentity(courseIds, source.parentCourseId);
+  addCourseIdentity(courseIds, source.baseCourseId);
+  addCourseIdentity(courseIds, source.originalCourseId);
+  addCourseIdentity(courseIds, source.templateCourseId);
+  addCourseIdentity(courseIds, source.courseRefId);
+  addCourseIdentity(courseIds, source.refId);
+}
+
+function addCourseIdentity(courseIds, value) {
+  var courseId = readCourseIdentity(value);
+
+  if (courseId && courseIds.indexOf(courseId) === -1) {
+    courseIds.push(courseId);
+  }
+}
+
+function readCourseIdentity(value) {
+  if (typeof value === "string") {
+    return value.trim();
+  }
+
+  if (value && typeof value === "object") {
+    return readText(value.id || value.courseId || value.refId || value.uid);
+  }
+
+  return "";
 }
 
 function buildCourseSourceOrder(preferredSource, courseSource) {
@@ -234,6 +320,10 @@ function buildCourseSourceOrder(preferredSource, courseSource) {
   addCourseSource(sources, "catalogCourses");
 
   return sources;
+}
+
+function readModuleId(module) {
+  return readText(module && (module.id || module.moduleId));
 }
 
 function addCourseSource(sources, source) {

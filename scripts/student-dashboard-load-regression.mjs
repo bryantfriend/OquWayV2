@@ -73,6 +73,10 @@ async function verifyDashboardSummaryCounts() {
   var mainSource = await readSource("apps/student-dashboard/src/main.js");
 
   assertSourceIncludes(loadDashboardSource, "loadPublishedCourseSummaryCounts", "dashboard summaries should hydrate safe published module counts");
+  assertSourceIncludes(loadDashboardSource, "resolveCourseSummaryContext", "dashboard summaries should resolve canonical course/module ids");
+  assertSourceIncludes(loadDashboardSource, "buildCourseIdentityCandidates", "dashboard summaries should inspect assigned course aliases");
+  assertSourceIncludes(loadDashboardSource, "moduleCourseId", "dashboard summaries should expose the resolved module course id");
+  assertSourceIncludes(loadDashboardSource, "moduleSource", "dashboard summaries should expose the resolved module source");
   assertSourceIncludes(loadDashboardSource, "countCourseSteps", "dashboard summaries should reuse the shared course step counter");
   assertSourceIncludes(loadDashboardSource, "countSource: \"canonicalModules\"", "canonical module counts should be preferred over stored summaries");
   assertSourceIncludes(loadDashboardSource, "readStoredCourseModuleCount", "stored module counts should remain only as fallback");
@@ -114,8 +118,14 @@ async function verifyCourseOpenSourceAndPerformanceGuards() {
   var openIntentSource = await readSource("packages/core/src/icf/intents/student/StudentOpenCourseIntent.js");
 
   assertSourceIncludes(serviceSource, "readDashboardCourseById", "course open should use the clicked dashboard course summary");
+  assertSourceIncludes(serviceSource, "canonicalCourseId: readCourseCanonicalCourseId(courseSummary)", "course open should pass the canonical course id resolved by the dashboard");
+  assertSourceIncludes(serviceSource, "moduleCourseId: readCourseModuleCourseId(courseSummary)", "course open should pass the module course id resolved by the dashboard");
+  assertSourceIncludes(serviceSource, "moduleSource: readCourseModuleSource(courseSummary)", "course open should pass the resolved module source");
   assertSourceIncludes(serviceSource, "courseRecordSource: readCourseRecordSource(courseSummary)", "course open should pass the dashboard course source");
   assertSourceIncludes(serviceSource, "debug: isStudentCourseDebugEnabled()", "course open timing should be gated behind debug");
+  assertSourceIncludes(openContextSource, "buildCourseIdentityCandidates", "open context should try canonical module course ids");
+  assertSourceIncludes(openContextSource, "moduleCourseIds", "open context should keep module ids separate from the assigned progress course id");
+  assertSourceIncludes(openContextSource, "loadProgress(actor, progressCourseId", "open context should keep progress scoped to the assigned course id");
   assertSourceIncludes(openContextSource, "buildCourseSourceOrder", "open context should honor preferred source order");
   assertSourceIncludes(openContextSource, "preferredSource", "open context should accept source from the ICF payload");
   assertSourceIncludes(openContextSource, "Promise.all(modules.map", "module hydration should parallelize independent module reads");

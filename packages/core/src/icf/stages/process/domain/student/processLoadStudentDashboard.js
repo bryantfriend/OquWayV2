@@ -38,7 +38,7 @@ export async function processLoadStudentDashboard(executionState) {
     appendWarnings(executionState, courseAssignmentResult.warnings || []);
 
     var courses = await waitForStudentDashboardRead(
-      loadLightweightStudentCourses(courseAssignmentResult.courseIds || [], courseAssignmentResult.assignmentIdByCourseId || {}, executionState),
+      loadLightweightStudentCourses(courseAssignmentResult.courseIds || [], courseAssignmentResult, executionState),
       "student course summary lookup"
     );
     timing.mark("course summary hydration");
@@ -88,17 +88,17 @@ export async function processLoadStudentDashboard(executionState) {
   }
 }
 
-async function loadLightweightStudentCourses(courseIds, assignmentIdByCourseId, executionState) {
+async function loadLightweightStudentCourses(courseIds, courseAssignmentResult, executionState) {
   var safeCourseIds = dedupeTextList(courseIds);
   var courseCache = {};
   var courses = await Promise.all(safeCourseIds.map(function (courseId) {
-    return loadCourseSummary(courseId, assignmentIdByCourseId, courseCache, executionState);
+    return loadCourseSummary(courseId, courseAssignmentResult || {}, courseCache, executionState);
   }));
 
   return courses.filter(Boolean).sort(compareByOrderThenTitle);
 }
 
-async function loadCourseSummary(courseId, assignmentIdByCourseId, cache, executionState) {
+async function loadCourseSummary(courseId, courseAssignmentResult, cache, executionState) {
   if (!courseId) {
     return null;
   }
@@ -107,8 +107,8 @@ async function loadCourseSummary(courseId, assignmentIdByCourseId, cache, execut
     return cache[courseId];
   }
 
-  cache[courseId] = await readCourseSummaryFromSource(courseId, "courses", assignmentIdByCourseId, executionState)
-    || await readCourseSummaryFromSource(courseId, "catalogCourses", assignmentIdByCourseId, executionState);
+  cache[courseId] = await readCourseSummaryFromSource(courseId, "courses", courseAssignmentResult, executionState)
+    || await readCourseSummaryFromSource(courseId, "catalogCourses", courseAssignmentResult, executionState);
 
   if (!cache[courseId]) {
     executionState.warnings.push({
@@ -120,15 +120,18 @@ async function loadCourseSummary(courseId, assignmentIdByCourseId, cache, execut
   return cache[courseId];
 }
 
-async function readCourseSummaryFromSource(courseId, source, assignmentIdByCourseId, executionState) {
+async function readCourseSummaryFromSource(courseId, source, courseAssignmentResult, executionState) {
   try {
     var courseSnap = await getDoc(doc(db, source, courseId));
+    var courseData = {};
 
     if (!courseSnap.exists()) {
       return null;
     }
 
-    if (!isStudentVisibleCourseSummary(courseSnap.data() || {})) {
+    courseData = courseSnap.data() || {};
+
+    if (!isStudentVisibleCourseSummary(courseData)) {
       executionState.warnings.push({
         code: "ASSIGNED_COURSE_NOT_READY",
         message: "Assigned course is not published or ready for students: " + courseId
@@ -136,12 +139,20 @@ async function readCourseSummaryFromSource(courseId, source, assignmentIdByCours
       return null;
     }
 
+    var summaryContext = await resolveCourseSummaryContext(
+      source,
+      courseSnap.id,
+      courseData,
+      courseAssignmentResult || {},
+      executionState
+    );
+
     return normalizeCourseSummary(
       courseSnap.id,
-      courseSnap.data() || {},
+      courseData,
       source,
-      assignmentIdByCourseId,
-      await loadPublishedCourseSummaryCounts(source, courseSnap.id, courseSnap.data() || {}, executionState)
+      courseAssignmentResult || {},
+      summaryContext
     );
   } catch (error) {
     executionState.warnings.push({
@@ -152,15 +163,19 @@ async function readCourseSummaryFromSource(courseId, source, assignmentIdByCours
   }
 }
 
-function normalizeCourseSummary(courseId, data, source, assignmentIdByCourseId, summaryCounts) {
-  var assignmentId = assignmentIdByCourseId[courseId] || data.assignmentId || data.courseAssignmentId || "";
-  var counts = summaryCounts || createCourseSummaryCounts(data, [], false);
+function normalizeCourseSummary(courseId, data, source, courseAssignmentResult, summaryContext) {
+  var assignmentId = readAssignmentIdForCourse(courseAssignmentResult, courseId) || data.assignmentId || data.courseAssignmentId || "";
+  var context = summaryContext || {};
+  var counts = context.counts || createCourseSummaryCounts(data, [], false);
 
   return {
     id: courseId,
     courseId: courseId,
     source: source,
     courseRecordSource: source,
+    canonicalCourseId: context.canonicalCourseId || courseId,
+    moduleCourseId: context.moduleCourseId || courseId,
+    moduleSource: context.moduleSource || source,
     title: data.title || data.name || data.displayName || "Untitled Course",
     description: data.description || data.summary || "",
     status: data.status || data.state || "assigned",
@@ -173,6 +188,118 @@ function normalizeCourseSummary(courseId, data, source, assignmentIdByCourseId, 
     assignmentId: assignmentId,
     courseAssignmentId: assignmentId,
     isLightweight: true
+  };
+}
+
+async function resolveCourseSummaryContext(source, courseId, data, courseAssignmentResult, executionState) {
+  var assignment = readAssignmentForCourse(courseAssignmentResult, courseId);
+  var courseIds = buildCourseIdentityCandidates(courseId, data, assignment);
+  var sources = buildCourseSourceOrder(source, readPreferredCourseSource(data, assignment));
+  var fallbackContext = {
+    counts: createCourseSummaryCounts(data, [], false),
+    canonicalCourseId: courseId,
+    moduleCourseId: courseId,
+    moduleSource: source
+  };
+  var courseIndex = 0;
+
+  while (courseIndex < courseIds.length) {
+    var visibleCourseContext = await loadVisibleCourseContext(courseIds[courseIndex], sources, source, courseId, data);
+
+    if (visibleCourseContext) {
+      var moduleContext = await loadFirstCourseSummaryModules(
+        sources,
+        courseIds[courseIndex],
+        visibleCourseContext.data,
+        executionState
+      );
+
+      if (moduleContext && moduleContext.counts && moduleContext.counts.countSource === "canonicalModules") {
+        return {
+          counts: moduleContext.counts,
+          canonicalCourseId: visibleCourseContext.courseId,
+          moduleCourseId: courseIds[courseIndex],
+          moduleSource: moduleContext.moduleSource
+        };
+      }
+
+      if (moduleContext && hasStoredCourseCounts(moduleContext.counts) && !hasStoredCourseCounts(fallbackContext.counts)) {
+        fallbackContext = {
+          counts: moduleContext.counts,
+          canonicalCourseId: visibleCourseContext.courseId,
+          moduleCourseId: courseIds[courseIndex],
+          moduleSource: moduleContext.moduleSource
+        };
+      }
+    }
+
+    courseIndex = courseIndex + 1;
+  }
+
+  return fallbackContext;
+}
+
+async function loadVisibleCourseContext(courseId, sources, originalSource, originalCourseId, originalData) {
+  var sourceIndex = 0;
+
+  while (sourceIndex < sources.length) {
+    var source = sources[sourceIndex];
+
+    if (source === originalSource && courseId === originalCourseId) {
+      return {
+        courseId: courseId,
+        source: source,
+        data: originalData || {}
+      };
+    }
+
+    try {
+      var courseSnap = await getDoc(doc(db, source, courseId));
+
+      if (courseSnap.exists() && isStudentVisibleCourseSummary(courseSnap.data() || {})) {
+        return {
+          courseId: courseSnap.id,
+          source: source,
+          data: courseSnap.data() || {}
+        };
+      }
+    } catch (error) {
+      // Another source may still contain the published course document.
+    }
+
+    sourceIndex = sourceIndex + 1;
+  }
+
+  return null;
+}
+
+async function loadFirstCourseSummaryModules(sources, courseId, data, executionState) {
+  var sourceIndex = 0;
+  var fallbackCounts = createCourseSummaryCounts(data, [], false);
+  var fallbackSource = sources.length > 0 ? sources[0] : "courses";
+
+  while (sourceIndex < sources.length) {
+    var source = sources[sourceIndex];
+    var counts = await loadPublishedCourseSummaryCounts(source, courseId, data, executionState);
+
+    if (counts.countSource === "canonicalModules") {
+      return {
+        counts: counts,
+        moduleSource: source
+      };
+    }
+
+    if (hasStoredCourseCounts(counts)) {
+      fallbackCounts = counts;
+      fallbackSource = source;
+    }
+
+    sourceIndex = sourceIndex + 1;
+  }
+
+  return {
+    counts: fallbackCounts,
+    moduleSource: fallbackSource
   };
 }
 
@@ -298,6 +425,139 @@ function createCourseSummaryCounts(data, modules, canonicalModulesLoaded) {
     activityCount: readStoredCourseActivityCount(data),
     countSource: "storedSummary"
   };
+}
+
+function hasStoredCourseCounts(counts) {
+  return Boolean(counts && (counts.moduleCount > 0 || counts.activityCount > 0));
+}
+
+function buildCourseIdentityCandidates(courseId, data, assignment) {
+  var courseIds = [];
+
+  addCourseIdentity(courseIds, courseId);
+  addCourseIdentityFields(courseIds, assignment);
+  addCourseIdentityFields(courseIds, data);
+
+  return courseIds;
+}
+
+function addCourseIdentityFields(courseIds, source) {
+  if (!source || typeof source !== "object") {
+    return;
+  }
+
+  addCourseIdentity(courseIds, source.courseId);
+  addCourseIdentity(courseIds, source.catalogCourseId);
+  addCourseIdentity(courseIds, source.canonicalCourseId);
+  addCourseIdentity(courseIds, source.moduleCourseId);
+  addCourseIdentity(courseIds, source.sourceCourseId);
+  addCourseIdentity(courseIds, source.publishedCourseId);
+  addCourseIdentity(courseIds, source.targetCourseId);
+  addCourseIdentity(courseIds, source.linkedCourseId);
+  addCourseIdentity(courseIds, source.parentCourseId);
+  addCourseIdentity(courseIds, source.baseCourseId);
+  addCourseIdentity(courseIds, source.originalCourseId);
+  addCourseIdentity(courseIds, source.templateCourseId);
+  addCourseIdentity(courseIds, source.courseRefId);
+  addCourseIdentity(courseIds, source.refId);
+
+  if (source.course && typeof source.course === "object") {
+    addCourseIdentity(courseIds, source.course.id || source.course.courseId);
+  }
+}
+
+function addCourseIdentity(courseIds, value) {
+  var courseId = readCourseIdentity(value);
+
+  if (courseId && courseIds.indexOf(courseId) === -1) {
+    courseIds.push(courseId);
+  }
+}
+
+function readCourseIdentity(value) {
+  if (typeof value === "string") {
+    return value.trim();
+  }
+
+  if (value && typeof value === "object") {
+    return readText(value.id || value.courseId || value.refId || value.uid);
+  }
+
+  return "";
+}
+
+function buildCourseSourceOrder(primarySource, secondarySource) {
+  var sources = [];
+
+  addCourseSource(sources, primarySource);
+  addCourseSource(sources, secondarySource);
+  addCourseSource(sources, "courses");
+  addCourseSource(sources, "catalogCourses");
+
+  return sources;
+}
+
+function addCourseSource(sources, source) {
+  var safeSource = readText(source);
+
+  if ((safeSource === "courses" || safeSource === "catalogCourses") && sources.indexOf(safeSource) === -1) {
+    sources.push(safeSource);
+  }
+}
+
+function readPreferredCourseSource(data, assignment) {
+  return readCourseSourceValue(data && (data.moduleSource || data.courseRecordSource || data.source || data.courseSource))
+    || readCourseSourceValue(assignment && (assignment.moduleSource || assignment.courseRecordSource || assignment.source || assignment.courseSource));
+}
+
+function readCourseSourceValue(value) {
+  var source = readText(value);
+
+  if (source === "courses" || source === "catalogCourses") {
+    return source;
+  }
+
+  return "";
+}
+
+function readAssignmentForCourse(courseAssignmentResult, courseId) {
+  var assignments = Array.isArray(courseAssignmentResult && courseAssignmentResult.assignments)
+    ? courseAssignmentResult.assignments
+    : [];
+  var assignmentIndex = 0;
+
+  while (assignmentIndex < assignments.length) {
+    if (assignmentMatchesCourse(assignments[assignmentIndex], courseId)) {
+      return assignments[assignmentIndex];
+    }
+
+    assignmentIndex = assignmentIndex + 1;
+  }
+
+  return null;
+}
+
+function readAssignmentIdForCourse(courseAssignmentResult, courseId) {
+  var assignmentIdByCourseId = courseAssignmentResult && courseAssignmentResult.assignmentIdByCourseId
+    ? courseAssignmentResult.assignmentIdByCourseId
+    : {};
+  var assignment = readAssignmentForCourse(courseAssignmentResult, courseId);
+
+  return assignmentIdByCourseId[courseId] || (assignment ? assignment.id || assignment.assignmentId || "" : "");
+}
+
+function assignmentMatchesCourse(assignment, courseId) {
+  if (!assignment || !courseId) {
+    return false;
+  }
+
+  return readText(assignment.courseId) === courseId
+    || readText(assignment.catalogCourseId) === courseId
+    || readText(assignment.canonicalCourseId) === courseId
+    || readText(assignment.moduleCourseId) === courseId
+    || readText(assignment.sourceCourseId) === courseId
+    || readText(assignment.publishedCourseId) === courseId
+    || readText(assignment.targetCourseId) === courseId;
 }
 
 async function loadAssignedCourseIds(actor, studentProfile, executionState) {

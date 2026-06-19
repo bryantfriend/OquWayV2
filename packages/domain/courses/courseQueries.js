@@ -18,7 +18,8 @@ export async function getAssignedCourses(studentId, studentProfile) {
     directCount: assignmentResult.directCount || 0,
     classCount: assignmentResult.classCount || 0,
     locationCount: assignmentResult.locationCount || 0,
-    mergedCount: assignmentResult.mergedCount || assignmentResult.assignmentCount || 0
+    mergedCount: assignmentResult.mergedCount || assignmentResult.assignmentCount || 0,
+    assignments: assignmentResult.assignments || []
   };
 }
 
@@ -61,7 +62,8 @@ async function getAssignedCourseIdsFromAssignments(studentId, studentProfile) {
     directCount: assignmentResult.directAssignments.length,
     classCount: assignmentResult.classAssignments.length,
     locationCount: assignmentResult.locationAssignments.length,
-    mergedCount: assignmentResult.assignments.length
+    mergedCount: assignmentResult.assignments.length,
+    assignments: assignmentResult.assignments
   };
 }
 

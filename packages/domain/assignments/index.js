@@ -7,7 +7,7 @@ export function normalizeCourseAssignment(assignment) {
     id: readSafeString(safeAssignment.id || safeAssignment.assignmentId),
     assignmentId: readSafeString(safeAssignment.assignmentId || safeAssignment.id),
     assignmentType: readSafeString(safeAssignment.assignmentType || "course") || "course",
-    courseId: readSafeString(safeAssignment.courseId),
+    courseId: readSafeString(safeAssignment.courseId || safeAssignment.catalogCourseId || safeAssignment.targetCourseId),
     targetType: readSafeString(safeAssignment.targetType),
     targetId: readSafeString(safeAssignment.targetId),
     locationId: readSafeString(safeAssignment.locationId),

@@ -196,15 +196,15 @@ export { SaveModuleDraftIntent } from "./moduleEditor/SaveModuleDraftIntent.js?v
 // ----------------------
 // Student Dashboard / Player
 // ----------------------
-export { LoadStudentCourseIntent } from "./student/LoadStudentCourseIntent.js?v=1.1.205-student-course-open";
-export { LoadStudentDashboardIntent } from "./student/LoadStudentDashboardIntent.js?v=1.1.205-student-course-open";
+export { LoadStudentCourseIntent } from "./student/LoadStudentCourseIntent.js?v=1.1.206-student-canonical-course-open";
+export { LoadStudentDashboardIntent } from "./student/LoadStudentDashboardIntent.js?v=1.1.206-student-canonical-course-open";
 export { LoadStudentCoursesIntent } from "./student/LoadStudentCoursesIntent.js?v=1.1.192-timed-sequence";
 export { LoadStudentCourseStructureIntent } from "./student/LoadStudentCourseStructureIntent.js?v=1.1.192-timed-sequence";
 export { LoadStudentProgressIntent } from "./student/LoadStudentProgressIntent.js?v=1.1.192-timed-sequence";
 export { ClaimDailyBonusIntent } from "./student/ClaimDailyBonusIntent.js?v=1.1.192-timed-sequence";
 export { ContinueLearningIntent } from "./student/ContinueLearningIntent.js?v=1.1.192-timed-sequence";
 export { SelectContinueLearningIntent } from "./student/SelectContinueLearningIntent.js?v=1.1.192-timed-sequence";
-export { StudentOpenCourseIntent } from "./student/StudentOpenCourseIntent.js?v=1.1.205-student-course-open";
+export { StudentOpenCourseIntent } from "./student/StudentOpenCourseIntent.js?v=1.1.206-student-canonical-course-open";
 export { StartPracticeModeIntent } from "./student/StartPracticeModeIntent.js?v=1.1.192-timed-sequence";
 export { CompleteStepIntent } from "./student/CompleteStepIntent.js?v=1.1.192-timed-sequence";
 export { CompleteStudentStepIntent } from "./student/CompleteStudentStepIntent.js?v=1.1.192-timed-sequence";

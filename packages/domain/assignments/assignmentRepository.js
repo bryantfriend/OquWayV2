@@ -231,6 +231,25 @@ function appendAssignment(result, assignment, target) {
       result.assignmentIdByCourseId[assignment.courseId] = assignment.id;
     }
   }
+
+  appendAssignmentCourseAlias(result, assignment, assignment.catalogCourseId);
+  appendAssignmentCourseAlias(result, assignment, assignment.canonicalCourseId);
+  appendAssignmentCourseAlias(result, assignment, assignment.moduleCourseId);
+  appendAssignmentCourseAlias(result, assignment, assignment.sourceCourseId);
+  appendAssignmentCourseAlias(result, assignment, assignment.publishedCourseId);
+  appendAssignmentCourseAlias(result, assignment, assignment.targetCourseId);
+}
+
+function appendAssignmentCourseAlias(result, assignment, courseId) {
+  var safeCourseId = readTextValue(courseId);
+
+  if (!safeCourseId || safeCourseId === assignment.courseId) {
+    return;
+  }
+
+  if (!result.assignmentIdByCourseId[safeCourseId]) {
+    result.assignmentIdByCourseId[safeCourseId] = assignment.id;
+  }
 }
 
 function readAssignmentsFromSnapshot(snapshot) {

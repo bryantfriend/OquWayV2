@@ -276,6 +276,9 @@ async function verifyStudentDashboardAndProgress() {
   assertSourceIncludes(loadDashboardSource, "getAssignedCourseIds", "student dashboard should derive visible courses from assignments/profile context");
   assertSourceIncludes(loadDashboardSource, "normalizeCourseSummary", "student dashboard should whitelist lightweight course summary fields");
   assertSourceIncludes(loadDashboardSource, "loadPublishedCourseSummaryCounts", "student dashboard should hydrate safe published course counts");
+  assertSourceIncludes(loadDashboardSource, "resolveCourseSummaryContext", "student dashboard should resolve canonical course/module summary context");
+  assertSourceIncludes(loadDashboardSource, "moduleCourseId", "student dashboard should expose the resolved module course id");
+  assertSourceIncludes(loadDashboardSource, "moduleSource", "student dashboard should expose the resolved module source");
   assertSourceIncludes(loadDashboardSource, "countCourseSteps", "student dashboard should reuse shared course activity counting");
   assertSourceIncludes(loadDashboardSource, "countSource: \"canonicalModules\"", "student dashboard should prefer canonical module counts over stored counts");
   assertSourceIncludes(studentMainSource, "readCourseActivityCount", "student dashboard cards should render learning activity counts");
@@ -287,7 +290,11 @@ async function verifyStudentDashboardAndProgress() {
   assertNoSourceIncludes(readBlock(openCourseSource, "function isStudentVisibleCourse"), 'courseData.status === "draft"', "student fallback course visibility should not expose draft courses");
   assertSourceIncludes(studentOpenCourseSource, "waitForStudentCourseOpenRead", "student course open process should prevent permanent opening");
   assertSourceIncludes(studentServiceSource, "courseRecordSource: readCourseRecordSource(courseSummary)", "student course open should pass the selected course source into ICF");
+  assertSourceIncludes(studentServiceSource, "moduleCourseId: readCourseModuleCourseId(courseSummary)", "student course open should pass resolved module course id into ICF");
+  assertSourceIncludes(studentServiceSource, "moduleSource: readCourseModuleSource(courseSummary)", "student course open should pass resolved module source into ICF");
   assertSourceIncludes(studentOpenCourseContextSource, "buildCourseSourceOrder", "student course open context should honor selected course source order");
+  assertSourceIncludes(studentOpenCourseContextSource, "buildCourseIdentityCandidates", "student course open context should try canonical module course ids");
+  assertSourceIncludes(studentOpenCourseContextSource, "loadProgress(actor, progressCourseId", "student course open context should keep progress scoped to the assigned course id");
   assertSourceIncludes(studentOpenCourseContextSource, "Promise.all(modules.map", "student course open context should hydrate modules in parallel");
   assertSourceIncludes(studentOpenCourseContextSource, "sessions = await Promise.all", "student course open context should hydrate progress in parallel");
   assertSourceIncludes(progressHelperSource, 'doc(db, "studentProgress", resolveActorStudentId(actor), "courses", payload.courseId, "sessions", payload.sessionId)', "progress writes should be scoped by student/course/session");
