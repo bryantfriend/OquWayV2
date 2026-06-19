@@ -22,6 +22,7 @@ await runTest("publish readiness and publish processor safeguards", verifyPublis
 await runTest("storage rules and UploadStepMediaIntent path contract", verifyStepMediaStorage);
 await runTest("preview no-write contract", verifyPreviewNoWrite);
 await runTest("student dashboard and progress contract", verifyStudentDashboardAndProgress);
+await runTest("emotional check-in save contract", verifyEmotionalCheckInSaveContract);
 await runTest("teacher dashboard monitoring boundaries", verifyTeacherDashboardMonitoring);
 await runTest("governance source scan", verifyGovernanceScan);
 
@@ -332,6 +333,27 @@ async function verifyTeacherDashboardMonitoring() {
   assertSourceIncludes(teacherMain, '"active"', "teacher UI should expose active/recent engagement status");
   assertNoSourceIncludes(teacherMain, "raw diagnostic confidence", "teacher dashboard should not label raw diagnostic confidence");
   assertNoSourceIncludes(teacherMain, "editDiagnostic", "teacher dashboard should not expose direct diagnostic edit actions");
+}
+
+async function verifyEmotionalCheckInSaveContract() {
+  var mainSource = await readSource("apps/student-dashboard/src/main.js");
+  var gateSource = await readSource("packages/ui/emotionalCheckInGate.js");
+  var serviceSource = await readSource("packages/shared/emotionalCheckIns/emotionalCheckInService.js");
+  var repositorySource = await readSource("packages/domain/emotionalCheckIns/repository.js");
+  var processSource = await readSource("packages/core/src/icf/stages/process/domain/emotionalCheckIn/processRecordEmotionalCheckIn.js");
+  var rulesSource = await readSource("firestore.rules");
+
+  assertSourceIncludes(mainSource, "emotionalCheckInService.shouldShowCheckIn(checkInContext)", "Student Dashboard should skip gate after existing daily check-in");
+  assertSourceIncludes(mainSource, "emotionalCheckInService.recordCheckIn(checkInContext, emotionKey)", "Student Dashboard should save check-in through service");
+  assertSourceIncludes(serviceSource, "RecordEmotionalCheckInIntent", "emotional check-in service should use existing ICF intent");
+  assertSourceIncludes(repositorySource, "cleanEmotionalCheckInRecord", "emotional check-in writes should remove undefined values");
+  assertSourceIncludes(repositorySource, "setDoc(doc(db, \"emotionalCheckIns\", documentId), writeRecord, { merge: true })", "same-day check-in should merge the existing document");
+  assertSourceIncludes(processSource, "retryable: true", "process save failure should return retryable metadata");
+  assertSourceIncludes(gateSource, "readSaveErrorMessage", "gate should show clear retryable save failure copy");
+  assertSourceIncludes(rulesSource, '"1.1.0"', "Firestore rules should allow current check-in schema version");
+  assertSourceIncludes(rulesSource, "allow update: if isValidEmotionalCheckInWrite(checkInId)", "Firestore rules should allow same-day owned updates");
+  assertNoSourceIncludes(gateSource, "setDoc(", "emotional check-in gate should not write directly to Firestore");
+  assertNoSourceIncludes(gateSource, "alert(", "emotional check-in gate should not use alerts");
 }
 
 async function verifyGovernanceScan() {

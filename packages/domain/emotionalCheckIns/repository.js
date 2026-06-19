@@ -1,5 +1,5 @@
-import { collection, db, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "../../firebase/firestore/index.js?v=1.1.162-modal-stack";
-import { buildEmotionalCheckInDocumentId, buildEmotionalCheckInRecord } from "./context.js?v=1.1.162-modal-stack";
+import { collection, db, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "../../firebase/firestore/index.js?v=1.1.207-emotional-check-in-save";
+import { buildEmotionalCheckInDocumentId, buildEmotionalCheckInRecord } from "./context.js?v=1.1.207-emotional-check-in-save";
 
 export async function getExistingEmotionalCheckIn(checkInContext) {
   var documentId = buildEmotionalCheckInDocumentId(checkInContext);
@@ -16,29 +16,34 @@ export async function saveEmotionalCheckIn(checkInContext, selectedEmotionKey) {
   var record = buildEmotionalCheckInRecord(checkInContext, selectedEmotionKey);
   var documentId = buildEmotionalCheckInDocumentId(record);
   var existing = await getExistingEmotionalCheckIn(record);
+  var writeRecord = null;
 
   if (existing) {
-    await setDoc(doc(db, "emotionalCheckIns", documentId), Object.assign({}, record, {
+    writeRecord = cleanEmotionalCheckInRecord(Object.assign({}, record, {
       createdAt: existing.createdAt || serverTimestamp(),
       updatedAt: serverTimestamp()
-    }), { merge: true });
+    }));
+
+    await setDoc(doc(db, "emotionalCheckIns", documentId), writeRecord, { merge: true });
 
     return {
       id: existing.id,
       exists: true,
-      record: Object.assign({}, existing, record)
+      record: Object.assign({}, existing, writeRecord)
     };
   }
 
-  await setDoc(doc(db, "emotionalCheckIns", documentId), Object.assign({}, record, {
+  writeRecord = cleanEmotionalCheckInRecord(Object.assign({}, record, {
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
   }));
 
+  await setDoc(doc(db, "emotionalCheckIns", documentId), writeRecord);
+
   return {
     id: documentId,
     exists: false,
-    record: record
+    record: writeRecord
   };
 }
 
@@ -93,4 +98,20 @@ function uniqueValues(values) {
 
 function readText(value) {
   return typeof value === "string" || typeof value === "number" ? String(value).trim() : "";
+}
+
+function cleanEmotionalCheckInRecord(record) {
+  var cleanRecord = {};
+  var keys = Object.keys(record || {});
+  var index = 0;
+
+  while (index < keys.length) {
+    if (typeof record[keys[index]] !== "undefined") {
+      cleanRecord[keys[index]] = record[keys[index]];
+    }
+
+    index = index + 1;
+  }
+
+  return cleanRecord;
 }

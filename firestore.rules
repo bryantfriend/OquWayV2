@@ -455,16 +455,82 @@ service cloud.firestore {
     }
 
     // 💬 EMOTIONAL CHECK-INS
-    match /emotionalCheckIns/{checkInId} {
-      allow create: if request.auth != null
+    function emotionalCheckInAllowedKeys() {
+      return [
+        "participantUserId",
+        "participantProfileId",
+        "participantRole",
+        "studentId",
+        "schoolId",
+        "locationId",
+        "programId",
+        "programType",
+        "programName",
+        "classId",
+        "className",
+        "courseId",
+        "courseName",
+        "moduleId",
+        "moduleName",
+        "classSessionId",
+        "programSessionId",
+        "scheduledLessonId",
+        "courseSessionId",
+        "contextScope",
+        "contextId",
+        "localDate",
+        "localTime",
+        "timezone",
+        "checkInSource",
+        "contextTimeFallbackUsed",
+        "emotionKey",
+        "emotionLabel",
+        "emoji",
+        "moodKey",
+        "moodLabel",
+        "moodCategory",
+        "moodCategoryLabel",
+        "moodValue",
+        "checkInDate",
+        "source",
+        "version",
+        "createdAt",
+        "updatedAt"
+      ];
+    }
+
+    function isValidEmotionalCheckInVersion() {
+      return request.resource.data.version in ["1.0.0", "1.1.0"];
+    }
+
+    function isOwnEmotionalCheckIn(checkInId) {
+      return request.auth != null
         && checkInId.matches(".*_" + request.auth.uid)
-        && request.resource.data.participantUserId == request.auth.uid
-        && request.resource.data.version == "1.0.0"
+        && request.resource.data.participantUserId == request.auth.uid;
+    }
+
+    function isValidEmotionalCheckInWrite(checkInId) {
+      return isOwnEmotionalCheckIn(checkInId)
+        && request.resource.data.keys().hasOnly(emotionalCheckInAllowedKeys())
+        && request.resource.data.emotionKey is string
+        && request.resource.data.moodKey is string
+        && request.resource.data.studentId is string
+        && request.resource.data.checkInDate is string
+        && request.resource.data.localDate == request.resource.data.checkInDate
+        && isValidEmotionalCheckInVersion();
+    }
+
+    match /emotionalCheckIns/{checkInId} {
+      allow create: if isValidEmotionalCheckInWrite(checkInId)
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
       allow get: if request.auth != null && checkInId.matches(".*_" + request.auth.uid);
       allow list: if request.auth != null && resource.data.participantUserId == request.auth.uid;
-      allow update, delete: if false;
+      allow update: if isValidEmotionalCheckInWrite(checkInId)
+        && resource.data.participantUserId == request.auth.uid
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if false;
     }
     // 📚 CATALOG COURSES (New V2 Core Database)
     match /catalogCourses/{courseId} {

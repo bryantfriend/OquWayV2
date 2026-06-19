@@ -1,4 +1,4 @@
-import { saveEmotionalCheckIn } from "../../../../../../../domain/emotionalCheckIns/index.js?v=1.1.162-modal-stack";
+import { saveEmotionalCheckIn } from "../../../../../../../domain/emotionalCheckIns/index.js?v=1.1.207-emotional-check-in-save";
 
 export async function processRecordEmotionalCheckIn(executionState) {
   try {
@@ -22,7 +22,8 @@ export async function processRecordEmotionalCheckIn(executionState) {
       errors: [
         {
           code: "EMOTIONAL_CHECK_IN_SAVE_FAILED",
-          message: "Failed to save emotional check-in: " + (error && error.message ? error.message : "Unknown error.")
+          retryable: true,
+          message: "Could not save your check-in. Please try again."
         }
       ]
     };

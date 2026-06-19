@@ -1,4 +1,4 @@
-import { EMOTIONAL_CHECK_IN_CATEGORIES, getEmotionalCheckInOption } from "../domain/emotionalCheckIns/index.js?v=1.1.162-modal-stack";
+import { EMOTIONAL_CHECK_IN_CATEGORIES, getEmotionalCheckInOption } from "../domain/emotionalCheckIns/index.js?v=1.1.207-emotional-check-in-save";
 
 export function renderEmotionalCheckInGate(container, checkInContext, callbacks) {
   var state = {
@@ -85,7 +85,7 @@ export function renderEmotionalCheckInGate(container, checkInContext, callbacks)
       }, 700);
     } catch (error) {
       state.isSaving = false;
-      state.error = "Couldn't save right now. You can still continue.";
+      state.error = readSaveErrorMessage(error);
       render();
     }
   }
@@ -187,6 +187,16 @@ function buildConfirmationHtml(state) {
 
 function readText(value) {
   return typeof value === "string" || typeof value === "number" ? String(value).trim() : "";
+}
+
+function readSaveErrorMessage(error) {
+  var message = readText(error && error.message);
+
+  if (message && message.length <= 160) {
+    return message + " Try again when you're ready.";
+  }
+
+  return "Could not save your check-in. Try again when you're ready, or continue without checking in.";
 }
 
 function escapeHtml(value) {

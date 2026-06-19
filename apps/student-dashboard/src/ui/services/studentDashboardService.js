@@ -1,8 +1,8 @@
 import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.180-student-profile-center";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.206-student-canonical-course-open";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.206-student-canonical-course-open";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.207-emotional-check-in-save";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.207-emotional-check-in-save";
 import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.180-student-profile-center";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.206-student-canonical-course-open";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.207-emotional-check-in-save";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {

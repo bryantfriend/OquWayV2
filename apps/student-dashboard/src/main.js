@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.206-student-canonical-course-open";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.192-timed-sequence";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.192-timed-sequence";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.207-emotional-check-in-save";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.207-emotional-check-in-save";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.207-emotional-check-in-save";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -20,17 +20,17 @@ import {
   createStatusBadge,
   formatStatusLabel,
   renderEmotionalCheckInGate
-} from "../../../packages/ui/index.js?v=1.1.192-timed-sequence";
-import { emotionalCheckInService } from "../../../packages/shared/emotionalCheckIns/index.js?v=1.1.192-timed-sequence";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.206-student-canonical-course-open";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.206-student-canonical-course-open";
+} from "../../../packages/ui/index.js?v=1.1.207-emotional-check-in-save";
+import { emotionalCheckInService } from "../../../packages/shared/emotionalCheckIns/index.js?v=1.1.207-emotional-check-in-save";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.207-emotional-check-in-save";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.207-emotional-check-in-save";
 import {
   STUDENT_PROFILE_AVATARS,
   createStudentProfileSnapshot,
   readAvatarById,
   readStudentProfilePreferences,
   saveStudentProfilePreferences
-} from "./ui/services/profileService.js?v=1.1.192-timed-sequence";
+} from "./ui/services/profileService.js?v=1.1.207-emotional-check-in-save";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;

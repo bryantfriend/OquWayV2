@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.206-student-canonical-course-open";
+import * as IntentExports from "../intents/intents.js?v=1.1.207-emotional-check-in-save";
 
 const registry = {
   // Demo Verification
