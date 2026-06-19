@@ -1,8 +1,8 @@
 import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.180-student-profile-center";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.204-student-dashboard-load";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.204-student-dashboard-load";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.205-student-course-open";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.205-student-course-open";
 import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.180-student-profile-center";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.204-student-dashboard-load";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.205-student-course-open";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
@@ -128,30 +128,44 @@ export const studentDashboardService = {
   },
 
   openCourse: async function (courseId) {
+    var courseSummary = readDashboardCourseById(courseId);
+    var timing = createStudentServiceTiming("StudentOpenCourseIntent");
+
     studentDashboardStore.setState({
       isCourseOpening: true,
       error: null,
       statusMessage: "Opening your course..."
     });
 
-    console.info("[student-course-card:click]", {
+    logStudentTiming("[student-course-card:click]", {
       studentId: readCurrentDashboardStudentId(),
-      courseId: courseId
+      courseId: courseId,
+      courseRecordSource: readCourseRecordSource(courseSummary)
     });
 
     try {
       var result = await waitForStudentDashboardLoad(runStudentIntent("StudentOpenCourseIntent", {
         studentId: readCurrentDashboardStudentId(),
-        courseId: courseId
+        courseId: courseId,
+        assignmentId: courseSummary ? courseSummary.assignmentId || courseSummary.courseAssignmentId || "" : "",
+        courseAssignmentId: courseSummary ? courseSummary.courseAssignmentId || courseSummary.assignmentId || "" : "",
+        courseRecordSource: readCourseRecordSource(courseSummary),
+        source: readCourseRecordSource(courseSummary),
+        debug: isStudentCourseDebugEnabled()
       }), "StudentOpenCourseIntent");
+      timing.mark("StudentOpenCourseIntent total");
 
       if (result && result.emitted && result.emitted.success) {
-        console.info("[student-course:open-result]", {
+        logStudentTiming("[student-course:open-result]", {
           courseId: courseId,
           hasCourse: Boolean(result.emitted.data.course),
           moduleCount: result.emitted.data.modules ? result.emitted.data.modules.length : 0,
           hasActivity: result.emitted.data.hasActivity === true,
           openTarget: result.emitted.data.openTarget || null
+        });
+        timing.finish({
+          courseId: courseId,
+          moduleCount: result.emitted.data.modules ? result.emitted.data.modules.length : 0
         });
         return result.emitted.data;
       }
@@ -644,6 +658,64 @@ function readCurrentDashboardStudentId() {
   var student = state && state.student ? state.student : readStoredStudentProfile();
 
   return readStudentProfileId(student) || (auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : "preview-student");
+}
+
+function readDashboardCourseById(courseId) {
+  var courses = studentDashboardStore.getState().courses || [];
+  var courseIndex = 0;
+
+  while (courseIndex < courses.length) {
+    if (courses[courseIndex] && courses[courseIndex].id === courseId) {
+      return courses[courseIndex];
+    }
+
+    courseIndex = courseIndex + 1;
+  }
+
+  return null;
+}
+
+function readCourseRecordSource(course) {
+  var source = course && (course.courseRecordSource || course.source || course.courseSource);
+
+  if (source === "courses" || source === "catalogCourses") {
+    return source;
+  }
+
+  return "";
+}
+
+function createStudentServiceTiming(label) {
+  var startedAt = Date.now();
+  var marks = [];
+
+  return {
+    mark: function (name) {
+      marks.push({
+        name: name,
+        elapsedMs: Date.now() - startedAt
+      });
+    },
+    finish: function (details) {
+      if (!isStudentCourseDebugEnabled()) {
+        return;
+      }
+
+      console.info("[student-service:timing]", Object.assign({
+        label: label,
+        totalMs: Date.now() - startedAt,
+        marks: marks
+      }, details || {}));
+    }
+  };
+}
+
+function logStudentTiming(label, details) {
+  if (!isStudentCourseDebugEnabled()) {
+    return;
+  }
+
+  console.info(label, details || {});
 }
 
 function createEmptyIntentionPoints() {

@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.204-student-dashboard-load";
+import * as IntentExports from "../intents/intents.js?v=1.1.205-student-course-open";
 
 const registry = {
   // Demo Verification

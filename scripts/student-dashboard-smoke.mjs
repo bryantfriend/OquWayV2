@@ -47,6 +47,8 @@ try {
   await checkSettingsModal(page, failures);
   await checkProgressModal(page, failures);
   await checkSidebarNavigation(page, failures);
+  await checkSidebarHoverFocus(page, failures);
+  await checkCourseCardCounts(page, failures);
   await checkCourseOpenAndBack(page, failures);
   await checkUnfinishedPracticeMode(page, failures);
   await checkNoCoursesPreview(page, failures);
@@ -186,6 +188,48 @@ async function checkSidebarNavigation(page, failures) {
   text = await page.locator("#app").innerText();
   if (!text.includes("Continue Learning") && !text.includes("No courses are ready yet")) {
     failures.push("Home sidebar view did not return to the dashboard home layout.");
+  }
+}
+
+async function checkSidebarHoverFocus(page, failures) {
+  await clickUnique(page.getByRole("button", { name: "Home", exact: true }), "Home sidebar button");
+
+  const profileButton = page.getByRole("button", { name: "Profile", exact: true });
+  if (await profileButton.count() !== 1) {
+    return;
+  }
+
+  const before = await profileButton.evaluate((element) => getComputedStyle(element).backgroundColor + "|" + getComputedStyle(element).boxShadow);
+  await profileButton.hover();
+  const afterHover = await profileButton.evaluate((element) => getComputedStyle(element).backgroundColor + "|" + getComputedStyle(element).boxShadow);
+  await profileButton.focus();
+  const afterFocus = await profileButton.evaluate((element) => getComputedStyle(element).backgroundColor + "|" + getComputedStyle(element).boxShadow);
+
+  if (before === afterHover) {
+    failures.push("Sidebar hover did not change the Profile tab visual state.");
+  }
+
+  if (before === afterFocus) {
+    failures.push("Sidebar focus did not change the Profile tab visual state.");
+  }
+}
+
+async function checkCourseCardCounts(page, failures) {
+  await clickUnique(page.getByRole("button", { name: "Home", exact: true }), "Home sidebar button");
+
+  const courseCards = page.locator(".student-course-card");
+  const cardCount = await courseCards.count();
+  if (cardCount === 0) {
+    return;
+  }
+
+  const firstCardText = await courseCards.first().innerText();
+  if (firstCardText.includes("0 / 0 modules")) {
+    failures.push("Course card rendered stale 0 / 0 module count.");
+  }
+
+  if (!firstCardText.includes("learning activities")) {
+    failures.push("Course card did not render learning activity count.");
   }
 }
 

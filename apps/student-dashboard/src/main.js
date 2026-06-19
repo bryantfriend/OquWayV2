@@ -1,5 +1,5 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.204-student-dashboard-load";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.205-student-course-open";
 import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.192-timed-sequence";
 import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.192-timed-sequence";
 import {
@@ -22,8 +22,8 @@ import {
   renderEmotionalCheckInGate
 } from "../../../packages/ui/index.js?v=1.1.192-timed-sequence";
 import { emotionalCheckInService } from "../../../packages/shared/emotionalCheckIns/index.js?v=1.1.192-timed-sequence";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.204-student-dashboard-load";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.204-student-dashboard-load";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.205-student-course-open";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.205-student-course-open";
 import {
   STUDENT_PROFILE_AVATARS,
   createStudentProfileSnapshot,
@@ -1262,13 +1262,14 @@ function buildCourseCards(courses, selectedCourseId) {
     var activeClass = selectedCourseId === course.id ? " student-course-card-active" : "";
     var progressPercent = readCourseProgressPercent(course);
     var moduleCount = readCourseModuleCount(course);
+    var activityCount = readCourseActivityCount(course);
     var completedModuleCount = countCompletedModules(course);
     var status = readCourseLearningStatus(course);
     var title = readLocalizedText(course.title, "Untitled Course");
     html += '<article class="student-course-card' + activeClass + '" data-course-id="' + escapeHtml(course.id) + '">';
     html += renderDashboardCourseArt(course, "student-course-art");
     html += '<div class="student-course-card-copy">' + buildStudentStatusBadge(status) + '<strong>' + escapeHtml(title) + '</strong><p>' + escapeHtml(readLocalizedText(course.description, "Practice activities are ready when your teacher assigns sessions.")) + '</p></div>';
-    html += '<div class="student-course-meta"><span>' + completedModuleCount + ' / ' + moduleCount + ' modules</span><span>' + progressPercent + '% complete</span></div>';
+    html += '<div class="student-course-meta"><span>' + completedModuleCount + ' / ' + moduleCount + ' modules</span><span>' + activityCount + ' learning activities</span><span>' + progressPercent + '% complete</span></div>';
     html += '<div class="student-progress-bar"><span style="width:' + progressPercent + '%"></span></div>';
     html += '<button type="button" class="student-course-open-btn" data-course-id="' + escapeHtml(course.id) + '">' + (progressPercent > 0 ? "Continue" : "Start") + '</button>';
     html += '</article>';
@@ -2703,7 +2704,35 @@ function disabled(value) {
 }
 
 function readCourseModuleCount(course) {
-  return Array.isArray(course && course.modules) ? course.modules.length : 0;
+  if (Array.isArray(course && course.modules)) {
+    return course.modules.length;
+  }
+
+  if (typeof (course && course.moduleCount) === "number" && Number.isFinite(course.moduleCount)) {
+    return Math.max(0, Math.round(course.moduleCount));
+  }
+
+  if (Array.isArray(course && course.moduleIds)) {
+    return course.moduleIds.length;
+  }
+
+  if (Array.isArray(course && course.moduleOrder)) {
+    return course.moduleOrder.length;
+  }
+
+  return 0;
+}
+
+function readCourseActivityCount(course) {
+  if (course && typeof course.activityCount === "number" && Number.isFinite(course.activityCount)) {
+    return Math.max(0, Math.round(course.activityCount));
+  }
+
+  if (course && typeof course.stepCount === "number" && Number.isFinite(course.stepCount)) {
+    return Math.max(0, Math.round(course.stepCount));
+  }
+
+  return countSharedCourseSteps(course);
 }
 
 function countCompletedModules(course) {

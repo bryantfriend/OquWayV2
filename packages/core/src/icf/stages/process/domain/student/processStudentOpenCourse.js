@@ -72,10 +72,10 @@ export async function processStudentOpenCourse(executionState) {
     openTarget = createModuleOnlyTarget(course, modules[0]);
   }
 
-  console.info("[student-course:open]", {
-    studentId: studentId,
+  logCourseOpenTiming(executionState, {
+    studentIdPresent: Boolean(studentId),
     courseId: courseId,
-    assignmentId: course.assignmentId || "",
+    assignmentIdPresent: Boolean(course.assignmentId),
     assignmentSource: assignmentId ? assignmentResult.source : "legacy-profile-course",
     moduleCount: modules.length,
     selectedModuleId: openTarget.moduleId,
@@ -229,6 +229,24 @@ function logCourseOpenDebug(executionState, details) {
     validationResult: details.validationResult || "",
     error: details.error || ""
   });
+}
+
+function logCourseOpenTiming(executionState, details) {
+  if (!shouldLogCourseOpenTiming(executionState)) {
+    return;
+  }
+
+  console.info("[student-course:open]", details || {});
+}
+
+function shouldLogCourseOpenTiming(executionState) {
+  return Boolean(executionState && executionState.payload && executionState.payload.debug === true) || isDevelopmentHost();
+}
+
+function isDevelopmentHost() {
+  return typeof window !== "undefined"
+    && window.location
+    && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.hostname === "");
 }
 
 function findCourseById(courses, courseId) {

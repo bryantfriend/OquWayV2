@@ -260,6 +260,7 @@ async function verifyStudentDashboardAndProgress() {
   var loadDashboardSource = await readSource("packages/core/src/icf/stages/process/domain/student/processLoadStudentDashboard.js");
   var openCourseSource = await readSource("packages/core/src/icf/stages/process/domain/student/processLoadStudentCourse.js");
   var studentOpenCourseSource = await readSource("packages/core/src/icf/stages/process/domain/student/processStudentOpenCourse.js");
+  var studentOpenCourseContextSource = await readSource("packages/core/src/icf/stages/addContext/domain/student/attachStudentOpenCourseContext.js");
   var progressHelperSource = await readSource("packages/core/src/icf/stages/process/domain/student/studentProgressHelpers.js");
   var completeIntentSource = await readSource("packages/core/src/icf/intents/student/CompleteStudentStepIntent.js");
 
@@ -274,13 +275,21 @@ async function verifyStudentDashboardAndProgress() {
   assert.equal(readStudentStoreImportVersion(studentMainSource), readStudentStoreImportVersion(studentServiceSource), "student dashboard main and service should share one store module URL");
   assertSourceIncludes(loadDashboardSource, "getAssignedCourseIds", "student dashboard should derive visible courses from assignments/profile context");
   assertSourceIncludes(loadDashboardSource, "normalizeCourseSummary", "student dashboard should whitelist lightweight course summary fields");
-  assertSourceIncludes(loadDashboardSource, "moduleCount: readCourseModuleCount(data)", "student dashboard should read module counts consistently");
+  assertSourceIncludes(loadDashboardSource, "loadPublishedCourseSummaryCounts", "student dashboard should hydrate safe published course counts");
+  assertSourceIncludes(loadDashboardSource, "countCourseSteps", "student dashboard should reuse shared course activity counting");
+  assertSourceIncludes(loadDashboardSource, "countSource: \"canonicalModules\"", "student dashboard should prefer canonical module counts over stored counts");
+  assertSourceIncludes(studentMainSource, "readCourseActivityCount", "student dashboard cards should render learning activity counts");
+  assertSourceIncludes(studentMainSource, "typeof (course && course.moduleCount) === \"number\"", "student dashboard cards should support lightweight module counts");
   assertSourceIncludes(loadDashboardSource, "waitForStudentDashboardRead", "student dashboard ICF process should bound Firestore reads");
   assertSourceIncludes(loadDashboardSource, "ASSIGNED_COURSE_NOT_READY", "student dashboard should skip assigned courses that are not ready");
   assertSourceIncludes(openCourseSource, "loadAssignedCourseIds", "course launch should be scoped to assigned course ids");
   assertSourceIncludes(openCourseSource, "loadAssignedCourseSnaps", "course launch should load only assigned course documents");
   assertNoSourceIncludes(readBlock(openCourseSource, "function isStudentVisibleCourse"), 'courseData.status === "draft"', "student fallback course visibility should not expose draft courses");
   assertSourceIncludes(studentOpenCourseSource, "waitForStudentCourseOpenRead", "student course open process should prevent permanent opening");
+  assertSourceIncludes(studentServiceSource, "courseRecordSource: readCourseRecordSource(courseSummary)", "student course open should pass the selected course source into ICF");
+  assertSourceIncludes(studentOpenCourseContextSource, "buildCourseSourceOrder", "student course open context should honor selected course source order");
+  assertSourceIncludes(studentOpenCourseContextSource, "Promise.all(modules.map", "student course open context should hydrate modules in parallel");
+  assertSourceIncludes(studentOpenCourseContextSource, "sessions = await Promise.all", "student course open context should hydrate progress in parallel");
   assertSourceIncludes(progressHelperSource, 'doc(db, "studentProgress", resolveActorStudentId(actor), "courses", payload.courseId, "sessions", payload.sessionId)', "progress writes should be scoped by student/course/session");
   assertSourceIncludes(progressHelperSource, "saveData.courseId = payload.courseId", "progress write should include courseId");
   assertSourceIncludes(progressHelperSource, "saveData.moduleId = payload.moduleId", "progress write should include moduleId");
