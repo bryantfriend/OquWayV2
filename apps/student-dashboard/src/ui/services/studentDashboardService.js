@@ -1,8 +1,8 @@
 import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.180-student-profile-center";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.207-emotional-check-in-save";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.207-emotional-check-in-save";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.208-student-dashboard-scope";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.208-student-dashboard-scope";
 import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.180-student-profile-center";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.207-emotional-check-in-save";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.208-student-dashboard-scope";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
@@ -131,6 +131,16 @@ export const studentDashboardService = {
     var courseSummary = readDashboardCourseById(courseId);
     var timing = createStudentServiceTiming("StudentOpenCourseIntent");
 
+    if (!courseSummary) {
+      studentDashboardStore.setState({
+        isCourseOpening: false,
+        error: "This course is no longer on your dashboard. Refresh and ask your teacher to check the assignment if it is still missing.",
+        statusMessage: ""
+      });
+      logStudentCourseOpenBlocked(courseId);
+      return null;
+    }
+
     studentDashboardStore.setState({
       isCourseOpening: true,
       error: null,
@@ -170,7 +180,10 @@ export const studentDashboardService = {
           courseId: courseId,
           moduleCount: result.emitted.data.modules ? result.emitted.data.modules.length : 0
         });
-        return result.emitted.data;
+        return Object.assign({}, result.emitted.data, {
+          requestedCourseId: courseId,
+          dashboardCourseId: courseSummary.id
+        });
       }
 
       throw new Error(readIntentErrorMessage(result));
@@ -676,6 +689,17 @@ function readDashboardCourseById(courseId) {
   }
 
   return null;
+}
+
+function logStudentCourseOpenBlocked(courseId) {
+  if (!isStudentCourseDebugEnabled()) {
+    return;
+  }
+
+  console.warn("[student-course:open-blocked]", {
+    courseId: courseId || "",
+    reason: "dashboard-course-missing"
+  });
 }
 
 function readCourseRecordSource(course) {

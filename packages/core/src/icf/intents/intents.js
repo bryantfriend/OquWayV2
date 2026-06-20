@@ -196,15 +196,15 @@ export { SaveModuleDraftIntent } from "./moduleEditor/SaveModuleDraftIntent.js?v
 // ----------------------
 // Student Dashboard / Player
 // ----------------------
-export { LoadStudentCourseIntent } from "./student/LoadStudentCourseIntent.js?v=1.1.207-emotional-check-in-save";
-export { LoadStudentDashboardIntent } from "./student/LoadStudentDashboardIntent.js?v=1.1.207-emotional-check-in-save";
-export { LoadStudentCoursesIntent } from "./student/LoadStudentCoursesIntent.js?v=1.1.207-emotional-check-in-save";
+export { LoadStudentCourseIntent } from "./student/LoadStudentCourseIntent.js?v=1.1.208-student-dashboard-scope";
+export { LoadStudentDashboardIntent } from "./student/LoadStudentDashboardIntent.js?v=1.1.208-student-dashboard-scope";
+export { LoadStudentCoursesIntent } from "./student/LoadStudentCoursesIntent.js?v=1.1.208-student-dashboard-scope";
 export { LoadStudentCourseStructureIntent } from "./student/LoadStudentCourseStructureIntent.js?v=1.1.207-emotional-check-in-save";
 export { LoadStudentProgressIntent } from "./student/LoadStudentProgressIntent.js?v=1.1.207-emotional-check-in-save";
 export { ClaimDailyBonusIntent } from "./student/ClaimDailyBonusIntent.js?v=1.1.207-emotional-check-in-save";
 export { ContinueLearningIntent } from "./student/ContinueLearningIntent.js?v=1.1.207-emotional-check-in-save";
 export { SelectContinueLearningIntent } from "./student/SelectContinueLearningIntent.js?v=1.1.207-emotional-check-in-save";
-export { StudentOpenCourseIntent } from "./student/StudentOpenCourseIntent.js?v=1.1.207-emotional-check-in-save";
+export { StudentOpenCourseIntent } from "./student/StudentOpenCourseIntent.js?v=1.1.208-student-dashboard-scope";
 export { StartPracticeModeIntent } from "./student/StartPracticeModeIntent.js?v=1.1.207-emotional-check-in-save";
 export { CompleteStepIntent } from "./student/CompleteStepIntent.js?v=1.1.207-emotional-check-in-save";
 export { CompleteStudentStepIntent } from "./student/CompleteStudentStepIntent.js?v=1.1.207-emotional-check-in-save";

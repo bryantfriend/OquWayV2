@@ -1,5 +1,5 @@
 import { processContinueLearning } from "./processContinueLearning.js?v=1.1.82-shared-command-center-shell";
-import { getAssignedCourseIds, validateStudentCourseOpen } from "../../../../../../../domain/courses/index.js?v=1.1.204-student-dashboard-load";
+import { getAssignedCourseIds, validateStudentCourseOpen } from "../../../../../../../domain/courses/index.js?v=1.1.208-student-dashboard-scope";
 import { resolveStudentId } from "../../../../../../../domain/users/index.js";
 
 export async function processStudentOpenCourse(executionState) {

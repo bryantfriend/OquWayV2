@@ -1,8 +1,8 @@
 import { validateAuthenticated, validateCourseId } from "../../stages/validate/validators.js?v=1.1.162-modal-stack";
 import { normalizeCourseId } from "../../stages/normalize/normalizers.js?v=1.1.162-modal-stack";
-import { attachActorContext, attachActorRoleContext, attachStudentProfileContext, attachStudentOpenCourseContext } from "../../stages/addContext/contexts.js?v=1.1.206-student-canonical-course-open";
+import { attachActorContext, attachActorRoleContext, attachStudentProfileContext, attachStudentOpenCourseContext } from "../../stages/addContext/contexts.js?v=1.1.208-student-dashboard-scope";
 import { requireStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.162-modal-stack";
-import { processStudentOpenCourse } from "../../stages/process/processors.js?v=1.1.206-student-canonical-course-open";
+import { processStudentOpenCourse } from "../../stages/process/processors.js?v=1.1.208-student-dashboard-scope";
 import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.162-modal-stack";
 
 export function StudentOpenCourseIntent() {

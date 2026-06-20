@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.207-emotional-check-in-save";
+import * as IntentExports from "../intents/intents.js?v=1.1.208-student-dashboard-scope";
 
 const registry = {
   // Demo Verification

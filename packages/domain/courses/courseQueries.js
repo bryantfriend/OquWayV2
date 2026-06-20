@@ -28,6 +28,10 @@ export async function getAssignedCourseIds(studentId, studentProfile, contextCou
   var directCourseIds = readDirectCourseIds(studentProfile, contextCourseIds);
   var directIndex = 0;
 
+  if (hasAuthoritativeAssignmentLookup(assignmentResult)) {
+    return assignmentResult;
+  }
+
   while (directIndex < directCourseIds.length) {
     addUniqueText(assignmentResult.courseIds, directCourseIds[directIndex]);
     directIndex = directIndex + 1;
@@ -65,6 +69,18 @@ async function getAssignedCourseIdsFromAssignments(studentId, studentProfile) {
     mergedCount: assignmentResult.assignments.length,
     assignments: assignmentResult.assignments
   };
+}
+
+function hasAuthoritativeAssignmentLookup(assignmentResult) {
+  return Boolean(
+    assignmentResult.courseIds.length > 0
+      || assignmentResult.assignmentCount > 0
+      || assignmentResult.mergedCount > 0
+      || assignmentResult.directCount > 0
+      || assignmentResult.classCount > 0
+      || assignmentResult.locationCount > 0
+      || (Array.isArray(assignmentResult.queryErrors) && assignmentResult.queryErrors.length > 0)
+  );
 }
 
 function readDirectCourseIds(studentProfile, contextCourseIds) {

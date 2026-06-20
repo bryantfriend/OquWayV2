@@ -262,6 +262,7 @@ async function verifyStudentDashboardAndProgress() {
   var openCourseSource = await readSource("packages/core/src/icf/stages/process/domain/student/processLoadStudentCourse.js");
   var studentOpenCourseSource = await readSource("packages/core/src/icf/stages/process/domain/student/processStudentOpenCourse.js");
   var studentOpenCourseContextSource = await readSource("packages/core/src/icf/stages/addContext/domain/student/attachStudentOpenCourseContext.js");
+  var courseQueriesSource = await readSource("packages/domain/courses/courseQueries.js");
   var progressHelperSource = await readSource("packages/core/src/icf/stages/process/domain/student/studentProgressHelpers.js");
   var completeIntentSource = await readSource("packages/core/src/icf/intents/student/CompleteStudentStepIntent.js");
 
@@ -288,7 +289,12 @@ async function verifyStudentDashboardAndProgress() {
   assertSourceIncludes(loadDashboardSource, "ASSIGNED_COURSE_NOT_READY", "student dashboard should skip assigned courses that are not ready");
   assertSourceIncludes(openCourseSource, "loadAssignedCourseIds", "course launch should be scoped to assigned course ids");
   assertSourceIncludes(openCourseSource, "loadAssignedCourseSnaps", "course launch should load only assigned course documents");
+  assertSourceIncludes(openCourseSource, "allowPreviewCourseFallback === true", "legacy full-course fallback should be explicit preview-only behavior");
   assertNoSourceIncludes(readBlock(openCourseSource, "function isStudentVisibleCourse"), 'courseData.status === "draft"', "student fallback course visibility should not expose draft courses");
+  assertSourceIncludes(courseQueriesSource, "hasAuthoritativeAssignmentLookup", "student assignment lookup should not mix legacy profile courses into real assignment results");
+  assertSourceIncludes(studentMainSource, "courseMatchesOpenedCourse", "student course open should replace matching dashboard courses by identity");
+  assertSourceIncludes(studentMainSource, "if (!replaced && isPreviewMode())", "student course open should not append unknown courses for authenticated students");
+  assertSourceIncludes(studentServiceSource, "if (!courseSummary)", "student course open should block courses missing from the current dashboard");
   assertSourceIncludes(studentOpenCourseSource, "waitForStudentCourseOpenRead", "student course open process should prevent permanent opening");
   assertSourceIncludes(studentServiceSource, "courseRecordSource: readCourseRecordSource(courseSummary)", "student course open should pass the selected course source into ICF");
   assertSourceIncludes(studentServiceSource, "moduleCourseId: readCourseModuleCourseId(courseSummary)", "student course open should pass resolved module course id into ICF");

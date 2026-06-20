@@ -14,6 +14,7 @@ await runTest("student dashboard render states", verifyStudentDashboardRenderSta
 await runTest("student dashboard summary counts", verifyDashboardSummaryCounts);
 await runTest("student dashboard load timeout and retry contract", verifyLoadTimeoutAndRetryContract);
 await runTest("student dashboard ICF source guards", verifyIcfSourceGuards);
+await runTest("student dashboard assignment scope guards", verifyAssignmentScopeGuards);
 await runTest("student course open source and performance guards", verifyCourseOpenSourceAndPerformanceGuards);
 
 if (failures.length > 0) {
@@ -108,8 +109,24 @@ async function verifyIcfSourceGuards() {
   assertSourceIncludes(loadDashboardSource, "isStudentVisibleCourseSummary", "course summaries should be filtered before rendering");
   assertNoSourceIncludes(readFunctionBlock(loadDashboardSource, "function isStudentVisibleCourseSummary"), 'status === "draft"', "draft courses should not be visible in summaries");
   assertNoSourceIncludes(readFunctionBlock(loadCourseSource, "function isStudentVisibleCourse"), 'courseData.status === "draft"', "draft courses should not be visible in full course fallback");
+  assertSourceIncludes(loadCourseSource, "shouldAllowPreviewCourseFallback", "legacy full-course loading should require an explicit preview fallback flag");
+  assertSourceIncludes(loadCourseSource, "allowPreviewCourseFallback === true", "preview fallback should be opt-in only");
   assertSourceIncludes(openCourseSource, "waitForStudentCourseOpenRead", "StudentOpenCourse process should bound assignment lookup");
   assertSourceIncludes(openCourseSource, "getAssignedCourseIds", "StudentOpenCourse should remain assignment-scoped");
+}
+
+async function verifyAssignmentScopeGuards() {
+  var mainSource = await readSource("apps/student-dashboard/src/main.js");
+  var serviceSource = await readSource("apps/student-dashboard/src/ui/services/studentDashboardService.js");
+  var courseQueriesSource = await readSource("packages/domain/courses/courseQueries.js");
+
+  assertSourceIncludes(courseQueriesSource, "hasAuthoritativeAssignmentLookup", "real courseAssignments should be authoritative before legacy profile course ids are used");
+  assertSourceIncludes(courseQueriesSource, "return assignmentResult;", "assignment resolver should return before merging legacy profile course ids when assignments exist");
+  assertSourceIncludes(serviceSource, "if (!courseSummary)", "course open should block ids that are not on the loaded dashboard");
+  assertSourceIncludes(serviceSource, "dashboardCourseId: courseSummary.id", "course open should return the clicked dashboard course id");
+  assertSourceIncludes(mainSource, "readOpenedDashboardCourseId(openResult)", "opened course merge should stay anchored to the clicked dashboard course");
+  assertSourceIncludes(mainSource, "courseMatchesOpenedCourse", "opened course merge should match course identity aliases");
+  assertSourceIncludes(mainSource, "if (!replaced && isPreviewMode())", "unknown opened courses should not be appended for authenticated students");
 }
 
 async function verifyCourseOpenSourceAndPerformanceGuards() {

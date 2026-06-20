@@ -1,6 +1,6 @@
 import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
 import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.82-shared-command-center-shell";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.204-student-dashboard-load";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.208-student-dashboard-scope";
 import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.82-shared-command-center-shell";
 import {
   isStudentDashboardProfile,
@@ -98,7 +98,7 @@ async function loadStudentCourses(actor, assignedCourseIds, executionState, assi
 
   if (assignedCourseIds.length > 0) {
     courseSnaps = await loadAssignedCourseSnaps(assignedCourseIds, executionState);
-  } else if (isPreviewActor(actor)) {
+  } else if (isPreviewActor(actor) && shouldAllowPreviewCourseFallback(executionState)) {
     executionState.warnings.push({
       code: "STUDENT_DASHBOARD_DEV_FALLBACK",
       message: "No assignments found for preview student. Showing visible courses as a development fallback."
@@ -119,6 +119,14 @@ async function loadStudentCourses(actor, assignedCourseIds, executionState, assi
 
   courses.sort(compareByOrderThenTitle);
   return courses;
+}
+
+function shouldAllowPreviewCourseFallback(executionState) {
+  return Boolean(
+    executionState
+      && executionState.payload
+      && executionState.payload.allowPreviewCourseFallback === true
+  );
 }
 
 async function attachExternalTaskSubmissionsToCourse(actor, course) {

@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.207-emotional-check-in-save";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.207-emotional-check-in-save";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.207-emotional-check-in-save";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.208-student-dashboard-scope";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.208-student-dashboard-scope";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.208-student-dashboard-scope";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -20,17 +20,17 @@ import {
   createStatusBadge,
   formatStatusLabel,
   renderEmotionalCheckInGate
-} from "../../../packages/ui/index.js?v=1.1.207-emotional-check-in-save";
-import { emotionalCheckInService } from "../../../packages/shared/emotionalCheckIns/index.js?v=1.1.207-emotional-check-in-save";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.207-emotional-check-in-save";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.207-emotional-check-in-save";
+} from "../../../packages/ui/index.js?v=1.1.208-student-dashboard-scope";
+import { emotionalCheckInService } from "../../../packages/shared/emotionalCheckIns/index.js?v=1.1.208-student-dashboard-scope";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.208-student-dashboard-scope";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.208-student-dashboard-scope";
 import {
   STUDENT_PROFILE_AVATARS,
   createStudentProfileSnapshot,
   readAvatarById,
   readStudentProfilePreferences,
   saveStudentProfilePreferences
-} from "./ui/services/profileService.js?v=1.1.207-emotional-check-in-save";
+} from "./ui/services/profileService.js?v=1.1.208-student-dashboard-scope";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -588,11 +588,12 @@ function readSelectedTargetModuleName(course, moduleId) {
 
 function applyOpenedCourseResult(openResult) {
   var target = openResult.openTarget || {};
+  var selectedCourseId = readOpenedDashboardCourseId(openResult);
 
   studentDashboardStore.setState({
     isCourseOpening: false,
-    courses: mergeOpenedCourse(studentDashboardStore.getState().courses || [], openResult.course),
-    selectedCourseId: openResult.course.id,
+    courses: mergeOpenedCourse(studentDashboardStore.getState().courses || [], openResult.course, selectedCourseId),
+    selectedCourseId: selectedCourseId,
     selectedModuleId: target.moduleId || null,
     selectedSessionId: target.sessionId || null,
     selectedPracticeModeKey: target.practiceModeKey || "beforeClass",
@@ -761,15 +762,21 @@ function applyProgressResult(progressResult) {
   });
 }
 
-function mergeOpenedCourse(courses, openedCourse) {
+function mergeOpenedCourse(courses, openedCourse, requestedCourseId) {
   var safeCourses = Array.isArray(courses) ? courses : [];
   var mergedCourses = [];
   var courseIndex = 0;
   var replaced = false;
+  var replacementId = readText(requestedCourseId || openedCourse.id);
 
   while (courseIndex < safeCourses.length) {
-    if (safeCourses[courseIndex] && safeCourses[courseIndex].id === openedCourse.id) {
-      mergedCourses.push(openedCourse);
+    if (courseMatchesOpenedCourse(safeCourses[courseIndex], openedCourse, replacementId)) {
+      mergedCourses.push(Object.assign({}, openedCourse, {
+        id: safeCourses[courseIndex].id || replacementId,
+        courseId: safeCourses[courseIndex].courseId || openedCourse.courseId || replacementId,
+        assignmentId: openedCourse.assignmentId || safeCourses[courseIndex].assignmentId || "",
+        courseAssignmentId: openedCourse.courseAssignmentId || safeCourses[courseIndex].courseAssignmentId || safeCourses[courseIndex].assignmentId || ""
+      }));
       replaced = true;
     } else {
       mergedCourses.push(safeCourses[courseIndex]);
@@ -778,11 +785,51 @@ function mergeOpenedCourse(courses, openedCourse) {
     courseIndex = courseIndex + 1;
   }
 
-  if (!replaced) {
+  if (!replaced && isPreviewMode()) {
     mergedCourses.push(openedCourse);
   }
 
   return mergedCourses;
+}
+
+function readOpenedDashboardCourseId(openResult) {
+  var course = openResult && openResult.course ? openResult.course : {};
+
+  return readText(openResult && (openResult.dashboardCourseId || openResult.requestedCourseId))
+    || readText(course.id || course.courseId || course.moduleCourseId || course.canonicalCourseId);
+}
+
+function courseMatchesOpenedCourse(course, openedCourse, requestedCourseId) {
+  if (!course || !openedCourse) {
+    return false;
+  }
+
+  return courseHasIdentity(course, requestedCourseId)
+    || courseHasIdentity(course, openedCourse.id)
+    || courseHasIdentity(course, openedCourse.courseId)
+    || courseHasIdentity(course, openedCourse.moduleCourseId)
+    || courseHasIdentity(course, openedCourse.canonicalCourseId)
+    || courseHasIdentity(openedCourse, course.id)
+    || courseHasIdentity(openedCourse, course.courseId)
+    || courseHasIdentity(openedCourse, course.moduleCourseId)
+    || courseHasIdentity(openedCourse, course.canonicalCourseId);
+}
+
+function courseHasIdentity(course, courseId) {
+  var safeCourseId = readText(courseId);
+
+  if (!course || !safeCourseId) {
+    return false;
+  }
+
+  return course.id === safeCourseId
+    || course.courseId === safeCourseId
+    || course.moduleCourseId === safeCourseId
+    || course.canonicalCourseId === safeCourseId
+    || course.catalogCourseId === safeCourseId
+    || course.sourceCourseId === safeCourseId
+    || course.publishedCourseId === safeCourseId
+    || course.targetCourseId === safeCourseId;
 }
 
 function buildLoadingView() {
