@@ -10,6 +10,9 @@ import {
   renderStars,
   updateStreak
 } from "./gamificationService.js?v=1.1.192-timed-sequence";
+import { renderRoadmapSvgScene } from "../../../../ui/adapters/svgSceneAdapter.js?v=1.1.209-open-integrations";
+import { translate } from "../../../../shared/localization/localizationService.js?v=1.1.209-open-integrations";
+import { isFeatureEnabled } from "../../../../shared/config/features.js?v=1.1.209-open-integrations";
 
 const BaseStep = typeof window !== "undefined"
   ? window.CourseEngine.BaseStep
@@ -220,7 +223,9 @@ export class SortingStep extends InteractiveLearningStepBase {
     categoriesText: "ICT\nNot ICT",
     itemsText: "Using a computer to write a document|ICT\nWriting with a pencil|Not ICT",
     buttonText: "Check Answers",
-    successText: "Great sorting!"
+    successText: "Great sorting!",
+    hintText: "",
+    hintImageUrl: ""
   };
   static editorSchema = { fields: [
     { key: "title", label: "Title", type: "text" },
@@ -228,7 +233,9 @@ export class SortingStep extends InteractiveLearningStepBase {
     { key: "categoriesText", label: "Categories Text", type: "textarea" },
     { key: "itemsText", label: "Items Text", type: "textarea" },
     { key: "buttonText", label: "Button Text", type: "text" },
-    { key: "successText", label: "Success Text", type: "text" }
+    { key: "successText", label: "Success Text", type: "text" },
+    { key: "hintText", label: "Hint Text", type: "textarea" },
+    { key: "hintImageUrl", label: "Hint Image", type: "image" }
   ] };
 
   static renderPlayerShell(config) {
@@ -277,6 +284,7 @@ export class SortingStep extends InteractiveLearningStepBase {
     var checkButton = container.querySelector("[data-check-sorting]");
     var feedback = container.querySelector(".sorting-feedback");
     var isDragDropTemplate = normalizeActivityTemplateId("sorting", readRawActivityTemplateId(config)) === "drag-drop-sorting";
+    var failedAttempts = 0;
 
     forEachElement(items, function (item) {
       item.addEventListener("click", function () {
@@ -367,6 +375,9 @@ export class SortingStep extends InteractiveLearningStepBase {
           if (feedback) {
             feedback.textContent = readText(config, "successText", "Great sorting!");
           }
+          lockSortingItems(currentItems, checkButton);
+          showActivityFeedbackModal(container, "Correct", readText(config, "successText", "Great sorting!"));
+          launchActivitySuccessBurst(container);
           complete({
             success: true,
             score: 100,
@@ -375,8 +386,14 @@ export class SortingStep extends InteractiveLearningStepBase {
               gamification: readGamificationSummary("Classic Sorting", correctCount, currentItems.length, true)
             }
           });
-        } else if (feedback) {
-          feedback.textContent = "Move every item to the group that fits best.";
+        } else {
+          failedAttempts = failedAttempts + 1;
+          returnIncorrectSortingItems(container);
+          if (feedback) {
+            feedback.textContent = "Some items moved back. Try those again.";
+          }
+          showActivityFeedbackModal(container, "Try Again", "Some items moved back. Try those again.");
+          showActivityHintIfReady(container, config, failedAttempts);
         }
       });
     }
@@ -396,6 +413,8 @@ export class MultipleChoiceStep extends InteractiveLearningStepBase {
     selectionMode: "multiple",
     feedbackCorrect: "Correct!",
     feedbackIncorrect: "Try again.",
+    hintText: "",
+    hintImageUrl: "",
     allowRetry: "true",
     buttonText: "Check Answer"
   };
@@ -409,6 +428,8 @@ export class MultipleChoiceStep extends InteractiveLearningStepBase {
     ] },
     { key: "feedbackCorrect", label: "Feedback Correct", type: "text" },
     { key: "feedbackIncorrect", label: "Feedback Incorrect", type: "text" },
+    { key: "hintText", label: "Hint Text", type: "textarea" },
+    { key: "hintImageUrl", label: "Hint Image", type: "image" },
     { key: "allowRetry", label: "Allow Retry", type: "select", options: boolOptions() },
     { key: "buttonText", label: "Button Text", type: "text" }
   ] };
@@ -427,7 +448,7 @@ export class MultipleChoiceStep extends InteractiveLearningStepBase {
     body += '<fieldset class="multiple-choice-fieldset">';
     body += '<legend>' + this.escapeHtml(readText(config, "questionText", "Which answer is correct?")) + '</legend>';
     choices.forEach(function (choice, index) {
-      body += '<button type="button" class="multiple-choice-option" data-choice-index="' + index + '" data-correct="' + (choice.correct ? "true" : "false") + '">' + BaseStep.escapeHtml(choice.label) + '</button>';
+      body += '<button type="button" class="multiple-choice-option" data-choice-index="' + index + '" data-correct="' + (choice.correct ? "true" : "false") + '" data-answer-feedback="' + BaseStep.escapeHtml(choice.feedback) + '" data-answer-image="' + BaseStep.escapeHtml(choice.imageUrl) + '">' + BaseStep.escapeHtml(choice.label) + '</button>';
     });
     body += '</fieldset>';
     body += '<div class="multiple-choice-feedback" aria-live="polite"></div>';
@@ -449,6 +470,7 @@ export class MultipleChoiceStep extends InteractiveLearningStepBase {
     var feedback = container.querySelector(".multiple-choice-feedback");
     var multiple = readText(config, "selectionMode", "multiple") !== "single";
     var allowRetry = readBoolean(config.allowRetry, true);
+    var failedAttempts = 0;
 
     forEachElement(options, function (option) {
       option.addEventListener("click", function () {
@@ -462,11 +484,19 @@ export class MultipleChoiceStep extends InteractiveLearningStepBase {
     if (checkButton) {
       checkButton.addEventListener("click", function () {
         var correct = choicesAreCorrect(options);
+        var answerFeedback = readSelectedChoiceFeedback(options, correct ? readText(config, "feedbackCorrect", "Correct!") : readText(config, "feedbackIncorrect", "Try again."));
         markChoiceResults(options);
         if (feedback) {
-          feedback.textContent = correct ? readText(config, "feedbackCorrect", "Correct!") : readText(config, "feedbackIncorrect", "Try again.");
+          feedback.textContent = answerFeedback.message;
         }
         if (correct || !allowRetry) {
+          lockChoiceOptions(options, checkButton);
+          if (correct) {
+            showActivityFeedbackModal(container, "Correct", answerFeedback.message, answerFeedback.imageUrl);
+            launchActivitySuccessBurst(container);
+          } else {
+            showActivityFeedbackModal(container, "Review", answerFeedback.message, answerFeedback.imageUrl);
+          }
           complete({
             success: correct,
             score: correct ? 100 : 0,
@@ -475,6 +505,10 @@ export class MultipleChoiceStep extends InteractiveLearningStepBase {
               gamification: readGamificationSummary("Classic Multiple Choice", correct ? 1 : 0, 1, true)
             }
           });
+        } else {
+          failedAttempts = failedAttempts + 1;
+          showActivityFeedbackModal(container, "Try Again", answerFeedback.message, answerFeedback.imageUrl);
+          showActivityHintIfReady(container, config, failedAttempts);
         }
       });
     }
@@ -584,11 +618,18 @@ export class RoadmapStep extends InteractiveLearningStepBase {
 
     body += '<h2>' + this.escapeHtml(readText(config, "title", "Your Learning Roadmap")) + '</h2>';
     body += '<p>' + this.escapeHtml(readText(config, "instructions", "Explore what you will learn.")) + '</p>';
+    if (isFeatureEnabled("svgRoadmapRenderer")) {
+      body += '<div class="roadmap-svg-scene" data-roadmap-svg-scene></div>';
+    }
     body += '<ol class="roadmap-list">';
     items.forEach(function (item, index) {
       body += '<li><button type="button" class="roadmap-item" data-roadmap-index="' + index + '" aria-expanded="false">';
       body += '<span class="roadmap-number">' + BaseStep.escapeHtml(item.number) + '</span>';
-      body += '<span><strong>' + BaseStep.escapeHtml(item.title) + '</strong><em>' + BaseStep.escapeHtml(item.description) + '</em></span>';
+      body += '<span><strong>' + BaseStep.escapeHtml(item.title) + '</strong><em>' + BaseStep.escapeHtml(item.description) + '</em>';
+      if (item.imageUrl) {
+        body += '<img class="roadmap-reveal-image" src="' + BaseStep.escapeHtml(item.imageUrl) + '" alt="">';
+      }
+      body += '</span>';
       body += '</button></li>';
     });
     body += '</ol>';
@@ -613,6 +654,8 @@ export class RoadmapStep extends InteractiveLearningStepBase {
       button.disabled = true;
     }
 
+    renderRoadmapSvgIfEnabled(container, config);
+
     forEachElement(items, function (item) {
       item.addEventListener("click", function () {
         item.classList.add("is-open");
@@ -621,6 +664,16 @@ export class RoadmapStep extends InteractiveLearningStepBase {
           button.disabled = container.querySelectorAll(".roadmap-item.is-open").length !== items.length;
         }
       });
+    });
+
+    container.addEventListener("click", function (event) {
+      var image = event.target.closest(".roadmap-reveal-image");
+
+      if (image) {
+        event.preventDefault();
+        event.stopPropagation();
+        showMediaLightbox(container, image.getAttribute("src") || "", image.getAttribute("alt") || "");
+      }
     });
 
     if (button) {
@@ -754,14 +807,18 @@ export class OrderingStep extends InteractiveLearningStepBase {
     instructions: "Arrange the actions in the correct order.",
     itemsText: "Read the instruction\nTry the activity\nCheck your answer\nFix mistakes if needed\nClick continue",
     buttonText: "Check Order",
-    successText: "Correct order!"
+    successText: "Correct order!",
+    hintText: "",
+    hintImageUrl: ""
   };
   static editorSchema = { fields: [
     { key: "title", label: "Title", type: "text" },
     { key: "instructions", label: "Instructions", type: "textarea" },
     { key: "itemsText", label: "Items Text", type: "textarea" },
     { key: "buttonText", label: "Button Text", type: "text" },
-    { key: "successText", label: "Success Text", type: "text" }
+    { key: "successText", label: "Success Text", type: "text" },
+    { key: "hintText", label: "Hint Text", type: "textarea" },
+    { key: "hintImageUrl", label: "Hint Image", type: "image" }
   ] };
 
   static renderPlayerShell(config) {
@@ -803,6 +860,7 @@ export class OrderingStep extends InteractiveLearningStepBase {
     var buttons = container.querySelectorAll("[data-move-order]");
     var checkButton = container.querySelector("[data-check-order]");
     var feedback = container.querySelector(".ordering-feedback");
+    var failedAttempts = 0;
 
     forEachElement(buttons, function (button) {
       button.addEventListener("click", function () {
@@ -817,9 +875,15 @@ export class OrderingStep extends InteractiveLearningStepBase {
           if (feedback) {
             feedback.textContent = readText(config, "successText", "Correct order!");
           }
+          lockOrderingItems(container, checkButton);
+          showActivityFeedbackModal(container, "Correct", readText(config, "successText", "Correct order!"));
+          launchActivitySuccessBurst(container);
           complete({ success: true, score: 100, data: {} });
         } else if (feedback) {
+          failedAttempts = failedAttempts + 1;
           feedback.textContent = "Keep adjusting the order, then check again.";
+          showActivityFeedbackModal(container, "Try Again", "Keep adjusting the order, then check again.");
+          showActivityHintIfReady(container, config, failedAttempts);
         }
       });
     }
@@ -916,6 +980,13 @@ export class ReflectionStep extends InteractiveLearningStepBase {
           return;
         }
 
+        if (button) {
+          button.disabled = true;
+        }
+        if (feedback) {
+          feedback.textContent = "Reflection saved.";
+        }
+        lockReflectionInputs(choices, textInput);
         complete({
           success: true,
           score: 100,
@@ -2321,6 +2392,40 @@ function getRoadmapTemplateRenderer(config) {
   var templateId = normalizeActivityTemplateId("roadmap", readRawActivityTemplateId(config));
 
   return roadmapThemeRendererMap[templateId] || null;
+}
+
+function renderRoadmapSvgIfEnabled(container, config) {
+  var svgContainer = container.querySelector("[data-roadmap-svg-scene]");
+
+  if (!svgContainer || !isFeatureEnabled("svgRoadmapRenderer")) {
+    return;
+  }
+
+  var items = parseRoadmapItems(config.roadmapText).map(function (item, index) {
+    return {
+      id: "roadmap-item-" + index,
+      number: item.number,
+      title: item.title,
+      description: item.description
+    };
+  });
+
+  renderRoadmapSvgScene(svgContainer, {
+    title: translate("svg.roadmapTitle"),
+    description: translate("svg.roadmapDescription"),
+    emptyText: translate("svg.emptyRoadmap"),
+    items: items,
+    onInteraction: function (interaction) {
+      var index = items.findIndex(function (item) {
+        return item.id === interaction.elementId;
+      });
+      var button = index >= 0 ? container.querySelector('.roadmap-item[data-roadmap-index="' + index + '"]') : null;
+
+      if (button) {
+        button.click();
+      }
+    }
+  });
 }
 
 function createAdventurePathData(config) {
@@ -4750,6 +4855,16 @@ function buildScopedCss(rootClass) {
     + scope + " .activity-template-mode-badge{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 14px;padding:10px 12px;border:1px solid #bfdbfe;border-radius:12px;background:#eff6ff;color:#1d4ed8;}"
     + scope + " .activity-template-mode-badge strong{font-size:12px;font-weight:950;line-height:1.2;}"
     + scope + " .activity-template-mode-badge span{font-size:11px;font-weight:800;line-height:1.35;color:#475569;text-align:right;}"
+    + scope + ".activity-success-burst{box-shadow:0 18px 40px rgba(15,23,42,.08),0 0 0 7px rgba(34,197,94,.14);animation:activitySuccessBurst .8s ease;}"
+    + scope + " .activity-feedback-modal{position:fixed;inset:0;z-index:30;display:grid;place-items:center;padding:18px;background:rgba(15,23,42,.28);}"
+    + scope + " .activity-feedback-modal div{width:min(360px,100%);display:grid;gap:10px;border:1px solid #dbeafe;border-radius:16px;background:#fff;padding:18px;box-shadow:0 22px 50px rgba(15,23,42,.24);}"
+    + scope + " .activity-feedback-modal strong{color:#0f172a;font-size:18px;font-weight:950;line-height:1.2;}"
+    + scope + " .activity-feedback-modal p{margin:0;color:#475569;font-size:14px;font-weight:750;line-height:1.45;}"
+    + scope + " .activity-feedback-modal img{width:100%;max-height:240px;border:1px solid #dbeafe;border-radius:12px;object-fit:contain;background:#f8fafc;}"
+    + scope + " .activity-feedback-modal button{justify-self:end;min-height:36px;background:#111827;border-color:#111827;color:#fff;padding:0 14px;}"
+    + scope + " .activity-media-lightbox{position:fixed;inset:0;z-index:31;display:grid;place-items:center;padding:18px;background:rgba(15,23,42,.72);}"
+    + scope + " .activity-media-lightbox img{max-width:min(920px,96vw);max-height:82vh;border-radius:16px;border:1px solid rgba(255,255,255,.35);background:#fff;box-shadow:0 28px 70px rgba(0,0,0,.34);object-fit:contain;}"
+    + scope + " .activity-media-lightbox-close{position:absolute;top:18px;right:18px;min-height:38px;background:#fff;border-color:#fff;color:#0f172a;padding:0 13px;}"
     + scope + " .intro-card-icon{font-size:42px;margin-bottom:12px;}"
     + scope + " .intro-card-subtitle{font-weight:800;color:#2563eb;}"
     + scope + " .intro-card-callout{margin:14px 0;padding:12px;border-radius:12px;background:#ecfdf5;border:1px solid #a7f3d0;color:#047857;font-weight:800;}"
@@ -4779,6 +4894,7 @@ function buildScopedCss(rootClass) {
     + scope + " .sorting-item{padding:10px 12px;text-align:left;background:#f8fafc;}"
     + scope + " .sorting-item.is-selected{background:#dbeafe;border-color:#3b82f6;}"
     + scope + " .sorting-item.is-correct{background:#dcfce7;border-color:#22c55e;}"
+    + scope + " .sorting-item.is-locked{cursor:not-allowed;opacity:1;}"
     + scope + " .sorting-item.is-incorrect{background:#fee2e2;border-color:#ef4444;}"
     + scope + " .sorting-category{padding:12px;min-height:90px;text-align:left;background:#fff7ed;display:flex;flex-direction:column;align-items:stretch;gap:8px;}"
     + scope + " .sorting-feedback," + scope + " .multiple-choice-feedback," + scope + " .matching-feedback," + scope + " .ordering-feedback," + scope + " .reflection-feedback{min-height:22px;margin:10px 0;color:#2563eb;font-size:13px;font-weight:800;}"
@@ -5027,11 +5143,16 @@ function buildScopedCss(rootClass) {
     + scope + " .scenario-choice-empty strong{color:#0f172a;font-size:15px;font-weight:950;}"
     + scope + " .scenario-choice-empty span{font-size:13px;font-weight:750;line-height:1.45;}"
     + scope + " .roadmap-list{list-style:none;margin:16px 0;padding:0;display:flex;flex-direction:column;gap:10px;}"
+    + scope + " .roadmap-svg-scene{margin:18px 0 12px;border:1px solid #dbeafe;border-radius:18px;background:linear-gradient(180deg,#f8fbff,#eef6ff);overflow:hidden;}"
+    + scope + " .roadmap-svg-scene [role='button']{outline:none;cursor:pointer;}"
+    + scope + " .roadmap-svg-scene [role='button']:focus-visible circle{stroke:#111827;stroke-width:5;}"
     + scope + " .roadmap-item{width:100%;padding:14px;text-align:left;display:flex;gap:12px;align-items:flex-start;background:#f8fafc;}"
     + scope + " .roadmap-number{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:999px;background:#2563eb;color:#fff;font-weight:900;flex:0 0 auto;}"
     + scope + " .roadmap-item em{display:none;margin-top:6px;color:#64748b;font-style:normal;font-weight:650;line-height:1.45;}"
     + scope + " .roadmap-item.is-open{background:#eef2ff;border-color:#818cf8;}"
     + scope + " .roadmap-item.is-open em{display:block;}"
+    + scope + " .roadmap-reveal-image{display:none;width:100%;max-height:220px;margin-top:10px;border:1px solid #c7d2fe;border-radius:14px;object-fit:cover;cursor:zoom-in;}"
+    + scope + " .roadmap-item.is-open .roadmap-reveal-image{display:block;}"
     + scope + " .adventure-path-shell{display:grid;gap:14px;}"
     + scope + " .adventure-path-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;}"
     + scope + " .adventure-path-header h2{margin-bottom:8px;}"
@@ -5211,6 +5332,7 @@ function buildScopedCss(rootClass) {
     + "@keyframes quizStreakPulse{0%{transform:scale(1);}55%{transform:scale(1.06);}100%{transform:scale(1);}}"
     + "@keyframes adventureNodePulse{0%{transform:scale(1);}55%{transform:scale(1.18);}100%{transform:scale(1);}}"
     + "@keyframes levelUnlockPulse{0%{transform:scale(1);}55%{transform:scale(1.14);}100%{transform:scale(1);}}"
+    + "@keyframes activitySuccessBurst{0%{transform:scale(1);}42%{transform:scale(1.012);}100%{transform:scale(1);}}"
     + "@media(prefers-reduced-motion:reduce){" + scope + " .card-reveal-card-inner{transition:none;}" + scope + " .card-reveal-card.is-reveal-pop .card-reveal-card-inner{animation:none;}}"
     + "@media(prefers-reduced-motion:reduce){" + scope + " .bubble-pop-bubble{animation:none;}" + scope + " .runner-sort-avatar{transition:none;}" + scope + " .runner-sort-shell.is-correct .runner-sort-item," + scope + " .runner-sort-shell.is-incorrect .runner-sort-item," + scope + " .quiz-show-streak.has-milestone{animation:none;}" + scope + " .memory-card-inner{transition:none;}" + scope + " .adventure-path-progressbar span," + scope + " .level-unlock-progress span{transition:none;}" + scope + " .adventure-path-checkpoint.is-activating .adventure-path-node," + scope + " .level-unlock-stop.is-in-progress .level-unlock-badge{animation:none;}}"
     + "@media(max-width:640px){" + scope + "{padding:18px;border-radius:12px;}" + scope + " h2{font-size:22px;}" + scope + " .sorting-workspace," + scope + " .matching-board," + scope + " .quiz-show-answers," + scope + " .millionaire-answers," + scope + " .multi-select-options{grid-template-columns:1fr;}" + scope + " .bubble-pop-header," + scope + " .runner-sort-header," + scope + " .quiz-show-header," + scope + " .millionaire-header," + scope + " .memory-game-header," + scope + " .adventure-path-header," + scope + " .level-unlock-header," + scope + " .multi-select-header{display:grid;}" + scope + " .bubble-pop-score," + scope + " .runner-sort-score," + scope + " .quiz-show-score," + scope + " .quiz-show-xp," + scope + " .millionaire-score," + scope + " .memory-game-progress," + scope + " .adventure-path-meter," + scope + " .level-unlock-summary," + scope + " .multi-select-score{width:100%;min-width:0;}" + scope + " .activity-results-grid," + scope + " .bubble-pop-roundbar," + scope + " .runner-sort-progress," + scope + " .quiz-show-progress," + scope + " .millionaire-progress," + scope + " .timeline-builder-meta{display:grid;grid-template-columns:1fr;}" + scope + " .multi-select-submit{width:100%;}" + scope + " .scenario-choice-header{display:grid;}" + scope + " .scenario-choice-score{width:100%;min-width:0;}" + scope + " .classroom-hero .scenario-choice-card{grid-template-columns:1fr;}" + scope + " .scenario-choice-submit{width:100%;}" + scope + " .bubble-pop-stage{min-height:460px;}" + scope + " .bubble-pop-bubble{width:min(var(--bubble-size),34vw);height:min(var(--bubble-size),34vw);padding:10px;}" + scope + " .bubble-pop-bubble span{font-size:11px;-webkit-line-clamp:5;}" + scope + " .runner-sort-arena{grid-template-columns:1fr 1fr;grid-template-areas:'item item' 'left right';min-height:0;padding:10px;}" + scope + " .runner-sort-bin{min-height:108px;padding:10px;}" + scope + " .runner-sort-bin.is-left{grid-area:left;}" + scope + " .runner-sort-bin.is-right{grid-area:right;}" + scope + " .runner-sort-lane{grid-area:item;min-height:150px;}" + scope + " .runner-sort-lane:before{bottom:24px;}" + scope + " .runner-sort-avatar{width:62px;height:62px;}" + scope + " .runner-sort-avatar span{width:36px;height:36px;font-size:18px;}" + scope + " .runner-sort-avatar.is-moving-left{transform:translateX(-44px);}" + scope + " .runner-sort-avatar.is-moving-right{transform:translateX(44px);}" + scope + " .runner-sort-controls button{min-height:58px;}" + scope + " .quiz-show-question," + scope + " .millionaire-question{font-size:17px;padding:15px;}" + scope + " .quiz-show-answer," + scope + " .millionaire-answer{min-height:64px;}" + scope + " .millionaire-layout{grid-template-columns:1fr;}" + scope + " .millionaire-ladder{grid-template-columns:repeat(2,minmax(0,1fr));max-height:none;}" + scope + " .millionaire-lifelines{grid-template-columns:1fr;}" + scope + " .millionaire-confirm div{display:grid;grid-template-columns:1fr;}" + scope + " .millionaire-next{width:100%;}" + scope + " .adventure-path-list:before{left:19px;}" + scope + " .adventure-path-stop:before{left:19px;width:22px;transform:none;}" + scope + " .adventure-path-stop.is-left," + scope + " .adventure-path-stop.is-right{justify-content:flex-start;padding-left:38px;padding-right:0;}" + scope + " .adventure-path-checkpoint{width:100%;}" + scope + " .level-unlock-summary{grid-template-columns:repeat(3,minmax(0,1fr));}" + scope + " .level-unlock-list:before{left:18px;}" + scope + " .level-unlock-stop{padding-left:38px;}" + scope + " .level-unlock-stop:before{left:18px;width:22px;}" + scope + " .level-unlock-node{grid-template-columns:38px minmax(0,1fr);grid-template-rows:auto auto;min-height:0;}" + scope + " .level-unlock-badge{width:38px;height:38px;grid-row:1 / span 2;}" + scope + " .level-unlock-rewards{grid-column:2;justify-items:start;text-align:left;grid-template-columns:repeat(3,auto);align-items:center;gap:7px;}" + scope + " .memory-game-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}" + scope + " .memory-card{height:104px;}" + scope + " .memory-card-back{font-size:11px;padding:9px;}" + scope + " .timeline-builder-list{grid-template-columns:1fr;padding-left:24px;gap:10px;}" + scope + " .timeline-builder-list:before{left:18px;right:auto;top:18px;bottom:18px;width:4px;height:auto;}" + scope + " .timeline-builder-card{grid-template-columns:38px minmax(0,1fr);grid-template-rows:auto auto;text-align:left;align-items:center;}" + scope + " .timeline-builder-node{grid-row:1 / span 2;}" + scope + " .timeline-builder-card-actions{grid-column:2;}" + scope + " .timeline-builder-actions{display:grid;grid-template-columns:1fr;}" + scope + " .timeline-builder-actions button{width:100%;}" + scope + " .emoji-checkin-moods{grid-template-columns:repeat(2,minmax(0,1fr));}" + scope + " .emoji-checkin-mood{min-height:92px;}" + scope + " .emoji-checkin-submit{width:100%;}}";
@@ -5274,7 +5396,9 @@ function parseChoices(value) {
     var parts = line.split("|");
     return {
       label: (parts[0] || "Choice").trim(),
-      correct: (parts[1] || "").trim().toLowerCase() === "true"
+      correct: (parts[1] || "").trim().toLowerCase() === "true",
+      feedback: (parts[2] || "").trim(),
+      imageUrl: (parts.slice(3).join("|") || "").trim()
     };
   });
 }
@@ -5285,7 +5409,8 @@ function parseRoadmapItems(value) {
     return {
       number: (parts[0] || "1").trim(),
       title: (parts[1] || "Topic").trim(),
-      description: (parts.slice(2).join("|") || parts[1] || "Explore this idea.").trim()
+      description: (parts[2] || parts[1] || "Explore this idea.").trim(),
+      imageUrl: (parts.slice(3).join("|") || "").trim()
     };
   });
 }
@@ -5321,6 +5446,38 @@ function setCategoryCount(category, count) {
   }
 }
 
+function returnIncorrectSortingItems(container) {
+  var tray = container.querySelector(".sorting-items");
+  var incorrectItems = container.querySelectorAll(".sorting-item.is-incorrect");
+
+  if (!tray) {
+    return;
+  }
+
+  forEachElement(incorrectItems, function (item) {
+    item.classList.remove("is-incorrect", "is-placed", "is-selected");
+    item.removeAttribute("data-choice");
+    tray.appendChild(item);
+  });
+
+  forEachElement(container.querySelectorAll(".sorting-category"), function (category) {
+    setCategoryCount(category, category.querySelectorAll(".sorting-item").length);
+  });
+}
+
+function lockSortingItems(items, checkButton) {
+  forEachElement(items, function (item) {
+    item.disabled = true;
+    item.setAttribute("draggable", "false");
+    item.classList.remove("is-incorrect", "is-selected");
+    item.classList.add("is-locked");
+  });
+
+  if (checkButton) {
+    checkButton.disabled = true;
+  }
+}
+
 function choicesAreCorrect(options) {
   var correct = true;
 
@@ -5341,6 +5498,38 @@ function markChoiceResults(options) {
     option.classList.toggle("is-correct", correct);
     option.classList.toggle("is-incorrect", !correct && option.classList.contains("is-selected"));
   });
+}
+
+function lockChoiceOptions(options, checkButton) {
+  forEachElement(options, function (option) {
+    option.disabled = true;
+  });
+
+  if (checkButton) {
+    checkButton.disabled = true;
+  }
+}
+
+function readSelectedChoiceFeedback(options, fallbackMessage) {
+  var selectedOptions = [];
+  var message = "";
+  var imageUrl = "";
+
+  forEachElement(options, function (option) {
+    if (option.classList.contains("is-selected")) {
+      selectedOptions.push(option);
+    }
+  });
+
+  if (selectedOptions.length === 1) {
+    message = selectedOptions[0].getAttribute("data-answer-feedback") || "";
+    imageUrl = selectedOptions[0].getAttribute("data-answer-image") || "";
+  }
+
+  return {
+    message: message || fallbackMessage || "Try again.",
+    imageUrl: imageUrl
+  };
 }
 
 function moveOrderingItem(button) {
@@ -5373,4 +5562,111 @@ function markOrderingState(container) {
   });
 
   return correct;
+}
+
+function lockOrderingItems(container, checkButton) {
+  forEachElement(container.querySelectorAll("[data-move-order]"), function (button) {
+    button.disabled = true;
+  });
+
+  if (checkButton) {
+    checkButton.disabled = true;
+  }
+}
+
+function lockReflectionInputs(choices, textInput) {
+  forEachElement(choices, function (choice) {
+    choice.disabled = true;
+  });
+
+  if (textInput) {
+    textInput.disabled = true;
+  }
+}
+
+function showActivityHintIfReady(container, config, failedAttempts) {
+  var hint = readActivityHint(config);
+
+  if (failedAttempts < 2 || (!hint.message && !hint.imageUrl)) {
+    return;
+  }
+
+  showActivityFeedbackModal(container, "Hint", hint.message || "Look closely and try again.", hint.imageUrl);
+}
+
+function readActivityHint(config) {
+  return {
+    message: readText(config, "hintText", ""),
+    imageUrl: readText(config, "hintImageUrl", "")
+  };
+}
+
+function showActivityFeedbackModal(container, title, message, imageUrl) {
+  var root = container ? container.querySelector(".oqu-step-engine") : null;
+  var existing = root ? root.querySelector(".activity-feedback-modal") : null;
+
+  if (!root) {
+    return;
+  }
+
+  if (existing) {
+    existing.remove();
+  }
+
+  root.insertAdjacentHTML("beforeend", '<div class="activity-feedback-modal" role="dialog" aria-modal="false">'
+    + '<div><strong>' + BaseStep.escapeHtml(title || "Feedback") + '</strong><p>' + BaseStep.escapeHtml(message || "") + '</p>'
+    + (imageUrl ? '<img src="' + BaseStep.escapeHtml(imageUrl) + '" alt="">' : '')
+    + '<button type="button" data-close-activity-feedback>OK</button></div></div>');
+
+  existing = root.querySelector(".activity-feedback-modal");
+  if (existing) {
+    existing.addEventListener("click", function (event) {
+      var closeButton = event.target.closest("[data-close-activity-feedback]");
+      if (closeButton || event.target === existing) {
+        existing.remove();
+      }
+    });
+  }
+}
+
+function showMediaLightbox(container, imageUrl, altText) {
+  var root = container ? container.querySelector(".oqu-step-engine") : null;
+  var existing = root ? root.querySelector(".activity-media-lightbox") : null;
+
+  if (!root || !imageUrl) {
+    return;
+  }
+
+  if (existing) {
+    existing.remove();
+  }
+
+  root.insertAdjacentHTML("beforeend", '<div class="activity-media-lightbox" role="dialog" aria-modal="true">'
+    + '<button type="button" class="activity-media-lightbox-close" aria-label="Close image viewer">Close</button>'
+    + '<img src="' + BaseStep.escapeHtml(imageUrl) + '" alt="' + BaseStep.escapeHtml(altText || "") + '"></div>');
+
+  existing = root.querySelector(".activity-media-lightbox");
+  if (existing) {
+    existing.addEventListener("click", function (event) {
+      if (event.target === existing || event.target.closest(".activity-media-lightbox-close")) {
+        existing.remove();
+      }
+    });
+  }
+}
+
+function launchActivitySuccessBurst(container) {
+  var root = container ? container.querySelector(".oqu-step-engine") : null;
+
+  if (!root) {
+    return;
+  }
+
+  root.classList.remove("activity-success-burst");
+  window.setTimeout(function () {
+    root.classList.add("activity-success-burst");
+    window.setTimeout(function () {
+      root.classList.remove("activity-success-burst");
+    }, 900);
+  }, 0);
 }

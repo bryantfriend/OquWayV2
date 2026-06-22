@@ -4,6 +4,7 @@ import { courseEditorStore } from "../state/courseEditorState.js?v=1.1.153-stude
 import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.153-student-course-journey-polish";
 import { getDownloadURL, ref, storage, uploadBytes } from "../../../../../packages/firebase/storage/index.js?v=1.1.153-student-course-journey-polish";
 import { compressImageFile } from "./imageCompression.js?v=1.1.198-course-creator-advanced-upgrades";
+import { sanitizeRestrictedRichText } from "../../../../../packages/shared/security/contentSanitizer.js?v=1.1.209-open-integrations";
 
 var openCourseRequestId = 0;
 var OPEN_COURSE_TIMEOUT_MS = 20000;
@@ -185,14 +186,15 @@ export const courseEditorService = {
 
   updateCourseField: async function (courseId, fieldKey, value) {
     try {
+      var canonicalValue = fieldKey === "description" ? sanitizeLocalizedRichText(value) : value;
       var state = courseEditorStore.getState();
       if (state.course) {
         var updatedCourse = Object.assign({}, state.course);
-        updatedCourse[fieldKey] = value;
+        updatedCourse[fieldKey] = canonicalValue;
         updatedCourse.isDirty = true;
         courseEditorStore.setState({ course: updatedCourse });
 
-        var result = await runIntentPipeline(getIntentDefinition("UpdateCourseFieldIntent"), { payload: { courseId: courseId, fieldKey: fieldKey, value: value }, actor: getActor() });
+        var result = await runIntentPipeline(getIntentDefinition("UpdateCourseFieldIntent"), { payload: { courseId: courseId, fieldKey: fieldKey, value: canonicalValue }, actor: getActor() });
 
         if (!result || !result.emitted || !result.emitted.success) {
           console.error("Validation failed during course update", result ? result.emitted.errors : result);
@@ -207,8 +209,9 @@ export const courseEditorService = {
     courseEditorStore.setState({ isDraftSaving: true, error: null });
 
     try {
+      var sanitizedMetadata = sanitizeCourseMetadataPayload(metadata);
       var result = await runIntentPipeline(getIntentDefinition("UpdateCourseMetadataIntent"), {
-        payload: Object.assign({ courseId: courseId }, metadata),
+        payload: Object.assign({ courseId: courseId }, sanitizedMetadata),
         actor: getActor()
       });
 
@@ -380,10 +383,30 @@ export const courseEditorService = {
       var result = await runIntentPipeline(getIntentDefinition("ReorderModulesIntent"), { payload: { courseId: courseId, fromIndex: fromIndex, toIndex: toIndex }, actor: getActor() });
       if (result && result.emitted && result.emitted.success) {
         courseEditorStore.setState({ modules: result.emitted.data });
+        return true;
       }
+      return false;
     } catch (error) {
       console.error("Reorder failed", error);
+      throw error;
     }
+  },
+
+  reorderModulesById: async function (courseId, previousOrderedIds, orderedIds) {
+    var previousOrder = Array.isArray(previousOrderedIds) ? previousOrderedIds.slice() : [];
+    var nextOrder = Array.isArray(orderedIds) ? orderedIds.slice() : [];
+
+    if (areStringArraysEqual(previousOrder, nextOrder)) {
+      return false;
+    }
+
+    var move = readSingleMove(previousOrder, nextOrder);
+
+    if (!move) {
+      throw new Error("Module order must contain the same stable module IDs.");
+    }
+
+    return await this.reorderModules(courseId, move.fromIndex, move.toIndex);
   },
 
   deleteModule: async function (courseId, moduleId) {
@@ -749,4 +772,87 @@ function readModuleTitle(module) {
   }
 
   return module && (module.name || module.displayName) ? String(module.name || module.displayName).trim() : "";
+}
+
+function areStringArraysEqual(firstArray, secondArray) {
+  if (!Array.isArray(firstArray) || !Array.isArray(secondArray) || firstArray.length !== secondArray.length) {
+    return false;
+  }
+
+  for (var index = 0; index < firstArray.length; index++) {
+    if (firstArray[index] !== secondArray[index]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function readSingleMove(previousOrder, nextOrder) {
+  if (!containSameIds(previousOrder, nextOrder)) {
+    return null;
+  }
+
+  var fromIndex = -1;
+  var toIndex = -1;
+
+  previousOrder.forEach(function (id, index) {
+    if (nextOrder[index] !== id && fromIndex === -1) {
+      fromIndex = index;
+    }
+  });
+
+  if (fromIndex === -1) {
+    return null;
+  }
+
+  var movedId = previousOrder[fromIndex];
+  toIndex = nextOrder.indexOf(movedId);
+
+  if (toIndex === -1) {
+    return null;
+  }
+
+  return {
+    fromIndex: fromIndex,
+    toIndex: toIndex
+  };
+}
+
+function containSameIds(firstOrder, secondOrder) {
+  if (firstOrder.length !== secondOrder.length) {
+    return false;
+  }
+
+  var sortedFirst = firstOrder.slice().sort();
+  var sortedSecond = secondOrder.slice().sort();
+
+  return areStringArraysEqual(sortedFirst, sortedSecond);
+}
+
+function sanitizeCourseMetadataPayload(metadata) {
+  var safeMetadata = Object.assign({}, metadata || {});
+
+  if ("description" in safeMetadata) {
+    safeMetadata.description = sanitizeLocalizedRichText(safeMetadata.description);
+  }
+
+  return safeMetadata;
+}
+
+function sanitizeLocalizedRichText(value) {
+  if (typeof value === "string") {
+    return sanitizeRestrictedRichText(value);
+  }
+
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return value;
+  }
+
+  var sanitizedValue = {};
+  Object.keys(value).forEach(function (languageCode) {
+    sanitizedValue[languageCode] = sanitizeRestrictedRichText(value[languageCode]);
+  });
+
+  return sanitizedValue;
 }

@@ -1,5 +1,5 @@
 import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.153-student-course-journey-polish';
-import { courseEditorService } from '../services/courseEditorService.js?v=1.1.153-student-course-journey-polish';
+import { courseEditorService } from '../services/courseEditorService.js?v=1.1.209-open-integrations';
 import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.153-student-course-journey-polish';
 import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.153-student-course-journey-polish';
 import {
@@ -11,7 +11,14 @@ import {
 import {
   countModuleSteps as countSharedModuleSteps
 } from '../../../../../packages/domain/progress/index.js?v=1.1.201-course-creator-stability-followup';
-import { PracticeModePlayer } from '../../../../../packages/shared/player/index.js?v=1.1.201-course-creator-stability-followup';
+import { PracticeModePlayer } from '../../../../../packages/shared/player/index.js?v=1.1.209-open-integrations';
+import { initializeSortableList } from '../../../../../packages/ui/adapters/sortableListAdapter.js?v=1.1.209-open-integrations';
+import {
+  attachLanguageSelector,
+  renderLanguageSelector,
+  translate
+} from '../../../../../packages/shared/localization/localizationService.js?v=1.1.209-open-integrations';
+import { isFeatureEnabled } from '../../../../../packages/shared/config/features.js?v=1.1.209-open-integrations';
 
 export class CourseOverviewPage {
   constructor(courseId, options) {
@@ -47,6 +54,9 @@ export class CourseOverviewPage {
     this.previewCourseData = null;
     this.coursePreviewPlayer = null;
     this.coursePreviewPlayerSignature = '';
+    this.moduleMapSortable = null;
+    this.moduleMapSaving = false;
+    this.languageSelectorCleanup = null;
     this.ALL_LANGUAGES = [
       { code: 'en', name: 'English (en)' },
       { code: 'ru', name: 'Russian (ru)' },
@@ -68,7 +78,8 @@ export class CourseOverviewPage {
             <span id="saveStatusIndicator" class="text-green-600 font-medium flex items-center gap-1 mr-2 hidden">
               <i class="fa-regular fa-circle-check"></i> Autosave
             </span>
-            <a href="#dashboard" class="border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg font-medium transition shadow-sm">Back to Catalog</a>
+            ${renderLanguageSelector('courseCreatorLanguageSelect')}
+            <a href="#dashboard" class="border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg font-medium transition shadow-sm" data-i18n-text="courseCreator.backToCatalog">${translate('courseCreator.backToCatalog')}</a>
             <button id="previewCourseBtn" class="border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-4 py-2 rounded-lg font-medium shadow-sm transition flex items-center gap-2">
               <i class="fa-solid fa-eye"></i> Preview as Student
             </button>
@@ -87,11 +98,11 @@ export class CourseOverviewPage {
           <!-- Left Column: Modules List -->
           <div class="flex-1">
             <div class="flex justify-between items-center mb-6">
-              <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Course Modules</h1>
+              <h1 class="text-2xl font-bold text-gray-900 tracking-tight" data-i18n-text="courseCreator.courseModules">${translate('courseCreator.courseModules')}</h1>
               <div class="flex items-center gap-3">
                 <span id="moduleCreateStatusMsg" style="display:none" class="text-sm font-medium"></span>
                 <button id="addModuleBtn" class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg font-semibold transition shadow-sm flex items-center gap-2 text-sm">
-                  <i class="fa-solid fa-plus text-gray-400"></i> New Module
+                  <i class="fa-solid fa-plus text-gray-400"></i> <span data-i18n-text="courseCreator.newModule">${translate('courseCreator.newModule')}</span>
                 </button>
               </div>
             </div>
@@ -786,7 +797,7 @@ export class CourseOverviewPage {
     setInputValue('wizardSubjectInput', '');
     setInputValue('wizardTopicInput', '');
     setInputValue('wizardLevelInput', '');
-    setInputValue('wizardEstimatedMinutesInput', '15');
+    setInputValue('wizardEstimatedMinutesInput', '');
     setInputValue('wizardLanguageSelect', 'en');
     setInputValue('wizardLearningPasteInput', 'Go = move somewhere\nStop = end movement\nTurn = change direction');
     setInputValue('wizardVocabularyInput', '');
@@ -923,7 +934,7 @@ export class CourseOverviewPage {
       subject: readInputValue('wizardSubjectInput'),
       topic: readInputValue('wizardTopicInput'),
       level: readInputValue('wizardLevelInput'),
-      estimatedMinutes: readNumberInput('wizardEstimatedMinutesInput', 15),
+      estimatedMinutes: readOptionalPositiveWholeNumberInput('wizardEstimatedMinutesInput'),
       language: readInputValue('wizardLanguageSelect') || 'en',
       templateKey: this.moduleWizardTemplateKey,
       generateStarterSteps: readCheckedValue('wizardGenerateStepsToggle'),
@@ -968,9 +979,17 @@ export class CourseOverviewPage {
     var btn = document.getElementById('moduleWizardCreateBtn');
     var createdModuleId = '';
     var didCreate = false;
+    var estimatedMinutes = readOptionalPositiveWholeNumberInput('wizardEstimatedMinutesInput');
 
     if (!title) {
       status.textContent = 'Module title is required.';
+      status.className = 'text-xs font-bold text-red-700';
+      this.showModuleWizardStep(1);
+      return;
+    }
+
+    if (estimatedMinutes === false) {
+      status.textContent = 'Estimated Time must be a positive whole number of minutes.';
       status.className = 'text-xs font-bold text-red-700';
       this.showModuleWizardStep(1);
       return;
@@ -1347,6 +1366,11 @@ export class CourseOverviewPage {
       self.openCreateModuleWizard();
     });
 
+    this.languageSelectorCleanup = attachLanguageSelector(document.getElementById('courseCreatorLanguageSelect'), function () {
+      self.applyLocalizedText();
+      self.renderModuleMapEditor(courseEditorStore.getState().modules, courseEditorStore.getState().course);
+    });
+
     document.getElementById('moduleRepairBanner').addEventListener('click', function (e) {
       var repairBtn = e.target.closest('#repairCourseModulesBtn');
       if (repairBtn) {
@@ -1355,7 +1379,6 @@ export class CourseOverviewPage {
     });
 
     var moduleMapEditor = document.getElementById('moduleMapEditor');
-    var draggedMapIndex = null;
 
     moduleMapEditor.addEventListener('click', function (e) {
       var openBtn = e.target.closest('.module-map-open-btn');
@@ -1371,61 +1394,16 @@ export class CourseOverviewPage {
         var direction = reorderBtn.getAttribute('data-direction') === 'up' ? -1 : 1;
         var toIndex = fromIndex + direction;
         if (toIndex >= 0) {
+          self.setModuleMapStatus('saving', translate('sortable.saving'));
           courseEditorService.reorderModules(self.courseId, fromIndex, toIndex).then(function () {
-            courseEditorService.saveDraft(self.courseId);
+            return courseEditorService.saveDraft(self.courseId);
+          }).then(function () {
+            self.setModuleMapStatus('success', translate('sortable.moved'));
+          }).catch(function () {
+            self.setModuleMapStatus('error', translate('sortable.failed'));
           });
         }
       }
-    });
-
-    moduleMapEditor.addEventListener('dragstart', function (e) {
-      var card = e.target.closest('.module-map-card');
-      if (!card) {
-        return;
-      }
-      draggedMapIndex = parseInt(card.getAttribute('data-index'), 10);
-      e.dataTransfer.effectAllowed = 'move';
-      card.classList.add('opacity-50');
-    });
-
-    moduleMapEditor.addEventListener('dragover', function (e) {
-      var card = e.target.closest('.module-map-card');
-      if (!card) {
-        return;
-      }
-      e.preventDefault();
-      card.classList.add('ring-2', 'ring-blue-300');
-    });
-
-    moduleMapEditor.addEventListener('dragleave', function (e) {
-      var card = e.target.closest('.module-map-card');
-      if (card) {
-        card.classList.remove('ring-2', 'ring-blue-300');
-      }
-    });
-
-    moduleMapEditor.addEventListener('drop', function (e) {
-      var card = e.target.closest('.module-map-card');
-      if (!card) {
-        return;
-      }
-      e.preventDefault();
-      card.classList.remove('ring-2', 'ring-blue-300');
-      var dropIndex = parseInt(card.getAttribute('data-index'), 10);
-      if (draggedMapIndex !== null && draggedMapIndex !== dropIndex) {
-        courseEditorService.reorderModules(self.courseId, draggedMapIndex, dropIndex).then(function () {
-          courseEditorService.saveDraft(self.courseId);
-        });
-      }
-      draggedMapIndex = null;
-    });
-
-    moduleMapEditor.addEventListener('dragend', function () {
-      var cards = moduleMapEditor.querySelectorAll('.module-map-card');
-      for (var mapIndex = 0; mapIndex < cards.length; mapIndex++) {
-        cards[mapIndex].classList.remove('opacity-50', 'ring-2', 'ring-blue-300');
-      }
-      draggedMapIndex = null;
     });
 
     var dependencyBuilder = document.getElementById('moduleDependencyBuilder');
@@ -1487,6 +1465,12 @@ export class CourseOverviewPage {
         if (titleBtn) {
           var moduleId = titleBtn.getAttribute('data-id');
           self.openModuleTitleModal(moduleId);
+          return;
+        }
+
+        var estimateBtn = e.target.closest('.save-module-estimate-btn');
+        if (estimateBtn) {
+          self.saveModuleEstimatedMinutes(estimateBtn);
         }
       });
 
@@ -2204,7 +2188,82 @@ export class CourseOverviewPage {
       return;
     }
 
+    if (this.moduleMapSortable && typeof this.moduleMapSortable.destroy === 'function') {
+      this.moduleMapSortable.destroy();
+      this.moduleMapSortable = null;
+    }
+
     panel.innerHTML = buildVisualModuleMapEditor(modules, course);
+    this.initializeModuleMapSortable(panel, modules);
+  }
+
+  initializeModuleMapSortable(panel, modules) {
+    var self = this;
+    var list = panel ? panel.querySelector('[data-module-map-sortable]') : null;
+    var safeModules = Array.isArray(modules) ? modules : [];
+
+    if (!list || safeModules.length < 2 || !isFeatureEnabled('sortableAuthoring')) {
+      return;
+    }
+
+    this.moduleMapSortable = initializeSortableList(list, {
+      itemSelector: '.module-map-card',
+      handleSelector: '[data-sortable-handle]',
+      onUnchanged: function () {
+        self.setModuleMapStatus('neutral', translate('sortable.unchanged'));
+      },
+      onReorder: function (event) {
+        self.setModuleMapStatus('saving', translate('sortable.saving'));
+        return courseEditorService.reorderModulesById(self.courseId, event.previousOrderedIds, event.orderedIds).then(function (changed) {
+          if (!changed) {
+            self.setModuleMapStatus('neutral', translate('sortable.unchanged'));
+            return false;
+          }
+          return courseEditorService.saveDraft(self.courseId).then(function () {
+            self.setModuleMapStatus('success', translate('sortable.moved'));
+            return true;
+          });
+        }).catch(function () {
+          self.setModuleMapStatus('error', translate('sortable.failed'));
+          throw new Error('Module reorder failed.');
+        });
+      },
+      onFailure: function () {
+        self.setModuleMapStatus('error', translate('sortable.failed'));
+      }
+    });
+  }
+
+  setModuleMapStatus(type, message) {
+    var statusElement = document.getElementById('moduleMapReorderStatus');
+
+    if (!statusElement) {
+      return;
+    }
+
+    var className = 'mt-3 rounded-xl border px-3 py-2 text-xs font-black ';
+
+    if (type === 'error') {
+      className += 'border-rose-100 bg-rose-50 text-rose-700';
+    } else if (type === 'success') {
+      className += 'border-emerald-100 bg-emerald-50 text-emerald-700';
+    } else if (type === 'saving') {
+      className += 'border-blue-100 bg-blue-50 text-blue-700';
+    } else {
+      className += 'border-slate-100 bg-slate-50 text-slate-500';
+    }
+
+    statusElement.className = className;
+    statusElement.textContent = message || '';
+    statusElement.hidden = !message;
+  }
+
+  applyLocalizedText() {
+    var localizedElements = document.querySelectorAll('[data-i18n-text]');
+
+    Array.prototype.forEach.call(localizedElements, function (element) {
+      element.textContent = translate(element.getAttribute('data-i18n-text'));
+    });
   }
 
   renderModuleDependencyBuilder(modules, course) {
@@ -2292,6 +2351,79 @@ export class CourseOverviewPage {
       saveBtn.disabled = false;
       saveBtn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Retry';
       console.error('[course-overview:dependency-save-failed]', error);
+    });
+  }
+
+  saveModuleEstimatedMinutes(saveBtn) {
+    var moduleId = saveBtn.getAttribute('data-module-id');
+    var row = saveBtn.closest('tr.module-row');
+    var input = row ? row.querySelector('.module-estimated-minutes-input') : null;
+    var status = row ? row.querySelector('.module-estimated-minutes-status') : null;
+    var state = courseEditorStore.getState();
+    var modules = state && Array.isArray(state.modules) ? state.modules : [];
+    var module = modules.find(function (candidate) {
+      return readModuleId(candidate) === moduleId;
+    });
+    var estimatedMinutes = input ? readOptionalPositiveWholeNumberValue(input.value) : null;
+
+    if (!module || !input) {
+      return;
+    }
+
+    if (estimatedMinutes === false) {
+      if (status) {
+        status.textContent = 'Use a positive whole number.';
+        status.className = 'module-estimated-minutes-status text-[10px] font-black text-red-600';
+      }
+      input.focus();
+      return;
+    }
+
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+    if (status) {
+      status.textContent = 'Saving...';
+      status.className = 'module-estimated-minutes-status text-[10px] font-black text-blue-600';
+    }
+
+    courseEditorService.updateModule(this.courseId, moduleId, {
+      title: module.title || '',
+      description: module.description || '',
+      status: module.status || 'draft',
+      iconUrl: typeof module.iconUrl === 'string' ? module.iconUrl : '',
+      pathType: typeof module.pathType === 'string' ? module.pathType : '',
+      pathGroup: typeof module.pathGroup === 'string' ? module.pathGroup : '',
+      parentModuleId: typeof module.parentModuleId === 'string' ? module.parentModuleId : '',
+      pathOrder: typeof module.pathOrder === 'number' ? module.pathOrder : undefined,
+      unlockRuleType: typeof module.unlockRuleType === 'string' ? module.unlockRuleType : undefined,
+      prerequisiteModuleId: typeof module.prerequisiteModuleId === 'string' ? module.prerequisiteModuleId : '',
+      unlockThresholdPercent: typeof module.unlockThresholdPercent === 'number' ? clampPercent(module.unlockThresholdPercent) : undefined,
+      estimatedMinutes: estimatedMinutes
+    }).then(function (result) {
+      if (!result || !result.emitted || !result.emitted.success) {
+        throw new Error('Module estimate was not saved.');
+      }
+
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
+      if (status) {
+        status.textContent = estimatedMinutes ? 'Saved.' : 'Estimate hidden.';
+        status.className = 'module-estimated-minutes-status text-[10px] font-black text-emerald-700';
+      }
+      setTimeout(function () {
+        saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i>';
+        if (status) {
+          status.textContent = '';
+        }
+      }, 1400);
+    }).catch(function (error) {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+      if (status) {
+        status.textContent = error.message || 'Could not save.';
+        status.className = 'module-estimated-minutes-status text-[10px] font-black text-red-600';
+      }
+      console.error('[course-overview:module-estimate-save-failed]', error);
     });
   }
 
@@ -2874,6 +3006,7 @@ export class CourseOverviewPage {
         ? '<span class="inline-flex items-center gap-1 text-orange-500 font-bold ml-2 text-[10px] uppercase tracking-wider"><div class="w-1.5 h-1.5 rounded-full bg-orange-500"></div>Unsaved</span>'
         : '';
       var stepLabel = moduleDisplay.stepCount + ' step' + (moduleDisplay.stepCount === 1 ? '' : 's');
+      var estimatedMinutesValue = moduleDisplay.estimatedMinutes ? String(moduleDisplay.estimatedMinutes) : '';
       var publishedBadge = createStatusBadge(moduleDisplay.status, {
         label: moduleDisplay.statusLabel,
         className: 'inline-flex rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wide bg-white border-gray-200 ' + moduleDisplay.statusClass,
@@ -2904,6 +3037,14 @@ export class CourseOverviewPage {
         + '</td>'
         + '<td class="py-4 px-6 border-b border-gray-100 text-right">'
         + '<div class="flex flex-col items-end gap-2">'
+        + '<div class="pointer-events-auto flex flex-col items-end gap-1">'
+        + '<label class="text-[10px] font-black uppercase tracking-wide text-gray-400" for="module-estimated-minutes-' + escapeHtml(moduleDisplay.id) + '">Estimated Time</label>'
+        + '<div class="flex items-center gap-1">'
+        + '<input id="module-estimated-minutes-' + escapeHtml(moduleDisplay.id) + '" data-module-id="' + escapeHtml(moduleDisplay.id) + '" class="module-estimated-minutes-input w-20 rounded border border-gray-200 px-2 py-1 text-right text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" type="number" min="1" step="1" inputmode="numeric" placeholder="min" value="' + escapeHtml(estimatedMinutesValue) + '">'
+        + '<button type="button" data-module-id="' + escapeHtml(moduleDisplay.id) + '" class="save-module-estimate-btn inline-flex h-7 w-7 items-center justify-center rounded border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 hover:text-blue-600" title="Save estimated time"><i class="fa-solid fa-floppy-disk text-[10px]"></i></button>'
+        + '</div>'
+        + '<span class="module-estimated-minutes-status text-[10px] font-black text-gray-400"></span>'
+        + '</div>'
         + '<label class="pointer-events-auto inline-flex cursor-pointer items-center gap-1 rounded border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-xs font-black text-emerald-700 hover:bg-emerald-100">'
         + '<i class="fa-solid fa-image"></i> Icon'
         + '<input data-id="' + escapeHtml(moduleDisplay.id) + '" class="module-icon-upload-input hidden" type="file" accept="image/*">'
@@ -2921,6 +3062,14 @@ export class CourseOverviewPage {
   destroy() {
     if (this.unsubscribe) {
       this.unsubscribe();
+    }
+    if (this.moduleMapSortable && typeof this.moduleMapSortable.destroy === 'function') {
+      this.moduleMapSortable.destroy();
+      this.moduleMapSortable = null;
+    }
+    if (this.languageSelectorCleanup) {
+      this.languageSelectorCleanup();
+      this.languageSelectorCleanup = null;
     }
   }
 }
@@ -2968,7 +3117,7 @@ function buildCreateModuleWizardModal() {
               ${buildWizardInput('Subject / Topic Area', 'wizardSubjectInput', 'English / Movement verbs', false)}
               ${buildWizardInput('Topic', 'wizardTopicInput', 'Action words', false)}
               ${buildWizardInput('Level / Grade', 'wizardLevelInput', 'Grade 2', false)}
-              ${buildWizardInput('Estimated Minutes', 'wizardEstimatedMinutesInput', '15', false, 'number')}
+              ${buildWizardInput('Estimated Time (minutes)', 'wizardEstimatedMinutesInput', 'Optional', false, 'number')}
               <div>
                 <label class="block text-xs font-black uppercase tracking-wide text-slate-500 mb-1">Language</label>
                 <select id="wizardLanguageSelect" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -3606,9 +3755,23 @@ function readContentLines(value) {
   });
 }
 
-function readNumberInput(id, fallback) {
-  var value = Number(readInputValue(id));
-  return Number.isFinite(value) && value > 0 ? value : fallback;
+function readOptionalPositiveWholeNumberInput(id) {
+  return readOptionalPositiveWholeNumberValue(readInputValue(id));
+}
+
+function readOptionalPositiveWholeNumberValue(value) {
+  var text = value === null || value === undefined ? '' : String(value).trim();
+  var numberValue = Number(text);
+
+  if (!text) {
+    return null;
+  }
+
+  if (Number.isInteger(numberValue) && numberValue > 0) {
+    return numberValue;
+  }
+
+  return false;
 }
 
 function readWizardStepLabel(step) {
@@ -3700,28 +3863,28 @@ function buildVisualModuleMapEditor(modules, course) {
   var accentClass = readThemeAccentSoftClass(theme.accentColor);
   var html = '<section class="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">';
 
-  html += '<div class="mb-4 flex items-start justify-between gap-4"><div><p class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">Visual Module Map Editor</p><h2 class="mt-1 text-lg font-black text-slate-950">Drag modules to reorder the journey</h2></div><span class="rounded-full bg-slate-50 px-3 py-2 text-[10px] font-black uppercase text-slate-500">' + safeModules.length + ' modules</span></div>';
+  html += '<div class="mb-4 flex items-start justify-between gap-4"><div><p class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">Visual Module Map Editor</p><h2 class="mt-1 text-lg font-black text-slate-950">' + escapeHtml(translate('courseCreator.visualMapTitle')) + '</h2></div><span class="rounded-full bg-slate-50 px-3 py-2 text-[10px] font-black uppercase text-slate-500">' + escapeHtml(translate('courseCreator.modulesCount', { count: safeModules.length })) + '</span></div>';
 
   if (safeModules.length === 0) {
     html += '<div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm font-bold text-slate-500">Create modules to use the visual map.</div></section>';
     return html;
   }
 
-  html += '<div class="grid gap-3 md:grid-cols-3 xl:grid-cols-4">';
+  html += '<div class="grid gap-3 md:grid-cols-3 xl:grid-cols-4" data-module-map-sortable>';
   safeModules.forEach(function (module, index) {
     var moduleId = readModuleId(module);
     var title = readModuleTitle(module) || 'Untitled Module';
     var stepCount = countModuleSteps(module);
-    html += '<article draggable="true" class="module-map-card rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:-translate-y-0.5 hover:shadow-md" data-index="' + index + '">';
+    html += '<article class="module-map-card rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:-translate-y-0.5 hover:shadow-md" data-index="' + index + '" data-sortable-item-id="' + escapeHtml(moduleId) + '">';
     html += '<div class="flex items-start justify-between gap-3"><span class="grid h-11 w-11 place-items-center rounded-2xl text-sm font-black ' + accentClass + '">' + buildThemedModuleIcon(module, course, index, theme) + '</span><span class="rounded-full bg-white px-2 py-1 text-[10px] font-black text-slate-500">' + stepCount + ' steps</span></div>';
     html += '<h3 class="mt-3 min-h-[40px] text-sm font-black leading-5 text-slate-950">' + escapeHtml(title) + '</h3>';
     html += '<div class="mt-4 flex items-center justify-between gap-2">';
-    html += '<div class="flex gap-1"><button type="button" class="module-map-reorder-btn rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10px] font-black text-slate-600 disabled:opacity-40" data-index="' + index + '" data-direction="up"' + (index === 0 ? ' disabled' : '') + '><i class="fa-solid fa-arrow-up"></i></button><button type="button" class="module-map-reorder-btn rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10px] font-black text-slate-600 disabled:opacity-40" data-index="' + index + '" data-direction="down"' + (index === safeModules.length - 1 ? ' disabled' : '') + '><i class="fa-solid fa-arrow-down"></i></button></div>';
+    html += '<div class="flex gap-1"><button type="button" data-sortable-handle class="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10px] font-black text-slate-600 cursor-grab" aria-label="' + escapeHtml(translate('sortable.dragHandle')) + '" title="' + escapeHtml(translate('sortable.dragHandle')) + '"><i class="fa-solid fa-grip-vertical"></i></button><button type="button" class="module-map-reorder-btn rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10px] font-black text-slate-600 disabled:opacity-40" data-index="' + index + '" data-direction="up"' + (index === 0 ? ' disabled' : '') + ' aria-label="' + escapeHtml(translate('sortable.moveUp')) + '"><i class="fa-solid fa-arrow-up"></i></button><button type="button" class="module-map-reorder-btn rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10px] font-black text-slate-600 disabled:opacity-40" data-index="' + index + '" data-direction="down"' + (index === safeModules.length - 1 ? ' disabled' : '') + ' aria-label="' + escapeHtml(translate('sortable.moveDown')) + '"><i class="fa-solid fa-arrow-down"></i></button></div>';
     html += '<button type="button" class="module-map-open-btn rounded-lg bg-slate-950 px-3 py-1.5 text-[10px] font-black text-white" data-id="' + escapeHtml(moduleId) + '">Edit</button>';
     html += '</div>';
     html += '</article>';
   });
-  html += '</div></section>';
+  html += '</div><div id="moduleMapReorderStatus" class="hidden" aria-live="polite"></div></section>';
   return html;
 }
 
@@ -4838,6 +5001,7 @@ function normalizeModuleDisplay(module, index) {
     statusLabel: readModuleStatusLabel(status),
     statusClass: readModuleStatusClass(status),
     stepCount: countModuleSteps(module),
+    estimatedMinutes: readOptionalPositiveWholeNumberValue(module && module.estimatedMinutes),
     iconUrl: module && typeof module.iconUrl === 'string' ? module.iconUrl : '',
     updatedAt: module ? module.updatedAt || module.modifiedAt || module.createdAt || null : null,
     isDirty: Boolean(module && module.isDirty),

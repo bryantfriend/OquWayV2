@@ -6,7 +6,7 @@ import {
   normalizeActivityTemplateId,
   isSupportedStepType,
   listStepTypeDefinitions
-} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.192-timed-sequence";
+} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.209-open-integrations";
 
 export {
   createDefaultStepConfig,

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>OquWay Open Integration Fixture</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 24px; }
+    .module-map-card, .step-tile { border: 1px solid #cbd5e1; margin: 8px 0; padding: 8px; }
+    .roadmap-svg { width: 520px; max-width: 100%; }
+  </style>
+</head>
+<body>
+  <label for="languageSelect">Language</label>
+  <select id="languageSelect"></select>
+  <p id="localizedStatus"></p>
+
+  <div id="sortableList">
+    <div class="module-map-card" data-sortable-item-id="module-a"><button data-sortable-handle>Move</button><span>Module A</span></div>
+    <div class="module-map-card" data-sortable-item-id="module-b"><button data-sortable-handle>Move</button><span>Module B</span></div>
+    <div class="module-map-card" data-sortable-item-id="module-c"><button data-sortable-handle>Move</button><span>Module C</span></div>
+  </div>
+  <button id="keyboardMoveDown" type="button">Move down</button>
+  <p id="sortableStatus" aria-live="polite"></p>
+
+  <div id="richText"></div>
+  <div id="svgMarkup"></div>
+  <div id="roadmapSvg" class="roadmap-svg"></div>
+  <p id="svgStatus"></p>
+
+  <script type="module">
+    import { initializeSortableList } from "../../packages/ui/adapters/sortableListAdapter.js?v=1.1.209-open-integrations";
+    import { sanitizeRestrictedRichText, sanitizeRestrictedSvg } from "../../packages/shared/security/contentSanitizer.js?v=1.1.209-open-integrations";
+    import { initializeLocalization, changeLanguage, translate } from "../../packages/shared/localization/localizationService.js?v=1.1.209-open-integrations";
+    import { renderRoadmapSvgScene } from "../../packages/ui/adapters/svgSceneAdapter.js?v=1.1.209-open-integrations";
+
+    window.oquwayWrites = 0;
+    window.oquwayAuditEvents = 0;
+    window.oquwayLastOrder = ["module-a", "module-b", "module-c"];
+
+    await initializeLocalization();
+    document.getElementById("languageSelect").innerHTML = '<option value="en">English</option><option value="ru">Russian</option><option value="ky">Kyrgyz</option>';
+    document.getElementById("languageSelect").addEventListener("change", async function (event) {
+      await changeLanguage(event.target.value);
+      document.getElementById("localizedStatus").textContent = translate("sortable.moved");
+    });
+    document.getElementById("localizedStatus").textContent = translate("sortable.moved");
+
+    var list = document.getElementById("sortableList");
+    window.oquwaySortable = initializeSortableList(list, {
+      itemSelector: ".module-map-card",
+      handleSelector: "[data-sortable-handle]",
+      onUnchanged: function () {
+        document.getElementById("sortableStatus").textContent = translate("sortable.unchanged");
+      },
+      onReorder: function (event) {
+        window.oquwayWrites = window.oquwayWrites + 1;
+        window.oquwayAuditEvents = window.oquwayAuditEvents + 1;
+        window.oquwayLastOrder = event.orderedIds.slice();
+        document.getElementById("sortableStatus").textContent = translate("sortable.moved");
+      }
+    });
+
+    document.getElementById("keyboardMoveDown").addEventListener("click", function () {
+      var first = list.querySelector(".module-map-card");
+      var second = first ? first.nextElementSibling : null;
+      if (first && second) {
+        list.insertBefore(second, first);
+        window.oquwayWrites = window.oquwayWrites + 1;
+        window.oquwayLastOrder = window.oquwaySortable.readOrder();
+        document.getElementById("sortableStatus").textContent = translate("sortable.moved");
+      }
+    });
+
+    var scriptPayload = "<" + "script>window.__xss=1</" + "script>";
+    var svgScriptPayload = "<" + "script>window.__svgXss=1</" + "script>";
+    document.getElementById("richText").innerHTML = sanitizeRestrictedRichText('<p>Hello <strong>learner</strong><img src=x onerror="window.__xss=1">' + scriptPayload + '<a href="javascript:window.__xss=1">bad</a></p>');
+    document.getElementById("svgMarkup").innerHTML = sanitizeRestrictedSvg('<svg viewBox="0 0 20 20">' + svgScriptPayload + '<foreignObject><body>bad</body></foreignObject><circle onload="window.__svgXss=1" cx="10" cy="10" r="8"></circle></svg>');
+
+    window.oquwaySvgScene = renderRoadmapSvgScene(document.getElementById("roadmapSvg"), {
+      title: translate("svg.roadmapTitle"),
+      description: translate("svg.roadmapDescription"),
+      items: [
+        { id: "node-1", number: "1", title: "Start", description: "Begin" },
+        { id: "node-2", number: "2", title: "Practice", description: "Try" }
+      ],
+      onInteraction: function (interaction) {
+        document.getElementById("svgStatus").textContent = interaction.elementId;
+      }
+    });
+  </script>
+</body>
+</html>

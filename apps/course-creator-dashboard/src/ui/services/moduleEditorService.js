@@ -419,6 +419,16 @@ export const moduleEditorService = {
   },
 
   reorderPracticeModeSteps: async function (courseId, moduleId, sessionId, practiceModeKey, orderedStepIds, selectedStepId, modeId) {
+    if (areStringArraysEqual(readCurrentPracticeModeStepIds(sessionId, practiceModeKey, modeId), orderedStepIds)) {
+      return {
+        emitted: {
+          success: true,
+          data: moduleEditorStore.getState()
+        },
+        unchanged: true
+      };
+    }
+
     var optimisticSnapshot = applyOptimisticPracticeModeStepOrder(sessionId, practiceModeKey, orderedStepIds, selectedStepId, modeId);
     var result = null;
 
@@ -704,6 +714,37 @@ function createOptimisticReorderedSteps(steps, orderedStepIds) {
   }
 
   return reorderedSteps;
+}
+
+function readCurrentPracticeModeStepIds(sessionId, practiceModeKey, modeId) {
+  var state = moduleEditorStore.getState();
+  var session = findSessionById(Array.isArray(state.sessions) ? state.sessions : [], sessionId);
+  var safeModeId = modeId || (session && session.learningModeId) || state.selectedModeId || state.selectedLearningModeId;
+  var learningMode = safeModeId ? readModeById(state.learningModes, safeModeId) : null;
+  var practiceMode = session && session.practiceModes ? session.practiceModes[practiceModeKey] : null;
+  var steps = learningMode && Array.isArray(learningMode.steps) && learningMode.steps.length > 0
+    ? learningMode.steps
+    : practiceMode && Array.isArray(practiceMode.steps) ? practiceMode.steps : [];
+
+  return steps.map(function (step) {
+    return step && step.id ? step.id : "";
+  }).filter(function (stepId) {
+    return stepId;
+  });
+}
+
+function areStringArraysEqual(firstArray, secondArray) {
+  if (!Array.isArray(firstArray) || !Array.isArray(secondArray) || firstArray.length !== secondArray.length) {
+    return false;
+  }
+
+  for (var index = 0; index < firstArray.length; index++) {
+    if (firstArray[index] !== secondArray[index]) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function findStepById(steps, stepId) {

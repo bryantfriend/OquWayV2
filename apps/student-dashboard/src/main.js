@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.208-student-dashboard-scope";
 import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.208-student-dashboard-scope";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.208-student-dashboard-scope";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.209-open-integrations";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -175,6 +175,11 @@ function render(state) {
   }
 
   if (state.playerMode) {
+    if (appElement.querySelector("#student-practice-player-root") && practiceModePlayer) {
+      updatePlayerStatusChrome(state);
+      return;
+    }
+
     appElement.innerHTML = buildPlayerView(state);
     mountPracticeModePlayer(state);
     return;
@@ -728,7 +733,7 @@ async function completeCurrentStep(stepId, completionResult, snapshot) {
   );
 
   if (!stepResult) {
-    return;
+    throw new Error("Progress could not be saved. Try again.");
   }
 
   applyProgressResult(stepResult);
@@ -790,6 +795,21 @@ function mergeOpenedCourse(courses, openedCourse, requestedCourseId) {
   }
 
   return mergedCourses;
+}
+
+function updatePlayerStatusChrome(state) {
+  var errorElement = document.getElementById("student-player-error-region");
+  var statusElement = document.getElementById("student-player-status-region");
+
+  if (errorElement) {
+    errorElement.innerHTML = state.error ? escapeHtml(state.error) : "";
+    errorElement.style.display = state.error ? "" : "none";
+  }
+
+  if (statusElement) {
+    statusElement.innerHTML = state.statusMessage ? escapeHtml(state.statusMessage) : "";
+    statusElement.style.display = state.statusMessage ? "" : "none";
+  }
 }
 
 function readOpenedDashboardCourseId(openResult) {
@@ -1165,7 +1185,7 @@ function buildProfileJourneyTab(snapshot) {
   snapshot.journey.courses.forEach(function (course) {
     html += '<article class="student-journey-course"><div class="student-journey-course-head"><strong>' + escapeHtml(course.title) + '</strong><span>' + course.progressPercent + '%</span></div><div class="student-progress-bar"><span style="width:' + course.progressPercent + '%"></span></div><div class="student-journey-module-list">';
     course.modules.forEach(function (module) {
-      html += '<button type="button" class="student-journey-module student-journey-' + escapeHtml(module.status) + '" data-student-section="courses"><span>' + renderJourneyStatusIcon(module) + '</span><strong>' + escapeHtml(module.title) + '</strong><small>' + module.completedSteps + ' / ' + module.totalSteps + ' steps</small></button>';
+      html += '<button type="button" class="student-journey-module student-journey-' + escapeHtml(module.status) + '" data-student-section="courses"><span>' + renderJourneyStatusIcon(module) + '</span><strong>' + escapeHtml(module.title) + '</strong><small>' + module.completedSteps + ' / ' + module.totalSteps + ' learning activities</small></button>';
     });
     html += '</div></article>';
   });
@@ -1442,10 +1462,10 @@ function renderCourseFocusSidebar(state, course, progress) {
   return '<aside class="course-focus-sidebar">'
     + '<div class="course-focus-brand"><span>' + renderSvgIcon("oquway") + '</span><strong>OquWay</strong></div>'
     + '<nav class="course-focus-nav" aria-label="Course focus navigation">'
-    + '<span class="course-focus-nav-item">' + renderSvgIcon("home") + '<span>Home</span></span>'
-    + '<span class="course-focus-nav-item course-focus-nav-item-active">' + renderSvgIcon("book") + '<span>Courses</span></span>'
-    + '<span class="course-focus-nav-item">' + renderSvgIcon("trophy") + '<span>Achievements</span></span>'
-    + '<span class="course-focus-nav-item">' + renderSvgIcon("gift") + '<span>Rewards</span></span>'
+    + '<button type="button" class="course-focus-nav-item student-section-nav-item" data-student-section="home">' + renderSvgIcon("home") + '<span>Home</span></button>'
+    + '<button type="button" class="course-focus-nav-item student-section-nav-item course-focus-nav-item-active" data-student-section="courses">' + renderSvgIcon("book") + '<span>Courses</span></button>'
+    + '<button type="button" class="course-focus-nav-item student-section-nav-item" data-student-section="profile">' + renderSvgIcon("trophy") + '<span>Achievements</span></button>'
+    + '<button type="button" class="course-focus-nav-item student-section-nav-item" data-student-section="profile">' + renderSvgIcon("gift") + '<span>Rewards</span></button>'
     + '</nav>'
     + '<div class="course-focus-profile">'
     + buildStudentAvatar(state.student, studentName)
@@ -1466,7 +1486,7 @@ function renderCourseRibbon(course, progress, nextAction) {
     + '<div class="course-focus-ribbon-title">' + renderCourseIcon(course, "course-focus-course-icon") + '<strong>' + escapeHtml(readLocalizedText(course.title, "Untitled Course")) + '</strong><span class="course-focus-course-caret">v</span></div>'
     + '<div class="course-focus-ribbon-stat">' + renderSvgIcon("star") + '<strong>' + progress.percent + '%</strong><span>Course Progress</span></div>'
     + '<div class="course-focus-ribbon-stat">' + renderSvgIcon("check") + '<strong>' + progress.completedModules + ' / ' + progress.totalModules + '</strong><span>Milestones</span></div>'
-    + '<div class="course-focus-ribbon-stat">' + renderSvgIcon("steps") + '<strong>' + progress.completedSteps + ' / ' + progress.totalSteps + '</strong><span>Steps</span></div>'
+    + '<div class="course-focus-ribbon-stat">' + renderSvgIcon("steps") + '<strong>' + progress.completedSteps + ' / ' + progress.totalSteps + '</strong><span>Learning Activities</span></div>'
     + '<button type="button" class="course-focus-continue-btn"' + disabled(continueDisabled) + '>' + escapeHtml(nextAction && nextAction.buttonLabel ? nextAction.buttonLabel : "Continue") + '<span>' + renderSvgIcon("arrowRight") + '</span></button>'
     + '</section>';
 }
@@ -1485,7 +1505,7 @@ function renderCourseHero(course, progress) {
     + '<div class="course-focus-hero-progress" style="--course-progress:' + progress.percent + '%"><strong>' + progress.percent + '%</strong><span>Course Progress</span></div>'
     + '<div class="course-focus-stats">'
     + '<span>' + renderSvgIcon("check") + '<strong>' + progress.completedModules + '</strong>Modules Completed</span>'
-    + '<span>' + renderSvgIcon("steps") + '<strong>' + progress.completedSteps + ' / ' + progress.totalSteps + '</strong>Steps Completed</span>'
+    + '<span>' + renderSvgIcon("steps") + '<strong>' + progress.completedSteps + ' / ' + progress.totalSteps + '</strong>Learning Activities Completed</span>'
     + '<span>' + renderSvgIcon("star") + '<strong>' + xpEarned + '</strong>XP Earned</span>'
     + '<span>' + renderSvgIcon("gem") + '<strong>' + badgesEarned + '</strong>Badges Earned</span>'
     + '</div>'
@@ -1497,13 +1517,17 @@ function renderNextUpCard(nextAction) {
     return '<section class="course-next-up-card course-next-up-empty"><p class="student-eyebrow">Next Up</p><div class="course-next-up-art">' + renderSvgIcon("rocket") + '</div><h2>Not Ready Yet</h2><p>' + escapeHtml(nextAction && nextAction.message ? nextAction.message : "This course does not have a playable activity yet.") + '</p></section>';
   }
 
+  var estimatedTimeHtml = nextAction.estimatedTimeLabel
+    ? '<div class="course-next-up-time">' + renderSvgIcon("clock") + '<span>' + escapeHtml(nextAction.estimatedTimeLabel) + '</span></div>'
+    : '';
+
   return '<section class="course-next-up-card">'
     + '<p class="student-eyebrow">Next Up</p>'
     + '<div class="course-next-up-art">' + renderSvgIcon("rocket") + '</div>'
     + '<small>' + escapeHtml(nextAction.moduleTitle) + '</small>'
     + '<h2>' + escapeHtml(nextAction.sessionTitle) + '</h2>'
     + '<p>' + escapeHtml(nextAction.practiceModeTitle) + ' - ' + escapeHtml(nextAction.reason) + '</p>'
-    + '<div class="course-next-up-time">' + renderSvgIcon("clock") + '<span>' + escapeHtml(nextAction.estimatedMinutes || "About 20 min") + '</span></div>'
+    + estimatedTimeHtml
     + '</section>';
 }
 
@@ -1628,7 +1652,7 @@ function renderTemplateModuleButton(module, moduleIndex, progress, variant, opti
   var extraClass = options && options.className ? options.className : "";
   var style = options && options.style ? ' style="' + escapeHtml(options.style) + '"' : "";
   var title = readLocalizedText(safeModule.title || safeModule.name, "Module " + (moduleIndex + 1));
-  var detailText = readiness.completedSteps + " / " + readiness.totalSteps + " steps";
+  var detailText = readiness.completedSteps + " / " + readiness.totalSteps + " learning activities";
   var statusIcon = locked ? renderSvgIcon("lock") : (isComplete ? renderSvgIcon("check") : renderModuleIcon(module, readiness.status));
 
   if (!module) {
@@ -1705,7 +1729,7 @@ function renderModuleActivities(course, module, state) {
     activityIndex = activityIndex + 1;
   }
   html += '</div><button type="button" class="course-activity-scroll-btn" aria-label="Scroll activities right">' + renderSvgIcon("arrowRight") + '</button></div>';
-  html += '<div class="course-module-mini-progress"><span>' + readiness.completedSteps + ' / ' + readiness.totalSteps + ' steps complete</span><div class="student-progress-bar"><span style="width:' + readModuleProgressPercent(module) + '%"></span></div></div>';
+  html += '<div class="course-module-mini-progress"><span>' + readiness.completedSteps + ' / ' + readiness.totalSteps + ' learning activities complete</span><div class="student-progress-bar"><span style="width:' + readModuleProgressPercent(module) + '%"></span></div></div>';
   html += '</section>';
 
   return html;
@@ -1952,31 +1976,37 @@ function readCourseBadgesEarned(course, progress) {
   return Math.floor(progress.completedModules / 3);
 }
 
-function readEstimatedMinutesLabel(module, session, mode) {
-  var value = readFirstNumber([
-    mode ? mode.estimatedMinutes : null,
-    session ? session.estimatedMinutes : null,
-    module ? module.estimatedMinutes : null,
-    module ? module.durationMinutes : null
-  ]);
+function readEstimatedMinutesLabel(module) {
+  var value = readEstimatedMinutesValue(module);
 
   if (!value) {
-    return "About 20 min";
+    return "";
   }
 
-  return value + " min";
+  return "Estimated time: About " + value + " minute" + (value === 1 ? "" : "s") + ".";
+}
+
+function readEstimatedMinutesValue(module) {
+  return readFirstNumber([
+    module ? module.estimatedMinutes : null,
+    module ? module.durationMinutes : null,
+    module ? module.estimatedDurationMinutes : null
+  ]);
 }
 
 function readFirstNumber(values) {
   var index = 0;
 
   while (index < values.length) {
-    if (typeof values[index] === "number" && values[index] > 0) {
-      return Math.round(values[index]);
+    if (typeof values[index] === "number" && Number.isInteger(values[index]) && values[index] > 0) {
+      return values[index];
     }
 
     if (typeof values[index] === "string" && values[index].trim() && !Number.isNaN(Number(values[index]))) {
-      return Math.round(Number(values[index]));
+      var numberValue = Number(values[index]);
+      if (Number.isInteger(numberValue) && numberValue > 0) {
+        return numberValue;
+      }
     }
 
     index = index + 1;
@@ -2397,8 +2427,8 @@ function findNextActionInModule(course, module, allowComplete) {
           sessionTitle: readLocalizedText(session.title, "Session"),
           practiceModeTitle: readLocalizedText(mode.title, "Practice Mode"),
           buttonLabel: allowComplete ? "Review" : (completedCount > 0 ? "Continue" : "Start"),
-          reason: completedCount + " / " + steps.length + " steps complete",
-          estimatedMinutes: readEstimatedMinutesLabel(module, session, mode)
+          reason: completedCount + " / " + steps.length + " learning activities complete",
+          estimatedTimeLabel: readEstimatedMinutesLabel(module)
         };
       }
 
@@ -2597,7 +2627,7 @@ function readMotivationalMessage(overallProgress) {
     return "Your learning path is underway. A few focused minutes can move it forward.";
   }
 
-  return "Pick a course and begin your first practice step.";
+  return "Pick a course and begin your first learning activity.";
 }
 
 function readStudentClassLabel(student) {
@@ -2841,11 +2871,11 @@ function buildSessions(course, module, state) {
   var sessionIndex = 0;
 
   if (sessions.length === 0) {
-    return '<div class="student-session-empty">This module does not have steps yet.</div>';
+    return '<div class="student-session-empty">This module does not have learning activities yet.</div>';
   }
 
   if (countModuleSteps(module) === 0) {
-    return '<div class="student-session-empty">This module does not have steps yet.</div>';
+    return '<div class="student-session-empty">This module does not have learning activities yet.</div>';
   }
 
   html += '<div class="student-session-list">';
@@ -2891,7 +2921,7 @@ function buildPracticeModeCards(course, module, session) {
     html += ' data-practice-mode-key="' + escapeHtml(key) + '">';
     html += '<strong>' + escapeHtml(readLocalizedText(mode.title, "Practice Mode")) + '</strong>';
     html += '<span>' + escapeHtml(mode.purpose) + '</span>';
-    html += '<small>' + escapeHtml(completeText) + ' - ' + completedCount + ' / ' + steps.length + ' steps</small>';
+    html += '<small>' + escapeHtml(completeText) + ' - ' + completedCount + ' / ' + steps.length + ' learning activities</small>';
     html += '</button>';
 
     keyIndex = keyIndex + 1;
@@ -2911,13 +2941,8 @@ function buildPlayerView(state) {
 
   html += '<section class="student-player-shell">';
 
-  if (state.error) {
-    html += '<div class="student-error">' + escapeHtml(state.error) + '</div>';
-  }
-
-  if (state.statusMessage) {
-    html += '<div class="student-status">' + escapeHtml(state.statusMessage) + '</div>';
-  }
+  html += '<div id="student-player-error-region" class="student-error" style="display:' + (state.error ? 'block' : 'none') + '">' + (state.error ? escapeHtml(state.error) : '') + '</div>';
+  html += '<div id="student-player-status-region" class="student-status" style="display:' + (state.statusMessage ? 'block' : 'none') + '">' + (state.statusMessage ? escapeHtml(state.statusMessage) : '') + '</div>';
 
   if (!course || !module || !session || !practiceMode || steps.length === 0) {
     html += '<div class="student-player-empty">';
@@ -2959,6 +2984,7 @@ function mountPracticeModePlayer(state) {
       sessionId: session.id,
       practiceModeKey: state.selectedPracticeModeKey || "beforeClass",
       practiceMode: practiceMode,
+      estimatedMinutes: readEstimatedMinutesValue(module),
       steps: steps,
       actor: readStudentActor(state),
       mode: "student",
@@ -3007,7 +3033,7 @@ function resetPracticeModePlayer() {
 }
 
 function savePlayerStepCompletion(step, completionResult, snapshot) {
-  completeCurrentStep(readStepId(step, ""), completionResult, snapshot);
+  return completeCurrentStep(readStepId(step, ""), completionResult, snapshot);
 }
 
 async function loadExternalTaskStepStatus(step, snapshot) {
@@ -3235,6 +3261,12 @@ function updateSessionProgressEntry(session, progressResult) {
   practiceModes[progressResult.practiceModeKey] = {
     completedStepIds: progressResult.completedStepIds || [],
     completionResults: progressResult.completionResults || {},
+    xpEarned: readNonNegativeNumber(progressResult.xpEarned, readNestedProgressNumber(progressResult, "xpEarned", 0)),
+    starsEarned: readNonNegativeNumber(progressResult.starsEarned, readNestedProgressNumber(progressResult, "starsEarned", 0)),
+    gamification: {
+      xpEarned: readNonNegativeNumber(progressResult.xpEarned, readNestedProgressNumber(progressResult, "xpEarned", 0)),
+      starsEarned: readNonNegativeNumber(progressResult.starsEarned, readNestedProgressNumber(progressResult, "starsEarned", 0))
+    },
     completed: progressResult.completed === true,
     updatedAt: Date.now()
   };
@@ -3245,6 +3277,22 @@ function updateSessionProgressEntry(session, progressResult) {
       updatedAt: Date.now()
     })
   });
+}
+
+function readNestedProgressNumber(source, key, fallback) {
+  if (source && source.gamification && typeof source.gamification[key] === "number") {
+    return source.gamification[key];
+  }
+
+  return fallback;
+}
+
+function readNonNegativeNumber(value, fallback) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return Math.max(0, Math.round(value));
+  }
+
+  return fallback;
 }
 
 function readSelectedCourse(state) {

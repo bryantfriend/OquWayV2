@@ -1,5 +1,5 @@
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.154-emotional-check-in-prototype";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.192-timed-sequence";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.209-open-integrations";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.209-open-integrations";
 import {
   createDefaultStepConfig,
   getStepTypeDefinition

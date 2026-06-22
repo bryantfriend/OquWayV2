@@ -1,5 +1,5 @@
 import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.160-lesson-paths";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.203-step-media-upload";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.209-open-integrations";
 import {
   getDefaultActivityTemplateId,
   getActivityTemplateOptions,
@@ -8,8 +8,11 @@ import {
   normalizeActivityTemplateId,
   validateStepConfig
 } from "../../../../../packages/domain/steps/index.js?v=1.1.193-step-library";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.193-step-library";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.209-open-integrations";
 import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.138-course-overview-title";
+import { initializeSortableList } from "../../../../../packages/ui/adapters/sortableListAdapter.js?v=1.1.209-open-integrations";
+import { translate } from "../../../../../packages/shared/localization/localizationService.js?v=1.1.209-open-integrations";
+import { isFeatureEnabled } from "../../../../../packages/shared/config/features.js?v=1.1.209-open-integrations";
 
 const MAIN_PATH_PRACTICE_MODE_KEY = "beforeClass";
 const SUPPORTED_MAIN_PATH_STEP_TYPES = [
@@ -50,6 +53,7 @@ export class CourseEditorPage {
     this.practiceModePlayer = null;
     this.practiceModePlayerSignature = "";
     this.practiceModePlayerSnapshot = null;
+    this.stepListSortable = null;
     this.activeEditorTab = "learningContent";
     this.stepDragState = null;
     this.boundStepDragMove = null;
@@ -234,10 +238,6 @@ export class CourseEditorPage {
 
     document.getElementById("moduleStructureDetails").addEventListener("click", function (e) {
       self.handleWorkspaceClick(e);
-    });
-
-    document.getElementById("moduleStructureDetails").addEventListener("pointerdown", function (e) {
-      self.handleStepDragPointerDown(e);
     });
 
     document.getElementById("workspaceContent").addEventListener("input", function (e) {
@@ -1518,6 +1518,7 @@ export class CourseEditorPage {
 
     if (structurePane) {
       structurePane.innerHTML = this.buildModuleStructureDetails(renderSession, state, selectedPracticeModeKey, selectedMode, effectiveStepId);
+      this.initializeStepSortableList(structurePane, renderSession, selectedPracticeModeKey, state);
     }
 
     workspace.innerHTML = this.buildWorkspaceHtml(renderSession, state, selectedPracticeModeKey, selectedMode, effectiveStepId);
@@ -1544,6 +1545,50 @@ export class CourseEditorPage {
         moduleEditorService.selectStep(syncStepId);
       }, 0);
     }
+  }
+
+  initializeStepSortableList(structurePane, session, practiceModeKey, state) {
+    var self = this;
+    var list = structurePane ? structurePane.querySelector(".main-path-step-list") : null;
+    var selectedModeId = readSelectedModeId(state);
+
+    if (this.stepListSortable && typeof this.stepListSortable.destroy === "function") {
+      this.stepListSortable.destroy();
+      this.stepListSortable = null;
+    }
+
+    if (!list || !isFeatureEnabled("sortableAuthoring")) {
+      return;
+    }
+
+    this.stepListSortable = initializeSortableList(list, {
+      itemSelector: ".step-tile[data-step-id]",
+      handleSelector: ".step-drag-handle",
+      onUnchanged: function () {
+        self.showEditorSaveStatus("success", translate("sortable.unchanged"));
+      },
+      onReorder: function (event) {
+        self.showEditorSaveStatus("saving", translate("sortable.saving"));
+        return moduleEditorService.reorderPracticeModeSteps(
+          self.courseId,
+          self.moduleId,
+          session.id,
+          practiceModeKey,
+          event.orderedIds,
+          state.selectedStepId || event.orderedIds[0] || "",
+          selectedModeId
+        ).then(function (result) {
+          self.showEditorSaveStatus("success", translate("sortable.moved"));
+          return result;
+        }).catch(function () {
+          self.showEditorSaveStatus("error", translate("sortable.failed"));
+          throw new Error("Step reorder failed.");
+        });
+      },
+      onFailure: function () {
+        self.showEditorSaveStatus("error", translate("sortable.failed"));
+      }
+    });
   }
 
   // ── Center workspace HTML ──────────────────────────────────────────────
@@ -1668,8 +1713,8 @@ export class CourseEditorPage {
       var downDisabled = stepIndex === steps.length - 1 ? " disabled" : "";
       var tileClass = "step-tile main-path-step-tile" + (isActive ? " is-selected" : "");
 
-      html += '<div class="' + tileClass + '" data-step-id="' + stepId + '">';
-      html += '<button type="button" class="step-drag-handle" data-step-id="' + stepId + '" aria-label="Drag step to reorder" title="Drag to reorder">';
+      html += '<div class="' + tileClass + '" data-step-id="' + stepId + '" data-sortable-item-id="' + stepId + '">';
+      html += '<button type="button" class="step-drag-handle" data-step-id="' + stepId + '" aria-label="' + escapeHtml(translate("sortable.dragHandle")) + '" title="' + escapeHtml(translate("sortable.dragHandle")) + '">';
       html += '<span></span><span></span><span></span><span></span><span></span><span></span>';
       html += '</button>';
       html += '<span class="structure-step-number">' + (stepIndex + 1) + '</span>';
@@ -1679,8 +1724,8 @@ export class CourseEditorPage {
       html += '<div class="structure-step-badges">' + buildStructureStatusBadge(stepStatus) + '</div>';
       html += '</div>';
       html += '<div class="structure-step-actions">';
-      html += '<button type="button" class="step-reorder-btn structure-step-icon-btn" data-step-id="' + stepId + '" data-direction="up"' + upDisabled + ' title="Move up" aria-label="Move step up"><i class="fa-solid fa-arrow-up"></i></button>';
-      html += '<button type="button" class="step-reorder-btn structure-step-icon-btn" data-step-id="' + stepId + '" data-direction="down"' + downDisabled + ' title="Move down" aria-label="Move step down"><i class="fa-solid fa-arrow-down"></i></button>';
+      html += '<button type="button" class="step-reorder-btn structure-step-icon-btn" data-step-id="' + stepId + '" data-direction="up"' + upDisabled + ' title="' + escapeHtml(translate("sortable.moveUp")) + '" aria-label="' + escapeHtml(translate("sortable.moveUp")) + '"><i class="fa-solid fa-arrow-up"></i></button>';
+      html += '<button type="button" class="step-reorder-btn structure-step-icon-btn" data-step-id="' + stepId + '" data-direction="down"' + downDisabled + ' title="' + escapeHtml(translate("sortable.moveDown")) + '" aria-label="' + escapeHtml(translate("sortable.moveDown")) + '"><i class="fa-solid fa-arrow-down"></i></button>';
       html += '<button type="button" class="preview-step-btn structure-step-preview-btn" data-step-id="' + stepId + '" title="Preview step"><i class="fa-solid fa-play"></i></button>';
       html += '<button type="button" class="step-tile-delete-btn structure-step-delete-btn" data-step-id="' + stepId + '" title="Delete step"><i class="fa-solid fa-trash-can"></i></button>';
       html += '</div>';
@@ -1748,8 +1793,8 @@ export class CourseEditorPage {
       html += '</div>';
       html += buildStepStatusBadge(stepStatus);
       html += '<div class="oqu-step-tile-actions">';
-      html += '<button type="button" class="step-reorder-btn oqu-step-icon-btn" data-step-id="' + stepId + '" data-direction="up"' + upDisabled + ' title="Move up">↑</button>';
-      html += '<button type="button" class="step-reorder-btn oqu-step-icon-btn" data-step-id="' + stepId + '" data-direction="down"' + downDisabled + ' title="Move down">↓</button>';
+      html += '<button type="button" class="step-reorder-btn oqu-step-icon-btn" data-step-id="' + stepId + '" data-direction="up"' + upDisabled + ' title="' + escapeHtml(translate("sortable.moveUp")) + '" aria-label="' + escapeHtml(translate("sortable.moveUp")) + '">↑</button>';
+      html += '<button type="button" class="step-reorder-btn oqu-step-icon-btn" data-step-id="' + stepId + '" data-direction="down"' + downDisabled + ' title="' + escapeHtml(translate("sortable.moveDown")) + '" aria-label="' + escapeHtml(translate("sortable.moveDown")) + '">↓</button>';
       html += '<button type="button" class="preview-step-btn oqu-step-preview-btn" data-step-id="' + stepId + '" title="Preview step"><i class="fa-solid fa-play"></i> Preview</button>';
       html += '<button type="button" class="step-tile-delete-btn oqu-step-delete-btn" data-step-id="' + stepId + '" title="Delete step">Delete</button>';
       html += '</div>';
@@ -2519,6 +2564,11 @@ export class CourseEditorPage {
 
   destroy() {
     this.resetPracticeModePlayer();
+    if (this.stepListSortable && typeof this.stepListSortable.destroy === "function") {
+      this.stepListSortable.destroy();
+      this.stepListSortable = null;
+    }
+    this.clearStepDragState();
 
     if (this.unsubscribe) {
       this.unsubscribe();

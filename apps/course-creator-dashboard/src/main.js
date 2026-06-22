@@ -1,12 +1,13 @@
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.203-step-media-upload";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.209-open-integrations";
 import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.160-lesson-paths";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.154-emotional-check-in-prototype";
-import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.203-step-media-upload";
+import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.209-open-integrations";
 import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.193-step-library";
 import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.154-emotional-check-in-prototype";
-import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.201-course-creator-stability-followup";
+import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.209-open-integrations";
 import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.154-emotional-check-in-prototype";
+import { initializeLocalization } from "../../../packages/shared/localization/localizationService.js?v=1.1.209-open-integrations";
 
 console.log("[oquway-build]", OQUWAY_BUILD_VERSION);
 console.warn("[course-creator-build-check] latest build active");
@@ -91,6 +92,7 @@ onAuthStateChanged(auth, async function (user) {
     }
 
     if (!appInitialized) {
+        await initializeLocalization();
         appInitialized = true;
         if (document.readyState === "loading") {
             document.addEventListener("DOMContentLoaded", initApp);

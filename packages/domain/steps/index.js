@@ -24,4 +24,4 @@ export function readStepTitle(step) {
   return readSafeString(step && (step.name || step.displayName || step.taskTitle)).trim() || "Untitled Step";
 }
 
-export * from "./stepTypeRegistry.js?v=1.1.192-timed-sequence";
+export * from "./stepTypeRegistry.js?v=1.1.209-open-integrations";

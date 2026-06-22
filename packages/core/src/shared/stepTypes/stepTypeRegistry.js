@@ -26,7 +26,7 @@ import {
   RoadmapStep,
   ScenarioChoiceStep,
   SortingStep
-} from "./InteractiveLearningSteps.js?v=1.1.192-timed-sequence";
+} from "./InteractiveLearningSteps.js?v=1.1.209-open-integrations";
 export {
   getActivityTemplateDefinition,
   getActivityTemplateOptions,
