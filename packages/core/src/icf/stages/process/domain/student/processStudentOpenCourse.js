@@ -1,5 +1,5 @@
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.82-shared-command-center-shell";
-import { getAssignedCourseIds, validateStudentCourseOpen } from "../../../../../../../domain/courses/index.js?v=1.1.209-open-integrations";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.210-student-course-hydration";
+import { getAssignedCourseIds, validateStudentCourseOpen } from "../../../../../../../domain/courses/index.js?v=1.1.210-student-course-hydration";
 import { resolveStudentId } from "../../../../../../../domain/users/index.js";
 
 export async function processStudentOpenCourse(executionState) {

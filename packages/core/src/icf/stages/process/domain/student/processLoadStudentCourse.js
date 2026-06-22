@@ -1,6 +1,6 @@
 import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
 import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.82-shared-command-center-shell";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.209-open-integrations";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.210-student-course-hydration";
 import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.82-shared-command-center-shell";
 import {
   isStudentDashboardProfile,
@@ -712,11 +712,22 @@ async function loadModules(actor, courseCollectionName, courseId) {
 
   var moduleIndex = 0;
   while (moduleIndex < modules.length) {
-    modules[moduleIndex].sessions = await loadSessions(actor, courseCollectionName, courseId, modules[moduleIndex].id);
+    modules[moduleIndex] = await hydrateModuleForStudent(actor, courseCollectionName, courseId, modules[moduleIndex]);
     moduleIndex = moduleIndex + 1;
   }
 
   return modules;
+}
+
+async function hydrateModuleForStudent(actor, courseCollectionName, courseId, module) {
+  var moduleId = readTextValue(module && (module.id || module.moduleId));
+  var sessions = await loadSessions(actor, courseCollectionName, courseId, moduleId);
+  var learningModes = await loadLearningModes(courseCollectionName, courseId, moduleId, module ? module.learningModes : {});
+
+  return Object.assign({}, module, {
+    learningModes: learningModes,
+    sessions: await hydrateSessionsFromLearningModes(actor, courseId, moduleId, sessions, learningModes)
+  });
 }
 
 async function loadSessions(actor, courseCollectionName, courseId, moduleId) {
@@ -738,6 +749,264 @@ async function loadSessions(actor, courseCollectionName, courseId, moduleId) {
   }
 
   return sessions;
+}
+
+async function loadLearningModes(courseCollectionName, courseId, moduleId, embeddedLearningModes) {
+  var learningModes = normalizeEmbeddedLearningModes(embeddedLearningModes);
+  var modesSnap = null;
+  var modeRecords = [];
+  var modeIndex = 0;
+
+  try {
+    modesSnap = await getDocs(collection(db, courseCollectionName, courseId, "modules", moduleId, "learningModes"));
+  } catch (error) {
+    return learningModes;
+  }
+
+  modesSnap.forEach(function (modeSnap) {
+    modeRecords.push(Object.assign({ id: modeSnap.id, key: modeSnap.id }, modeSnap.data() || {}));
+  });
+
+  while (modeIndex < modeRecords.length) {
+    learningModes[modeRecords[modeIndex].id] = await hydrateLearningModeSteps(
+      courseCollectionName,
+      courseId,
+      moduleId,
+      Object.assign({}, learningModes[modeRecords[modeIndex].id] || {}, modeRecords[modeIndex])
+    );
+    modeIndex = modeIndex + 1;
+  }
+
+  return learningModes;
+}
+
+function normalizeEmbeddedLearningModes(embeddedLearningModes) {
+  var modes = embeddedLearningModes && typeof embeddedLearningModes === "object" && !Array.isArray(embeddedLearningModes)
+    ? embeddedLearningModes
+    : {};
+  var modeIds = Object.keys(modes);
+  var normalized = {};
+  var modeIndex = 0;
+
+  while (modeIndex < modeIds.length) {
+    normalized[modeIds[modeIndex]] = Object.assign({
+      id: modeIds[modeIndex],
+      key: modeIds[modeIndex]
+    }, modes[modeIds[modeIndex]] || {});
+    modeIndex = modeIndex + 1;
+  }
+
+  return normalized;
+}
+
+async function hydrateLearningModeSteps(courseCollectionName, courseId, moduleId, learningMode) {
+  var steps = Array.isArray(learningMode.steps) ? learningMode.steps.slice() : [];
+
+  if (steps.length === 0) {
+    try {
+      steps = await loadLearningModeSteps(courseCollectionName, courseId, moduleId, learningMode.id || learningMode.key);
+    } catch (error) {
+      steps = [];
+    }
+  }
+
+  steps = sortStepsByStableOrder(steps, learningMode.stepOrder);
+
+  return Object.assign({}, learningMode, {
+    steps: steps,
+    stepOrder: steps.map(function (step) {
+      return step && step.id ? step.id : "";
+    }).filter(Boolean),
+    stepCount: steps.length
+  });
+}
+
+async function loadLearningModeSteps(courseCollectionName, courseId, moduleId, modeId) {
+  var stepsSnap = await getDocs(collection(db, courseCollectionName, courseId, "modules", moduleId, "learningModes", modeId, "steps"));
+  var steps = [];
+
+  stepsSnap.forEach(function (stepSnap) {
+    steps.push(Object.assign({ id: stepSnap.id }, stepSnap.data() || {}));
+  });
+
+  return steps;
+}
+
+async function hydrateSessionsFromLearningModes(actor, courseId, moduleId, sessions, learningModes) {
+  var hydratedSessions = Array.isArray(sessions) ? sessions.slice() : [];
+  var modeIds = Object.keys(learningModes || {});
+  var modeIndex = 0;
+
+  while (modeIndex < modeIds.length) {
+    hydratedSessions = await hydrateSessionForLearningMode(actor, courseId, moduleId, hydratedSessions, learningModes[modeIds[modeIndex]], modeIds[modeIndex]);
+    modeIndex = modeIndex + 1;
+  }
+
+  hydratedSessions.sort(compareSessionOrder);
+  return hydratedSessions;
+}
+
+async function hydrateSessionForLearningMode(actor, courseId, moduleId, sessions, learningMode, modeId) {
+  var steps = Array.isArray(learningMode && learningMode.steps) ? learningMode.steps : [];
+  var sessionIndex = findLearningModeSessionIndex(sessions, learningMode, modeId);
+  var session = sessionIndex >= 0 ? sessions[sessionIndex] : createSessionFromLearningMode(learningMode, modeId, sessions.length + 1);
+  var practiceModeKey = readPracticeModeKeyForLearningMode(learningMode);
+  var practiceModes = normalizePracticeModes(session.practiceModes);
+  var currentMode = practiceModes[practiceModeKey] || {};
+  var hydratedSession = null;
+
+  if (steps.length === 0) {
+    return sessions;
+  }
+
+  practiceModes[practiceModeKey] = Object.assign({}, currentMode, {
+    key: practiceModeKey,
+    title: normalizeLocalizedTitle(learningMode.title, currentMode.title),
+    purpose: readTextValue(learningMode.purpose) || currentMode.purpose || "",
+    status: learningMode.status || currentMode.status || "draft",
+    enabled: learningMode.enabled !== false,
+    steps: sortStepsByStableOrder(steps, learningMode.stepOrder)
+  });
+
+  hydratedSession = Object.assign({}, session, {
+    learningModeId: modeId,
+    learningModeType: learningMode.modeType || session.learningModeType || "custom",
+    isLearningModeShell: true,
+    practiceModes: practiceModes,
+    progress: session.progress || await loadProgress(actor, courseId, moduleId, session.id)
+  });
+
+  if (sessionIndex >= 0) {
+    sessions[sessionIndex] = hydratedSession;
+    return sessions;
+  }
+
+  sessions.push(hydratedSession);
+  return sessions;
+}
+
+function findLearningModeSessionIndex(sessions, learningMode, modeId) {
+  var legacySessionId = readTextValue(learningMode && learningMode.legacySessionId);
+  var sessionIndex = 0;
+
+  while (sessionIndex < sessions.length) {
+    if ((legacySessionId && sessions[sessionIndex].id === legacySessionId) || sessions[sessionIndex].learningModeId === modeId) {
+      return sessionIndex;
+    }
+
+    sessionIndex = sessionIndex + 1;
+  }
+
+  return -1;
+}
+
+function createSessionFromLearningMode(learningMode, modeId, order) {
+  return {
+    id: readTextValue(learningMode && learningMode.legacySessionId) || "mode-" + modeId,
+    title: normalizeLocalizedTitle(learningMode ? learningMode.title : "", { en: "Learning Mode", ru: "", ky: "" }),
+    description: readTextValue(learningMode && learningMode.purpose),
+    sessionNumber: readNumber(learningMode && learningMode.order, order),
+    order: readNumber(learningMode && learningMode.order, order),
+    status: learningMode && learningMode.status ? learningMode.status : "draft",
+    learningModeId: modeId,
+    learningModeType: learningMode && learningMode.modeType ? learningMode.modeType : "custom",
+    isLearningModeShell: true,
+    practiceModes: normalizePracticeModes(null)
+  };
+}
+
+function readPracticeModeKeyForLearningMode(learningMode) {
+  if (learningMode && isValidStudentPracticeModeKey(learningMode.practiceModeKey)) {
+    return learningMode.practiceModeKey;
+  }
+
+  if (learningMode && learningMode.modeType === "review") {
+    return "afterClass";
+  }
+
+  if (learningMode && learningMode.modeType === "practice") {
+    return "dailyPractice";
+  }
+
+  if (learningMode && learningMode.modeType === "assessment") {
+    return "classroomLesson";
+  }
+
+  return "beforeClass";
+}
+
+function isValidStudentPracticeModeKey(practiceModeKey) {
+  return practiceModeKey === "beforeClass"
+    || practiceModeKey === "classroomLesson"
+    || practiceModeKey === "afterClass"
+    || practiceModeKey === "dailyPractice";
+}
+
+function sortStepsByStableOrder(steps, stepOrder) {
+  var safeSteps = Array.isArray(steps) ? steps.slice() : [];
+  var order = Array.isArray(stepOrder) ? stepOrder : [];
+  var orderIndexByStepId = {};
+
+  order.forEach(function (stepId, index) {
+    if (typeof stepId === "string" && stepId.length > 0) {
+      orderIndexByStepId[stepId] = index;
+    }
+  });
+
+  safeSteps.sort(function (firstStep, secondStep) {
+    var firstId = firstStep && firstStep.id ? firstStep.id : "";
+    var secondId = secondStep && secondStep.id ? secondStep.id : "";
+    var firstHasOrder = Object.prototype.hasOwnProperty.call(orderIndexByStepId, firstId);
+    var secondHasOrder = Object.prototype.hasOwnProperty.call(orderIndexByStepId, secondId);
+
+    if (firstHasOrder && secondHasOrder) {
+      return orderIndexByStepId[firstId] - orderIndexByStepId[secondId];
+    }
+
+    if (firstHasOrder) {
+      return -1;
+    }
+
+    if (secondHasOrder) {
+      return 1;
+    }
+
+    return readStepOrder(firstStep) - readStepOrder(secondStep);
+  });
+
+  return safeSteps;
+}
+
+function normalizeLocalizedTitle(title, fallbackTitle) {
+  if (typeof title === "string" && title.trim().length > 0) {
+    return { en: title.trim(), ru: "", ky: "" };
+  }
+
+  if (title && typeof title === "object" && !Array.isArray(title)) {
+    return {
+      en: readTextValue(title.en) || readTextValue(fallbackTitle && fallbackTitle.en) || "Learning Mode",
+      ru: readTextValue(title.ru) || readTextValue(fallbackTitle && fallbackTitle.ru),
+      ky: readTextValue(title.ky) || readTextValue(fallbackTitle && fallbackTitle.ky)
+    };
+  }
+
+  return fallbackTitle || { en: "Learning Mode", ru: "", ky: "" };
+}
+
+function readNumber(value, fallbackValue) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  return fallbackValue;
+}
+
+function readStepOrder(step) {
+  if (step && typeof step.order === "number" && Number.isFinite(step.order)) {
+    return step.order;
+  }
+
+  return 0;
 }
 
 async function loadProgress(actor, courseId, moduleId, sessionId) {

@@ -1,10 +1,10 @@
-import { validateAuthenticated } from "../../stages/validate/validators.js?v=1.1.82-shared-command-center-shell";
-import { validateStudentProgressPayload } from "../../stages/validate/validators.js?v=1.1.82-shared-command-center-shell";
-import { normalizeStudentProgressPayload } from "../../stages/normalize/normalizers.js?v=1.1.82-shared-command-center-shell";
-import { attachActorContext, attachActorRoleContext, attachStudentProfileContext, attachStudentSessionContext } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
-import { requireStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.82-shared-command-center-shell";
-import { processStartPracticeMode } from "../../stages/process/processors.js?v=1.1.82-shared-command-center-shell";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.82-shared-command-center-shell";
+import { validateAuthenticated } from "../../stages/validate/validators.js?v=1.1.210-student-course-hydration";
+import { validateStudentProgressPayload } from "../../stages/validate/validators.js?v=1.1.210-student-course-hydration";
+import { normalizeStudentProgressPayload } from "../../stages/normalize/normalizers.js?v=1.1.210-student-course-hydration";
+import { attachActorContext, attachActorRoleContext, attachStudentProfileContext, attachStudentSessionContext } from "../../stages/addContext/contexts.js?v=1.1.210-student-course-hydration";
+import { requireStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.210-student-course-hydration";
+import { processStartPracticeMode } from "../../stages/process/processors.js?v=1.1.210-student-course-hydration";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.210-student-course-hydration";
 
 export function LoadStudentCourseStructureIntent() {
   return {

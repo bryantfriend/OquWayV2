@@ -207,7 +207,11 @@ async function loadLearningModes(source, courseId, moduleId, embeddedLearningMod
 
   await Promise.all(Object.keys(modes).map(function (modeId) {
     return loadLearningModeSteps(source, courseId, moduleId, modeId, modes[modeId].steps).then(function (steps) {
-      modes[modeId].steps = steps;
+      modes[modeId].steps = sortStepsByStableOrder(steps, modes[modeId].stepOrder);
+      modes[modeId].stepOrder = modes[modeId].steps.map(function (step) {
+        return step && step.id ? step.id : "";
+      }).filter(Boolean);
+      modes[modeId].stepCount = modes[modeId].steps.length;
     });
   }));
 
@@ -239,9 +243,7 @@ async function loadSessions(actor, source, courseId, progressCourseId, module) {
     sessions.push(session);
   });
 
-  if (sessions.length === 0) {
-    sessions = createSessionsFromLearningModes(module);
-  }
+  sessions = hydrateSessionsFromLearningModes(module, sessions);
 
   sessions.sort(compareSessionOrder);
 
@@ -254,6 +256,20 @@ async function loadSessions(actor, source, courseId, progressCourseId, module) {
   }));
 
   return sessions;
+}
+
+function hydrateSessionsFromLearningModes(module, sessions) {
+  var modes = module.learningModes && typeof module.learningModes === "object" ? module.learningModes : {};
+  var modeIds = Object.keys(modes);
+  var hydratedSessions = Array.isArray(sessions) ? sessions.slice() : [];
+  var modeIndex = 0;
+
+  while (modeIndex < modeIds.length) {
+    hydratedSessions = hydrateSessionFromLearningMode(module, hydratedSessions, modeIds[modeIndex], modes[modeIds[modeIndex]], modeIndex);
+    modeIndex = modeIndex + 1;
+  }
+
+  return hydratedSessions;
 }
 
 function buildCourseIdentityCandidates(courseId, payload, course) {
@@ -354,6 +370,62 @@ function createSessionsFromLearningModes(module) {
   return sessions;
 }
 
+function hydrateSessionFromLearningMode(module, sessions, modeId, mode, modeIndex) {
+  var steps = readPlayableStepsFromLearningMode(mode);
+  var sessionIndex = findLearningModeSessionIndex(sessions, modeId, mode);
+  var session = sessionIndex >= 0 ? sessions[sessionIndex] : createSessionFromLearningMode(module.id, modeId, mode, modeIndex);
+  var practiceModes = normalizePracticeModes(session.practiceModes);
+  var key = mapLearningModeToPracticeModeKey(mode, modeIndex);
+  var currentMode = practiceModes[key] || {};
+  var title = mode.title || mode.name || mode.displayName || "Learning mode";
+  var hydratedSession = null;
+
+  if (!mode || mode.status === "deleted" || steps.length === 0) {
+    return sessions;
+  }
+
+  practiceModes[key] = Object.assign({}, currentMode, {
+    key: key,
+    title: normalizeTitle(title, currentMode.title),
+    purpose: readText(mode.purpose || mode.description) || currentMode.purpose || "",
+    status: mode.status || currentMode.status || "ready",
+    enabled: mode.enabled !== false,
+    steps: sortStepsByStableOrder(steps, mode.stepOrder),
+    order: readOrder(mode)
+  });
+
+  hydratedSession = Object.assign({}, session, {
+    title: normalizeTitle(title, session.title),
+    learningModeId: modeId,
+    learningModeType: mode.modeType || session.learningModeType || "primary",
+    practiceModes: practiceModes,
+    order: readOrder(mode)
+  });
+
+  if (sessionIndex >= 0) {
+    sessions[sessionIndex] = hydratedSession;
+    return sessions;
+  }
+
+  sessions.push(hydratedSession);
+  return sessions;
+}
+
+function findLearningModeSessionIndex(sessions, modeId, mode) {
+  var legacySessionId = readText(mode && mode.legacySessionId);
+  var sessionIndex = 0;
+
+  while (sessionIndex < sessions.length) {
+    if ((legacySessionId && sessions[sessionIndex].id === legacySessionId) || sessions[sessionIndex].learningModeId === modeId) {
+      return sessionIndex;
+    }
+
+    sessionIndex = sessionIndex + 1;
+  }
+
+  return -1;
+}
+
 function createSessionFromLearningMode(moduleId, modeId, mode, modeIndex) {
   var practiceModes = normalizePracticeModes(null);
   var key = mapLearningModeToPracticeModeKey(mode, modeIndex);
@@ -366,7 +438,7 @@ function createSessionFromLearningMode(moduleId, modeId, mode, modeIndex) {
     purpose: readText(mode.purpose || mode.description),
     status: mode.status || "ready",
     enabled: mode.enabled !== false,
-    steps: steps,
+    steps: sortStepsByStableOrder(steps, mode.stepOrder),
     order: readOrder(mode)
   });
 
@@ -393,6 +465,41 @@ function readPlayableStepsFromLearningMode(mode) {
   steps = steps.concat(createStepsFromTracks(mode && mode.tracks));
 
   return steps;
+}
+
+function sortStepsByStableOrder(steps, stepOrder) {
+  var safeSteps = Array.isArray(steps) ? steps.slice() : [];
+  var order = Array.isArray(stepOrder) ? stepOrder : [];
+  var orderIndexByStepId = {};
+
+  order.forEach(function (stepId, index) {
+    if (typeof stepId === "string" && stepId.length > 0) {
+      orderIndexByStepId[stepId] = index;
+    }
+  });
+
+  safeSteps.sort(function (firstStep, secondStep) {
+    var firstId = firstStep && firstStep.id ? firstStep.id : "";
+    var secondId = secondStep && secondStep.id ? secondStep.id : "";
+    var firstHasOrder = Object.prototype.hasOwnProperty.call(orderIndexByStepId, firstId);
+    var secondHasOrder = Object.prototype.hasOwnProperty.call(orderIndexByStepId, secondId);
+
+    if (firstHasOrder && secondHasOrder) {
+      return orderIndexByStepId[firstId] - orderIndexByStepId[secondId];
+    }
+
+    if (firstHasOrder) {
+      return -1;
+    }
+
+    if (secondHasOrder) {
+      return 1;
+    }
+
+    return readOrder(firstStep) - readOrder(secondStep);
+  });
+
+  return safeSteps;
 }
 
 function createStepsFromTracks(tracks) {

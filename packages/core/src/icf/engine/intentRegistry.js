@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.209-open-integrations";
+import * as IntentExports from "../intents/intents.js?v=1.1.210-student-course-hydration";
 
 const registry = {
   // Demo Verification

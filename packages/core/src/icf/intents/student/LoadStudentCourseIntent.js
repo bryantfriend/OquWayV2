@@ -1,8 +1,8 @@
-import { validateAuthenticated } from "../../stages/validate/validators.js?v=1.1.162-modal-stack";
-import { attachActorContext, attachActorRoleContext, attachStudentProfileContext } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
-import { requireStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.162-modal-stack";
-import { processLoadStudentCourse } from "../../stages/process/processors.js?v=1.1.209-open-integrations";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.162-modal-stack";
+import { validateAuthenticated } from "../../stages/validate/validators.js?v=1.1.210-student-course-hydration";
+import { attachActorContext, attachActorRoleContext, attachStudentProfileContext } from "../../stages/addContext/contexts.js?v=1.1.210-student-course-hydration";
+import { requireStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.210-student-course-hydration";
+import { processLoadStudentCourse } from "../../stages/process/processors.js?v=1.1.210-student-course-hydration";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.210-student-course-hydration";
 
 export function LoadStudentCourseIntent() {
   return {

@@ -52,7 +52,7 @@ export async function attachStudentSessionContext(executionState) {
 }
 
 async function loadStudentSessionContext(payload) {
-  var sources = ["catalogCourses", "courses"];
+  var sources = buildCourseSourceOrder(payload.moduleSource || payload.studentOpenModuleSource || payload.courseRecordSource || payload.source || payload.courseSource);
   var sourceIndex = 0;
 
   while (sourceIndex < sources.length) {
@@ -70,6 +70,24 @@ async function loadStudentSessionContext(payload) {
     module: null,
     session: null
   };
+}
+
+function buildCourseSourceOrder(preferredSource) {
+  var sources = [];
+
+  addCourseSource(sources, preferredSource);
+  addCourseSource(sources, "catalogCourses");
+  addCourseSource(sources, "courses");
+
+  return sources;
+}
+
+function addCourseSource(sources, source) {
+  var safeSource = readText(source);
+
+  if ((safeSource === "courses" || safeSource === "catalogCourses") && sources.indexOf(safeSource) === -1) {
+    sources.push(safeSource);
+  }
 }
 
 async function readSessionContextFromSource(source, payload) {
@@ -93,9 +111,13 @@ async function readSessionContextFromSource(source, payload) {
   return {
     course: Object.assign({ id: courseSnap.id }, courseSnap.data()),
     module: module,
-    session: sessionSnap.exists()
-      ? normalizeSession(sessionSnap.id, sessionSnap.data())
-      : createSessionFromLearningMode(module, payload.sessionId)
+    session: hydrateSessionFromLearningModes(
+      module,
+      sessionSnap.exists()
+        ? normalizeSession(sessionSnap.id, sessionSnap.data())
+        : createSessionFromLearningMode(module, payload.sessionId),
+      payload.sessionId
+    )
   };
 }
 
@@ -113,7 +135,14 @@ async function loadLearningModes(source, courseId, moduleId, embeddedLearningMod
   var modeIndex = 0;
 
   while (modeIndex < modeIds.length) {
-    modes[modeIds[modeIndex]].steps = await loadLearningModeSteps(source, courseId, moduleId, modeIds[modeIndex], modes[modeIds[modeIndex]].steps);
+    modes[modeIds[modeIndex]].steps = sortStepsByStableOrder(
+      await loadLearningModeSteps(source, courseId, moduleId, modeIds[modeIndex], modes[modeIds[modeIndex]].steps),
+      modes[modeIds[modeIndex]].stepOrder
+    );
+    modes[modeIds[modeIndex]].stepOrder = modes[modeIds[modeIndex]].steps.map(function (step) {
+      return step && step.id ? step.id : "";
+    }).filter(Boolean);
+    modes[modeIds[modeIndex]].stepCount = modes[modeIds[modeIndex]].steps.length;
     modeIndex = modeIndex + 1;
   }
 
@@ -170,7 +199,7 @@ function createPracticeModesFromLearningMode(mode, modeIndex) {
     title: normalizeTitle(mode.title || mode.name || mode.displayName || "Learning mode", practiceModes[key].title),
     status: mode.status || "ready",
     enabled: mode.enabled !== false,
-    steps: readPlayableStepsFromLearningMode(mode),
+    steps: sortStepsByStableOrder(readPlayableStepsFromLearningMode(mode), mode.stepOrder),
     order: readOrder(mode)
   });
 
@@ -187,6 +216,103 @@ function readPlayableStepsFromLearningMode(mode) {
   return createStepsFromPages(mode && mode.pages)
     .concat(createStepsFromBlocks(mode && mode.blocks))
     .concat(createStepsFromTracks(mode && mode.tracks));
+}
+
+function hydrateSessionFromLearningModes(module, session, requestedSessionId) {
+  var modes = module && module.learningModes && typeof module.learningModes === "object" ? module.learningModes : {};
+  var modeIds = Object.keys(modes);
+  var modeIndex = 0;
+
+  if (!session) {
+    return null;
+  }
+
+  while (modeIndex < modeIds.length) {
+    var modeId = modeIds[modeIndex];
+    var mode = modes[modeId];
+
+    if (doesSessionMatchLearningMode(session, requestedSessionId, modeId, mode)) {
+      return hydrateSessionFromLearningMode(module, session, modeId, mode, modeIndex);
+    }
+
+    modeIndex = modeIndex + 1;
+  }
+
+  return session;
+}
+
+function hydrateSessionFromLearningMode(module, session, modeId, mode, modeIndex) {
+  var practiceModes = normalizePracticeModes(session.practiceModes);
+  var key = mapLearningModeToPracticeModeKey(mode, modeIndex);
+  var currentMode = practiceModes[key] || {};
+  var title = mode.title || mode.name || mode.displayName || "Learning mode";
+
+  practiceModes[key] = Object.assign({}, currentMode, {
+    key: key,
+    title: normalizeTitle(title, currentMode.title),
+    status: mode.status || currentMode.status || "ready",
+    enabled: mode.enabled !== false,
+    steps: sortStepsByStableOrder(readPlayableStepsFromLearningMode(mode), mode.stepOrder),
+    order: readOrder(mode)
+  });
+
+  return normalizeSession(session.id || requestedLearningModeSessionId(mode, modeId), Object.assign({}, session, {
+    moduleId: module.id,
+    title: normalizeTitle(title, session.title),
+    learningModeId: modeId,
+    learningModeType: mode.modeType || session.learningModeType || "primary",
+    practiceModes: practiceModes,
+    order: readOrder(mode)
+  }));
+}
+
+function doesSessionMatchLearningMode(session, requestedSessionId, modeId, mode) {
+  var modeSessionId = requestedLearningModeSessionId(mode, modeId);
+
+  return Boolean(
+    (modeSessionId && requestedSessionId === modeSessionId)
+      || (modeSessionId && session && session.id === modeSessionId)
+      || (session && session.learningModeId === modeId)
+  );
+}
+
+function requestedLearningModeSessionId(mode, modeId) {
+  return readText(mode && (mode.legacySessionId || mode.id || modeId));
+}
+
+function sortStepsByStableOrder(steps, stepOrder) {
+  var safeSteps = Array.isArray(steps) ? steps.slice() : [];
+  var order = Array.isArray(stepOrder) ? stepOrder : [];
+  var orderIndexByStepId = {};
+
+  order.forEach(function (stepId, index) {
+    if (typeof stepId === "string" && stepId.length > 0) {
+      orderIndexByStepId[stepId] = index;
+    }
+  });
+
+  safeSteps.sort(function (firstStep, secondStep) {
+    var firstId = firstStep && firstStep.id ? firstStep.id : "";
+    var secondId = secondStep && secondStep.id ? secondStep.id : "";
+    var firstHasOrder = Object.prototype.hasOwnProperty.call(orderIndexByStepId, firstId);
+    var secondHasOrder = Object.prototype.hasOwnProperty.call(orderIndexByStepId, secondId);
+
+    if (firstHasOrder && secondHasOrder) {
+      return orderIndexByStepId[firstId] - orderIndexByStepId[secondId];
+    }
+
+    if (firstHasOrder) {
+      return -1;
+    }
+
+    if (secondHasOrder) {
+      return 1;
+    }
+
+    return readOrder(firstStep) - readOrder(secondStep);
+  });
+
+  return safeSteps;
 }
 
 function createStepsFromTracks(tracks) {

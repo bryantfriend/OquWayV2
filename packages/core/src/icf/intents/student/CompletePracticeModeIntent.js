@@ -1,10 +1,10 @@
-import { validateAuthenticated, validatePracticeModeKey } from "../../stages/validate/validators.js?v=1.1.162-modal-stack";
-import { validateStudentProgressPayload } from "../../stages/validate/validators.js?v=1.1.162-modal-stack";
-import { normalizeStudentProgressPayload } from "../../stages/normalize/normalizers.js?v=1.1.162-modal-stack";
-import { attachActorContext, attachActorRoleContext, attachStudentSessionContext } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
-import { requireStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.162-modal-stack";
-import { processCompletePracticeMode } from "../../stages/process/processors.js?v=1.1.162-modal-stack";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.162-modal-stack";
+import { validateAuthenticated, validatePracticeModeKey } from "../../stages/validate/validators.js?v=1.1.210-student-course-hydration";
+import { validateStudentProgressPayload } from "../../stages/validate/validators.js?v=1.1.210-student-course-hydration";
+import { normalizeStudentProgressPayload } from "../../stages/normalize/normalizers.js?v=1.1.210-student-course-hydration";
+import { attachActorContext, attachActorRoleContext, attachStudentSessionContext } from "../../stages/addContext/contexts.js?v=1.1.210-student-course-hydration";
+import { requireStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.210-student-course-hydration";
+import { processCompletePracticeMode } from "../../stages/process/processors.js?v=1.1.210-student-course-hydration";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.210-student-course-hydration";
 
 export function CompletePracticeModeIntent() {
   return {

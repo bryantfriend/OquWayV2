@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.209-open-integrations";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.209-open-integrations";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.209-open-integrations";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.210-student-course-hydration";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.210-student-course-hydration";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.210-student-course-hydration";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -20,17 +20,17 @@ import {
   createStatusBadge,
   formatStatusLabel,
   renderEmotionalCheckInGate
-} from "../../../packages/ui/index.js?v=1.1.209-open-integrations";
-import { emotionalCheckInService } from "../../../packages/shared/emotionalCheckIns/index.js?v=1.1.209-open-integrations";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.209-open-integrations";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.209-open-integrations";
+} from "../../../packages/ui/index.js?v=1.1.210-student-course-hydration";
+import { emotionalCheckInService } from "../../../packages/shared/emotionalCheckIns/index.js?v=1.1.210-student-course-hydration";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.210-student-course-hydration";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.210-student-course-hydration";
 import {
   STUDENT_PROFILE_AVATARS,
   createStudentProfileSnapshot,
   readAvatarById,
   readStudentProfilePreferences,
   saveStudentProfilePreferences
-} from "./ui/services/profileService.js?v=1.1.209-open-integrations";
+} from "./ui/services/profileService.js?v=1.1.210-student-course-hydration";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -666,7 +666,7 @@ function selectSession(moduleId, sessionId) {
 
 async function openPracticeMode(courseId, moduleId, sessionId, practiceModeKey) {
   var course = readCourseById(studentDashboardStore.getState().courses || [], courseId);
-  var result = await studentDashboardService.startPracticeMode(courseId, moduleId, sessionId, practiceModeKey, course ? course.courseRecordSource : "");
+  var result = await studentDashboardService.startPracticeMode(courseId, moduleId, sessionId, practiceModeKey, course ? course.courseRecordSource : "", course ? course.moduleSource : "");
 
   if (!result) {
     return;
@@ -724,7 +724,9 @@ async function completeCurrentStep(stepId, completionResult, snapshot) {
     session.id,
     practiceMode.key,
     safeStepId,
-    completionResult
+    completionResult,
+    course.courseRecordSource,
+    course.moduleSource
   );
 
   if (!stepResult) {
@@ -734,7 +736,7 @@ async function completeCurrentStep(stepId, completionResult, snapshot) {
   applyProgressResult(stepResult);
 
   if (snapshot && snapshot.isComplete) {
-    var modeResult = await studentDashboardService.completePracticeMode(course.id, module.id, session.id, practiceMode.key);
+    var modeResult = await studentDashboardService.completePracticeMode(course.id, module.id, session.id, practiceMode.key, course.courseRecordSource, course.moduleSource);
     if (modeResult) {
       applyProgressResult(modeResult);
     }

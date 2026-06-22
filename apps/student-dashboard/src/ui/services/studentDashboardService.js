@@ -1,8 +1,8 @@
 import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.180-student-profile-center";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.209-open-integrations";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.209-open-integrations";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.210-student-course-hydration";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.210-student-course-hydration";
 import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.180-student-profile-center";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.209-open-integrations";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.210-student-course-hydration";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
@@ -224,7 +224,7 @@ export const studentDashboardService = {
     }
   },
 
-  startPracticeMode: async function (courseId, moduleId, sessionId, practiceModeKey, courseRecordSource) {
+  startPracticeMode: async function (courseId, moduleId, sessionId, practiceModeKey, courseRecordSource, moduleSource) {
     studentDashboardStore.setState({
       isPlayerLoading: true,
       error: null,
@@ -237,7 +237,8 @@ export const studentDashboardService = {
         moduleId: moduleId,
         sessionId: sessionId,
         practiceModeKey: practiceModeKey,
-        courseRecordSource: courseRecordSource || ""
+        courseRecordSource: courseRecordSource || "",
+        moduleSource: moduleSource || courseRecordSource || ""
       });
 
       if (result && result.emitted && result.emitted.success) {
@@ -254,7 +255,7 @@ export const studentDashboardService = {
     }
   },
 
-  completeStep: async function (courseId, moduleId, sessionId, practiceModeKey, stepId, completionResult) {
+  completeStep: async function (courseId, moduleId, sessionId, practiceModeKey, stepId, completionResult, courseRecordSource, moduleSource) {
     studentDashboardStore.setState({
       isSavingProgress: true,
       error: null,
@@ -268,7 +269,9 @@ export const studentDashboardService = {
         sessionId: sessionId,
         practiceModeKey: practiceModeKey,
         stepId: stepId,
-        completionResult: completionResult
+        completionResult: completionResult,
+        courseRecordSource: courseRecordSource || "",
+        moduleSource: moduleSource || courseRecordSource || ""
       });
 
       if (result && result.emitted && result.emitted.success) {
@@ -286,7 +289,7 @@ export const studentDashboardService = {
     }
   },
 
-  completePracticeMode: async function (courseId, moduleId, sessionId, practiceModeKey) {
+  completePracticeMode: async function (courseId, moduleId, sessionId, practiceModeKey, courseRecordSource, moduleSource) {
     studentDashboardStore.setState({
       isSavingProgress: true,
       error: null,
@@ -298,7 +301,9 @@ export const studentDashboardService = {
         courseId: courseId,
         moduleId: moduleId,
         sessionId: sessionId,
-        practiceModeKey: practiceModeKey
+        practiceModeKey: practiceModeKey,
+        courseRecordSource: courseRecordSource || "",
+        moduleSource: moduleSource || courseRecordSource || ""
       });
 
       if (result && result.emitted && result.emitted.success) {
