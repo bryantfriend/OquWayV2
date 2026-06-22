@@ -92,10 +92,10 @@ export { processUpdatePracticeMode } from "./domain/moduleEditor/processUpdatePr
 export { processUpdatePracticeModeStep } from "./domain/moduleEditor/processUpdatePracticeModeStep.js?v=1.1.207-emotional-check-in-save";
 export { processUpdateStepField } from "./domain/moduleEditor/processUpdateStepField.js?v=1.1.207-emotional-check-in-save";
 export { processUploadStepMedia } from "./domain/moduleEditor/processUploadStepMedia.js?v=1.1.203-step-media-upload";
-export { processLoadStudentCourse } from "./domain/student/processLoadStudentCourse.js?v=1.1.208-student-dashboard-scope";
-export { processLoadStudentDashboard } from "./domain/student/processLoadStudentDashboard.js?v=1.1.208-student-dashboard-scope";
+export { processLoadStudentCourse } from "./domain/student/processLoadStudentCourse.js?v=1.1.209-open-integrations";
+export { processLoadStudentDashboard } from "./domain/student/processLoadStudentDashboard.js?v=1.1.209-open-integrations";
 export { processContinueLearning } from "./domain/student/processContinueLearning.js?v=1.1.207-emotional-check-in-save";
-export { processStudentOpenCourse } from "./domain/student/processStudentOpenCourse.js?v=1.1.208-student-dashboard-scope";
+export { processStudentOpenCourse } from "./domain/student/processStudentOpenCourse.js?v=1.1.209-open-integrations";
 export { processClaimDailyBonus } from "./domain/student/processClaimDailyBonus.js?v=1.1.207-emotional-check-in-save";
 export { processStartPracticeMode } from "./domain/student/processStartPracticeMode.js?v=1.1.207-emotional-check-in-save";
 export { processCompleteStep } from "./domain/student/processCompleteStep.js?v=1.1.207-emotional-check-in-save";

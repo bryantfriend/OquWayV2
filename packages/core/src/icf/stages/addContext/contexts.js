@@ -26,7 +26,7 @@ export { attachStepRegistryDefinitionForStep } from "./domain/moduleEditor/attac
 export { attachStepsCollection } from "./domain/moduleEditor/attachStepsCollection.js?v=1.1.179-teacher-analytics-dashboard";
 export { attachStudentProfileContext } from "./domain/student/attachStudentProfileContext.js?v=1.1.179-teacher-analytics-dashboard";
 export { attachStudentSessionContext } from "./domain/student/attachStudentSessionContext.js?v=1.1.179-teacher-analytics-dashboard";
-export { attachStudentOpenCourseContext } from "./domain/student/attachStudentOpenCourseContext.js?v=1.1.208-student-dashboard-scope";
+export { attachStudentOpenCourseContext } from "./domain/student/attachStudentOpenCourseContext.js?v=1.1.209-open-integrations";
 export {
   attachExternalTaskSubmissionReviewContext,
   attachTeacherProfileContext

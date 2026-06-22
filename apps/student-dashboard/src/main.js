@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.208-student-dashboard-scope";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.208-student-dashboard-scope";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.208-student-dashboard-scope";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.209-open-integrations";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.209-open-integrations";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.209-open-integrations";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -20,17 +20,17 @@ import {
   createStatusBadge,
   formatStatusLabel,
   renderEmotionalCheckInGate
-} from "../../../packages/ui/index.js?v=1.1.208-student-dashboard-scope";
-import { emotionalCheckInService } from "../../../packages/shared/emotionalCheckIns/index.js?v=1.1.208-student-dashboard-scope";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.208-student-dashboard-scope";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.208-student-dashboard-scope";
+} from "../../../packages/ui/index.js?v=1.1.209-open-integrations";
+import { emotionalCheckInService } from "../../../packages/shared/emotionalCheckIns/index.js?v=1.1.209-open-integrations";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.209-open-integrations";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.209-open-integrations";
 import {
   STUDENT_PROFILE_AVATARS,
   createStudentProfileSnapshot,
   readAvatarById,
   readStudentProfilePreferences,
   saveStudentProfilePreferences
-} from "./ui/services/profileService.js?v=1.1.208-student-dashboard-scope";
+} from "./ui/services/profileService.js?v=1.1.209-open-integrations";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
