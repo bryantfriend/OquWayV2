@@ -1,5 +1,5 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.210-module-flow";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.211-student-dashboard-hydration";
 import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.209-open-integrations";
 import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.209-open-integrations";
 import {

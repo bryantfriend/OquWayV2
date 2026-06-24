@@ -24,7 +24,7 @@ export async function saveEmotionalCheckIn(checkInContext, selectedEmotionKey) {
       updatedAt: serverTimestamp()
     }));
 
-    await setDoc(doc(db, "emotionalCheckIns", documentId), writeRecord);
+    await setDoc(doc(db, "emotionalCheckIns", documentId), writeRecord, { merge: true });
 
     return {
       id: existing.id,

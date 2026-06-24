@@ -18,6 +18,13 @@ export function requireEmotionalCheckInAuthorization(executionState) {
     };
   }
 
+  if (!isStudentCheckInActor(actor, payload)) {
+    return {
+      valid: false,
+      errors: [{ code: "STUDENT_CHECK_IN_REQUIRED", message: "Only students can record this emotional check-in." }]
+    };
+  }
+
   if (actorIds.indexOf(participantUserId) !== -1) {
     return { valid: true };
   }
@@ -31,6 +38,28 @@ export function requireEmotionalCheckInAuthorization(executionState) {
       }
     ]
   };
+}
+
+function isStudentCheckInActor(actor, payload) {
+  var roleValues = [];
+
+  roleValues.push(payload.participantRole);
+  roleValues.push(actor.role);
+  if (Array.isArray(actor.roles)) {
+    roleValues = roleValues.concat(actor.roles);
+  }
+
+  return roleValues.map(normalizeRole).indexOf("student") !== -1;
+}
+
+function normalizeRole(role) {
+  var normalizedRole = readText(role).replace(/[^a-z0-9]/gi, "").toLowerCase();
+
+  if (normalizedRole === "student" || normalizedRole === "rolestudent") {
+    return "student";
+  }
+
+  return normalizedRole;
 }
 
 function readText(value) {

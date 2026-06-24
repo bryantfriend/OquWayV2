@@ -1,6 +1,7 @@
 import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
 import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.82-shared-command-center-shell";
 import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.209-open-integrations";
+import { getModulesForCourse } from "../../../../../../../domain/modules/index.js";
 import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.82-shared-command-center-shell";
 import {
   isStudentDashboardProfile,
@@ -113,6 +114,7 @@ async function loadStudentCourses(actor, assignedCourseIds, executionState, assi
       await buildCourseTree(actor, courseSnaps[courseIndex]),
       assignmentIdByCourseId || {}
     );
+    logStudentCourseHydration(actor, course, executionState);
     courses.push(await attachExternalTaskSubmissionsToCourse(actor, course));
     courseIndex = courseIndex + 1;
   }
@@ -294,7 +296,7 @@ async function loadAssignedCourseSnaps(courseIds, executionState) {
 }
 
 async function loadCourseSnap(courseId, executionState) {
-  var sources = ["courses", "catalogCourses"];
+  var sources = ["catalogCourses", "courses"];
   var sourceIndex = 0;
 
   while (sourceIndex < sources.length) {
@@ -688,8 +690,18 @@ function isStudentVisibleCourse(courseData) {
 
 async function buildCourseTree(actor, courseSnap) {
   var course = Object.assign({ id: courseSnap.id }, courseSnap.data());
-  course.modules = await loadModules(actor, readCourseCollectionName(courseSnap), course.id);
-  return course;
+  var courseRecordSource = readCourseCollectionName(courseSnap);
+  var moduleContext = await loadModuleContext(actor, courseRecordSource, course.id, course);
+
+  return Object.assign({}, course, {
+    source: courseRecordSource,
+    courseRecordSource: courseRecordSource,
+    canonicalCourseId: moduleContext.canonicalCourseId,
+    moduleCourseId: moduleContext.moduleCourseId,
+    moduleSource: moduleContext.moduleSource,
+    moduleCount: moduleContext.modules.length,
+    modules: moduleContext.modules
+  });
 }
 
 function readCourseCollectionName(courseSnap) {
@@ -700,26 +712,157 @@ function readCourseCollectionName(courseSnap) {
   return "courses";
 }
 
-async function loadModules(actor, courseCollectionName, courseId) {
-  var modulesSnap = await getDocs(collection(db, courseCollectionName, courseId, "modules"));
-  var modules = [];
-
-  modulesSnap.forEach(function (moduleSnap) {
-    modules.push(Object.assign({ id: moduleSnap.id }, moduleSnap.data()));
+async function loadModuleContext(actor, courseCollectionName, courseId, course) {
+  var sources = buildCanonicalModuleSourceOrder(courseCollectionName);
+  var modules = await getModulesForCourse(courseId, {
+    sources: sources,
+    course: course || {}
   });
-
-
-  modules.sort(compareByOrderThenTitle);
-
+  var moduleSource = readLoadedModuleSource(modules) || (sources.length > 0 ? sources[0] : "catalogCourses");
   var moduleIndex = 0;
+
   while (moduleIndex < modules.length) {
-    modules[moduleIndex] = await hydrateModuleForStudent(actor, courseCollectionName, courseId, modules[moduleIndex]);
+    modules[moduleIndex] = await hydrateModuleForStudent(actor, modules[moduleIndex].source || moduleSource, courseId, modules[moduleIndex]);
     moduleIndex = moduleIndex + 1;
   }
 
-  return modules;
+  if (modules.length === 0 && hasStoredModuleHints(course)) {
+    console.warn("[student-course-hydration:empty]", {
+      courseId: courseId,
+      canonicalPath: "catalogCourses/" + courseId + "/modules",
+      fallbackPath: courseCollectionName === "courses" ? "courses/" + courseId + "/modules" : "",
+      courseStatus: course && (course.status || course.state) ? course.status || course.state : "",
+      storedModuleCount: readStoredModuleCount(course)
+    });
+  }
+
+  return {
+    modules: modules,
+    moduleSource: moduleSource,
+    moduleCourseId: courseId,
+    canonicalCourseId: courseId
+  };
 }
 
+function buildCanonicalModuleSourceOrder(courseCollectionName) {
+  var sources = [];
+
+  addModuleSource(sources, "catalogCourses");
+  addModuleSource(sources, courseCollectionName);
+  addModuleSource(sources, "courses");
+
+  return sources;
+}
+
+function addModuleSource(sources, source) {
+  if ((source === "catalogCourses" || source === "courses") && sources.indexOf(source) === -1) {
+    sources.push(source);
+  }
+}
+
+function readLoadedModuleSource(modules) {
+  var safeModules = Array.isArray(modules) ? modules : [];
+
+  if (safeModules.length > 0 && safeModules[0] && (safeModules[0].source === "catalogCourses" || safeModules[0].source === "courses")) {
+    return safeModules[0].source;
+  }
+
+  return "";
+}
+function hasStoredModuleHints(course) {
+  return readStoredModuleCount(course) > 0;
+}
+
+function readStoredModuleCount(course) {
+  if (!course || typeof course !== "object") {
+    return 0;
+  }
+
+  if (Array.isArray(course.modules) && course.modules.length > 0) {
+    return course.modules.length;
+  }
+
+  if (Array.isArray(course.moduleIds) && course.moduleIds.length > 0) {
+    return course.moduleIds.length;
+  }
+
+  if (Array.isArray(course.moduleOrder) && course.moduleOrder.length > 0) {
+    return course.moduleOrder.length;
+  }
+
+  if (typeof course.moduleCount === "number" && Number.isFinite(course.moduleCount)) {
+    return Math.max(0, Math.round(course.moduleCount));
+  }
+
+  return 0;
+}
+
+function logStudentCourseHydration(actor, course, executionState) {
+  if (!shouldEmitDebug(executionState) && !isDevelopmentHost()) {
+    return;
+  }
+
+  var modules = course && Array.isArray(course.modules) ? course.modules : [];
+  var moduleSource = course && course.moduleSource ? course.moduleSource : "catalogCourses";
+  var courseId = course && course.id ? course.id : "";
+
+  console.log("[student-course-hydration]", {
+    actorId: actor && actor.id ? actor.id : "",
+    courseId: courseId,
+    assignmentId: course && (course.assignmentId || course.courseAssignmentId) ? course.assignmentId || course.courseAssignmentId : "",
+    courseStatus: course && (course.status || course.state) ? course.status || course.state : "",
+    moduleReadPath: moduleSource + "/" + courseId + "/modules",
+    loadedModuleCount: modules.length,
+    visibleModuleCount: countVisibleStudentModules(modules),
+    completedModuleCount: countCompletedStudentModules(modules),
+    moduleIds: modules.map(readModuleIdForLog),
+    moduleStatuses: modules.map(readModuleStatusForLog)
+  });
+}
+
+function countVisibleStudentModules(modules) {
+  var safeModules = Array.isArray(modules) ? modules : [];
+  var count = 0;
+  var index = 0;
+
+  while (index < safeModules.length) {
+    if (isStudentVisibleModule(safeModules[index])) {
+      count = count + 1;
+    }
+    index = index + 1;
+  }
+
+  return count;
+}
+
+function countCompletedStudentModules(modules) {
+  var safeModules = Array.isArray(modules) ? modules : [];
+  var count = 0;
+  var index = 0;
+
+  while (index < safeModules.length) {
+    if (readTextValue(safeModules[index] && (safeModules[index].learningStatus || safeModules[index].status)).toLowerCase() === "complete") {
+      count = count + 1;
+    }
+    index = index + 1;
+  }
+
+  return count;
+}
+
+function isStudentVisibleModule(module) {
+  var status = readTextValue(module && module.status).toLowerCase();
+
+  return !status || status === "published" || status === "active" || status === "ready" || status === "assigned";
+}
+
+function readModuleIdForLog(module) {
+  return module && (module.id || module.moduleId) ? module.id || module.moduleId : "";
+}
+
+function readModuleStatusForLog(module) {
+  return module && module.status ? module.status : "";
+}
 async function hydrateModuleForStudent(actor, courseCollectionName, courseId, module) {
   var moduleId = readTextValue(module && (module.id || module.moduleId));
   var sessions = await loadSessions(actor, courseCollectionName, courseId, moduleId);

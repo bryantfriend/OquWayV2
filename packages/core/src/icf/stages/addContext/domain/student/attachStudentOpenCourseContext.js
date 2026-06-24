@@ -123,7 +123,7 @@ async function loadCourse(courseId, attemptedCoursePaths, preferredSource) {
 }
 
 async function loadModules(actor, progressCourseId, courseIds, attemptedModulePaths, courseSource, preferredSource) {
-  var sources = buildCourseSourceOrder(preferredSource, courseSource);
+  var sources = buildModuleSourceOrder(preferredSource, courseSource);
   var courseIndex = 0;
 
   while (courseIndex < courseIds.length) {
@@ -334,6 +334,16 @@ function buildCourseSourceOrder(preferredSource, courseSource) {
   addCourseSource(sources, courseSource);
   addCourseSource(sources, "courses");
   addCourseSource(sources, "catalogCourses");
+
+  return sources;
+}
+function buildModuleSourceOrder(preferredSource, courseSource) {
+  var sources = [];
+
+  addCourseSource(sources, "catalogCourses");
+  addCourseSource(sources, preferredSource);
+  addCourseSource(sources, courseSource);
+  addCourseSource(sources, "courses");
 
   return sources;
 }

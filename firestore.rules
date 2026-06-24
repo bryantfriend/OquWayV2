@@ -523,6 +523,8 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(emotionalCheckInAllowedKeys())
         && request.resource.data.emotionKey is string
         && request.resource.data.moodKey is string
+        && request.resource.data.participantRole in ["student", "Student", "ROLE_STUDENT"]
+        && isStudent()
         && request.resource.data.studentId is string
         && request.resource.data.checkInDate is string
         && request.resource.data.localDate == request.resource.data.checkInDate
