@@ -40,6 +40,7 @@ export { validateFieldExistsInSchema } from "./domain/courseEditor/validateField
 export { validateFieldValueType } from "./domain/courseEditor/validateFieldValueType.js?v=1.1.207-emotional-check-in-save";
 export { validateModuleExists } from "./domain/courseEditor/validateModuleExists.js?v=1.1.207-emotional-check-in-save";
 export { validateOrderBounds } from "./domain/courseEditor/validateOrderBounds.js?v=1.1.207-emotional-check-in-save";
+export { validateOptionalEstimatedMinutes } from "./domain/courseEditor/validateOptionalEstimatedMinutes.js?v=1.1.207-emotional-check-in-save";
 export { validateStepTypeRegistered } from "./domain/courseEditor/validateStepTypeRegistered.js?v=1.1.207-emotional-check-in-save";
 export { validateUserPermission } from "./domain/courseEditor/validateUserPermission.js?v=1.1.207-emotional-check-in-save";
 export { validateModuleId } from "./domain/moduleEditor/validateModuleId.js?v=1.1.207-emotional-check-in-save";

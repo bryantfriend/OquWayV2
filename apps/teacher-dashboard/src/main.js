@@ -1,4 +1,4 @@
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.197-teacher-dashboard-tools";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.210-module-flow";
 import {
   createStudentAnalyticsDetail,
   createTeacherAnalyticsSnapshot,

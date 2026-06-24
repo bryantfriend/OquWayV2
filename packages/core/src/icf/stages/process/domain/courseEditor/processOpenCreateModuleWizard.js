@@ -12,7 +12,7 @@ export function processOpenCreateModuleWizard(executionState) {
       subject: "",
       topic: "",
       level: "",
-      estimatedMinutes: 15,
+      estimatedMinutes: null,
       language: "en",
       templateKey: "school",
       generateStarterSteps: true,

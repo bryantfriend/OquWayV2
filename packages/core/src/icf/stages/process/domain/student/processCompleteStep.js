@@ -23,16 +23,20 @@ export async function processCompleteStep(executionState) {
   payload.existingPracticeModeProgress = modeProgress;
 
   try {
-    await saveStudentPracticeModeProgress(resolvedActor, payload, completedStepIds, completed);
+    var savedProgress = await saveStudentPracticeModeProgress(resolvedActor, payload, completedStepIds, completed);
+    var savedModeProgress = readPracticeModeProgress(savedProgress, payload.practiceModeKey);
 
     executionState.result = {
       courseId: payload.courseId,
       moduleId: payload.moduleId,
       sessionId: payload.sessionId,
       practiceModeKey: payload.practiceModeKey,
-      completedStepIds: completedStepIds,
-      completionResults: Object.assign({}, modeProgress.completionResults || {}, createStepCompletionResult(payload.stepId, payload.completionResult)),
-      completed: completed
+      completedStepIds: savedModeProgress.completedStepIds,
+      completionResults: savedModeProgress.completionResults,
+      xpEarned: savedModeProgress.xpEarned,
+      starsEarned: savedModeProgress.starsEarned,
+      gamification: savedModeProgress.gamification,
+      completed: savedModeProgress.completed
     };
 
     return { valid: true };

@@ -17,8 +17,7 @@ export async function attachModulesCollection(executionState) {
             : (sourceCheck.legacyModules.length > 0 ? "courses" : "catalogCourses");
 
         sortModulesByCourseOrder(modules, courseContext.course.moduleOrder);
-        logModuleSourceCheck(sourceCheck, sourceCheck.catalogModules.length);
-        logModuleLoad(payload.courseId, courseContext, sourceCheck.catalogModules.length, modules, moduleSource);
+        warnOnModuleSourceMismatch(payload.courseId, courseContext, sourceCheck, modules, moduleSource);
 
         return {
             valid: true,
@@ -72,51 +71,34 @@ function sortModulesByCourseOrder(modules, moduleOrder) {
     });
 }
 
-function logModuleSourceCheck(sourceCheck, catalogLoadedCount) {
-    console.warn("[course-editor:module-source-check]", {
-        catalogModulesCount: sourceCheck.catalogModulesCount,
-        legacyCoursesModulesCount: sourceCheck.legacyCoursesModulesCount,
-        moduleOrder: sourceCheck.moduleOrder,
-        embeddedModulesCount: sourceCheck.embeddedModulesCount
-    });
-
-    if (sourceCheck.legacyCoursesModulesCount > 0 && catalogLoadedCount === 0) {
-        console.warn("[course-editor:module-source-mismatch]", {
-            message: "Modules exist under courses/{courseId}/modules but not catalogCourses/{courseId}/modules.",
-            canonicalPath: "catalogCourses/{courseId}/modules",
-            fallbackPath: "courses/{courseId}/modules"
-        });
-    }
-}
-
-function logModuleLoad(courseId, courseContext, loadedModuleDocCount, modules, moduleSource) {
+function warnOnModuleSourceMismatch(courseId, courseContext, sourceCheck, modules, moduleSource) {
     const course = courseContext.course || {};
     const moduleCount = typeof course.moduleCount === "number" ? course.moduleCount : 0;
     const moduleOrder = Array.isArray(course.moduleOrder) ? course.moduleOrder : [];
-    const path = moduleSource === "courses"
-        ? "courses/" + courseId + "/modules"
-        : "catalogCourses/" + courseId + "/modules";
+    const catalogLoadedCount = sourceCheck.catalogModules.length;
 
-    console.info("[course-modules:load]", {
-        courseId: courseId,
-        moduleCount: moduleCount,
-        moduleOrderLength: moduleOrder.length,
-        loadedModuleDocCount: loadedModuleDocCount,
-        renderedFallbackModuleCount: Array.isArray(modules) ? modules.length : 0,
-        moduleSource: moduleSource,
-        moduleIds: Array.isArray(modules) ? modules.map(readModuleId) : [],
-        path: path
-    });
+    if (sourceCheck.legacyCoursesModulesCount > 0 && catalogLoadedCount === 0) {
+        console.warn("[course-editor:module-source-mismatch]", {
+            courseId: courseId,
+            canonicalPath: "catalogCourses/{courseId}/modules",
+            fallbackPath: "courses/{courseId}/modules",
+            catalogModulesCount: sourceCheck.catalogModulesCount,
+            legacyCoursesModulesCount: sourceCheck.legacyCoursesModulesCount,
+            moduleIds: modules.map(readModuleId),
+            moduleTitles: modules.map(readModuleTitle),
+            moduleStatus: modules.map(readModuleStatus),
+            moduleSource: moduleSource
+        });
+    }
 
-    if ((moduleCount > 0 || moduleOrder.length > 0) && loadedModuleDocCount === 0) {
+    if ((moduleCount > 0 || moduleOrder.length > 0) && catalogLoadedCount === 0 && modules.length === 0) {
         console.warn("[course-modules:mismatch]", {
             courseId: courseId,
             moduleCount: moduleCount,
-            loadedModuleDocCount: loadedModuleDocCount,
-            moduleOrder: moduleOrder
+            moduleOrder: moduleOrder,
+            discoveredModulesLength: modules.length,
+            moduleSource: moduleSource
         });
-        console.warn("Course moduleCount says modules exist, but no module documents were found.");
-        console.warn("moduleCount mismatch: course says modules exist but no module docs were found");
     }
 }
 
@@ -126,4 +108,29 @@ function readModuleId(module) {
     }
 
     return module.id || module.moduleId || "";
+}
+
+function readModuleTitle(module) {
+    if (!module) {
+        return "";
+    }
+
+    const title = module.title || module.name || module.displayName;
+    if (typeof title === "string") {
+        return title;
+    }
+
+    if (title && typeof title === "object") {
+        return title.en || title.ru || title.ky || "";
+    }
+
+    return "";
+}
+
+function readModuleStatus(module) {
+    if (!module) {
+        return "";
+    }
+
+    return module.status || (module.isDraft ? "draft" : "");
 }

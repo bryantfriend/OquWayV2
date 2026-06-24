@@ -17,16 +17,20 @@ export async function processCompletePracticeMode(executionState) {
   payload.existingPracticeModeProgress = modeProgress;
 
   try {
-    await saveStudentPracticeModeProgress(resolvedActor, payload, completedStepIds, true);
+    var savedProgress = await saveStudentPracticeModeProgress(resolvedActor, payload, completedStepIds, true);
+    var savedModeProgress = readPracticeModeProgress(savedProgress, payload.practiceModeKey);
 
     executionState.result = {
       courseId: payload.courseId,
       moduleId: payload.moduleId,
       sessionId: payload.sessionId,
       practiceModeKey: payload.practiceModeKey,
-      completedStepIds: completedStepIds,
-      completionResults: modeProgress.completionResults || {},
-      completed: true
+      completedStepIds: savedModeProgress.completedStepIds,
+      completionResults: savedModeProgress.completionResults,
+      xpEarned: savedModeProgress.xpEarned,
+      starsEarned: savedModeProgress.starsEarned,
+      gamification: savedModeProgress.gamification,
+      completed: savedModeProgress.completed
     };
 
     return { valid: true };

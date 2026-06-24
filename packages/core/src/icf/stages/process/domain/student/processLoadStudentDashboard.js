@@ -310,11 +310,13 @@ async function loadPublishedCourseSummaryCounts(source, courseId, data, executio
 
     modulesSnap.forEach(function (moduleSnap) {
       var moduleData = moduleSnap.data() || {};
+      var moduleRecord = Object.assign({ id: moduleSnap.id }, moduleData);
 
       if (isStudentVisibleModuleSummary(moduleData)) {
-        modules.push(Object.assign({ id: moduleSnap.id }, moduleData));
+        modules.push(moduleRecord);
       }
     });
+
 
     modules = await Promise.all(modules.map(function (module) {
       return hydrateModuleActivitySummary(source, courseId, module);
@@ -996,3 +998,5 @@ function waitForStudentDashboardRead(promise, label) {
     });
   });
 }
+
+

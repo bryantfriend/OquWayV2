@@ -1,5 +1,5 @@
 import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.180-student-profile-center";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.209-open-integrations";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.210-module-flow";
 import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.209-open-integrations";
 import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.180-student-profile-center";
 import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.209-open-integrations";
@@ -44,6 +44,8 @@ export const studentDashboardService = {
   },
 
   loadDashboard: async function (verifiedStudentProfile) {
+    var timing = createStudentServiceTiming("LoadStudentDashboardIntent");
+
     studentDashboardStore.setState({
       isLoading: true,
       error: null,
@@ -55,6 +57,7 @@ export const studentDashboardService = {
 
       if (!isPreviewMode() && !profile) {
         profile = await this.loadVerifiedStudentProfile();
+        timing.mark("profile loaded");
       }
 
       if (!isPreviewMode() && !isValidStudentProfile(profile)) {
@@ -69,10 +72,12 @@ export const studentDashboardService = {
       }
 
       await waitForStudentDashboardLoad(ensureAuthenticatedFirestoreToken(), "student token refresh");
+      timing.mark("student token refresh");
 
       var result = await waitForStudentDashboardLoad(runStudentIntent("LoadStudentDashboardIntent", {
         studentProfile: profile
       }, profile), "LoadStudentDashboardIntent");
+      timing.mark("LoadStudentDashboardIntent pipeline");
 
       if (result && result.emitted && result.emitted.success) {
         var courses = result.emitted.data.courses || [];
@@ -90,6 +95,10 @@ export const studentDashboardService = {
           intentionPoints: result.emitted.data.intentionPoints || createEmptyIntentionPoints(),
           progressSummary: result.emitted.data.progressSummary || null,
           selectedCourseId: readFirstCourseId(courses),
+          actorIsPreview: actorIsPreview
+        });
+        timing.finish({
+          courseCount: courses.length,
           actorIsPreview: actorIsPreview
         });
         return result.emitted.data;
@@ -224,7 +233,9 @@ export const studentDashboardService = {
     }
   },
 
-  startPracticeMode: async function (courseId, moduleId, sessionId, practiceModeKey, courseRecordSource) {
+  startPracticeMode: async function (courseId, moduleId, sessionId, practiceModeKey, courseRecordSource, moduleSource) {
+    var timing = createStudentServiceTiming("StartPracticeModeIntent");
+
     studentDashboardStore.setState({
       isPlayerLoading: true,
       error: null,
@@ -237,10 +248,18 @@ export const studentDashboardService = {
         moduleId: moduleId,
         sessionId: sessionId,
         practiceModeKey: practiceModeKey,
-        courseRecordSource: courseRecordSource || ""
+        courseRecordSource: courseRecordSource || "",
+        moduleSource: moduleSource || courseRecordSource || ""
       });
+      timing.mark("StartPracticeModeIntent pipeline");
 
       if (result && result.emitted && result.emitted.success) {
+        timing.finish({
+          courseId: courseId || "",
+          moduleId: moduleId || "",
+          sessionId: sessionId || "",
+          practiceModeKey: practiceModeKey || ""
+        });
         return result.emitted.data;
       }
 
@@ -254,7 +273,9 @@ export const studentDashboardService = {
     }
   },
 
-  completeStep: async function (courseId, moduleId, sessionId, practiceModeKey, stepId, completionResult) {
+  completeStep: async function (courseId, moduleId, sessionId, practiceModeKey, stepId, completionResult, courseRecordSource, moduleSource) {
+    var timing = createStudentServiceTiming("CompleteStudentStepIntent");
+
     studentDashboardStore.setState({
       isSavingProgress: true,
       error: null,
@@ -268,10 +289,20 @@ export const studentDashboardService = {
         sessionId: sessionId,
         practiceModeKey: practiceModeKey,
         stepId: stepId,
-        completionResult: completionResult
+        completionResult: completionResult,
+        courseRecordSource: courseRecordSource || "",
+        moduleSource: moduleSource || courseRecordSource || ""
       });
+      timing.mark("CompleteStudentStepIntent pipeline");
 
       if (result && result.emitted && result.emitted.success) {
+        timing.finish({
+          courseId: courseId || "",
+          moduleId: moduleId || "",
+          sessionId: sessionId || "",
+          practiceModeKey: practiceModeKey || "",
+          stepId: stepId || ""
+        });
         return result.emitted.data;
       }
 
@@ -286,7 +317,9 @@ export const studentDashboardService = {
     }
   },
 
-  completePracticeMode: async function (courseId, moduleId, sessionId, practiceModeKey) {
+  completePracticeMode: async function (courseId, moduleId, sessionId, practiceModeKey, courseRecordSource, moduleSource) {
+    var timing = createStudentServiceTiming("CompleteStudentPracticeModeIntent");
+
     studentDashboardStore.setState({
       isSavingProgress: true,
       error: null,
@@ -298,10 +331,19 @@ export const studentDashboardService = {
         courseId: courseId,
         moduleId: moduleId,
         sessionId: sessionId,
-        practiceModeKey: practiceModeKey
+        practiceModeKey: practiceModeKey,
+        courseRecordSource: courseRecordSource || "",
+        moduleSource: moduleSource || courseRecordSource || ""
       });
+      timing.mark("CompleteStudentPracticeModeIntent pipeline");
 
       if (result && result.emitted && result.emitted.success) {
+        timing.finish({
+          courseId: courseId || "",
+          moduleId: moduleId || "",
+          sessionId: sessionId || "",
+          practiceModeKey: practiceModeKey || ""
+        });
         return result.emitted.data;
       }
 
@@ -732,10 +774,14 @@ function readCourseModuleSource(course) {
 
 function createStudentServiceTiming(label) {
   var startedAt = Date.now();
+  var startMark = createPerformanceMark(label, "start");
   var marks = [];
 
   return {
     mark: function (name) {
+      var markName = createPerformanceMark(label, name);
+      var measureName = label + " " + name;
+      createPerformanceMeasure(measureName, startMark, markName);
       marks.push({
         name: name,
         elapsedMs: Date.now() - startedAt
@@ -749,10 +795,54 @@ function createStudentServiceTiming(label) {
       console.info("[student-service:timing]", Object.assign({
         label: label,
         totalMs: Date.now() - startedAt,
+        performanceMeasures: readPerformanceMeasures(label),
         marks: marks
       }, details || {}));
     }
   };
+}
+
+function createPerformanceMark(label, name) {
+  var markName = "student-dashboard:" + label + ":" + name + ":" + Date.now();
+
+  if (typeof performance !== "undefined" && typeof performance.mark === "function") {
+    try {
+      performance.mark(markName);
+    } catch (error) {}
+  }
+
+  return markName;
+}
+
+function createPerformanceMeasure(measureName, startMark, endMark) {
+  if (typeof performance === "undefined" || typeof performance.measure !== "function") {
+    return;
+  }
+
+  try {
+    performance.measure("student-dashboard:" + measureName, startMark, endMark);
+  } catch (error) {}
+}
+
+function readPerformanceMeasures(label) {
+  var prefix = "student-dashboard:" + label;
+
+  if (typeof performance === "undefined" || typeof performance.getEntriesByType !== "function") {
+    return [];
+  }
+
+  try {
+    return performance.getEntriesByType("measure").filter(function (entry) {
+      return entry && typeof entry.name === "string" && entry.name.indexOf(prefix) === 0;
+    }).slice(-8).map(function (entry) {
+      return {
+        name: entry.name,
+        durationMs: Math.round(entry.duration)
+      };
+    });
+  } catch (error) {
+    return [];
+  }
 }
 
 function logStudentTiming(label, details) {

@@ -146,6 +146,7 @@ export { GenerateModuleSkeletonIntent } from "./courseEditor/GenerateModuleSkele
 export { GenerateStarterStepsIntent } from "./courseEditor/GenerateStarterStepsIntent.js?v=1.1.207-emotional-check-in-save";
 export { ListModulesIntent } from "./courseEditor/ListModulesIntent.js?v=1.1.207-emotional-check-in-save";
 export { UpdateModuleIntent } from "./courseEditor/UpdateModuleIntent.js?v=1.1.207-emotional-check-in-save";
+export { UpdateModuleMetadataIntent } from "./courseEditor/UpdateModuleMetadataIntent.js?v=1.1.207-emotional-check-in-save";
 export { AddModuleIntent } from "./courseEditor/AddModuleIntent.js?v=1.1.207-emotional-check-in-save";
 export { UpdateModuleFieldIntent } from "./courseEditor/UpdateModuleFieldIntent.js?v=1.1.207-emotional-check-in-save";
 export { ReorderModulesIntent } from "./courseEditor/ReorderModulesIntent.js?v=1.1.207-emotional-check-in-save";
@@ -211,3 +212,4 @@ export { CompleteStudentStepIntent } from "./student/CompleteStudentStepIntent.j
 export { CompletePracticeModeIntent } from "./student/CompletePracticeModeIntent.js?v=1.1.207-emotional-check-in-save";
 export { CompleteStudentPracticeModeIntent } from "./student/CompleteStudentPracticeModeIntent.js?v=1.1.207-emotional-check-in-save";
 export { SaveStudentProgressIntent } from "./student/SaveStudentProgressIntent.js?v=1.1.207-emotional-check-in-save";
+

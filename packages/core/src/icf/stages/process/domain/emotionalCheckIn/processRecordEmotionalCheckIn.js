@@ -23,6 +23,8 @@ export async function processRecordEmotionalCheckIn(executionState) {
         {
           code: "EMOTIONAL_CHECK_IN_SAVE_FAILED",
           retryable: true,
+          firebaseCode: error && error.code ? error.code : "",
+          documentPathPattern: "emotionalCheckIns/{location_context_participantUserId}",
           message: "Could not save your check-in. Please try again."
         }
       ]

@@ -107,9 +107,7 @@ async function readModuleFromSource(courseId, moduleId, source) {
     return null;
   }
 
-  return Object.assign(normalizeModule(Object.assign({ id: moduleSnap.id }, moduleSnap.data() || {})), {
-    source: source
-  });
+  return normalizeModuleDocument(Object.assign({ id: moduleSnap.id }, moduleSnap.data() || {}), source);
 }
 
 async function readStandaloneLegacyModule(moduleId) {
@@ -119,9 +117,7 @@ async function readStandaloneLegacyModule(moduleId) {
     return null;
   }
 
-  return Object.assign(normalizeModule(Object.assign({ id: moduleSnap.id }, moduleSnap.data() || {})), {
-    source: "modules"
-  });
+  return normalizeModuleDocument(Object.assign({ id: moduleSnap.id }, moduleSnap.data() || {}), "modules");
 }
 
 async function readCourseContext(courseId) {
@@ -145,14 +141,26 @@ async function readModulesFromSource(courseId, source) {
   var modules = [];
 
   snapshot.forEach(function (moduleSnap) {
-    modules.push(Object.assign(normalizeModule(Object.assign({ id: moduleSnap.id }, moduleSnap.data() || {})), {
-      source: source
-    }));
+    modules.push(normalizeModuleDocument(Object.assign({ id: moduleSnap.id }, moduleSnap.data() || {}), source));
   });
 
   return modules;
 }
 
+function normalizeModuleDocument(moduleRecord, source) {
+  var normalized = normalizeModule(moduleRecord);
+  var mergedModule = Object.assign({}, moduleRecord, {
+    id: normalized.id || moduleRecord.id || moduleRecord.moduleId || "",
+    status: normalized.status,
+    source: source
+  });
+
+  if (!mergedModule.moduleId && mergedModule.id) {
+    mergedModule.moduleId = mergedModule.id;
+  }
+
+  return mergedModule;
+}
 function sortModulesByCourseOrder(modules, moduleOrder) {
   var order = Array.isArray(moduleOrder) ? moduleOrder : [];
   var orderIndexById = {};

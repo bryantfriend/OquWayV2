@@ -1,5 +1,5 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.209-open-integrations";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.210-module-flow";
 import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.209-open-integrations";
 import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.209-open-integrations";
 import {
@@ -671,7 +671,7 @@ function selectSession(moduleId, sessionId) {
 
 async function openPracticeMode(courseId, moduleId, sessionId, practiceModeKey) {
   var course = readCourseById(studentDashboardStore.getState().courses || [], courseId);
-  var result = await studentDashboardService.startPracticeMode(courseId, moduleId, sessionId, practiceModeKey, course ? course.courseRecordSource : "");
+  var result = await studentDashboardService.startPracticeMode(courseId, moduleId, sessionId, practiceModeKey, course ? course.courseRecordSource : "", course ? course.moduleSource : "");
 
   if (!result) {
     return;
@@ -729,7 +729,9 @@ async function completeCurrentStep(stepId, completionResult, snapshot) {
     session.id,
     practiceMode.key,
     safeStepId,
-    completionResult
+    completionResult,
+    course.courseRecordSource,
+    course.moduleSource
   );
 
   if (!stepResult) {
@@ -739,7 +741,7 @@ async function completeCurrentStep(stepId, completionResult, snapshot) {
   applyProgressResult(stepResult);
 
   if (snapshot && snapshot.isComplete) {
-    var modeResult = await studentDashboardService.completePracticeMode(course.id, module.id, session.id, practiceMode.key);
+    var modeResult = await studentDashboardService.completePracticeMode(course.id, module.id, session.id, practiceMode.key, course.courseRecordSource, course.moduleSource);
     if (modeResult) {
       applyProgressResult(modeResult);
     }

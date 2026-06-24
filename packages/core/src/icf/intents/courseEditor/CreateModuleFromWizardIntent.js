@@ -1,4 +1,4 @@
-import { validateAuthenticated, validateCourseId } from "../../stages/validate/validators.js?v=1.1.162-modal-stack";
+import { validateAuthenticated, validateCourseId, validateOptionalEstimatedMinutes } from "../../stages/validate/validators.js?v=1.1.162-modal-stack";
 import { normalizeCourseId, normalizeModuleShell } from "../../stages/normalize/normalizers.js?v=1.1.162-modal-stack";
 import { attachActorContext, attachActorRoleContext, attachCourseDocument, attachModulesCollection } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
 import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.162-modal-stack";
@@ -8,7 +8,7 @@ import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.162-modal-
 export function CreateModuleFromWizardIntent() {
   return {
     type: "CreateModuleFromWizardIntent",
-    validate: [validateAuthenticated, validateCourseId, validateModuleWizardTitle],
+    validate: [validateAuthenticated, validateCourseId, validateModuleWizardTitle, validateOptionalEstimatedMinutes],
     normalize: [normalizeCourseId, normalizeModuleShell],
     addContext: [attachActorContext, attachActorRoleContext, attachCourseDocument, attachModulesCollection],
     authorize: [requireCourseCreatorAuthorization],

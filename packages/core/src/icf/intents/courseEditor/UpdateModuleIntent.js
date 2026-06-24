@@ -1,4 +1,4 @@
-import { validateAuthenticated, validateCourseId, validateModuleId } from "../../stages/validate/validators.js?v=1.1.162-modal-stack";
+import { validateAuthenticated, validateCourseId, validateModuleId, validateOptionalEstimatedMinutes } from "../../stages/validate/validators.js?v=1.1.162-modal-stack";
 import { normalizeCourseId, normalizeModuleShell } from "../../stages/normalize/normalizers.js?v=1.1.162-modal-stack";
 import { attachActorContext, attachActorRoleContext } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
 import { attachCourseDocument } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
@@ -13,7 +13,8 @@ export function UpdateModuleIntent() {
     validate: [
       validateAuthenticated,
       validateCourseId,
-      validateModuleId
+      validateModuleId,
+      validateOptionalEstimatedMinutes
     ],
     normalize: [
       normalizeCourseId,

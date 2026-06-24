@@ -173,9 +173,9 @@ async function verifyPublishReadiness() {
   assert.equal(validateCoursePublishReady(missingOptional).valid, true, "missing optional fields should not block readiness");
   assert.equal(validateCoursePublishReady(contextCourse).valid, true, "context course should avoid false Course payload missing failure");
   assert.equal(validateCoursePublishReady(undefinedOptional).valid, true, "undefined optional fields should not block readiness");
+  assert.equal(validateCoursePublishReady(noModules).valid, true, "pre-validation should defer empty module payloads to Firestore-backed validation");
+  assert.equal(validateCoursePublishReady(moduleWithoutActivities).valid, true, "pre-validation should defer step checks to Firestore-backed validation");
   assertInvalidMessage(validateCoursePublishReady(missingRequired), "Course title is required");
-  assertInvalidMessage(validateCoursePublishReady(noModules), "at least one module");
-  assertInvalidMessage(validateCoursePublishReady(moduleWithoutActivities), "at least one student step");
 
   var intentSource = await readSource("packages/core/src/icf/intents/courseEditor/PublishCourseIntent.js");
   var processSource = await readSource("packages/core/src/icf/stages/process/domain/courseEditor/processPublishCourse.js");
@@ -185,6 +185,8 @@ async function verifyPublishReadiness() {
   assertSourceIncludes(processSource, "removeUndefinedValues(cleanCourse)", "publish should strip undefined course fields");
   assertSourceIncludes(processSource, "removeUndefinedValues(cleanMod)", "publish should strip undefined module fields");
   assertSourceIncludes(processSource, "countSharedModuleSteps(moduleRecord)", "publish stepCount should use shared count helper");
+  assertSourceIncludes(processSource, 'cleanMod.status = "published"', "publish should mark module documents published");
+  assertSourceIncludes(processSource, "cleanCourse.moduleIds", "publish should maintain legacy-compatible course module ids");
 }
 
 async function verifyStepMediaStorage() {

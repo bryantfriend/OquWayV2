@@ -6,21 +6,22 @@ export async function processPublishCourse(executionState) {
     const courseCollectionName = readCourseCollectionName(executionState);
     const course = createPublishCoursePayload(executionState);
     const courseId = course && (course.id || payload.courseId);
-    const modules = Array.isArray(payload.modules) && payload.modules.length > 0
-        ? payload.modules
-        : (Array.isArray(context.modules) ? context.modules : []);
+    const modules = Array.isArray(context.modules) ? context.modules : [];
 
     if (!course || !courseId) {
         return { valid: false, errors: [{ message: "Course payload missing" }] };
     }
 
+    if (!hasCourseTitle(course)) {
+        return { valid: false, errors: [{ code: "COURSE_TITLE_REQUIRED", message: "Course title is required." }] };
+    }
+
     if (modules.length === 0) {
-        return { valid: false, errors: [{ message: "Course must have at least one module before publishing." }] };
+        return { valid: false, errors: [{ code: "COURSE_MODULES_REQUIRED", message: "Course must have at least one saved module before publishing." }] };
     }
 
     const batch = writeBatch(db);
 
-    // Update modules
     if (modules) {
         for (let i = 0; i < modules.length; i++) {
             const m = modules[i];
@@ -31,21 +32,25 @@ export async function processPublishCourse(executionState) {
             }
 
             const modRef = doc(db, courseCollectionName, courseId, "modules", moduleId);
-
             const cleanMod = Object.assign({}, m);
+
             delete cleanMod.isDirty;
             delete cleanMod.id;
             cleanMod.isDraft = false;
+            cleanMod.status = "published";
+            cleanMod.courseId = courseId;
+            cleanMod.moduleId = moduleId;
+            cleanMod.publishedAt = serverTimestamp();
+            cleanMod.updatedAt = serverTimestamp();
 
-            batch.set(modRef, removeUndefinedValues(cleanMod));
+            batch.set(modRef, removeUndefinedValues(cleanMod), { merge: true });
         }
     }
 
-    // Update course metadata
     const courseRef = doc(db, courseCollectionName, courseId);
     const newVersion = (course.version || 1) + 1;
-
     const cleanCourse = Object.assign({}, course);
+
     delete cleanCourse.isDirty;
     cleanCourse.updatedAt = serverTimestamp();
     cleanCourse.updatedBy = context.actorId || "SYSTEM";
@@ -56,6 +61,7 @@ export async function processPublishCourse(executionState) {
     cleanCourse.moduleOrder = modules.map(function (moduleRecord) {
         return moduleRecord.id || moduleRecord.moduleId;
     }).filter(Boolean);
+    cleanCourse.moduleIds = cleanCourse.moduleOrder.slice();
 
     batch.update(courseRef, removeUndefinedValues(cleanCourse));
 
@@ -79,7 +85,7 @@ export async function processPublishCourse(executionState) {
 function createPublishCoursePayload(executionState) {
     const payload = executionState.payload || {};
     const context = executionState.context || {};
-    const course = payload.course || context.course || null;
+    const course = context.course || payload.course || null;
 
     if (!course) {
         return null;
@@ -128,3 +134,18 @@ function readCourseCollectionName(executionState) {
         : "catalogCourses";
 }
 
+function hasCourseTitle(course) {
+    return hasLocalizedText(course && (course.title || course.name || course.displayName));
+}
+
+function hasLocalizedText(value) {
+    if (typeof value === "string") {
+        return value.trim().length > 0;
+    }
+
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+        return false;
+    }
+
+    return Boolean(value.en || value.ru || value.ky);
+}

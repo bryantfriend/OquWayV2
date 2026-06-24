@@ -3,18 +3,20 @@ import { db, collection, getDocs } from "../../../../../infrastructure/firebase/
 export async function processValidateCourseStructure(executionState) {
     const { context, payload } = executionState;
     const errors = [];
+    const modules = Array.isArray(context.modules) ? context.modules : [];
+
 
     if (!hasCourseTitle(context.course || payload.course)) {
         errors.push({ field: "course.title", message: "Course title is required." });
     }
 
-    if (!context.modules || context.modules.length === 0) {
+    if (modules.length === 0) {
         errors.push({ field: "modules", message: "Course must have at least one module." });
     }
 
-    if (context.modules) {
-        for (let i = 0; i < context.modules.length; i++) {
-            const m = context.modules[i];
+    if (modules.length > 0) {
+        for (let i = 0; i < modules.length; i++) {
+            const m = modules[i];
             if (!hasModuleTitle(m)) {
                 errors.push({ field: "module[" + i + "].title", message: "Module title is required." });
             }
@@ -153,4 +155,5 @@ function readCourseCollectionName(executionState) {
         ? executionState.context.courseCollectionName
         : "catalogCourses";
 }
+
 

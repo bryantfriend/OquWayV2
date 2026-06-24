@@ -130,6 +130,7 @@ const registry = {
   GenerateStarterStepsIntent: IntentExports.GenerateStarterStepsIntent,
   ListModulesIntent: IntentExports.ListModulesIntent,
   UpdateModuleIntent: IntentExports.UpdateModuleIntent,
+  UpdateModuleMetadataIntent: IntentExports.UpdateModuleMetadataIntent,
   AddModuleIntent: IntentExports.AddModuleIntent,
   UpdateModuleFieldIntent: IntentExports.UpdateModuleFieldIntent,
   ReorderModulesIntent: IntentExports.ReorderModulesIntent,
@@ -249,3 +250,4 @@ export function hasIntent(intentType) {
 export function listIntents() {
   return Object.keys(registry);
 }
+

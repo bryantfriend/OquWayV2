@@ -1,7 +1,6 @@
 import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.153-student-course-journey-polish';
 import { courseEditorService } from '../services/courseEditorService.js?v=1.1.209-open-integrations';
 import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.153-student-course-journey-polish';
-import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.153-student-course-journey-polish';
 import {
   createEmptyState,
   createErrorState,
@@ -440,23 +439,53 @@ export class CourseOverviewPage {
 
         ${buildCreateModuleWizardModal()}
 
-        <!-- Module Title Edit Modal -->
+        <!-- Module Details Edit Modal -->
         <div id="moduleTitleModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 transition-opacity">
-          <div class="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden transform transition-all">
+          <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl overflow-hidden transform transition-all">
             <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-              <h3 class="text-lg font-bold text-gray-900">Edit Module Titles</h3>
+              <h3 class="text-lg font-bold text-gray-900">Edit Module Details</h3>
               <button id="closeModuleTitleBtn" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="px-6 py-4 space-y-3 max-h-[60vh] overflow-y-auto" id="moduleTitleInputsContainer">
-              <!-- Dynamically generated inputs based on course languages -->
+            <div class="px-6 py-4 space-y-4 max-h-[70vh] overflow-y-auto">
+              <div id="moduleTitleInputsContainer" class="space-y-3"></div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wide">Description</label>
+                <textarea id="moduleDetailsDescriptionInput" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wide">Estimated Minutes</label>
+                  <input id="moduleDetailsEstimatedMinutesInput" type="number" min="1" step="1" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wide">Icon URL</label>
+                  <input id="moduleDetailsIconUrlInput" type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wide">Display Template</label>
+                  <select id="moduleDetailsDisplayTemplateSelect" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="basic">Basic</option>
+                    <option value="adventurePath">Adventure Path</option>
+                    <option value="compactGrid">Compact Grid</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wide">Status</label>
+                  <select id="moduleDetailsStatusSelect" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                </div>
+              </div>
+              <div id="moduleDetailsStatusMessage" class="hidden rounded-lg border px-3 py-2 text-xs font-bold"></div>
             </div>
             <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 justify-end flex gap-2">
               <button id="cancelModuleTitleBtn" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition">Cancel</button>
-              <button id="saveModuleTitleBtn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium text-white transition shadow-sm">Save Titles</button>
+              <button id="saveModuleTitleBtn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium text-white transition shadow-sm">Save Details</button>
             </div>
           </div>
         </div>
-
       </div>
     `;
   }
@@ -751,13 +780,19 @@ export class CourseOverviewPage {
       var currentVal = titleObj[code] || '';
       return '<div>'
         + '<label class="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wide">' + labelName + '</label>'
-        + '<input type="text" data-lang="' + code + '" value="' + currentVal + '" class="module-title-lang-input w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Module name in ' + labelName + '...">'
+        + '<input type="text" data-lang="' + code + '" value="' + escapeHtml(currentVal) + '" class="module-title-lang-input w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Module name in ' + labelName + '...">'
         + '</div>';
     }).join('');
 
+    setOptionalElementValue('moduleDetailsDescriptionInput', readLocalizedModuleText(module.description, course.defaultLanguage || 'en'));
+    setOptionalElementValue('moduleDetailsEstimatedMinutesInput', module.estimatedMinutes ? String(module.estimatedMinutes) : '');
+    setOptionalElementValue('moduleDetailsIconUrlInput', typeof module.iconUrl === 'string' ? module.iconUrl : '');
+    setOptionalElementValue('moduleDetailsDisplayTemplateSelect', normalizeModuleDisplayTemplate(module.displayTemplate));
+    setOptionalElementValue('moduleDetailsStatusSelect', normalizeModuleStatus(module.status));
+    this.setModuleDetailsStatus('', '');
+
     document.getElementById('moduleTitleModal').classList.remove('hidden');
   }
-
   openCreateModuleWizard() {
     var modal = document.getElementById('createModuleWizardModal');
     var status = document.getElementById('moduleWizardStatus');
@@ -1675,8 +1710,19 @@ export class CourseOverviewPage {
       if (!self.editingModuleId) {
         return;
       }
+
+      var state = courseEditorStore.getState();
+      var course = state.course || {};
+      var module = findModuleById(state.modules, self.editingModuleId) || {};
       var titleInputs = document.querySelectorAll('.module-title-lang-input');
       var newTitleObj = {};
+      var estimatedMinutes = readOptionalPositiveWholeNumberValue(readElementValue('moduleDetailsEstimatedMinutesInput', ''));
+
+      if (estimatedMinutes === false) {
+        self.setModuleDetailsStatus('Estimated Time must be a positive whole number of minutes.', 'error');
+        return;
+      }
+
       for (var i = 0; i < titleInputs.length; i++) {
         var langCode = titleInputs[i].getAttribute('data-lang');
         var val = titleInputs[i].value.trim();
@@ -1688,15 +1734,60 @@ export class CourseOverviewPage {
         newTitleObj.en = 'Untitled Module';
       }
 
+      self.setModuleDetailsStatus('Saving module details...', 'info');
       courseEditorService.updateModule(self.courseId, self.editingModuleId, {
         title: newTitleObj,
-        description: {},
-        status: 'draft'
+        description: buildLocalizedMetadataValue(module.description, course.defaultLanguage || 'en', readElementValue('moduleDetailsDescriptionInput', '')),
+        status: normalizeModuleStatus(readElementValue('moduleDetailsStatusSelect', module.status || 'draft')),
+        iconUrl: readElementValue('moduleDetailsIconUrlInput', module.iconUrl || ''),
+        displayTemplate: normalizeModuleDisplayTemplate(readElementValue('moduleDetailsDisplayTemplateSelect', module.displayTemplate || 'basic')),
+        pathType: module.pathType || 'main',
+        pathGroup: module.pathGroup || '',
+        pathOrder: typeof module.pathOrder === 'number' ? module.pathOrder : module.order,
+        parentModuleId: module.parentModuleId || '',
+        unlockRuleType: module.unlockRuleType || 'open',
+        prerequisiteModuleId: module.prerequisiteModuleId || '',
+        unlockThresholdPercent: typeof module.unlockThresholdPercent === 'number' ? module.unlockThresholdPercent : 100,
+        estimatedMinutes: estimatedMinutes
+      }).then(function (result) {
+        if (!result || !result.emitted || !result.emitted.success) {
+          self.setModuleDetailsStatus(self.readResultErrorMessage(result), 'error');
+          return;
+        }
+
+        self.setModuleDetailsStatus('Module details saved.', 'success');
+        setTimeout(closeModalFn, 350);
+      }).catch(function (error) {
+        self.setModuleDetailsStatus(error.message || 'Could not save module details.', 'error');
       });
-      closeModalFn();
     });
   }
 
+  setModuleDetailsStatus(message, type) {
+    var status = document.getElementById('moduleDetailsStatusMessage');
+
+    if (!status) {
+      return;
+    }
+
+    if (!message) {
+      status.className = 'hidden rounded-lg border px-3 py-2 text-xs font-bold';
+      status.textContent = '';
+      return;
+    }
+
+    var className = 'rounded-lg border px-3 py-2 text-xs font-bold ';
+    if (type === 'error') {
+      className += 'border-red-100 bg-red-50 text-red-700';
+    } else if (type === 'success') {
+      className += 'border-emerald-100 bg-emerald-50 text-emerald-700';
+    } else {
+      className += 'border-blue-100 bg-blue-50 text-blue-700';
+    }
+
+    status.className = className;
+    status.textContent = message;
+  }
   archiveCourse() {
     var self = this;
 
@@ -2765,48 +2856,14 @@ export class CourseOverviewPage {
   }
 
   loadExternalTaskSubmissions() {
-    var self = this;
-    this.externalTaskLoading = true;
+    this.externalTaskLoading = false;
+    this.externalTaskSubmissions = [];
     this.renderExternalTaskSubmissions();
-    this.showExternalTaskStatus('loading', 'Loading external task submissions...');
-
-    externalTaskReviewService.loadSubmissions({
-      courseId: this.courseId,
-      reviewStatus: this.externalTaskStatusFilter
-    }).then(function (submissions) {
-      self.externalTaskSubmissions = submissions;
-      self.renderCourseCommandCenter(courseEditorStore.getState());
-      self.showExternalTaskStatus('success', 'Review queue loaded.');
-      setTimeout(function () {
-        self.hideExternalTaskStatus();
-      }, 1400);
-    }).catch(function (error) {
-      self.renderCourseCommandCenter(courseEditorStore.getState());
-      self.showExternalTaskStatus('error', error.message);
-    }).finally(function () {
-      self.externalTaskLoading = false;
-      self.renderExternalTaskSubmissions();
-    });
+    this.showExternalTaskStatus('info', 'External task reviews are managed from the Teacher Dashboard. Course Creator does not load review submissions.');
   }
 
   reviewExternalTaskSubmission(submissionId, reviewStatus) {
-    var self = this;
-    var feedbackInput = document.querySelector('.external-task-feedback-input[data-id="' + cssEscape(submissionId) + '"]');
-    var feedback = feedbackInput ? feedbackInput.value : '';
-
-    this.externalTaskPendingId = submissionId;
-    this.renderExternalTaskSubmissions();
-    this.showExternalTaskStatus('loading', 'Saving review...');
-
-    externalTaskReviewService.reviewSubmission(submissionId, reviewStatus, feedback).then(function () {
-      self.externalTaskPendingId = "";
-      self.showExternalTaskStatus('success', 'Review saved.');
-      self.loadExternalTaskSubmissions();
-    }).catch(function (error) {
-      self.externalTaskPendingId = "";
-      self.renderExternalTaskSubmissions();
-      self.showExternalTaskStatus('error', error.message);
-    });
+    this.showExternalTaskStatus('info', 'External task reviews are managed from the Teacher Dashboard.');
   }
 
   renderExternalTaskFilters() {
@@ -2943,19 +3000,6 @@ export class CourseOverviewPage {
     var tbody = document.getElementById('moduleTableBody');
     var safeModules = Array.isArray(modules) ? modules : [];
 
-    console.info("[course-editor:render-modules]", {
-      renderedModuleCount: safeModules.length,
-      moduleIds: safeModules.map(readModuleId),
-      moduleTitles: safeModules.map(readModuleTitle)
-    });
-
-    console.info("[course:render:modules]", {
-      renderedModuleCount: safeModules.length,
-      renderedModuleIds: safeModules.map(readModuleId),
-      renderedModuleTitles: safeModules.map(readModuleTitle),
-      moduleSource: moduleSourceCheck && moduleSourceCheck.moduleSource ? moduleSourceCheck.moduleSource : 'catalogCourses'
-    });
-
     if (!tbody) {
       return;
     }
@@ -3022,7 +3066,7 @@ export class CourseOverviewPage {
         + '<div class="flex items-center gap-3">'
         + renderModuleIconPreview(moduleDisplay)
         + '<span class="text-base">' + escapeHtml(moduleDisplay.title) + '</span>'
-        + '<button data-id="' + escapeHtml(moduleDisplay.id) + '" class="edit-module-name-btn hidden group-hover:flex bg-white hover:bg-gray-100 border border-gray-200 text-gray-500 hover:text-blue-600 transition w-6 h-6 items-center justify-center rounded-md shadow-sm opacity-0 group-hover:opacity-100 pointer-events-auto"><i class="fa-solid fa-pen text-[10px]"></i></button>'
+        + '<button data-id="' + escapeHtml(moduleDisplay.id) + '" class="edit-module-name-btn hidden group-hover:flex bg-white hover:bg-gray-100 border border-gray-200 text-gray-500 hover:text-blue-600 transition px-2 h-6 items-center justify-center rounded-md shadow-sm opacity-0 group-hover:opacity-100 pointer-events-auto text-[10px] font-black"><i class="fa-solid fa-pen mr-1"></i>Edit Details</button>'
         + dirtyDot
         + '</div>'
         + '</td>'
@@ -3658,12 +3702,82 @@ function setInputValue(id, value) {
   }
 }
 
+function findModuleById(modules, moduleId) {
+  var safeModules = Array.isArray(modules) ? modules : [];
+  var index = 0;
+
+  while (index < safeModules.length) {
+    if ((safeModules[index].id || safeModules[index].moduleId) === moduleId) {
+      return safeModules[index];
+    }
+
+    index = index + 1;
+  }
+
+  return null;
+}
 function setOptionalElementHtml(id, html) {
   var element = document.getElementById(id);
 
   if (element) {
     element.innerHTML = html;
   }
+}
+
+function setOptionalElementValue(id, value) {
+  var element = document.getElementById(id);
+
+  if (element) {
+    element.value = value || '';
+  }
+}
+
+function readElementValue(id, fallbackValue) {
+  var element = document.getElementById(id);
+
+  if (!element) {
+    return fallbackValue || '';
+  }
+
+  return element.value || '';
+}
+
+function readLocalizedModuleText(value, language) {
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return value[language || 'en'] || value.en || value.ru || value.ky || '';
+  }
+
+  return '';
+}
+
+function buildLocalizedMetadataValue(existingValue, language, text) {
+  var localized = existingValue && typeof existingValue === 'object' && !Array.isArray(existingValue)
+    ? Object.assign({}, existingValue)
+    : { en: '', ru: '', ky: '' };
+  var safeLanguage = language || 'en';
+
+  localized[safeLanguage] = typeof text === 'string' ? text.trim() : '';
+  if (!localized.en && safeLanguage !== 'en') {
+    localized.en = localized[safeLanguage];
+  }
+
+  return localized;
+}
+
+function normalizeModuleDisplayTemplate(value) {
+  return normalizeCourseDisplayTemplate(value);
+}
+
+function normalizeModuleStatus(value) {
+  if (value === 'published' || value === 'archived') {
+    return value;
+  }
+
+  return 'draft';
 }
 
 function isCheckboxChecked(id, fallbackValue) {
@@ -5231,3 +5345,11 @@ function cssEscape(value) {
 
   return String(value || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }
+
+
+
+
+
+
+
+

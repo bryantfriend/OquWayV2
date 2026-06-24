@@ -52,7 +52,16 @@ service cloud.firestore {
         && studentId is string
         && (
           request.auth.uid == studentId ||
-          (request.auth.token.studentId is string && request.auth.token.studentId == studentId)
+          (request.auth.token.studentId is string && request.auth.token.studentId == studentId) ||
+          (
+            user() != null && (
+              user().data.get("studentId", "") == studentId ||
+              user().data.get("profileUserId", "") == studentId ||
+              user().data.get("userId", "") == studentId ||
+              user().data.get("uid", "") == studentId ||
+              user().data.get("authUid", "") == studentId
+            )
+          )
         );
     }
     function hasStudentProfile() {

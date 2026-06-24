@@ -3,6 +3,7 @@ import { auth, collection, db, deleteDoc, doc, functions, getDoc, getDocs, https
 import { runAdminIntent as runRegisteredAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.82-shared-command-center-shell";
 import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.82-shared-command-center-shell";
 import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.82-shared-command-center-shell";
+import { getModulesForCourse } from "../../../../../packages/domain/modules/index.js?v=1.1.209-open-integrations";
 import { COURSE_CREATOR_URL, roleFilterCards, userManagementRoles, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.82-shared-command-center-shell";
 import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.82-shared-command-center-shell";
 
@@ -487,15 +488,119 @@ async function loadUsersForManagement() {
 }
 
 async function readCoursesForAdmin() {
+  var catalogCoursesResult = await readOptionalCollection("catalogCourses");
   var coursesResult = await readOptionalCollection("courses");
+  var courses = mergeAdminCourseSources(catalogCoursesResult.items, coursesResult.items);
 
-  if (coursesResult.items.length > 0 || coursesResult.available === false) {
-    return buildOptionalDataResult("courses", coursesResult.items);
+  return buildOptionalDataResult("courses", await hydrateAdminCoursesWithModules(courses));
+}
+
+function mergeAdminCourseSources(catalogCourses, legacyCourses) {
+  var coursesById = {};
+
+  addAdminCoursesBySource(coursesById, legacyCourses, "courses");
+  addAdminCoursesBySource(coursesById, catalogCourses, "catalogCourses");
+
+  return Object.keys(coursesById).map(function (courseId) {
+    return coursesById[courseId];
+  }).sort(function (firstCourse, secondCourse) {
+    return readCourseTitle(firstCourse).localeCompare(readCourseTitle(secondCourse));
+  });
+}
+
+function addAdminCoursesBySource(coursesById, courses, source) {
+  var safeCourses = Array.isArray(courses) ? courses : [];
+  var index = 0;
+
+  while (index < safeCourses.length) {
+    var course = safeCourses[index] || {};
+    var courseId = readSafeString(course.id || course.courseId);
+
+    if (courseId) {
+      coursesById[courseId] = Object.assign({}, coursesById[courseId] || {}, course, {
+        id: courseId,
+        courseRecordSource: source
+      });
+    }
+
+    index = index + 1;
+  }
+}
+
+async function hydrateAdminCoursesWithModules(courses) {
+  var safeCourses = Array.isArray(courses) ? courses : [];
+  var hydratedCourses = [];
+  var courseIndex = 0;
+
+  while (courseIndex < safeCourses.length) {
+    hydratedCourses.push(await hydrateAdminCourseModules(safeCourses[courseIndex]));
+    courseIndex = courseIndex + 1;
   }
 
-  var catalogCoursesResult = await readOptionalCollection("catalogCourses");
+  return hydratedCourses;
+}
 
-  return buildOptionalDataResult("courses", catalogCoursesResult.items);
+async function hydrateAdminCourseModules(course) {
+  var courseId = readSafeString(course && course.id);
+  var discoveredModules = [];
+
+  try {
+    discoveredModules = await getModulesForCourse(courseId, {
+      course: course,
+      sources: ["catalogCourses", "courses"]
+    });
+  } catch (error) {
+    discoveredModules = [];
+  }
+
+  if (discoveredModules.length === 0) {
+    discoveredModules = readAdminFallbackModules(course);
+  }
+
+  discoveredModules = discoveredModules.map(function (moduleRecord) {
+    return Object.assign({ courseId: courseId }, moduleRecord || {});
+  });
+
+  var moduleIds = discoveredModules.map(readAdminModuleIdForLog).filter(Boolean);
+  return Object.assign({}, course, {
+    modules: discoveredModules,
+    moduleCount: discoveredModules.length,
+    moduleIds: moduleIds,
+    moduleOrder: moduleIds,
+    moduleSource: discoveredModules.length > 0 ? (discoveredModules[0].source || discoveredModules[0].moduleSource || "catalogCourses") : ""
+  });
+}
+
+function readAdminFallbackModules(course) {
+  var modules = [];
+
+  if (!course) {
+    return modules;
+  }
+
+  if (Array.isArray(course.modules)) {
+    course.modules.forEach(function (moduleRecord, order) {
+      if (typeof moduleRecord === "string") {
+        modules.push({ id: moduleRecord, moduleId: moduleRecord, title: moduleRecord, courseId: course.id, order: order });
+      } else if (moduleRecord) {
+        modules.push(Object.assign({ courseId: course.id, order: order }, moduleRecord));
+      }
+    });
+  }
+
+  if (modules.length === 0 && Array.isArray(course.moduleIds)) {
+    course.moduleIds.forEach(function (moduleId, order) {
+      modules.push({ id: moduleId, moduleId: moduleId, title: moduleId, courseId: course.id, order: order });
+    });
+  }
+
+  if (modules.length === 0 && Array.isArray(course.moduleOrder)) {
+    course.moduleOrder.forEach(function (moduleId, order) {
+      modules.push({ id: moduleId, moduleId: moduleId, title: moduleId, courseId: course.id, order: order });
+    });
+  }
+
+  return modules;
 }
 
 async function readCourseAssignmentsForAdmin(filters) {
@@ -2364,7 +2469,7 @@ function buildModuleAnalyticsTab(moduleRecord, context) {
   return '<section class="sa-command-tab-stack"><div class="sa-command-kpi-grid">'
     + buildUserCommandKpiCard("Started", context.studentsStarted, "analytics", "blue", "Students started")
     + buildUserCommandKpiCard("Completed", context.studentsCompleted, "analytics", "green", "Students completed")
-    + buildUserCommandKpiCard("Average Time", readModuleEstimatedTime(moduleRecord), "analytics", "purple", "If available")
+    + buildUserCommandKpiCard("Estimated Time", readModuleEstimatedTime(moduleRecord), "analytics", "purple", "If available")
     + buildUserCommandKpiCard("External Tasks", context.submissions.length, "analytics", "orange", "Submissions")
     + '</div>' + buildUserCommandChartCard("Most Active Steps", "Step activity analytics are not connected yet.") + '</section>';
 }
@@ -2397,7 +2502,7 @@ function buildCourseAtAGlanceCard(course, context) {
 }
 
 function buildModulePerformanceCard(context) {
-  return '<article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Performance Summary</h3></div><dl class="sa-command-summary-list"><dt>Start Rate</dt><dd>' + context.studentsStarted + '</dd><dt>Completion Count</dt><dd>' + context.studentsCompleted + '</dd><dt>Average Progress</dt><dd>' + escapeHtml(readModuleProgressLabel(context.module, context)) + '</dd><dt>Average Time</dt><dd>' + escapeHtml(readModuleEstimatedTime(context.module)) + '</dd></dl></article>';
+  return '<article class="sa-command-panel"><div class="sa-command-panel-head"><h3>Performance Summary</h3></div><dl class="sa-command-summary-list"><dt>Start Rate</dt><dd>' + context.studentsStarted + '</dd><dt>Completion Count</dt><dd>' + context.studentsCompleted + '</dd><dt>Average Progress</dt><dd>' + escapeHtml(readModuleProgressLabel(context.module, context)) + '</dd><dt>Estimated Time</dt><dd>' + escapeHtml(readModuleEstimatedTime(context.module)) + '</dd></dl></article>';
 }
 
 function buildModuleExternalTaskCard(context) {
@@ -11226,7 +11331,38 @@ function readModuleUpdatedAt(moduleRecord) {
 }
 
 function readModuleEstimatedTime(moduleRecord) {
+  var minutes = readPositiveWholeNumber([
+    moduleRecord && moduleRecord.estimatedMinutes,
+    moduleRecord && moduleRecord.durationMinutes,
+    moduleRecord && moduleRecord.estimatedDurationMinutes
+  ]);
+
+  if (minutes) {
+    return "About " + minutes + " minute" + (minutes === 1 ? "" : "s");
+  }
+
   return readSafeString(moduleRecord && (moduleRecord.estimatedTime || moduleRecord.estimatedDuration || moduleRecord.durationLabel)) || "No time estimate";
+}
+
+function readPositiveWholeNumber(values) {
+  var index = 0;
+
+  while (index < values.length) {
+    if (typeof values[index] === "number" && isFinite(values[index]) && Math.floor(values[index]) === values[index] && values[index] > 0) {
+      return values[index];
+    }
+
+    if (typeof values[index] === "string" && values[index].trim() && !isNaN(Number(values[index]))) {
+      var numberValue = Number(values[index]);
+      if (Math.floor(numberValue) === numberValue && numberValue > 0) {
+        return numberValue;
+      }
+    }
+
+    index = index + 1;
+  }
+
+  return 0;
 }
 
 function readModuleNumericMetric(moduleRecord, fields) {
@@ -12118,5 +12254,8 @@ window.goSuperAdmin = function () {
   state.activeTab = "overview";
   render();
 };
+
+
+
 
 

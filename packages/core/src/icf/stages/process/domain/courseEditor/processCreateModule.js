@@ -106,6 +106,7 @@ async function updateCourseModuleSummary(collectionName, courseId, existingModul
 
   await setDoc(doc(db, collectionName, courseId), {
     moduleCount: persistedModuleIds.length,
+    moduleIds: moduleOrder,
     moduleOrder: moduleOrder,
     stepCount: readExistingStepCount(existingModules) + readNumber(generatedStepCount, 0),
     updatedAt: serverTimestamp()
@@ -179,16 +180,16 @@ async function writeGeneratedSessionsAndSteps(collectionName, courseId, moduleId
 
 function createModuleRecord(moduleId, payload, context) {
   const order = readNextOrder(context.modules);
-
-  return {
+  const moduleRecord = {
     id: moduleId,
+    moduleId: moduleId,
+    courseId: payload.courseId,
     title: payload.title,
     description: payload.description,
     subject: payload.subject || "",
     topic: payload.topic || "",
     level: payload.level || payload.grade || "",
     grade: payload.grade || payload.level || "",
-    estimatedMinutes: readNumber(payload.estimatedMinutes, 15),
     language: payload.language || "en",
     templateKey: payload.templateKey || "custom",
     order: order,
@@ -200,6 +201,13 @@ function createModuleRecord(moduleId, payload, context) {
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
   };
+
+  const estimatedMinutes = readOptionalPositiveWholeNumber(payload.estimatedMinutes);
+  if (estimatedMinutes) {
+    moduleRecord.estimatedMinutes = estimatedMinutes;
+  }
+
+  return moduleRecord;
 }
 
 function readPayloadLearningContent(payload) {
@@ -309,6 +317,20 @@ function readNumber(value, fallback) {
   return fallback;
 }
 
+function readOptionalPositiveWholeNumber(value) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  const numberValue = Number(value);
+
+  if (Number.isInteger(numberValue) && numberValue > 0) {
+    return numberValue;
+  }
+
+  return null;
+}
+
 function readExistingStepCount(modules) {
   let count = 0;
   let index = 0;
@@ -355,3 +377,4 @@ function readCanonicalContextModules(context) {
 
   return context && Array.isArray(context.modules) ? context.modules : [];
 }
+

@@ -316,7 +316,7 @@ export const courseEditorService = {
 
   updateModule: async function (courseId, moduleId, moduleMetadata) {
     try {
-      var result = await runIntentPipeline(getIntentDefinition("UpdateModuleIntent"), {
+      var result = await runIntentPipeline(getIntentDefinition("UpdateModuleMetadataIntent"), {
         payload: Object.assign({
           courseId: courseId,
           moduleId: moduleId
@@ -370,7 +370,9 @@ export const courseEditorService = {
       pathType: module.pathType || "main",
       pathGroup: module.pathGroup || "",
       pathOrder: typeof module.pathOrder === "number" ? module.pathOrder : module.order,
-      parentModuleId: module.parentModuleId || ""
+      parentModuleId: module.parentModuleId || "",
+      displayTemplate: module.displayTemplate || "basic",
+      estimatedMinutes: module.estimatedMinutes || null
     });
   },
 
@@ -856,3 +858,4 @@ function sanitizeLocalizedRichText(value) {
 
   return sanitizedValue;
 }
+

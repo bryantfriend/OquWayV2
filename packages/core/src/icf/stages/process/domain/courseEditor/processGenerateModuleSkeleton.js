@@ -24,22 +24,42 @@ export function processGenerateModuleSkeleton(executionState) {
     modeIndex = modeIndex + 1;
   }
 
+  var module = {
+    title: payload.title,
+    description: payload.description,
+    subject: payload.subject || "",
+    topic: payload.topic || "",
+    level: payload.level || payload.grade || "",
+    language: payload.language || "en",
+    templateKey: payload.templateKey || "custom",
+    learningContent: learningContent,
+    learningModes: learningModes
+  };
+  var estimatedMinutes = readOptionalPositiveWholeNumber(payload.estimatedMinutes);
+
+  if (estimatedMinutes) {
+    module.estimatedMinutes = estimatedMinutes;
+  }
+
   executionState.result = {
-    module: {
-      title: payload.title,
-      description: payload.description,
-      subject: payload.subject || "",
-      topic: payload.topic || "",
-      level: payload.level || payload.grade || "",
-      estimatedMinutes: payload.estimatedMinutes || 15,
-      language: payload.language || "en",
-      templateKey: payload.templateKey || "custom",
-      learningContent: learningContent,
-      learningModes: learningModes
-    },
+    module: module,
     stepsByMode: stepsByMode,
     generatedStepCount: generatedStepCount
   };
 
   return { valid: true };
+}
+
+function readOptionalPositiveWholeNumber(value) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  var numberValue = Number(value);
+
+  if (Number.isInteger(numberValue) && numberValue > 0) {
+    return numberValue;
+  }
+
+  return null;
 }

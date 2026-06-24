@@ -79,6 +79,10 @@ function appendOptionalModuleVisualFields(moduleData, payload) {
     moduleData.iconUrl = normalizeTextValue(payload.iconUrl);
   }
 
+  if ("displayTemplate" in payload) {
+    moduleData.displayTemplate = normalizeDisplayTemplate(payload.displayTemplate);
+  }
+
   if ("pathType" in payload) {
     moduleData.pathType = normalizePathType(payload.pathType);
   }
@@ -106,6 +110,10 @@ function appendOptionalModuleVisualFields(moduleData, payload) {
   if ("unlockThresholdPercent" in payload) {
     moduleData.unlockThresholdPercent = normalizePercent(payload.unlockThresholdPercent);
   }
+
+  if ("estimatedMinutes" in payload) {
+    moduleData.estimatedMinutes = normalizeOptionalPositiveWholeNumber(payload.estimatedMinutes);
+  }
 }
 
 function normalizeTextValue(value) {
@@ -114,6 +122,14 @@ function normalizeTextValue(value) {
   }
 
   return value.trim();
+}
+
+function normalizeDisplayTemplate(displayTemplate) {
+  if (displayTemplate === "adventurePath" || displayTemplate === "compactGrid") {
+    return displayTemplate;
+  }
+
+  return "basic";
 }
 
 function normalizePathType(pathType) {
@@ -136,6 +152,20 @@ function normalizeOptionalNumber(value) {
   return null;
 }
 
+function normalizeOptionalPositiveWholeNumber(value) {
+  if (value === null || value === "") {
+    return null;
+  }
+
+  const numberValue = normalizeOptionalNumber(value);
+
+  if (typeof numberValue !== "number") {
+    return null;
+  }
+
+  return Math.max(1, Math.round(numberValue));
+}
+
 function normalizeUnlockRuleType(value) {
   if (value === "previousComplete" || value === "moduleComplete" || value === "percentComplete") {
     return value;
@@ -153,3 +183,4 @@ function normalizePercent(value) {
 
   return Math.max(0, Math.min(100, numberValue));
 }
+

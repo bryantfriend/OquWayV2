@@ -18,6 +18,8 @@ export async function processSaveCourseDraft(executionState) {
             const cleanMod = Object.assign({}, m);
             delete cleanMod.isDirty;
             delete cleanMod.id; // Not needed in document body typically
+            cleanMod.courseId = payload.course.id;
+            cleanMod.moduleId = m.id || m.moduleId;
             cleanMod.isDraft = true;
 
             batch.set(modRef, cleanMod);
@@ -28,6 +30,7 @@ export async function processSaveCourseDraft(executionState) {
     const courseRef = doc(db, courseCollectionName, payload.course.id);
     const cleanCourse = createCleanCourseDraft(payload.course, context);
     delete cleanCourse.isDirty;
+    appendCourseModuleSummary(cleanCourse, payload.modules);
 
     batch.update(courseRef, cleanCourse);
 
@@ -116,9 +119,21 @@ function readActorId(context) {
     return "SYSTEM";
 }
 
+function appendCourseModuleSummary(course, modules) {
+    const safeModules = Array.isArray(modules) ? modules : [];
+    const moduleIds = safeModules.map(function (moduleRecord) {
+        return moduleRecord && (moduleRecord.id || moduleRecord.moduleId);
+    }).filter(Boolean);
+
+    course.moduleCount = moduleIds.length;
+    course.moduleIds = moduleIds;
+    course.moduleOrder = moduleIds;
+}
+
 function readCourseCollectionName(executionState) {
     return executionState.context && executionState.context.courseCollectionName
         ? executionState.context.courseCollectionName
         : "catalogCourses";
 }
+
 

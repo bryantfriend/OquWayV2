@@ -1,5 +1,5 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.151-student-loading-practice-context";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.210-module-flow";
 import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.151-student-loading-practice-context";
 import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.151-student-loading-practice-context";
 
@@ -479,13 +479,18 @@ function handleFruitAction(action) {
 }
 
 async function loadLocations() {
+  var timing = createStudentLoginTiming("LoadLocationsIntent");
   var result = await runLoginIntent("LoadLocationsIntent", {}, "guest-student");
+  timing.mark("LoadLocationsIntent pipeline");
 
   if (result && result.emitted && result.emitted.success) {
     setState({
       locations: result.emitted.data.locations || [],
       isLoading: false,
       message: state.message
+    });
+    timing.finish({
+      locationCount: (result.emitted.data.locations || []).length
     });
     return;
   }
@@ -519,6 +524,8 @@ async function loadStartupLoginOptions() {
 }
 
 async function resolveLocationBySlug(loginSlug) {
+  var timing = createStudentLoginTiming("ResolveLocationBySlugIntent");
+
   setState({
     isLoading: true,
     directLocationSlug: loginSlug,
@@ -530,6 +537,7 @@ async function resolveLocationBySlug(loginSlug) {
   var result = await runLoginIntent("ResolveLocationBySlugIntent", {
     loginSlug: loginSlug
   }, "guest-student");
+  timing.mark("ResolveLocationBySlugIntent pipeline");
 
   if (result && result.emitted && result.emitted.success) {
     var location = result.emitted.data.location;
@@ -557,6 +565,10 @@ async function resolveLocationBySlug(loginSlug) {
     });
 
     await loadClasses(location.id);
+    timing.finish({
+      resolved: true,
+      loginMode: loginMode
+    });
     return;
   }
 
@@ -569,11 +581,16 @@ async function resolveLocationBySlug(loginSlug) {
   });
 
   await loadLocations();
+  timing.finish({
+    resolved: false
+  });
 }
 
 async function loadClasses(locationId) {
+  var timing = createStudentLoginTiming("LoadClassesForLocationIntent");
   setState({ isBusy: true, message: "Loading classes...", messageType: "info" });
   var result = await runLoginIntent("LoadClassesForLocationIntent", { locationId: locationId }, "guest-student");
+  timing.mark("LoadClassesForLocationIntent pipeline");
 
   if (result && result.emitted && result.emitted.success) {
     setState({
@@ -581,6 +598,9 @@ async function loadClasses(locationId) {
       students: [],
       isBusy: false,
       message: ""
+    });
+    timing.finish({
+      classCount: (result.emitted.data.classes || []).length
     });
     return;
   }
@@ -595,12 +615,14 @@ async function loadClasses(locationId) {
 }
 
 async function loadStudents(locationId, classId, className) {
+  var timing = createStudentLoginTiming("LoadStudentsForClassIntent");
   setState({ isBusy: true, isLoadingStudents: true, message: "Loading students...", messageType: "info" });
   var result = await runLoginIntent("LoadStudentsForClassIntent", {
     locationId: locationId,
     classId: classId,
     className: className
   }, "guest-student");
+  timing.mark("LoadStudentsForClassIntent pipeline");
 
   if (result && result.emitted && result.emitted.success) {
     setState({
@@ -608,6 +630,10 @@ async function loadStudents(locationId, classId, className) {
       isBusy: false,
       isLoadingStudents: false,
       message: ""
+    });
+    timing.finish({
+      classId: classId || "",
+      studentCount: (result.emitted.data.students || []).length
     });
     return;
   }
@@ -626,6 +652,7 @@ async function submitFruitLogin() {
     return;
   }
 
+  var timing = createStudentLoginTiming("StudentFruitLoginIntent");
   setState({ isBusy: true, message: "Checking your fruits...", messageType: "info" });
 
   var result = await runLoginIntent("StudentFruitLoginIntent", {
@@ -635,10 +662,16 @@ async function submitFruitLogin() {
     studentId: state.selectedStudentId,
     fruits: state.fruitEntry
   }, "guest-student");
+  timing.mark("StudentFruitLoginIntent pipeline");
 
   if (result && result.emitted && result.emitted.success) {
     await logStudentLoginSuccessDebug(result.emitted.data ? result.emitted.data.student : null);
     await routeToStudentDashboardAfterSessionStart(result.emitted.data ? result.emitted.data.student : null);
+    timing.finish({
+      success: true,
+      classId: state.selectedClassId || "",
+      studentId: state.selectedStudentId || ""
+    });
     return;
   }
 
@@ -716,10 +749,15 @@ async function startStudentSession() {
 }
 
 async function routeToStudentDashboardAfterSessionStart(studentProfile) {
+  var timing = createStudentLoginTiming("student-dashboard-route");
   var sessionResult = await startStudentSession();
+  timing.mark("StartStudentSessionIntent pipeline");
 
   if (sessionResult.success) {
     markStudentSessionStarted(studentProfile, sessionResult.actorId);
+    timing.finish({
+      success: true
+    });
     window.location.href = buildStudentDashboardUrl();
   }
 }
@@ -778,6 +816,79 @@ function buildStudentDashboardUrl() {
 
   return "../student-dashboard/index.html?" + params.toString();
 }
+
+function createStudentLoginTiming(label) {
+  var startedAt = Date.now();
+  var startMark = createStudentLoginPerformanceMark(label, "start");
+  var marks = [];
+
+  return {
+    mark: function (name) {
+      var markName = createStudentLoginPerformanceMark(label, name);
+      createStudentLoginPerformanceMeasure(label + " " + name, startMark, markName);
+      marks.push({
+        name: name,
+        elapsedMs: Date.now() - startedAt
+      });
+    },
+    finish: function (details) {
+      if (!isStudentLoginDebugEnabled()) {
+        return;
+      }
+
+      console.info("[student-login:timing]", Object.assign({
+        label: label,
+        totalMs: Date.now() - startedAt,
+        marks: marks,
+        performanceMeasures: readStudentLoginPerformanceMeasures(label)
+      }, details || {}));
+    }
+  };
+}
+
+function createStudentLoginPerformanceMark(label, name) {
+  var markName = "student-login:" + label + ":" + name + ":" + Date.now();
+
+  if (typeof performance !== "undefined" && typeof performance.mark === "function") {
+    try {
+      performance.mark(markName);
+    } catch (error) {}
+  }
+
+  return markName;
+}
+
+function createStudentLoginPerformanceMeasure(measureName, startMark, endMark) {
+  if (typeof performance === "undefined" || typeof performance.measure !== "function") {
+    return;
+  }
+
+  try {
+    performance.measure("student-login:" + measureName, startMark, endMark);
+  } catch (error) {}
+}
+
+function readStudentLoginPerformanceMeasures(label) {
+  var prefix = "student-login:" + label;
+
+  if (typeof performance === "undefined" || typeof performance.getEntriesByType !== "function") {
+    return [];
+  }
+
+  try {
+    return performance.getEntriesByType("measure").filter(function (entry) {
+      return entry && typeof entry.name === "string" && entry.name.indexOf(prefix) === 0;
+    }).slice(-8).map(function (entry) {
+      return {
+        name: entry.name,
+        durationMs: Math.round(entry.duration)
+      };
+    });
+  } catch (error) {
+    return [];
+  }
+}
+
 
 function hasConfirmedStudentSession(uid) {
   if (!window.sessionStorage || !uid) {
