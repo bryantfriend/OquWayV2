@@ -107,8 +107,8 @@ async function loadCourseSummary(courseId, courseAssignmentResult, cache, execut
     return cache[courseId];
   }
 
-  cache[courseId] = await readCourseSummaryFromSource(courseId, "courses", courseAssignmentResult, executionState)
-    || await readCourseSummaryFromSource(courseId, "catalogCourses", courseAssignmentResult, executionState);
+  cache[courseId] = await readCourseSummaryFromSource(courseId, "catalogCourses", courseAssignmentResult, executionState)
+    || await readCourseSummaryFromSource(courseId, "courses", courseAssignmentResult, executionState);
 
   if (!cache[courseId]) {
     executionState.warnings.push({
@@ -181,8 +181,10 @@ function normalizeCourseSummary(courseId, data, source, courseAssignmentResult, 
     status: data.status || data.state || "assigned",
     order: readNumber(data.order, readNumber(data.sortOrder, 0)),
     moduleCount: counts.moduleCount,
+    learningActivityCount: counts.activityCount,
     activityCount: counts.activityCount,
     stepCount: counts.activityCount,
+    modules: Array.isArray(counts.modules) ? counts.modules : [],
     countSource: counts.countSource,
     progressPercent: readStoredProgressPercent(data),
     assignmentId: assignmentId,
@@ -274,12 +276,13 @@ async function loadVisibleCourseContext(courseId, sources, originalSource, origi
 }
 
 async function loadFirstCourseSummaryModules(sources, courseId, data, executionState) {
+  var moduleSources = buildCanonicalModuleSourceOrder(sources);
   var sourceIndex = 0;
   var fallbackCounts = createCourseSummaryCounts(data, [], false);
-  var fallbackSource = sources.length > 0 ? sources[0] : "courses";
+  var fallbackSource = moduleSources.length > 0 ? moduleSources[0] : "catalogCourses";
 
-  while (sourceIndex < sources.length) {
-    var source = sources[sourceIndex];
+  while (sourceIndex < moduleSources.length) {
+    var source = moduleSources[sourceIndex];
     var counts = await loadPublishedCourseSummaryCounts(source, courseId, data, executionState);
 
     if (counts.countSource === "canonicalModules") {
@@ -303,24 +306,56 @@ async function loadFirstCourseSummaryModules(sources, courseId, data, executionS
   };
 }
 
+function buildCanonicalModuleSourceOrder(sources) {
+  var moduleSources = [];
+
+  addCourseSource(moduleSources, "catalogCourses");
+  (Array.isArray(sources) ? sources : []).forEach(function (source) {
+    addCourseSource(moduleSources, source);
+  });
+  addCourseSource(moduleSources, "courses");
+
+  return moduleSources;
+}
+
 async function loadPublishedCourseSummaryCounts(source, courseId, data, executionState) {
   try {
     var modulesSnap = await getDocs(collection(db, source, courseId, "modules"));
     var modules = [];
+    var rawModules = [];
 
     modulesSnap.forEach(function (moduleSnap) {
       var moduleData = moduleSnap.data() || {};
+      var moduleRecord = Object.assign({ id: moduleSnap.id }, moduleData);
 
+      rawModules.push(moduleRecord);
       if (isStudentVisibleModuleSummary(moduleData)) {
-        modules.push(Object.assign({ id: moduleSnap.id }, moduleData));
+        modules.push(moduleRecord);
       }
     });
+
+    logCourseSummaryHydration(executionState, {
+      courseId: courseId,
+      courseStatus: data && (data.status || data.state) ? data.status || data.state : "",
+      moduleReadPath: source + "/" + courseId + "/modules",
+      rawModuleCount: rawModules.length,
+      visibleModuleCount: modules.length,
+      moduleIds: rawModules.map(readModuleIdForSummaryLog),
+      moduleStatuses: rawModules.map(readModuleVisibilityForSummaryLog)
+    });
+
+    if (rawModules.length > 0 && modules.length === 0) {
+      executionState.warnings.push({
+        code: "ASSIGNED_COURSE_MODULES_NOT_STUDENT_VISIBLE",
+        message: "Assigned course modules were found but none are student-visible at " + source + "/" + courseId + "/modules."
+      });
+    }
 
     modules = await Promise.all(modules.map(function (module) {
       return hydrateModuleActivitySummary(source, courseId, module);
     }));
 
-    return createCourseSummaryCounts(data, modules, !modulesSnap.empty);
+    return createCourseSummaryCounts(data, modules, rawModules.length > 0);
   } catch (error) {
     executionState.warnings.push({
       code: "ASSIGNED_COURSE_COUNT_READ_FAILED",
@@ -336,13 +371,15 @@ async function hydrateModuleActivitySummary(source, courseId, module) {
   }
 
   var modeCounts = await loadLearningModeActivityCounts(source, courseId, module.id);
+  var directStepCount = await loadDirectModuleStepCount(source, courseId, module.id);
+  var activityCount = Math.max(modeCounts.activityCount, directStepCount);
 
-  if (modeCounts.activityCount === 0) {
+  if (activityCount === 0) {
     return module;
   }
 
   return Object.assign({}, module, {
-    stepCount: modeCounts.activityCount,
+    stepCount: activityCount,
     learningModes: modeCounts.learningModes
   });
 }
@@ -395,6 +432,14 @@ async function readLearningModeActivityCount(source, courseId, moduleId, mode) {
     return 0;
   }
 }
+async function loadDirectModuleStepCount(source, courseId, moduleId) {
+  try {
+    var stepsSnap = await getDocs(collection(db, source, courseId, "modules", moduleId, "steps"));
+    return stepsSnap.size || 0;
+  } catch (error) {
+    return 0;
+  }
+}
 
 function createPlaceholderStepOrder(count) {
   var order = [];
@@ -416,6 +461,7 @@ function createCourseSummaryCounts(data, modules, canonicalModulesLoaded) {
     return {
       moduleCount: safeModules.length,
       activityCount: activityCount,
+      modules: buildCourseModuleSummaries(safeModules),
       countSource: "canonicalModules"
     };
   }
@@ -423,10 +469,33 @@ function createCourseSummaryCounts(data, modules, canonicalModulesLoaded) {
   return {
     moduleCount: readStoredCourseModuleCount(data),
     activityCount: readStoredCourseActivityCount(data),
+    modules: [],
     countSource: "storedSummary"
   };
 }
 
+function buildCourseModuleSummaries(modules) {
+  var safeModules = Array.isArray(modules) ? modules : [];
+  var summaries = [];
+  var index = 0;
+
+  while (index < safeModules.length) {
+    summaries.push(buildCourseModuleSummary(safeModules[index]));
+    index = index + 1;
+  }
+
+  return summaries;
+}
+
+function buildCourseModuleSummary(module) {
+  return {
+    id: module && (module.id || module.moduleId) ? module.id || module.moduleId : "",
+    moduleId: module && (module.id || module.moduleId) ? module.id || module.moduleId : "",
+    title: module ? module.title || module.name || module.displayName || "Untitled Module" : "Untitled Module",
+    status: module && module.status ? module.status : "",
+    stepCount: countCourseSteps({ modules: [module] })
+  };
+}
 function hasStoredCourseCounts(counts) {
   return Boolean(counts && (counts.moduleCount > 0 || counts.activityCount > 0));
 }
@@ -589,14 +658,16 @@ function buildContinueLearning(courses) {
   }
 
   var progressPercent = readStoredProgressPercent(firstCourse);
+  var modules = Array.isArray(firstCourse.modules) ? firstCourse.modules : [];
+  var firstModule = modules.length > 0 ? modules[0] : null;
 
   return {
     courseId: firstCourse.id,
-    moduleId: "",
+    moduleId: firstModule && firstModule.id ? firstModule.id : "",
     sessionId: "",
     title: progressPercent > 0 ? "Continue Learning" : "Start your first course",
     courseTitle: readLocalizedText(firstCourse.title, "Untitled Course"),
-    moduleTitle: "Open course to load activities",
+    moduleTitle: firstModule ? readLocalizedText(firstModule.title, "First module") : "Open course to load activities",
     progressPercent: progressPercent,
     status: progressPercent >= 100 ? "completed" : (progressPercent > 0 ? "inProgress" : "notStarted"),
     actionLabel: progressPercent > 0 ? "Continue" : "Start Learning",
@@ -712,6 +783,42 @@ function logStudentDashboardDebug(debugInfo, executionState) {
   console.info("[student-dashboard:summary-load]", debugInfo);
 }
 
+function logCourseSummaryHydration(executionState, details) {
+  if (!shouldEmitDebug(executionState) && !isDevelopmentHost()) {
+    return;
+  }
+
+  console.log("[student-course-hydration]", {
+    courseId: details.courseId || "",
+    assignmentId: "",
+    courseStatus: details.courseStatus || "",
+    moduleReadPath: details.moduleReadPath || "",
+    loadedModuleCount: details.rawModuleCount || 0,
+    visibleModuleCount: details.visibleModuleCount || 0,
+    completedModuleCount: 0,
+    moduleIds: details.moduleIds || [],
+    moduleStatuses: details.moduleStatuses || []
+  });
+}
+
+function readModuleIdForSummaryLog(module) {
+  return module && (module.id || module.moduleId) ? module.id || module.moduleId : "";
+}
+
+function readModuleVisibilityForSummaryLog(module) {
+  if (!module || typeof module !== "object") {
+    return "";
+  }
+
+  return [
+    readText(module.status) || "no-status",
+    readText(module.visibility) || "no-visibility",
+    module.isPublished === true ? "isPublished" : "",
+    module.published === true ? "published" : "",
+    module.availableToStudents === true ? "availableToStudents" : "",
+    module.isDraft === false ? "notDraft" : ""
+  ].filter(Boolean).join("|");
+}
 function validateStudentProfileForDashboard(studentProfile) {
   var reason = readStudentProfileRejectReason(studentProfile);
 
@@ -795,16 +902,35 @@ function readStoredCourseActivityCount(data) {
 
 function isStudentVisibleModuleSummary(data) {
   var status = readText(data && data.status).toLowerCase();
+  var visibility = readText(data && data.visibility).toLowerCase();
 
   if (!data || typeof data !== "object") {
     return false;
+  }
+
+  if (visibility === "hidden" || visibility === "draft" || visibility === "private" || data.availableToStudents === false) {
+    return false;
+  }
+
+  if (status === "archived" || status === "deleted" || status === "disabled" || data.isArchived === true || data.isDeleted === true) {
+    return false;
+  }
+
+  if (data.isPublished === true || data.published === true || data.availableToStudents === true || data.visibleToStudents === true || data.isDraft === false) {
+    return true;
+  }
+
+  if (visibility === "published" || visibility === "visible" || visibility === "public" || visibility === "students") {
+    return true;
   }
 
   return !status
     || status === "published"
     || status === "active"
     || status === "ready"
-    || status === "assigned";
+    || status === "assigned"
+    || status === "available"
+    || status === "live";
 }
 
 function isStudentVisibleCourseSummary(data) {

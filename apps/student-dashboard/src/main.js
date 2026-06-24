@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.210-student-course-hydration";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.210-student-course-hydration";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.210-student-course-hydration";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.211-student-dashboard-hydration";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.211-student-dashboard-hydration";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.211-student-dashboard-hydration";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -20,17 +20,17 @@ import {
   createStatusBadge,
   formatStatusLabel,
   renderEmotionalCheckInGate
-} from "../../../packages/ui/index.js?v=1.1.210-student-course-hydration";
-import { emotionalCheckInService } from "../../../packages/shared/emotionalCheckIns/index.js?v=1.1.210-student-course-hydration";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.210-student-course-hydration";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.210-student-course-hydration";
+} from "../../../packages/ui/index.js?v=1.1.211-student-dashboard-hydration";
+import { emotionalCheckInService } from "../../../packages/shared/emotionalCheckIns/index.js?v=1.1.211-student-dashboard-hydration";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.211-student-dashboard-hydration";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.211-student-dashboard-hydration";
 import {
   STUDENT_PROFILE_AVATARS,
   createStudentProfileSnapshot,
   readAvatarById,
   readStudentProfilePreferences,
   saveStudentProfilePreferences
-} from "./ui/services/profileService.js?v=1.1.210-student-course-hydration";
+} from "./ui/services/profileService.js?v=1.1.211-student-dashboard-hydration";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
