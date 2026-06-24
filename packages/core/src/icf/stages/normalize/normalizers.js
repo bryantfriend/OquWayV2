@@ -28,7 +28,7 @@ export { normalizePracticeModeMetadata } from "./domain/moduleEditor/normalizePr
 export { normalizePracticeModeStep } from "./domain/moduleEditor/normalizePracticeModeStep.js?v=1.1.207-emotional-check-in-save";
 export { normalizeSessionShell } from "./domain/moduleEditor/normalizeSessionShell.js?v=1.1.207-emotional-check-in-save";
 export { normalizeStepMediaUpload } from "./domain/moduleEditor/normalizeStepMediaUpload.js?v=1.1.207-emotional-check-in-save";
-export { normalizeStudentProgressPayload } from "./domain/student/normalizeStudentProgressPayload.js?v=1.1.207-emotional-check-in-save";
+export { normalizeStudentProgressPayload } from "./domain/student/normalizeStudentProgressPayload.js?v=1.1.212-student-dashboard-unified";
 export { normalizeClassLocationPayload, normalizeStudentsForClassPayload, normalizeStudentFruitLoginPayload, normalizeStudentStandardLoginPayload } from "./domain/studentLogin/normalizeStudentLoginPayloads.js?v=1.1.207-emotional-check-in-save";
 export {
   normalizeClassOwnershipPayload,

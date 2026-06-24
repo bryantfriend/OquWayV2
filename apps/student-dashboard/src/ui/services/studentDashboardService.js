@@ -1,8 +1,8 @@
 import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.180-student-profile-center";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.211-student-dashboard-hydration";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.211-student-dashboard-hydration";
+import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.212-student-dashboard-unified";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.212-student-dashboard-unified";
 import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.180-student-profile-center";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.211-student-dashboard-hydration";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.212-student-dashboard-unified";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
@@ -224,7 +224,7 @@ export const studentDashboardService = {
     }
   },
 
-  startPracticeMode: async function (courseId, moduleId, sessionId, practiceModeKey, courseRecordSource, moduleSource) {
+  startPracticeMode: async function (courseId, moduleId, sessionId, practiceModeKey, courseRecordSource, moduleSource, moduleCourseId) {
     studentDashboardStore.setState({
       isPlayerLoading: true,
       error: null,
@@ -238,7 +238,9 @@ export const studentDashboardService = {
         sessionId: sessionId,
         practiceModeKey: practiceModeKey,
         courseRecordSource: courseRecordSource || "",
-        moduleSource: moduleSource || courseRecordSource || ""
+        moduleSource: moduleSource || courseRecordSource || "",
+        moduleCourseId: moduleCourseId || courseId,
+        progressCourseId: courseId
       });
 
       if (result && result.emitted && result.emitted.success) {
@@ -255,7 +257,7 @@ export const studentDashboardService = {
     }
   },
 
-  completeStep: async function (courseId, moduleId, sessionId, practiceModeKey, stepId, completionResult, courseRecordSource, moduleSource) {
+  completeStep: async function (courseId, moduleId, sessionId, practiceModeKey, stepId, completionResult, courseRecordSource, moduleSource, moduleCourseId) {
     studentDashboardStore.setState({
       isSavingProgress: true,
       error: null,
@@ -271,7 +273,9 @@ export const studentDashboardService = {
         stepId: stepId,
         completionResult: completionResult,
         courseRecordSource: courseRecordSource || "",
-        moduleSource: moduleSource || courseRecordSource || ""
+        moduleSource: moduleSource || courseRecordSource || "",
+        moduleCourseId: moduleCourseId || courseId,
+        progressCourseId: courseId
       });
 
       if (result && result.emitted && result.emitted.success) {
@@ -289,7 +293,7 @@ export const studentDashboardService = {
     }
   },
 
-  completePracticeMode: async function (courseId, moduleId, sessionId, practiceModeKey, courseRecordSource, moduleSource) {
+  completePracticeMode: async function (courseId, moduleId, sessionId, practiceModeKey, courseRecordSource, moduleSource, moduleCourseId) {
     studentDashboardStore.setState({
       isSavingProgress: true,
       error: null,
@@ -303,7 +307,9 @@ export const studentDashboardService = {
         sessionId: sessionId,
         practiceModeKey: practiceModeKey,
         courseRecordSource: courseRecordSource || "",
-        moduleSource: moduleSource || courseRecordSource || ""
+        moduleSource: moduleSource || courseRecordSource || "",
+        moduleCourseId: moduleCourseId || courseId,
+        progressCourseId: courseId
       });
 
       if (result && result.emitted && result.emitted.success) {

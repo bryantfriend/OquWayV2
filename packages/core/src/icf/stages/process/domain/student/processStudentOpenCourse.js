@@ -1,5 +1,5 @@
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.210-student-course-hydration";
-import { getAssignedCourseIds, validateStudentCourseOpen } from "../../../../../../../domain/courses/index.js?v=1.1.210-student-course-hydration";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.212-student-dashboard-unified";
+import { getAssignedCourseIds, validateStudentCourseOpen } from "../../../../../../../domain/courses/index.js?v=1.1.212-student-dashboard-unified";
 import { resolveStudentId } from "../../../../../../../domain/users/index.js";
 
 export async function processStudentOpenCourse(executionState) {

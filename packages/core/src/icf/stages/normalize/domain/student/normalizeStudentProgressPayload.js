@@ -12,6 +12,11 @@ export function normalizeStudentProgressPayload(executionState) {
 
   return {
     courseId: readTrimmedText(payload.courseId),
+    moduleCourseId: readTrimmedText(payload.moduleCourseId),
+    progressCourseId: readTrimmedText(payload.progressCourseId || payload.courseId),
+    courseRecordSource: readTrimmedText(payload.courseRecordSource),
+    moduleSource: readTrimmedText(payload.moduleSource),
+    source: readTrimmedText(payload.source),
     moduleId: readTrimmedText(payload.moduleId),
     sessionId: readTrimmedText(payload.sessionId),
     practiceModeKey: readTrimmedText(payload.practiceModeKey),

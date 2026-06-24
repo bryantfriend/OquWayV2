@@ -503,6 +503,19 @@ service cloud.firestore {
       return request.resource.data.version in ["1.0.0", "1.1.0"];
     }
 
+    function isEmotionalCheckInStudentProfileOwner() {
+      return request.auth != null
+        && request.resource.data.participantProfileId is string
+        && request.resource.data.participantProfileId != ""
+        && exists(/databases/$(db)/documents/users/$(request.resource.data.participantProfileId))
+        && get(/databases/$(db)/documents/users/$(request.resource.data.participantProfileId)).data.get("authUid", "") == request.auth.uid
+        && (
+          get(/databases/$(db)/documents/users/$(request.resource.data.participantProfileId)).data.get("role", "") in ["student", "Student", "ROLE_STUDENT"] ||
+          (get(/databases/$(db)/documents/users/$(request.resource.data.participantProfileId)).data.get("roles", []) is list
+            && get(/databases/$(db)/documents/users/$(request.resource.data.participantProfileId)).data.get("roles", []).hasAny(["student", "Student", "ROLE_STUDENT"])) ||
+          get(/databases/$(db)/documents/users/$(request.resource.data.participantProfileId)).data.get("ROLE_STUDENT", false) == true
+        );
+    }
     function isOwnEmotionalCheckIn(checkInId) {
       return request.auth != null
         && checkInId.matches(".*_" + request.auth.uid)
@@ -515,7 +528,7 @@ service cloud.firestore {
         && request.resource.data.emotionKey is string
         && request.resource.data.moodKey is string
         && request.resource.data.participantRole in ["student", "Student", "ROLE_STUDENT"]
-        && isStudent()
+        && (isStudent() || isEmotionalCheckInStudentProfileOwner())
         && request.resource.data.studentId is string
         && request.resource.data.checkInDate is string
         && request.resource.data.localDate == request.resource.data.checkInDate

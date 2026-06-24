@@ -16,6 +16,7 @@ await runTest("student dashboard load timeout and retry contract", verifyLoadTim
 await runTest("student dashboard ICF source guards", verifyIcfSourceGuards);
 await runTest("student dashboard assignment scope guards", verifyAssignmentScopeGuards);
 await runTest("student course open source and performance guards", verifyCourseOpenSourceAndPerformanceGuards);
+await runTest("student unified course workspace and progress id guards", verifyUnifiedCourseWorkspaceAndProgressIdGuards);
 
 if (failures.length > 0) {
   console.error("Student Dashboard load regression failed:");
@@ -152,6 +153,26 @@ async function verifyCourseOpenSourceAndPerformanceGuards() {
   assertSourceIncludes(openIntentSource, "attachStudentOpenCourseContext", "course open should continue through AddContext");
 }
 
+async function verifyUnifiedCourseWorkspaceAndProgressIdGuards() {
+  var mainSource = await readSource("apps/student-dashboard/src/main.js");
+  var serviceSource = await readSource("apps/student-dashboard/src/ui/services/studentDashboardService.js");
+  var normalizeSource = await readSource("packages/core/src/icf/stages/normalize/domain/student/normalizeStudentProgressPayload.js");
+  var sessionContextSource = await readSource("packages/core/src/icf/stages/addContext/domain/student/attachStudentSessionContext.js");
+
+  assertSourceIncludes(mainSource, "buildCanonicalCourseWorkspace(selectedCourse, state)", "canonical dashboard should render the selected course workspace");
+  assertSourceIncludes(mainSource, "renderCourseModules(course, modules", "canonical workspace should reuse working module navigation");
+  assertSourceIncludes(mainSource, "renderSelectedModulePanel(course, selectedModule, state)", "canonical workspace should keep selected module activity controls");
+  assertSourceIncludes(mainSource, "startSelectedCourseActivity", "canonical action should start the selected course activity");
+  assertNoSourceIncludes(mainSource, "if (state.courseFocusActive)", "course focus must not render a second dashboard shell");
+  assertNoSourceIncludes(mainSource, "courseFocusActive: true", "course open/check-in should not enter legacy course focus render mode");
+
+  assertSourceIncludes(serviceSource, "moduleCourseId: moduleCourseId || courseId", "practice intents should pass the content course id");
+  assertSourceIncludes(serviceSource, "progressCourseId: courseId", "practice intents should keep progress scoped to the assigned course id");
+  assertSourceIncludes(normalizeSource, "moduleCourseId: readTrimmedText(payload.moduleCourseId)", "normalization should preserve content course id");
+  assertSourceIncludes(normalizeSource, "progressCourseId: readTrimmedText(payload.progressCourseId || payload.courseId)", "normalization should preserve assigned progress course id");
+  assertSourceIncludes(sessionContextSource, "var contentCourseId = readText(payload.moduleCourseId || payload.courseId)", "AddContext should load module content from moduleCourseId");
+  assertSourceIncludes(sessionContextSource, "var progressCourseId = readText(payload.progressCourseId || payload.courseId)", "AddContext should read progress from progressCourseId");
+}
 async function readSource(relativePath) {
   return await readFile(path.join(repoRoot, relativePath), "utf8");
 }

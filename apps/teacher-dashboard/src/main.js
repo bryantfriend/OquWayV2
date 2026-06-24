@@ -1,4 +1,4 @@
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.211-student-dashboard-hydration";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.212-student-dashboard-unified";
 import {
   createStudentAnalyticsDetail,
   createTeacherAnalyticsSnapshot,

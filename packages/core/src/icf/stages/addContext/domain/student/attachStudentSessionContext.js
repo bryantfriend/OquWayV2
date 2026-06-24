@@ -91,8 +91,9 @@ function addCourseSource(sources, source) {
 }
 
 async function readSessionContextFromSource(source, payload) {
-  var courseSnap = await getDoc(doc(db, source, payload.courseId));
-  var moduleSnap = await getDoc(doc(db, source, payload.courseId, "modules", payload.moduleId));
+  var contentCourseId = readText(payload.moduleCourseId || payload.courseId);
+  var courseSnap = await getDoc(doc(db, source, contentCourseId));
+  var moduleSnap = await getDoc(doc(db, source, contentCourseId, "modules", payload.moduleId));
   var sessionSnap = null;
   var module = null;
 
@@ -105,11 +106,11 @@ async function readSessionContextFromSource(source, payload) {
   }
 
   module = Object.assign({ id: moduleSnap.id }, moduleSnap.data());
-  module.learningModes = await loadLearningModes(source, payload.courseId, module.id, module.learningModes);
-  sessionSnap = await getDoc(doc(db, source, payload.courseId, "modules", payload.moduleId, "sessions", payload.sessionId));
+  module.learningModes = await loadLearningModes(source, contentCourseId, module.id, module.learningModes);
+  sessionSnap = await getDoc(doc(db, source, contentCourseId, "modules", payload.moduleId, "sessions", payload.sessionId));
 
   return {
-    course: Object.assign({ id: courseSnap.id }, courseSnap.data()),
+    course: Object.assign({ id: payload.courseId, moduleCourseId: contentCourseId, contentCourseId: contentCourseId }, courseSnap.data()),
     module: module,
     session: hydrateSessionFromLearningModes(
       module,
@@ -413,7 +414,8 @@ async function readStudentProgress(actor, payload) {
   }
 
   try {
-    var progressRef = doc(db, "studentProgress", actor.id, "courses", payload.courseId, "sessions", payload.sessionId);
+    var progressCourseId = readText(payload.progressCourseId || payload.courseId);
+    var progressRef = doc(db, "studentProgress", actor.id, "courses", progressCourseId, "sessions", payload.sessionId);
     var progressSnap = await getDoc(progressRef);
 
     if (!progressSnap.exists()) {

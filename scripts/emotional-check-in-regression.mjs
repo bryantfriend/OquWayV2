@@ -101,6 +101,8 @@ async function verifyProcessWriteContract() {
   assertSourceIncludes(repositorySource, "typeof record[keys[index]] !== \"undefined\"", "repository should omit undefined fields");
   assertSourceIncludes(repositorySource, "setDoc(doc(db, \"emotionalCheckIns\", documentId), writeRecord, { merge: true })", "same-day check-in should merge existing doc");
   assertSourceIncludes(processSource, "retryable: true", "process save failures should be marked retryable");
+  assertSourceIncludes(processSource, "writeOperationType", "process save failures should log safe write context");
+  assertSourceIncludes(processSource, "payloadFieldNames", "process save failures should log field names without values");
   assertSourceIncludes(processSource, "Could not save your check-in. Please try again.", "process should return clear retry copy");
 }
 
@@ -111,6 +113,9 @@ async function verifyFirestoreRulesContract() {
   assertSourceIncludes(rulesSource, "emotionalCheckInAllowedKeys", "rules should whitelist emotional check-in fields");
   assertSourceIncludes(rulesSource, '"1.1.0"', "rules should allow the current check-in schema version");
   assertSourceIncludes(rulesSource, "allow update: if isValidEmotionalCheckInWrite(checkInId)", "rules should allow owned same-day updates");
+  assertSourceIncludes(rulesSource, "isEmotionalCheckInStudentProfileOwner", "rules should allow owned profile-id student documents");
+  assertSourceIncludes(rulesSource, "request.resource.data.participantProfileId", "profile owner rule should be tied to the submitted student profile id");
+  assertSourceIncludes(rulesSource, ".data.get(\"authUid\", \"\") == request.auth.uid", "profile owner rule should require auth uid ownership");
   assertSourceIncludes(rulesSource, "request.resource.data.createdAt == resource.data.createdAt", "updates should preserve createdAt");
   assertSourceIncludes(rulesSource, "allow delete: if false", "students should not delete check-ins");
   assertNoSourceIncludes(checkInBlock, "isTeacher()", "check-in write rules should not grant teacher writes");

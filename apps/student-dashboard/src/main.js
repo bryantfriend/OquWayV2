@@ -1,7 +1,7 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.211-student-dashboard-hydration";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.211-student-dashboard-hydration";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.211-student-dashboard-hydration";
+import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.212-student-dashboard-unified";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.212-student-dashboard-unified";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.212-student-dashboard-unified";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -20,17 +20,17 @@ import {
   createStatusBadge,
   formatStatusLabel,
   renderEmotionalCheckInGate
-} from "../../../packages/ui/index.js?v=1.1.211-student-dashboard-hydration";
-import { emotionalCheckInService } from "../../../packages/shared/emotionalCheckIns/index.js?v=1.1.211-student-dashboard-hydration";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.211-student-dashboard-hydration";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.211-student-dashboard-hydration";
+} from "../../../packages/ui/index.js?v=1.1.212-student-dashboard-unified";
+import { emotionalCheckInService } from "../../../packages/shared/emotionalCheckIns/index.js?v=1.1.212-student-dashboard-unified";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.212-student-dashboard-unified";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.212-student-dashboard-unified";
 import {
   STUDENT_PROFILE_AVATARS,
   createStudentProfileSnapshot,
   readAvatarById,
   readStudentProfilePreferences,
   saveStudentProfilePreferences
-} from "./ui/services/profileService.js?v=1.1.211-student-dashboard-hydration";
+} from "./ui/services/profileService.js?v=1.1.212-student-dashboard-unified";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -253,7 +253,7 @@ function handleAppClick(event) {
   }
 
   if (courseFocusContinueButton) {
-    continueCourseFocus();
+    startSelectedCourseActivity();
     return;
   }
 
@@ -445,7 +445,8 @@ function enterCourseFocusMode(openResult) {
   applyOpenedCourseResult(openResult);
 
   studentDashboardStore.setState({
-    courseFocusActive: true,
+    activeStudentSection: "courses",
+    courseFocusActive: false,
     isCourseOpening: false,
     playerMode: false,
     selectedModuleId: target.moduleId || readFirstPlayableModuleId(openResult.course) || readFirstId(openResult.course.modules || []),
@@ -597,7 +598,8 @@ function applyOpenedCourseResult(openResult) {
     selectedModuleId: target.moduleId || null,
     selectedSessionId: target.sessionId || null,
     selectedPracticeModeKey: target.practiceModeKey || "beforeClass",
-    courseFocusActive: true,
+    activeStudentSection: "courses",
+    courseFocusActive: false,
     currentStepIndex: 0,
     practiceModeFinished: false,
     error: null,
@@ -635,6 +637,9 @@ async function continueCourseFocus() {
   );
 }
 
+async function startSelectedCourseActivity() {
+  await continueCourseFocus();
+}
 async function continueLearning() {
   var state = studentDashboardStore.getState();
   var recommendation = await studentDashboardService.continueLearning(state.courses || []);
@@ -666,7 +671,15 @@ function selectSession(moduleId, sessionId) {
 
 async function openPracticeMode(courseId, moduleId, sessionId, practiceModeKey) {
   var course = readCourseById(studentDashboardStore.getState().courses || [], courseId);
-  var result = await studentDashboardService.startPracticeMode(courseId, moduleId, sessionId, practiceModeKey, course ? course.courseRecordSource : "", course ? course.moduleSource : "");
+  var result = await studentDashboardService.startPracticeMode(
+    courseId,
+    moduleId,
+    sessionId,
+    practiceModeKey,
+    course ? course.courseRecordSource : "",
+    course ? course.moduleSource : "",
+    course ? course.moduleCourseId || course.canonicalCourseId || "" : ""
+  );
 
   if (!result) {
     return;
@@ -726,7 +739,8 @@ async function completeCurrentStep(stepId, completionResult, snapshot) {
     safeStepId,
     completionResult,
     course.courseRecordSource,
-    course.moduleSource
+    course.moduleSource,
+    course.moduleCourseId || course.canonicalCourseId || ""
   );
 
   if (!stepResult) {
@@ -736,7 +750,7 @@ async function completeCurrentStep(stepId, completionResult, snapshot) {
   applyProgressResult(stepResult);
 
   if (snapshot && snapshot.isComplete) {
-    var modeResult = await studentDashboardService.completePracticeMode(course.id, module.id, session.id, practiceMode.key, course.courseRecordSource, course.moduleSource);
+    var modeResult = await studentDashboardService.completePracticeMode(course.id, module.id, session.id, practiceMode.key, course.courseRecordSource, course.moduleSource, course.moduleCourseId || course.canonicalCourseId || "");
     if (modeResult) {
       applyProgressResult(modeResult);
     }
@@ -868,10 +882,6 @@ function buildDashboardView(state) {
     : readOverallProgressPercent(courses);
   var html = "";
 
-  if (state.courseFocusActive) {
-    return buildCourseFocusView(state);
-  }
-
   html += '<main class="student-home-shell">';
   html += renderStudentHomeSidebar(state, courses, overallProgress);
   html += '<section class="student-home-workspace">';
@@ -992,6 +1002,7 @@ function buildStudentCoursesCenter(state, courses, selectedCourse, overallProgre
     + '<section class="student-panel student-my-courses-panel"><div class="student-section-head"><div><p class="student-eyebrow">Courses</p><h2>Assigned Courses</h2></div><span>' + courses.length + ' course' + (courses.length === 1 ? "" : "s") + '</span></div>'
     + buildCourseCards(courses, state.selectedCourseId)
     + '</section>'
+    + buildCanonicalCourseWorkspace(selectedCourse, state)
     + '</div>'
     + '<aside class="student-dashboard-side-stack">'
     + buildDashboardCourseOverview(courses, selectedCourse)
@@ -1000,6 +1011,37 @@ function buildStudentCoursesCenter(state, courses, selectedCourse, overallProgre
     + '</section>';
 }
 
+function buildCanonicalCourseWorkspace(course, state) {
+  var modules = course && Array.isArray(course.modules) ? course.modules : [];
+  var nextAction = getNextCourseAction(course);
+  var selectedModule = readSelectedFocusModule(state, course, nextAction);
+  var html = "";
+
+  if (!course) {
+    return "";
+  }
+
+  if (modules.length === 0) {
+    return '<section class="student-panel student-course-workspace-panel">'
+      + '<div class="student-section-head"><div><p class="student-eyebrow">Course Modules</p><h2>' + escapeHtml(readLocalizedText(course.title, "Selected Course")) + '</h2></div></div>'
+      + '<div class="course-roadmap-empty">Open this course to load its modules.</div>'
+      + '<button type="button" class="student-course-open-btn" data-course-id="' + escapeHtml(course.id) + '">Load Modules</button>'
+      + '</section>';
+  }
+
+  html += '<section class="student-panel student-course-workspace-panel">';
+  html += '<div class="student-section-head"><div><p class="student-eyebrow">Course Modules</p><h2>' + escapeHtml(readLocalizedText(course.title, "Course Journey")) + '</h2></div><span>' + modules.length + ' module' + (modules.length === 1 ? "" : "s") + '</span></div>';
+  html += renderCourseModules(course, modules, {
+    selectedModuleId: selectedModule ? selectedModule.id : state.selectedModuleId,
+    progress: readCourseFocusProgress(course),
+    course: course
+  });
+  html += renderModuleActivities(course, selectedModule, state);
+  html += renderSelectedModulePanel(course, selectedModule, state);
+  html += '</section>';
+
+  return html;
+}
 function buildStudentProfileCenter(state) {
   var snapshot = createStudentProfileSnapshot({
     student: state.student,
