@@ -1,4 +1,4 @@
-import { EMOTIONAL_CHECK_IN_CATEGORIES, getEmotionalCheckInOption } from "../domain/emotionalCheckIns/index.js?v=1.1.207-emotional-check-in-save";
+import { EMOTIONAL_CHECK_IN_CATEGORIES, getEmotionalCheckInOption } from "../domain/emotionalCheckIns/index.js?v=1.1.213-emotional-checkin-owner";
 
 export function renderEmotionalCheckInGate(container, checkInContext, callbacks) {
   var state = {

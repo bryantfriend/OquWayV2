@@ -114,6 +114,8 @@ async function verifyFirestoreRulesContract() {
   assertSourceIncludes(rulesSource, '"1.1.0"', "rules should allow the current check-in schema version");
   assertSourceIncludes(rulesSource, "allow update: if isValidEmotionalCheckInWrite(checkInId)", "rules should allow owned same-day updates");
   assertSourceIncludes(rulesSource, "isEmotionalCheckInStudentProfileOwner", "rules should allow owned profile-id student documents");
+  assertSourceIncludes(rulesSource, "isSelfOwnedEmotionalCheckInStudent", "rules should allow self-owned auth-id student check-ins");
+  assertSourceIncludes(rulesSource, "request.resource.data.studentId == request.auth.uid", "self-owned student rule should require student id ownership");
   assertSourceIncludes(rulesSource, "request.resource.data.participantProfileId", "profile owner rule should be tied to the submitted student profile id");
   assertSourceIncludes(rulesSource, ".data.get(\"authUid\", \"\") == request.auth.uid", "profile owner rule should require auth uid ownership");
   assertSourceIncludes(rulesSource, "request.resource.data.createdAt == resource.data.createdAt", "updates should preserve createdAt");

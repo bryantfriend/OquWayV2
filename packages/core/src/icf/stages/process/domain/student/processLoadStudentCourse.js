@@ -1,7 +1,7 @@
 import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
 import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.82-shared-command-center-shell";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.212-student-dashboard-unified";
-import { getModulesForCourse } from "../../../../../../../domain/modules/index.js?v=1.1.212-student-dashboard-unified";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.213-emotional-checkin-owner";
+import { getModulesForCourse } from "../../../../../../../domain/modules/index.js?v=1.1.213-emotional-checkin-owner";
 import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.82-shared-command-center-shell";
 import {
   isStudentDashboardProfile,
