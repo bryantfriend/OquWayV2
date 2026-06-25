@@ -64,6 +64,7 @@ service cloud.firestore {
       );
     }
     function isStudent() { return hasAnyRole('student', 'ROLE_STUDENT') || hasStudentToken() || profileHasAnyRole('student', 'ROLE_STUDENT') || hasStudentProfile(); }
+    function canReadRuntimeSteps() { return isStudent() || isTeacher() || isAssistant() || isSuperAdmin() || isPlatformAdmin() || isCourseEditor(); }
 
 
     function user() {
@@ -104,12 +105,12 @@ service cloud.firestore {
     function teacherHasClass(classId) {
       return user() != null && classId is string && classId != "" && (
         classId == user().data.get("classId", "") ||
-        classId in user().data.get("classIds", []) ||
-        classId in user().data.get("assignedClassIds", []) ||
+        (user().data.get("classIds", []) is list && classId in user().data.get("classIds", [])) ||
+        (user().data.get("assignedClassIds", []) is list && classId in user().data.get("assignedClassIds", [])) ||
         (linkedUser() != null && (
           classId == linkedUser().data.get("classId", "") ||
-          classId in linkedUser().data.get("classIds", []) ||
-          classId in linkedUser().data.get("assignedClassIds", [])
+          (linkedUser().data.get("classIds", []) is list && classId in linkedUser().data.get("classIds", [])) ||
+          (linkedUser().data.get("assignedClassIds", []) is list && classId in linkedUser().data.get("assignedClassIds", []))
         ))
       );
     }
@@ -117,12 +118,12 @@ service cloud.firestore {
     function listHasTeacherClass(classIds) {
       return classIds is list && classIds.size() > 0 && user() != null && (
         user().data.get("classId", "") in classIds ||
-        user().data.get("classIds", []).hasAny(classIds) ||
-        user().data.get("assignedClassIds", []).hasAny(classIds) ||
+        (user().data.get("classIds", []) is list && user().data.get("classIds", []).hasAny(classIds)) ||
+        (user().data.get("assignedClassIds", []) is list && user().data.get("assignedClassIds", []).hasAny(classIds)) ||
         (linkedUser() != null && (
           linkedUser().data.get("classId", "") in classIds ||
-          linkedUser().data.get("classIds", []).hasAny(classIds) ||
-          linkedUser().data.get("assignedClassIds", []).hasAny(classIds)
+          (linkedUser().data.get("classIds", []) is list && linkedUser().data.get("classIds", []).hasAny(classIds)) ||
+          (linkedUser().data.get("assignedClassIds", []) is list && linkedUser().data.get("assignedClassIds", []).hasAny(classIds))
         ))
       );
     }
@@ -130,12 +131,12 @@ service cloud.firestore {
     function teacherHasLocation(locationId) {
       return user() != null && locationId is string && locationId != "" && (
         locationId in [user().data.get("locationId", ""), user().data.get("primaryLocationId", ""), user().data.get("schoolId", "")] ||
-        locationId in user().data.get("locationIds", []) ||
-        locationId in user().data.get("schoolIds", []) ||
+        (user().data.get("locationIds", []) is list && locationId in user().data.get("locationIds", [])) ||
+        (user().data.get("schoolIds", []) is list && locationId in user().data.get("schoolIds", [])) ||
         (linkedUser() != null && (
           locationId in [linkedUser().data.get("locationId", ""), linkedUser().data.get("primaryLocationId", ""), linkedUser().data.get("schoolId", "")] ||
-          locationId in linkedUser().data.get("locationIds", []) ||
-          locationId in linkedUser().data.get("schoolIds", [])
+          (linkedUser().data.get("locationIds", []) is list && locationId in linkedUser().data.get("locationIds", [])) ||
+          (linkedUser().data.get("schoolIds", []) is list && locationId in linkedUser().data.get("schoolIds", []))
         ))
       );
     }
@@ -253,7 +254,7 @@ service cloud.firestore {
       return isTeacher()
         && user() != null
         && isStudentProfileResource()
-        && studentDataHasTeacherClass(resource.data);
+        && studentDataHasTeacherListedClass(resource.data);
     }
 
     function isUserInTeacherClass(uid) {
@@ -269,6 +270,12 @@ service cloud.firestore {
       return (
         isTeacherAssignedToClassId(studentData.get("classId", "")) ||
         isTeacherAssignedToClassId(studentData.get("primaryClassId", "")) ||
+        studentDataHasTeacherListedClass(studentData)
+      );
+    }
+
+    function studentDataHasTeacherListedClass(studentData) {
+      return (
         teacherHasClass(studentData.get("classId", "")) ||
         teacherHasClass(studentData.get("primaryClassId", "")) ||
         teacherHasClass(studentData.get("className", "")) ||
@@ -333,8 +340,8 @@ service cloud.firestore {
         allow read, list, create, update, delete: if isAccountingAdmin();
       }
 
-      // 📚 CLASSES (subcollection)
-      // --- ADD THIS BLOCK ---
+      // 📚 CLASSES (location subcollection)
+      // Student login still reads legacy location-scoped classes; root /classes is handled below.
       match /classes/{classId} {
           // Allow accountants/admins to read and write classes
           allow read, list: if isAccountingAdmin()
@@ -347,6 +354,7 @@ service cloud.firestore {
 
 
     // 📚 CLASSES
+    // Root classes are used by dashboards and location fallback queries; keep this separate from locations/{locId}/classes.
     match /classes/{classId} {
       allow read: if true;
       allow write: if isSuperAdmin()
@@ -633,13 +641,13 @@ service cloud.firestore {
 
     // 🧩 STEP DEFINITIONS (RUNTIME STEPS)
     match /courses/{courseId}/modules/{moduleId}/steps/{stepId} {
-      allow read: if true; // students must read steps to run engines
+      allow read: if canReadRuntimeSteps();
       allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseEditor();
     }
 
     // 🧩 STEP DEFINITIONS FOR CATALOG COURSES (RUNTIME STEPS)
     match /catalogCourses/{courseId}/modules/{moduleId}/steps/{stepId} {
-      allow read: if true; // students must read steps to run engines
+      allow read: if canReadRuntimeSteps();
       allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseEditor();
     }
 
@@ -744,7 +752,7 @@ service cloud.firestore {
 
     // 🧩 STEP COLLECTION GROUP (for editors, registry, runtime)
     match /{path=**}/steps/{stepId} {
-      allow read: if isStudent() || isTeacher() || isAssistant() || isSuperAdmin() || isPlatformAdmin() || isCourseEditor();
+      allow read: if canReadRuntimeSteps();
       allow write: if isSuperAdmin() || isPlatformAdmin() || isCourseEditor();
     }
 
