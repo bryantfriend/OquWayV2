@@ -268,8 +268,12 @@ service cloud.firestore {
 
     function studentDataHasTeacherClass(studentData) {
       return (
-        isTeacherAssignedToClassId(studentData.get("classId", "")) ||
-        isTeacherAssignedToClassId(studentData.get("primaryClassId", "")) ||
+        (studentData.get("classId", "") is string
+          && studentData.get("classId", "") != ""
+          && isTeacherAssignedToClassId(studentData.get("classId", ""))) ||
+        (studentData.get("primaryClassId", "") is string
+          && studentData.get("primaryClassId", "") != ""
+          && isTeacherAssignedToClassId(studentData.get("primaryClassId", ""))) ||
         studentDataHasTeacherListedClass(studentData)
       );
     }
@@ -295,6 +299,44 @@ service cloud.firestore {
       );
     }
 
+    function canReadCourseAssignment() {
+      return request.auth != null && (
+        isCourseAssignmentOwnershipAdmin() ||
+        isTeacherAssignedToCourseAssignment(resource.data) ||
+        isStudentAssignedCourseAssignment(resource.data)
+      );
+    }
+
+    function isStudentAssignedCourseAssignment(assignmentData) {
+      return isStudent() && (
+        isSameStudent(assignmentData.get("studentId", "")) ||
+        (assignmentData.get("targetType", "") == "student" && isSameStudent(assignmentData.get("targetId", ""))) ||
+        (assignmentData.get("studentIds", []) is list && request.auth.uid in assignmentData.get("studentIds", [])) ||
+        (assignmentData.get("assignedStudentIds", []) is list && request.auth.uid in assignmentData.get("assignedStudentIds", [])) ||
+        (assignmentData.get("targetType", "") == "class" && studentHasClass(assignmentData.get("targetId", ""))) ||
+        studentHasClass(assignmentData.get("classId", "")) ||
+        (assignmentData.get("targetType", "") == "location" && studentHasLocation(assignmentData.get("targetId", ""))) ||
+        studentHasLocation(assignmentData.get("locationId", ""))
+      );
+    }
+
+    function studentHasClass(classId) {
+      return request.auth != null && user() != null && classId is string && classId != "" && (
+        classId == user().data.get("classId", "") ||
+        classId == user().data.get("primaryClassId", "") ||
+        (user().data.get("classIds", []) is list && classId in user().data.get("classIds", [])) ||
+        (user().data.get("assignedClassIds", []) is list && classId in user().data.get("assignedClassIds", []))
+      );
+    }
+
+    function studentHasLocation(locationId) {
+      return request.auth != null && user() != null && locationId is string && locationId != "" && (
+        locationId == user().data.get("locationId", "") ||
+        locationId == user().data.get("schoolId", "") ||
+        (user().data.get("locationIds", []) is list && locationId in user().data.get("locationIds", [])) ||
+        (user().data.get("schoolIds", []) is list && locationId in user().data.get("schoolIds", []))
+      );
+    }
     // 👤 USERS
     match /users/{uid} {
       allow get: if
@@ -308,8 +350,7 @@ service cloud.firestore {
 
       allow list: if
         (resource.data.authUid is string && resource.data.authUid == request.auth.uid) ||
-        isAccountingAdmin() ||
-        isStudentInTeacherListedClass();
+        isAccountingAdmin();
 
       // Allow admins to create new users and allow both admins and user to update profile
       allow create: if isAccountingAdmin() || isSameStudent(uid);
@@ -401,7 +442,7 @@ service cloud.firestore {
 
     // 🎯 COURSE ASSIGNMENTS
     match /courseAssignments/{assignmentId} {
-      allow get, list: if request.auth != null;
+      allow get, list: if canReadCourseAssignment();
 
       allow create: if request.auth != null && (
         isSuperAdmin() ||
@@ -428,10 +469,15 @@ service cloud.firestore {
         && request.resource.data.reviewStatus == "pending"
         && request.resource.data.status == "submitted";
 
-      allow read, list: if request.auth != null && (
+      allow get: if request.auth != null && (
         isSameStudent(resource.data.studentId) ||
         isExternalTaskAdminReviewer() ||
         isTeacherInExternalTaskScope()
+      );
+
+      allow list: if request.auth != null && (
+        isSameStudent(resource.data.studentId) ||
+        isExternalTaskAdminReviewer()
       );
 
       allow update: if request.auth != null && (
@@ -551,12 +597,30 @@ service cloud.firestore {
         && isValidEmotionalCheckInVersion();
     }
 
+    function canReadEmotionalCheckIn() {
+      return request.auth != null && (
+        resource.data.participantUserId == request.auth.uid ||
+        isExternalTaskAdminReviewer() ||
+        isTeacherInEmotionalCheckInScope()
+      );
+    }
+
+    function isTeacherInEmotionalCheckInScope() {
+      return (isTeacher() || isAssistant()) && user() != null && (
+        teacherHasClass(resource.data.get("classId", "")) ||
+        teacherHasLocation(resource.data.get("locationId", "")) ||
+        teacherHasLocation(resource.data.get("schoolId", ""))
+      );
+    }
     match /emotionalCheckIns/{checkInId} {
       allow create: if isValidEmotionalCheckInWrite(checkInId)
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
-      allow get: if request.auth != null && checkInId.matches(".*_" + request.auth.uid);
-      allow list: if request.auth != null && resource.data.participantUserId == request.auth.uid;
+      allow get: if canReadEmotionalCheckIn();
+      allow list: if request.auth != null && (
+        resource.data.participantUserId == request.auth.uid ||
+        isExternalTaskAdminReviewer()
+      );
       allow update: if isValidEmotionalCheckInWrite(checkInId)
         && resource.data.participantUserId == request.auth.uid
         && request.resource.data.createdAt == resource.data.createdAt
