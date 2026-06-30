@@ -2,7 +2,7 @@ import {
   createDefaultStepConfig,
   getStepTypeDefinition,
   normalizeActivityTemplateId
-} from "../stepTypes/stepTypeRegistry.js?v=1.1.192-timed-sequence";
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.209-open-integrations";
 
 export class PracticeModePlayer {
   constructor(options) {
@@ -17,14 +17,18 @@ export class PracticeModePlayer {
     this.sessionId = readString(safeOptions.sessionId, "");
     this.practiceModeKey = readString(safeOptions.practiceModeKey, "beforeClass");
     this.practiceMode = readObject(safeOptions.practiceMode);
+    this.estimatedMinutes = readPositiveWholeNumber(safeOptions.estimatedMinutes, 0);
     this.steps = readSortedSteps(safeOptions.steps);
     this.actor = readObject(safeOptions.actor);
-    this.mode = safeOptions.mode === "student" ? "student" : "playtest";
+    this.mode = normalizePlayerMode(safeOptions.mode);
+    this.persistProgress = this.mode === "student" && safeOptions.persistProgress !== false;
     this.container = null;
     this.currentStepIndex = 0;
     this.completedStepIds = [];
     this.completionResults = {};
     this.warningMessage = "";
+    this.isSavingCompletion = false;
+    this.pendingStepIds = {};
     this.isComplete = false;
     this.onBack = typeof safeOptions.onBack === "function" ? safeOptions.onBack : null;
     this.onStateChange = typeof safeOptions.onStateChange === "function" ? safeOptions.onStateChange : null;
@@ -138,7 +142,7 @@ export class PracticeModePlayer {
       }
     }
 
-    target.innerHTML = this.buildFallbackStepHtml(step, "This step type is not registered with the preview renderer.");
+    target.innerHTML = this.buildFallbackStepHtml(step, "This learning activity type is not registered with the preview renderer.");
   }
 
   handleClick(event) {
@@ -212,13 +216,13 @@ export class PracticeModePlayer {
     var completed = this.isStepCompleted(stepId);
 
     if (!completed && this.mode !== "playtest") {
-      this.warningMessage = "Complete this step before moving forward.";
+      this.warningMessage = "Complete this learning activity before moving forward.";
       this.render();
       return;
     }
 
     if (!completed && this.mode === "playtest") {
-      this.warningMessage = "Playtest skip: this step was not completed.";
+      this.warningMessage = "Playtest skip: this learning activity was not completed.";
     } else {
       this.warningMessage = "";
     }
@@ -239,8 +243,43 @@ export class PracticeModePlayer {
     var step = this.readCurrentStep();
     var stepId = readStepId(step, "");
     var safeResult = createSafeCompletionResult(completionResult);
-    var snapshot = null;
+    var self = this;
+    var completionSnapshot = null;
 
+    if (!stepId || this.isStepCompleted(stepId) || this.pendingStepIds[stepId]) {
+      return Promise.resolve(this.createStateSnapshot());
+    }
+
+    if (this.persistProgress && this.onStepComplete) {
+      this.pendingStepIds[stepId] = true;
+      this.isSavingCompletion = true;
+      this.warningMessage = "Saving progress...";
+      completionSnapshot = this.createProjectedCompletionSnapshot(stepId, safeResult);
+
+      return Promise.resolve(this.onStepComplete(step, safeResult, completionSnapshot)).then(function () {
+        self.applyCompletedStep(stepId, safeResult);
+        delete self.pendingStepIds[stepId];
+        self.isSavingCompletion = false;
+        self.warningMessage = "";
+        self.emitStateChange();
+        self.render();
+        return self.createStateSnapshot();
+      }).catch(function (error) {
+        delete self.pendingStepIds[stepId];
+        self.isSavingCompletion = false;
+        self.warningMessage = error && error.message ? error.message : "Progress could not be saved. Try again.";
+        self.render();
+        return self.createStateSnapshot();
+      });
+    }
+
+    this.applyCompletedStep(stepId, safeResult);
+    this.emitStateChange();
+    this.render();
+    return Promise.resolve(this.createStateSnapshot());
+  }
+
+  applyCompletedStep(stepId, safeResult) {
     if (stepId) {
       if (!this.isStepCompleted(stepId)) {
         this.completedStepIds.push(stepId);
@@ -254,15 +293,32 @@ export class PracticeModePlayer {
     if (this.currentStepIndex >= this.steps.length - 1) {
       this.isComplete = true;
     }
+  }
 
-    snapshot = this.createStateSnapshot();
+  createProjectedCompletionSnapshot(stepId, safeResult) {
+    var stepIds = this.completedStepIds.slice();
+    var completionResults = Object.assign({}, this.completionResults);
 
-    if (this.onStepComplete) {
-      this.onStepComplete(step, safeResult, snapshot);
+    if (stepIds.indexOf(stepId) === -1) {
+      stepIds.push(stepId);
     }
 
-    this.emitStateChange();
-    this.render();
+    completionResults[stepId] = safeResult;
+
+    return {
+      courseId: this.courseId,
+      moduleId: this.moduleId,
+      sessionId: this.sessionId,
+      practiceModeKey: this.practiceModeKey,
+      mode: this.mode,
+      previewMode: this.mode === "preview",
+      persistProgress: this.persistProgress,
+      currentStepIndex: this.currentStepIndex,
+      stepCount: this.steps.length,
+      completedStepIds: stepIds,
+      completionResults: completionResults,
+      isComplete: this.currentStepIndex >= this.steps.length - 1
+    };
   }
 
   restart() {
@@ -288,6 +344,8 @@ export class PracticeModePlayer {
       sessionId: this.sessionId,
       practiceModeKey: this.practiceModeKey,
       mode: this.mode,
+      previewMode: this.mode === "preview",
+      persistProgress: this.persistProgress,
       currentStepIndex: this.currentStepIndex,
       stepCount: this.steps.length,
       completedStepIds: this.completedStepIds.slice(),
@@ -312,7 +370,9 @@ export class PracticeModePlayer {
       practiceModeKey: this.practiceModeKey,
       modeId: this.practiceModeKey,
       stepId: readStepId(step, ""),
-      actor: this.actor
+      actor: this.actor,
+      previewMode: this.mode === "preview",
+      persistProgress: this.persistProgress
     };
   }
 
@@ -327,14 +387,15 @@ export class PracticeModePlayer {
   buildPlayerHtml() {
     var step = this.readCurrentStep();
     var practiceModeTitle = readLocalizedText(this.practiceMode.title, "Practice Mode");
-    var stepTitle = readLocalizedText(step.title, "Step");
+    var stepTitle = readLocalizedText(step.title, "Learning Activity");
     var stepId = readStepId(step, "");
     var completed = this.isStepCompleted(stepId);
     var progress = calculateProgressPercent(this.currentStepIndex, this.steps.length, this.isComplete);
-    var nextDisabled = this.mode === "student" && !completed ? " disabled" : "";
-    var previousDisabled = this.currentStepIndex === 0 ? " disabled" : "";
+    var requiresCompletion = this.mode === "student" || this.mode === "preview";
+    var nextDisabled = requiresCompletion && (!completed || this.isSavingCompletion) ? " disabled" : "";
+    var previousDisabled = this.currentStepIndex === 0 || this.isSavingCompletion ? " disabled" : "";
     var nextLabel = this.currentStepIndex >= this.steps.length - 1 ? "Finish" : "Next";
-    var completeLabel = this.currentStepIndex >= this.steps.length - 1 ? "Complete Practice Mode" : "Complete Step";
+    var completeLabel = this.currentStepIndex >= this.steps.length - 1 ? "Complete Practice Mode" : "Complete Learning Activity";
     var html = "";
 
     html += '<section class="course-player-shell course-player-shell-' + this.mode + '">';
@@ -345,7 +406,7 @@ export class PracticeModePlayer {
     html += '<h1>' + escapeHtml(practiceModeTitle) + '</h1>';
     html += '<p>' + escapeHtml(stepTitle) + '</p>';
     html += '</div>';
-    html += '<div class="course-player-step-count">Step ' + (this.currentStepIndex + 1) + ' of ' + this.steps.length + '</div>';
+    html += '<div class="course-player-step-count">Learning Activity ' + (this.currentStepIndex + 1) + ' of ' + this.steps.length + '</div>';
     html += '</div>';
     html += '<div class="course-player-progress-track">';
     html += '<div class="course-player-progress-fill" style="width:' + progress + '%"></div>';
@@ -360,7 +421,12 @@ export class PracticeModePlayer {
     html += '</div>';
     html += '<div class="course-player-footer">';
     html += '<button type="button" class="course-player-previous-btn course-player-nav-btn"' + previousDisabled + '>Previous</button>';
-    html += '<button type="button" class="course-player-complete-btn">' + completeLabel + '</button>';
+    if (this.mode === "playtest") {
+      html += '<button type="button" class="course-player-complete-btn">' + completeLabel + '</button>';
+    }
+    if (this.mode === "preview") {
+      html += '<button type="button" class="course-player-restart-btn">Restart Preview</button>';
+    }
     html += '<button type="button" class="course-player-next-btn course-player-nav-btn"' + nextDisabled + '>' + nextLabel + '</button>';
     html += '</div>';
     if (this.mode === "playtest") {
@@ -387,7 +453,7 @@ export class PracticeModePlayer {
     html += '<div class="course-player-empty-state">';
     html += '<div class="course-player-empty-icon">📚</div>';
     html += '<h2>No activities yet</h2>';
-    html += '<p>Add steps to this practice mode, then come back to test the learner flow from start to finish.</p>';
+    html += '<p>Add learning activities to this practice mode, then come back to test the learner flow from start to finish.</p>';
     html += '</div>';
     html += '</section>';
 
@@ -417,13 +483,15 @@ export class PracticeModePlayer {
     html += '<h2>Practice Mode Complete</h2>';
     html += '<p>You reached the end of this practice flow.</p>';
     html += '<div class="course-player-summary-grid">';
-    html += '<div><strong>' + completedCount + '</strong><span>Steps completed</span></div>';
-    html += '<div><strong>' + this.steps.length + '</strong><span>Total steps</span></div>';
+    html += '<div><strong>' + completedCount + '</strong><span>Learning activities completed</span></div>';
+    html += '<div><strong>' + this.steps.length + '</strong><span>Total learning activities</span></div>';
     html += '<div><strong>' + score + '%</strong><span>Average score</span></div>';
-    html += '<div><strong>Coming soon</strong><span>Time estimate</span></div>';
+    if (this.estimatedMinutes > 0) {
+      html += '<div><strong>About ' + this.estimatedMinutes + ' minute' + (this.estimatedMinutes === 1 ? "" : "s") + '</strong><span>Estimated time</span></div>';
+    }
     html += '</div>';
     html += '<div class="course-player-complete-actions">';
-    html += '<button type="button" class="course-player-restart-btn">Play Again</button>';
+    html += '<button type="button" class="course-player-restart-btn">' + (this.mode === "preview" ? "Restart Preview" : "Play Again") + '</button>';
     html += '<button type="button" class="course-player-back-btn back-to-editor-btn">Back to ' + this.readBackLabel() + '</button>';
     html += '</div>';
     html += '</div>';
@@ -434,7 +502,7 @@ export class PracticeModePlayer {
 
   buildFallbackStepHtml(step, message) {
     var stepType = readStepType(step);
-    var title = readLocalizedText(step.title, "Unsupported Step");
+    var title = readLocalizedText(step.title, "Unsupported Learning Activity");
     var safeType = stepType ? stepType : "unknown";
     var html = "";
 
@@ -453,6 +521,10 @@ export class PracticeModePlayer {
       return "Student Practice";
     }
 
+    if (this.mode === "preview") {
+      return "Preview Mode - No student progress will be saved";
+    }
+
     return "Practice Mode Playtest";
   }
 
@@ -465,8 +537,20 @@ export class PracticeModePlayer {
       return "Session";
     }
 
+    if (this.mode === "preview") {
+      return "Course Preview";
+    }
+
     return "Editor";
   }
+}
+
+function normalizePlayerMode(value) {
+  if (value === "student" || value === "preview") {
+    return value;
+  }
+
+  return "playtest";
 }
 
 function readSortedSteps(steps) {
@@ -501,6 +585,22 @@ function readNumber(value, fallbackNumber) {
   }
 
   return fallbackNumber;
+}
+
+function readPositiveWholeNumber(value, fallbackNumber) {
+  var parsed = 0;
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    parsed = value;
+  } else if (typeof value === "string" && value.trim()) {
+    parsed = Number(value.trim());
+  }
+
+  if (!Number.isFinite(parsed) || parsed <= 0 || Math.floor(parsed) !== parsed) {
+    return fallbackNumber;
+  }
+
+  return parsed;
 }
 
 function readLocalizedText(value, fallbackText) {

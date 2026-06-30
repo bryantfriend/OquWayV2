@@ -323,7 +323,7 @@ export class CourseOverviewPage {
                   <option value="tablet">Tablet</option>
                   <option value="mobile">Mobile</option>
                 </select>
-                <button id="closeCoursePreviewBtn" class="border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 px-3 py-2 rounded-xl font-bold text-sm">Return to Editor</button>
+                <button id="closeCoursePreviewBtn" class="border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 px-3 py-2 rounded-xl font-bold text-sm">Exit Preview</button>
               </div>
             </div>
             <div id="coursePreviewBody" class="p-6 overflow-y-auto max-h-[72vh]"></div>
@@ -682,13 +682,11 @@ export class CourseOverviewPage {
           id: 'course-creator-preview',
           role: 'courseCreator'
         },
-        mode: 'student',
+        mode: 'preview',
+        persistProgress: false,
         backLabel: 'Course Preview',
         onBack: function () {
           self.renderCoursePreviewBody();
-        },
-        onStepComplete: function () {
-          return null;
         }
       });
       this.coursePreviewPlayerSignature = preview.signature;

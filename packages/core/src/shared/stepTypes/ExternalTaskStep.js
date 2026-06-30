@@ -161,7 +161,11 @@ function attachExternalTaskHandlers(container, config, callbacks) {
     return;
   }
 
-  if (callbacks && typeof callbacks.onExternalTaskLoad === "function") {
+  if (isPreviewExternalTask(callbacks)) {
+    configurePreviewExternalTask(container, button, status, filesInput, noteInput);
+  }
+
+  if (!isPreviewExternalTask(callbacks) && callbacks && typeof callbacks.onExternalTaskLoad === "function") {
     callbacks.onExternalTaskLoad().then(function (result) {
       latestSubmission = result && result.submission ? result.submission : null;
       applySubmissionState(container, latestSubmission, callbacks);
@@ -171,6 +175,11 @@ function attachExternalTaskHandlers(container, config, callbacks) {
   }
 
   button.addEventListener("click", async function () {
+    if (button.getAttribute("data-preview-external-task-complete") === "true") {
+      completePreviewExternalTask(button, status, callbacks);
+      return;
+    }
+
     if (button.classList.contains("oqu-player-complete-btn")) {
       return;
     }
@@ -224,6 +233,56 @@ function attachExternalTaskHandlers(container, config, callbacks) {
       button.classList.remove("is-uploading");
     }
   });
+}
+
+function isPreviewExternalTask(callbacks) {
+  return Boolean(callbacks && callbacks.context && callbacks.context.previewMode === true);
+}
+
+function configurePreviewExternalTask(container, button, status, filesInput, noteInput) {
+  var dropzone = container ? container.querySelector(".oqu-external-task-dropzone") : null;
+
+  if (filesInput) {
+    filesInput.disabled = true;
+  }
+
+  if (noteInput) {
+    noteInput.disabled = true;
+    noteInput.placeholder = "Preview only - no note will be submitted";
+  }
+
+  if (dropzone) {
+    dropzone.classList.add("is-preview-disabled");
+    dropzone.textContent = "Preview only - no file will be submitted";
+  }
+
+  if (button) {
+    button.disabled = false;
+    button.textContent = "Complete in preview";
+    button.setAttribute("data-preview-external-task-complete", "true");
+  }
+
+  writeStatus(status, "Preview only - no file will be submitted.");
+}
+
+function completePreviewExternalTask(button, status, callbacks) {
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Completed in preview";
+  }
+
+  writeStatus(status, "Preview complete. No submission record was created.");
+
+  if (callbacks && typeof callbacks.onComplete === "function") {
+    callbacks.onComplete({
+      success: true,
+      score: 100,
+      data: {
+        previewOnly: true,
+        submitted: false
+      }
+    });
+  }
 }
 
 function applySubmissionState(container, submission, callbacks) {
