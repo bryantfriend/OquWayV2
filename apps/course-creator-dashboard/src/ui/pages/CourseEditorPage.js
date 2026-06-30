@@ -589,20 +589,26 @@ export class CourseEditorPage {
     if (previewStepBtn) {
       var previewStepId = previewStepBtn.getAttribute("data-step-id") || state.selectedStepId;
       var previewModeId = readSelectedModeId(state);
+      var previewSource = previewStepBtn.getAttribute("data-preview-source") || "";
+      var previewStep = this.readStepPreviewDraft(previewStepId, previewSource);
 
-      if (!previewModeId || !previewStepId) {
-        alert("Select a saved step before opening preview.");
+      if (!previewModeId || (!previewStepId && !previewStep)) {
+        this.showStepPreviewError("Preview could not load for this activity. Please select an activity and try again.", {
+          code: "STEP_PREVIEW_STEP_MISSING",
+          previewTarget: "modal",
+          modeId: previewModeId,
+          stepId: previewStepId
+        });
         return;
       }
 
-      console.info("[step-preview]", {
-        courseId: this.courseId,
-        moduleId: this.moduleId,
+      this.logStepPreviewDiagnostic("open-request", previewStep, this.createStepPreviewContext(previewStep, "modal"), {
         modeId: previewModeId,
-          stepId: previewStepId
+        stepId: previewStepId,
+        previewSource: previewSource
       });
 
-      this.openStepPreviewModal(previewStepId);
+      this.openStepPreviewModal(previewStepId, previewStep);
       return;
     }
 
@@ -1160,37 +1166,74 @@ export class CourseEditorPage {
 
   // Rebuilds just the preview card from current inspector form values
   refreshPreviewFromInspector() {
-    var propsPane = document.getElementById("configEditorPane");
     var previewCanvas = document.getElementById("step-preview-canvas");
-    if (!previewCanvas || !propsPane) {
+    var mockStep = this.readInspectorPreviewStep();
+
+    if (!previewCanvas || !mockStep) {
       return;
     }
-    var titleInput = propsPane.querySelector(".inspector-step-title");
-    var instrInput = propsPane.querySelector(".inspector-step-instructions");
-    var stepTypeEl = propsPane.querySelector("[data-step-type]");
-    if (!titleInput || !stepTypeEl) {
-      return;
-    }
-    var mockStep = {
-      id: "preview",
-      type: stepTypeEl.getAttribute("data-step-type"),
-      title: { en: titleInput.value, ru: "", ky: "" },
-      instructions: { en: instrInput ? instrInput.value : "", ru: "", ky: "" },
-      activityTemplate: readActivityTemplateFromInspector(propsPane, stepTypeEl.getAttribute("data-step-type")),
-      status: "draft",
-      config: readStepConfigFromInspector(propsPane, stepTypeEl.getAttribute("data-step-type"), {})
-    };
+
     if (readStepPreviewMode(mockStep.type) === "full") {
       previewCanvas.className = "oqu-preview-canvas oqu-preview-canvas-full";
     } else {
       previewCanvas.className = "oqu-preview-canvas";
     }
     previewCanvas.innerHTML = '<div class="oqu-preview-toolbar">'
-      + '<button type="button" class="student-view-btn oqu-student-view-btn">▶ Preview</button>'
+      + '<button type="button" class="preview-step-btn oqu-student-view-btn" data-preview-source="inspector" data-step-id="' + escapeHtml(readStepId(mockStep, "preview")) + '">▶ Preview</button>'
       + '</div>'
       + buildLiveStudentPreviewDock(mockStep, this.previewDockTemplate, this.previewDockDevice)
       + this.buildStepPreviewCard(mockStep);
     this.renderInlineStepPreviewFromStep(mockStep);
+  }
+
+  readInspectorPreviewStep() {
+    var propsPane = document.getElementById("configEditorPane");
+    var state = moduleEditorStore.getState();
+
+    if (!propsPane) {
+      return null;
+    }
+
+    var titleInput = propsPane.querySelector(".inspector-step-title");
+    var instrInput = propsPane.querySelector(".inspector-step-instructions");
+    var statusInput = propsPane.querySelector(".inspector-step-status");
+    var stepTypeEl = propsPane.querySelector("[data-step-type]");
+    if (!titleInput || !stepTypeEl) {
+      return null;
+    }
+
+    var stepType = stepTypeEl.getAttribute("data-step-type");
+    var activityTemplate = readActivityTemplateFromInspector(propsPane, stepType);
+    var config = readStepConfigFromInspector(propsPane, stepType, {});
+
+    config.activityTemplate = activityTemplate;
+    config._activityTemplate = activityTemplate;
+
+    return this.normalizeStepPreviewDraft({
+      id: state.selectedStepId || "preview",
+      type: stepType,
+      stepTypeId: stepType,
+      title: { en: titleInput.value, ru: "", ky: "" },
+      instructions: { en: instrInput ? instrInput.value : "", ru: "", ky: "" },
+      activityTemplate: activityTemplate,
+      status: statusInput ? statusInput.value : "draft",
+      config: config
+    });
+  }
+
+  readStepPreviewDraft(stepId, previewSource) {
+    var inspectorStep = this.readInspectorPreviewStep();
+    var inspectorStepId = readStepId(inspectorStep, "");
+
+    if (previewSource === "inspector") {
+      return inspectorStep;
+    }
+
+    if (inspectorStep && inspectorStepId && inspectorStepId === stepId) {
+      return inspectorStep;
+    }
+
+    return null;
   }
 
   movePlaytestStep(direction) {
@@ -2407,17 +2450,30 @@ export class CourseEditorPage {
     return html;
   }
 
-  openStepPreviewModal(stepId) {
+  openStepPreviewModal(stepId, previewStep) {
     var state = moduleEditorStore.getState();
-    var selectedMode = this.findSelectedLearningMode(state);
-    var steps = selectedMode && Array.isArray(selectedMode.steps) ? readSortedSteps(selectedMode.steps) : [];
-    var step = findStepByIdInList(steps, stepId);
+    var previewTarget = previewStep ? { step: previewStep, modeId: readSelectedModeId(state) } : this.findStepPreviewTarget(state, stepId);
+    var step = previewTarget ? this.normalizeStepPreviewDraft(previewTarget.step) : null;
+    var previewContext = this.createStepPreviewContext(step, "modal");
     var modal = document.getElementById("stepPreviewModal");
     var body = document.getElementById("stepPreviewModalBody");
     var title = document.getElementById("stepPreviewModalTitle");
 
-    if (!modal || !body || !step) {
-      alert("Select a saved step before opening preview.");
+    if (!modal || !body) {
+      this.showStepPreviewError("Preview could not load for this activity. Please check the activity settings and try again.", {
+        code: "STEP_PREVIEW_MODAL_MISSING",
+        stepId: stepId,
+        previewTarget: "modal"
+      });
+      return;
+    }
+
+    if (!step) {
+      this.showStepPreviewError("Preview could not load for this activity. Please select a saved activity and try again.", {
+        code: "STEP_PREVIEW_STEP_MISSING",
+        stepId: stepId,
+        previewTarget: "modal"
+      });
       return;
     }
 
@@ -2425,13 +2481,15 @@ export class CourseEditorPage {
       title.textContent = readLocalizedText(step.title, "Student activity");
     }
 
-    body.innerHTML = '<div class="mx-auto max-w-xl">' + this.buildStepPreviewCard(step) + '</div>';
+    body.innerHTML = this.buildStepPreviewModalBody(step);
     modal.classList.remove("hidden");
     modal.classList.add("flex");
+    this.renderStepPreviewIntoModal(step, previewContext);
   }
 
   closeStepPreviewModal() {
     var modal = document.getElementById("stepPreviewModal");
+    var body = document.getElementById("stepPreviewModalBody");
 
     if (!modal) {
       return;
@@ -2439,8 +2497,166 @@ export class CourseEditorPage {
 
     modal.classList.add("hidden");
     modal.classList.remove("flex");
+
+    if (body) {
+      body.innerHTML = "";
+    }
   }
 
+  findStepPreviewTarget(state, stepId) {
+    var selectedMode = this.findSelectedLearningMode(state);
+    var selectedModeId = selectedMode && selectedMode.id ? selectedMode.id : readSelectedModeId(state);
+    var selectedSteps = selectedMode && Array.isArray(selectedMode.steps) ? readSortedSteps(selectedMode.steps) : [];
+    var selectedStep = findStepByIdInList(selectedSteps, stepId);
+
+    if (selectedStep) {
+      return {
+        modeId: selectedModeId,
+        step: selectedStep
+      };
+    }
+
+    return findStepByIdInLearningModes(state.learningModes, stepId);
+  }
+
+  normalizeStepPreviewDraft(stepDraft) {
+    var sourceStep = stepDraft && typeof stepDraft === "object" ? stepDraft : {};
+    var stepType = readStepType(sourceStep);
+    var activityTemplate = readStepActivityTemplate(sourceStep, stepType);
+    var config = Object.assign({}, readStepConfig(sourceStep));
+
+    config.activityTemplate = activityTemplate;
+    config._activityTemplate = activityTemplate;
+
+    return Object.assign({}, sourceStep, {
+      id: readStepId(sourceStep, "preview"),
+      type: stepType,
+      stepTypeId: sourceStep.stepTypeId || stepType,
+      activityTemplate: activityTemplate,
+      config: config
+    });
+  }
+
+  buildStepPreviewModalBody(step) {
+    var StepTypeDefinition = getStepTypeDefinition(readStepType(step));
+
+    if (StepTypeDefinition && typeof StepTypeDefinition.renderPlayer === "function") {
+      return '<div class="mx-auto max-w-3xl">'
+        + '<div class="oqu-preview-card oqu-step-render-preview-card">'
+        + '<div id="step-preview-modal-render-target" class="oqu-inline-step-preview-target" data-step-id="' + escapeHtml(readStepId(step, "preview")) + '"></div>'
+        + '<div id="step-preview-modal-status" class="mt-4 hidden rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700">Preview complete. No student progress was saved.</div>'
+        + '</div>'
+        + '</div>';
+    }
+
+    return '<div class="mx-auto max-w-xl">' + this.buildStepPreviewCard(step) + '</div>';
+  }
+
+  renderStepPreviewIntoModal(step, previewContext) {
+    var target = document.getElementById("step-preview-modal-render-target");
+    var StepTypeDefinition = getStepTypeDefinition(readStepType(step));
+    var status = document.getElementById("step-preview-modal-status");
+
+    this.logStepPreviewDiagnostic("render-start", step, previewContext, {
+      previewRootFound: Boolean(target),
+      interactionBindingAttempted: Boolean(target && StepTypeDefinition && typeof StepTypeDefinition.renderPlayer === "function")
+    });
+
+    if (!target || !StepTypeDefinition || typeof StepTypeDefinition.renderPlayer !== "function") {
+      return;
+    }
+
+    try {
+      StepTypeDefinition.renderPlayer(target, createStepRenderConfig(step), {
+        context: previewContext,
+        onComplete: function (completionResult) {
+          console.info("[step-preview] complete", {
+            mode: previewContext.mode,
+            previewTarget: previewContext.previewTarget,
+            stepId: previewContext.stepId,
+            stepType: previewContext.stepType,
+            selectedTemplateId: previewContext.selectedTemplateId,
+            normalizedTemplateId: previewContext.normalizedTemplateId,
+            success: Boolean(completionResult && completionResult.success)
+          });
+          if (status) {
+            status.classList.remove("hidden");
+          }
+        }
+      });
+      this.logStepPreviewDiagnostic("render-success", step, previewContext, {
+        previewRootFound: true,
+        interactionBindingAttempted: true,
+        interactionBindingSucceeded: true
+      });
+    } catch (error) {
+      target.innerHTML = this.buildStepPreviewErrorHtml("Preview could not load for this activity. Please check the activity settings and try again.");
+      this.logStepPreviewDiagnostic("render-error", step, previewContext, {
+        previewRootFound: true,
+        interactionBindingAttempted: true,
+        interactionBindingSucceeded: false,
+        error: error
+      });
+    }
+  }
+
+  createStepPreviewContext(step, previewTarget) {
+    var stepType = readStepType(step);
+    var selectedTemplateId = readStepPreviewTemplateId(step, stepType);
+    var normalizedTemplateId = normalizeActivityTemplateId(stepType, selectedTemplateId);
+
+    return {
+      mode: "authorPreview",
+      previewMode: true,
+      isPreview: true,
+      allowProgressWrites: false,
+      allowXpAwards: false,
+      allowCompletionWrites: false,
+      allowStudentAttempts: false,
+      actorRole: "courseEditor",
+      previewTarget: previewTarget || "modal",
+      stepId: readStepId(step, ""),
+      stepType: stepType,
+      selectedTemplateId: selectedTemplateId,
+      normalizedTemplateId: normalizedTemplateId,
+      localAttemptState: {}
+    };
+  }
+
+  showStepPreviewError(message, diagnostics) {
+    var modal = document.getElementById("stepPreviewModal");
+    var body = document.getElementById("stepPreviewModalBody");
+    var title = document.getElementById("stepPreviewModalTitle");
+    var safeMessage = message || "Preview could not load for this activity. Please check the activity settings and try again.";
+
+    if (title) {
+      title.textContent = "Preview unavailable";
+    }
+
+    if (body) {
+      body.innerHTML = this.buildStepPreviewErrorHtml(safeMessage);
+    }
+
+    if (modal) {
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    } else {
+      this.showEditorSaveStatus("error", "Preview could not load");
+    }
+
+    console.warn("[step-preview] error", createSafeStepPreviewDiagnostic(null, null, diagnostics));
+  }
+
+  buildStepPreviewErrorHtml(message) {
+    return '<div class="mx-auto max-w-xl rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm font-semibold leading-6 text-amber-900">'
+      + '<div class="mb-1 text-xs font-black uppercase tracking-wide text-amber-700">Preview unavailable</div>'
+      + '<div>' + escapeHtml(message || "Preview could not load for this activity. Please check the activity settings and try again.") + '</div>'
+      + '</div>';
+  }
+
+  logStepPreviewDiagnostic(eventName, step, previewContext, extra) {
+    console.info("[step-preview] " + eventName, createSafeStepPreviewDiagnostic(step, previewContext, extra));
+  }
   buildPracticeModeInspector(mode, session, practiceModeKey) {
     var status = readString(mode.status, "shell");
     var steps = readSortedSteps(mode.steps);
@@ -4228,11 +4444,12 @@ function createSafeStepConfig(stepType, config) {
 function createStepRenderConfig(step) {
   var stepType = readStepType(step);
   var config = createSafeStepConfig(stepType, readStepConfig(step));
+  var activityTemplate = readStepActivityTemplate(step, stepType);
 
-  config._activityTemplate = readStepActivityTemplate(step, stepType);
+  config.activityTemplate = activityTemplate;
+  config._activityTemplate = activityTemplate;
   return config;
 }
-
 function readConfigValue(config, key) {
   if (!config || typeof config !== "object") {
     return "";
@@ -4582,13 +4799,26 @@ function readStepType(step) {
 }
 
 function readStepActivityTemplate(step, stepType) {
-  if (!step || typeof step.activityTemplate !== "string") {
-    return normalizeActivityTemplateId(stepType, "");
-  }
-
-  return normalizeActivityTemplateId(stepType, step.activityTemplate);
+  return normalizeActivityTemplateId(stepType, readStepPreviewTemplateId(step, stepType));
 }
 
+function readStepPreviewTemplateId(step, stepType) {
+  var config = readStepConfig(step);
+
+  if (step && typeof step.activityTemplate === "string" && step.activityTemplate.trim().length > 0) {
+    return step.activityTemplate.trim();
+  }
+
+  if (typeof config._activityTemplate === "string" && config._activityTemplate.trim().length > 0) {
+    return config._activityTemplate.trim();
+  }
+
+  if (typeof config.activityTemplate === "string" && config.activityTemplate.trim().length > 0) {
+    return config.activityTemplate.trim();
+  }
+
+  return normalizeActivityTemplateId(stepType, "");
+}
 function readActivityTemplateFromInspector(propsPane, stepType) {
   var selectedInput = propsPane ? propsPane.querySelector(".inspector-activity-template:checked") : null;
   var selectedValue = selectedInput ? selectedInput.value : "";
@@ -4603,6 +4833,59 @@ function readStepConfig(step) {
   return step.config;
 }
 
+function createSafeStepPreviewDiagnostic(step, previewContext, extra) {
+  var safeExtra = extra && typeof extra === "object" ? extra : {};
+  var stepType = previewContext && previewContext.stepType ? previewContext.stepType : readStepType(step);
+  var selectedTemplateId = previewContext && previewContext.selectedTemplateId ? previewContext.selectedTemplateId : readStepPreviewTemplateId(step, stepType);
+  var error = safeExtra.error;
+  var diagnostic = {
+    stepId: previewContext && previewContext.stepId ? previewContext.stepId : readStepId(step, safeExtra.stepId || ""),
+    stepType: stepType,
+    selectedTemplateId: selectedTemplateId,
+    normalizedTemplateId: previewContext && previewContext.normalizedTemplateId ? previewContext.normalizedTemplateId : normalizeActivityTemplateId(stepType, selectedTemplateId),
+    rendererName: readStepPreviewRendererName(stepType),
+    previewTarget: previewContext && previewContext.previewTarget ? previewContext.previewTarget : (safeExtra.previewTarget || "modal"),
+    previewMode: previewContext && previewContext.mode ? previewContext.mode : "authorPreview",
+    previewRootFound: Boolean(safeExtra.previewRootFound),
+    interactionBindingAttempted: Boolean(safeExtra.interactionBindingAttempted),
+    interactionBindingSucceeded: Boolean(safeExtra.interactionBindingSucceeded)
+  };
+
+  if (safeExtra.code) {
+    diagnostic.code = safeExtra.code;
+  }
+
+  if (safeExtra.modeId) {
+    diagnostic.modeId = safeExtra.modeId;
+  }
+
+  if (safeExtra.previewSource) {
+    diagnostic.previewSource = safeExtra.previewSource;
+  }
+
+  if (error) {
+    diagnostic.error = {
+      code: error.code || safeExtra.code || "STEP_PREVIEW_RENDER_ERROR",
+      message: error && error.message ? error.message : String(error)
+    };
+  }
+
+  return diagnostic;
+}
+
+function readStepPreviewRendererName(stepType) {
+  var StepTypeDefinition = getStepTypeDefinition(stepType);
+
+  if (!StepTypeDefinition) {
+    return "unregistered";
+  }
+
+  if (StepTypeDefinition.name) {
+    return StepTypeDefinition.name;
+  }
+
+  return readStepTypeLabel(stepType);
+}
 function createLearningModeStepUpdates(step) {
   return {
     type: step && step.type ? step.type : "",
@@ -5314,6 +5597,32 @@ function findStepByIdInList(steps, stepId) {
     }
 
     index = index + 1;
+  }
+
+  return null;
+}
+
+function findStepByIdInLearningModes(learningModes, stepId) {
+  var modes = learningModes && typeof learningModes === "object" && !Array.isArray(learningModes) ? learningModes : {};
+  var modeIds = Object.keys(modes);
+  var modeIndex = 0;
+
+  while (modeIndex < modeIds.length) {
+    var modeId = modeIds[modeIndex];
+    var mode = modes[modeId];
+    var step = null;
+
+    if (mode && mode.status !== "deleted") {
+      step = findStepByIdInList(readSortedSteps(mode.steps), stepId);
+      if (step) {
+        return {
+          modeId: modeId,
+          step: step
+        };
+      }
+    }
+
+    modeIndex = modeIndex + 1;
   }
 
   return null;

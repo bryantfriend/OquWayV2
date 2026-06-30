@@ -20,7 +20,8 @@ export class PracticeModePlayer {
     this.estimatedMinutes = readPositiveWholeNumber(safeOptions.estimatedMinutes, 0);
     this.steps = readSortedSteps(safeOptions.steps);
     this.actor = readObject(safeOptions.actor);
-    this.mode = safeOptions.mode === "student" ? "student" : "playtest";
+    this.mode = normalizePlayerMode(safeOptions.mode);
+    this.persistProgress = this.mode === "student" && safeOptions.persistProgress !== false;
     this.container = null;
     this.currentStepIndex = 0;
     this.completedStepIds = [];
@@ -249,7 +250,7 @@ export class PracticeModePlayer {
       return Promise.resolve(this.createStateSnapshot());
     }
 
-    if (this.mode === "student" && this.onStepComplete) {
+    if (this.persistProgress && this.onStepComplete) {
       this.pendingStepIds[stepId] = true;
       this.isSavingCompletion = true;
       this.warningMessage = "Saving progress...";
@@ -310,6 +311,8 @@ export class PracticeModePlayer {
       sessionId: this.sessionId,
       practiceModeKey: this.practiceModeKey,
       mode: this.mode,
+      previewMode: this.mode === "preview",
+      persistProgress: this.persistProgress,
       currentStepIndex: this.currentStepIndex,
       stepCount: this.steps.length,
       completedStepIds: stepIds,
@@ -341,6 +344,8 @@ export class PracticeModePlayer {
       sessionId: this.sessionId,
       practiceModeKey: this.practiceModeKey,
       mode: this.mode,
+      previewMode: this.mode === "preview",
+      persistProgress: this.persistProgress,
       currentStepIndex: this.currentStepIndex,
       stepCount: this.steps.length,
       completedStepIds: this.completedStepIds.slice(),
@@ -365,7 +370,9 @@ export class PracticeModePlayer {
       practiceModeKey: this.practiceModeKey,
       modeId: this.practiceModeKey,
       stepId: readStepId(step, ""),
-      actor: this.actor
+      actor: this.actor,
+      previewMode: this.mode === "preview",
+      persistProgress: this.persistProgress
     };
   }
 
@@ -384,7 +391,8 @@ export class PracticeModePlayer {
     var stepId = readStepId(step, "");
     var completed = this.isStepCompleted(stepId);
     var progress = calculateProgressPercent(this.currentStepIndex, this.steps.length, this.isComplete);
-    var nextDisabled = this.mode === "student" && (!completed || this.isSavingCompletion) ? " disabled" : "";
+    var requiresCompletion = this.mode === "student" || this.mode === "preview";
+    var nextDisabled = requiresCompletion && (!completed || this.isSavingCompletion) ? " disabled" : "";
     var previousDisabled = this.currentStepIndex === 0 || this.isSavingCompletion ? " disabled" : "";
     var nextLabel = this.currentStepIndex >= this.steps.length - 1 ? "Finish" : "Next";
     var completeLabel = this.currentStepIndex >= this.steps.length - 1 ? "Complete Practice Mode" : "Complete Learning Activity";
@@ -413,8 +421,11 @@ export class PracticeModePlayer {
     html += '</div>';
     html += '<div class="course-player-footer">';
     html += '<button type="button" class="course-player-previous-btn course-player-nav-btn"' + previousDisabled + '>Previous</button>';
-    if (this.mode !== "student") {
+    if (this.mode === "playtest") {
       html += '<button type="button" class="course-player-complete-btn">' + completeLabel + '</button>';
+    }
+    if (this.mode === "preview") {
+      html += '<button type="button" class="course-player-restart-btn">Restart Preview</button>';
     }
     html += '<button type="button" class="course-player-next-btn course-player-nav-btn"' + nextDisabled + '>' + nextLabel + '</button>';
     html += '</div>';
@@ -480,7 +491,7 @@ export class PracticeModePlayer {
     }
     html += '</div>';
     html += '<div class="course-player-complete-actions">';
-    html += '<button type="button" class="course-player-restart-btn">Play Again</button>';
+    html += '<button type="button" class="course-player-restart-btn">' + (this.mode === "preview" ? "Restart Preview" : "Play Again") + '</button>';
     html += '<button type="button" class="course-player-back-btn back-to-editor-btn">Back to ' + this.readBackLabel() + '</button>';
     html += '</div>';
     html += '</div>';
@@ -510,6 +521,10 @@ export class PracticeModePlayer {
       return "Student Practice";
     }
 
+    if (this.mode === "preview") {
+      return "Preview Mode - No student progress will be saved";
+    }
+
     return "Practice Mode Playtest";
   }
 
@@ -522,8 +537,20 @@ export class PracticeModePlayer {
       return "Session";
     }
 
+    if (this.mode === "preview") {
+      return "Course Preview";
+    }
+
     return "Editor";
   }
+}
+
+function normalizePlayerMode(value) {
+  if (value === "student" || value === "preview") {
+    return value;
+  }
+
+  return "playtest";
 }
 
 function readSortedSteps(steps) {
