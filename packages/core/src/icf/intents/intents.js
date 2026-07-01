@@ -189,15 +189,15 @@ export { SaveModuleDraftIntent } from "./moduleEditor/SaveModuleDraftIntent.js?v
 // ----------------------
 // Student Dashboard / Player
 // ----------------------
-export { LoadStudentCourseIntent } from "./student/LoadStudentCourseIntent.js?v=1.1.83-student-assignment-load";
-export { LoadStudentDashboardIntent } from "./student/LoadStudentDashboardIntent.js?v=1.1.83-student-assignment-load";
-export { LoadStudentCoursesIntent } from "./student/LoadStudentCoursesIntent.js?v=1.1.83-student-assignment-load";
+export { LoadStudentCourseIntent } from "./student/LoadStudentCourseIntent.js?v=1.1.85-visual-helpers-syntax";
+export { LoadStudentDashboardIntent } from "./student/LoadStudentDashboardIntent.js?v=1.1.85-visual-helpers-syntax";
+export { LoadStudentCoursesIntent } from "./student/LoadStudentCoursesIntent.js?v=1.1.85-visual-helpers-syntax";
 export { LoadStudentCourseStructureIntent } from "./student/LoadStudentCourseStructureIntent.js?v=1.1.82-shared-command-center-shell";
 export { LoadStudentProgressIntent } from "./student/LoadStudentProgressIntent.js?v=1.1.82-shared-command-center-shell";
 export { ClaimDailyBonusIntent } from "./student/ClaimDailyBonusIntent.js?v=1.1.82-shared-command-center-shell";
 export { ContinueLearningIntent } from "./student/ContinueLearningIntent.js?v=1.1.82-shared-command-center-shell";
 export { SelectContinueLearningIntent } from "./student/SelectContinueLearningIntent.js?v=1.1.82-shared-command-center-shell";
-export { StudentOpenCourseIntent } from "./student/StudentOpenCourseIntent.js?v=1.1.83-student-assignment-load";
+export { StudentOpenCourseIntent } from "./student/StudentOpenCourseIntent.js?v=1.1.85-visual-helpers-syntax";
 export { StartPracticeModeIntent } from "./student/StartPracticeModeIntent.js?v=1.1.82-shared-command-center-shell";
 export { CompleteStepIntent } from "./student/CompleteStepIntent.js?v=1.1.82-shared-command-center-shell";
 export { CompleteStudentStepIntent } from "./student/CompleteStudentStepIntent.js?v=1.1.82-shared-command-center-shell";

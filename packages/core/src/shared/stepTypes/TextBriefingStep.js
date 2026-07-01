@@ -1,5 +1,5 @@
 import { BaseStep } from "./BaseStep.js?v=1.1.82-shared-command-center-shell";
-import { buildSharedActivityCss, buildSvgDocumentIcon, buildSvgSparkles } from "../../../../../packages/ui/shared/visualHelpers.js?v=1.1.83-student-assignment-load";
+import { buildSharedActivityCss, buildSvgDocumentIcon, buildSvgSparkles } from "../../../../../packages/ui/shared/visualHelpers.js?v=1.1.85-visual-helpers-syntax";
 
 export class TextBriefingStep extends BaseStep {
   static get type() {

@@ -1,6 +1,6 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.83-student-assignment-load";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.83-student-assignment-load";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.85-visual-helpers-syntax";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.85-visual-helpers-syntax";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -12,16 +12,16 @@ import {
   readCourseLearningStatus,
   readModuleLearningStatus,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.83-student-assignment-load";
+} from "../../../packages/domain/progress/index.js?v=1.1.85-visual-helpers-syntax";
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.83-student-assignment-load";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.83-student-assignment-load";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.83-student-assignment-load";
+} from "../../../packages/ui/index.js?v=1.1.85-visual-helpers-syntax";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.85-visual-helpers-syntax";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.85-visual-helpers-syntax";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;

@@ -90,10 +90,10 @@ export { processUpdatePracticeMode } from "./domain/moduleEditor/processUpdatePr
 export { processUpdatePracticeModeStep } from "./domain/moduleEditor/processUpdatePracticeModeStep.js?v=1.1.82-shared-command-center-shell";
 export { processUpdateStepField } from "./domain/moduleEditor/processUpdateStepField.js?v=1.1.82-shared-command-center-shell";
 export { processUploadStepMedia } from "./domain/moduleEditor/processUploadStepMedia.js?v=1.1.82-shared-command-center-shell";
-export { processLoadStudentCourse } from "./domain/student/processLoadStudentCourse.js?v=1.1.83-student-assignment-load";
-export { processLoadStudentDashboard } from "./domain/student/processLoadStudentDashboard.js?v=1.1.83-student-assignment-load";
+export { processLoadStudentCourse } from "./domain/student/processLoadStudentCourse.js?v=1.1.85-visual-helpers-syntax";
+export { processLoadStudentDashboard } from "./domain/student/processLoadStudentDashboard.js?v=1.1.85-visual-helpers-syntax";
 export { processContinueLearning } from "./domain/student/processContinueLearning.js?v=1.1.82-shared-command-center-shell";
-export { processStudentOpenCourse } from "./domain/student/processStudentOpenCourse.js?v=1.1.83-student-assignment-load";
+export { processStudentOpenCourse } from "./domain/student/processStudentOpenCourse.js?v=1.1.85-visual-helpers-syntax";
 export { processClaimDailyBonus } from "./domain/student/processClaimDailyBonus.js?v=1.1.82-shared-command-center-shell";
 export { processStartPracticeMode } from "./domain/student/processStartPracticeMode.js?v=1.1.82-shared-command-center-shell";
 export { processCompleteStep } from "./domain/student/processCompleteStep.js?v=1.1.82-shared-command-center-shell";

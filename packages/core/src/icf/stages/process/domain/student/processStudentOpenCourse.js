@@ -1,5 +1,5 @@
 import { processContinueLearning } from "./processContinueLearning.js?v=1.1.82-shared-command-center-shell";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.83-student-assignment-load";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.85-visual-helpers-syntax";
 
 export async function processStudentOpenCourse(executionState) {
   var payload = executionState.payload || {};

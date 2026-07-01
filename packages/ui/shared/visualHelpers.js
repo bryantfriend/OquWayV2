@@ -181,12 +181,12 @@ export function buildSvgChecklist() {
 }
 
 export function buildSvgSparkles() {
-  return \`
+  return `
     <svg width="100%" height="100%" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="oqu-decorative-overlay">
       <circle cx="15" cy="20" r="3" fill="#fcd34d" class="oqu-anim-float" style="animation-delay: 0.1s" />
       <circle cx="85" cy="30" r="4" fill="#60a5fa" class="oqu-anim-float" style="animation-delay: 0.5s" />
       <circle cx="75" cy="80" r="2" fill="#a78bfa" class="oqu-anim-float" style="animation-delay: 0.9s" />
       <circle cx="25" cy="70" r="3" fill="#34d399" class="oqu-anim-float" style="animation-delay: 0.3s" />
     </svg>
-  \`;
+  `;
 }

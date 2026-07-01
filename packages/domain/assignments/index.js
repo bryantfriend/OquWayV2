@@ -36,4 +36,4 @@ export function assignmentBelongsToTeacher(assignment, teacherIds) {
     }));
 }
 
-export * from "./assignmentRepository.js?v=1.1.83-student-assignment-load";
+export * from "./assignmentRepository.js?v=1.1.85-visual-helpers-syntax";

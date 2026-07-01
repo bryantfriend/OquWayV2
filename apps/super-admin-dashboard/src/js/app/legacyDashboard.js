@@ -7,7 +7,7 @@ import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1
 import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.82-shared-command-center-shell";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.82";
+var appVersion = "1.1.85";
 var adminCallableFunctions = functions;
 var state = {
   isLoading: true,

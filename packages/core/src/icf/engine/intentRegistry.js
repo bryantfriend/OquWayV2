@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.83-student-assignment-load";
+import * as IntentExports from "../intents/intents.js?v=1.1.85-visual-helpers-syntax";
 
 const registry = {
   // Demo Verification

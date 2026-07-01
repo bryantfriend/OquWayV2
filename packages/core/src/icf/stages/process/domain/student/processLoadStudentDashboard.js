@@ -1,4 +1,4 @@
-import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.83-student-assignment-load";
+import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.85-visual-helpers-syntax";
 import { processContinueLearning } from "./processContinueLearning.js?v=1.1.82-shared-command-center-shell";
 import { calculateCourseCompletion, calculateCourseProgressSummary } from "../../../../../../../domain/progress/index.js";
 
