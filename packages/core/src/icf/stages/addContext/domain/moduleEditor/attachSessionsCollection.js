@@ -1,5 +1,5 @@
-import { db, collection, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
-import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.162-modal-stack";
+import { db, collection, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
+import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.82-shared-command-center-shell";
 
 export async function attachSessionsCollection(executionState) {
   const payload = executionState.payload;
@@ -49,7 +49,7 @@ async function readCanonicalLearningModes(executionState, courseId, moduleId) {
 
   for (const modeDoc of modeSnapshot.docs) {
     const mode = Object.assign({ id: modeDoc.id }, modeDoc.data() || {});
-    mode.steps = await readCanonicalSteps(collectionName, courseId, moduleId, modeDoc.id, mode.stepOrder);
+    mode.steps = await readCanonicalSteps(collectionName, courseId, moduleId, modeDoc.id);
     mode.stepCount = mode.steps.length;
     mode.stepOrder = mode.steps.map(function (step) {
       return step.id;
@@ -60,29 +60,14 @@ async function readCanonicalLearningModes(executionState, courseId, moduleId) {
   return modes;
 }
 
-async function readCanonicalSteps(collectionName, courseId, moduleId, modeId, stepOrder) {
+async function readCanonicalSteps(collectionName, courseId, moduleId, modeId) {
   const stepsRef = collection(db, collectionName, courseId, "modules", moduleId, "learningModes", modeId, "steps");
   const stepSnapshot = await getDocs(stepsRef);
   const steps = [];
-  const stepsById = {};
 
   stepSnapshot.forEach(function (stepDoc) {
-    const step = Object.assign({ id: stepDoc.id }, stepDoc.data() || {});
-    steps.push(step);
-    stepsById[stepDoc.id] = step;
+    steps.push(Object.assign({ id: stepDoc.id }, stepDoc.data() || {}));
   });
-
-  if (Array.isArray(stepOrder) && stepOrder.length > 0) {
-    return stepOrder.map(function (stepId, index) {
-      if (!stepsById[stepId]) {
-        return null;
-      }
-
-      return Object.assign({}, stepsById[stepId], {
-        order: index + 1
-      });
-    }).filter(Boolean);
-  }
 
   steps.sort(function (firstStep, secondStep) {
     return readOrder(firstStep) - readOrder(secondStep);

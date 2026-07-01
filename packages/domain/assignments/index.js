@@ -7,7 +7,7 @@ export function normalizeCourseAssignment(assignment) {
     id: readSafeString(safeAssignment.id || safeAssignment.assignmentId),
     assignmentId: readSafeString(safeAssignment.assignmentId || safeAssignment.id),
     assignmentType: readSafeString(safeAssignment.assignmentType || "course") || "course",
-    courseId: readSafeString(safeAssignment.courseId || safeAssignment.catalogCourseId || safeAssignment.targetCourseId),
+    courseId: readSafeString(safeAssignment.courseId),
     targetType: readSafeString(safeAssignment.targetType),
     targetId: readSafeString(safeAssignment.targetId),
     locationId: readSafeString(safeAssignment.locationId),
@@ -36,4 +36,4 @@ export function assignmentBelongsToTeacher(assignment, teacherIds) {
     }));
 }
 
-export * from "./assignmentRepository.js?v=1.1.162-modal-stack";
+export * from "./assignmentRepository.js?v=1.1.83-student-assignment-load";

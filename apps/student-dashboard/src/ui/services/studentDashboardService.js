@@ -1,8 +1,7 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.180-student-profile-center";
-import { OQUWAY_BUILD_VERSION } from "../../../../../packages/shared/version.js?v=1.1.213-emotional-checkin-owner";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.213-emotional-checkin-owner";
-import { isStudentDashboardProfile, readStudentProfileRejectReason, readStudentProfileId, resolveFruitLoginStudentIdentity } from "../../../../../packages/domain/users/index.js?v=1.1.180-student-profile-center";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.213-emotional-checkin-owner";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.83-student-assignment-load";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.83-student-assignment-load";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.83-student-assignment-load";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.83-student-assignment-load";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
@@ -21,7 +20,6 @@ export const studentDashboardService = {
       if (result && result.emitted && result.emitted.success) {
         var profile = result.emitted.data.student;
         logStartupProfileResult(true, profile);
-        logStudentCourseProfileDebug(profile);
 
         if (isValidStudentProfile(profile)) {
           return profile;
@@ -53,54 +51,43 @@ export const studentDashboardService = {
     try {
       var profile = verifiedStudentProfile;
 
+      if (!isPreviewMode() && !hasConfirmedStudentSession()) {
+        redirectToStudentLogin("Please choose your student card and enter your fruit password.");
+        return null;
+      }
+
       if (!isPreviewMode() && !profile) {
         profile = await this.loadVerifiedStudentProfile();
       }
 
       if (!isPreviewMode() && !isValidStudentProfile(profile)) {
-        studentDashboardStore.setState({
-          isLoading: false,
-          error: "Please log in with your student account first.",
-          statusMessage: "",
-          actorIsPreview: false
-        });
         redirectToStudentLogin("Please log in with your student account first.");
         return null;
       }
 
-      await waitForStudentDashboardLoad(ensureAuthenticatedFirestoreToken(), "student token refresh");
-
-      var result = await waitForStudentDashboardLoad(runStudentIntent("LoadStudentDashboardIntent", {
-        studentProfile: profile
-      }, profile), "LoadStudentDashboardIntent");
+      var result = await runStudentIntent("LoadStudentDashboardIntent", {});
 
       if (result && result.emitted && result.emitted.success) {
         var courses = result.emitted.data.courses || [];
-        var actorIsPreview = result.emitted.data.actorIsPreview === true;
-        logStudentCourseProfileDebug(result.emitted.data.student || profile);
-        logLoadedCoursesDebug(courses);
-        writeStudentDashboardDebugState(result.emitted.data);
         studentDashboardStore.setState({
           isLoading: false,
           student: result.emitted.data.student,
           courses: courses,
-          assignmentDebug: result.emitted.data.assignmentDebug || null,
           continueLearning: result.emitted.data.continueLearning || null,
           dailyBonus: result.emitted.data.dailyBonus || null,
           intentionPoints: result.emitted.data.intentionPoints || createEmptyIntentionPoints(),
           progressSummary: result.emitted.data.progressSummary || null,
           selectedCourseId: readFirstCourseId(courses),
-          actorIsPreview: actorIsPreview
+          actorIsPreview: auth.currentUser ? false : true
         });
         return result.emitted.data;
       }
 
       throw new Error(readIntentErrorMessage(result));
     } catch (error) {
-      logStudentDashboardLoadFailure(error, verifiedStudentProfile);
       studentDashboardStore.setState({
         isLoading: false,
-        error: readDashboardLoadErrorMessage(error),
+        error: "Could not load courses.",
         statusMessage: "",
         actorIsPreview: auth.currentUser ? false : true
       });
@@ -128,62 +115,32 @@ export const studentDashboardService = {
   },
 
   openCourse: async function (courseId) {
-    var courseSummary = readDashboardCourseById(courseId);
-    var timing = createStudentServiceTiming("StudentOpenCourseIntent");
-
-    if (!courseSummary) {
-      studentDashboardStore.setState({
-        isCourseOpening: false,
-        error: "This course is no longer on your dashboard. Refresh and ask your teacher to check the assignment if it is still missing.",
-        statusMessage: ""
-      });
-      logStudentCourseOpenBlocked(courseId);
-      return null;
-    }
-
     studentDashboardStore.setState({
       isCourseOpening: true,
       error: null,
       statusMessage: "Opening your course..."
     });
 
-    logStudentTiming("[student-course-card:click]", {
-      studentId: readCurrentDashboardStudentId(),
-      courseId: courseId,
-      courseRecordSource: readCourseRecordSource(courseSummary)
+    console.info("[student-course-card:click]", {
+      studentId: auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : "preview-student",
+      courseId: courseId
     });
 
     try {
-      var result = await waitForStudentDashboardLoad(runStudentIntent("StudentOpenCourseIntent", {
-        studentId: readCurrentDashboardStudentId(),
-        courseId: courseId,
-        assignmentId: courseSummary ? courseSummary.assignmentId || courseSummary.courseAssignmentId || "" : "",
-        courseAssignmentId: courseSummary ? courseSummary.courseAssignmentId || courseSummary.assignmentId || "" : "",
-        canonicalCourseId: readCourseCanonicalCourseId(courseSummary),
-        moduleCourseId: readCourseModuleCourseId(courseSummary),
-        moduleSource: readCourseModuleSource(courseSummary),
-        courseRecordSource: readCourseRecordSource(courseSummary),
-        source: readCourseRecordSource(courseSummary),
-        debug: isStudentCourseDebugEnabled()
-      }), "StudentOpenCourseIntent");
-      timing.mark("StudentOpenCourseIntent total");
+      var result = await runStudentIntent("StudentOpenCourseIntent", {
+        studentId: auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : "preview-student",
+        courseId: courseId
+      });
 
       if (result && result.emitted && result.emitted.success) {
-        logStudentTiming("[student-course:open-result]", {
+        console.info("[student-course:open-result]", {
           courseId: courseId,
           hasCourse: Boolean(result.emitted.data.course),
           moduleCount: result.emitted.data.modules ? result.emitted.data.modules.length : 0,
           hasActivity: result.emitted.data.hasActivity === true,
           openTarget: result.emitted.data.openTarget || null
         });
-        timing.finish({
-          courseId: courseId,
-          moduleCount: result.emitted.data.modules ? result.emitted.data.modules.length : 0
-        });
-        return Object.assign({}, result.emitted.data, {
-          requestedCourseId: courseId,
-          dashboardCourseId: courseSummary.id
-        });
+        return result.emitted.data;
       }
 
       throw new Error(readIntentErrorMessage(result));
@@ -224,7 +181,7 @@ export const studentDashboardService = {
     }
   },
 
-  startPracticeMode: async function (courseId, moduleId, sessionId, practiceModeKey, courseRecordSource, moduleSource, moduleCourseId) {
+  startPracticeMode: async function (courseId, moduleId, sessionId, practiceModeKey) {
     studentDashboardStore.setState({
       isPlayerLoading: true,
       error: null,
@@ -236,11 +193,7 @@ export const studentDashboardService = {
         courseId: courseId,
         moduleId: moduleId,
         sessionId: sessionId,
-        practiceModeKey: practiceModeKey,
-        courseRecordSource: courseRecordSource || "",
-        moduleSource: moduleSource || courseRecordSource || "",
-        moduleCourseId: moduleCourseId || courseId,
-        progressCourseId: courseId
+        practiceModeKey: practiceModeKey
       });
 
       if (result && result.emitted && result.emitted.success) {
@@ -257,7 +210,7 @@ export const studentDashboardService = {
     }
   },
 
-  completeStep: async function (courseId, moduleId, sessionId, practiceModeKey, stepId, completionResult, courseRecordSource, moduleSource, moduleCourseId) {
+  completeStep: async function (courseId, moduleId, sessionId, practiceModeKey, stepId, completionResult) {
     studentDashboardStore.setState({
       isSavingProgress: true,
       error: null,
@@ -271,11 +224,7 @@ export const studentDashboardService = {
         sessionId: sessionId,
         practiceModeKey: practiceModeKey,
         stepId: stepId,
-        completionResult: completionResult,
-        courseRecordSource: courseRecordSource || "",
-        moduleSource: moduleSource || courseRecordSource || "",
-        moduleCourseId: moduleCourseId || courseId,
-        progressCourseId: courseId
+        completionResult: completionResult
       });
 
       if (result && result.emitted && result.emitted.success) {
@@ -293,7 +242,7 @@ export const studentDashboardService = {
     }
   },
 
-  completePracticeMode: async function (courseId, moduleId, sessionId, practiceModeKey, courseRecordSource, moduleSource, moduleCourseId) {
+  completePracticeMode: async function (courseId, moduleId, sessionId, practiceModeKey) {
     studentDashboardStore.setState({
       isSavingProgress: true,
       error: null,
@@ -305,11 +254,7 @@ export const studentDashboardService = {
         courseId: courseId,
         moduleId: moduleId,
         sessionId: sessionId,
-        practiceModeKey: practiceModeKey,
-        courseRecordSource: courseRecordSource || "",
-        moduleSource: moduleSource || courseRecordSource || "",
-        moduleCourseId: moduleCourseId || courseId,
-        progressCourseId: courseId
+        practiceModeKey: practiceModeKey
       });
 
       if (result && result.emitted && result.emitted.success) {
@@ -373,10 +318,10 @@ export const studentDashboardService = {
   }
 };
 
-async function runStudentIntent(intentType, payload, studentProfile) {
+async function runStudentIntent(intentType, payload) {
   return runIntentPipeline(getIntentDefinition(intentType), {
     payload: payload,
-    actor: await getActor(studentProfile),
+    actor: getActor(),
     meta: {
       createdAt: Date.now(),
       source: "student-dashboard"
@@ -384,7 +329,7 @@ async function runStudentIntent(intentType, payload, studentProfile) {
   });
 }
 
-async function getActor(studentProfile) {
+function getActor() {
   if (auth.currentUser && auth.currentUser.isAnonymous) {
     return {
       id: "anonymous-user",
@@ -393,39 +338,9 @@ async function getActor(studentProfile) {
   }
 
   if (auth.currentUser) {
-    var sessionContext = readStudentSessionContext();
-    var claimContext = await readStudentClaimContext(auth.currentUser);
-    var profile = studentProfile || sessionContext.studentProfile;
-    var identity = resolveFruitLoginStudentIdentity(auth.currentUser, claimContext, profile);
-
-    logStudentIdentityContract(identity);
-
     return {
-      id: identity.resolvedStudentId || auth.currentUser.uid,
-      authUid: auth.currentUser.uid,
-      uid: auth.currentUser.uid,
-      studentId: identity.resolvedStudentId || auth.currentUser.uid,
-      tokenStudentId: identity.tokenStudentId,
-      tokenClaims: claimContext,
-      role: "ROLE_STUDENT",
-      classId: sessionContext.classId || identity.classId,
-      className: sessionContext.className || identity.className,
-      locationId: sessionContext.locationId || identity.locationId,
-      studentProfile: profile
-    };
-  }
-
-  if (studentProfile) {
-    return {
-      id: readStudentProfileActorId(studentProfile),
-      authUid: studentProfile.authUid || "",
-      uid: studentProfile.authUid || studentProfile.uid || "",
-      studentId: readStudentProfileId(studentProfile),
-      role: "ROLE_STUDENT",
-      classId: studentProfile.classId || "",
-      className: studentProfile.className || "",
-      locationId: studentProfile.locationId || studentProfile.primaryLocationId || "",
-      studentProfile: studentProfile
+      id: auth.currentUser.uid,
+      role: "ROLE_STUDENT"
     };
   }
 
@@ -435,18 +350,16 @@ async function getActor(studentProfile) {
   };
 }
 
-function readStudentProfileActorId(studentProfile) {
-  if (!studentProfile || typeof studentProfile !== "object") {
-    return "preview-student";
-  }
-
-  return readStudentProfileId(studentProfile)
-    || studentProfile.authUid
-    || "preview-student";
-}
-
 function isValidStudentProfile(profile) {
   return isStudentDashboardProfile(profile);
+}
+
+function hasConfirmedStudentSession() {
+  if (!window.sessionStorage || !auth.currentUser || !auth.currentUser.uid) {
+    return false;
+  }
+
+  return window.sessionStorage.getItem("oquwayStudentSessionUid") === auth.currentUser.uid;
 }
 
 function isPreviewMode() {
@@ -460,7 +373,7 @@ function redirectToStudentLogin(message) {
 
   clearStudentSessionMarker();
 
-  window.location.href = "../student-login/index.html?cb=" + encodeURIComponent(OQUWAY_BUILD_VERSION);
+  window.location.href = "../student-login/index.html";
 }
 
 function clearStudentSessionMarker() {
@@ -470,10 +383,6 @@ function clearStudentSessionMarker() {
 
   window.sessionStorage.removeItem("oquwayStudentSessionUid");
   window.sessionStorage.removeItem("oquwayStudentSessionStartedAt");
-  window.sessionStorage.removeItem("oquwayStudentClassId");
-  window.sessionStorage.removeItem("oquwayStudentClassName");
-  window.sessionStorage.removeItem("oquwayStudentLocationId");
-  window.sessionStorage.removeItem("oquwayStudentProfile");
 }
 
 function logStartupProfileResult(success, profile) {
@@ -514,162 +423,10 @@ function logStartupProfileRejection(profile, reasonRejected) {
   });
 }
 
-async function readStudentClaimContext(user) {
-  try {
-    var tokenResult = await user.getIdTokenResult();
-    var claims = tokenResult && tokenResult.claims ? tokenResult.claims : {};
-
-    return {
-      classId: typeof claims.classId === "string" ? claims.classId : "",
-      className: typeof claims.className === "string" ? claims.className : "",
-      locationId: typeof claims.locationId === "string" ? claims.locationId : "",
-      studentId: typeof claims.studentId === "string" ? claims.studentId : ""
-    };
-  } catch (error) {
-    return {
-      classId: "",
-      className: "",
-      locationId: "",
-      studentId: ""
-    };
-  }
-}
-
-function readStudentSessionContext() {
-  if (!window.sessionStorage) {
-    return {
-      classId: "",
-      className: "",
-      locationId: ""
-    };
-  }
-
-  return {
-    classId: window.sessionStorage.getItem("oquwayStudentClassId") || "",
-    className: window.sessionStorage.getItem("oquwayStudentClassName") || "",
-    locationId: window.sessionStorage.getItem("oquwayStudentLocationId") || "",
-    studentProfile: readStoredStudentProfile()
-  };
-}
-
-function readStoredStudentProfile() {
-  var value = "";
-
-  if (!window.sessionStorage) {
-    return null;
-  }
-
-  value = window.sessionStorage.getItem("oquwayStudentProfile") || "";
-
-  if (!value) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(value);
-  } catch (error) {
-    return null;
-  }
-}
-
-function logStudentCourseProfileDebug(studentProfile) {
-  if (!isStudentCourseDebugEnabled()) {
-    return;
-  }
-
-  console.log("[student-course-debug] profile", JSON.stringify({
-    id: studentProfile && studentProfile.id ? studentProfile.id : "",
-    uid: studentProfile && studentProfile.uid ? studentProfile.uid : "",
-    authUid: studentProfile && studentProfile.authUid ? studentProfile.authUid : "",
-    userId: studentProfile && studentProfile.userId ? studentProfile.userId : "",
-    studentId: studentProfile && studentProfile.studentId ? studentProfile.studentId : "",
-    classId: studentProfile && studentProfile.classId ? studentProfile.classId : "",
-    primaryClassId: studentProfile && studentProfile.primaryClassId ? studentProfile.primaryClassId : "",
-    className: studentProfile && studentProfile.className ? studentProfile.className : "",
-    locationId: studentProfile && studentProfile.locationId ? studentProfile.locationId : ""
-  }));
-}
-
-function logLoadedCoursesDebug(courses) {
-  if (!isStudentCourseDebugEnabled()) {
-    return;
-  }
-
-  console.log("[student-course-debug] loaded courses", JSON.stringify((courses || []).map(function (course) {
-    return {
-      id: course && course.id ? course.id : "",
-      title: readLocalizedText(course ? course.title : "", "Untitled Course"),
-      assignmentId: course && course.assignmentId ? course.assignmentId : "",
-      courseAssignmentId: course && course.courseAssignmentId ? course.courseAssignmentId : ""
-    };
-  })));
-  console.table((courses || []).map(function (course) {
-    return {
-      id: course && course.id ? course.id : "",
-      title: readLocalizedText(course ? course.title : "", "Untitled Course"),
-      assignmentId: course && course.assignmentId ? course.assignmentId : "",
-      courseAssignmentId: course && course.courseAssignmentId ? course.courseAssignmentId : ""
-    };
-  }));
-}
-
-function logStudentIdentityContract(identity) {
-  if (!isStudentCourseDebugEnabled()) {
-    return;
-  }
-
-  console.log("[student-identity-contract]", JSON.stringify({
-    authUid: identity.authUid,
-    tokenStudentId: identity.tokenStudentId,
-    resolvedStudentId: identity.resolvedStudentId,
-    profileId: identity.profileId,
-    classId: identity.classId,
-    className: identity.className,
-    locationId: identity.locationId
-  }));
-}
-
-function writeStudentDashboardDebugState(data) {
-  if (!isStudentCourseDebugEnabled() || typeof window === "undefined") {
-    return;
-  }
-
-  window.__oquwayStudentDebug = {
-    buildVersion: OQUWAY_BUILD_VERSION,
-    student: data && data.student ? {
-      id: data.student.id || "",
-      uid: data.student.uid || "",
-      authUid: data.student.authUid || "",
-      userId: data.student.userId || "",
-      studentId: data.student.studentId || "",
-      classId: data.student.classId || "",
-      primaryClassId: data.student.primaryClassId || "",
-      className: data.student.className || "",
-      classIds: Array.isArray(data.student.classIds) ? data.student.classIds.slice() : [],
-      locationId: data.student.locationId || ""
-    } : null,
-    assignmentDebug: data && data.assignmentDebug ? data.assignmentDebug : null,
-    courseTitles: (data && Array.isArray(data.courses) ? data.courses : []).map(function (course) {
-      return readLocalizedText(course ? course.title : "", "Untitled Course");
-    })
-  };
-
-  console.log("[student-dashboard-debug] state", JSON.stringify(window.__oquwayStudentDebug));
-}
-
 function isDevelopmentHost() {
   return window.location.hostname === "localhost"
     || window.location.hostname === "127.0.0.1"
     || window.location.hostname === "";
-}
-
-function isStudentCourseDebugEnabled() {
-  if (typeof window === "undefined" || !window.location) {
-    return false;
-  }
-
-  return window.location.search.indexOf("debug=true") !== -1
-    || isDevelopmentHost();
 }
 
 function readFirstCourseId(courses) {
@@ -680,100 +437,6 @@ function readFirstCourseId(courses) {
   return null;
 }
 
-function readCurrentDashboardStudentId() {
-  var state = studentDashboardStore.getState();
-  var student = state && state.student ? state.student : readStoredStudentProfile();
-
-  return readStudentProfileId(student) || (auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : "preview-student");
-}
-
-function readDashboardCourseById(courseId) {
-  var courses = studentDashboardStore.getState().courses || [];
-  var courseIndex = 0;
-
-  while (courseIndex < courses.length) {
-    if (courses[courseIndex] && courses[courseIndex].id === courseId) {
-      return courses[courseIndex];
-    }
-
-    courseIndex = courseIndex + 1;
-  }
-
-  return null;
-}
-
-function logStudentCourseOpenBlocked(courseId) {
-  if (!isStudentCourseDebugEnabled()) {
-    return;
-  }
-
-  console.warn("[student-course:open-blocked]", {
-    courseId: courseId || "",
-    reason: "dashboard-course-missing"
-  });
-}
-
-function readCourseRecordSource(course) {
-  var source = course && (course.courseRecordSource || course.source || course.courseSource);
-
-  if (source === "courses" || source === "catalogCourses") {
-    return source;
-  }
-
-  return "";
-}
-
-function readCourseCanonicalCourseId(course) {
-  return course && typeof course.canonicalCourseId === "string" ? course.canonicalCourseId : "";
-}
-
-function readCourseModuleCourseId(course) {
-  return course && typeof course.moduleCourseId === "string" ? course.moduleCourseId : "";
-}
-
-function readCourseModuleSource(course) {
-  var source = course && course.moduleSource;
-
-  if (source === "courses" || source === "catalogCourses") {
-    return source;
-  }
-
-  return "";
-}
-
-function createStudentServiceTiming(label) {
-  var startedAt = Date.now();
-  var marks = [];
-
-  return {
-    mark: function (name) {
-      marks.push({
-        name: name,
-        elapsedMs: Date.now() - startedAt
-      });
-    },
-    finish: function (details) {
-      if (!isStudentCourseDebugEnabled()) {
-        return;
-      }
-
-      console.info("[student-service:timing]", Object.assign({
-        label: label,
-        totalMs: Date.now() - startedAt,
-        marks: marks
-      }, details || {}));
-    }
-  };
-}
-
-function logStudentTiming(label, details) {
-  if (!isStudentCourseDebugEnabled()) {
-    return;
-  }
-
-  console.info(label, details || {});
-}
-
 function createEmptyIntentionPoints() {
   return {
     cognitive: 0,
@@ -781,76 +444,6 @@ function createEmptyIntentionPoints() {
     creative: 0,
     social: 0
   };
-}
-
-async function ensureAuthenticatedFirestoreToken() {
-  if (!auth.currentUser || auth.currentUser.isAnonymous || typeof auth.currentUser.getIdToken !== "function") {
-    return;
-  }
-
-  await auth.currentUser.getIdToken(true);
-}
-
-function waitForStudentDashboardLoad(promise, label) {
-  var timeoutMs = 15000;
-
-  return new Promise(function (resolve, reject) {
-    var settled = false;
-    var timer = setTimeout(function () {
-      if (settled) {
-        return;
-      }
-
-      settled = true;
-      reject(new Error(label + " timed out while loading the Student Dashboard."));
-    }, timeoutMs);
-
-    Promise.resolve(promise).then(function (value) {
-      if (settled) {
-        return;
-      }
-
-      settled = true;
-      clearTimeout(timer);
-      resolve(value);
-    }).catch(function (error) {
-      if (settled) {
-        return;
-      }
-
-      settled = true;
-      clearTimeout(timer);
-      reject(error);
-    });
-  });
-}
-
-function readDashboardLoadErrorMessage(error) {
-  if (error && error.message && error.message.indexOf("timed out") !== -1) {
-    return "Courses are taking too long to load. Try again, or ask your teacher to check the assignment.";
-  }
-
-  if (error && error.code === "permission-denied") {
-    return "We could not verify your course access. Try again or ask your teacher for help.";
-  }
-
-  return "Could not load courses. Try again in a moment.";
-}
-
-function logStudentDashboardLoadFailure(error, studentProfile) {
-  if (!isStudentCourseDebugEnabled()) {
-    return;
-  }
-
-  console.warn("[student-dashboard:load-failed]", {
-    message: error && error.message ? error.message : String(error || "unknown"),
-    code: error && error.code ? error.code : "",
-    hasAuthUser: Boolean(auth.currentUser),
-    authUidPresent: Boolean(auth.currentUser && auth.currentUser.uid),
-    profileIdPresent: Boolean(readStudentProfileId(studentProfile)),
-    classIdPresent: Boolean(studentProfile && studentProfile.classId),
-    locationIdPresent: Boolean(studentProfile && (studentProfile.locationId || studentProfile.primaryLocationId))
-  });
 }
 
 function summarizeCoursesForContinue(courses) {

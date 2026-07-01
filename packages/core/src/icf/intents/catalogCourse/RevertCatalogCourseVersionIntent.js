@@ -1,9 +1,9 @@
-import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
-import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
-import { attachExistingVersionContext } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.162-modal-stack";
-import { catalogCourseRevertVersionProcessing } from "../../stages/process/processors.js?v=1.1.162-modal-stack";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.162-modal-stack";
+import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
+import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
+import { attachExistingVersionContext } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.82-shared-command-center-shell";
+import { catalogCourseRevertVersionProcessing } from "../../stages/process/processors.js?v=1.1.82-shared-command-center-shell";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.82-shared-command-center-shell";
 
 export function RevertCatalogCourseVersionIntent() {
     return {
@@ -21,7 +21,7 @@ export function RevertCatalogCourseVersionIntent() {
         ],
         process: [
             catalogCourseRevertVersionProcessing
-        ],
+        ],
         emit: [
             emitIntentResult
         ]

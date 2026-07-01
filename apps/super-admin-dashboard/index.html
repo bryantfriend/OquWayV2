@@ -27,7 +27,6 @@
             --green: #059669;
             --red: #dc2626;
             --sand: #fff7ed;
-            --sa-modal-stack-base: 1000;
         }
 
         body {
@@ -574,7 +573,7 @@
         }
 
         .sa-search-groups {
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(5, minmax(0, 1fr));
             align-items: start;
         }
 
@@ -604,196 +603,6 @@
             color: var(--muted);
             font-size: 0.78rem;
             font-weight: 800;
-        }
-
-        .sa-search-group button em {
-            justify-self: start;
-            border-radius: 999px;
-            padding: 3px 8px;
-            background: #eef2ff;
-            color: #3730a3;
-            font-size: 0.68rem;
-            font-style: normal;
-            font-weight: 900;
-            text-transform: uppercase;
-        }
-
-        .sa-data-quality-summary,
-        .sa-impact-metrics,
-        .sa-diagnostic-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 10px;
-        }
-
-        .sa-data-quality-grid,
-        .sa-audit-timeline,
-        .sa-diagnostic-checks {
-            display: grid;
-            gap: 10px;
-        }
-
-        .sa-data-quality-row,
-        .sa-impact-card,
-        .sa-audit-row,
-        .sa-diagnostic-row,
-        .sa-diagnostic-metric {
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            background: #fbfdff;
-            padding: 12px;
-        }
-
-        .sa-data-quality-row {
-            display: grid;
-            gap: 8px;
-            align-content: start;
-        }
-
-        .sa-data-quality-row > div,
-        .sa-impact-head,
-        .sa-diagnostic-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
-        .sa-data-quality-row h3,
-        .sa-data-quality-row p,
-        .sa-data-quality-row ul,
-        .sa-impact-warnings {
-            margin: 0;
-        }
-
-        .sa-data-quality-row h3 {
-            font-size: 1rem;
-        }
-
-        .sa-data-quality-row p,
-        .sa-data-quality-row li,
-        .sa-impact-card small,
-        .sa-impact-warnings li,
-        .sa-diagnostic-row small {
-            color: var(--muted);
-            font-weight: 800;
-        }
-
-        .sa-data-quality-row ul,
-        .sa-impact-warnings {
-            padding-left: 18px;
-        }
-
-        .sa-data-quality-row span,
-        .sa-impact-head span,
-        .sa-diagnostic-row > span {
-            border-radius: 999px;
-            padding: 4px 8px;
-            background: #eef2ff;
-            color: #3730a3;
-            font-size: 0.7rem;
-            font-weight: 900;
-            text-transform: uppercase;
-        }
-
-        .sa-data-quality-row strong {
-            font-size: 1.6rem;
-        }
-
-        .sa-data-quality-good,
-        .sa-impact-good,
-        .sa-diagnostic-good {
-            border-color: #bbf7d0;
-            background: #f0fdf4;
-        }
-
-        .sa-data-quality-warning,
-        .sa-impact-warning,
-        .sa-diagnostic-warning {
-            border-color: #fed7aa;
-            background: #fffaf0;
-        }
-
-        .sa-data-quality-danger,
-        .sa-diagnostic-danger {
-            border-color: #fecaca;
-            background: #fff7f7;
-        }
-
-        .sa-data-quality-note {
-            margin: 0;
-            color: var(--muted);
-            font-weight: 900;
-        }
-
-        .sa-audit-filters {
-            grid-template-columns: minmax(180px, 1.4fr) repeat(4, minmax(130px, 1fr)) auto;
-        }
-
-        .sa-audit-row {
-            display: grid;
-            grid-template-columns: 110px minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
-            align-items: center;
-            gap: 12px;
-        }
-
-        .sa-audit-row > span {
-            border-radius: 999px;
-            padding: 5px 9px;
-            background: #e0f2fe;
-            color: #0369a1;
-            font-size: 0.72rem;
-            font-weight: 900;
-            text-transform: uppercase;
-        }
-
-        .sa-audit-row strong,
-        .sa-audit-row small,
-        .sa-diagnostic-row strong,
-        .sa-diagnostic-row small {
-            display: block;
-            overflow-wrap: anywhere;
-        }
-
-        .sa-audit-row small {
-            color: var(--muted);
-            font-weight: 800;
-        }
-
-        .sa-impact-card {
-            display: grid;
-            gap: 10px;
-        }
-
-        .sa-impact-head strong,
-        .sa-diagnostic-metric strong {
-            display: block;
-            overflow-wrap: anywhere;
-        }
-
-        .sa-diagnostic-score {
-            display: grid;
-            grid-template-columns: auto minmax(0, 1fr);
-            gap: 14px;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .sa-diagnostic-score strong {
-            width: 78px;
-            height: 78px;
-            display: grid;
-            place-items: center;
-            border-radius: 50%;
-            background: #eff6ff;
-            color: #1d4ed8;
-            font-size: 1.7rem;
-        }
-
-        .sa-diagnostic-score span,
-        .sa-diagnostic-metric span {
-            color: var(--muted);
-            font-weight: 900;
         }
 
         .sa-form,
@@ -975,10 +784,6 @@
 
         .sa-class-staff-modal {
             width: min(760px, 100%);
-        }
-
-        .sa-class-staff-backdrop,
-        .sa-assignment-staff-backdrop {
         }
 
         .sa-staff-picker-list {
@@ -1164,86 +969,6 @@
             background: #eff6ff;
             font-weight: 900;
             font-size: 1.25rem;
-        }
-
-        .sa-location-icon-editor {
-            display: grid;
-            grid-template-columns: 96px minmax(0, 1fr);
-            gap: 16px;
-            align-items: center;
-        }
-
-        .sa-location-icon-preview {
-            width: 96px;
-            height: 96px;
-            border-radius: 18px;
-            border: 1px solid var(--line);
-            background: #eff6ff;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--blue);
-            font-size: 1.35rem;
-            font-weight: 900;
-        }
-
-        .sa-location-icon-preview img {
-            width: 100%;
-            height: 100%;
-            display: block;
-            object-fit: cover;
-        }
-
-        .sa-location-icon-controls {
-            min-width: 0;
-            display: grid;
-            gap: 8px;
-            align-content: center;
-        }
-
-        .sa-location-icon-upload {
-            border: 1px dashed #93c5fd;
-            border-radius: 14px;
-            padding: 12px;
-            background: #f8fbff;
-            color: var(--ink);
-            text-transform: none;
-            letter-spacing: 0;
-            font-size: 0.94rem;
-        }
-
-        .sa-location-icon-upload span {
-            color: var(--blue);
-            font-weight: 900;
-        }
-
-        .sa-location-icon-upload input {
-            width: 100%;
-            margin-top: 8px;
-            font: inherit;
-        }
-
-        .sa-location-icon-controls p,
-        .sa-location-icon-controls small {
-            margin: 0;
-            color: var(--muted);
-            font-weight: 800;
-            overflow-wrap: anywhere;
-        }
-
-        .sa-location-icon-error {
-            border: 1px solid #fecaca;
-            border-radius: 12px;
-            background: #fef2f2;
-            color: #b91c1c;
-            padding: 8px 10px;
-            font-weight: 900;
-        }
-
-        .sa-location-icon-controls .sa-text-link {
-            justify-self: start;
-            padding: 0;
         }
 
         .sa-location-main {
@@ -2070,27 +1795,11 @@
             overflow: auto;
         }
 
-        .sa-assignment-course-picker-modal {
-            width: min(1440px, calc(100vw - 40px));
-            height: min(900px, calc(100vh - 40px));
-            display: grid;
-            grid-template-rows: auto auto minmax(0, 1fr);
-            overflow: hidden;
-        }
-
         .sa-picker-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 12px;
             margin-top: 14px;
-        }
-
-        .sa-assignment-course-grid {
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            align-content: start;
-            min-height: 0;
-            overflow: auto;
-            padding: 2px 6px 6px 2px;
         }
 
         .sa-picker-card {
@@ -2117,13 +1826,6 @@
             color: var(--muted);
             font-weight: 750;
             line-height: 1.4;
-        }
-
-        .sa-assignment-course-grid .sa-picker-card p {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
         }
 
         .sa-picker-meta {
@@ -2336,7 +2038,7 @@
         .sa-modal-backdrop {
             position: fixed;
             inset: 0;
-            z-index: var(--sa-modal-stack-base);
+            z-index: 30;
             background: rgba(15,23,42,0.52);
             display: flex;
             align-items: center;
@@ -2468,6 +2170,7 @@
         }
 
         .sa-user-edit-backdrop {
+            z-index: 20;
             align-items: stretch;
             overflow-y: auto;
             padding: 28px;
@@ -2489,39 +2192,6 @@
             border-radius: 22px;
             background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
             box-shadow: 0 34px 110px rgba(15,23,42,0.34);
-        }
-
-        .sa-user-create-modal {
-            width: min(980px, 100%);
-            grid-template-rows: auto minmax(0, 1fr);
-        }
-
-        .sa-user-location-picker-backdrop {
-        }
-
-        .sa-user-location-picker-modal {
-            width: min(780px, 100%);
-            max-height: min(760px, calc(100vh - 44px));
-            display: grid;
-            grid-template-rows: auto auto minmax(0, 1fr) auto;
-            overflow: hidden;
-        }
-
-        .sa-user-location-picker-list {
-            max-height: none;
-            min-height: 0;
-            overflow: auto;
-            margin: 14px 0;
-        }
-
-        .sa-picker-summary {
-            margin: 6px 0 10px;
-        }
-
-        .sa-picker-row-selected {
-            border-color: #2563eb;
-            background: #eff6ff;
-            box-shadow: 0 12px 30px rgba(37, 99, 235, 0.12);
         }
 
         .sa-user-edit-hero {
@@ -2933,14 +2603,10 @@
             .sa-form-assignment,
             .sa-form-student,
             .sa-filters,
-            .sa-audit-filters,
             .sa-assignment-row,
             .sa-assignment-summary-grid,
             .sa-assignment-builder-grid,
-            .sa-data-quality-summary,
-            .sa-diagnostic-grid,
             .sa-location-summary,
-            .sa-location-icon-editor,
             .sa-location-fields,
             .sa-overview-grid-2,
             .sa-overview-skeleton,
@@ -2985,7 +2651,6 @@
 
             .sa-action-item,
             .sa-assignment-row,
-            .sa-audit-row,
             .sa-health-row,
             .sa-feed-row,
             .sa-roadmap-row,
@@ -3776,7 +3441,7 @@
 
         .sa-class-command-open {
             display: grid;
-            grid-template-columns: 64px minmax(190px, 1.25fr) minmax(150px, 1fr) repeat(4, minmax(90px, 0.7fr)) 140px;
+            grid-template-columns: 64px minmax(190px, 1.25fr) minmax(150px, 1fr) repeat(4, minmax(90px, 0.7fr)) 140px minmax(120px, 0.7fr);
             align-items: center;
             gap: 12px;
             width: 100%;
@@ -3924,7 +3589,7 @@
         .sa-location-command-backdrop {
             position: fixed;
             inset: 0;
-            z-index: var(--sa-modal-stack-base);
+            z-index: 80;
             padding: 22px;
             background: rgba(15, 23, 42, 0.72);
             backdrop-filter: blur(10px);
@@ -4364,16 +4029,17 @@
         }
 
         .sa-class-teachers-table .sa-command-table-head,
-        .sa-class-teachers-table .sa-command-table-row,
+        .sa-class-teachers-table .sa-command-table-row {
+            grid-template-columns: 70px minmax(180px, 1.35fr) repeat(4, minmax(100px, 0.8fr));
+        }
+
         .sa-class-courses-table .sa-command-table-head,
         .sa-class-courses-table .sa-command-table-row {
-            grid-template-columns: 70px minmax(180px, 1.35fr) repeat(4, minmax(100px, 0.8fr));
+            grid-template-columns: minmax(220px, 1.5fr) repeat(5, minmax(100px, 0.8fr));
         }
 
         .sa-user-command-shell {
             grid-template-columns: 210px minmax(0, 1fr) 280px;
-            min-height: 0;
-            overflow: hidden;
         }
 
         .sa-user-command-header {
@@ -4425,12 +4091,9 @@
             align-content: start;
             gap: 14px;
             padding: 16px;
-            padding-bottom: 32px;
-            min-height: 0;
             border-left: 1px solid #dbe5f2;
             background: rgba(248, 250, 252, 0.72);
             overflow-y: auto;
-            overscroll-behavior: contain;
         }
 
         .sa-user-command-rail .sa-command-panel {
@@ -4672,6 +4335,16 @@
                 grid-template-columns: 1fr;
             }
 
+            .sa-class-command-open,
+            .sa-class-students-table .sa-command-table-head,
+            .sa-class-students-table .sa-command-table-row,
+            .sa-class-teachers-table .sa-command-table-head,
+            .sa-class-teachers-table .sa-command-table-row,
+            .sa-class-courses-table .sa-command-table-head,
+            .sa-class-courses-table .sa-command-table-row {
+                grid-template-columns: 1fr;
+            }
+
             .sa-user-command-rail {
                 grid-template-columns: 1fr;
             }
@@ -4692,7 +4365,9 @@
         <h1>Core System Configuration</h1>
         <p>Managing the heart of the national educational engine...</p>
     </main>
-    <script type="module" src="./src/main.js?v=1.1.162-modal-stack"></script>
+    <script type="module" src="./src/main.js?v=1.1.82-shared-command-center-shell"></script>
 </body>
 
 </html>
+
+

@@ -1,39 +1,12 @@
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.160-lesson-paths";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.203-step-media-upload";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.82-shared-command-center-shell";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.82-shared-command-center-shell";
 import {
-  getDefaultActivityTemplateId,
-  getActivityTemplateOptions,
   getStepTypeDefinition,
   listStepTypeDefinitions,
-  normalizeActivityTemplateId,
   validateStepConfig
-} from "../../../../../packages/domain/steps/index.js?v=1.1.193-step-library";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.193-step-library";
-import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.138-course-overview-title";
-
-const MAIN_PATH_PRACTICE_MODE_KEY = "beforeClass";
-const SUPPORTED_MAIN_PATH_STEP_TYPES = [
-  "intro-card",
-  "card-reveal",
-  "vocabulary",
-  "phrase",
-  "listening",
-  "speakingPrompt",
-  "reflectionShell",
-  "roadmap",
-  "sorting",
-  "matching",
-  "ordering",
-  "multiple-choice",
-  "multi-select",
-  "scenario-choice",
-  "scenario-simulator",
-  "sequence-memory",
-  "timed-sequence",
-  "practice-challenge",
-  "creative-canvas",
-  "reflection"
-];
+} from "../../../../../packages/domain/steps/index.js?v=1.1.82-shared-command-center-shell";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.82-shared-command-center-shell";
+import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.82-shared-command-center-shell";
 
 export class CourseEditorPage {
   constructor(courseId, moduleId) {
@@ -43,22 +16,12 @@ export class CourseEditorPage {
     this.stepPickerOpen = false;
     this.studentPreviewMode = false;
     this.practiceModePlaytestMode = false;
-    this.previewDockTemplate = "basic";
-    this.previewDockDevice = "desktop";
     this.playtestStepIndex = 0;
     this.playtestCompleted = false;
     this.practiceModePlayer = null;
     this.practiceModePlayerSignature = "";
     this.practiceModePlayerSnapshot = null;
     this.activeEditorTab = "learningContent";
-    this.stepDragState = null;
-    this.boundStepDragMove = null;
-    this.boundStepDragEnd = null;
-    this.learningContentAutosaveTimer = null;
-    this.learningContentAutosaveInFlight = false;
-    this.learningContentAutosaveQueued = false;
-    this.learningContentAutosaveDirty = false;
-    this.learningContentLastSavedSignature = "";
   }
 
   render() {
@@ -87,55 +50,38 @@ export class CourseEditorPage {
 
         <div id="editorTabBar" class="bg-white border-b border-gray-100 px-6 py-2 flex items-center gap-2 shrink-0">
           <button type="button" class="editor-tab-btn oqu-editor-tab-active" data-tab="learningContent"><i class="fa-solid fa-layer-group"></i> Learning Content</button>
-          <button type="button" class="editor-tab-btn" data-tab="learningModes"><i class="fa-solid fa-route"></i> Lesson Paths</button>
-          <button type="button" class="editor-tab-btn" data-tab="steps"><i class="fa-solid fa-shapes"></i> Learning Activities</button>
+          <button type="button" class="editor-tab-btn" data-tab="learningModes"><i class="fa-solid fa-route"></i> Learning Modes</button>
+          <button type="button" class="editor-tab-btn" data-tab="steps"><i class="fa-solid fa-shapes"></i> Steps</button>
         </div>
 
         <!-- ── THREE-PANEL BODY ───────────────────────────────────── -->
         <div class="flex-1 overflow-hidden flex gap-4 p-4 min-h-0">
 
-          <!-- LEFT: Module Structure -->
+          <!-- LEFT: Learning Modes -->
           <div class="flex-col shrink-0 min-h-0 flex" style="width:256px">
-            <div class="course-structure-sidebar">
-              <div class="course-structure-topbar">
-                <div class="text-[9px] font-black text-gray-400 uppercase tracking-[0.12em] flex items-center gap-1.5">
-                  <i class="fa-solid fa-diagram-project text-gray-300"></i>
-                  Module Structure
-                </div>
-              </div>
-              <section class="course-structure-section course-structure-section-paths">
-                <div class="course-structure-section-header">
-                  <div class="course-structure-section-title">Lesson Paths</div>
-                  <button id="addSessionBtn" class="course-structure-add-path-btn">
-                    <i class="fa-solid fa-plus text-[10px]"></i> Add Path
-                  </button>
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm flex-1 flex flex-col min-h-0 overflow-hidden">
+              <div class="px-4 pt-4 pb-3 border-b border-gray-100 shrink-0">
+                <div class="text-[9px] font-black text-gray-400 uppercase tracking-[0.12em] mb-3 flex items-center gap-1.5">
+                  <i class="fa-solid fa-route text-gray-300"></i>
+                  Learning Modes
                 </div>
                 <div id="sessionCreateStatusBanner" style="display:none" class="oqu-status-banner mb-2"></div>
-                <div id="sessionList" class="course-structure-path-list">
-                  ${buildSessionSkeletonCards(3)}
-                </div>
-              </section>
-              <div id="moduleStructureDetails" class="course-structure-details">
-                <div class="course-structure-idle">Select a path, then edit its learning activities.</div>
+                <button id="addSessionBtn" class="w-full border border-dashed border-gray-300 bg-white hover:bg-blue-50 hover:border-blue-300 text-gray-600 hover:text-blue-700 py-2 rounded-lg font-semibold transition flex items-center justify-center gap-2 text-xs">
+                  <i class="fa-solid fa-plus text-xs"></i> Add Mode
+                </button>
               </div>
-              <div class="course-structure-footer">
-                <div id="sessionCountText" class="course-structure-count">0 Paths</div>
+              <div id="sessionList" class="flex-1 overflow-y-auto p-2.5 space-y-1 min-h-0">
+                ${buildSessionSkeletonCards(3)}
+              </div>
+              <div class="px-4 py-2.5 bg-gray-50 border-t border-gray-100 rounded-b-xl shrink-0">
+                <div id="sessionCountText" class="text-[9px] font-bold text-gray-400 uppercase tracking-wide">0 Modes</div>
               </div>
             </div>
           </div>
 
-          <!-- CENTER: Student Preview -->
+          <!-- CENTER: Live Preview Workspace -->
           <div class="flex-1 min-w-0 flex flex-col min-h-0">
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm flex-1 flex flex-col min-h-0 overflow-hidden">
-              <div class="px-5 py-4 border-b border-gray-100 shrink-0 flex items-center justify-between gap-3">
-                <div>
-                  <div class="text-[9px] font-black text-gray-400 uppercase tracking-[0.12em] flex items-center gap-1.5">
-                    <i class="fa-solid fa-desktop text-gray-300"></i>
-                    Student Preview
-                  </div>
-                  <div class="text-[11px] text-gray-400 font-semibold mt-1">Selected learning activity, desktop learner view</div>
-                </div>
-              </div>
               <div id="workspaceContent" class="flex-1 overflow-y-auto min-h-0">
                 <div class="flex items-center justify-center min-h-full p-12">
                   ${buildEmptyNoSessionHtml()}
@@ -150,29 +96,16 @@ export class CourseEditorPage {
               <div class="px-5 py-4 border-b border-gray-100 shrink-0">
                 <div class="text-[9px] font-black text-gray-400 uppercase tracking-[0.12em] flex items-center gap-1.5">
                   <i class="fa-solid fa-sliders text-gray-300"></i>
-                  Activity Settings
+                  Inspector
                 </div>
               </div>
               <div id="configEditorPane" class="flex-1 overflow-y-auto p-5 min-h-0">
-                <div class="text-xs text-gray-400 text-center py-10">Select a path or content section.</div>
+                <div class="text-xs text-gray-400 text-center py-10">Select a mode or content section.</div>
               </div>
             </div>
           </div>
 
         </div>
-        <div id="stepPreviewModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/70 p-4 md:p-6">
-          <div class="oqu-step-preview-modal-panel w-full overflow-hidden rounded-3xl bg-white shadow-2xl">
-            <div class="flex items-center justify-between gap-4 border-b border-slate-100 px-5 py-4">
-              <div>
-                <div class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">Preview</div>
-                <h2 id="stepPreviewModalTitle" class="mt-1 text-lg font-black text-slate-950">Student activity</h2>
-              </div>
-              <button type="button" class="close-step-preview-modal rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-600 hover:bg-slate-50">Close</button>
-            </div>
-            <div id="stepPreviewModalBody" class="oqu-step-preview-modal-body overflow-y-auto bg-slate-50 p-4 md:p-6"></div>
-          </div>
-        </div>
-        ${buildAddPathModalHtml()}
       </div>
     `;
   }
@@ -198,12 +131,29 @@ export class CourseEditorPage {
       self.stepPickerOpen = false;
       self.resetPracticeModePlayer();
       self.updateUi(moduleEditorStore.getState());
-      resetWorkspaceScroll();
     });
 
-    // ── Add Lesson Path ───────────────────────────────────────────────
+    // ── Add Learning Mode ───────────────────────────────────────────────
     document.getElementById("addSessionBtn").addEventListener("click", function () {
-      openAddPathModal(moduleEditorStore.getState().learningModes);
+      var btn = document.getElementById("addSessionBtn");
+      var banner = document.getElementById("sessionCreateStatusBanner");
+      showSessionBtnPending(btn, "Creating mode\u2026");
+      showSessionBanner(banner, "creating", '<span class="oqu-spinner oqu-spinner-blue"></span> Creating learning mode\u2026');
+      moduleEditorService.createLearningMode(self.courseId, self.moduleId, {
+        title: "Custom Mode",
+        purpose: "A custom learning experience for this module.",
+        modeType: "custom"
+      }).then(function () {
+        self.activeEditorTab = "learningModes";
+        showSessionBanner(banner, "success", '<span class="oqu-success-icon">&#10003;</span> Mode created!');
+        restoreSessionBtn(btn, '<i class="fa-solid fa-plus text-xs"></i> Add Mode');
+        setTimeout(function () {
+          banner.style.display = "none";
+        }, 2000);
+      }).catch(function (err) {
+        showSessionBanner(banner, "error", "&#9888; Failed: " + err.message);
+        restoreSessionBtn(btn, '<i class="fa-solid fa-plus text-xs"></i> Add Mode');
+      });
     });
 
     // ── Session list delegation (attached once) ────────────────────────
@@ -220,7 +170,7 @@ export class CourseEditorPage {
       self.resetPracticeModePlayer();
       var modeId = item.getAttribute("data-mode-id");
       if (modeId) {
-        self.activeEditorTab = "learningModes";
+        self.activeEditorTab = "steps";
         moduleEditorService.selectLearningMode(modeId);
       } else {
         moduleEditorService.selectSession(item.getAttribute("data-id"));
@@ -232,33 +182,10 @@ export class CourseEditorPage {
       self.handleWorkspaceClick(e);
     });
 
-    document.getElementById("moduleStructureDetails").addEventListener("click", function (e) {
-      self.handleWorkspaceClick(e);
-    });
-
-    document.getElementById("moduleStructureDetails").addEventListener("pointerdown", function (e) {
-      self.handleStepDragPointerDown(e);
-    });
-
     document.getElementById("workspaceContent").addEventListener("input", function (e) {
       var search = e.target.closest(".step-picker-search");
       if (search) {
         filterStepPicker(search.value);
-      }
-
-      if (e.target.closest("[data-learning-content-line-field]")) {
-        updateLearningContentLineHidden(e.target.getAttribute("data-learning-content-line-field"));
-      }
-
-      if (isLearningContentInput(e.target)) {
-        self.markLearningContentDirty("Unsaved changes");
-        self.scheduleLearningContentAutosave();
-      }
-    });
-
-    document.getElementById("workspaceContent").addEventListener("focusout", function (e) {
-      if (isLearningContentInput(e.target)) {
-        self.flushLearningContentAutosave();
       }
     });
 
@@ -274,127 +201,27 @@ export class CourseEditorPage {
     document.getElementById("configEditorPane").addEventListener("change", function (e) {
       self.handleInspectorChange(e);
     });
-
-    document.getElementById("stepPreviewModal").addEventListener("click", function (e) {
-      if (e.target.id === "stepPreviewModal" || e.target.closest(".close-step-preview-modal")) {
-        self.closeStepPreviewModal();
-      }
-    });
-
-    document.getElementById("addPathModal").addEventListener("click", function (e) {
-      var closeBtn = e.target.closest(".close-add-path-modal");
-      var createBtn = e.target.closest(".create-learning-path-option-btn");
-
-      if (closeBtn || e.target.id === "addPathModal") {
-        closeAddPathModal();
-        return;
-      }
-
-      if (createBtn) {
-        self.createLearningPathFromButton(createBtn);
-      }
-    });
   }
 
   // ── Workspace click dispatcher ─────────────────────────────────────────
-
-  createLearningPathFromButton(createPathOptionBtn) {
-    var self = this;
-    var pathType = createPathOptionBtn.getAttribute("data-path-type") || "custom";
-    var pathMeta = readLearningPathOption(pathType);
-    var originalPathOptionHtml = createPathOptionBtn.innerHTML;
-    var banner = document.getElementById("sessionCreateStatusBanner");
-
-    if (createPathOptionBtn.disabled || pathMeta.exists) {
-      return;
-    }
-
-    createPathOptionBtn.disabled = true;
-    createPathOptionBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Creating';
-    showSessionBanner(banner, "creating", '<span class="oqu-spinner oqu-spinner-blue"></span> Creating lesson path...');
-    moduleEditorService.createLearningMode(self.courseId, self.moduleId, {
-      title: pathMeta.title,
-      purpose: pathMeta.purpose,
-      modeType: pathMeta.modeType
-    }).then(function () {
-      self.activeEditorTab = "learningModes";
-      closeAddPathModal();
-      showSessionBanner(banner, "success", '<span class="oqu-success-icon">&#10003;</span> Path created.');
-      self.updateUi(moduleEditorStore.getState());
-      setTimeout(function () {
-        if (banner) {
-          banner.style.display = "none";
-        }
-      }, 2000);
-    }).catch(function (error) {
-      showSessionBanner(banner, "error", "Create path failed: " + error.message);
-    }).finally(function () {
-      createPathOptionBtn.disabled = false;
-      createPathOptionBtn.innerHTML = originalPathOptionHtml;
-    });
-  }
 
   handleWorkspaceClick(event) {
     var self = this;
     var state = moduleEditorStore.getState();
     var session = self.findSelectedSession(state);
 
-    var addVocabularyPairBtn = event.target.closest(".add-vocabulary-pair-btn");
-    if (addVocabularyPairBtn) {
-      openVocabularyPairModal("");
-      return;
-    }
-
-    var editVocabularyPairBtn = event.target.closest(".edit-vocabulary-pair-btn");
-    if (editVocabularyPairBtn) {
-      openVocabularyPairModal(editVocabularyPairBtn.getAttribute("data-index"));
-      return;
-    }
-
-    var closeVocabularyPairBtn = event.target.closest(".close-vocabulary-pair-modal");
-    if (closeVocabularyPairBtn || event.target.id === "vocabularyPairModal") {
-      closeVocabularyPairModal();
-      return;
-    }
-
-    var saveVocabularyPairBtn = event.target.closest(".save-vocabulary-pair-btn");
-    if (saveVocabularyPairBtn) {
-      saveVocabularyPairFromModal();
-      self.markLearningContentDirty("Unsaved changes");
-      self.scheduleLearningContentAutosave();
-      return;
-    }
-
-    var removeVocabularyPairBtn = event.target.closest(".remove-vocabulary-pair-btn");
-    if (removeVocabularyPairBtn) {
-      removeVocabularyPair(removeVocabularyPairBtn.getAttribute("data-index"));
-      self.markLearningContentDirty("Unsaved changes");
-      self.scheduleLearningContentAutosave();
-      return;
-    }
-
-    var addLearningContentLineBtn = event.target.closest(".add-learning-content-line-btn");
-    if (addLearningContentLineBtn) {
-      addLearningContentLine(addLearningContentLineBtn.getAttribute("data-field"));
-      return;
-    }
-
-    var removeLearningContentLineBtn = event.target.closest(".remove-learning-content-line-btn");
-    if (removeLearningContentLineBtn) {
-      removeLearningContentLine(removeLearningContentLineBtn);
-      self.markLearningContentDirty("Unsaved changes");
-      self.scheduleLearningContentAutosave();
-      return;
-    }
-
     var saveLearningContentBtn = event.target.closest(".save-learning-content-btn");
     if (saveLearningContentBtn) {
+      var learningContent = readLearningContentFromWorkspace();
       saveLearningContentBtn.disabled = true;
       saveLearningContentBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving';
-      self.flushLearningContentAutosave().then(function () {
+      self.showEditorSaveStatus("saving", "Saving...");
+      moduleEditorService.saveLearningContent(this.courseId, this.moduleId, learningContent).then(function () {
+        self.showEditorSaveStatus("success", "Saved");
         self.updateUi(moduleEditorStore.getState());
       }).catch(function (error) {
-        self.showLearningContentAutosaveStatus("error", "Error — Retry: " + error.message);
+        self.showEditorSaveStatus("error", "Could not save changes");
+        alert("Learning content save failed: " + error.message);
       }).finally(function () {
         saveLearningContentBtn.disabled = false;
         saveLearningContentBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Learning Content';
@@ -404,21 +231,8 @@ export class CourseEditorPage {
 
     var modeCard = event.target.closest(".learning-mode-card");
     if (modeCard && !event.target.closest("button")) {
-      self.activeEditorTab = "learningModes";
-      moduleEditorService.selectLearningMode(modeCard.getAttribute("data-mode-id"));
-      return;
-    }
-
-    var editPathStepsBtn = event.target.closest(".edit-learning-path-steps-btn");
-    if (editPathStepsBtn) {
       self.activeEditorTab = "steps";
-      moduleEditorService.selectLearningMode(editPathStepsBtn.getAttribute("data-mode-id"));
-      return;
-    }
-
-    var createPathOptionBtn = event.target.closest(".create-learning-path-option-btn");
-    if (createPathOptionBtn) {
-      self.createLearningPathFromButton(createPathOptionBtn);
+      moduleEditorService.selectLearningMode(modeCard.getAttribute("data-mode-id"));
       return;
     }
 
@@ -427,7 +241,7 @@ export class CourseEditorPage {
       moduleEditorService.duplicateLearningMode(this.courseId, this.moduleId, duplicateModeBtn.getAttribute("data-mode-id")).then(function () {
         self.updateUi(moduleEditorStore.getState());
       }).catch(function (error) {
-        alert("Duplicate path failed: " + error.message);
+        alert("Duplicate mode failed: " + error.message);
       });
       return;
     }
@@ -436,27 +250,27 @@ export class CourseEditorPage {
     if (renameModeBtn) {
       var renameModeId = renameModeBtn.getAttribute("data-mode-id");
       var currentMode = moduleEditorStore.getState().learningModes[renameModeId] || {};
-      var nextTitle = prompt("Rename lesson path", readLearningPathTitle(currentMode, "Custom Path"));
+      var nextTitle = prompt("Rename learning mode", currentMode.title || "Learning Mode");
       if (!nextTitle) {
         return;
       }
       moduleEditorService.renameLearningMode(this.courseId, this.moduleId, renameModeId, nextTitle, currentMode.purpose || "").then(function () {
         self.updateUi(moduleEditorStore.getState());
       }).catch(function (error) {
-        alert("Rename path failed: " + error.message);
+        alert("Rename mode failed: " + error.message);
       });
       return;
     }
 
     var deleteModeBtn = event.target.closest(".delete-learning-mode-btn");
     if (deleteModeBtn) {
-      if (!confirm("Delete this optional lesson path? Existing legacy step data will be kept for migration safety.")) {
+      if (!confirm("Delete this learning mode? Existing legacy step data will be kept for migration safety.")) {
         return;
       }
       moduleEditorService.deleteLearningMode(this.courseId, this.moduleId, deleteModeBtn.getAttribute("data-mode-id")).then(function () {
         self.updateUi(moduleEditorStore.getState());
       }).catch(function (error) {
-        alert("Delete path failed: " + error.message);
+        alert("Delete mode failed: " + error.message);
       });
       return;
     }
@@ -466,7 +280,7 @@ export class CourseEditorPage {
       moduleEditorService.generateModeFromPrimary(this.courseId, this.moduleId).then(function () {
         self.updateUi(moduleEditorStore.getState());
       }).catch(function (error) {
-        alert("Generate path failed: " + error.message);
+        alert("Generate mode failed: " + error.message);
       });
       return;
     }
@@ -477,7 +291,7 @@ export class CourseEditorPage {
         var currentState = moduleEditorStore.getState();
         var currentSession = self.findSelectedSession(currentState);
         var currentStepId = currentState.selectedStepId;
-        var currentModeKey = MAIN_PATH_PRACTICE_MODE_KEY;
+        var currentModeKey = currentState.selectedPracticeModeKey || "beforeClass";
 
         if (currentSession && currentStepId) {
           var currentStep = findPracticeModeStep(currentSession, currentModeKey, currentStepId);
@@ -506,32 +320,6 @@ export class CourseEditorPage {
 
     if (event.target.classList && event.target.classList.contains("oqu-step-picker-backdrop")) {
       this.stepPickerOpen = false;
-      this.updateUi(moduleEditorStore.getState());
-      return;
-    }
-
-    var stepLibraryBackBtn = event.target.closest(".step-library-back-btn");
-    if (stepLibraryBackBtn) {
-      renderStepPickerLibraryPanel(MAIN_PATH_PRACTICE_MODE_KEY);
-      return;
-    }
-
-    var stepLibraryFilterChip = event.target.closest(".step-library-filter-chip");
-    if (stepLibraryFilterChip) {
-      toggleStepLibraryFilter(stepLibraryFilterChip);
-      return;
-    }
-
-    var previewDockTemplateBtn = event.target.closest(".preview-dock-template-btn");
-    if (previewDockTemplateBtn) {
-      this.previewDockTemplate = normalizePreviewDockTemplate(previewDockTemplateBtn.getAttribute("data-template"));
-      this.updateUi(moduleEditorStore.getState());
-      return;
-    }
-
-    var previewDockDeviceBtn = event.target.closest(".preview-dock-device-btn");
-    if (previewDockDeviceBtn) {
-      this.previewDockDevice = normalizePreviewDockDevice(previewDockDeviceBtn.getAttribute("data-device"));
       this.updateUi(moduleEditorStore.getState());
       return;
     }
@@ -589,32 +377,23 @@ export class CourseEditorPage {
     if (previewStepBtn) {
       var previewStepId = previewStepBtn.getAttribute("data-step-id") || state.selectedStepId;
       var previewModeId = readSelectedModeId(state);
-      var previewSource = previewStepBtn.getAttribute("data-preview-source") || "";
-      var previewStep = this.readStepPreviewDraft(previewStepId, previewSource);
 
-      if (!previewModeId || (!previewStepId && !previewStep)) {
-        this.showStepPreviewError("Preview could not load for this activity. Please select an activity and try again.", {
-          code: "STEP_PREVIEW_STEP_MISSING",
-          previewTarget: "modal",
-          modeId: previewModeId,
-          stepId: previewStepId
-        });
+      if (!previewModeId || !previewStepId) {
+        alert("Select a saved step before opening preview.");
         return;
       }
 
-      this.logStepPreviewDiagnostic("open-request", previewStep, this.createStepPreviewContext(previewStep, "modal"), {
+      console.info("[step-preview]", {
+        courseId: this.courseId,
+        moduleId: this.moduleId,
         modeId: previewModeId,
-        stepId: previewStepId,
-        previewSource: previewSource
+        stepId: previewStepId
       });
 
-      this.openStepPreviewModal(previewStepId, previewStep);
-      return;
-    }
-
-    var closeStepPreviewBtn = event.target.closest(".close-step-preview-modal");
-    if (closeStepPreviewBtn || event.target.id === "stepPreviewModal") {
-      this.closeStepPreviewModal();
+      window.location.hash = "#step-preview?courseId=" + encodeURIComponent(this.courseId)
+        + "&moduleId=" + encodeURIComponent(this.moduleId)
+        + "&modeId=" + encodeURIComponent(previewModeId)
+        + "&stepId=" + encodeURIComponent(previewStepId);
       return;
     }
 
@@ -654,27 +433,23 @@ export class CourseEditorPage {
     // Step reorder controls use the ICF reorder intent
     var reorderBtn = event.target.closest(".step-reorder-btn");
     if (reorderBtn && session) {
-      if (state.isDraftSaving) {
-        return;
-      }
-
       var reorderStepId = reorderBtn.getAttribute("data-step-id");
       var direction = reorderBtn.getAttribute("data-direction");
-      var practiceModeKey = MAIN_PATH_PRACTICE_MODE_KEY;
+      var practiceModeKey = state.selectedPracticeModeKey || "beforeClass";
       var orderedStepIds = createReorderedStepIds(session, practiceModeKey, reorderStepId, direction);
 
       if (orderedStepIds.length === 0) {
         return;
       }
 
-      self.showEditorSaveStatus("saving", "Saving order...");
+      reorderBtn.textContent = "Saving...";
+      reorderBtn.disabled = true;
+
       moduleEditorService.reorderPracticeModeSteps(
-        self.courseId, self.moduleId, session.id, practiceModeKey, orderedStepIds, reorderStepId, readSelectedModeId(state)
-      ).then(function () {
-        self.showEditorSaveStatus("success", "Saved");
-      }).catch(function (error) {
-        self.showEditorSaveStatus("error", "Could not save step order");
-        self.updateUi(moduleEditorStore.getState());
+        self.courseId, self.moduleId, session.id, practiceModeKey, orderedStepIds, reorderStepId
+      ).catch(function (error) {
+        reorderBtn.disabled = false;
+        alert("Failed to reorder steps: " + error.message);
       });
       return;
     }
@@ -683,27 +458,25 @@ export class CourseEditorPage {
     var tileDeleteBtn = event.target.closest(".step-tile-delete-btn");
     if (tileDeleteBtn && session) {
       var deleteStepId = tileDeleteBtn.getAttribute("data-step-id");
-      var deleteModeKey = MAIN_PATH_PRACTICE_MODE_KEY;
-      if (!confirm("Delete this step from the Main Path?")) {
+      var deleteModeKey = state.selectedPracticeModeKey || "beforeClass";
+      if (!confirm("Delete this step from the practice mode?")) {
         return;
       }
-      var safeSelectedStepId = readSafeSelectedStepIdAfterDelete(session, deleteModeKey, deleteStepId, state.selectedStepId);
       tileDeleteBtn.textContent = "Deleting...";
       tileDeleteBtn.disabled = true;
       moduleEditorService.deletePracticeModeStep(
-        self.courseId, self.moduleId, session.id, deleteModeKey, deleteStepId, readSelectedModeId(state), safeSelectedStepId
+        self.courseId, self.moduleId, session.id, deleteModeKey, deleteStepId
       ).catch(function (error) {
         tileDeleteBtn.textContent = "Delete";
         tileDeleteBtn.disabled = false;
-        self.showEditorSaveStatus("error", "Could not delete step");
-        self.updateUi(moduleEditorStore.getState());
+        alert("Failed to delete step: " + error.message);
       });
       return;
     }
 
     // Step tile click — selects a step
     var stepTile = event.target.closest(".step-tile");
-    if (stepTile && !event.target.closest(".step-drag-handle") && !event.target.closest("button")) {
+    if (stepTile) {
       var stepId = stepTile.getAttribute("data-step-id");
       this.studentPreviewMode = false;
       this.practiceModePlaytestMode = false;
@@ -738,24 +511,17 @@ export class CourseEditorPage {
       return;
     }
 
-    var stepLibraryCard = event.target.closest(".step-library-step-card");
-    if (stepLibraryCard) {
-      renderStepPickerTemplatePanel(stepLibraryCard.getAttribute("data-type"));
-      return;
-    }
-
     // Step type option chosen — creates the step via ICF
     var stepOption = event.target.closest(".step-type-option");
     if (stepOption) {
       var stepType = stepOption.getAttribute("data-type");
-      var activityTemplate = stepOption.getAttribute("data-activity-template") || "";
-      var practiceModeKey = MAIN_PATH_PRACTICE_MODE_KEY;
+      var practiceModeKey = state.selectedPracticeModeKey || "beforeClass";
       var selectedModeId = readSelectedModeId(state);
       var courseContext = readCourseContext(state, self.courseId, self.moduleId, selectedModeId);
       var originalStepOptionHtml = stepOption.innerHTML;
 
       if (!courseContext.courseId || !courseContext.moduleId || !courseContext.modeId || !stepType) {
-        alert("Cannot add step because course, module, or lesson path is missing.");
+        alert("Cannot add step because course, module, or learning mode is missing.");
         return;
       }
 
@@ -769,8 +535,7 @@ export class CourseEditorPage {
         courseContext.courseId, courseContext.moduleId, courseContext.modeId, stepType, {
           courseContext: courseContext,
           sessionId: session ? session.id : null,
-          practiceModeKey: practiceModeKey,
-          activityTemplate: activityTemplate
+          practiceModeKey: practiceModeKey
         }
       ).then(function () {
         autoSelectNewestStep(practiceModeKey);
@@ -787,25 +552,23 @@ export class CourseEditorPage {
     var deleteBtn = event.target.closest(".delete-step-btn");
     if (deleteBtn && session) {
       var stepId = deleteBtn.getAttribute("data-step-id");
-      var practiceModeKey = MAIN_PATH_PRACTICE_MODE_KEY;
-      if (!confirm("Delete this step from the Main Path?")) {
+      var practiceModeKey = state.selectedPracticeModeKey || "beforeClass";
+      if (!confirm("Delete this step from the practice mode?")) {
         return;
       }
-      var safeSelectedStepIdFromPreview = readSafeSelectedStepIdAfterDelete(session, practiceModeKey, stepId, state.selectedStepId);
       deleteBtn.textContent = "Deleting\u2026";
       deleteBtn.disabled = true;
       moduleEditorService.deletePracticeModeStep(
-        self.courseId, self.moduleId, session.id, practiceModeKey, stepId, readSelectedModeId(state), safeSelectedStepIdFromPreview
+        self.courseId, self.moduleId, session.id, practiceModeKey, stepId
       ).catch(function (error) {
         deleteBtn.textContent = "Delete";
         deleteBtn.disabled = false;
-        self.showEditorSaveStatus("error", "Could not delete step");
-        self.updateUi(moduleEditorStore.getState());
+        alert("Failed to delete step: " + error.message);
       });
       return;
     }
 
-    // Repair Main Path backing shell
+    // Repair practice modes banner button
     var repairBtn = event.target.closest(".repair-practice-modes-btn");
     if (repairBtn && session) {
       repairBtn.textContent = "Repairing\u2026";
@@ -813,173 +576,10 @@ export class CourseEditorPage {
       moduleEditorService.repairSessionPracticeModes(
         self.courseId, self.moduleId, session.id
       ).catch(function (error) {
-        repairBtn.textContent = "Repair Main Path";
+        repairBtn.textContent = "Repair Practice Modes";
         repairBtn.disabled = false;
         alert("Failed to repair: " + error.message);
       });
-    }
-  }
-
-  handleStepDragPointerDown(event) {
-    var handle = event.target.closest(".step-drag-handle");
-    if (!handle) {
-      return;
-    }
-
-    var tile = handle.closest(".step-tile");
-    var list = handle.closest(".main-path-step-list");
-    var state = moduleEditorStore.getState();
-    var session = this.findSelectedSession(state);
-
-    if (!tile || !list || !session || state.isDraftSaving) {
-      return;
-    }
-
-    var stepId = tile.getAttribute("data-step-id");
-    var originStepIds = readPracticeModeStepIds(session, MAIN_PATH_PRACTICE_MODE_KEY);
-
-    if (originStepIds.indexOf(stepId) === -1) {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-    this.clearStepDropIndicator();
-
-    this.stepDragState = {
-      pointerId: event.pointerId,
-      stepId: stepId,
-      originStepIds: originStepIds,
-      targetIndex: originStepIds.indexOf(stepId),
-      listElement: list,
-      tileElement: tile
-    };
-
-    tile.classList.add("is-dragging");
-    list.classList.add("is-drop-active");
-
-    this.boundStepDragMove = this.handleStepDragPointerMove.bind(this);
-    this.boundStepDragEnd = this.handleStepDragPointerUp.bind(this);
-    document.addEventListener("pointermove", this.boundStepDragMove);
-    document.addEventListener("pointerup", this.boundStepDragEnd);
-    document.addEventListener("pointercancel", this.boundStepDragEnd);
-  }
-
-  handleStepDragPointerMove(event) {
-    if (!this.stepDragState || event.pointerId !== this.stepDragState.pointerId) {
-      return;
-    }
-
-    event.preventDefault();
-    var targetIndex = this.readStepDropIndex(event.clientY);
-    this.stepDragState.targetIndex = targetIndex;
-    this.renderStepDropIndicator(targetIndex);
-  }
-
-  handleStepDragPointerUp(event) {
-    if (!this.stepDragState || event.pointerId !== this.stepDragState.pointerId) {
-      return;
-    }
-
-    event.preventDefault();
-    var dragState = this.stepDragState;
-    var orderedStepIds = createDraggedStepOrder(dragState.originStepIds, dragState.stepId, dragState.targetIndex);
-    var state = moduleEditorStore.getState();
-    var session = this.findSelectedSession(state);
-
-    this.cancelStepDrag();
-
-    if (!session || orderedStepIds.length === 0) {
-      return;
-    }
-
-    this.showEditorSaveStatus("saving", "Saving order...");
-    moduleEditorService.reorderPracticeModeSteps(
-      this.courseId,
-      this.moduleId,
-      session.id,
-      MAIN_PATH_PRACTICE_MODE_KEY,
-      orderedStepIds,
-      dragState.stepId,
-      readSelectedModeId(state)
-    ).then(() => {
-      this.showEditorSaveStatus("success", "Saved");
-    }).catch(() => {
-      this.showEditorSaveStatus("error", "Could not save step order");
-      this.updateUi(moduleEditorStore.getState());
-    });
-  }
-
-  cancelStepDrag() {
-    if (this.stepDragState) {
-      if (this.stepDragState.tileElement) {
-        this.stepDragState.tileElement.classList.remove("is-dragging");
-      }
-      if (this.stepDragState.listElement) {
-        this.stepDragState.listElement.classList.remove("is-drop-active");
-      }
-    }
-
-    this.clearStepDropIndicator();
-
-    if (this.boundStepDragMove) {
-      document.removeEventListener("pointermove", this.boundStepDragMove);
-    }
-
-    if (this.boundStepDragEnd) {
-      document.removeEventListener("pointerup", this.boundStepDragEnd);
-      document.removeEventListener("pointercancel", this.boundStepDragEnd);
-    }
-
-    this.stepDragState = null;
-    this.boundStepDragMove = null;
-    this.boundStepDragEnd = null;
-  }
-
-  readStepDropIndex(clientY) {
-    var dragState = this.stepDragState;
-    var rows = dragState && dragState.listElement
-      ? Array.prototype.slice.call(dragState.listElement.querySelectorAll(".step-tile[data-step-id]"))
-      : [];
-    var index = 0;
-
-    while (index < rows.length) {
-      var rect = rows[index].getBoundingClientRect();
-      if (clientY < rect.top + rect.height / 2) {
-        return index;
-      }
-      index = index + 1;
-    }
-
-    return rows.length;
-  }
-
-  renderStepDropIndicator(targetIndex) {
-    var dragState = this.stepDragState;
-    if (!dragState || !dragState.listElement) {
-      return;
-    }
-
-    var indicator = dragState.listElement.querySelector(".step-drop-indicator");
-    var rows = Array.prototype.slice.call(dragState.listElement.querySelectorAll(".step-tile[data-step-id]"));
-
-    if (!indicator) {
-      indicator = document.createElement("div");
-      indicator.className = "step-drop-indicator";
-    }
-
-    if (targetIndex >= rows.length) {
-      dragState.listElement.appendChild(indicator);
-      return;
-    }
-
-    dragState.listElement.insertBefore(indicator, rows[targetIndex]);
-  }
-
-  clearStepDropIndicator() {
-    var indicator = document.querySelector(".step-drop-indicator");
-    if (indicator && indicator.parentNode) {
-      indicator.parentNode.removeChild(indicator);
     }
   }
 
@@ -991,54 +591,10 @@ export class CourseEditorPage {
     var session = self.findSelectedSession(state);
     var propsPane = document.getElementById("configEditorPane");
 
-    var appendCardBtn = event.target.closest(".append-card-line-btn");
-    if (appendCardBtn && propsPane) {
-      var cardsTextInput = propsPane.querySelector('.inspector-config-field[data-config-key="cardsText"]');
-      if (cardsTextInput) {
-        appendCardsTextLine(cardsTextInput);
-      }
-      return;
-    }
-
-    // Save lesson path details
-    var savePathBtn = event.target.closest(".save-learning-path-btn");
-    if (savePathBtn) {
-      var selectedPathId = savePathBtn.getAttribute("data-mode-id") || readSelectedModeId(state);
-      var titleInput = propsPane ? propsPane.querySelector(".inspector-path-title") : null;
-      var purposeInput = propsPane ? propsPane.querySelector(".inspector-path-purpose") : null;
-      var title = titleInput ? titleInput.value.trim() : "";
-      var purpose = purposeInput ? purposeInput.value.trim() : "";
-
-      if (!selectedPathId || !title) {
-        alert("Add a path title before saving.");
-        return;
-      }
-
-      savePathBtn.textContent = "Saving\u2026";
-      savePathBtn.disabled = true;
-      self.showEditorSaveStatus("saving", "Saving...");
-      moduleEditorService.renameLearningMode(
-        self.courseId, self.moduleId, selectedPathId, title, purpose
-      ).then(function () {
-        self.showEditorSaveStatus("success", "Saved");
-        savePathBtn.textContent = "Saved \u2713";
-        setTimeout(function () {
-          savePathBtn.textContent = "Save Path Details";
-          savePathBtn.disabled = false;
-        }, 1400);
-      }).catch(function (error) {
-        self.showEditorSaveStatus("error", "Could not save changes");
-        savePathBtn.textContent = "Save Path Details";
-        savePathBtn.disabled = false;
-        alert("Failed to save path: " + error.message);
-      });
-      return;
-    }
-
-    // Save Main Path backing shell
+    // Save practice mode
     var saveModeBtn = event.target.closest(".save-practice-mode-btn");
     if (saveModeBtn && session) {
-      var practiceModeKey = MAIN_PATH_PRACTICE_MODE_KEY;
+      var practiceModeKey = state.selectedPracticeModeKey || "beforeClass";
       var practiceMode = self.readPracticeModeFromInspector(propsPane, session, practiceModeKey);
       saveModeBtn.textContent = "Saving\u2026";
       saveModeBtn.disabled = true;
@@ -1049,14 +605,14 @@ export class CourseEditorPage {
         self.showEditorSaveStatus("success", "Saved");
         saveModeBtn.textContent = "Saved \u2713";
         setTimeout(function () {
-          saveModeBtn.textContent = "Save Main Path";
+          saveModeBtn.textContent = "Save Practice Mode";
           saveModeBtn.disabled = false;
         }, 1400);
       }).catch(function (error) {
         self.showEditorSaveStatus("error", "Could not save changes");
-        saveModeBtn.textContent = "Save Main Path";
+        saveModeBtn.textContent = "Save Practice Mode";
         saveModeBtn.disabled = false;
-        alert("Failed to save Main Path: " + error.message);
+        alert("Failed to save practice mode: " + error.message);
       });
       return;
     }
@@ -1064,7 +620,7 @@ export class CourseEditorPage {
     // Save step
     var saveStepBtn = event.target.closest(".save-practice-step-btn");
     if (saveStepBtn && session) {
-      var practiceModeKey = MAIN_PATH_PRACTICE_MODE_KEY;
+      var practiceModeKey = state.selectedPracticeModeKey || "beforeClass";
       var modeId = readSelectedModeId(state);
       var stepId = state.selectedStepId;
       var step = self.readStepFromInspector(propsPane, session, practiceModeKey, stepId);
@@ -1105,13 +661,6 @@ export class CourseEditorPage {
   }
 
   handleInspectorChange(event) {
-    var activityTemplateInput = event.target.closest(".inspector-activity-template");
-    if (activityTemplateInput) {
-      syncActivityTemplateSelectedState(activityTemplateInput);
-      this.handleInspectorInput(event);
-      return;
-    }
-
     var mediaInput = event.target.closest(".inspector-media-upload");
     if (!mediaInput) {
       this.handleInspectorInput(event);
@@ -1124,7 +673,7 @@ export class CourseEditorPage {
   uploadInspectorMedia(mediaInput) {
     var state = moduleEditorStore.getState();
     var session = this.findSelectedSession(state);
-    var practiceModeKey = MAIN_PATH_PRACTICE_MODE_KEY;
+    var practiceModeKey = state.selectedPracticeModeKey || "beforeClass";
     var stepId = state.selectedStepId;
     var mediaField = mediaInput.getAttribute("data-config-key");
     var statusElement = findMediaStatusElement(mediaInput);
@@ -1166,80 +715,40 @@ export class CourseEditorPage {
 
   // Rebuilds just the preview card from current inspector form values
   refreshPreviewFromInspector() {
+    var propsPane = document.getElementById("configEditorPane");
     var previewCanvas = document.getElementById("step-preview-canvas");
-    var mockStep = this.readInspectorPreviewStep();
-
-    if (!previewCanvas || !mockStep) {
+    if (!previewCanvas || !propsPane) {
       return;
     }
-
+    var titleInput = propsPane.querySelector(".inspector-step-title");
+    var instrInput = propsPane.querySelector(".inspector-step-instructions");
+    var stepTypeEl = propsPane.querySelector("[data-step-type]");
+    if (!titleInput || !stepTypeEl) {
+      return;
+    }
+    var mockStep = {
+      id: "preview",
+      type: stepTypeEl.getAttribute("data-step-type"),
+      title: { en: titleInput.value, ru: "", ky: "" },
+      instructions: { en: instrInput ? instrInput.value : "", ru: "", ky: "" },
+      status: "draft",
+      config: readStepConfigFromInspector(propsPane, stepTypeEl.getAttribute("data-step-type"), {})
+    };
     if (readStepPreviewMode(mockStep.type) === "full") {
       previewCanvas.className = "oqu-preview-canvas oqu-preview-canvas-full";
     } else {
       previewCanvas.className = "oqu-preview-canvas";
     }
     previewCanvas.innerHTML = '<div class="oqu-preview-toolbar">'
-      + '<button type="button" class="preview-step-btn oqu-student-view-btn" data-preview-source="inspector" data-step-id="' + escapeHtml(readStepId(mockStep, "preview")) + '">▶ Preview</button>'
+      + '<button type="button" class="student-view-btn oqu-student-view-btn">▶ Student View</button>'
       + '</div>'
-      + buildLiveStudentPreviewDock(mockStep, this.previewDockTemplate, this.previewDockDevice)
       + this.buildStepPreviewCard(mockStep);
-    this.renderInlineStepPreviewFromStep(mockStep);
-  }
-
-  readInspectorPreviewStep() {
-    var propsPane = document.getElementById("configEditorPane");
-    var state = moduleEditorStore.getState();
-
-    if (!propsPane) {
-      return null;
-    }
-
-    var titleInput = propsPane.querySelector(".inspector-step-title");
-    var instrInput = propsPane.querySelector(".inspector-step-instructions");
-    var statusInput = propsPane.querySelector(".inspector-step-status");
-    var stepTypeEl = propsPane.querySelector("[data-step-type]");
-    if (!titleInput || !stepTypeEl) {
-      return null;
-    }
-
-    var stepType = stepTypeEl.getAttribute("data-step-type");
-    var activityTemplate = readActivityTemplateFromInspector(propsPane, stepType);
-    var config = readStepConfigFromInspector(propsPane, stepType, {});
-
-    config.activityTemplate = activityTemplate;
-    config._activityTemplate = activityTemplate;
-
-    return this.normalizeStepPreviewDraft({
-      id: state.selectedStepId || "preview",
-      type: stepType,
-      stepTypeId: stepType,
-      title: { en: titleInput.value, ru: "", ky: "" },
-      instructions: { en: instrInput ? instrInput.value : "", ru: "", ky: "" },
-      activityTemplate: activityTemplate,
-      status: statusInput ? statusInput.value : "draft",
-      config: config
-    });
-  }
-
-  readStepPreviewDraft(stepId, previewSource) {
-    var inspectorStep = this.readInspectorPreviewStep();
-    var inspectorStepId = readStepId(inspectorStep, "");
-
-    if (previewSource === "inspector") {
-      return inspectorStep;
-    }
-
-    if (inspectorStep && inspectorStepId && inspectorStepId === stepId) {
-      return inspectorStep;
-    }
-
-    return null;
   }
 
   movePlaytestStep(direction) {
     var state = moduleEditorStore.getState();
     var session = this.findSelectedSession(state);
-    var practiceModeKey = MAIN_PATH_PRACTICE_MODE_KEY;
+    var practiceModeKey = state.selectedPracticeModeKey || "beforeClass";
     var steps = readPracticeModeStepsForKey(session, practiceModeKey);
 
     if (steps.length === 0) {
@@ -1254,7 +763,7 @@ export class CourseEditorPage {
   completePlaytestStep() {
     var state = moduleEditorStore.getState();
     var session = this.findSelectedSession(state);
-    var practiceModeKey = MAIN_PATH_PRACTICE_MODE_KEY;
+    var practiceModeKey = state.selectedPracticeModeKey || "beforeClass";
     var steps = readPracticeModeStepsForKey(session, practiceModeKey);
 
     if (steps.length === 0) {
@@ -1294,7 +803,7 @@ export class CourseEditorPage {
 
     if (!state.course && state.isFetching) {
       document.getElementById("headerCourseTitle").innerHTML =
-        'Loading\u2026 <span class="text-gray-300 mx-1">/</span> Lesson Paths';
+        'Loading\u2026 <span class="text-gray-300 mx-1">/</span> Learning Modes';
       document.getElementById("sessionList").innerHTML = buildSessionSkeletonCards(3);
       return;
     }
@@ -1369,111 +878,6 @@ export class CourseEditorPage {
     el.className = "text-green-600 font-medium flex items-center gap-1.5 text-xs";
   }
 
-  markLearningContentDirty(message) {
-    this.learningContentAutosaveDirty = true;
-    this.showLearningContentAutosaveStatus("dirty", message || "Unsaved changes");
-  }
-
-  scheduleLearningContentAutosave() {
-    var self = this;
-
-    if (this.activeEditorTab !== "learningContent") {
-      return;
-    }
-
-    if (this.learningContentAutosaveTimer) {
-      clearTimeout(this.learningContentAutosaveTimer);
-    }
-
-    this.learningContentAutosaveTimer = setTimeout(function () {
-      self.flushLearningContentAutosave().catch(function () {});
-    }, 1000);
-  }
-
-  flushLearningContentAutosave() {
-    if (this.learningContentAutosaveTimer) {
-      clearTimeout(this.learningContentAutosaveTimer);
-      this.learningContentAutosaveTimer = null;
-    }
-
-    return this.runLearningContentAutosave();
-  }
-
-  runLearningContentAutosave() {
-    var self = this;
-    var learningContent = null;
-    var validation = null;
-    var signature = "";
-
-    if (this.activeEditorTab !== "learningContent") {
-      return Promise.resolve();
-    }
-
-    if (this.learningContentAutosaveInFlight) {
-      this.learningContentAutosaveQueued = true;
-      return Promise.resolve();
-    }
-
-    learningContent = readLearningContentFromWorkspace();
-    validation = validateLearningContentForAutosave(learningContent);
-
-    if (!validation.valid) {
-      this.showLearningContentAutosaveStatus("error", validation.message);
-      return Promise.resolve();
-    }
-
-    signature = JSON.stringify(learningContent);
-    if (!this.learningContentAutosaveDirty && signature === this.learningContentLastSavedSignature) {
-      this.showLearningContentAutosaveStatus("saved", "Saved");
-      return Promise.resolve();
-    }
-
-    this.learningContentAutosaveInFlight = true;
-    this.learningContentAutosaveDirty = false;
-    this.showLearningContentAutosaveStatus("saving", "Saving...");
-    this.showEditorSaveStatus("saving", "Saving...");
-
-    return moduleEditorService.saveLearningContent(this.courseId, this.moduleId, learningContent).then(function () {
-      self.learningContentLastSavedSignature = signature;
-      self.showLearningContentAutosaveStatus("saved", "Saved");
-      self.showEditorSaveStatus("success", "Saved");
-    }).catch(function (error) {
-      self.learningContentAutosaveDirty = true;
-      self.showEditorSaveStatus("error", "Could not save changes");
-      self.showLearningContentAutosaveStatus("error", "Error — Retry: " + error.message);
-      throw error;
-    }).finally(function () {
-      self.learningContentAutosaveInFlight = false;
-      if (self.learningContentAutosaveQueued) {
-        self.learningContentAutosaveQueued = false;
-        self.scheduleLearningContentAutosave();
-      }
-    });
-  }
-
-  showLearningContentAutosaveStatus(type, message) {
-    var status = document.getElementById("learningContentAutosaveStatus");
-    var safeType = type || "saved";
-
-    if (!status) {
-      return;
-    }
-
-    status.textContent = message || "Saved";
-    status.setAttribute("data-status", safeType);
-    status.className = "rounded-2xl border px-3 py-2 text-xs font-black";
-
-    if (safeType === "error") {
-      status.className += " border-red-100 bg-red-50 text-red-700";
-    } else if (safeType === "saving") {
-      status.className += " border-amber-100 bg-amber-50 text-amber-700";
-    } else if (safeType === "dirty") {
-      status.className += " border-sky-100 bg-sky-50 text-sky-700";
-    } else {
-      status.className += " border-emerald-100 bg-emerald-50 text-emerald-700";
-    }
-  }
-
   renderSessionList(state) {
     var el = document.getElementById("sessionList");
     var sessions = state.sessions || [];
@@ -1481,7 +885,7 @@ export class CourseEditorPage {
     var selectedModeId = readSelectedModeId(state);
     var countEl = document.getElementById("sessionCountText");
     if (countEl) {
-      countEl.textContent = learningModes.length + " Path" + (learningModes.length === 1 ? "" : "s");
+      countEl.textContent = learningModes.length + " Mode" + (learningModes.length === 1 ? "" : "s");
     }
     if (learningModes.length === 0) {
       el.innerHTML = buildListEmptyState();
@@ -1492,15 +896,16 @@ export class CourseEditorPage {
     while (i < learningModes.length) {
       var mode = learningModes[i];
       var isSelected = selectedModeId === mode.id;
-      var title = readLearningPathTitle(mode, "Lesson Path");
+      var title = readLocalizedText(mode.title, "Learning Mode");
       var status = readString(mode.status, "draft");
-      var meta = readLearningPathMeta(mode);
-      var wrapperClass = "course-path-card session-item" + (isSelected ? " is-selected" : "");
-      html += '<div class="' + wrapperClass + '" data-id="' + (mode.legacySessionId || "") + '" data-mode-id="' + mode.id + '">';
-      html += '<div class="course-path-icon course-path-icon-' + readStructureClassSuffix(meta.pathType || "custom") + '">' + readLearningModeIcon(mode) + '</div>';
-      html += '<div class="course-path-card-copy">';
-      html += '<div class="course-path-card-title">' + escapeHtml(title) + '</div>';
-      html += '<div class="course-path-card-meta">' + buildStructureStatusBadge(status) + (mode.required ? buildStructureMetaBadge("Required", "required") : '') + '</div>';
+      var wrapperClass = isSelected
+        ? "border-emerald-300 bg-emerald-50 ring-1 ring-emerald-300 shadow-sm"
+        : "border-gray-100 bg-white hover:border-emerald-200 hover:bg-gray-50";
+      html += '<div class="relative p-2.5 rounded-xl border cursor-pointer transition ' + wrapperClass + ' session-item flex items-center gap-2.5" data-id="' + (mode.legacySessionId || "") + '" data-mode-id="' + mode.id + '">';
+      html += '<div class="w-7 h-7 rounded-xl bg-gradient-to-br from-emerald-100 to-sky-100 flex items-center justify-center shrink-0 text-[11px] font-black text-emerald-700">' + readLearningModeIcon(mode) + '</div>';
+      html += '<div class="flex-1 min-w-0">';
+      html += '<div class="text-xs font-bold text-gray-900 truncate leading-tight">' + escapeHtml(title) + '</div>';
+      html += '<div class="mt-1 flex items-center gap-1.5">' + buildStatusPill(status) + (mode.required ? '<span class="text-[9px] font-black text-emerald-600 uppercase">Required</span>' : '') + '</div>';
       html += '</div>';
       html += '</div>';
       i = i + 1;
@@ -1511,26 +916,18 @@ export class CourseEditorPage {
   renderSessionDetails(state) {
     var workspace = document.getElementById("workspaceContent");
     var propsPane = document.getElementById("configEditorPane");
-    var structurePane = document.getElementById("moduleStructureDetails");
     var session = this.findSelectedSession(state);
     var selectedLearningMode = this.findSelectedLearningMode(state);
 
     logModeSelection(state, this.activeEditorTab, selectedLearningMode);
 
     if (this.activeEditorTab === "learningContent") {
-      if (structurePane) {
-        structurePane.innerHTML = buildModuleStructureIdleHtml("Open Learning Activities to edit this module's path activities.");
-      }
       workspace.innerHTML = buildLearningContentWorkspace(state.learningContent);
-      this.learningContentLastSavedSignature = JSON.stringify(readLearningContentFromWorkspace());
       propsPane.innerHTML = buildLearningContentInspector(state.learningContent);
       return;
     }
 
     if (this.activeEditorTab === "learningModes") {
-      if (structurePane) {
-        structurePane.innerHTML = buildModuleStructureIdleHtml("Choose a lesson path, then edit its learning activities.");
-      }
       workspace.innerHTML = buildLearningModesWorkspace(state.learningModes, state.sessions, readSelectedModeId(state));
       propsPane.innerHTML = selectedLearningMode
         ? buildSelectedLearningModeInspector(selectedLearningMode, this.activeEditorTab)
@@ -1539,19 +936,15 @@ export class CourseEditorPage {
     }
 
     if (!session) {
-      if (structurePane) {
-        structurePane.innerHTML = buildModuleStructureIdleHtml("Create or select a lesson path to add learning activities.");
-      }
       workspace.innerHTML = '<div class="flex items-center justify-center min-h-full p-12">' + buildModeReadyEmptyHtml(selectedLearningMode) + '</div>';
       propsPane.innerHTML = selectedLearningMode
         ? buildSelectedLearningModeInspector(selectedLearningMode, this.activeEditorTab)
-        : '<div class="text-xs text-gray-400 text-center py-10">Select a lesson path to inspect properties.</div>';
+        : '<div class="text-xs text-gray-400 text-center py-10">Select a learning mode to inspect properties.</div>';
       return;
     }
 
-    var selectedPracticeModeKey = MAIN_PATH_PRACTICE_MODE_KEY;
-    var renderSession = createRenderableSession(session, selectedLearningMode, selectedPracticeModeKey);
-    var practiceModes = readPracticeModes(renderSession);
+    var selectedPracticeModeKey = state.selectedPracticeModeKey || "beforeClass";
+    var practiceModes = readPracticeModes(session);
     var selectedMode = practiceModes[selectedPracticeModeKey];
     var effectiveStepId = getEffectiveStepId(selectedMode, state.selectedStepId);
 
@@ -1559,25 +952,19 @@ export class CourseEditorPage {
       this.studentPreviewMode = false;
     }
 
-    if (structurePane) {
-      structurePane.innerHTML = this.buildModuleStructureDetails(renderSession, state, selectedPracticeModeKey, selectedMode, effectiveStepId);
-    }
-
-    workspace.innerHTML = this.buildWorkspaceHtml(renderSession, state, selectedPracticeModeKey, selectedMode, effectiveStepId);
+    workspace.innerHTML = this.buildWorkspaceHtml(session, state, selectedPracticeModeKey, selectedMode, effectiveStepId);
     if (this.practiceModePlaytestMode) {
-      propsPane.innerHTML = this.buildPracticeModePlaytestInspector(renderSession, selectedPracticeModeKey);
+      propsPane.innerHTML = this.buildPracticeModePlaytestInspector(session, selectedPracticeModeKey);
     } else if (this.studentPreviewMode && effectiveStepId) {
-      propsPane.innerHTML = this.buildStudentPreviewInspector(renderSession, selectedPracticeModeKey, effectiveStepId);
+      propsPane.innerHTML = this.buildStudentPreviewInspector(session, selectedPracticeModeKey, effectiveStepId);
     } else {
-      propsPane.innerHTML = this.buildInspectorHtml(renderSession, state, selectedPracticeModeKey, selectedMode, effectiveStepId);
+      propsPane.innerHTML = this.buildInspectorHtml(session, state, selectedPracticeModeKey, selectedMode, effectiveStepId);
     }
 
     if (this.practiceModePlaytestMode) {
-      this.renderPracticeModePlaytest(renderSession, selectedPracticeModeKey);
+      this.renderPracticeModePlaytest(session, selectedPracticeModeKey);
     } else if (this.studentPreviewMode && effectiveStepId) {
-      this.renderStudentPreview(renderSession, selectedPracticeModeKey, effectiveStepId);
-    } else {
-      this.renderInlineStepPreview(renderSession, selectedPracticeModeKey, effectiveStepId);
+      this.renderStudentPreview(session, selectedPracticeModeKey, effectiveStepId);
     }
 
     // Sync step selection to store asynchronously to avoid recursive re-renders
@@ -1605,6 +992,7 @@ export class CourseEditorPage {
       i = i + 1;
     }
 
+    var practiceModes = readPracticeModes(session);
     var hasPracticeModes = session.practiceModes && typeof session.practiceModes === "object";
     var html = "";
 
@@ -1619,10 +1007,42 @@ export class CourseEditorPage {
     // ── Sticky session header ────────────────────────────────────────
     html += '<div class="oqu-workspace-sticky px-5 py-3.5 flex items-center gap-3">';
     html += '<div class="flex-1 min-w-0">';
-    html += '<div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Module Structure</div>';
+    html += '<div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Learning Mode ' + (sessionIndex + 1) + '</div>';
     html += '<div class="text-sm font-bold text-gray-900 truncate">' + escapeHtml(title) + '</div>';
     html += '</div>';
     html += buildStatusPill(status);
+    html += '</div>';
+
+    // ── Practice mode navigation cards (single source of truth) ─────
+    html += '<div class="px-5 pt-4 pb-3">';
+    html += '<div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2.5">Step Tracks</div>';
+    html += '<div class="grid grid-cols-2 gap-2">';
+
+    var keys = createPracticeModeKeys();
+    var ki = 0;
+    while (ki < keys.length) {
+      var mode = practiceModes[keys[ki]];
+      var modeTitle = readLocalizedText(mode.title, "Practice Mode");
+      var stepCount = readStepCount(mode);
+      var modeStatus = readString(mode.status, "shell");
+      var progress = calculateProgress(mode);
+      var progressDone = progress >= 100 ? " oqu-progress-done" : "";
+      var isActive = selectedPracticeModeKey === mode.key;
+      var cardClass = "pm-nav-card" + (isActive ? " pm-preview-box-active" : "");
+
+      html += '<div class="pm-preview-box ' + cardClass + '" data-key="' + mode.key + '">';
+      html += '<div class="text-[10px] font-black text-gray-900 truncate mb-1.5">' + escapeHtml(modeTitle) + '</div>';
+      html += '<div class="flex items-center gap-1.5 flex-wrap mb-1.5">';
+      html += buildStatusPill(modeStatus);
+      html += '<span class="text-[10px] text-gray-400 font-semibold">' + stepCount + ' step' + (stepCount === 1 ? '' : 's') + '</span>';
+      html += '</div>';
+      html += '<div class="oqu-progress-track" title="' + progress + '% complete"><div class="oqu-progress-fill' + progressDone + '" style="width:' + progress + '%"></div></div>';
+      html += '</div>';
+
+      ki = ki + 1;
+    }
+
+    html += '</div>';
     html += '</div>';
 
     // ── Repair banner ────────────────────────────────────────────────
@@ -1630,12 +1050,18 @@ export class CourseEditorPage {
       html += '<div class="mx-5 mb-3 rounded-xl border border-amber-200 bg-amber-50 p-3.5 flex items-start gap-3">';
       html += '<i class="fa-solid fa-triangle-exclamation text-amber-500 mt-0.5 shrink-0 text-sm"></i>';
       html += '<div class="flex-1">';
-      html += '<div class="text-xs font-bold text-amber-900 mb-1">Main Path not initialized</div>';
-      html += '<div class="text-[11px] text-amber-700 mb-2">This legacy mode predates the stored step shell used by Main Path.</div>';
-      html += '<button class="repair-practice-modes-btn text-xs bg-amber-600 hover:bg-amber-700 text-white font-semibold px-3 py-1.5 rounded-lg transition">Repair Main Path</button>';
+      html += '<div class="text-xs font-bold text-amber-900 mb-1">Step tracks not initialized</div>';
+      html += '<div class="text-[11px] text-amber-700 mb-2">This legacy mode predates step track shells.</div>';
+      html += '<button class="repair-practice-modes-btn text-xs bg-amber-600 hover:bg-amber-700 text-white font-semibold px-3 py-1.5 rounded-lg transition">Repair Step Tracks</button>';
       html += '</div>';
       html += '</div>';
     }
+
+    // ── Separator ────────────────────────────────────────────────────
+    html += '<div class="mx-5 mb-3 border-t border-gray-100"></div>';
+
+    // ── Step navigation list ─────────────────────────────────────────
+    html += this.buildStepNavigationArea(selectedMode, effectiveStepId, selectedPracticeModeKey);
 
     // ── Preview canvas ───────────────────────────────────────────────
     html += this.buildPreviewCanvasHtml(selectedMode, effectiveStepId);
@@ -1647,110 +1073,21 @@ export class CourseEditorPage {
     return html;
   }
 
-  buildModuleStructureDetails(session, state, selectedPracticeModeKey, selectedMode, effectiveStepId) {
-    var selectedLearningMode = this.findSelectedLearningMode(state);
-    var pathTitle = readLearningPathTitle(selectedLearningMode, readLocalizedText(session.title, "Lesson Path"));
-    var pathStatus = readString(selectedLearningMode && selectedLearningMode.status, readString(selectedMode && selectedMode.status, "draft"));
-    var stepCount = readStepCount(selectedMode);
-    var html = "";
-
-    html += '<div class="course-structure-details-inner">';
-    html += '<section class="course-structure-section">';
-    html += '<div class="course-structure-section-header">';
-    html += '<div class="course-structure-section-title">Current Path</div>';
-    html += '</div>';
-    html += '<div class="current-path-card">';
-    html += '<div class="current-path-copy">';
-    html += '<div class="current-path-title">' + escapeHtml(pathTitle) + '</div>';
-    html += '<div class="current-path-meta">Ordered Step List · ' + stepCount + ' step' + (stepCount === 1 ? '' : 's') + '</div>';
-    html += '</div>';
-    html += '<div class="current-path-badges">' + buildStructureStatusBadge(pathStatus) + (selectedLearningMode && selectedLearningMode.required ? buildStructureMetaBadge("Required", "required") : '') + '</div>';
-    html += '</div>';
-    html += '</section>';
-    html += this.buildStructureStepList(selectedMode, effectiveStepId, selectedPracticeModeKey);
-    html += '</div>';
-
-    return html;
-  }
-
-  buildStructureStepList(mode, effectiveStepId, practiceModeKey) {
-    var safeMode = mode || {};
-    var steps = readSortedSteps(safeMode.steps);
-    var html = "";
-    var stepIndex = 0;
-
-    html += '<section class="course-structure-section course-structure-steps-section">';
-    html += '<div class="course-structure-section-header">';
-    html += '<div class="min-w-0">';
-    html += '<div class="course-structure-section-title">Steps</div>';
-    html += '<div class="course-structure-section-subtitle">' + steps.length + ' ordered item' + (steps.length === 1 ? '' : 's') + '</div>';
-    html += '</div>';
-    html += '<button type="button" class="add-step-trigger-btn course-structure-add-step-btn" data-key="' + practiceModeKey + '">';
-    html += '<i class="fa-solid fa-plus text-[9px]"></i> Add Step';
-    html += '</button>';
-    html += '</div>';
-
-    if (steps.length === 0) {
-      html += '<div class="course-structure-empty-card">';
-      html += '<div class="course-structure-empty-title">No steps yet</div>';
-      html += '<div class="course-structure-empty-copy">Add the first student activity for this path.</div>';
-      html += '</div>';
-      html += '</section>';
-      return html;
-    }
-
-    html += '<div class="main-path-step-list">';
-    while (stepIndex < steps.length) {
-      var step = steps[stepIndex];
-      var stepId = readStepId(step, "");
-      var stepTitle = readLocalizedText(step.title, "New Step");
-      var stepType = readStepType(step);
-      var stepStatus = readString(step.status, "draft");
-      var isActive = effectiveStepId === stepId;
-      var upDisabled = stepIndex === 0 ? " disabled" : "";
-      var downDisabled = stepIndex === steps.length - 1 ? " disabled" : "";
-      var tileClass = "step-tile main-path-step-tile" + (isActive ? " is-selected" : "");
-
-      html += '<div class="' + tileClass + '" data-step-id="' + stepId + '">';
-      html += '<button type="button" class="step-drag-handle" data-step-id="' + stepId + '" aria-label="Drag step to reorder" title="Drag to reorder">';
-      html += '<span></span><span></span><span></span><span></span><span></span><span></span>';
-      html += '</button>';
-      html += '<span class="structure-step-number">' + (stepIndex + 1) + '</span>';
-      html += '<div class="structure-step-copy">';
-      html += '<div class="structure-step-title">' + escapeHtml(stepTitle) + '</div>';
-      html += '<div class="structure-step-meta">' + escapeHtml(readStepTypeLabel(stepType)) + '</div>';
-      html += '<div class="structure-step-badges">' + buildStructureStatusBadge(stepStatus) + '</div>';
-      html += '</div>';
-      html += '<div class="structure-step-actions">';
-      html += '<button type="button" class="step-reorder-btn structure-step-icon-btn" data-step-id="' + stepId + '" data-direction="up"' + upDisabled + ' title="Move up" aria-label="Move step up"><i class="fa-solid fa-arrow-up"></i></button>';
-      html += '<button type="button" class="step-reorder-btn structure-step-icon-btn" data-step-id="' + stepId + '" data-direction="down"' + downDisabled + ' title="Move down" aria-label="Move step down"><i class="fa-solid fa-arrow-down"></i></button>';
-      html += '<button type="button" class="preview-step-btn structure-step-preview-btn" data-step-id="' + stepId + '" title="Preview step"><i class="fa-solid fa-play"></i></button>';
-      html += '<button type="button" class="step-tile-delete-btn structure-step-delete-btn" data-step-id="' + stepId + '" title="Delete step"><i class="fa-solid fa-trash-can"></i></button>';
-      html += '</div>';
-      html += '</div>';
-
-      stepIndex = stepIndex + 1;
-    }
-    html += '</div>';
-    html += '</section>';
-
-    return html;
-  }
-
   buildStepNavigationArea(mode, effectiveStepId, practiceModeKey) {
     var steps = readSortedSteps(mode.steps);
+    var modeTitle = readLocalizedText(mode.title, "Practice Mode");
     var html = "";
 
     html += '<div class="px-5 pb-2">';
     html += '<div class="flex items-center justify-between mb-2">';
     html += '<div class="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">';
     html += '<i class="fa-solid fa-list-check text-gray-300"></i>';
-    html += 'Main Path — Ordered Step List';
+    html += escapeHtml(modeTitle) + ' — Steps';
     html += '</div>';
 
     html += '<div class="flex items-center gap-1.5">';
     html += '<button type="button" class="play-practice-mode-btn border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-lg text-[10px] transition flex items-center gap-1" data-key="' + practiceModeKey + '">';
-    html += '▶ Student Preview';
+    html += '▶ Preview Mode';
     html += '</button>';
     html += '<button type="button" class="add-step-trigger-btn border border-dashed border-blue-300 bg-white hover:bg-blue-50 text-blue-600 font-bold px-2.5 py-1 rounded-lg text-[10px] transition flex items-center gap-1" data-key="' + practiceModeKey + '">';
     html += '<i class="fa-solid fa-plus text-[9px]"></i> Add Step';
@@ -1814,9 +1151,9 @@ export class CourseEditorPage {
       var emptyHtml = '<div class="oqu-preview-canvas">';
       emptyHtml += '<div class="text-center max-w-[260px]">';
       emptyHtml += '<div class="text-4xl mb-4">📚</div>';
-      emptyHtml += '<div class="text-sm font-bold text-gray-700 mb-1.5">No steps yet</div>';
-      emptyHtml += '<div class="text-xs text-gray-400 leading-relaxed mb-5">Start the Main Path by adding your first activity.</div>';
-      emptyHtml += '<button type="button" class="add-step-trigger-btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition" data-key="' + MAIN_PATH_PRACTICE_MODE_KEY + '">+ Add Step</button>';
+      emptyHtml += '<div class="text-sm font-bold text-gray-700 mb-1.5">No activities yet</div>';
+      emptyHtml += '<div class="text-xs text-gray-400 leading-relaxed mb-5">Start designing this practice mode by adding your first step.</div>';
+      emptyHtml += '<button type="button" class="add-step-trigger-btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition" data-key="' + mode.key + '">+ Add Step</button>';
       emptyHtml += '</div>';
       emptyHtml += '</div>';
       return emptyHtml;
@@ -1840,15 +1177,11 @@ export class CourseEditorPage {
 
     var previewMode = readStepPreviewMode(readStepType(selectedStep));
     var canvasClass = previewMode === "full" ? "oqu-preview-canvas oqu-preview-canvas-full" : "oqu-preview-canvas";
-    var dockClass = readPreviewDockFrameClass(this.previewDockDevice);
     var html = '<div class="' + canvasClass + '" id="step-preview-canvas">';
     html += '<div class="oqu-preview-toolbar">';
     html += '<button type="button" class="preview-step-btn oqu-student-view-btn" data-step-id="' + readStepId(selectedStep, "") + '"><i class="fa-solid fa-play"></i> Preview</button>';
     html += '</div>';
-    html += buildLiveStudentPreviewDock(selectedStep, this.previewDockTemplate, this.previewDockDevice);
-    html += '<div class="' + dockClass + '">';
     html += this.buildStepPreviewCard(selectedStep);
-    html += '</div>';
     html += '</div>';
     return html;
   }
@@ -1858,7 +1191,7 @@ export class CourseEditorPage {
     var title = readLocalizedText(step.title, "New Step");
     var instructions = readLocalizedText(step.instructions, "");
     var stepId = readStepId(step, "");
-    var config = createStepRenderConfig(step);
+    var config = createSafeStepConfig(stepType, readStepConfig(step));
     var StepTypeDefinition = getStepTypeDefinition(stepType);
 
     var inner = "";
@@ -1954,16 +1287,12 @@ export class CourseEditorPage {
       inner += '<div class="text-[11px] text-gray-500 font-semibold mb-3">Response type: ' + escapeHtml(responseType) + (minWords > 0 ? ' · Minimum words: ' + minWords : '') + '</div>';
       inner += '<div class="oqu-preview-input-mock">💭 Your reflection here\u2026</div>';
 
-    } else if (StepTypeDefinition && typeof StepTypeDefinition.renderPlayer === "function") {
-      return this.buildInlineRenderedStepPreviewCard(step);
-    } else if (StepTypeDefinition && typeof StepTypeDefinition.renderShell === "function") {
-      inner += StepTypeDefinition.renderShell(config);
     } else {
       // Unknown / unsupported step type
       var safeType = stepType ? escapeHtml(stepType) : "unknown";
       inner += '<div class="oqu-preview-type-badge">🔷 ' + safeType + '</div>';
-      inner += '<div class="text-xs font-bold text-amber-700 mb-2">Step type ' + safeType + ' is not registered with the preview renderer.</div>';
-      inner += '<div class="text-xs text-gray-500 mb-2">The saved step is preserved so a developer can register or repair it.</div>';
+      inner += '<div class="text-xs font-bold text-amber-700 mb-2">Unsupported step type</div>';
+      inner += '<div class="text-xs text-gray-500 mb-2">This step cannot be previewed yet, but it is safely stored.</div>';
       inner += '<div class="oqu-preview-title">' + escapeHtml(title) + '</div>';
       if (instructions) {
         inner += '<div class="oqu-preview-instructions">' + escapeHtml(instructions) + '</div>';
@@ -1983,53 +1312,6 @@ export class CourseEditorPage {
     }
 
     return '<div class="' + cardClass + '">' + inner + '</div>';
-  }
-
-  buildInlineRenderedStepPreviewCard(step) {
-    var stepId = readStepId(step, "");
-    var html = "";
-
-    html += '<div class="oqu-preview-card oqu-step-render-preview-card">';
-    html += '<div id="inline-step-preview-render-target" class="oqu-inline-step-preview-target" data-step-id="' + escapeHtml(stepId) + '"></div>';
-
-    if (stepId && stepId !== "preview") {
-      html += '<div class="border-t border-gray-100 mt-4 pt-3 flex justify-end">';
-      html += '<button type="button" class="delete-step-btn text-[10px] text-red-500 border border-red-200 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 rounded-lg font-bold transition" data-step-id="' + stepId + '">Delete Step</button>';
-      html += '</div>';
-    }
-
-    html += '</div>';
-
-    return html;
-  }
-
-  renderInlineStepPreview(session, practiceModeKey, stepId) {
-    var step = findPracticeModeStep(session, practiceModeKey, stepId);
-
-    this.renderInlineStepPreviewFromStep(step);
-  }
-
-  renderInlineStepPreviewFromStep(step) {
-    var target = document.getElementById("inline-step-preview-render-target");
-    var StepTypeDefinition = getStepTypeDefinition(readStepType(step));
-
-    if (!target || !StepTypeDefinition || typeof StepTypeDefinition.renderPlayer !== "function") {
-      return;
-    }
-
-    try {
-      StepTypeDefinition.renderPlayer(target, createStepRenderConfig(step), {
-        onComplete: function (completionResult) {
-          console.info("[OquWay] Editor preview step completed:", completionResult);
-        }
-      });
-    } catch (error) {
-      target.innerHTML = buildUnsupportedStudentPreview(step);
-      console.warn("[OquWay] Editor preview renderer failed.", {
-        stepType: readStepType(step),
-        error: error && error.message ? error.message : String(error)
-      });
-    }
   }
 
   buildFullStepPreviewCard(step, StepTypeDefinition, config) {
@@ -2060,7 +1342,7 @@ export class CourseEditorPage {
     html += '<div class="oqu-student-preview-topbar">';
     html += '<button type="button" class="back-to-editor-btn oqu-back-editor-btn">Back to Editor</button>';
     html += '<div class="min-w-0">';
-    html += '<div class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Preview</div>';
+    html += '<div class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Student View</div>';
     html += '<div class="text-sm font-bold text-gray-900 truncate">' + escapeHtml(title) + '</div>';
     html += '</div>';
     html += '</div>';
@@ -2092,7 +1374,7 @@ export class CourseEditorPage {
 
     if (StepTypeDefinition && typeof StepTypeDefinition.renderPlayer === "function") {
       try {
-        StepTypeDefinition.renderPlayer(playerBody, createStepRenderConfig(step), {
+        StepTypeDefinition.renderPlayer(playerBody, readStepConfig(step), {
           onComplete: function (completionResult) {
             console.info("[OquWay] Student preview step completed:", completionResult);
           }
@@ -2110,17 +1392,18 @@ export class CourseEditorPage {
     var practiceModes = readPracticeModes(session);
     var mode = practiceModes[practiceModeKey];
     var step = findPracticeModeStep(session, practiceModeKey, stepId);
+    var modeTitle = readLocalizedText(mode.title, "Practice Mode");
     var stepTitle = readLocalizedText(step.title, "Selected Step");
     var stepType = readStepTypeLabel(readStepType(step));
     var html = "";
 
-    html += '<div class="oqu-inspector-section">Preview</div>';
+    html += '<div class="oqu-inspector-section">Student View</div>';
     html += '<div class="rounded-xl border border-blue-100 bg-blue-50 p-3 mb-4">';
     html += '<div class="text-xs font-bold text-blue-900 mb-1">Previewing one selected step</div>';
     html += '<div class="text-[11px] text-blue-700 leading-relaxed">Editor controls are hidden in the center canvas. Use Back to Editor to return to editing.</div>';
     html += '</div>';
-    html += '<div class="oqu-inspector-readonly-label">Path</div>';
-    html += '<div class="oqu-inspector-readonly-value mb-3">Main Path</div>';
+    html += '<div class="oqu-inspector-readonly-label">Practice Mode</div>';
+    html += '<div class="oqu-inspector-readonly-value mb-3">' + escapeHtml(modeTitle) + '</div>';
     html += '<div class="oqu-inspector-readonly-label">Step</div>';
     html += '<div class="oqu-inspector-readonly-value mb-3">' + escapeHtml(stepTitle) + '</div>';
     html += '<div class="oqu-inspector-readonly-label">Type</div>';
@@ -2144,7 +1427,7 @@ export class CourseEditorPage {
     html += '<div class="oqu-student-preview-topbar oqu-playtest-topbar">';
     html += '<button type="button" class="back-to-editor-btn oqu-back-editor-btn">Back to Editor</button>';
     html += '<div class="min-w-0">';
-    html += '<div class="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Main Path Playtest</div>';
+    html += '<div class="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Practice Mode Playtest</div>';
     html += '<div class="text-sm font-bold text-gray-900 truncate">' + escapeHtml(modeTitle) + '</div>';
     html += '</div>';
     html += '</div>';
@@ -2152,7 +1435,7 @@ export class CourseEditorPage {
     html += '<div class="oqu-playtest-empty">';
     html += '<div class="text-4xl mb-4">📚</div>';
     html += '<div class="text-lg font-black text-gray-900 mb-2">No activities to play yet</div>';
-    html += '<div class="text-sm text-gray-500 leading-relaxed mb-5">Add steps to the Main Path, then come back here to test the learner flow from start to finish.</div>';
+    html += '<div class="text-sm text-gray-500 leading-relaxed mb-5">Add steps to this practice mode, then come back here to test the learner flow from start to finish.</div>';
     html += '<button type="button" class="back-to-editor-btn oqu-back-editor-btn">Back to Editor</button>';
     html += '</div>';
     html += '</div>';
@@ -2168,7 +1451,7 @@ export class CourseEditorPage {
     html += '<div class="oqu-student-preview-topbar oqu-playtest-topbar">';
     html += '<button type="button" class="back-to-editor-btn oqu-back-editor-btn">Back to Editor</button>';
     html += '<div class="min-w-0 flex-1">';
-    html += '<div class="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Main Path Playtest</div>';
+    html += '<div class="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Practice Mode Playtest</div>';
     html += '<div class="text-sm font-bold text-gray-900 truncate">' + escapeHtml(modeTitle) + '</div>';
     html += '</div>';
     html += '<div class="oqu-playtest-progress-label">' + stepCount + ' step' + (stepCount === 1 ? "" : "s") + ' tested</div>';
@@ -2179,8 +1462,8 @@ export class CourseEditorPage {
     html += '<div class="oqu-student-preview-canvas oqu-playtest-canvas">';
     html += '<div class="oqu-playtest-finished">';
     html += '<div class="text-5xl mb-4">✓</div>';
-    html += '<div class="text-xl font-black text-gray-950 mb-2">Main Path complete</div>';
-    html += '<div class="text-sm text-gray-500 leading-relaxed mb-6">The full learner preview ran through every step in the Main Path.</div>';
+    html += '<div class="text-xl font-black text-gray-950 mb-2">Practice mode complete</div>';
+    html += '<div class="text-sm text-gray-500 leading-relaxed mb-6">The full learner preview ran through every step in this practice mode.</div>';
     html += '<button type="button" class="playtest-restart-btn oqu-playtest-complete-btn">Play Again</button>';
     html += '</div>';
     html += '</div>';
@@ -2253,6 +1536,7 @@ export class CourseEditorPage {
       mode = practiceModes.beforeClass;
     }
     var steps = readSortedSteps(mode.steps);
+    var modeTitle = readLocalizedText(mode.title, "Practice Mode");
     var snapshot = this.practiceModePlayerSnapshot;
     var currentStepIndex = snapshot && typeof snapshot.currentStepIndex === "number" ? snapshot.currentStepIndex : 0;
     var currentStepTitle = "No step selected";
@@ -2269,11 +1553,11 @@ export class CourseEditorPage {
 
     html += '<div class="oqu-inspector-section">Playtest</div>';
     html += '<div class="rounded-xl border border-emerald-100 bg-emerald-50 p-3 mb-4">';
-    html += '<div class="text-xs font-bold text-emerald-900 mb-1">Previewing the full Main Path</div>';
+    html += '<div class="text-xs font-bold text-emerald-900 mb-1">Previewing the full practice mode</div>';
     html += '<div class="text-[11px] text-emerald-700 leading-relaxed">This is editor-only. It does not save student progress.</div>';
     html += '</div>';
-    html += '<div class="oqu-inspector-readonly-label">Path</div>';
-    html += '<div class="oqu-inspector-readonly-value mb-3">Main Path</div>';
+    html += '<div class="oqu-inspector-readonly-label">Practice Mode</div>';
+    html += '<div class="oqu-inspector-readonly-value mb-3">' + escapeHtml(modeTitle) + '</div>';
     html += '<div class="oqu-inspector-readonly-label">Steps</div>';
     html += '<div class="oqu-inspector-readonly-value mb-3">' + steps.length + '</div>';
     html += '<div class="oqu-inspector-readonly-label">Completed</div>';
@@ -2293,9 +1577,10 @@ export class CourseEditorPage {
 
     // Context breadcrumb
     var sessionTitle = readLocalizedText(session.title, "Learning Mode");
+    var modeTitle = readLocalizedText(selectedMode.title, "Step Track");
     html += '<div class="mb-4">';
     html += '<div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">' + escapeHtml(sessionTitle) + '</div>';
-    html += '<div class="text-[10px] font-bold text-blue-600">Main Path</div>';
+    html += '<div class="text-[10px] font-bold text-blue-600">' + escapeHtml(modeTitle) + '</div>';
     html += '</div>';
 
     html += '<div class="oqu-inspector-divider"></div>';
@@ -2319,7 +1604,6 @@ export class CourseEditorPage {
     var status = readString(step.status, "draft");
     var label = readStepTypeLabel(stepType);
     var icon = readStepTypeIcon(stepType);
-    var activityTemplate = readStepActivityTemplate(step, stepType);
 
     var html = '<div data-inspector-mode="step" data-step-type="' + stepType + '">';
     html += '<div class="oqu-inspector-section">Step</div>';
@@ -2357,8 +1641,6 @@ export class CourseEditorPage {
     html += '</select>';
     html += '</div>';
 
-    html += buildActivityTemplateSelector(stepType, activityTemplate);
-
     html += this.buildStepConfigInspector(step);
 
     if (supportsLearningContentPull(stepType)) {
@@ -2366,8 +1648,6 @@ export class CourseEditorPage {
       html += '<i class="fa-solid fa-wand-magic-sparkles"></i> Pull From Learning Content';
       html += '</button>';
     }
-
-    html += buildStepQualityInspector(step);
 
     html += '<button type="button" class="save-practice-step-btn w-full bg-gray-900 hover:bg-black text-white font-bold py-2 rounded-lg text-xs transition mt-1">Save Step</button>';
 
@@ -2393,243 +1673,65 @@ export class CourseEditorPage {
       return html;
     }
 
-    if (schemaHasSections(schema.fields)) {
-      html += buildSectionedStepConfigFields(schema.fields, config);
-    } else {
-      while (fieldIndex < schema.fields.length) {
-        html += buildStepConfigField(schema.fields[fieldIndex], config);
-        fieldIndex = fieldIndex + 1;
-      }
+    while (fieldIndex < schema.fields.length) {
+      html += buildStepConfigField(schema.fields[fieldIndex], config);
+      fieldIndex = fieldIndex + 1;
     }
 
     return html;
   }
 
-  openStepPreviewModal(stepId, previewStep) {
-    var state = moduleEditorStore.getState();
-    var previewTarget = previewStep ? { step: previewStep, modeId: readSelectedModeId(state) } : this.findStepPreviewTarget(state, stepId);
-    var step = previewTarget ? this.normalizeStepPreviewDraft(previewTarget.step) : null;
-    var previewContext = this.createStepPreviewContext(step, "modal");
-    var modal = document.getElementById("stepPreviewModal");
-    var body = document.getElementById("stepPreviewModalBody");
-    var title = document.getElementById("stepPreviewModalTitle");
-
-    if (!modal || !body) {
-      this.showStepPreviewError("Preview could not load for this activity. Please check the activity settings and try again.", {
-        code: "STEP_PREVIEW_MODAL_MISSING",
-        stepId: stepId,
-        previewTarget: "modal"
-      });
-      return;
-    }
-
-    if (!step) {
-      this.showStepPreviewError("Preview could not load for this activity. Please select a saved activity and try again.", {
-        code: "STEP_PREVIEW_STEP_MISSING",
-        stepId: stepId,
-        previewTarget: "modal"
-      });
-      return;
-    }
-
-    if (title) {
-      title.textContent = readLocalizedText(step.title, "Student activity");
-    }
-
-    body.innerHTML = this.buildStepPreviewModalBody(step);
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
-    this.renderStepPreviewIntoModal(step, previewContext);
-  }
-
-  closeStepPreviewModal() {
-    var modal = document.getElementById("stepPreviewModal");
-    var body = document.getElementById("stepPreviewModalBody");
-
-    if (!modal) {
-      return;
-    }
-
-    modal.classList.add("hidden");
-    modal.classList.remove("flex");
-
-    if (body) {
-      body.innerHTML = "";
-    }
-  }
-
-  findStepPreviewTarget(state, stepId) {
-    var selectedMode = this.findSelectedLearningMode(state);
-    var selectedModeId = selectedMode && selectedMode.id ? selectedMode.id : readSelectedModeId(state);
-    var selectedSteps = selectedMode && Array.isArray(selectedMode.steps) ? readSortedSteps(selectedMode.steps) : [];
-    var selectedStep = findStepByIdInList(selectedSteps, stepId);
-
-    if (selectedStep) {
-      return {
-        modeId: selectedModeId,
-        step: selectedStep
-      };
-    }
-
-    return findStepByIdInLearningModes(state.learningModes, stepId);
-  }
-
-  normalizeStepPreviewDraft(stepDraft) {
-    var sourceStep = stepDraft && typeof stepDraft === "object" ? stepDraft : {};
-    var stepType = readStepType(sourceStep);
-    var activityTemplate = readStepActivityTemplate(sourceStep, stepType);
-    var config = Object.assign({}, readStepConfig(sourceStep));
-
-    config.activityTemplate = activityTemplate;
-    config._activityTemplate = activityTemplate;
-
-    return Object.assign({}, sourceStep, {
-      id: readStepId(sourceStep, "preview"),
-      type: stepType,
-      stepTypeId: sourceStep.stepTypeId || stepType,
-      activityTemplate: activityTemplate,
-      config: config
-    });
-  }
-
-  buildStepPreviewModalBody(step) {
-    var StepTypeDefinition = getStepTypeDefinition(readStepType(step));
-
-    if (StepTypeDefinition && typeof StepTypeDefinition.renderPlayer === "function") {
-      return '<div class="oqu-step-preview-modal-stage">'
-        + '<div class="oqu-preview-card oqu-step-render-preview-card oqu-step-preview-modal-card">'
-        + '<div id="step-preview-modal-render-target" class="oqu-inline-step-preview-target" data-step-id="' + escapeHtml(readStepId(step, "preview")) + '"></div>'
-        + '<div id="step-preview-modal-status" class="mt-4 hidden rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700">Preview complete. No student progress was saved.</div>'
-        + '</div>'
-        + '</div>';
-    }
-
-    return '<div class="oqu-step-preview-modal-stage oqu-step-preview-modal-stage-card">' + this.buildStepPreviewCard(step) + '</div>';
-  }
-
-  renderStepPreviewIntoModal(step, previewContext) {
-    var target = document.getElementById("step-preview-modal-render-target");
-    var StepTypeDefinition = getStepTypeDefinition(readStepType(step));
-    var status = document.getElementById("step-preview-modal-status");
-
-    this.logStepPreviewDiagnostic("render-start", step, previewContext, {
-      previewRootFound: Boolean(target),
-      interactionBindingAttempted: Boolean(target && StepTypeDefinition && typeof StepTypeDefinition.renderPlayer === "function")
-    });
-
-    if (!target || !StepTypeDefinition || typeof StepTypeDefinition.renderPlayer !== "function") {
-      return;
-    }
-
-    try {
-      StepTypeDefinition.renderPlayer(target, createStepRenderConfig(step), {
-        context: previewContext,
-        onComplete: function (completionResult) {
-          console.info("[step-preview] complete", {
-            mode: previewContext.mode,
-            previewTarget: previewContext.previewTarget,
-            stepId: previewContext.stepId,
-            stepType: previewContext.stepType,
-            selectedTemplateId: previewContext.selectedTemplateId,
-            normalizedTemplateId: previewContext.normalizedTemplateId,
-            success: Boolean(completionResult && completionResult.success)
-          });
-          if (status) {
-            status.classList.remove("hidden");
-          }
-        }
-      });
-      this.logStepPreviewDiagnostic("render-success", step, previewContext, {
-        previewRootFound: true,
-        interactionBindingAttempted: true,
-        interactionBindingSucceeded: true
-      });
-    } catch (error) {
-      target.innerHTML = this.buildStepPreviewErrorHtml("Preview could not load for this activity. Please check the activity settings and try again.");
-      this.logStepPreviewDiagnostic("render-error", step, previewContext, {
-        previewRootFound: true,
-        interactionBindingAttempted: true,
-        interactionBindingSucceeded: false,
-        error: error
-      });
-    }
-  }
-
-  createStepPreviewContext(step, previewTarget) {
-    var stepType = readStepType(step);
-    var selectedTemplateId = readStepPreviewTemplateId(step, stepType);
-    var normalizedTemplateId = normalizeActivityTemplateId(stepType, selectedTemplateId);
-
-    return {
-      mode: "authorPreview",
-      previewMode: true,
-      isPreview: true,
-      allowProgressWrites: false,
-      allowXpAwards: false,
-      allowCompletionWrites: false,
-      allowStudentAttempts: false,
-      actorRole: "courseEditor",
-      previewTarget: previewTarget || "modal",
-      stepId: readStepId(step, ""),
-      stepType: stepType,
-      selectedTemplateId: selectedTemplateId,
-      normalizedTemplateId: normalizedTemplateId,
-      localAttemptState: {}
-    };
-  }
-
-  showStepPreviewError(message, diagnostics) {
-    var modal = document.getElementById("stepPreviewModal");
-    var body = document.getElementById("stepPreviewModalBody");
-    var title = document.getElementById("stepPreviewModalTitle");
-    var safeMessage = message || "Preview could not load for this activity. Please check the activity settings and try again.";
-
-    if (title) {
-      title.textContent = "Preview unavailable";
-    }
-
-    if (body) {
-      body.innerHTML = this.buildStepPreviewErrorHtml(safeMessage);
-    }
-
-    if (modal) {
-      modal.classList.remove("hidden");
-      modal.classList.add("flex");
-    } else {
-      this.showEditorSaveStatus("error", "Preview could not load");
-    }
-
-    console.warn("[step-preview] error", createSafeStepPreviewDiagnostic(null, null, diagnostics));
-  }
-
-  buildStepPreviewErrorHtml(message) {
-    return '<div class="mx-auto max-w-xl rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm font-semibold leading-6 text-amber-900">'
-      + '<div class="mb-1 text-xs font-black uppercase tracking-wide text-amber-700">Preview unavailable</div>'
-      + '<div>' + escapeHtml(message || "Preview could not load for this activity. Please check the activity settings and try again.") + '</div>'
-      + '</div>';
-  }
-
-  logStepPreviewDiagnostic(eventName, step, previewContext, extra) {
-    console.info("[step-preview] " + eventName, createSafeStepPreviewDiagnostic(step, previewContext, extra));
-  }
   buildPracticeModeInspector(mode, session, practiceModeKey) {
+    var title = readLocalizedText(mode.title, "Practice Mode");
     var status = readString(mode.status, "shell");
-    var steps = readSortedSteps(mode.steps);
-    var sessionTitle = readLocalizedText(session.title, "Learning Mode");
     var html = "";
 
-    html += '<div class="oqu-inspector-section">Main Path</div>';
-    html += '<div class="oqu-inspector-readonly-label">Module</div>';
-    html += '<div class="oqu-inspector-readonly-value mb-3">' + escapeHtml(sessionTitle) + '</div>';
-    html += '<div class="oqu-inspector-readonly-label">Structure</div>';
-    html += '<div class="oqu-inspector-readonly-value mb-3">Ordered Step List</div>';
-    html += '<div class="oqu-inspector-readonly-label">Status</div>';
-    html += '<div class="oqu-inspector-readonly-value mb-3">' + escapeHtml(status) + '</div>';
-    html += '<div class="oqu-inspector-readonly-label">Steps</div>';
-    html += '<div class="oqu-inspector-readonly-value mb-4">' + steps.length + '</div>';
-    html += '<button type="button" class="add-step-trigger-btn w-full border border-dashed border-blue-300 bg-white hover:bg-blue-50 text-blue-600 font-bold py-2 rounded-lg text-xs transition" data-key="' + MAIN_PATH_PRACTICE_MODE_KEY + '">';
-    html += '<i class="fa-solid fa-plus text-[10px]"></i> Add Step';
-    html += '</button>';
+    html += '<div class="oqu-inspector-section">Practice Mode</div>';
+
+    // Title
+    html += '<div class="oqu-inspector-field">';
+    html += '<label class="oqu-inspector-label">Title</label>';
+    html += '<input type="text" class="oqu-inspector-input inspector-mode-title" value="' + escapeHtml(title) + '">';
+    html += '</div>';
+
+    // Purpose
+    html += '<div class="oqu-inspector-field">';
+    html += '<label class="oqu-inspector-label">Purpose</label>';
+    html += '<textarea class="oqu-inspector-textarea inspector-mode-purpose" placeholder="Describe this mode\'s learning goal...">' + escapeHtml(mode.purpose) + '</textarea>';
+    html += '</div>';
+
+    // Status
+    html += '<div class="oqu-inspector-field">';
+    html += '<label class="oqu-inspector-label">Status</label>';
+    html += '<select class="oqu-inspector-select inspector-mode-status">';
+    html += buildStatusOption("shell", status);
+    html += buildStatusOption("draft", status);
+    html += buildStatusOption("ready", status);
+    html += buildStatusOption("disabled", status);
+    html += '</select>';
+    html += '</div>';
+
+    // Enabled
+    html += '<div class="oqu-inspector-field">';
+    html += '<label class="oqu-inspector-label">Enabled</label>';
+    html += '<label class="flex items-center gap-2 cursor-pointer mt-1">';
+    html += '<input type="checkbox" class="inspector-mode-enabled rounded" ' + (mode.enabled ? "checked" : "") + '>';
+    html += '<span class="text-xs font-semibold text-gray-700">Active for learners</span>';
+    html += '</label>';
+    html += '</div>';
+
+    html += '<button type="button" class="save-practice-mode-btn w-full bg-gray-900 hover:bg-black text-white font-bold py-2 rounded-lg text-xs transition mt-1">Save Step Track</button>';
+
+    // Legacy shell context remains visible during migration.
+    html += '<div class="oqu-inspector-divider" style="margin-top:20px"></div>';
+    html += '<div class="oqu-inspector-section">Mode Shell</div>';
+
+    var sessionTitle = readLocalizedText(session.title, "Learning Mode");
+    var sessionStatus = readString(session.status, "draft");
+    html += '<div class="flex items-center justify-between">';
+    html += '<div class="oqu-inspector-readonly-value">' + escapeHtml(sessionTitle) + '</div>';
+    html += buildStatusPill(sessionStatus);
+    html += '</div>';
 
     return html;
   }
@@ -2657,15 +1759,13 @@ export class CourseEditorPage {
     var titleInput = propsPane.querySelector(".inspector-step-title");
     var instrInput = propsPane.querySelector(".inspector-step-instructions");
     var statusInput = propsPane.querySelector(".inspector-step-status");
-    var stepType = readStepType(currentStep);
 
     return {
       id: stepId,
-      type: stepType,
+      type: readStepType(currentStep),
       title: createLocalizedTitle(currentStep.title, titleInput ? titleInput.value : ""),
       instructions: createLocalizedTitle(currentStep.instructions, instrInput ? instrInput.value : ""),
-      config: readStepConfigFromInspector(propsPane, stepType, readStepConfig(currentStep)),
-      activityTemplate: readActivityTemplateFromInspector(propsPane, stepType),
+      config: readStepConfigFromInspector(propsPane, readStepType(currentStep), readStepConfig(currentStep)),
       status: statusInput ? statusInput.value : "draft"
     };
   }
@@ -2843,93 +1943,6 @@ function createReorderedStepIds(session, practiceModeKey, stepId, direction) {
   return [];
 }
 
-function createDraggedStepOrder(originStepIds, draggedStepId, targetIndex) {
-  var originalOrder = Array.isArray(originStepIds) ? originStepIds.slice() : [];
-  var currentIndex = originalOrder.indexOf(draggedStepId);
-  var insertIndex = targetIndex;
-  var nextOrder = [];
-
-  if (currentIndex === -1) {
-    return [];
-  }
-
-  if (insertIndex > currentIndex) {
-    insertIndex = insertIndex - 1;
-  }
-
-  if (insertIndex < 0) {
-    insertIndex = 0;
-  }
-
-  originalOrder.forEach(function (stepId) {
-    if (stepId !== draggedStepId) {
-      nextOrder.push(stepId);
-    }
-  });
-
-  if (insertIndex > nextOrder.length) {
-    insertIndex = nextOrder.length;
-  }
-
-  nextOrder.splice(insertIndex, 0, draggedStepId);
-
-  if (areStepOrdersEqual(originalOrder, nextOrder)) {
-    return [];
-  }
-
-  return nextOrder;
-}
-
-function areStepOrdersEqual(firstOrder, secondOrder) {
-  if (firstOrder.length !== secondOrder.length) {
-    return false;
-  }
-
-  var index = 0;
-  while (index < firstOrder.length) {
-    if (firstOrder[index] !== secondOrder[index]) {
-      return false;
-    }
-    index = index + 1;
-  }
-
-  return true;
-}
-
-function readPracticeModeStepIds(session, practiceModeKey) {
-  var practiceModes = readPracticeModes(session);
-  var practiceMode = practiceModes[practiceModeKey];
-  var steps = readSortedSteps(practiceMode.steps);
-
-  return steps.map(function (step) {
-    return readStepId(step, "");
-  }).filter(function (stepId) {
-    return stepId.length > 0;
-  });
-}
-
-function readSafeSelectedStepIdAfterDelete(session, practiceModeKey, deletedStepId, currentSelectedStepId) {
-  var orderedStepIds = readPracticeModeStepIds(session, practiceModeKey);
-  var deletedIndex = orderedStepIds.indexOf(deletedStepId);
-  var remainingStepIds = orderedStepIds.filter(function (stepId) {
-    return stepId !== deletedStepId;
-  });
-
-  if (currentSelectedStepId && currentSelectedStepId !== deletedStepId && remainingStepIds.indexOf(currentSelectedStepId) !== -1) {
-    return currentSelectedStepId;
-  }
-
-  if (remainingStepIds.length === 0) {
-    return "";
-  }
-
-  if (deletedIndex >= 0 && deletedIndex < remainingStepIds.length) {
-    return remainingStepIds[deletedIndex];
-  }
-
-  return remainingStepIds[remainingStepIds.length - 1];
-}
-
 function readPracticeModeStepsForKey(session, practiceModeKey) {
   var practiceModes = readPracticeModes(session);
   var practiceMode = practiceModes[practiceModeKey];
@@ -3020,19 +2033,6 @@ function buildStepStatusBadge(status) {
   });
 }
 
-function buildStructureStatusBadge(status) {
-  var safeStatus = typeof status === "string" && status.trim() ? status.trim().toLowerCase() : "draft";
-  return '<span class="structure-mini-badge structure-mini-badge-status structure-mini-badge-' + readStructureClassSuffix(safeStatus) + '">' + escapeHtml(safeStatus) + '</span>';
-}
-
-function buildStructureMetaBadge(label, type) {
-  return '<span class="structure-mini-badge structure-mini-badge-' + readStructureClassSuffix(type || "meta") + '">' + escapeHtml(label) + '</span>';
-}
-
-function readStructureClassSuffix(value) {
-  return String(value || "meta").toLowerCase().replace(/[^a-z0-9_-]/g, "-");
-}
-
 function readStepValidation(step) {
   var stepType = readStepType(step);
   var title = readLocalizedText(step && step.title, "");
@@ -3057,7 +2057,7 @@ function readStepValidation(step) {
     if (!result || result.valid !== true) {
       return {
         valid: false,
-        message: "Step type " + stepType + " is not registered with the preview renderer."
+        message: "Unsupported step type"
       };
     }
   } catch (error) {
@@ -3130,7 +2130,7 @@ function calculateProgress(mode) {
 function buildEmptyNoSessionHtml() {
   return '<div class="text-center max-w-[220px]">'
     + '<div class="text-4xl mb-3">📚</div>'
-    + '<div class="text-sm font-bold text-gray-700 mb-1">No lesson path selected</div>'
+    + '<div class="text-sm font-bold text-gray-700 mb-1">No learning mode selected</div>'
     + '<div class="text-xs text-gray-400 leading-relaxed">Click a mode on the left to start designing its activities.</div>'
     + '</div>';
 }
@@ -3142,7 +2142,7 @@ function buildModeReadyEmptyHtml(mode) {
 
   var title = readLocalizedText(mode.title, "Learning Mode");
   var isPrimary = mode.id === "primary" || mode.modeType === "primary";
-  var headline = isPrimary ? "Main Path is ready. Add your first step." : title + " is ready. Add your first step.";
+  var headline = isPrimary ? "Primary Mode is ready. Add your first step." : title + " is ready. Add your first step.";
 
   return '<div class="text-center max-w-[280px]">'
     + '<div class="text-4xl mb-3">📚</div>'
@@ -3153,181 +2153,11 @@ function buildModeReadyEmptyHtml(mode) {
 }
 
 function buildListEmptyState() {
-  return '<div class="course-structure-empty-card">'
-    + '<div class="course-structure-empty-title">No paths yet</div>'
-    + '<div class="course-structure-empty-copy">Add a lesson path to start building this module.</div>'
+  return '<div class="text-center p-5">'
+    + '<div class="text-2xl mb-2">✨</div>'
+    + '<div class="text-xs font-bold text-gray-600 mb-1">No modes yet</div>'
+    + '<div class="text-[11px] text-gray-400">Create one to start building this module.</div>'
     + '</div>';
-}
-
-function buildLiveStudentPreviewDock(step, template, device) {
-  var safeTemplate = normalizePreviewDockTemplate(template);
-  var safeDevice = normalizePreviewDockDevice(device);
-  var stepType = readStepType(step);
-  var stepTitle = readLocalizedText(step && step.title, "Step Preview");
-  var html = "";
-
-  html += '<section class="mb-4 rounded-2xl border border-blue-100 bg-white p-3 shadow-sm">';
-  html += '<div class="flex items-center justify-between gap-3">';
-  html += '<div class="min-w-0"><div class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">Live Student Preview Dock</div><div class="mt-1 truncate text-sm font-black text-slate-950">' + escapeHtml(stepTitle) + '</div><div class="mt-0.5 text-[11px] font-semibold text-slate-500">' + escapeHtml(readStepTypeLabel(stepType)) + '</div></div>';
-  html += '<div class="flex flex-wrap justify-end gap-2">';
-  html += buildPreviewDockButton("template", "basic", "Basic", safeTemplate === "basic");
-  html += buildPreviewDockButton("template", "adventurePath", "Path", safeTemplate === "adventurePath");
-  html += buildPreviewDockButton("template", "compactGrid", "Grid", safeTemplate === "compactGrid");
-  html += '<span class="mx-1 h-8 w-px bg-slate-100"></span>';
-  html += buildPreviewDockButton("device", "desktop", "Desktop", safeDevice === "desktop");
-  html += buildPreviewDockButton("device", "tablet", "Tablet", safeDevice === "tablet");
-  html += buildPreviewDockButton("device", "mobile", "Mobile", safeDevice === "mobile");
-  html += '</div>';
-  html += '</div>';
-  html += '<div class="mt-3 grid gap-2 sm:grid-cols-3">';
-  html += '<div class="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-[11px] font-bold text-slate-600">Template: ' + escapeHtml(readPreviewDockTemplateLabel(safeTemplate)) + '</div>';
-  html += '<div class="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-[11px] font-bold text-slate-600">Device: ' + escapeHtml(readPreviewDockDeviceLabel(safeDevice)) + '</div>';
-  html += '<div class="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-[11px] font-bold text-slate-600">Renderer: current step</div>';
-  html += '</div>';
-  html += '</section>';
-  return html;
-}
-
-function buildPreviewDockButton(kind, value, label, active) {
-  var className = active
-    ? "bg-blue-600 text-white border-blue-600"
-    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50";
-  var classPrefix = kind === "template" ? "preview-dock-template-btn" : "preview-dock-device-btn";
-  var dataAttr = kind === "template" ? "data-template" : "data-device";
-
-  return '<button type="button" class="' + classPrefix + ' rounded-xl border px-3 py-2 text-[10px] font-black transition ' + className + '" ' + dataAttr + '="' + escapeHtml(value) + '">' + escapeHtml(label) + '</button>';
-}
-
-function normalizePreviewDockTemplate(value) {
-  if (value === "adventurePath" || value === "compactGrid") {
-    return value;
-  }
-
-  return "basic";
-}
-
-function normalizePreviewDockDevice(value) {
-  if (value === "mobile" || value === "tablet") {
-    return value;
-  }
-
-  return "desktop";
-}
-
-function readPreviewDockFrameClass(device) {
-  if (device === "mobile") {
-    return "mx-auto max-w-[390px] rounded-[28px] border border-slate-200 bg-slate-50 p-3 shadow-inner";
-  }
-
-  if (device === "tablet") {
-    return "mx-auto max-w-[720px] rounded-[28px] border border-slate-200 bg-slate-50 p-3 shadow-inner";
-  }
-
-  return "mx-auto max-w-none";
-}
-
-function readPreviewDockTemplateLabel(template) {
-  if (template === "adventurePath") {
-    return "Adventure Path";
-  }
-
-  if (template === "compactGrid") {
-    return "Compact Grid";
-  }
-
-  return "Basic";
-}
-
-function readPreviewDockDeviceLabel(device) {
-  if (device === "mobile") {
-    return "Mobile";
-  }
-
-  if (device === "tablet") {
-    return "Tablet";
-  }
-
-  return "Desktop";
-}
-
-function buildStepQualityInspector(step) {
-  var checks = createStepQualityChecks(step);
-  var passedCount = checks.filter(function (check) { return check.passed; }).length;
-  var score = checks.length === 0 ? 0 : Math.round((passedCount / checks.length) * 100);
-  var scoreClass = score >= 80 ? "text-emerald-700 bg-emerald-50 border-emerald-100" : (score >= 55 ? "text-amber-700 bg-amber-50 border-amber-100" : "text-rose-700 bg-rose-50 border-rose-100");
-  var html = "";
-
-  html += '<div class="oqu-inspector-divider"></div>';
-  html += '<section class="rounded-2xl border border-slate-100 bg-white p-4">';
-  html += '<div class="flex items-start justify-between gap-3"><div><div class="text-[10px] font-black uppercase tracking-widest text-slate-400">Step Quality Inspector</div><div class="mt-1 text-sm font-black text-slate-950">Content readiness</div></div><span class="rounded-full border px-3 py-1 text-[10px] font-black ' + scoreClass + '">' + score + '%</span></div>';
-  html += '<div class="mt-3 grid gap-2">';
-  checks.forEach(function (check) {
-    var itemClass = check.passed ? "border-emerald-100 bg-emerald-50 text-emerald-800" : (check.required ? "border-rose-100 bg-rose-50 text-rose-800" : "border-amber-100 bg-amber-50 text-amber-800");
-    var icon = check.passed ? "fa-solid fa-check" : (check.required ? "fa-solid fa-xmark" : "fa-solid fa-circle-info");
-    html += '<div class="rounded-xl border px-3 py-2 text-[11px] font-bold ' + itemClass + '"><div class="flex items-center gap-2"><i class="' + icon + '"></i><span>' + escapeHtml(check.label) + '</span></div>' + (!check.passed ? '<p class="mt-1 font-semibold opacity-75">' + escapeHtml(check.message) + '</p>' : '') + '</div>';
-  });
-  html += '</div>';
-  html += '</section>';
-  return html;
-}
-
-function createStepQualityChecks(step) {
-  var stepType = readStepType(step);
-  var title = readLocalizedText(step && step.title, "");
-  var instructions = readLocalizedText(step && step.instructions, "");
-  var config = readStepConfig(step);
-  var validation = readStepValidation(step);
-
-  return [
-    createStepQualityCheck("Registered step type", validation.valid || Boolean(stepType), "Choose a supported activity type.", true),
-    createStepQualityCheck("Clear title", title.length >= 4 && title !== "New Step", "Add a learner-facing title.", true),
-    createStepQualityCheck("Student instructions", instructions.length >= 12 || hasInstructionLikeConfig(config), "Explain what the learner should do.", false),
-    createStepQualityCheck("Meaningful config", hasMeaningfulStepConfig(config), "Fill in the activity-specific fields.", true),
-    createStepQualityCheck("Media or interaction", hasMediaOrInteraction(stepType, config), "Add media or use an interactive activity type.", false),
-    createStepQualityCheck("Teacher review route", hasTeacherReviewRoute(stepType), "Use Speaking Recording, Creative Canvas, External Task, or reflection when teacher feedback is needed.", false)
-  ];
-}
-
-function createStepQualityCheck(label, passed, message, required) {
-  return {
-    label: label,
-    passed: Boolean(passed),
-    message: message,
-    required: Boolean(required)
-  };
-}
-
-function hasInstructionLikeConfig(config) {
-  return Boolean(readConfigText(config, "prompt", "") || readConfigText(config, "question", "") || readConfigText(config, "questionPrompt", "") || readConfigText(config, "bodyText", ""));
-}
-
-function hasMeaningfulStepConfig(config) {
-  if (!config || typeof config !== "object") {
-    return false;
-  }
-
-  return Object.keys(config).some(function (key) {
-    var value = config[key];
-    if (Array.isArray(value)) {
-      return value.length > 0;
-    }
-    if (typeof value === "string") {
-      return value.trim().length > 0;
-    }
-    return typeof value === "number" || typeof value === "boolean";
-  });
-}
-
-function hasMediaOrInteraction(stepType, config) {
-  if (readConfigText(config, "imageUrl", "") || readConfigText(config, "audioUrl", "") || readConfigText(config, "videoUrl", "")) {
-    return true;
-  }
-
-  return ["sorting", "matching", "ordering", "multiple-choice", "multi-select", "scenario-choice", "scenario-simulator", "sequence-memory", "timed-sequence", "practice-challenge", "creative-canvas", "listening", "speakingPrompt"].indexOf(stepType) !== -1;
-}
-
-function hasTeacherReviewRoute(stepType) {
-  return ["speakingPrompt", "creative-canvas", "externalTask", "reflection", "reflectionShell"].indexOf(stepType) !== -1;
 }
 
 // ── Step picker options ──────────────────────────────────────────────────────
@@ -3336,69 +2166,26 @@ function buildStepPickerModal(practiceModeKey) {
   var html = "";
 
   html += '<div class="oqu-step-picker-backdrop">';
-  html += '<div class="oqu-step-picker-modal" role="dialog" aria-label="Add Learning Activity">';
+  html += '<div class="oqu-step-picker-modal" role="dialog" aria-label="Choose a step type">';
   html += '<div class="oqu-step-picker-header">';
   html += '<div>';
-  html += '<div class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Step Library</div>';
-  html += '<div class="text-lg font-black text-gray-950">Add Learning Activity</div>';
-  html += '<div class="text-xs text-gray-500 mt-1">Choose an activity for the current lesson path.</div>';
+  html += '<div class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Add Step</div>';
+  html += '<div class="text-lg font-black text-gray-950">Choose an activity type</div>';
+  html += '<div class="text-xs text-gray-500 mt-1">Search activities, games, reflection, vocabulary, and assessment-ready steps.</div>';
   html += '</div>';
   html += '<button type="button" class="close-step-picker-btn oqu-step-picker-close" aria-label="Close step picker">×</button>';
   html += '</div>';
-  html += '<div class="oqu-step-picker-content">';
-  html += buildStepLibraryPanel(practiceModeKey);
+  html += '<div class="px-6 pb-4"><input type="search" class="step-picker-search w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:border-blue-300 focus:ring-4 focus:ring-blue-100" placeholder="Search step activities..."></div>';
+  html += '<div class="px-6 pb-4 flex flex-wrap gap-2">';
+  html += '<span class="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-emerald-700">Popular: Matching Game</span>';
+  html += '<span class="rounded-full bg-sky-50 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-sky-700">Suggested: Flashcards</span>';
+  html += '<span class="rounded-full bg-violet-50 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-violet-700">Assessment-ready</span>';
   html += '</div>';
-  html += '</div>';
-  html += '</div>';
-
-  return html;
-}
-
-function renderStepPickerLibraryPanel(practiceModeKey) {
-  var panel = document.querySelector(".oqu-step-picker-content");
-
-  if (panel) {
-    panel.innerHTML = buildStepLibraryPanel(practiceModeKey || MAIN_PATH_PRACTICE_MODE_KEY);
-  }
-}
-
-function renderStepPickerTemplatePanel(stepType) {
-  var panel = document.querySelector(".oqu-step-picker-content");
-
-  if (panel) {
-    panel.innerHTML = buildStepPickerTemplatePanel(stepType);
-  }
-}
-
-function buildStepLibraryPanel(practiceModeKey) {
-  var html = "";
-
-  html += '<div class="step-library-tools">';
-  html += '<div class="step-library-search-wrap">';
-  html += '<i class="fa-solid fa-magnifying-glass"></i>';
-  html += '<input type="search" class="step-picker-search step-library-search" placeholder="Search activities..." aria-label="Search activities">';
-  html += '</div>';
-  html += '<div class="step-library-filter-row" aria-label="Activity filters">';
-  html += buildStepLibraryFilterChips();
-  html += '</div>';
-  html += '</div>';
-  html += '<div class="oqu-step-picker-category-list" data-key="' + escapeHtml(practiceModeKey || "") + '">';
+  html += '<div class="oqu-step-picker-category-list" data-key="' + practiceModeKey + '">';
   html += buildStepPickerOptions();
-  html += '<div class="step-library-empty-state" hidden>No activities match this search.</div>';
   html += '</div>';
-
-  return html;
-}
-
-function buildStepLibraryFilterChips() {
-  var filters = createStepLibraryFilterOptions();
-  var html = "";
-  var index = 0;
-
-  while (index < filters.length) {
-    html += '<button type="button" class="step-library-filter-chip" data-filter="' + escapeHtml(filters[index].filter) + '" aria-pressed="false">' + escapeHtml(filters[index].label) + '</button>';
-    index = index + 1;
-  }
+  html += '</div>';
+  html += '</div>';
 
   return html;
 }
@@ -3409,129 +2196,10 @@ function buildStepPickerOptions() {
   var html = "";
   var categoryIndex = 0;
 
-  html += buildPilotStepTemplateSection(types);
-  html += buildRecommendedStepPickerSection(types);
-
   while (categoryIndex < categories.length) {
     html += buildStepPickerCategory(categories[categoryIndex], types);
     categoryIndex = categoryIndex + 1;
   }
-
-  return html;
-}
-
-function buildPilotStepTemplateSection(types) {
-  var templates = createPilotStepTemplates();
-  var html = "";
-  var cards = "";
-  var index = 0;
-
-  while (index < templates.length) {
-    cards += buildPilotStepTemplateCard(findStepTypeCard(types, templates[index].type), templates[index]);
-    index = index + 1;
-  }
-
-  if (!cards) {
-    return "";
-  }
-
-  html += '<section class="oqu-step-picker-category step-library-section step-library-recommended-section">';
-  html += '<div class="oqu-step-picker-category-heading">';
-  html += '<div>';
-  html += '<div class="oqu-step-picker-category-title">Course Creator Templates</div>';
-  html += '<div class="oqu-step-picker-category-subtitle">Reusable pilot activities mapped to existing step types.</div>';
-  html += '</div>';
-  html += '</div>';
-  html += '<div class="oqu-step-picker-grid step-library-recommended-grid">';
-  html += cards;
-  html += '</div>';
-  html += '</section>';
-
-  return html;
-}
-
-function buildPilotStepTemplateCard(type, template) {
-  if (!type || !template) {
-    return "";
-  }
-
-  var card = Object.assign({}, type, {
-    label: template.label,
-    description: template.description,
-    bestFor: template.bestFor,
-    filterTags: type.filterTags.concat(["pilot", "template"])
-  });
-
-  return buildStepPickerCard(card, true);
-}
-
-function createPilotStepTemplates() {
-  return [
-    {
-      type: "vocabulary",
-      label: "Vocabulary Builder",
-      description: "Introduce a term with meaning, example, media, and pronunciation.",
-      bestFor: "New words and core concepts"
-    },
-    {
-      type: "phrase",
-      label: "Phrase Builder",
-      description: "Practice a reusable phrase with meaning, audio, and example usage.",
-      bestFor: "Language chunks and classroom phrases"
-    },
-    {
-      type: "listening",
-      label: "Listening Challenge",
-      description: "Let students listen, answer, and review transcript support.",
-      bestFor: "Audio comprehension"
-    },
-    {
-      type: "reflection",
-      label: "Discussion Prompt",
-      description: "Ask students to respond to an open prompt for class discussion.",
-      bestFor: "Opinions, reasoning, and check-ins"
-    },
-    {
-      type: "speakingPrompt",
-      label: "Speaking Recording",
-      description: "Capture a student recording for teacher review and feedback.",
-      bestFor: "Oral practice and teacher review"
-    },
-    {
-      type: "reflectionShell",
-      label: "Reflection Survey",
-      description: "Collect a quick written or scaled reflection from students.",
-      bestFor: "Exit tickets and self-assessment"
-    }
-  ];
-}
-
-function buildRecommendedStepPickerSection(types) {
-  var recommendedTypes = createRecommendedStepTypeOrder();
-  var html = "";
-  var cards = "";
-  var index = 0;
-
-  while (index < recommendedTypes.length) {
-    cards += buildStepPickerCard(findStepTypeCard(types, recommendedTypes[index]), true);
-    index = index + 1;
-  }
-
-  if (!cards) {
-    return "";
-  }
-
-  html += '<section class="oqu-step-picker-category step-library-section step-library-recommended-section">';
-  html += '<div class="oqu-step-picker-category-heading">';
-  html += '<div>';
-  html += '<div class="oqu-step-picker-category-title">Recommended</div>';
-  html += '<div class="oqu-step-picker-category-subtitle">Fast starters for most lessons.</div>';
-  html += '</div>';
-  html += '</div>';
-  html += '<div class="oqu-step-picker-grid step-library-recommended-grid">';
-  html += cards;
-  html += '</div>';
-  html += '</section>';
 
   return html;
 }
@@ -3543,7 +2211,7 @@ function buildStepPickerCategory(category, types) {
 
   while (typeIndex < types.length) {
     if (types[typeIndex].category === category) {
-      categoryCards += buildStepPickerCard(types[typeIndex], false);
+      categoryCards += buildStepPickerCard(types[typeIndex]);
     }
 
     typeIndex = typeIndex + 1;
@@ -3553,13 +2221,8 @@ function buildStepPickerCategory(category, types) {
     return "";
   }
 
-  html += '<section class="oqu-step-picker-category step-library-section" data-category="' + escapeHtml(category) + '">';
-  html += '<div class="oqu-step-picker-category-heading">';
-  html += '<div>';
+  html += '<section class="oqu-step-picker-category">';
   html += '<div class="oqu-step-picker-category-title">' + escapeHtml(category) + '</div>';
-  html += '<div class="oqu-step-picker-category-subtitle">' + escapeHtml(readStepLibraryCategoryDescription(category)) + '</div>';
-  html += '</div>';
-  html += '</div>';
   html += '<div class="oqu-step-picker-grid">';
   html += categoryCards;
   html += '</div>';
@@ -3568,90 +2231,18 @@ function buildStepPickerCategory(category, types) {
   return html;
 }
 
-function buildStepPickerCard(type, isRecommended) {
+function buildStepPickerCard(type) {
   var html = "";
 
-  if (!type || !type.type) {
-    return "";
-  }
-
-  var readyTemplateCount = countReadyTemplates(type.type);
-  var templateLabel = readyTemplateCount === 1 ? "1 style" : readyTemplateCount + " styles";
-  var recommendedClass = isRecommended ? " is-recommended" : "";
-
-  html += '<button type="button" class="step-library-step-card oqu-step-picker-card' + recommendedClass + '" data-type="' + escapeHtml(type.type) + '" data-search-text="' + escapeHtml(createStepLibrarySearchText(type)) + '" data-filter-tags="' + escapeHtml(type.filterTags.join(" ")) + '">';
+  html += '<button type="button" class="step-type-option oqu-step-picker-card" data-type="' + type.type + '" data-search-text="' + escapeHtml((type.label + " " + type.description + " " + type.category + " " + type.complexity).toLowerCase()) + '">';
   html += '<span class="oqu-step-picker-card-icon"><i class="' + type.icon + '"></i></span>';
   html += '<span class="oqu-step-picker-card-body">';
   html += '<span class="oqu-step-picker-card-title">' + escapeHtml(type.label) + '</span>';
   html += '<span class="oqu-step-picker-card-description">' + escapeHtml(type.description) + '</span>';
-  html += '<span class="oqu-step-picker-card-best-for">Best for: ' + escapeHtml(type.bestFor) + '</span>';
   html += '<span class="oqu-step-picker-card-meta">';
-  html += '<span class="oqu-step-picker-card-category">' + escapeHtml(type.shortCategory) + '</span>';
-  html += '<span class="oqu-step-picker-card-complexity">' + escapeHtml(type.difficulty) + '</span>';
-  html += '<span class="oqu-step-picker-card-template-count">' + escapeHtml(templateLabel) + '</span>';
+  html += '<span class="oqu-step-picker-card-category">' + escapeHtml(type.category) + '</span>';
+  html += '<span class="oqu-step-picker-card-complexity">' + escapeHtml(type.complexity) + '</span>';
   html += '</span>';
-  html += '</span>';
-  html += '<span class="step-library-card-arrow"><i class="fa-solid fa-chevron-right"></i></span>';
-  html += '</button>';
-
-  return html;
-}
-
-function buildStepPickerTemplatePanel(stepType) {
-  var type = findStepTypeCard(createStepTypeCards(), stepType);
-  var templates = listReadyStepTemplates(stepType);
-  var html = "";
-  var index = 0;
-
-  if (!type) {
-    return buildStepLibraryPanel(MAIN_PATH_PRACTICE_MODE_KEY);
-  }
-
-  html += '<div class="step-library-template-panel">';
-  html += '<button type="button" class="step-library-back-btn"><i class="fa-solid fa-arrow-left"></i> Back to activities</button>';
-  html += '<div class="step-library-template-summary">';
-  html += '<span class="oqu-step-picker-card-icon"><i class="' + type.icon + '"></i></span>';
-  html += '<span class="step-library-template-summary-copy">';
-  html += '<span class="step-library-template-kicker">Choose Activity Style</span>';
-  html += '<span class="step-library-template-title">' + escapeHtml(type.label) + '</span>';
-  html += '<span class="step-library-template-description">' + escapeHtml(type.description) + '</span>';
-  html += '</span>';
-  html += '</div>';
-  html += '<div class="step-library-template-list">';
-
-  if (templates.length === 0) {
-    templates.push({
-      id: getDefaultActivityTemplateId(stepType) || "default",
-      name: "Default",
-      description: "Use the standard renderer for this activity.",
-      status: "ready"
-    });
-  }
-
-  while (index < templates.length) {
-    html += buildStepTemplateOption(type.type, templates[index]);
-    index = index + 1;
-  }
-
-  html += '</div>';
-  html += '<div class="step-library-template-note">Styles use the same step content. You can change the activity template later in the step editor.</div>';
-  html += '</div>';
-
-  return html;
-}
-
-function buildStepTemplateOption(stepType, template) {
-  var isDefault = template.id === getDefaultActivityTemplateId(stepType);
-  var html = "";
-
-  html += '<button type="button" class="step-type-option step-library-template-option" data-type="' + escapeHtml(stepType) + '" data-activity-template="' + escapeHtml(template.id) + '">';
-  html += '<span class="step-library-template-radio"><i class="fa-solid fa-check"></i></span>';
-  html += '<span class="step-library-template-copy">';
-  html += '<span class="step-library-template-option-title">' + escapeHtml(template.name) + '</span>';
-  html += '<span class="step-library-template-option-description">' + escapeHtml(template.description) + '</span>';
-  html += '</span>';
-  html += '<span class="step-library-template-badges">';
-  html += '<span class="step-library-template-badge">' + (isDefault ? "Default" : "Ready") + '</span>';
   html += '</span>';
   html += '</button>';
 
@@ -3660,255 +2251,53 @@ function buildStepTemplateOption(stepType, template) {
 
 function filterStepPicker(value) {
   var query = typeof value === "string" ? value.trim().toLowerCase() : "";
-  var activeFilters = readActiveStepLibraryFilters();
-  var cards = document.querySelectorAll(".step-library-step-card");
-  var sections = document.querySelectorAll(".step-library-section");
-  var emptyState = document.querySelector(".step-library-empty-state");
+  var cards = document.querySelectorAll(".oqu-step-picker-card");
   var index = 0;
-  var visibleCount = 0;
 
   while (index < cards.length) {
     var searchText = cards[index].getAttribute("data-search-text") || "";
-    var filterTags = cards[index].getAttribute("data-filter-tags") || "";
-    var visible = (!query || searchText.indexOf(query) !== -1) && matchesStepLibraryFilters(filterTags, activeFilters);
-
-    cards[index].style.display = visible ? "" : "none";
-    if (visible) {
-      visibleCount = visibleCount + 1;
-    }
+    cards[index].style.display = !query || searchText.indexOf(query) !== -1 ? "" : "none";
     index = index + 1;
   }
-
-  updateStepLibrarySectionVisibility(sections);
-
-  if (emptyState) {
-    emptyState.hidden = visibleCount !== 0;
-  }
-}
-
-function toggleStepLibraryFilter(chip) {
-  var searchInput = document.querySelector(".step-picker-search");
-  var active = chip.classList.toggle("is-active");
-
-  chip.setAttribute("aria-pressed", active ? "true" : "false");
-  filterStepPicker(searchInput ? searchInput.value : "");
-}
-
-function readActiveStepLibraryFilters() {
-  var chips = document.querySelectorAll(".step-library-filter-chip.is-active");
-  var filters = [];
-  var index = 0;
-
-  while (index < chips.length) {
-    filters.push(chips[index].getAttribute("data-filter") || "");
-    index = index + 1;
-  }
-
-  return filters;
-}
-
-function matchesStepLibraryFilters(filterTags, activeFilters) {
-  var index = 0;
-
-  while (index < activeFilters.length) {
-    if (filterTags.indexOf(activeFilters[index]) === -1) {
-      return false;
-    }
-    index = index + 1;
-  }
-
-  return true;
-}
-
-function updateStepLibrarySectionVisibility(sections) {
-  var index = 0;
-
-  while (index < sections.length) {
-    sections[index].style.display = hasVisibleStepLibraryCard(sections[index]) ? "" : "none";
-    index = index + 1;
-  }
-}
-
-function hasVisibleStepLibraryCard(section) {
-  var cards = section.querySelectorAll(".step-library-step-card");
-  var index = 0;
-
-  while (index < cards.length) {
-    if (cards[index].style.display !== "none") {
-      return true;
-    }
-    index = index + 1;
-  }
-
-  return false;
 }
 
 function createStepTypeCards() {
   var definitions = listStepTypeDefinitions();
-  var cards = [];
+  var cards = [createPrimerStepTypeCard()];
   var definitionIndex = 0;
 
   while (definitionIndex < definitions.length) {
-    if (SUPPORTED_MAIN_PATH_STEP_TYPES.indexOf(readStepDefinitionText(definitions[definitionIndex], "type", "")) !== -1) {
-      cards.push(createStepTypeCard(definitions[definitionIndex]));
-    }
+    cards.push(createStepTypeCard(definitions[definitionIndex]));
     definitionIndex = definitionIndex + 1;
   }
 
   return cards;
 }
 
-function createStepTypeCard(StepTypeDefinition) {
-  var stepType = readStepDefinitionText(StepTypeDefinition, "type", "");
-  var metadata = readStepLibraryMetadata(stepType);
-
+function createPrimerStepTypeCard() {
   return {
-    type: stepType || "unknown",
+    type: "textBriefing",
+    label: "Primer",
+    icon: "fa-solid fa-seedling",
+    description: "A short starter step that introduces the key idea before practice.",
+    category: "Basic",
+    complexity: "Easy"
+  };
+}
+
+function createStepTypeCard(StepTypeDefinition) {
+  return {
+    type: readStepDefinitionText(StepTypeDefinition, "type", "unknown"),
     label: readStepDefinitionText(StepTypeDefinition, "label", "Unknown Step"),
-    icon: readStepDefinitionIcon(stepType),
+    icon: readStepDefinitionIcon(readStepDefinitionText(StepTypeDefinition, "type", "")),
     description: readStepDefinitionText(StepTypeDefinition, "description", "Reusable learning activity."),
-    category: metadata.category,
-    shortCategory: metadata.shortCategory,
-    bestFor: metadata.bestFor,
-    difficulty: metadata.difficulty || readStepDefinitionText(StepTypeDefinition, "complexity", "Easy"),
-    filterTags: metadata.filterTags
+    category: readStepDefinitionText(StepTypeDefinition, "category", "Custom"),
+    complexity: readStepDefinitionText(StepTypeDefinition, "complexity", "Easy")
   };
 }
 
 function createStepCategoryOrder() {
-  return ["Pilot Templates", "Core Learning", "Knowledge Checks", "Sorting & Ordering", "Scenarios", "Creative", "Memory & Logic", "Game Challenges", "Simulations"];
-}
-
-function createRecommendedStepTypeOrder() {
-  return ["vocabulary", "phrase", "listening", "intro-card", "multiple-choice", "reflection"];
-}
-
-function createStepLibraryFilterOptions() {
-  return [
-    { filter: "quick", label: "Quick" },
-    { filter: "interactive", label: "Interactive" },
-    { filter: "game", label: "Game" },
-    { filter: "creative", label: "Creative" },
-    { filter: "assessment", label: "Assessment" },
-    { filter: "scenario", label: "Scenario" },
-    { filter: "simulation", label: "Simulation" },
-    { filter: "teacher-review", label: "Teacher Review" }
-  ];
-}
-
-function findStepTypeCard(types, stepType) {
-  var index = 0;
-
-  while (index < types.length) {
-    if (types[index].type === stepType) {
-      return types[index];
-    }
-    index = index + 1;
-  }
-
-  return null;
-}
-
-function createStepLibrarySearchText(type) {
-  return (type.label + " " + type.description + " " + type.category + " " + type.bestFor + " " + type.difficulty + " " + type.filterTags.join(" ") + " " + readStepTemplateSearchText(type.type)).toLowerCase();
-}
-
-function readStepTemplateSearchText(stepType) {
-  var templates = getActivityTemplateOptions(stepType);
-
-  return templates.map(function (template) {
-    return template.name + " " + template.description;
-  }).join(" ");
-}
-
-function countReadyTemplates(stepType) {
-  return listReadyStepTemplates(stepType).length;
-}
-
-function listReadyStepTemplates(stepType) {
-  var defaultTemplateId = getDefaultActivityTemplateId(stepType);
-  var readyTemplates = getActivityTemplateOptions(stepType).filter(function (template) {
-    return template.status === "ready";
-  });
-
-  readyTemplates.sort(function (first, second) {
-    if (first.id === defaultTemplateId) { return -1; }
-    if (second.id === defaultTemplateId) { return 1; }
-    return first.name.localeCompare(second.name);
-  });
-
-  if (readyTemplates.length > 0) {
-    return readyTemplates;
-  }
-
-  return getActivityTemplateOptions(stepType).slice(0, 1);
-}
-
-function readStepLibraryCategoryDescription(category) {
-  var descriptions = {
-    "Pilot Templates": "Ready-made course creator activity patterns.",
-    "Core Learning": "Introduce, guide, reflect, and frame lesson flow.",
-    "Knowledge Checks": "Check understanding with focused answer choices.",
-    "Sorting & Ordering": "Classify, match, sequence, and organize ideas.",
-    Scenarios: "Practice judgment in realistic classroom situations.",
-    Creative: "Let students draw, label, diagram, and explain.",
-    "Memory & Logic": "Build attention, patterns, and ordered thinking.",
-    "Game Challenges": "Use lightweight games for review and practice.",
-    Simulations: "Run applied decision-making activities."
-  };
-
-  return descriptions[category] || "Reusable learning activities.";
-}
-
-function readStepLibraryMetadata(stepType) {
-  var metadata = createStepLibraryMetadataMap()[stepType];
-
-  if (metadata) {
-    return metadata;
-  }
-
-  return {
-    category: "Core Learning",
-    shortCategory: "Core",
-    bestFor: "Reusable learning activities",
-    difficulty: "Standard",
-    filterTags: ["interactive"]
-  };
-}
-
-function createStepLibraryMetadataMap() {
-  return {
-    "intro-card": createStepLibraryMetadata("Core Learning", "Core", "Lesson openings, goals, context", "Quick", ["quick"]),
-    "card-reveal": createStepLibraryMetadata("Core Learning", "Core", "Vocabulary, concepts, guided discovery", "Quick", ["quick", "interactive"]),
-    vocabulary: createStepLibraryMetadata("Pilot Templates", "Vocabulary", "New words, examples, media, pronunciation", "Quick", ["quick", "interactive"]),
-    phrase: createStepLibraryMetadata("Pilot Templates", "Phrase", "Language chunks and reusable phrases", "Quick", ["quick", "interactive"]),
-    listening: createStepLibraryMetadata("Pilot Templates", "Listen", "Audio comprehension and response", "Standard", ["interactive", "assessment"]),
-    speakingPrompt: createStepLibraryMetadata("Pilot Templates", "Speak", "Recorded speaking practice", "Standard", ["teacher-review", "interactive"]),
-    reflectionShell: createStepLibraryMetadata("Pilot Templates", "Survey", "Reflection survey and exit-ticket responses", "Quick", ["quick", "teacher-review"]),
-    roadmap: createStepLibraryMetadata("Core Learning", "Core", "Module structure, progression, objectives", "Standard", ["interactive"]),
-    reflection: createStepLibraryMetadata("Core Learning", "Reflect", "Exit tickets, check-ins, metacognition", "Quick", ["quick", "teacher-review"]),
-    "multiple-choice": createStepLibraryMetadata("Knowledge Checks", "Check", "Quick checks, recall, understanding", "Quick", ["quick", "assessment"]),
-    "multi-select": createStepLibraryMetadata("Knowledge Checks", "Check", "Selecting all correct examples", "Standard", ["interactive", "assessment"]),
-    sorting: createStepLibraryMetadata("Sorting & Ordering", "Sort", "Categories, examples, compare and contrast", "Standard", ["interactive", "game"]),
-    matching: createStepLibraryMetadata("Sorting & Ordering", "Match", "Terms, definitions, relationships", "Standard", ["interactive", "game"]),
-    ordering: createStepLibraryMetadata("Sorting & Ordering", "Order", "Procedures, sequences, timelines", "Standard", ["interactive"]),
-    "scenario-choice": createStepLibraryMetadata("Scenarios", "Scenario", "Judgment, behavior, real-world choices", "Standard", ["scenario", "assessment"]),
-    "creative-canvas": createStepLibraryMetadata("Creative", "Create", "Drawing, labeling, diagrams, explanation", "Standard", ["creative", "teacher-review"]),
-    "sequence-memory": createStepLibraryMetadata("Memory & Logic", "Memory", "Patterns, attention, working memory", "Game", ["interactive", "game"]),
-    "timed-sequence": createStepLibraryMetadata("Memory & Logic", "Logic", "Focused procedure practice", "Game", ["interactive", "game"]),
-    "practice-challenge": createStepLibraryMetadata("Game Challenges", "Game", "Skill practice, games, review", "Game", ["interactive", "game"]),
-    "scenario-simulator": createStepLibraryMetadata("Simulations", "Sim", "Fast decisions and applied judgment", "Simulation", ["scenario", "simulation", "game"])
-  };
-}
-
-function createStepLibraryMetadata(category, shortCategory, bestFor, difficulty, filterTags) {
-  return {
-    category: category,
-    shortCategory: shortCategory,
-    bestFor: bestFor,
-    difficulty: difficulty,
-    filterTags: filterTags
-  };
+  return ["Basic", "Media", "Games", "Coding", "Speaking", "Assessment", "Custom"];
 }
 
 function buildUnsupportedStudentPreview(step) {
@@ -3919,19 +2308,12 @@ function buildUnsupportedStudentPreview(step) {
 
   html += '<div class="oqu-preview-card oqu-preview-unsupported">';
   html += '<div class="oqu-preview-type-badge">🔷 ' + escapeHtml(safeType) + '</div>';
-  html += '<div class="text-xs font-bold text-amber-700 mb-2">Preview renderer missing</div>';
-  html += '<div class="text-xs text-gray-500 mb-4">Step type ' + escapeHtml(safeType) + ' is not registered with the preview renderer.</div>';
+  html += '<div class="text-xs font-bold text-amber-700 mb-2">Unsupported step type</div>';
+  html += '<div class="text-xs text-gray-500 mb-4">This step cannot be previewed yet, but it is safely stored.</div>';
   html += '<div class="oqu-preview-title">' + escapeHtml(title) + '</div>';
   html += '</div>';
 
   return html;
-}
-
-function buildModuleStructureIdleHtml(message) {
-  return '<div class="course-structure-idle-card">'
-    + '<div class="course-structure-empty-title">Select a path</div>'
-    + '<div class="course-structure-empty-copy">' + escapeHtml(message || "Select a lesson path, then edit its steps.") + '</div>'
-    + '</div>';
 }
 
 function buildStudentPlayerShell(step, playerBodyId) {
@@ -4079,190 +2461,30 @@ function buildStepConfigField(field, config) {
   var label = readString(field.label, key);
   var type = readString(field.type, "text");
   var value = readConfigValue(config, key);
-  var displayValue = formatConfigEditorValue(value, type);
   var html = "";
   var mediaKind = readMediaKind(key);
 
   html += '<div class="oqu-inspector-field">';
   html += '<label class="oqu-inspector-label">' + escapeHtml(label) + '</label>';
 
-  if (key === "cardsText") {
-    html += buildCardsTextEditor(displayValue);
-  } else if (type === "textarea") {
-    html += '<textarea class="oqu-inspector-textarea inspector-config-field" data-config-key="' + escapeHtml(key) + '" data-config-type="textarea">' + escapeHtml(displayValue) + '</textarea>';
+  if (type === "textarea") {
+    html += '<textarea class="oqu-inspector-textarea inspector-config-field" data-config-key="' + escapeHtml(key) + '" data-config-type="textarea">' + escapeHtml(String(value)) + '</textarea>';
   } else if (type === "number") {
-    html += '<input type="number" class="oqu-inspector-input inspector-config-field" data-config-key="' + escapeHtml(key) + '" data-config-type="number" value="' + escapeHtml(displayValue) + '">';
+    html += '<input type="number" class="oqu-inspector-input inspector-config-field" data-config-key="' + escapeHtml(key) + '" data-config-type="number" value="' + escapeHtml(String(value)) + '">';
   } else if (type === "select") {
     html += '<select class="oqu-inspector-select inspector-config-field" data-config-key="' + escapeHtml(key) + '" data-config-type="select">';
-    html += buildConfigSelectOptions(field.options, displayValue);
+    html += buildConfigSelectOptions(field.options, String(value));
     html += '</select>';
   } else {
-    html += '<input type="text" class="oqu-inspector-input inspector-config-field" data-config-key="' + escapeHtml(key) + '" data-config-type="text" value="' + escapeHtml(displayValue) + '">';
+    html += '<input type="text" class="oqu-inspector-input inspector-config-field" data-config-key="' + escapeHtml(key) + '" data-config-type="text" value="' + escapeHtml(String(value)) + '">';
   }
 
   if (mediaKind) {
-    html += buildMediaFieldControls(key, mediaKind, displayValue);
-  }
-
-  if (typeof field.help === "string" && field.help.length > 0) {
-    html += '<div class="oqu-inspector-help">' + escapeHtml(field.help) + '</div>';
+    html += buildMediaFieldControls(key, mediaKind, String(value));
   }
 
   html += '</div>';
   return html;
-}
-
-function schemaHasSections(fields) {
-  return Array.isArray(fields) && fields.some(function (field) {
-    return field && typeof field.section === "string" && field.section.length > 0;
-  });
-}
-
-function buildSectionedStepConfigFields(fields, config) {
-  var sections = [];
-  var html = "";
-
-  fields.forEach(function (field) {
-    var sectionName = field && typeof field.section === "string" && field.section.length > 0 ? field.section : "Settings";
-    var section = findConfigSection(sections, sectionName);
-
-    if (!section) {
-      section = {
-        name: sectionName,
-        fields: []
-      };
-      sections.push(section);
-    }
-
-    section.fields.push(field);
-  });
-
-  sections.forEach(function (section, index) {
-    html += '<details class="oqu-config-section" ' + (index < 2 ? "open" : "") + '>';
-    html += '<summary>' + escapeHtml(section.name) + '</summary>';
-    html += '<div class="oqu-config-section-body">';
-    section.fields.forEach(function (field) {
-      html += buildStepConfigField(field, config);
-    });
-    html += '</div>';
-    html += '</details>';
-  });
-
-  return html;
-}
-
-function findConfigSection(sections, name) {
-  var index = 0;
-
-  while (index < sections.length) {
-    if (sections[index].name === name) {
-      return sections[index];
-    }
-    index = index + 1;
-  }
-
-  return null;
-}
-
-function buildActivityTemplateSelector(stepType, selectedTemplateId) {
-  var options = getActivityTemplateOptions(stepType);
-  var selectedId = normalizeActivityTemplateId(stepType, selectedTemplateId);
-  var defaultTemplateId = getDefaultActivityTemplateId(stepType);
-  var html = "";
-
-  if (!options || options.length === 0 || !selectedId) {
-    return "";
-  }
-
-  html += '<div class="activity-template-section">';
-  html += '<div class="activity-template-header">';
-  html += '<div class="oqu-inspector-section">Activity Template</div>';
-  html += '<span class="activity-template-help">Renderer style</span>';
-  html += '</div>';
-  html += '<div class="activity-template-list">';
-
-  options.forEach(function (option) {
-    var checked = option.id === selectedId ? " checked" : "";
-    var selectedClass = option.id === selectedId ? " is-selected" : "";
-    var statusClass = option.status === "ready" ? "ready" : "soon";
-    var statusLabel = readActivityTemplateStatusLabel(option, option.id === defaultTemplateId);
-
-    html += '<label class="activity-template-option' + selectedClass + '">';
-    html += '<input type="radio" class="inspector-activity-template" name="inspector-activity-template" value="' + escapeHtml(option.id) + '"' + checked + '>';
-    html += '<span class="activity-template-copy">';
-    html += '<span class="activity-template-name">' + escapeHtml(option.name) + '</span>';
-    html += '<span class="activity-template-description">' + escapeHtml(option.description) + '</span>';
-    html += '</span>';
-    html += '<span class="activity-template-badge activity-template-badge-' + statusClass + '">' + statusLabel + '</span>';
-    html += '</label>';
-  });
-
-  html += '</div>';
-  html += '</div>';
-
-  return html;
-}
-
-function readActivityTemplateStatusLabel(option, isDefault) {
-  if (isDefault) {
-    return "Default";
-  }
-
-  if (option && option.status === "ready") {
-    return "Ready";
-  }
-
-  return "Fallback";
-}
-
-function syncActivityTemplateSelectedState(input) {
-  var section = input ? input.closest(".activity-template-section") : null;
-  var options = section ? section.querySelectorAll(".activity-template-option") : [];
-  var index = 0;
-
-  while (index < options.length) {
-    var optionInput = options[index].querySelector(".inspector-activity-template");
-    options[index].classList.toggle("is-selected", Boolean(optionInput && optionInput.checked));
-    index = index + 1;
-  }
-}
-
-function formatConfigEditorValue(value, type) {
-  if (Array.isArray(value)) {
-    return type === "textarea" ? value.join("\n") : value.join(", ");
-  }
-
-  if (value === null || typeof value === "undefined") {
-    return "";
-  }
-
-  return String(value);
-}
-
-function buildCardsTextEditor(displayValue) {
-  var placeholder = "🃏|Card title|What students see after the flip\\n⭐|Another card|A second reveal";
-  var html = "";
-
-  html += '<div class="cards-text-editor-shell">';
-  html += '<div class="cards-text-editor-guide">';
-  html += '<div><strong>One card per line</strong><span>icon | front title | reveal text</span></div>';
-  html += '<button type="button" class="append-card-line-btn"><i class="fa-solid fa-plus"></i> Add card</button>';
-  html += '</div>';
-  html += '<textarea class="oqu-inspector-textarea inspector-config-field cards-text-editor-textarea" data-config-key="cardsText" data-config-type="textarea" spellcheck="true" placeholder="' + escapeHtml(placeholder) + '">' + escapeHtml(displayValue) + '</textarea>';
-  html += '<div class="cards-text-editor-example"><span>Example</span> 💻|Computers|ICT includes using computers to process information.</div>';
-  html += '</div>';
-
-  return html;
-}
-
-function appendCardsTextLine(textarea) {
-  var line = "🃏|New card|Write the reveal text here.";
-  var currentValue = textarea.value || "";
-  var separator = currentValue.trim() ? "\n" : "";
-  textarea.value = currentValue.replace(/\s+$/g, "") + separator + line;
-  textarea.focus();
-  textarea.selectionStart = textarea.value.length;
-  textarea.selectionEnd = textarea.value.length;
 }
 
 function buildMediaFieldControls(key, mediaKind, value) {
@@ -4391,15 +2613,6 @@ function createSafeStepConfig(stepType, config) {
   return {};
 }
 
-function createStepRenderConfig(step) {
-  var stepType = readStepType(step);
-  var config = createSafeStepConfig(stepType, readStepConfig(step));
-  var activityTemplate = readStepActivityTemplate(step, stepType);
-
-  config.activityTemplate = activityTemplate;
-  config._activityTemplate = activityTemplate;
-  return config;
-}
 function readConfigValue(config, key) {
   if (!config || typeof config !== "object") {
     return "";
@@ -4489,124 +2702,6 @@ function readLocalizedText(value, fallbackText) {
 
 function createPracticeModeKeys() {
   return ["beforeClass", "classroomLesson", "afterClass", "dailyPractice"];
-}
-
-function createRenderableSession(session, learningMode, practiceModeKey) {
-  if (!session || !learningMode || !Array.isArray(learningMode.steps)) {
-    return session;
-  }
-
-  var practiceModes = readPracticeModes(session);
-  var practiceMode = practiceModes[practiceModeKey];
-  var shellSteps = practiceMode && Array.isArray(practiceMode.steps) ? practiceMode.steps : [];
-  var canonicalSteps = readSortedSteps(learningMode.steps);
-  var renderSteps = createRenderableStepList(shellSteps, canonicalSteps);
-
-  if (!practiceMode || renderSteps.length === 0) {
-    return session;
-  }
-
-  practiceModes[practiceModeKey] = Object.assign({}, practiceMode, {
-    steps: renderSteps
-  });
-
-  return Object.assign({}, session, {
-    practiceModes: practiceModes
-  });
-}
-
-function createRenderableStepList(shellSteps, canonicalSteps) {
-  var safeShellSteps = Array.isArray(shellSteps) ? readSortedSteps(shellSteps) : [];
-  var safeCanonicalSteps = Array.isArray(canonicalSteps) ? readSortedSteps(canonicalSteps) : [];
-  var canonicalById = {};
-  var usedStepIds = {};
-  var renderSteps = [];
-
-  safeCanonicalSteps.forEach(function (step) {
-    var stepId = readStepId(step, "");
-    if (stepId) {
-      canonicalById[stepId] = step;
-    }
-  });
-
-  if (safeShellSteps.length === 0) {
-    return safeCanonicalSteps;
-  }
-
-  safeShellSteps.forEach(function (step) {
-    var stepId = readStepId(step, "");
-    if (!stepId) {
-      return;
-    }
-
-    usedStepIds[stepId] = true;
-    renderSteps.push(createRenderableStep(step, canonicalById[stepId]));
-  });
-
-  safeCanonicalSteps.forEach(function (step) {
-    var stepId = readStepId(step, "");
-    if (stepId && !usedStepIds[stepId]) {
-      renderSteps.push(step);
-    }
-  });
-
-  return renderSteps.map(function (step, index) {
-    return Object.assign({}, step, {
-      order: index + 1
-    });
-  });
-}
-
-function createRenderableStep(shellStep, canonicalStep) {
-  var safeShellStep = shellStep && typeof shellStep === "object" ? shellStep : {};
-  var safeCanonicalStep = canonicalStep && typeof canonicalStep === "object" ? canonicalStep : {};
-  var step = Object.assign({}, safeCanonicalStep, safeShellStep);
-
-  if (shouldUseCanonicalStepTitle(safeShellStep.title, safeCanonicalStep.title)) {
-    step.title = safeCanonicalStep.title;
-  }
-
-  if (!hasReadableLocalizedText(safeShellStep.instructions) && hasReadableLocalizedText(safeCanonicalStep.instructions)) {
-    step.instructions = safeCanonicalStep.instructions;
-  }
-
-  if (!hasUsableObject(safeShellStep.config) && hasUsableObject(safeCanonicalStep.config)) {
-    step.config = safeCanonicalStep.config;
-  }
-
-  if (!readStepType(safeShellStep) && readStepType(safeCanonicalStep)) {
-    step.type = readStepType(safeCanonicalStep);
-    step.stepTypeId = safeCanonicalStep.stepTypeId || safeCanonicalStep.type;
-  }
-
-  if (!safeShellStep.activityTemplate && safeCanonicalStep.activityTemplate) {
-    step.activityTemplate = safeCanonicalStep.activityTemplate;
-  }
-
-  return step;
-}
-
-function hasReadableLocalizedText(value) {
-  return readLocalizedText(value, "").trim().length > 0;
-}
-
-function shouldUseCanonicalStepTitle(shellTitle, canonicalTitle) {
-  var shellText = readLocalizedText(shellTitle, "").trim();
-  var canonicalText = readLocalizedText(canonicalTitle, "").trim();
-
-  if (canonicalText.length === 0) {
-    return false;
-  }
-
-  if (shellText.length === 0) {
-    return true;
-  }
-
-  return shellText === "New Step" && canonicalText !== shellText;
-}
-
-function hasUsableObject(value) {
-  return !!value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).length > 0;
 }
 
 function readPracticeModes(session) {
@@ -4733,47 +2828,10 @@ function readStepId(step, fallbackValue) {
 }
 
 function readStepType(step) {
-  if (!step) {
+  if (!step || typeof step.type !== "string") {
     return "";
   }
-
-  if (typeof step.type === "string" && step.type.length > 0) {
-    return step.type;
-  }
-
-  if (typeof step.stepTypeId === "string" && step.stepTypeId.length > 0) {
-    return step.stepTypeId;
-  }
-
-  return "";
-}
-
-function readStepActivityTemplate(step, stepType) {
-  return normalizeActivityTemplateId(stepType, readStepPreviewTemplateId(step, stepType));
-}
-
-function readStepPreviewTemplateId(step, stepType) {
-  var config = readStepConfig(step);
-
-  if (step && typeof step.activityTemplate === "string" && step.activityTemplate.trim().length > 0) {
-    return step.activityTemplate.trim();
-  }
-
-  if (typeof config._activityTemplate === "string" && config._activityTemplate.trim().length > 0) {
-    return config._activityTemplate.trim();
-  }
-
-  if (typeof config.activityTemplate === "string" && config.activityTemplate.trim().length > 0) {
-    return config.activityTemplate.trim();
-  }
-
-  return normalizeActivityTemplateId(stepType, "");
-}
-function readActivityTemplateFromInspector(propsPane, stepType) {
-  var selectedInput = propsPane ? propsPane.querySelector(".inspector-activity-template:checked") : null;
-  var selectedValue = selectedInput ? selectedInput.value : "";
-
-  return normalizeActivityTemplateId(stepType, selectedValue);
+  return step.type;
 }
 
 function readStepConfig(step) {
@@ -4783,59 +2841,6 @@ function readStepConfig(step) {
   return step.config;
 }
 
-function createSafeStepPreviewDiagnostic(step, previewContext, extra) {
-  var safeExtra = extra && typeof extra === "object" ? extra : {};
-  var stepType = previewContext && previewContext.stepType ? previewContext.stepType : readStepType(step);
-  var selectedTemplateId = previewContext && previewContext.selectedTemplateId ? previewContext.selectedTemplateId : readStepPreviewTemplateId(step, stepType);
-  var error = safeExtra.error;
-  var diagnostic = {
-    stepId: previewContext && previewContext.stepId ? previewContext.stepId : readStepId(step, safeExtra.stepId || ""),
-    stepType: stepType,
-    selectedTemplateId: selectedTemplateId,
-    normalizedTemplateId: previewContext && previewContext.normalizedTemplateId ? previewContext.normalizedTemplateId : normalizeActivityTemplateId(stepType, selectedTemplateId),
-    rendererName: readStepPreviewRendererName(stepType),
-    previewTarget: previewContext && previewContext.previewTarget ? previewContext.previewTarget : (safeExtra.previewTarget || "modal"),
-    previewMode: previewContext && previewContext.mode ? previewContext.mode : "authorPreview",
-    previewRootFound: Boolean(safeExtra.previewRootFound),
-    interactionBindingAttempted: Boolean(safeExtra.interactionBindingAttempted),
-    interactionBindingSucceeded: Boolean(safeExtra.interactionBindingSucceeded)
-  };
-
-  if (safeExtra.code) {
-    diagnostic.code = safeExtra.code;
-  }
-
-  if (safeExtra.modeId) {
-    diagnostic.modeId = safeExtra.modeId;
-  }
-
-  if (safeExtra.previewSource) {
-    diagnostic.previewSource = safeExtra.previewSource;
-  }
-
-  if (error) {
-    diagnostic.error = {
-      code: error.code || safeExtra.code || "STEP_PREVIEW_RENDER_ERROR",
-      message: error && error.message ? error.message : String(error)
-    };
-  }
-
-  return diagnostic;
-}
-
-function readStepPreviewRendererName(stepType) {
-  var StepTypeDefinition = getStepTypeDefinition(stepType);
-
-  if (!StepTypeDefinition) {
-    return "unregistered";
-  }
-
-  if (StepTypeDefinition.name) {
-    return StepTypeDefinition.name;
-  }
-
-  return readStepTypeLabel(stepType);
-}
 function createLearningModeStepUpdates(step) {
   return {
     type: step && step.type ? step.type : "",
@@ -4843,7 +2848,6 @@ function createLearningModeStepUpdates(step) {
     title: step ? step.title : { en: "", ru: "", ky: "" },
     instructions: step ? step.instructions : { en: "", ru: "", ky: "" },
     config: readStepConfig(step),
-    activityTemplate: step ? readStepActivityTemplate(step, step.type || step.stepTypeId || "") : "",
     status: step && step.status ? step.status : "draft"
   };
 }
@@ -4894,28 +2898,12 @@ function readStepTypeLabel(stepType) {
 }
 
 function readStepTypeIcon(stepType) {
-  if (stepType === "intro-card") { return "🚀"; }
-  if (stepType === "card-reveal") { return "🃏"; }
-  if (stepType === "sorting") { return "🧺"; }
-  if (stepType === "multiple-choice") { return "✅"; }
-  if (stepType === "multi-select") { return "☑️"; }
-  if (stepType === "scenario-choice") { return "🧭"; }
-  if (stepType === "scenario-simulator") { return "🎛️"; }
-  if (stepType === "sequence-memory") { return "🔢"; }
-  if (stepType === "timed-sequence") { return "⏱️"; }
-  if (stepType === "practice-challenge") { return "🏁"; }
-  if (stepType === "creative-canvas") { return "🎨"; }
-  if (stepType === "roadmap") { return "🗺️"; }
-  if (stepType === "matching") { return "🔗"; }
-  if (stepType === "ordering") { return "🔢"; }
-  if (stepType === "reflection") { return "💭"; }
   if (stepType === "textBriefing") { return "📄"; }
   if (stepType === "vocabulary") { return "📖"; }
   if (stepType === "phrase") { return "💬"; }
   if (stepType === "listening") { return "🎧"; }
   if (stepType === "speakingPrompt") { return "🎤"; }
-  if (stepType === "reflectionShell") { return "💭"; }
-  if (isEmotionalCheckInStepType(stepType)) { return "💙"; }
+  if (stepType === "reflection") { return "💡"; }
   if (stepType === "customExperience") { return "✦"; }
   if (stepType === "cyberCodeMission") { return "⌨"; }
   if (stepType === "dragMatchIsland") { return "🏝"; }
@@ -4946,28 +2934,12 @@ function readStepDefinitionText(StepTypeDefinition, propertyName, fallbackText) 
 }
 
 function readStepDefinitionIcon(stepType) {
-  if (stepType === "intro-card") { return "fa-solid fa-rocket"; }
-  if (stepType === "card-reveal") { return "fa-solid fa-clone"; }
-  if (stepType === "sorting") { return "fa-solid fa-table-cells"; }
-  if (stepType === "multiple-choice") { return "fa-solid fa-circle-check"; }
-  if (stepType === "multi-select") { return "fa-solid fa-list-check"; }
-  if (stepType === "scenario-choice") { return "fa-solid fa-route"; }
-  if (stepType === "scenario-simulator") { return "fa-solid fa-terminal"; }
-  if (stepType === "sequence-memory") { return "fa-solid fa-grip"; }
-  if (stepType === "timed-sequence") { return "fa-solid fa-stopwatch"; }
-  if (stepType === "practice-challenge") { return "fa-solid fa-trophy"; }
-  if (stepType === "creative-canvas") { return "fa-solid fa-palette"; }
-  if (stepType === "roadmap") { return "fa-solid fa-route"; }
-  if (stepType === "matching") { return "fa-solid fa-link"; }
-  if (stepType === "ordering") { return "fa-solid fa-arrow-down-1-9"; }
-  if (stepType === "reflection") { return "fa-solid fa-comment-dots"; }
   if (stepType === "textBriefing") { return "fa-solid fa-file-lines"; }
   if (stepType === "vocabulary") { return "fa-solid fa-book"; }
   if (stepType === "phrase") { return "fa-solid fa-comment-dots"; }
   if (stepType === "listening") { return "fa-solid fa-headphones"; }
   if (stepType === "speakingPrompt") { return "fa-solid fa-microphone"; }
-  if (stepType === "reflectionShell") { return "fa-solid fa-clipboard-question"; }
-  if (isEmotionalCheckInStepType(stepType)) { return "fa-regular fa-face-smile"; }
+  if (stepType === "reflection") { return "fa-solid fa-lightbulb"; }
   if (stepType === "customExperience") { return "fa-solid fa-shapes"; }
   if (stepType === "cyberCodeMission") { return "fa-solid fa-code"; }
   if (stepType === "dragMatchIsland") { return "fa-solid fa-gamepad"; }
@@ -4975,22 +2947,11 @@ function readStepDefinitionIcon(stepType) {
   return "fa-solid fa-puzzle-piece";
 }
 
-function isEmotionalCheckInStepType(stepType) {
-  return stepType === "emotional-check-in" ||
-    stepType === "mood-reset" ||
-    stepType === "emotionalcheckin" ||
-    stepType === "emotionalCheckIn" ||
-    stepType === "EmotionalCheckIn";
-}
-
 function supportsLearningContentPull(stepType) {
-  return stepType === "card-reveal"
-    || stepType === "sorting"
-    || stepType === "multiple-choice"
-    || stepType === "matching"
-    || stepType === "ordering"
-    || stepType === "roadmap"
-    || stepType === "reflection";
+  return stepType === "dragMatchIsland"
+    || stepType === "vocabulary"
+    || stepType === "reflection"
+    || stepType === "customExperience";
 }
 
 // ── Status option builder ─────────────────────────────────────────────────────
@@ -5031,9 +2992,9 @@ function buildSessionSkeletonCards(count) {
   var widths = ["70%", "55%", "65%"];
   while (i < count) {
     var w = widths[i % widths.length];
-    html += '<div class="course-path-card is-loading">';
+    html += '<div class="p-2.5 rounded-lg border border-gray-100 flex items-center gap-2.5">';
     html += '<div class="oqu-skeleton-card" style="width:20px;height:20px;border-radius:50%;flex-shrink:0"></div>';
-    html += '<div class="course-path-card-copy">';
+    html += '<div class="flex-1">';
     html += '<div class="oqu-skeleton-line" style="height:11px;width:' + w + ';margin-bottom:5px"></div>';
     html += '<div class="oqu-skeleton-line" style="height:9px;width:35%"></div>';
     html += '</div>';
@@ -5063,19 +3024,17 @@ function buildLearningContentWorkspace(learningContent) {
   html += '<p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Hidden from students. Use this as the reusable source material for activities, review, assessment, and future AI-assisted creation.</p>';
   html += '</div>';
   html += '<img src="./src/assets/learning-content.svg" alt="" class="hidden md:block h-28 w-40 object-contain">';
-  html += '<div class="flex shrink-0 flex-col items-end gap-2">';
-  html += '<span id="learningContentAutosaveStatus" class="rounded-2xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700">Saved</span>';
   html += '<button type="button" class="save-learning-content-btn rounded-2xl bg-slate-950 px-4 py-2 text-xs font-black text-white shadow-sm hover:bg-slate-800"><i class="fa-solid fa-floppy-disk"></i> Save Learning Content</button>';
   html += '</div>';
   html += '</div>';
-  html += '</div>';
 
-  html += '<div class="grid gap-4">';
-  html += buildVocabularyPairsEditor(content);
-  html += buildLearningContentCollapsibleEditor("Concepts", "concepts", content.concepts, "Concepts students should understand and apply.");
-  html += buildLearningContentCollapsibleEditor("Rules", "rules", content.rules, "Grammar, usage, or behavior rules that activities can reference.");
-  html += buildLearningContentCollapsibleEditor("Examples", "examples", content.examples, "Sample sentences, worked examples, or model answers.");
-  html += buildLearningContentCollapsibleEditor("Custom Content", "customContent", content.customContent, "Extra source notes that do not fit the structured sections.");
+  html += '<div class="grid grid-cols-2 gap-4">';
+  html += buildLearningContentTextarea("Vocabulary", "vocabulary", content.vocabulary, "One word or phrase per line");
+  html += buildLearningContentTextarea("Definitions", "definitions", content.definitions, "Match definitions by line order");
+  html += buildLearningContentTextarea("Concepts", "concepts", content.concepts, "Concepts students should understand");
+  html += buildLearningContentTextarea("Rules", "rules", content.rules, "Grammar, usage, or behavior rules");
+  html += buildLearningContentTextarea("Examples", "examples", content.examples, "Sample sentences or worked examples");
+  html += buildLearningContentTextarea("Custom Content", "customContent", content.customContent, "Any extra authoring notes or source items");
   html += '</div>';
 
   html += '<div class="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">';
@@ -5098,275 +3057,11 @@ function buildLearningContentWorkspace(learningContent) {
   return html;
 }
 
-function buildVocabularyPairsEditor(content) {
-  var pairs = createVocabularyPairsForUi(content.vocabulary, content.definitions);
-  var html = '<section class="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">';
-
-  html += '<div class="mb-4 flex items-start justify-between gap-4">';
-  html += '<div><div class="text-xs font-black uppercase tracking-widest text-slate-400">Vocabulary</div><p class="mt-1 text-xs font-semibold leading-5 text-slate-500">Add word and definition pairs used by vocabulary activities.</p></div>';
-  html += '<button type="button" class="add-vocabulary-pair-btn rounded-xl bg-emerald-600 px-3 py-2 text-xs font-black text-white shadow-sm hover:bg-emerald-700"><i class="fa-solid fa-plus"></i></button>';
-  html += '</div>';
-  html += '<textarea id="learningContentVocabularyHidden" data-learning-content-field="vocabulary" class="hidden">' + escapeHtml(content.vocabulary.join("\n")) + '</textarea>';
-  html += '<textarea id="learningContentDefinitionsHidden" data-learning-content-field="definitions" class="hidden">' + escapeHtml(content.definitions.join("\n")) + '</textarea>';
-  html += '<div id="vocabularyPairList" class="max-h-72 overflow-y-auto rounded-2xl border border-slate-100 bg-slate-50 p-3">' + buildVocabularyPairList(pairs) + '</div>';
-  html += buildVocabularyPairModal();
-  html += '</section>';
-
-  return html;
-}
-
-function buildVocabularyPairList(pairs) {
-  if (!pairs || pairs.length === 0) {
-    return '<div class="rounded-2xl border border-dashed border-slate-200 bg-white p-5 text-center text-sm font-semibold text-slate-500">No vocabulary pairs yet.</div>';
-  }
-
-  return pairs.map(function (pair, index) {
-    return '<button type="button" class="edit-vocabulary-pair-btn mb-2 flex w-full items-start gap-3 rounded-2xl border border-slate-100 bg-white p-3 text-left shadow-sm transition hover:bg-emerald-50" data-index="' + index + '">'
-      + '<span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-50 text-xs font-black text-emerald-700">' + (index + 1) + '</span>'
-      + '<span class="min-w-0 flex-1"><strong class="block truncate text-sm text-slate-950">' + escapeHtml(pair.word) + '</strong><small class="mt-1 block text-xs font-semibold leading-5 text-slate-500">' + escapeHtml(pair.definition) + '</small></span>'
-      + '<i class="fa-solid fa-pen text-xs text-slate-400"></i>'
-      + '</button>';
-  }).join('');
-}
-
-function buildVocabularyPairModal() {
-  return '<div id="vocabularyPairModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/70 p-6">'
-    + '<div class="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">'
-    + '<div class="flex items-center justify-between border-b border-slate-100 px-5 py-4"><h3 id="vocabularyPairModalTitle" class="text-lg font-black text-slate-950">Vocabulary pair</h3><button type="button" class="close-vocabulary-pair-modal rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-600">Close</button></div>'
-    + '<div class="grid gap-4 p-5">'
-    + '<input type="hidden" id="vocabularyPairEditIndex" value="">'
-    + '<div><label class="text-xs font-black uppercase tracking-widest text-slate-400">Vocabulary word</label><input id="vocabularyPairWordInput" class="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"></div>'
-    + '<div><label class="text-xs font-black uppercase tracking-widest text-slate-400">Definition</label><textarea id="vocabularyPairDefinitionInput" class="mt-2 min-h-[110px] w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"></textarea></div>'
-    + '<p id="vocabularyPairModalError" class="hidden rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-bold text-red-700"></p>'
-    + '<div class="flex justify-between gap-2"><button type="button" class="remove-vocabulary-pair-btn rounded-xl border border-red-100 bg-red-50 px-4 py-2 text-xs font-black text-red-700">Remove</button><button type="button" class="save-vocabulary-pair-btn rounded-xl bg-emerald-600 px-4 py-2 text-xs font-black text-white">Save Pair</button></div>'
-    + '</div></div></div>';
-}
-
-function openVocabularyPairModal(indexValue) {
-  var modal = document.getElementById("vocabularyPairModal");
-  var indexInput = document.getElementById("vocabularyPairEditIndex");
-  var title = document.getElementById("vocabularyPairModalTitle");
-  var wordInput = document.getElementById("vocabularyPairWordInput");
-  var definitionInput = document.getElementById("vocabularyPairDefinitionInput");
-  var removeButton = document.querySelector(".remove-vocabulary-pair-btn");
-  var pairs = readVocabularyPairsFromHiddenFields();
-  var index = indexValue === "" || indexValue == null ? -1 : parseInt(indexValue, 10);
-  var pair = index >= 0 && pairs[index] ? pairs[index] : { word: "", definition: "" };
-
-  if (indexInput) { indexInput.value = index >= 0 ? String(index) : ""; }
-  if (title) { title.textContent = index >= 0 ? "Edit vocabulary pair" : "Add vocabulary pair"; }
-  if (wordInput) { wordInput.value = pair.word; }
-  if (definitionInput) { definitionInput.value = pair.definition; }
-  if (removeButton) { removeButton.style.display = index >= 0 ? "inline-flex" : "none"; }
-  hideVocabularyPairError();
-
-  if (modal) {
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
-  }
-}
-
-function closeVocabularyPairModal() {
-  var modal = document.getElementById("vocabularyPairModal");
-
-  if (modal) {
-    modal.classList.add("hidden");
-    modal.classList.remove("flex");
-  }
-}
-
-function saveVocabularyPairFromModal() {
-  var word = readElementValue("vocabularyPairWordInput").trim();
-  var definition = readElementValue("vocabularyPairDefinitionInput").trim();
-  var indexValue = readElementValue("vocabularyPairEditIndex");
-  var index = indexValue ? parseInt(indexValue, 10) : -1;
-  var pairs = readVocabularyPairsFromHiddenFields();
-
-  if (!word || !definition) {
-    showVocabularyPairError("Add both a word and a definition before saving.");
-    return;
-  }
-
-  if (index >= 0 && pairs[index]) {
-    pairs[index] = { word: word, definition: definition };
-  } else {
-    pairs.push({ word: word, definition: definition });
-  }
-
-  writeVocabularyPairsToHiddenFields(pairs);
-  closeVocabularyPairModal();
-}
-
-function removeVocabularyPair(indexValue) {
-  var index = parseInt(indexValue, 10);
-  var pairs = readVocabularyPairsFromHiddenFields();
-
-  if (!Number.isFinite(index) || !pairs[index]) {
-    return;
-  }
-
-  pairs.splice(index, 1);
-  writeVocabularyPairsToHiddenFields(pairs);
-  closeVocabularyPairModal();
-}
-
-function readVocabularyPairsFromHiddenFields() {
-  return createVocabularyPairsForUi(
-    parseLines(readElementValue("learningContentVocabularyHidden")),
-    parseLines(readElementValue("learningContentDefinitionsHidden"))
-  );
-}
-
-function writeVocabularyPairsToHiddenFields(pairs) {
-  var safePairs = Array.isArray(pairs) ? pairs : [];
-  var vocabulary = safePairs.map(function (pair) { return pair.word; });
-  var definitions = safePairs.map(function (pair) { return pair.definition; });
-  var vocabularyField = document.getElementById("learningContentVocabularyHidden");
-  var definitionsField = document.getElementById("learningContentDefinitionsHidden");
-  var list = document.getElementById("vocabularyPairList");
-
-  if (vocabularyField) { vocabularyField.value = vocabulary.join("\n"); }
-  if (definitionsField) { definitionsField.value = definitions.join("\n"); }
-  if (list) { list.innerHTML = buildVocabularyPairList(safePairs); }
-}
-
-function createVocabularyPairsForUi(vocabulary, definitions) {
-  var words = Array.isArray(vocabulary) ? vocabulary : [];
-  var defs = Array.isArray(definitions) ? definitions : [];
-  var maxLength = Math.max(words.length, defs.length);
-  var pairs = [];
-  var index = 0;
-
-  while (index < maxLength) {
-    pairs.push({
-      word: readString(words[index], ""),
-      definition: readString(defs[index], "")
-    });
-    index = index + 1;
-  }
-
-  return pairs.filter(function (pair) {
-    return pair.word || pair.definition;
-  });
-}
-
-function showVocabularyPairError(message) {
-  var error = document.getElementById("vocabularyPairModalError");
-
-  if (error) {
-    error.textContent = message;
-    error.classList.remove("hidden");
-  }
-}
-
-function hideVocabularyPairError() {
-  var error = document.getElementById("vocabularyPairModalError");
-
-  if (error) {
-    error.textContent = "";
-    error.classList.add("hidden");
-  }
-}
-
-function readElementValue(id) {
-  var element = document.getElementById(id);
-
-  if (!element || typeof element.value !== "string") {
-    return "";
-  }
-
-  return element.value;
-}
-
 function buildLearningContentTextarea(label, field, items, placeholder) {
   return '<div class="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">'
     + '<label class="text-xs font-black uppercase tracking-widest text-slate-400">' + escapeHtml(label) + '</label>'
     + '<textarea data-learning-content-field="' + field + '" class="mt-3 min-h-[150px] w-full resize-y rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 outline-none focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100" placeholder="' + escapeHtml(placeholder) + '">' + escapeHtml(items.join("\n")) + '</textarea>'
     + '</div>';
-}
-
-function buildLearningContentCollapsibleEditor(label, field, items, helperText) {
-  var safeItems = Array.isArray(items) && items.length > 0 ? items : [""];
-  var html = "";
-
-  html += '<details class="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm" open>';
-  html += '<summary class="cursor-pointer text-xs font-black uppercase tracking-widest text-slate-500"><span class="mr-2 text-emerald-600">✓</span>' + escapeHtml(label) + '</summary>';
-  html += '<p class="mt-3 text-xs font-semibold leading-5 text-slate-500">' + escapeHtml(helperText) + '</p>';
-  html += '<textarea id="learningContentHidden-' + escapeHtml(field) + '" data-learning-content-field="' + escapeHtml(field) + '" class="hidden">' + escapeHtml(items.join("\n")) + '</textarea>';
-  html += '<div class="mt-3 space-y-2" data-learning-content-line-list="' + escapeHtml(field) + '">';
-  safeItems.forEach(function (item) {
-    html += buildLearningContentLineItem(field, item);
-  });
-  html += '</div>';
-  html += '<button type="button" class="add-learning-content-line-btn mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700 hover:bg-emerald-100" data-field="' + escapeHtml(field) + '"><i class="fa-solid fa-plus"></i> Add Item</button>';
-  html += '</details>';
-
-  return html;
-}
-
-function buildLearningContentLineItem(field, value) {
-  return '<div class="flex items-center gap-2 rounded-2xl border border-slate-100 bg-slate-50 p-2">'
-    + '<input type="text" class="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100" data-learning-content-line-field="' + escapeHtml(field) + '" value="' + escapeHtml(value || "") + '">'
-    + '<button type="button" class="remove-learning-content-line-btn rounded-xl border border-rose-100 bg-white px-3 py-2 text-xs font-black text-rose-600 hover:bg-rose-50" data-field="' + escapeHtml(field) + '" aria-label="Remove item"><i class="fa-solid fa-trash-can"></i></button>'
-    + '</div>';
-}
-
-function addLearningContentLine(field) {
-  var safeField = field || "";
-  var list = document.querySelector('[data-learning-content-line-list="' + safeField + '"]');
-
-  if (!list) {
-    return;
-  }
-
-  list.insertAdjacentHTML("beforeend", buildLearningContentLineItem(safeField, ""));
-  updateLearningContentLineHidden(safeField);
-  var inputs = list.querySelectorAll("[data-learning-content-line-field]");
-  if (inputs.length > 0) {
-    inputs[inputs.length - 1].focus();
-  }
-}
-
-function removeLearningContentLine(button) {
-  var field = button ? button.getAttribute("data-field") : "";
-  var row = button ? button.closest("div") : null;
-  var list = field ? document.querySelector('[data-learning-content-line-list="' + field + '"]') : null;
-
-  if (row && row.parentNode) {
-    row.parentNode.removeChild(row);
-  }
-
-  if (list && list.querySelectorAll("[data-learning-content-line-field]").length === 0) {
-    list.insertAdjacentHTML("beforeend", buildLearningContentLineItem(field, ""));
-  }
-
-  updateLearningContentLineHidden(field);
-}
-
-function updateLearningContentLineHidden(field) {
-  var safeField = field || "";
-  var hidden = document.getElementById("learningContentHidden-" + safeField);
-
-  if (!hidden) {
-    return;
-  }
-
-  hidden.value = readLearningContentLineValues(safeField).join("\n");
-}
-
-function readLearningContentLineValues(field) {
-  var inputs = document.querySelectorAll('[data-learning-content-line-field="' + field + '"]');
-  var values = [];
-  var index = 0;
-
-  while (index < inputs.length) {
-    if (inputs[index].value.trim()) {
-      values.push(inputs[index].value.trim());
-    }
-    index = index + 1;
-  }
-
-  return values;
 }
 
 function buildLearningContentInspector(learningContent) {
@@ -5392,71 +3087,39 @@ function buildLearningContentInspector(learningContent) {
 
 function buildLearningModesWorkspace(learningModes, sessions, selectedModeId) {
   var modes = createLearningModeList(learningModes, sessions);
-  var existingTypes = createExistingPathTypeMap(modes);
-  var pathOptions = createLearningPathOptions(existingTypes);
   var html = "";
 
-  html += '<div class="p-6 space-y-5 bg-slate-50/60 min-h-full">';
-  html += '<div class="rounded-[28px] border border-emerald-100 bg-gradient-to-br from-emerald-50 via-sky-50 to-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">';
-  html += '<div class="flex items-start justify-between gap-5">';
+  html += '<div class="p-6 space-y-5">';
+  html += '<div class="rounded-3xl border border-violet-100 bg-gradient-to-br from-violet-50 via-sky-50 to-white p-5 shadow-sm">';
+  html += '<div class="flex items-start justify-between gap-4">';
   html += '<div>';
-  html += '<div class="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-600">Course -> Modules -> Lesson Paths -> Learning Activities</div>';
-  html += '<h2 class="mt-2 text-3xl font-black text-slate-950">Lesson Paths</h2>';
-  html += '<p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Paths let you offer review, challenge, or support versions of the same module without creating duplicate modules.</p>';
+  html += '<div class="text-[10px] font-black uppercase tracking-[0.18em] text-violet-600">Module Experiences</div>';
+  html += '<h2 class="mt-2 text-2xl font-black text-slate-950">Learning Modes</h2>';
+  html += '<p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Modes replace the old session terminology for authoring. Primary Mode is required; review, practice, assessment, and custom modes can be layered in safely.</p>';
   html += '</div>';
-  html += '<button type="button" class="generate-mode-from-primary-btn rounded-2xl border border-emerald-200 bg-white px-4 py-2 text-xs font-black text-emerald-700 shadow-sm hover:bg-emerald-50"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate From Main Path</button>';
-  html += '</div>';
-  html += '<div class="mt-5 grid grid-cols-5 gap-3">';
-  pathOptions.forEach(function (option) {
-    var disabled = option.required || option.exists ? " disabled" : "";
-    var stateLabel = option.required ? "Required" : (option.exists ? "Added" : "Add");
-    var optionClass = option.required
-      ? "border-emerald-200 bg-white text-emerald-800"
-      : option.exists
-        ? "border-slate-200 bg-white text-slate-500"
-        : "border-slate-200 bg-white text-slate-700 hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md";
-    html += '<button type="button" class="create-learning-path-option-btn rounded-2xl border p-3 text-left transition ' + optionClass + '" data-path-type="' + escapeHtml(option.pathType) + '"' + disabled + '>';
-    html += '<div class="flex items-center justify-between gap-2">';
-    html += '<span class="grid h-9 w-9 place-items-center rounded-2xl ' + escapeHtml(option.iconBg) + '"><i class="' + escapeHtml(option.icon) + '"></i></span>';
-    html += '<span class="rounded-full bg-slate-100 px-2 py-1 text-[9px] font-black uppercase tracking-wide text-slate-500">' + stateLabel + '</span>';
-    html += '</div>';
-    html += '<div class="mt-3 text-xs font-black text-slate-950">' + escapeHtml(option.title) + '</div>';
-    html += '<div class="mt-1 text-[10px] leading-4 text-slate-500">' + escapeHtml(option.shortPurpose) + '</div>';
-    html += '</button>';
-  });
+  html += '<button type="button" class="generate-mode-from-primary-btn rounded-2xl border border-violet-200 bg-white px-4 py-2 text-xs font-black text-violet-700 shadow-sm hover:bg-violet-50"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate From Primary</button>';
   html += '</div>';
   html += '</div>';
-
-  html += buildPracticeModeBuilderPanel(existingTypes);
 
   html += '<div class="grid grid-cols-2 gap-4">';
   modes.forEach(function (mode) {
-    var meta = readLearningPathMeta(mode);
-    var title = readLearningPathTitle(mode, meta.title);
-    var purpose = readLearningPathPurpose(mode, meta.purpose);
-    var stepCount = readLearningPathStepCount(mode);
-    var selected = selectedModeId === mode.id ? " ring-2 ring-emerald-300 border-emerald-200 shadow-[0_16px_38px_rgba(16,185,129,0.18)]" : " border-slate-100 shadow-sm";
-    html += '<div class="learning-mode-card rounded-[26px] bg-white p-5 border cursor-pointer hover:-translate-y-0.5 hover:shadow-lg transition' + selected + '" data-mode-id="' + escapeHtml(mode.id) + '">';
-    html += '<div class="flex items-start gap-4">';
-    html += '<div class="grid h-16 w-16 shrink-0 place-items-center rounded-3xl ' + escapeHtml(meta.iconBg) + ' text-xl"><i class="' + escapeHtml(meta.icon) + '"></i></div>';
+    var selected = selectedModeId === mode.id ? " ring-2 ring-emerald-300 border-emerald-200" : " border-slate-100";
+    html += '<div class="learning-mode-card rounded-3xl bg-white p-5 shadow-sm border cursor-pointer hover:-translate-y-0.5 hover:shadow-md transition' + selected + '" data-mode-id="' + mode.id + '">';
+  html += '<div class="flex items-start gap-4">';
+    html += '<img src="' + readLearningModeAsset(mode) + '" alt="" class="h-16 w-20 rounded-2xl object-cover bg-slate-50">';
     html += '<div class="min-w-0 flex-1">';
-    html += '<div class="flex items-center gap-2 flex-wrap">' + buildStatusPill(mode.status) + (mode.required ? '<span class="rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-black uppercase text-emerald-700">Required</span>' : '<span class="rounded-full bg-sky-100 px-2 py-1 text-[10px] font-black uppercase text-sky-700">Optional</span>') + '</div>';
-    html += '<h3 class="mt-3 text-xl font-black text-slate-950 truncate">' + escapeHtml(title) + '</h3>';
-    html += '<p class="mt-1 min-h-[40px] text-xs leading-5 text-slate-500">' + escapeHtml(purpose) + '</p>';
+    html += '<div class="flex items-center gap-2 flex-wrap">' + buildStatusPill(mode.status) + (mode.required ? '<span class="rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-black uppercase text-emerald-700">Required</span>' : '') + '</div>';
+    html += '<h3 class="mt-3 text-lg font-black text-slate-950 truncate">' + escapeHtml(mode.title) + '</h3>';
+    html += '<p class="mt-1 text-xs leading-5 text-slate-500">' + escapeHtml(mode.purpose || "Custom learning experience.") + '</p>';
     html += '</div>';
-    html += '</div>';
-    html += '<div class="mt-5 grid grid-cols-3 gap-2">';
-    html += '<div class="rounded-2xl border border-slate-100 bg-slate-50 p-3"><div class="text-[9px] font-black uppercase tracking-widest text-slate-400">Path Type</div><div class="mt-1 text-xs font-black text-slate-800">' + escapeHtml(meta.title) + '</div></div>';
-    html += '<div class="rounded-2xl border border-slate-100 bg-slate-50 p-3"><div class="text-[9px] font-black uppercase tracking-widest text-slate-400">Activities</div><div class="mt-1 text-xs font-black text-slate-800">' + stepCount + '</div></div>';
-    html += '<div class="rounded-2xl border border-slate-100 bg-slate-50 p-3"><div class="text-[9px] font-black uppercase tracking-widest text-slate-400">Status</div><div class="mt-1 text-xs font-black text-slate-800">' + escapeHtml(readString(mode.status, "draft")) + '</div></div>';
     html += '</div>';
     html += '<div class="mt-4 flex items-center justify-between gap-2">';
-    html += '<span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Alternate route inside this module</span>';
+    html += '<span class="text-[10px] font-black uppercase tracking-widest text-slate-400">' + escapeHtml(mode.modeType || "custom") + '</span>';
     html += '<div class="flex gap-2">';
-    html += '<button type="button" class="edit-learning-path-steps-btn rounded-xl bg-emerald-600 px-3 py-1.5 text-[10px] font-black text-white hover:bg-emerald-700" data-mode-id="' + escapeHtml(mode.id) + '">Edit Learning Activities</button>';
-    html += '<button type="button" class="duplicate-learning-mode-btn rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-black text-slate-600 hover:bg-slate-50" data-mode-id="' + escapeHtml(mode.id) + '">Duplicate</button>';
+    html += '<button type="button" class="rename-learning-mode-btn rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-black text-slate-600 hover:bg-slate-50" data-mode-id="' + mode.id + '">Rename</button>';
+    html += '<button type="button" class="duplicate-learning-mode-btn rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-black text-slate-600 hover:bg-slate-50" data-mode-id="' + mode.id + '">Duplicate</button>';
     if (!mode.required) {
-      html += '<button type="button" class="delete-learning-mode-btn rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[10px] font-black text-rose-600 hover:bg-rose-100" data-mode-id="' + escapeHtml(mode.id) + '">Delete</button>';
+      html += '<button type="button" class="delete-learning-mode-btn rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[10px] font-black text-rose-600 hover:bg-rose-100" data-mode-id="' + mode.id + '">Delete</button>';
     }
     html += '</div>';
     html += '</div>';
@@ -5464,200 +3127,25 @@ function buildLearningModesWorkspace(learningModes, sessions, selectedModeId) {
   });
   html += '</div>';
 
-  html += '<div class="rounded-3xl border border-sky-100 bg-white p-5 shadow-sm">';
-  html += '<div class="text-sm font-black text-slate-900">How Lesson Paths Work</div>';
-  html += '<p class="mt-2 text-xs leading-5 text-slate-500">Main Path is required. Review, Challenge, Support, and Custom paths are optional alternate learning activity sequences inside the same module. Existing internal mode fields stay in place for compatibility.</p>';
+  html += '<div class="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">';
+  html += '<div class="text-sm font-black text-slate-900">Compatibility Layer</div>';
+  html += '<p class="mt-2 text-xs leading-5 text-slate-500">Each learning mode can point at a legacy session shell while migration is in progress. The existing Step System continues to run from those shells.</p>';
   html += '</div>';
   html += '</div>';
 
   return html;
-}
-
-function buildAddPathModalHtml() {
-  return '<div id="addPathModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/70 p-6">'
-    + '<div class="w-full max-w-3xl overflow-hidden rounded-3xl bg-white shadow-2xl">'
-    + '<div class="flex items-center justify-between gap-4 border-b border-slate-100 px-5 py-4">'
-    + '<div><div class="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-600">Add Path</div><h2 class="mt-1 text-lg font-black text-slate-950">Choose a lesson path type</h2></div>'
-    + '<button type="button" class="close-add-path-modal rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-600 hover:bg-slate-50">Close</button>'
-    + '</div>'
-    + '<div id="addPathModalBody" class="bg-slate-50 p-5"></div>'
-    + '</div>'
-    + '</div>';
-}
-
-function openAddPathModal(learningModes) {
-  var modal = document.getElementById("addPathModal");
-  var body = document.getElementById("addPathModalBody");
-  var modes = createLearningModeList(learningModes, []);
-  var existingTypes = createExistingPathTypeMap(modes);
-  var options = createLearningPathOptions(existingTypes);
-  var html = "";
-
-  if (!modal || !body) {
-    return;
-  }
-
-  html += '<div class="grid gap-3 md:grid-cols-2">';
-  options.forEach(function (option) {
-    var disabled = option.required || option.exists ? " disabled" : "";
-    var stateLabel = option.required ? "Required" : (option.exists ? "Added" : "Create");
-    var optionClass = option.required || option.exists
-      ? "border-slate-200 bg-white text-slate-500"
-      : "border-emerald-200 bg-white text-slate-800 hover:-translate-y-0.5 hover:border-emerald-400 hover:shadow-md";
-
-    html += '<button type="button" class="create-learning-path-option-btn rounded-2xl border p-4 text-left transition ' + optionClass + '" data-path-type="' + escapeHtml(option.pathType) + '"' + disabled + '>';
-    html += '<div class="flex items-center justify-between gap-3"><span class="grid h-11 w-11 place-items-center rounded-2xl ' + escapeHtml(option.iconBg) + '"><i class="' + escapeHtml(option.icon) + '"></i></span><span class="rounded-full bg-slate-100 px-2 py-1 text-[9px] font-black uppercase tracking-wide text-slate-500">' + escapeHtml(stateLabel) + '</span></div>';
-    html += '<div class="mt-3 text-sm font-black text-slate-950">' + escapeHtml(option.title) + '</div>';
-    html += '<p class="mt-1 min-h-[38px] text-xs font-semibold leading-5 text-slate-500">' + escapeHtml(option.purpose) + '</p>';
-    html += '</button>';
-  });
-  html += '</div>';
-
-  body.innerHTML = html;
-  modal.classList.remove("hidden");
-  modal.classList.add("flex");
-}
-
-function closeAddPathModal() {
-  var modal = document.getElementById("addPathModal");
-
-  if (!modal) {
-    return;
-  }
-
-  modal.classList.add("hidden");
-  modal.classList.remove("flex");
-}
-
-function resetWorkspaceScroll() {
-  var workspace = document.getElementById("workspaceContent");
-
-  if (workspace) {
-    workspace.scrollTop = 0;
-  }
-}
-
-function findStepByIdInList(steps, stepId) {
-  var safeSteps = Array.isArray(steps) ? steps : [];
-  var index = 0;
-
-  while (index < safeSteps.length) {
-    if (readStepId(safeSteps[index], "") === stepId) {
-      return safeSteps[index];
-    }
-
-    index = index + 1;
-  }
-
-  return null;
-}
-
-function findStepByIdInLearningModes(learningModes, stepId) {
-  var modes = learningModes && typeof learningModes === "object" && !Array.isArray(learningModes) ? learningModes : {};
-  var modeIds = Object.keys(modes);
-  var modeIndex = 0;
-
-  while (modeIndex < modeIds.length) {
-    var modeId = modeIds[modeIndex];
-    var mode = modes[modeId];
-    var step = null;
-
-    if (mode && mode.status !== "deleted") {
-      step = findStepByIdInList(readSortedSteps(mode.steps), stepId);
-      if (step) {
-        return {
-          modeId: modeId,
-          step: step
-        };
-      }
-    }
-
-    modeIndex = modeIndex + 1;
-  }
-
-  return null;
-}
-
-function buildPracticeModeBuilderPanel(existingTypes) {
-  var modes = createPracticeModeBuilderOptions(existingTypes);
-  var html = "";
-
-  html += '<div class="rounded-3xl border border-blue-100 bg-white p-5 shadow-sm">';
-  html += '<div class="flex items-start justify-between gap-4">';
-  html += '<div><div class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">Practice Mode Builder</div><h3 class="mt-1 text-xl font-black text-slate-950">Before, after, and daily practice shells</h3><p class="mt-1 text-xs font-semibold leading-5 text-slate-500">Practice modes reuse lesson paths and learning activities. No duplicate module flow is created.</p></div>';
-  html += '<span class="rounded-full bg-blue-50 px-3 py-2 text-[10px] font-black uppercase text-blue-700">Presentation + authoring shell</span>';
-  html += '</div>';
-  html += '<div class="mt-4 grid gap-3 md:grid-cols-3">';
-  modes.forEach(function (mode) {
-    var disabled = mode.exists ? " disabled" : "";
-    var buttonClass = mode.exists
-      ? "border-emerald-100 bg-emerald-50 text-emerald-800"
-      : "border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50";
-    html += '<button type="button" class="create-learning-path-option-btn rounded-2xl border p-4 text-left transition ' + buttonClass + '" data-path-type="' + escapeHtml(mode.pathType) + '"' + disabled + '>';
-    html += '<div class="flex items-center justify-between gap-3"><span class="grid h-10 w-10 place-items-center rounded-2xl ' + escapeHtml(mode.iconBg) + '"><i class="' + escapeHtml(mode.icon) + '"></i></span><span class="rounded-full bg-white px-2 py-1 text-[9px] font-black uppercase tracking-wide">' + (mode.exists ? "Ready" : "Create") + '</span></div>';
-    html += '<div class="mt-3 text-sm font-black text-slate-950">' + escapeHtml(mode.title) + '</div>';
-    html += '<p class="mt-1 min-h-[40px] text-[11px] font-semibold leading-5 text-slate-500">' + escapeHtml(mode.purpose) + '</p>';
-    html += '<div class="mt-3 text-[10px] font-black uppercase tracking-wide text-blue-600">' + escapeHtml(mode.routeLabel) + '</div>';
-    html += '</button>';
-  });
-  html += '</div>';
-  html += '</div>';
-
-  return html;
-}
-
-function createPracticeModeBuilderOptions(existingTypes) {
-  var existing = existingTypes || {};
-  return [
-    {
-      title: "Before Class Warmup",
-      purpose: "Prepare students before the main lesson with a short entry sequence.",
-      pathType: "main",
-      routeLabel: "Main Path",
-      exists: true,
-      icon: "fa-solid fa-sun text-emerald-700",
-      iconBg: "bg-emerald-100 text-emerald-700"
-    },
-    {
-      title: "After Class Reinforcement",
-      purpose: "Review and strengthen the same module after the lesson.",
-      pathType: "review",
-      routeLabel: "Review Path",
-      exists: existing.review === true,
-      icon: "fa-solid fa-rotate text-sky-700",
-      iconBg: "bg-sky-100 text-sky-700"
-    },
-    {
-      title: "Five Minute Daily Practice",
-      purpose: "Create a compact recurring practice route for many-module courses.",
-      pathType: "challenge",
-      routeLabel: "Practice Path",
-      exists: existing.challenge === true,
-      icon: "fa-solid fa-stopwatch text-violet-700",
-      iconBg: "bg-violet-100 text-violet-700"
-    }
-  ];
 }
 
 function buildLearningModesInspector() {
   var html = "";
   html += '<div class="space-y-4">';
-  html += '<div class="rounded-3xl border border-blue-100 bg-blue-50 p-4">';
-  html += '<div class="text-xs font-black text-blue-900">Practice Mode Builder</div>';
-  html += '<div class="mt-2 text-xs leading-5 text-blue-800">Before Class, After Class, and Daily Practice are authoring shells over the same lesson path and learning activity system.</div>';
-  html += '</div>';
-  html += '<div class="rounded-3xl border border-emerald-100 bg-emerald-50 p-4">';
-  html += '<div class="text-xs font-black text-emerald-900">Lesson Path Basics</div>';
-  html += '<div class="mt-2 text-xs leading-5 text-emerald-800">Main Path is required. Add optional paths when students need review, challenge, or support routes through the same module.</div>';
+  html += '<div class="rounded-2xl border border-slate-100 p-4">';
+  html += '<div class="text-xs font-black text-slate-900">Templates</div>';
+  html += '<div class="mt-2 text-xs leading-5 text-slate-500">School: Primary + Review. Education Center: Primary only. Intensive: Primary + Review + Practice + Assessment. Custom: Primary only.</div>';
   html += '</div>';
   html += '<div class="rounded-2xl border border-slate-100 p-4">';
-  html += '<div class="text-xs font-black text-slate-900">Path Types</div>';
-  html += '<div class="mt-2 space-y-2 text-xs leading-5 text-slate-500">';
-  html += '<div><strong class="text-slate-700">Main:</strong> required core lesson sequence.</div>';
-  html += '<div><strong class="text-slate-700">Review:</strong> reinforce the same module.</div>';
-  html += '<div><strong class="text-slate-700">Challenge:</strong> extend confident students.</div>';
-  html += '<div><strong class="text-slate-700">Support:</strong> slower guided version.</div>';
-  html += '</div>';
+  html += '<div class="text-xs font-black text-slate-900">Student Language</div>';
+  html += '<div class="mt-2 text-xs leading-5 text-slate-500">Do not expose mode names to students. They only see Continue Learning.</div>';
   html += '</div>';
   html += '</div>';
   return html;
@@ -5669,45 +3157,22 @@ function buildSelectedLearningModeInspector(mode, tab) {
   }
 
   var html = "";
-  var meta = readLearningPathMeta(mode);
-  var title = readLearningPathTitle(mode, meta.title);
-  var purpose = readLearningPathPurpose(mode, meta.purpose);
-  var stepCount = readLearningPathStepCount(mode);
-
   html += '<div class="space-y-4">';
   html += '<div class="rounded-3xl bg-gradient-to-br from-emerald-50 to-sky-50 p-4 border border-emerald-100">';
-  html += '<div class="flex items-center gap-3">';
-  html += '<div class="grid h-11 w-11 place-items-center rounded-2xl ' + escapeHtml(meta.iconBg) + '"><i class="' + escapeHtml(meta.icon) + '"></i></div>';
-  html += '<div>';
-  html += '<div class="text-[10px] font-black uppercase tracking-widest text-emerald-600">Selected Path</div>';
-  html += '<div class="mt-1 text-lg font-black text-slate-950">' + escapeHtml(title) + '</div>';
-  html += '</div>';
-  html += '</div>';
-  html += '<div class="mt-3 text-xs font-semibold leading-5 text-slate-500">' + escapeHtml(purpose) + '</div>';
-  html += '</div>';
-  html += '<div class="rounded-2xl border border-slate-100 p-4" data-inspector-mode="lesson-path">';
-  html += '<div class="oqu-inspector-field">';
-  html += '<label class="oqu-inspector-label">Path title</label>';
-  html += '<input type="text" class="oqu-inspector-input inspector-path-title" value="' + escapeHtml(title) + '" placeholder="Path title">';
-  html += '</div>';
-  html += '<div class="oqu-inspector-field">';
-  html += '<label class="oqu-inspector-label">Purpose</label>';
-  html += '<textarea class="oqu-inspector-textarea inspector-path-purpose" placeholder="Explain when a teacher should use this path.">' + escapeHtml(purpose) + '</textarea>';
-  html += '</div>';
-  html += '<button type="button" class="save-learning-path-btn w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs transition mt-1" data-mode-id="' + escapeHtml(readString(mode.id, "primary")) + '">Save Path Details</button>';
+  html += '<div class="text-[10px] font-black uppercase tracking-widest text-emerald-600">Selected Mode</div>';
+  html += '<div class="mt-2 text-lg font-black text-slate-950">' + escapeHtml(readLocalizedText(mode.title, "Learning Mode")) + '</div>';
+  html += '<div class="mt-1 text-xs font-semibold text-slate-500">' + escapeHtml(readString(mode.purpose, "Learning experience.")) + '</div>';
   html += '</div>';
   html += '<div class="rounded-2xl border border-slate-100 p-4">';
-  html += '<div class="oqu-inspector-readonly-label">Path ID</div>';
+  html += '<div class="oqu-inspector-readonly-label">Mode ID</div>';
   html += '<div class="oqu-inspector-readonly-value mb-3">' + escapeHtml(readString(mode.id, "primary")) + '</div>';
-  html += '<div class="oqu-inspector-readonly-label">Path type</div>';
-  html += '<div class="oqu-inspector-readonly-value mb-3">' + escapeHtml(meta.title) + '</div>';
-  html += '<div class="oqu-inspector-readonly-label">Steps</div>';
-  html += '<div class="oqu-inspector-readonly-value mb-3">' + stepCount + '</div>';
+  html += '<div class="oqu-inspector-readonly-label">Type</div>';
+  html += '<div class="oqu-inspector-readonly-value mb-3">' + escapeHtml(readString(mode.modeType, "primary")) + '</div>';
   html += '<div class="oqu-inspector-readonly-label">Status</div>';
   html += '<div class="mt-1">' + buildStatusPill(readString(mode.status, "draft")) + '</div>';
   html += '</div>';
   html += '<div class="rounded-2xl border border-slate-100 p-4 text-xs leading-5 text-slate-500">';
-  html += tab === "learningModes" ? 'Click Edit Learning Activities to build the activity sequence for this path.' : 'The main panel and inspector are synced to this selected path.';
+  html += tab === "learningModes" ? 'Click the Steps tab to edit activities for this mode.' : 'The main panel and inspector are synced to this selected mode.';
   html += '</div>';
   html += '</div>';
   return html;
@@ -5722,8 +3187,6 @@ function readLearningContentFromWorkspace() {
     var field = fields[index].getAttribute("data-learning-content-field");
     if (field === "notes") {
       content[field] = fields[index].value.trim();
-    } else if (document.querySelector('[data-learning-content-line-field="' + field + '"]')) {
-      content[field] = readLearningContentLineValues(field);
     } else {
       content[field] = parseLines(fields[index].value);
     }
@@ -5731,34 +3194,6 @@ function readLearningContentFromWorkspace() {
   }
 
   return content;
-}
-
-function isLearningContentInput(target) {
-  if (!target || typeof target.closest !== "function") {
-    return false;
-  }
-
-  return Boolean(
-    target.closest("[data-learning-content-line-field]") ||
-    target.closest("[data-learning-content-field]")
-  );
-}
-
-function validateLearningContentForAutosave(content) {
-  var vocabulary = Array.isArray(content && content.vocabulary) ? content.vocabulary : [];
-  var definitions = Array.isArray(content && content.definitions) ? content.definitions : [];
-
-  if (vocabulary.length !== definitions.length) {
-    return {
-      valid: false,
-      message: "Error — Retry: every vocabulary word needs one definition."
-    };
-  }
-
-  return {
-    valid: true,
-    message: ""
-  };
 }
 
 function normalizeLearningContentForUi(learningContent) {
@@ -5879,167 +3314,11 @@ function isDevelopmentLoggingEnabled() {
     window.location.search.indexOf("debug") !== -1;
 }
 
-function createExistingPathTypeMap(modes) {
-  var map = {};
-  var list = Array.isArray(modes) ? modes : [];
-
-  list.forEach(function (mode) {
-    var meta = readLearningPathMeta(mode);
-    map[meta.pathType] = true;
-  });
-
-  return map;
-}
-
-function createLearningPathOptions(existingTypes) {
-  var existing = existingTypes || {};
-  return [
-    Object.assign(readLearningPathOption("main"), {
-      required: true,
-      exists: true
-    }),
-    Object.assign(readLearningPathOption("review"), {
-      exists: existing.review === true
-    }),
-    Object.assign(readLearningPathOption("challenge"), {
-      exists: existing.challenge === true
-    }),
-    Object.assign(readLearningPathOption("support"), {
-      exists: existing.support === true
-    }),
-    Object.assign(readLearningPathOption("custom"), {
-      exists: false
-    })
-  ];
-}
-
-function readLearningPathOption(pathType) {
-  if (pathType === "main" || pathType === "primary") {
-    return {
-      pathType: "main",
-      modeType: "primary",
-      title: "Main Path",
-      purpose: "The required core step sequence for this module.",
-      shortPurpose: "Required core sequence.",
-      icon: "fa-solid fa-star text-emerald-700",
-      iconBg: "bg-emerald-100 text-emerald-700"
-    };
-  }
-
-  if (pathType === "review") {
-    return {
-      pathType: "review",
-      modeType: "review",
-      title: "Review Path",
-      purpose: "Reinforce the same module with a lighter review sequence.",
-      shortPurpose: "Reinforce key ideas.",
-      icon: "fa-solid fa-rotate text-sky-700",
-      iconBg: "bg-sky-100 text-sky-700"
-    };
-  }
-
-  if (pathType === "challenge" || pathType === "practice") {
-    return {
-      pathType: "challenge",
-      modeType: "practice",
-      title: "Challenge Path",
-      purpose: "Extend confident students with deeper practice and challenge steps.",
-      shortPurpose: "Stretch ready learners.",
-      icon: "fa-solid fa-bolt text-violet-700",
-      iconBg: "bg-violet-100 text-violet-700"
-    };
-  }
-
-  if (pathType === "support" || pathType === "assessment") {
-    return {
-      pathType: "support",
-      modeType: "assessment",
-      title: "Support Path",
-      purpose: "Offer a slower guided route through the same module.",
-      shortPurpose: "Guide extra support.",
-      icon: "fa-solid fa-hands-holding-child text-amber-700",
-      iconBg: "bg-amber-100 text-amber-700"
-    };
-  }
-
-  return {
-    pathType: "custom",
-    modeType: "custom",
-    title: "Custom Path",
-    purpose: "A custom step sequence inside this module.",
-    shortPurpose: "Design your own route.",
-    icon: "fa-solid fa-route text-slate-700",
-    iconBg: "bg-slate-100 text-slate-700"
-  };
-}
-
-function readLearningPathMeta(mode) {
-  var type = mode && typeof mode.modeType === "string" ? mode.modeType : "";
-  if (mode && mode.id === "primary") {
-    return readLearningPathOption("main");
-  }
-
-  if (type === "primary") return readLearningPathOption("main");
-  if (type === "review") return readLearningPathOption("review");
-  if (type === "practice") return readLearningPathOption("challenge");
-  if (type === "assessment") return readLearningPathOption("support");
-  return readLearningPathOption("custom");
-}
-
-function readLearningPathTitle(mode, fallbackTitle) {
-  var title = readLocalizedText(mode && mode.title, fallbackTitle || "Lesson Path");
-  var meta = readLearningPathMeta(mode);
-
-  if (title === "Primary Mode" || title === "Learning Mode") {
-    return meta.title;
-  }
-
-  if (title === "Review Mode") {
-    return "Review Path";
-  }
-
-  if (title === "Practice Mode") {
-    return "Challenge Path";
-  }
-
-  if (title === "Assessment Mode") {
-    return "Support Path";
-  }
-
-  if (title === "Legacy Mode") {
-    return "Legacy Path";
-  }
-
-  return title;
-}
-
-function readLearningPathPurpose(mode, fallbackPurpose) {
-  var purpose = readString(mode && mode.purpose, fallbackPurpose || "");
-
-  if (purpose.indexOf("mode") !== -1 || purpose.indexOf("Mode") !== -1 || purpose.length === 0) {
-    return readLearningPathMeta(mode).purpose;
-  }
-
-  return purpose;
-}
-
-function readLearningPathStepCount(mode) {
-  if (mode && typeof mode.stepCount === "number") {
-    return mode.stepCount;
-  }
-
-  if (mode && Array.isArray(mode.steps)) {
-    return mode.steps.length;
-  }
-
-  return 0;
-}
-
 function readLearningModeIcon(mode) {
   if (mode && mode.modeType === "primary") return '<i class="fa-solid fa-star"></i>';
   if (mode && mode.modeType === "review") return '<i class="fa-solid fa-rotate"></i>';
-  if (mode && mode.modeType === "practice") return '<i class="fa-solid fa-bolt"></i>';
-  if (mode && mode.modeType === "assessment") return '<i class="fa-solid fa-hands-holding-child"></i>';
+  if (mode && mode.modeType === "practice") return '<i class="fa-solid fa-dumbbell"></i>';
+  if (mode && mode.modeType === "assessment") return '<i class="fa-solid fa-clipboard-check"></i>';
   return '<i class="fa-solid fa-route"></i>';
 }
 

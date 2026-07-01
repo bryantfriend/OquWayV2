@@ -1,4 +1,4 @@
-import { collection, db, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
+import { collection, db, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
 
 export async function processListLocations(executionState) {
   try {

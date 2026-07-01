@@ -1,7 +1,6 @@
-import { getActiveAssignmentsForStudent } from "../assignments/index.js";
-import { resolveStudentId } from "../users/index.js";
+import { getActiveAssignmentsForStudent } from "../assignments/index.js?v=1.1.83-student-assignment-load";
 
-export { buildStudentAssignmentTargets } from "../assignments/index.js";
+export { buildStudentAssignmentTargets } from "../assignments/index.js?v=1.1.83-student-assignment-load";
 
 export async function getAssignedCourses(studentId, studentProfile) {
   var assignmentResult = await getAssignedCourseIds(studentId, studentProfile);
@@ -13,13 +12,14 @@ export async function getAssignedCourses(studentId, studentProfile) {
     source: assignmentResult.source,
     warnings: assignmentResult.warnings,
     queryPaths: assignmentResult.queryPaths,
-    queryErrors: assignmentResult.queryErrors,
     rejectionReasons: assignmentResult.rejectionReasons,
+    directAssignments: assignmentResult.directAssignments || [],
+    classAssignments: assignmentResult.classAssignments || [],
+    mergedAssignments: assignmentResult.mergedAssignments || [],
     directCount: assignmentResult.directCount || 0,
     classCount: assignmentResult.classCount || 0,
     locationCount: assignmentResult.locationCount || 0,
-    mergedCount: assignmentResult.mergedCount || assignmentResult.assignmentCount || 0,
-    assignments: assignmentResult.assignments || []
+    mergedCount: assignmentResult.mergedCount || assignmentResult.assignmentCount || 0
   };
 }
 
@@ -28,31 +28,45 @@ export async function getAssignedCourseIds(studentId, studentProfile, contextCou
   var directCourseIds = readDirectCourseIds(studentProfile, contextCourseIds);
   var directIndex = 0;
 
-  if (hasAuthoritativeAssignmentLookup(assignmentResult)) {
-    return assignmentResult;
-  }
-
-  while (directIndex < directCourseIds.length) {
-    addUniqueText(assignmentResult.courseIds, directCourseIds[directIndex]);
-    directIndex = directIndex + 1;
-  }
-
-  if (directCourseIds.length > 0) {
+  if (assignmentResult.courseIds.length === 0 && directCourseIds.length > 0) {
+    while (directIndex < directCourseIds.length) {
+      addUniqueText(assignmentResult.courseIds, directCourseIds[directIndex]);
+      directIndex = directIndex + 1;
+    }
     assignmentResult.source = assignmentResult.source + "+profileCourseIds";
     assignmentResult.queryPaths.push("users/" + (studentProfile && studentProfile.id ? studentProfile.id : "") + ".assignedCourseIds|courseIds|courses|assignedCourses");
   }
+
+  logStudentAssignmentLoadDebug({
+    studentId: readStudentDocumentId(studentId, studentProfile),
+    authUid: readStudentAuthUid(studentId, studentProfile),
+    classId: readFirstClassId(studentProfile),
+    className: readProfileClassName(studentProfile),
+    directAssignments: assignmentResult.directAssignments || [],
+    classAssignments: assignmentResult.classAssignments || [],
+    mergedAssignments: assignmentResult.mergedAssignments || [],
+    courseIds: assignmentResult.courseIds
+  });
 
   return assignmentResult;
 }
 
 async function getAssignedCourseIdsFromAssignments(studentId, studentProfile) {
-  var actor = studentProfile && studentProfile.__actor ? studentProfile.__actor : null;
-  var resolvedStudentId = resolveStudentId(studentProfile, actor) || studentId;
-  var assignmentResult = await getActiveAssignmentsForStudent(Object.assign({}, studentProfile || {}, {
-    id: studentProfile && studentProfile.id ? studentProfile.id : resolvedStudentId,
-    studentId: studentProfile && studentProfile.studentId ? studentProfile.studentId : resolvedStudentId,
-    __actor: actor
-  }));
+  var normalizedProfile = Object.assign({}, studentProfile || {});
+
+  if (!normalizedProfile.id) {
+    normalizedProfile.id = studentId;
+  }
+
+  if (!normalizedProfile.authUid) {
+    normalizedProfile.authUid = studentId;
+  }
+
+  if (!normalizedProfile.uid) {
+    normalizedProfile.uid = studentId;
+  }
+
+  var assignmentResult = await getActiveAssignmentsForStudent(normalizedProfile);
 
   return {
     courseIds: assignmentResult.courseIds,
@@ -61,26 +75,16 @@ async function getAssignedCourseIdsFromAssignments(studentId, studentProfile) {
     warnings: assignmentResult.warnings,
     source: "courseAssignments",
     queryPaths: assignmentResult.queryPaths,
-    queryErrors: assignmentResult.queryErrors,
     rejectionReasons: assignmentResult.rejectionReasons,
+    directAssignments: assignmentResult.directAssignments,
+    classAssignments: assignmentResult.classAssignments,
+    locationAssignments: assignmentResult.locationAssignments,
+    mergedAssignments: assignmentResult.assignments,
     directCount: assignmentResult.directAssignments.length,
     classCount: assignmentResult.classAssignments.length,
     locationCount: assignmentResult.locationAssignments.length,
-    mergedCount: assignmentResult.assignments.length,
-    assignments: assignmentResult.assignments
+    mergedCount: assignmentResult.assignments.length
   };
-}
-
-function hasAuthoritativeAssignmentLookup(assignmentResult) {
-  return Boolean(
-    assignmentResult.courseIds.length > 0
-      || assignmentResult.assignmentCount > 0
-      || assignmentResult.mergedCount > 0
-      || assignmentResult.directCount > 0
-      || assignmentResult.classCount > 0
-      || assignmentResult.locationCount > 0
-      || (Array.isArray(assignmentResult.queryErrors) && assignmentResult.queryErrors.length > 0)
-  );
 }
 
 function readDirectCourseIds(studentProfile, contextCourseIds) {
@@ -93,6 +97,104 @@ function readDirectCourseIds(studentProfile, contextCourseIds) {
   addCourseIdList(courseIds, studentProfile ? studentProfile.assignedCourses : null);
 
   return courseIds;
+}
+
+function logStudentAssignmentLoadDebug(details) {
+  if (!isDevelopmentHost()) {
+    return;
+  }
+
+  console.log("[student-assignment-load]", {
+    studentId: details.studentId,
+    authUid: details.authUid,
+    classId: details.classId,
+    className: details.className,
+    directAssignments: summarizeAssignmentsForDebug(details.directAssignments),
+    classAssignments: summarizeAssignmentsForDebug(details.classAssignments),
+    mergedAssignments: summarizeAssignmentsForDebug(details.mergedAssignments),
+    courseIds: details.courseIds
+  });
+}
+
+function summarizeAssignmentsForDebug(assignments) {
+  var source = Array.isArray(assignments) ? assignments : [];
+  var index = 0;
+  var result = [];
+
+  while (index < source.length) {
+    result.push({
+      id: source[index].id || "",
+      assignmentId: source[index].assignmentId || source[index].id || "",
+      courseAssignmentId: source[index].courseAssignmentId || source[index].id || "",
+      courseId: source[index].courseId || "",
+      targetType: source[index].targetType || "",
+      targetId: source[index].targetId || "",
+      studentId: source[index].studentId || "",
+      classId: source[index].classId || "",
+      status: source[index].status || "",
+      visibility: source[index].visibility || ""
+    });
+    index = index + 1;
+  }
+
+  return result;
+}
+
+function isDevelopmentHost() {
+  if (typeof window === "undefined" || !window.location) {
+    return false;
+  }
+
+  var hostname = window.location.hostname;
+  var search = window.location.search || "";
+
+  return hostname === "localhost"
+    || hostname === "127.0.0.1"
+    || hostname === ""
+    || search.indexOf("debugStudentCourses=1") !== -1
+    || search.indexOf("debug=student-courses") !== -1;
+}
+
+function readStudentDocumentId(studentId, studentProfile) {
+  return readTextValue(studentProfile && (studentProfile.id || studentProfile.studentId || studentProfile.profileUserId)) || readTextValue(studentId);
+}
+
+function readStudentAuthUid(studentId, studentProfile) {
+  return readTextValue(studentProfile && (studentProfile.authUid || studentProfile.uid)) || readTextValue(studentId);
+}
+
+function readFirstClassId(studentProfile) {
+  var classIds = [];
+
+  addUniqueText(classIds, studentProfile ? studentProfile.classId : "");
+  addCourseIdList(classIds, studentProfile ? studentProfile.classIds : null);
+  addCourseIdList(classIds, studentProfile ? studentProfile.assignedClassIds : null);
+  addRecordIdList(classIds, studentProfile ? studentProfile.assignedClasses : null, "class");
+  addRecordIdList(classIds, studentProfile ? studentProfile.classRefs : null, "class");
+  addRecordIdList(classIds, studentProfile ? studentProfile.classes : null, "class");
+
+  return classIds.length > 0 ? classIds[0] : "";
+}
+
+function readProfileClassName(studentProfile) {
+  return readTextValue(studentProfile && (
+    studentProfile.className
+      || studentProfile.classTitle
+      || studentProfile.classCode
+      || studentProfile.code
+      || studentProfile.assignedClassName
+      || studentProfile.homeroomName
+  ));
+}
+
+function addRecordIdList(ids, values, targetType) {
+  var source = Array.isArray(values) ? values : [];
+  var valueIndex = 0;
+
+  while (valueIndex < source.length) {
+    addUniqueText(ids, readRecordId(source[valueIndex], targetType));
+    valueIndex = valueIndex + 1;
+  }
 }
 
 function addCourseIdList(courseIds, values) {
@@ -111,6 +213,18 @@ function readCourseId(value) {
   }
 
   return readTextValue(value.id || value.courseId || value.refId || value.uid);
+}
+
+function readRecordId(value, targetType) {
+  if (!value || typeof value !== "object") {
+    return readTextValue(value);
+  }
+
+  if (targetType === "class") {
+    return readTextValue(value.id || value.classId || value.refId || value.uid);
+  }
+
+  return readTextValue(value.id || value.refId || value.uid);
 }
 
 function addUniqueText(values, value) {

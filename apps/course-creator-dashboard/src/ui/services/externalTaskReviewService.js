@@ -1,6 +1,6 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.152-course-builder-loading-timeout";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.152-course-builder-loading-timeout";
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.152-course-builder-loading-timeout";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.82-shared-command-center-shell";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.82-shared-command-center-shell";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.82-shared-command-center-shell";
 
 export const externalTaskReviewService = {
   loadSubmissions: async function (filters) {

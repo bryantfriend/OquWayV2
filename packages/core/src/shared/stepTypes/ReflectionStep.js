@@ -1,4 +1,5 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.162-modal-stack";
+import { BaseStep } from "./BaseStep.js?v=1.1.82-shared-command-center-shell";
+import { buildSharedActivityCss } from "../../../../../packages/ui/shared/visualHelpers.js?v=1.1.83-student-assignment-load";
 
 export class ReflectionStep extends BaseStep {
   static get type() {
@@ -79,19 +80,47 @@ export class ReflectionStep extends BaseStep {
     var minWords = this.readNumber(config, "minWords", 0);
     var html = "";
 
-    html += '<article class="oqu-player-step oqu-player-reflection">';
-    html += '<h2>Reflection</h2>';
-    html += '<p>' + this.escapeHtml(question) + '</p>';
+    html += buildSharedActivityCss();
+
+    html += '<article class="oqu-player-step oqu-player-reflection oqu-enhanced-card oqu-anim-float" style="max-width: 600px; margin: 0 auto; padding: 32px; animation-duration: 5s;">';
+    
+    html += '<div style="text-align: center; margin-bottom: 32px;">';
+    html += '<div style="display: inline-block; background: var(--soft-purple); color: var(--purple); padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; margin-bottom: 16px;">Reflection</div>';
+    html += '<h2 style="font-size: 1.5rem; color: var(--ink); line-height: 1.4; margin: 0;">' + this.escapeHtml(question) + '</h2>';
+    html += '</div>';
+
     if (responseType === "scale") {
-      html += '<div class="oqu-player-scale"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>';
+      html += '<div class="oqu-player-scale" style="display: flex; justify-content: space-between; gap: 8px; margin-bottom: 32px; background: var(--bg-color); padding: 16px; border-radius: 16px; border: 1px solid var(--line);">';
+      for (let i = 1; i <= 5; i++) {
+        html += '<span style="flex: 1; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background: white; border: 2px solid var(--line); border-radius: 50%; font-weight: 700; color: var(--muted); cursor: pointer; transition: all 0.2s; font-size: 1.2rem;">' + i + '</span>';
+      }
+      html += '</div>';
     } else {
-      html += '<textarea class="oqu-player-text-response" placeholder="Write your reflection"></textarea>';
+      let height = responseType === "longText" ? "150px" : "80px";
+      html += '<textarea class="oqu-player-text-response" placeholder="Write your reflection here..." style="width: 100%; height: ' + height + '; padding: 16px; border-radius: 12px; border: 2px solid var(--line); margin-bottom: 16px; font-family: inherit; font-size: 1rem; color: var(--ink); resize: vertical; transition: border-color 0.2s; box-sizing: border-box;"></textarea>';
     }
+
     if (minWords > 0) {
-      html += '<div class="oqu-player-note">Minimum words: ' + minWords + '</div>';
+      html += '<div class="oqu-player-note" style="text-align: right; font-size: 0.85rem; color: var(--muted); margin-bottom: 24px;">Minimum words: ' + minWords + '</div>';
+    } else if (responseType !== "scale") {
+      html += '<div style="height: 24px;"></div>'; // Spacer
     }
-    html += '<button type="button" class="oqu-player-complete-btn">Complete</button>';
+    
+    html += '<button type="button" class="oqu-player-complete-btn" style="width: 100%; background: var(--blue); color: white; border: none; padding: 14px; border-radius: 8px; font-weight: 600; font-size: 1.1rem; cursor: pointer; transition: background 0.2s, transform 0.2s;">Complete</button>';
     html += '</article>';
+    
+    // Add simple hover effect for scale items
+    if (responseType === "scale") {
+      html += `
+        <style>
+          .oqu-player-scale span:hover {
+            border-color: var(--blue) !important;
+            color: var(--blue) !important;
+            transform: scale(1.1);
+          }
+        </style>
+      `;
+    }
 
     return html;
   }

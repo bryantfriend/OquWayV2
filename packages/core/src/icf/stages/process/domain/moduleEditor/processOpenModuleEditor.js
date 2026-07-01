@@ -1,4 +1,4 @@
-import { createDefaultLearningContent, createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.162-modal-stack";
+import { createDefaultLearningContent, createDefaultLearningModes } from "./learningArchitecture.js?v=1.1.82-shared-command-center-shell";
 
 export async function processOpenModuleEditor(executionState) {
   const context = executionState.context;

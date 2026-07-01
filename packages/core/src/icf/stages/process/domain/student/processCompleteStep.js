@@ -4,14 +4,10 @@ import {
   readPracticeModeStepIds,
   saveStudentPracticeModeProgress
 } from "./studentProgressHelpers.js?v=1.1.82-shared-command-center-shell";
-import { resolveStudentId } from "../../../../../../../domain/users/index.js";
 
 export async function processCompleteStep(executionState) {
   var payload = executionState.payload;
   var actor = executionState.actor;
-  var resolvedActor = Object.assign({}, actor || {}, {
-    id: resolveStudentId(executionState.context ? executionState.context.studentProfile : null, actor) || (actor && actor.id ? actor.id : "")
-  });
   var session = executionState.context.session;
   var modeProgress = readPracticeModeProgress(executionState.context.progress, payload.practiceModeKey);
   var completedStepIds = modeProgress.completedStepIds.slice();
@@ -23,7 +19,7 @@ export async function processCompleteStep(executionState) {
   payload.existingPracticeModeProgress = modeProgress;
 
   try {
-    await saveStudentPracticeModeProgress(resolvedActor, payload, completedStepIds, completed);
+    await saveStudentPracticeModeProgress(actor, payload, completedStepIds, completed);
 
     executionState.result = {
       courseId: payload.courseId,

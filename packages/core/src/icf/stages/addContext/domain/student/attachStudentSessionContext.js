@@ -1,41 +1,39 @@
-import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
 import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.82-shared-command-center-shell";
 import { createDefaultProgressDocument } from "../../../process/domain/student/studentProgressHelpers.js?v=1.1.82-shared-command-center-shell";
-import { resolveStudentId } from "../../../../../../../domain/users/index.js";
 
 export async function attachStudentSessionContext(executionState) {
   var payload = executionState.payload;
   var actor = executionState.actor;
-  var resolvedActor = Object.assign({}, actor || {}, {
-    id: resolveStudentId(executionState.context ? executionState.context.studentProfile : null, actor) || (actor && actor.id ? actor.id : "")
-  });
 
   if (!payload.courseId || !payload.moduleId || !payload.sessionId) {
     return { valid: true };
   }
 
   try {
-    var context = await loadStudentSessionContext(payload);
+    var courseSnap = await getDoc(doc(db, "courses", payload.courseId));
+    var moduleSnap = await getDoc(doc(db, "courses", payload.courseId, "modules", payload.moduleId));
+    var sessionSnap = await getDoc(doc(db, "courses", payload.courseId, "modules", payload.moduleId, "sessions", payload.sessionId));
 
-    if (!context.course) {
+    if (!courseSnap.exists()) {
       return createMissingContextError("STUDENT_COURSE_NOT_FOUND", "Course not found: " + payload.courseId);
     }
 
-    if (!context.module) {
+    if (!moduleSnap.exists()) {
       return createMissingContextError("STUDENT_MODULE_NOT_FOUND", "Module not found: " + payload.moduleId);
     }
 
-    if (!context.session) {
+    if (!sessionSnap.exists()) {
       return createMissingContextError("STUDENT_SESSION_NOT_FOUND", "Session not found: " + payload.sessionId);
     }
 
     return {
       valid: true,
       data: {
-        course: context.course,
-        module: context.module,
-        session: context.session,
-        progress: await readStudentProgress(resolvedActor, payload)
+        course: Object.assign({ id: courseSnap.id }, courseSnap.data()),
+        module: Object.assign({ id: moduleSnap.id }, moduleSnap.data()),
+        session: normalizeSession(sessionSnap.id, sessionSnap.data()),
+        progress: await readStudentProgress(actor, payload)
       }
     };
   } catch (error) {
@@ -51,361 +49,10 @@ export async function attachStudentSessionContext(executionState) {
   }
 }
 
-async function loadStudentSessionContext(payload) {
-  var sources = buildCourseSourceOrder(payload.moduleSource || payload.studentOpenModuleSource || payload.courseRecordSource || payload.source || payload.courseSource);
-  var sourceIndex = 0;
-
-  while (sourceIndex < sources.length) {
-    var context = await readSessionContextFromSource(sources[sourceIndex], payload);
-
-    if (context.course && context.module && context.session) {
-      return context;
-    }
-
-    sourceIndex = sourceIndex + 1;
-  }
-
-  return {
-    course: null,
-    module: null,
-    session: null
-  };
-}
-
-function buildCourseSourceOrder(preferredSource) {
-  var sources = [];
-
-  addCourseSource(sources, preferredSource);
-  addCourseSource(sources, "catalogCourses");
-  addCourseSource(sources, "courses");
-
-  return sources;
-}
-
-function addCourseSource(sources, source) {
-  var safeSource = readText(source);
-
-  if ((safeSource === "courses" || safeSource === "catalogCourses") && sources.indexOf(safeSource) === -1) {
-    sources.push(safeSource);
-  }
-}
-
-async function readSessionContextFromSource(source, payload) {
-  var contentCourseId = readText(payload.moduleCourseId || payload.courseId);
-  var courseSnap = await getDoc(doc(db, source, contentCourseId));
-  var moduleSnap = await getDoc(doc(db, source, contentCourseId, "modules", payload.moduleId));
-  var sessionSnap = null;
-  var module = null;
-
-  if (!courseSnap.exists() || !moduleSnap.exists()) {
-    return {
-      course: courseSnap.exists() ? Object.assign({ id: courseSnap.id }, courseSnap.data()) : null,
-      module: null,
-      session: null
-    };
-  }
-
-  module = Object.assign({ id: moduleSnap.id }, moduleSnap.data());
-  module.learningModes = await loadLearningModes(source, contentCourseId, module.id, module.learningModes);
-  sessionSnap = await getDoc(doc(db, source, contentCourseId, "modules", payload.moduleId, "sessions", payload.sessionId));
-
-  return {
-    course: Object.assign({ id: payload.courseId, moduleCourseId: contentCourseId, contentCourseId: contentCourseId }, courseSnap.data()),
-    module: module,
-    session: hydrateSessionFromLearningModes(
-      module,
-      sessionSnap.exists()
-        ? normalizeSession(sessionSnap.id, sessionSnap.data())
-        : createSessionFromLearningMode(module, payload.sessionId),
-      payload.sessionId
-    )
-  };
-}
-
-async function loadLearningModes(source, courseId, moduleId, embeddedLearningModes) {
-  var modes = embeddedLearningModes && typeof embeddedLearningModes === "object" && !Array.isArray(embeddedLearningModes)
-    ? Object.assign({}, embeddedLearningModes)
-    : {};
-  var modesSnap = await getDocs(collection(db, source, courseId, "modules", moduleId, "learningModes"));
-
-  modesSnap.forEach(function (modeSnap) {
-    modes[modeSnap.id] = Object.assign({ id: modeSnap.id }, modeSnap.data());
-  });
-
-  var modeIds = Object.keys(modes);
-  var modeIndex = 0;
-
-  while (modeIndex < modeIds.length) {
-    modes[modeIds[modeIndex]].steps = sortStepsByStableOrder(
-      await loadLearningModeSteps(source, courseId, moduleId, modeIds[modeIndex], modes[modeIds[modeIndex]].steps),
-      modes[modeIds[modeIndex]].stepOrder
-    );
-    modes[modeIds[modeIndex]].stepOrder = modes[modeIds[modeIndex]].steps.map(function (step) {
-      return step && step.id ? step.id : "";
-    }).filter(Boolean);
-    modes[modeIds[modeIndex]].stepCount = modes[modeIds[modeIndex]].steps.length;
-    modeIndex = modeIndex + 1;
-  }
-
-  return modes;
-}
-
-async function loadLearningModeSteps(source, courseId, moduleId, modeId, embeddedSteps) {
-  var steps = Array.isArray(embeddedSteps) ? embeddedSteps.slice() : [];
-  var stepsSnap = await getDocs(collection(db, source, courseId, "modules", moduleId, "learningModes", modeId, "steps"));
-
-  if (!stepsSnap.empty) {
-    steps = [];
-    stepsSnap.forEach(function (stepSnap) {
-      steps.push(Object.assign({ id: stepSnap.id }, stepSnap.data()));
-    });
-  }
-
-  return steps;
-}
-
-function createSessionFromLearningMode(module, sessionId) {
-  var modes = module && module.learningModes && typeof module.learningModes === "object" ? module.learningModes : {};
-  var modeIds = Object.keys(modes);
-  var modeIndex = 0;
-
-  while (modeIndex < modeIds.length) {
-    var mode = modes[modeIds[modeIndex]];
-    var modeSessionId = readText(mode && (mode.legacySessionId || mode.id || modeIds[modeIndex]));
-
-    if (modeSessionId === sessionId) {
-      return normalizeSession(modeSessionId, {
-        id: modeSessionId,
-        moduleId: module.id,
-        title: mode.title || mode.name || mode.displayName || "Learning mode",
-        learningModeId: readText(mode.id || modeIds[modeIndex]),
-        learningModeType: mode.modeType || "primary",
-        practiceModes: createPracticeModesFromLearningMode(mode, modeIndex),
-        order: readOrder(mode)
-      });
-    }
-
-    modeIndex = modeIndex + 1;
-  }
-
-  return null;
-}
-
-function createPracticeModesFromLearningMode(mode, modeIndex) {
-  var practiceModes = normalizePracticeModes(null);
-  var key = mapLearningModeToPracticeModeKey(mode, modeIndex);
-
-  practiceModes[key] = Object.assign({}, practiceModes[key], {
-    key: key,
-    title: normalizeTitle(mode.title || mode.name || mode.displayName || "Learning mode", practiceModes[key].title),
-    status: mode.status || "ready",
-    enabled: mode.enabled !== false,
-    steps: sortStepsByStableOrder(readPlayableStepsFromLearningMode(mode), mode.stepOrder),
-    order: readOrder(mode)
-  });
-
-  return practiceModes;
-}
-
-function readPlayableStepsFromLearningMode(mode) {
-  var steps = Array.isArray(mode && mode.steps) ? mode.steps.slice() : [];
-
-  if (steps.length > 0) {
-    return steps;
-  }
-
-  return createStepsFromPages(mode && mode.pages)
-    .concat(createStepsFromBlocks(mode && mode.blocks))
-    .concat(createStepsFromTracks(mode && mode.tracks));
-}
-
-function hydrateSessionFromLearningModes(module, session, requestedSessionId) {
-  var modes = module && module.learningModes && typeof module.learningModes === "object" ? module.learningModes : {};
-  var modeIds = Object.keys(modes);
-  var modeIndex = 0;
-
-  if (!session) {
-    return null;
-  }
-
-  while (modeIndex < modeIds.length) {
-    var modeId = modeIds[modeIndex];
-    var mode = modes[modeId];
-
-    if (doesSessionMatchLearningMode(session, requestedSessionId, modeId, mode)) {
-      return hydrateSessionFromLearningMode(module, session, modeId, mode, modeIndex);
-    }
-
-    modeIndex = modeIndex + 1;
-  }
-
-  return session;
-}
-
-function hydrateSessionFromLearningMode(module, session, modeId, mode, modeIndex) {
-  var practiceModes = normalizePracticeModes(session.practiceModes);
-  var key = mapLearningModeToPracticeModeKey(mode, modeIndex);
-  var currentMode = practiceModes[key] || {};
-  var title = mode.title || mode.name || mode.displayName || "Learning mode";
-
-  practiceModes[key] = Object.assign({}, currentMode, {
-    key: key,
-    title: normalizeTitle(title, currentMode.title),
-    status: mode.status || currentMode.status || "ready",
-    enabled: mode.enabled !== false,
-    steps: sortStepsByStableOrder(readPlayableStepsFromLearningMode(mode), mode.stepOrder),
-    order: readOrder(mode)
-  });
-
-  return normalizeSession(session.id || requestedLearningModeSessionId(mode, modeId), Object.assign({}, session, {
-    moduleId: module.id,
-    title: normalizeTitle(title, session.title),
-    learningModeId: modeId,
-    learningModeType: mode.modeType || session.learningModeType || "primary",
-    practiceModes: practiceModes,
-    order: readOrder(mode)
-  }));
-}
-
-function doesSessionMatchLearningMode(session, requestedSessionId, modeId, mode) {
-  var modeSessionId = requestedLearningModeSessionId(mode, modeId);
-
-  return Boolean(
-    (modeSessionId && requestedSessionId === modeSessionId)
-      || (modeSessionId && session && session.id === modeSessionId)
-      || (session && session.learningModeId === modeId)
-  );
-}
-
-function requestedLearningModeSessionId(mode, modeId) {
-  return readText(mode && (mode.legacySessionId || mode.id || modeId));
-}
-
-function sortStepsByStableOrder(steps, stepOrder) {
-  var safeSteps = Array.isArray(steps) ? steps.slice() : [];
-  var order = Array.isArray(stepOrder) ? stepOrder : [];
-  var orderIndexByStepId = {};
-
-  order.forEach(function (stepId, index) {
-    if (typeof stepId === "string" && stepId.length > 0) {
-      orderIndexByStepId[stepId] = index;
-    }
-  });
-
-  safeSteps.sort(function (firstStep, secondStep) {
-    var firstId = firstStep && firstStep.id ? firstStep.id : "";
-    var secondId = secondStep && secondStep.id ? secondStep.id : "";
-    var firstHasOrder = Object.prototype.hasOwnProperty.call(orderIndexByStepId, firstId);
-    var secondHasOrder = Object.prototype.hasOwnProperty.call(orderIndexByStepId, secondId);
-
-    if (firstHasOrder && secondHasOrder) {
-      return orderIndexByStepId[firstId] - orderIndexByStepId[secondId];
-    }
-
-    if (firstHasOrder) {
-      return -1;
-    }
-
-    if (secondHasOrder) {
-      return 1;
-    }
-
-    return readOrder(firstStep) - readOrder(secondStep);
-  });
-
-  return safeSteps;
-}
-
-function createStepsFromTracks(tracks) {
-  var source = Array.isArray(tracks) ? tracks : [];
-  var steps = [];
-  var trackIndex = 0;
-
-  while (trackIndex < source.length) {
-    steps = steps.concat(createStepsFromPages(source[trackIndex] ? source[trackIndex].pages : null));
-    steps = steps.concat(createStepsFromBlocks(source[trackIndex] ? source[trackIndex].blocks : null));
-    trackIndex = trackIndex + 1;
-  }
-
-  return steps;
-}
-
-function createStepsFromPages(pages) {
-  var source = Array.isArray(pages) ? pages : [];
-  var steps = [];
-  var pageIndex = 0;
-
-  while (pageIndex < source.length) {
-    steps = steps.concat(createStepsFromBlocks(source[pageIndex] ? source[pageIndex].blocks : null));
-    pageIndex = pageIndex + 1;
-  }
-
-  return steps;
-}
-
-function createStepsFromBlocks(blocks) {
-  var source = Array.isArray(blocks) ? blocks : [];
-  var steps = [];
-  var blockIndex = 0;
-
-  while (blockIndex < source.length) {
-    var block = source[blockIndex] && typeof source[blockIndex] === "object" ? source[blockIndex] : {};
-    steps.push(Object.assign({}, block, {
-      id: readText(block.id || block.blockId || block.stepId) || "block-step-" + (blockIndex + 1),
-      type: readText(block.type || block.blockType || block.stepType) || "text",
-      order: typeof block.order === "number" ? block.order : blockIndex + 1,
-      title: block.title || block.prompt || block.question || "Learning activity"
-    }));
-    blockIndex = blockIndex + 1;
-  }
-
-  return steps;
-}
-
 function normalizeSession(sessionId, sessionData) {
   var session = Object.assign({ id: sessionId }, sessionData);
   session.practiceModes = normalizePracticeModes(session.practiceModes);
   return session;
-}
-
-function mapLearningModeToPracticeModeKey(mode, modeIndex) {
-  if (mode && mode.practiceModeKey) {
-    return mode.practiceModeKey;
-  }
-
-  if (mode && mode.modeType === "review") {
-    return "afterClass";
-  }
-
-  if (mode && mode.modeType === "practice") {
-    return "dailyPractice";
-  }
-
-  if (mode && mode.modeType === "assessment") {
-    return "classroomLesson";
-  }
-
-  return modeIndex === 0 ? "beforeClass" : "classroomLesson";
-}
-
-function normalizeTitle(value, fallbackTitle) {
-  if (typeof value === "string") {
-    return {
-      en: value,
-      ru: "",
-      ky: ""
-    };
-  }
-
-  if (value && typeof value === "object" && !Array.isArray(value)) {
-    return Object.assign({}, fallbackTitle || {}, value);
-  }
-
-  return fallbackTitle;
-}
-
-function readOrder(value) {
-  return value && typeof value.order === "number" ? value.order : 9999;
 }
 
 async function readStudentProgress(actor, payload) {
@@ -414,8 +61,7 @@ async function readStudentProgress(actor, payload) {
   }
 
   try {
-    var progressCourseId = readText(payload.progressCourseId || payload.courseId);
-    var progressRef = doc(db, "studentProgress", actor.id, "courses", progressCourseId, "sessions", payload.sessionId);
+    var progressRef = doc(db, "studentProgress", actor.id, "courses", payload.courseId, "sessions", payload.sessionId);
     var progressSnap = await getDoc(progressRef);
 
     if (!progressSnap.exists()) {

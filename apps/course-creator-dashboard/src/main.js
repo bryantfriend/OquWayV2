@@ -1,14 +1,12 @@
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.216-author-preview-layout";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.160-lesson-paths";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.82-shared-command-center-shell";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.154-emotional-check-in-prototype";
-import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.216-author-preview-layout";
-import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.193-step-library";
-import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.154-emotional-check-in-prototype";
-import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.201-course-creator-stability-followup";
-import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.154-emotional-check-in-prototype";
+import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.82-shared-command-center-shell";
+import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.82-shared-command-center-shell";
+import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.82-shared-command-center-shell";
+import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.82-shared-command-center-shell";
+import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.82-shared-command-center-shell";
+import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.82-shared-command-center-shell";
 
-console.log("[oquway-build]", OQUWAY_BUILD_VERSION);
 console.warn("[course-creator-build-check] latest build active");
 
 let appInitialized = false;
@@ -70,21 +68,7 @@ onAuthStateChanged(auth, async function (user) {
         return;
     }
 
-    showAppLoading("Checking staff access...", "Verifying your Course Builder workspace.");
-
-    const access = await withTimeout(
-        verifyCourseCreatorAccess(user, { source: "app-shell" }),
-        20000,
-        "Course Creator access check timed out. Refresh and try again."
-    ).catch(function (error) {
-        showAppError("Course Builder could not verify your access.", error.message);
-        return { allowed: false, role: "", timedOut: true };
-    });
-
-    if (access.timedOut) {
-        return;
-    }
-
+    const access = await verifyCourseCreatorAccess(user, { source: "app-shell" });
     if (!access.allowed) {
         await routeUnauthorizedUser(access.role);
         return;
@@ -122,65 +106,4 @@ async function routeUnauthorizedUser(role) {
     }
 
     window.location.href = "./login.html";
-}
-
-function showAppLoading(title, note) {
-    const appContainer = document.getElementById("app");
-
-    if (!appContainer) {
-        return;
-    }
-
-    appContainer.innerHTML = '<section class="course-builder-boot" role="status" aria-live="polite">'
-        + '<div class="course-builder-boot-card">'
-        + '<div class="course-builder-boot-orbit" aria-hidden="true"><span><i class="fa-solid fa-wand-magic-sparkles"></i></span><i></i><b></b></div>'
-        + '<p>Course Builder launch pad</p>'
-        + '<h1>' + escapeHtml(title || "Loading Course Builder...") + '</h1>'
-        + '<small>' + escapeHtml(note || "Gathering catalog, modules, and lesson tools.") + '</small>'
-        + '<div class="course-builder-boot-steps" aria-hidden="true"><span></span><span></span><span></span></div>'
-        + '</div>'
-        + '</section>';
-}
-
-function showAppError(title, note) {
-    const appContainer = document.getElementById("app");
-
-    if (!appContainer) {
-        return;
-    }
-
-    appContainer.innerHTML = '<section class="course-builder-boot course-builder-boot-error">'
-        + '<div class="course-builder-boot-card">'
-        + '<div class="course-builder-boot-orbit" aria-hidden="true"><span><i class="fa-solid fa-triangle-exclamation"></i></span></div>'
-        + '<p>Course Builder needs attention</p>'
-        + '<h1>' + escapeHtml(title || "Could not load Course Builder") + '</h1>'
-        + '<small>' + escapeHtml(note || "Refresh and try again.") + '</small>'
-        + '<button type="button" onclick="window.location.reload()">Refresh</button>'
-        + '</div>'
-        + '</section>';
-}
-
-function withTimeout(promise, timeoutMs, message) {
-    return new Promise(function (resolve, reject) {
-        const timerId = window.setTimeout(function () {
-            reject(new Error(message || "Request timed out."));
-        }, timeoutMs);
-
-        promise.then(function (value) {
-            window.clearTimeout(timerId);
-            resolve(value);
-        }).catch(function (error) {
-            window.clearTimeout(timerId);
-            reject(error);
-        });
-    });
-}
-
-function escapeHtml(value) {
-    return String(value == null ? "" : value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
 }

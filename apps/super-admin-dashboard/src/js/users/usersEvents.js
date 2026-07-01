@@ -1,4 +1,4 @@
-import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.162-modal-stack";
+import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.82-shared-command-center-shell";
 
 export function bindUsersEvents(rootElement, handlers) {
   rootElement.addEventListener("click", function (event) {
@@ -27,20 +27,6 @@ export async function routeUsersAction(action, id, handlers) {
 
   if (action === "reset-fruit-user") {
     return runAdminIntent("ResetFruitPasswordIntent", { userId: id }, handlers.context);
-  }
-
-  if (action === "edit-user") {
-    if (typeof handlers.onViewUser === "function") {
-      handlers.onViewUser(id);
-    }
-    return runAdminIntent("GetUserIntent", { userId: id }, handlers.context);
-  }
-
-  if (action === "open-user-edit-modal") {
-    if (typeof handlers.onEditUser === "function") {
-      handlers.onEditUser(id);
-    }
-    return runAdminIntent("GetUserIntent", { userId: id }, handlers.context);
   }
 
   if (action === "disable-user") {

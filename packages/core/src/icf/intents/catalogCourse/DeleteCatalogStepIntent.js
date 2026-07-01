@@ -1,11 +1,11 @@
-import { catalogCourseRequireStepIdValidation } from "../../stages/validate/validators.js?v=1.1.162-modal-stack";
-import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
-import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
-import { attachExistingStepContext } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
-import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.162-modal-stack";
-import { preventModificationIfPublishedAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.162-modal-stack";
-import { catalogStepDeleteProcessing } from "../../stages/process/processors.js?v=1.1.162-modal-stack";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.162-modal-stack";
+import { catalogCourseRequireStepIdValidation } from "../../stages/validate/validators.js?v=1.1.82-shared-command-center-shell";
+import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
+import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
+import { attachExistingStepContext } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
+import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.82-shared-command-center-shell";
+import { preventModificationIfPublishedAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.82-shared-command-center-shell";
+import { catalogStepDeleteProcessing } from "../../stages/process/processors.js?v=1.1.82-shared-command-center-shell";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.82-shared-command-center-shell";
 
 export function DeleteCatalogStepIntent() {
     return {
@@ -26,7 +26,7 @@ export function DeleteCatalogStepIntent() {
         ],
         process: [
             catalogStepDeleteProcessing
-        ],
+        ],
         emit: [
             emitIntentResult
         ]

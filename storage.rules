@@ -45,24 +45,13 @@ service firebase.storage {
       );
     }
 
-    function isSuperAdmin() { return hasAnyRole('superAdmin', 'ROLE_SUPER_ADMIN') || profileHasAnyRole('superAdmin', 'ROLE_SUPER_ADMIN'); }
-    function isPlatformAdmin() { return hasAnyRole('platformAdmin', 'ROLE_PLATFORM_ADMIN') || profileHasAnyRole('platformAdmin', 'ROLE_PLATFORM_ADMIN'); }
-    function isSchoolAdmin() { return hasAnyRole('schoolAdmin', 'ROLE_SCHOOL_ADMIN') || profileHasAnyRole('schoolAdmin', 'ROLE_SCHOOL_ADMIN'); }
+    function isSuperAdmin() { return hasAnyRole('superAdmin', 'ROLE_SUPER_ADMIN'); }
+    function isPlatformAdmin() { return hasAnyRole('platformAdmin', 'ROLE_PLATFORM_ADMIN'); }
+    function isSchoolAdmin() { return hasAnyRole('schoolAdmin', 'ROLE_SCHOOL_ADMIN'); }
     function isCourseCreator() { return hasAnyRole('courseCreator', 'ROLE_COURSE_CREATOR') || profileHasAnyRole('courseCreator', 'ROLE_COURSE_CREATOR'); }
     function isAssistant() { return hasAnyRole('assistant', 'ROLE_ASSISTANT') || profileHasAnyRole('assistant', 'ROLE_ASSISTANT'); }
     function isTeacher() { return hasAnyRole('teacher', 'ROLE_TEACHER') || profileHasAnyRole('teacher', 'ROLE_TEACHER'); }
-    function hasStudentToken() {
-      return request.auth != null && request.auth.token.studentId is string;
-    }
-    function isSameStudent(studentId) {
-      return request.auth != null
-        && studentId is string
-        && (
-          request.auth.uid == studentId ||
-          (request.auth.token.studentId is string && request.auth.token.studentId == studentId)
-        );
-    }
-    function isStudent() { return hasAnyRole('student', 'ROLE_STUDENT') || hasStudentToken() || profileHasAnyRole('student', 'ROLE_STUDENT'); }
+    function isStudent() { return hasAnyRole('student', 'ROLE_STUDENT') || profileHasAnyRole('student', 'ROLE_STUDENT'); }
     function isReviewer() { return isTeacher() || isCourseCreator() || isAssistant() || isSchoolAdmin() || isPlatformAdmin() || isSuperAdmin(); }
 
     function isAllowedExternalTaskFile() {
@@ -92,112 +81,7 @@ service firebase.storage {
         );
     }
 
-    function isAllowedStepMediaAudio() {
-      return request.resource.size <= 10 * 1024 * 1024
-        && (
-          request.resource.contentType == 'audio/mpeg' ||
-          request.resource.contentType == 'audio/mp3' ||
-          request.resource.contentType == 'audio/wav' ||
-          request.resource.contentType == 'audio/ogg' ||
-          request.resource.contentType == 'audio/webm' ||
-          request.resource.contentType == 'audio/mp4'
-        );
-    }
-
-    function isAllowedStepMediaFile() {
-      return isAllowedStepMediaImage() || isAllowedStepMediaAudio();
-    }
-
-    function catalogCourseDoc(courseId) {
-      return firestore.exists(/databases/(default)/documents/catalogCourses/$(courseId))
-        ? firestore.get(/databases/(default)/documents/catalogCourses/$(courseId))
-        : null;
-    }
-
-    function legacyCourseDoc(courseId) {
-      return firestore.exists(/databases/(default)/documents/courses/$(courseId))
-        ? firestore.get(/databases/(default)/documents/courses/$(courseId))
-        : null;
-    }
-
-    function courseAllowsEditor(courseDoc) {
-      return courseDoc != null && (
-        courseDoc.data.createdBy == request.auth.uid ||
-        courseDoc.data.ownerId == request.auth.uid ||
-        courseDoc.data.updatedBy == request.auth.uid ||
-        (courseDoc.data.editorIds is list && request.auth.uid in courseDoc.data.editorIds) ||
-        (courseDoc.data.courseCreatorIds is list && request.auth.uid in courseDoc.data.courseCreatorIds) ||
-        (courseDoc.data.assistantIds is list && request.auth.uid in courseDoc.data.assistantIds)
-      );
-    }
-
-    function canEditCourseMedia(courseId) {
-      return isSchoolAdmin() ||
-        isPlatformAdmin() ||
-        isSuperAdmin() ||
-        courseAllowsEditor(catalogCourseDoc(courseId)) ||
-        courseAllowsEditor(legacyCourseDoc(courseId));
-    }
-
-    function canWriteStepMedia(courseId) {
-      return request.auth != null
-        && (isCourseCreator() || isAssistant() || isSchoolAdmin() || isPlatformAdmin() || isSuperAdmin())
-        && canEditCourseMedia(courseId);
-    }
-
-    function courseIsPublished(courseDoc) {
-      return courseDoc != null && (
-        courseDoc.data.status == "published" ||
-        courseDoc.data.isPublished == true ||
-        courseDoc.data.published == true
-      );
-    }
-
-    function canReadPublishedCourseMedia(courseId) {
-      return isStudent() && (
-        courseIsPublished(catalogCourseDoc(courseId)) ||
-        courseIsPublished(legacyCourseDoc(courseId))
-      );
-    }
-
-    function canReadStepMedia(courseId) {
-      return request.auth != null && (
-        canWriteStepMedia(courseId) ||
-        canEditCourseMedia(courseId) ||
-        isReviewer() ||
-        isTeacher() ||
-        canReadPublishedCourseMedia(courseId)
-      );
-    }
-
-    function isAllowedLocationIcon() {
-      return request.resource.size <= 2 * 1024 * 1024
-        && (
-          request.resource.contentType == 'image/png' ||
-          request.resource.contentType == 'image/jpeg' ||
-          request.resource.contentType == 'image/webp'
-        );
-    }
-
-    function isAllowedCourseBuilderIcon() {
-      return request.resource.size <= 5 * 1024 * 1024
-        && (
-          request.resource.contentType == 'image/png' ||
-          request.resource.contentType == 'image/jpeg' ||
-          request.resource.contentType == 'image/jpg' ||
-          request.resource.contentType == 'image/webp'
-        );
-    }
-
-    function canWriteLocationIcon() {
-      return request.auth != null && (
-        isSchoolAdmin() ||
-        isPlatformAdmin() ||
-        isSuperAdmin()
-      );
-    }
-
-    function canWriteCourseBuilderIcon() {
+    function canWriteStepMedia() {
       return request.auth != null && (
         isCourseCreator() ||
         isAssistant() ||
@@ -209,12 +93,12 @@ service firebase.storage {
 
     match /external-task-submissions/{courseId}/{moduleId}/{stepId}/{studentId}/{submissionId}/{fileName} {
       allow create: if request.auth != null
-        && isSameStudent(studentId)
+        && request.auth.uid == studentId
         && isStudent()
         && isAllowedExternalTaskFile();
 
       allow read: if request.auth != null && (
-        isSameStudent(studentId) ||
+        request.auth.uid == studentId ||
         isReviewer()
       );
 
@@ -222,39 +106,29 @@ service firebase.storage {
     }
 
     match /step-media/{courseId}/{moduleId}/{modeId}/{stepId}/{fileName} {
-      allow read: if canReadStepMedia(courseId);
+      allow read: if request.auth != null && (
+        isStudent() ||
+        isTeacher() ||
+        isCourseCreator() ||
+        isAssistant() ||
+        isSchoolAdmin() ||
+        isPlatformAdmin() ||
+        isSuperAdmin()
+      );
 
-      allow create, update: if canWriteStepMedia(courseId)
-        && isAllowedStepMediaFile();
+      allow create, update: if canWriteStepMedia()
+        && isAllowedStepMediaImage();
 
-      allow delete: if canWriteStepMedia(courseId);
-    }
-
-    match /location-icons/{locationId}/{fileName} {
-      allow read: if true;
-
-      allow create, update: if canWriteLocationIcon()
-        && isAllowedLocationIcon();
-
-      allow delete: if canWriteLocationIcon();
+      allow delete: if canWriteStepMedia();
     }
 
     match /course-icons/{courseId}/{fileName} {
-      allow read: if true;
+      allow read: if request.auth != null;
 
-      allow create, update: if canWriteCourseBuilderIcon()
-        && isAllowedCourseBuilderIcon();
+      allow create, update: if canWriteStepMedia()
+        && isAllowedStepMediaImage();
 
-      allow delete: if canWriteCourseBuilderIcon();
-    }
-
-    match /module-icons/{courseId}/{moduleId}/{fileName} {
-      allow read: if true;
-
-      allow create, update: if canWriteCourseBuilderIcon()
-        && isAllowedCourseBuilderIcon();
-
-      allow delete: if canWriteCourseBuilderIcon();
+      allow delete: if canWriteStepMedia();
     }
 
     match /{allPaths=**} {

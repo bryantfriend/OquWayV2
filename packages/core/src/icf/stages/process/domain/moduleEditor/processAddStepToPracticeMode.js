@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
-import { addStepToPracticeMode } from "./practiceModeShells.js?v=1.1.162-modal-stack";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
+import { addStepToPracticeMode } from "./practiceModeShells.js?v=1.1.82-shared-command-center-shell";
 
 export async function processAddStepToPracticeMode(executionState) {
   var payload = executionState.payload;

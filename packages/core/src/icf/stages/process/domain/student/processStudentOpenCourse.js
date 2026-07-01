@@ -1,33 +1,26 @@
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.213-emotional-checkin-owner";
-import { getAssignedCourseIds, validateStudentCourseOpen } from "../../../../../../../domain/courses/index.js?v=1.1.213-emotional-checkin-owner";
-import { resolveStudentId } from "../../../../../../../domain/users/index.js";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.82-shared-command-center-shell";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.83-student-assignment-load";
 
 export async function processStudentOpenCourse(executionState) {
   var payload = executionState.payload || {};
   var courseId = readText(payload.courseId);
-  var studentId = resolveStudentId(executionState.context.studentProfile, executionState.actor) || readText(payload.studentId || (executionState.actor ? executionState.actor.id : ""));
+  var studentId = readText(payload.studentId || (executionState.actor ? executionState.actor.id : ""));
   var courses = Array.isArray(executionState.context.studentOpenCourses) ? executionState.context.studentOpenCourses : [];
-  var profileWithActor = Object.assign({}, executionState.context.studentProfile || {}, {
-    __actor: Object.assign({}, executionState.actor || {}, { id: studentId })
-  });
-  var assignmentResult = await waitForStudentCourseOpenRead(
-    getAssignedCourseIds(studentId, profileWithActor),
-    "student course assignment lookup"
-  );
-  var assignmentId = assignmentResult.assignmentIdByCourseId[courseId] || readText(payload.assignmentId || payload.courseAssignmentId);
+  var assignmentResult = await getAssignedCourseIds(studentId, executionState.context.studentProfile);
+  var assignmentId = assignmentResult.assignmentIdByCourseId[courseId] || "";
   var isAssignedCourse = assignmentResult.courseIds.indexOf(courseId) !== -1;
   var course = executionState.context.studentOpenCourse || findCourseById(courses, courseId);
-  var requireAssignment = !isPreviewActor(executionState.actor);
 
-  if (!course || (!isAssignedCourse && requireAssignment)) {
-    return finishCourseOpenValidation(executionState, {
-      course: course,
-      modules: [],
-      assignmentId: assignmentId,
-      courseId: courseId,
-      studentId: studentId,
-      validation: createCourseOpenValidation("courseUnavailable", "This course is not available right now.", "Course is missing or not assigned.")
-    });
+  if (!course || (!isAssignedCourse && !isPreviewActor(executionState.actor))) {
+    return {
+      valid: false,
+      errors: [
+        {
+          code: "STUDENT_COURSE_NOT_ASSIGNED",
+          message: "This course is not assigned to this student."
+        }
+      ]
+    };
   }
 
   course = attachAssignmentId(course, assignmentId);
@@ -41,30 +34,8 @@ export async function processStudentOpenCourse(executionState) {
   }
 
   var modules = Array.isArray(course.modules) ? course.modules : [];
-  var validation = validateStudentCourseOpen(course, {
-    assignmentId: assignmentId || course.assignmentId || course.courseAssignmentId,
-    requireAssignment: requireAssignment
-  });
-  var openTarget = validation.openTarget || await selectCourseOpenTarget(executionState, course);
-  var hasActivity = validation.playable === true && hasOpenableActivity(course, openTarget);
-
-  if (!validation.playable) {
-    if (validation.code === "moduleMissing") {
-      executionState.warnings.push({
-        code: "STUDENT_COURSE_MODULE_MISSING",
-        message: "Some course content could not be loaded for course " + courseId + "."
-      });
-    }
-
-    return finishCourseOpenValidation(executionState, {
-      course: course,
-      modules: modules,
-      assignmentId: assignmentId,
-      courseId: courseId,
-      studentId: studentId,
-      validation: validation
-    });
-  }
+  var openTarget = await selectCourseOpenTarget(executionState, course);
+  var hasActivity = hasOpenableActivity(course, openTarget);
 
   if (modules.length === 0) {
     openTarget = createEmptyCourseTarget(course);
@@ -72,25 +43,16 @@ export async function processStudentOpenCourse(executionState) {
     openTarget = createModuleOnlyTarget(course, modules[0]);
   }
 
-  logCourseOpenTiming(executionState, {
-    studentIdPresent: Boolean(studentId),
+  console.info("[student-course:open]", {
+    studentId: studentId,
     courseId: courseId,
-    assignmentIdPresent: Boolean(course.assignmentId),
+    assignmentId: course.assignmentId || "",
     assignmentSource: assignmentId ? assignmentResult.source : "legacy-profile-course",
     moduleCount: modules.length,
     selectedModuleId: openTarget.moduleId,
     selectedSessionId: openTarget.sessionId,
     selectedPracticeModeKey: openTarget.practiceModeKey,
     hasActivity: hasActivity
-  });
-
-  logCourseOpenDebug(executionState, {
-    courseId: courseId,
-    assignmentId: course.assignmentId || "",
-    moduleCount: modules.length,
-    playableModuleCount: validation.playableModuleCount || 0,
-    validationResult: validation.validationResult,
-    error: ""
   });
 
   executionState.result = {
@@ -101,42 +63,10 @@ export async function processStudentOpenCourse(executionState) {
     openTarget: openTarget,
     hasModules: modules.length > 0,
     hasActivity: hasActivity,
-    courseOpenState: null,
-    emptyCourseState: null,
-    validationResult: validation.validationResult
-  };
-
-  return {
-    valid: true,
-    data: executionState.result
-  };
-}
-
-function finishCourseOpenValidation(executionState, details) {
-  var validation = details.validation || createCourseOpenValidation("unexpectedError", "Something went wrong while loading this course.", "Please try again or contact your teacher.");
-  var modules = Array.isArray(details.modules) ? details.modules : [];
-  var course = details.course ? attachAssignmentId(details.course, details.assignmentId) : null;
-
-  logCourseOpenDebug(executionState, {
-    courseId: details.courseId,
-    assignmentId: details.assignmentId || "",
-    moduleCount: modules.length,
-    playableModuleCount: validation.playableModuleCount || 0,
-    validationResult: validation.validationResult || validation.code,
-    error: validation.message || validation.title || ""
-  });
-
-  executionState.result = {
-    student: executionState.context.studentProfile,
-    course: course,
-    courses: course ? [course] : [],
-    modules: modules,
-    openTarget: createEmptyCourseTarget(course || { id: details.courseId }),
-    hasModules: modules.length > 0,
-    hasActivity: false,
-    validationResult: validation.validationResult || validation.code,
-    courseOpenState: createStudentCourseOpenState(validation),
-    emptyCourseState: createStudentCourseOpenState(validation)
+    emptyCourseState: modules.length === 0 ? {
+      type: "noModules",
+      message: "Your course is assigned, but no modules are ready yet."
+    } : null
   };
 
   return {
@@ -194,59 +124,6 @@ function hasOpenableActivity(course, openTarget) {
   var practiceMode = session && session.practiceModes ? session.practiceModes[practiceModeKey] : null;
 
   return Boolean(practiceMode && Array.isArray(practiceMode.steps) && practiceMode.steps.length > 0);
-}
-
-function createStudentCourseOpenState(validation) {
-  return {
-    type: validation.code || validation.validationResult || "unexpectedError",
-    title: validation.title || "Something went wrong while loading this course.",
-    message: validation.message || "Please try again or contact your teacher.",
-    primaryActionLabel: "Return to Dashboard",
-    secondaryActionLabel: "Refresh"
-  };
-}
-
-function createCourseOpenValidation(code, title, message) {
-  return {
-    code: code,
-    validationResult: code,
-    playable: false,
-    title: title,
-    message: message
-  };
-}
-
-function logCourseOpenDebug(executionState, details) {
-  if (!executionState || !executionState.payload || executionState.payload.debug !== true) {
-    return;
-  }
-
-  console.log("[course-open-debug]", {
-    courseId: details.courseId || "",
-    assignmentId: details.assignmentId || "",
-    moduleCount: details.moduleCount || 0,
-    playableModuleCount: details.playableModuleCount || 0,
-    validationResult: details.validationResult || "",
-    error: details.error || ""
-  });
-}
-
-function logCourseOpenTiming(executionState, details) {
-  if (!shouldLogCourseOpenTiming(executionState)) {
-    return;
-  }
-
-  console.info("[student-course:open]", details || {});
-}
-
-function shouldLogCourseOpenTiming(executionState) {
-  return Boolean(executionState && executionState.payload && executionState.payload.debug === true) || isDevelopmentHost();
-}
-
-function isDevelopmentHost() {
-  return typeof window !== "undefined"
-    && window.location
-    && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.hostname === "");
 }
 
 function findCourseById(courses, courseId) {
@@ -319,38 +196,4 @@ function createModuleOnlyTarget(course, module) {
 
 function readText(value) {
   return typeof value === "string" ? value : "";
-}
-
-function waitForStudentCourseOpenRead(promise, label) {
-  var timeoutMs = 12000;
-
-  return new Promise(function (resolve, reject) {
-    var settled = false;
-    var timer = setTimeout(function () {
-      if (settled) {
-        return;
-      }
-
-      settled = true;
-      reject(new Error(label + " timed out."));
-    }, timeoutMs);
-
-    Promise.resolve(promise).then(function (value) {
-      if (settled) {
-        return;
-      }
-
-      settled = true;
-      clearTimeout(timer);
-      resolve(value);
-    }).catch(function (error) {
-      if (settled) {
-        return;
-      }
-
-      settled = true;
-      clearTimeout(timer);
-      reject(error);
-    });
-  });
 }

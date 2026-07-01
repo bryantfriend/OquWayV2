@@ -1,23 +1,9 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.152-course-builder-loading-timeout";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.152-course-builder-loading-timeout";
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.152-course-builder-loading-timeout";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.82-shared-command-center-shell";
+import { collection, db, getDocs, query, where } from "../../../../../packages/firebase/firestore/index.js?v=1.1.82-shared-command-center-shell";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.82-shared-command-center-shell";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.82-shared-command-center-shell";
 
 export const courseAssignmentService = {
-  listAssignableTargets: async function () {
-    var results = await Promise.allSettled([
-      runCourseAssignmentIntent("ListClassesIntent", {}),
-      runCourseAssignmentIntent("ListStudentsIntent", {}),
-      runCourseAssignmentIntent("ListLocationsIntent", {})
-    ]);
-
-    return {
-      classes: readListResult(results[0], "classes"),
-      students: readListResult(results[1], "students"),
-      locations: readListResult(results[2], "locations"),
-      warnings: readListWarnings(results)
-    };
-  },
-
   createCourseAssignment: async function (courseId, targetType, targetId, status) {
     var result = await runCourseAssignmentIntent("CreateCourseAssignmentIntent", {
       courseId: courseId,
@@ -65,8 +51,84 @@ export const courseAssignmentService = {
     });
 
     return readIntentDataOrThrow(result);
+  },
+
+  listAssignableTargets: async function () {
+    var result = {
+      classes: [],
+      students: [],
+      locations: [],
+      warnings: []
+    };
+
+    await appendReadableCollectionTargets(result, "classes", "classes", readClassTarget);
+    await appendReadableCollectionTargets(result, "locations", "locations", readLocationTarget);
+    await appendReadableStudentTargets(result);
+    return result;
   }
 };
+
+async function appendReadableCollectionTargets(result, resultKey, collectionName, mapper) {
+  try {
+    var snapshot = await getDocs(collection(db, collectionName));
+
+    snapshot.forEach(function (docSnap) {
+      result[resultKey].push(mapper(docSnap.id, docSnap.data()));
+    });
+  } catch (error) {
+    result.warnings.push("Could not load " + resultKey + ": " + error.message);
+  }
+}
+
+async function appendReadableStudentTargets(result) {
+  try {
+    var snapshot = await getDocs(query(collection(db, "users"), where("role", "==", "student")));
+
+    snapshot.forEach(function (docSnap) {
+      result.students.push(readStudentTarget(docSnap.id, docSnap.data()));
+    });
+  } catch (error) {
+    result.warnings.push("Could not load students: " + error.message);
+  }
+}
+
+function readClassTarget(id, data) {
+  return {
+    id: id,
+    label: readTargetLabel(data, ["name", "className", "title"], "Class " + id),
+    detail: readTargetLabel(data, ["locationName", "grade", "level"], "")
+  };
+}
+
+function readLocationTarget(id, data) {
+  return {
+    id: id,
+    label: readTargetLabel(data, ["name", "locationName", "title"], "Location " + id),
+    detail: readTargetLabel(data, ["city", "region", "country"], "")
+  };
+}
+
+function readStudentTarget(id, data) {
+  return {
+    id: id,
+    label: readTargetLabel(data, ["displayName", "name", "fullName", "studentName"], "Student " + id),
+    detail: readTargetLabel(data, ["className", "locationName", "email"], "")
+  };
+}
+
+function readTargetLabel(data, keys, fallback) {
+  var index = 0;
+
+  while (index < keys.length) {
+    if (data && typeof data[keys[index]] === "string" && data[keys[index]].trim()) {
+      return data[keys[index]].trim();
+    }
+
+    index = index + 1;
+  }
+
+  return fallback;
+}
 
 async function runCourseAssignmentIntent(intentType, payload) {
   return runIntentPipeline(getIntentDefinition(intentType), {
@@ -96,42 +158,6 @@ function readIntentDataOrThrow(result) {
   }
 
   throw new Error(readIntentErrorMessage(result));
-}
-
-function readListResult(settledResult, key) {
-  if (!settledResult || settledResult.status !== "fulfilled") {
-    return [];
-  }
-
-  try {
-    var data = readIntentDataOrThrow(settledResult.value);
-    return data && Array.isArray(data[key]) ? data[key] : [];
-  } catch (error) {
-    return [];
-  }
-}
-
-function readListWarnings(results) {
-  var warnings = [];
-
-  results.forEach(function (settledResult) {
-    if (!settledResult) {
-      return;
-    }
-
-    if (settledResult.status === "rejected") {
-      warnings.push(settledResult.reason && settledResult.reason.message ? settledResult.reason.message : "Could not load an assignment target list.");
-      return;
-    }
-
-    try {
-      readIntentDataOrThrow(settledResult.value);
-    } catch (error) {
-      warnings.push(error.message);
-    }
-  });
-
-  return warnings;
 }
 
 function readIntentErrorMessage(result) {

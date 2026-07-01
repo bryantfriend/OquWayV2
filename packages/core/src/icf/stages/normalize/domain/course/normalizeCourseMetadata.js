@@ -2,91 +2,31 @@ export function normalizeCourseMetadata(executionState) {
   const payload = readPayload(executionState);
   const defaultLanguage = normalizeDefaultLanguage(payload.defaultLanguage);
   const languages = normalizeLanguages(payload.languages, defaultLanguage);
-  const courseData = {
+  const data = {
     title: normalizeLocalizedText(payload.title, defaultLanguage),
     description: normalizeLocalizedText(payload.description, defaultLanguage),
     subject: normalizeTextValue(payload.subject),
     level: normalizeTextValue(payload.level),
-    grade: normalizeTextValue(payload.grade || payload.level),
     language: normalizeLanguage(payload.language, defaultLanguage),
     status: normalizeStatus(payload.status),
     defaultLanguage: defaultLanguage,
     languages: languages,
     tags: normalizeTags(payload.tags),
-    slug: normalizeSlug(payload.title, defaultLanguage),
-    displayTemplate: normalizeDisplayTemplate(payload.displayTemplate)
+    slug: normalizeSlug(payload.title, defaultLanguage)
   };
 
-  appendOptionalVisualFields(courseData, payload);
+  if (Object.prototype.hasOwnProperty.call(payload, "iconUrl")) {
+    data.iconUrl = normalizeTextValue(payload.iconUrl);
+  }
+
+  if (Object.prototype.hasOwnProperty.call(payload, "coverImageUrl")) {
+    data.coverImageUrl = normalizeTextValue(payload.coverImageUrl);
+  }
 
   return {
     valid: true,
-    data: courseData
+    data: data
   };
-}
-
-function appendOptionalVisualFields(courseData, payload) {
-  if ("iconUrl" in payload) {
-    courseData.iconUrl = normalizeTextValue(payload.iconUrl);
-  }
-
-  if ("heroImageUrl" in payload) {
-    courseData.heroImageUrl = normalizeTextValue(payload.heroImageUrl);
-  }
-
-  if ("themeColor" in payload) {
-    courseData.themeColor = normalizeTextValue(payload.themeColor);
-  }
-
-  if ("accentColor" in payload) {
-    courseData.accentColor = normalizeTextValue(payload.accentColor);
-  }
-
-  if ("visualTheme" in payload) {
-    courseData.visualTheme = normalizeVisualTheme(payload.visualTheme);
-  }
-}
-
-function normalizeVisualTheme(visualTheme) {
-  const theme = visualTheme && typeof visualTheme === "object" && !Array.isArray(visualTheme) ? visualTheme : {};
-  return {
-    accentColor: normalizeThemeAccentColor(theme.accentColor),
-    moduleIconStyle: normalizeModuleIconStyle(theme.moduleIconStyle),
-    badgeStyle: normalizeBadgeStyle(theme.badgeStyle),
-    pathDensity: normalizePathDensity(theme.pathDensity)
-  };
-}
-
-function normalizeThemeAccentColor(accentColor) {
-  if (accentColor === "emerald" || accentColor === "rose" || accentColor === "amber") {
-    return accentColor;
-  }
-
-  return "blue";
-}
-
-function normalizeModuleIconStyle(moduleIconStyle) {
-  if (moduleIconStyle === "courseIcon" || moduleIconStyle === "minimal") {
-    return moduleIconStyle;
-  }
-
-  return "numbered";
-}
-
-function normalizeBadgeStyle(badgeStyle) {
-  if (badgeStyle === "soft" || badgeStyle === "solid") {
-    return badgeStyle;
-  }
-
-  return "pill";
-}
-
-function normalizePathDensity(pathDensity) {
-  if (pathDensity === "compact" || pathDensity === "spacious") {
-    return pathDensity;
-  }
-
-  return "comfortable";
 }
 
 function readPayload(executionState) {
@@ -218,14 +158,6 @@ function normalizeStatus(status) {
   }
 
   return "draft";
-}
-
-function normalizeDisplayTemplate(displayTemplate) {
-  if (displayTemplate === "adventurePath" || displayTemplate === "compactGrid") {
-    return displayTemplate;
-  }
-
-  return "basic";
 }
 
 function normalizeLanguage(language, fallbackLanguage) {

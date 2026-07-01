@@ -1,4 +1,4 @@
-import { callGetStudentsForClassFunction } from "./studentLoginHelpers.js?v=1.1.162-modal-stack";
+import { callGetStudentsForClassFunction } from "./studentLoginHelpers.js?v=1.1.82-shared-command-center-shell";
 
 export async function processLoadStudentsForClass(executionState) {
   var payload = executionState.payload;

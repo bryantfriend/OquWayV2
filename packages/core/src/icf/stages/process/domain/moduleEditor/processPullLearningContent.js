@@ -1,4 +1,4 @@
-import { createPulledStepDraft } from "./learningArchitecture.js?v=1.1.162-modal-stack";
+import { createPulledStepDraft } from "./learningArchitecture.js?v=1.1.82-shared-command-center-shell";
 
 export function processPullLearningContent(executionState) {
   var learningContent = executionState.context.module && executionState.context.module.learningContent;

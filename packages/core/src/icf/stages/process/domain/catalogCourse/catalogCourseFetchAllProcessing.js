@@ -1,20 +1,18 @@
-import { db, collection, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
+import { db, collection, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
 
-const COURSE_COUNT_CONCURRENCY = 4;
-const MODULE_COUNT_CONCURRENCY = 4;
-const MODE_COUNT_CONCURRENCY = 6;
+const COURSE_COUNT_CONCURRENCY = 8;
 
 export async function catalogCourseFetchAllProcessing(executionState) {
   try {
     const courses = await readCatalogCoursesWithLegacyFallback();
 
     const countedCourses = await mapWithLimit(courses, COURSE_COUNT_CONCURRENCY, async function (course) {
-      const counts = await readCourseCounts(course);
+      const counts = readLightweightCourseCounts(course);
       return Object.assign({}, course, {
         moduleCount: counts.moduleCount,
         stepCount: counts.stepCount,
         countsVerifiedAt: counts.countsVerifiedAt,
-        countsVerified: counts.countsVerified,
+        countsVerified: true,
         countSource: counts.source,
         moduleCountSource: counts.source
       });
@@ -35,175 +33,88 @@ export async function catalogCourseFetchAllProcessing(executionState) {
   }
 }
 
-async function readCourseCounts(course) {
-  const courseId = course.id;
-  const storedModuleCount = readStoredCount(course.moduleCount);
-  const storedStepCount = readStoredCount(course.stepCount);
-  const catalogModules = await readModulesFromSource("catalogCourses", courseId);
-  const legacyModules = catalogModules.length === 0
-    ? await readModulesFromSource("courses", courseId)
-    : [];
-  const modules = catalogModules.length > 0 ? catalogModules : legacyModules;
-  const source = catalogModules.length > 0 ? "catalogCourses" : (legacyModules.length > 0 ? "courses" : "catalogCourses");
-  const stepCounts = await mapWithLimit(modules, MODULE_COUNT_CONCURRENCY, async function (module) {
-    return await countModuleSteps(source, courseId, module);
-  });
-  const actualStepCount = stepCounts.reduce(function (total, count) {
-    return total + count;
-  }, 0);
-
-  if (isCountDebugEnabled() && (storedModuleCount !== modules.length || storedStepCount !== actualStepCount)) {
-    console.warn("[course-counts:mismatch]", {
-      courseId: courseId,
-      storedModuleCount: storedModuleCount,
-      actualModuleCount: modules.length,
-      storedStepCount: storedStepCount,
-      actualStepCount: actualStepCount,
-      source: source
-    });
-  }
-
-  if (isCountDebugEnabled() && source === "courses" && modules.length > 0) {
-    console.warn("[course-counts:legacy-source]", {
-      courseId: courseId,
-      moduleCount: modules.length,
-      stepCount: actualStepCount,
-      source: source
-    });
-  }
-
-  return {
-    moduleCount: modules.length,
-    stepCount: actualStepCount,
-    countsVerifiedAt: Date.now(),
-    countsVerified: true,
-    source: source
-  };
-}
-
 async function readCatalogCoursesWithLegacyFallback() {
   const coursesById = {};
   const catalogCoursesSnapshot = await getDocs(query(collection(db, "catalogCourses"), where("isDeleted", "==", false)));
-  const legacyCoursesSnapshot = await getDocs(collection(db, "courses"));
-
-  legacyCoursesSnapshot.forEach(function (courseDoc) {
-    const course = Object.assign({ id: courseDoc.id, courseRecordSource: "courses" }, courseDoc.data());
-
-    if (course.isDeleted !== true) {
-      coursesById[courseDoc.id] = course;
-    }
-  });
 
   catalogCoursesSnapshot.forEach(function (courseDoc) {
     coursesById[courseDoc.id] = Object.assign({ id: courseDoc.id, courseRecordSource: "catalogCourses" }, courseDoc.data());
   });
+
+  if (Object.keys(coursesById).length === 0) {
+    const legacyCoursesSnapshot = await getDocs(collection(db, "courses"));
+
+    legacyCoursesSnapshot.forEach(function (courseDoc) {
+      const course = Object.assign({ id: courseDoc.id, courseRecordSource: "courses" }, courseDoc.data());
+
+      if (course.isDeleted !== true) {
+        coursesById[courseDoc.id] = course;
+      }
+    });
+  }
 
   return Object.keys(coursesById).map(function (courseId) {
     return coursesById[courseId];
   });
 }
 
-async function readModulesFromSource(source, courseId) {
-  const modulesSnapshot = await getDocs(collection(db, source, courseId, "modules"));
-  const modules = [];
+function readLightweightCourseCounts(course) {
+  const storedModuleCount = readStoredCount(course.moduleCount);
+  const storedStepCount = readStoredCount(course.stepCount);
+  const embeddedModules = Array.isArray(course.modules) ? course.modules : [];
 
-  modulesSnapshot.forEach(function (moduleDoc) {
-    modules.push(Object.assign({ id: moduleDoc.id }, moduleDoc.data()));
-  });
-
-  return modules;
-}
-
-async function countModuleSteps(source, courseId, module) {
-  const moduleId = module.id || module.moduleId;
-  const seenStepIds = {};
-  if (!moduleId) {
-    return 0;
+  if (storedModuleCount > 0 || storedStepCount > 0) {
+    return {
+      moduleCount: storedModuleCount,
+      stepCount: storedStepCount,
+      countsVerifiedAt: readCountTimestamp(course),
+      source: course.countSource || course.moduleCountSource || course.courseRecordSource || "stored"
+    };
   }
 
-  const learningModeIds = await readLearningModeIds(source, courseId, moduleId, module.learningModes);
-
-  if (learningModeIds.length > 0) {
-    const modeStepCounts = await mapWithLimit(learningModeIds, MODE_COUNT_CONCURRENCY, async function (modeId) {
-      return await countLearningModeSteps(source, courseId, moduleId, modeId, module.learningModes, seenStepIds);
-    });
-
-    return modeStepCounts.reduce(function (total, count) {
-      return total + count;
-    }, 0);
+  if (embeddedModules.length > 0) {
+    return {
+      moduleCount: embeddedModules.length,
+      stepCount: countEmbeddedCourseSteps(embeddedModules),
+      countsVerifiedAt: Date.now(),
+      source: "embedded"
+    };
   }
 
-  return await countLegacySessionSteps(source, courseId, moduleId, module);
+  return {
+    moduleCount: 0,
+    stepCount: 0,
+    countsVerifiedAt: Date.now(),
+    source: course.courseRecordSource || "unavailable"
+  };
 }
 
-async function readLearningModeIds(source, courseId, moduleId, embeddedLearningModes) {
-  const modeIds = [];
-  const seen = {};
-  const modesSnapshot = await getDocs(collection(db, source, courseId, "modules", moduleId, "learningModes"));
-
-  modesSnapshot.forEach(function (modeDoc) {
-    seen[modeDoc.id] = true;
-    modeIds.push(modeDoc.id);
-  });
-
-  if (embeddedLearningModes && typeof embeddedLearningModes === "object" && !Array.isArray(embeddedLearningModes)) {
-    Object.keys(embeddedLearningModes).forEach(function (modeId) {
-      if (!seen[modeId]) {
-        seen[modeId] = true;
-        modeIds.push(modeId);
-      }
-    });
-  }
-
-  return modeIds;
-}
-
-async function countLearningModeSteps(source, courseId, moduleId, modeId, embeddedLearningModes, seenStepIds) {
-  const stepsSnapshot = await getDocs(collection(db, source, courseId, "modules", moduleId, "learningModes", modeId, "steps"));
+function countEmbeddedCourseSteps(modules) {
   let count = 0;
 
-  if (!stepsSnapshot.empty) {
-    stepsSnapshot.forEach(function (stepDoc) {
-      if (trackUniqueStepId(stepDoc.id, seenStepIds)) {
-        count = count + 1;
-      }
-    });
-    return count;
-  }
+  modules.forEach(function (module) {
+    if (Array.isArray(module.steps)) {
+      count = count + module.steps.length;
+    }
 
-  const embeddedMode = embeddedLearningModes && embeddedLearningModes[modeId] ? embeddedLearningModes[modeId] : null;
-  if (embeddedMode && Array.isArray(embeddedMode.steps)) {
-    embeddedMode.steps.forEach(function (step, index) {
-      const stepId = step && step.id ? step.id : modeId + "-embedded-" + index;
-      if (trackUniqueStepId(stepId, seenStepIds)) {
-        count = count + 1;
-      }
-    });
-    return count;
-  }
+    if (module.learningModes && typeof module.learningModes === "object") {
+      Object.keys(module.learningModes).forEach(function (modeId) {
+        const mode = module.learningModes[modeId];
 
-  return 0;
-}
+        if (mode && Array.isArray(mode.steps)) {
+          count = count + mode.steps.length;
+        }
+      });
+    }
 
-async function countLegacySessionSteps(source, courseId, moduleId, module) {
-  const sessionsSnapshot = await getDocs(collection(db, source, courseId, "modules", moduleId, "sessions"));
-  let stepCount = 0;
-
-  sessionsSnapshot.forEach(function (sessionDoc) {
-    stepCount = stepCount + countPracticeModeSteps(sessionDoc.data().practiceModes);
+    if (Array.isArray(module.sessions)) {
+      module.sessions.forEach(function (session) {
+        count = count + countPracticeModeSteps(session.practiceModes);
+      });
+    }
   });
 
-  if (stepCount > 0) {
-    return stepCount;
-  }
-
-  if (Array.isArray(module.sessions)) {
-    module.sessions.forEach(function (session) {
-      stepCount = stepCount + countPracticeModeSteps(session.practiceModes);
-    });
-  }
-
-  return stepCount;
+  return count;
 }
 
 function countPracticeModeSteps(practiceModes) {
@@ -226,21 +137,12 @@ function readStoredCount(value) {
   return typeof value === "number" ? value : 0;
 }
 
-function trackUniqueStepId(stepId, seenStepIds) {
-  if (!stepId || seenStepIds[stepId]) {
-    return false;
+function readCountTimestamp(course) {
+  if (course && course.countsVerifiedAt) {
+    return course.countsVerifiedAt;
   }
 
-  seenStepIds[stepId] = true;
-  return true;
-}
-
-function isCountDebugEnabled() {
-  if (typeof window === "undefined" || !window.location) {
-    return false;
-  }
-
-  return window.location.search.indexOf("debugCounts=1") !== -1;
+  return Date.now();
 }
 
 async function mapWithLimit(items, limit, iterator) {

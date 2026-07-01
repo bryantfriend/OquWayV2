@@ -1,7 +1,5 @@
 import { collection, db, getDocs, query, where } from "../../firebase/index.js";
-import { normalizeExternalTaskSubmission } from "./externalTaskModel.js?v=1.1.162-modal-stack";
-
-var IN_QUERY_CHUNK_SIZE = 10;
+import { normalizeExternalTaskSubmission } from "./externalTaskModel.js?v=1.1.82-shared-command-center-shell";
 
 export async function getStudentExternalTaskSubmissions(filters) {
   var safeFilters = filters || {};
@@ -75,91 +73,69 @@ export async function getExternalTaskSubmissions(filters) {
 export async function getScopedExternalTaskSubmissions(filters) {
   var submissions = [];
   var safeFilters = filters || {};
-  var classIds = readTextArray([safeFilters.classIds]);
-  var assignmentIds = readTextArray([safeFilters.assignmentIds, safeFilters.courseAssignmentIds]);
-  var courseIds = readTextArray([safeFilters.courseIds]);
-  var teacherIds = readTextArray([safeFilters.teacherIds]);
-  var queryErrors = Array.isArray(safeFilters.queryErrors) ? safeFilters.queryErrors : [];
+  var classIds = safeFilters.classIds || [];
+  var assignmentIds = safeFilters.assignmentIds || [];
+  var courseIds = safeFilters.courseIds || [];
+  var teacherIds = safeFilters.teacherIds || [];
   var index = 0;
-  var chunks = [];
-  var teacherScopeQueryCount = 0;
 
-  chunks = chunkValues(teacherIds, IN_QUERY_CHUNK_SIZE);
-  while (index < chunks.length) {
-    await appendSubmissionQuery(submissions, buildSubmissionArrayQuery("teacherOwnershipIds", chunks[index], safeFilters), {
+  while (index < teacherIds.length) {
+    await appendSubmissionQuery(submissions, buildSubmissionQuery("teacherOwnershipIds", teacherIds[index], safeFilters, "array-contains"), {
       classId: "",
       assignmentId: "",
       courseId: "",
-      locationId: "",
-      scope: "teacherOwnershipIds",
-      filters: readSubmissionDebugFilters(safeFilters),
-      queryShape: readSubmissionArrayQueryShape("teacherOwnershipIds", safeFilters)
-    }, queryErrors);
-    teacherScopeQueryCount = teacherScopeQueryCount + 1;
-    index = index + 1;
-  }
-
-  if (teacherScopeQueryCount > 0) {
-    return filterScopedSubmissions(submissions, safeFilters);
-  }
-
-  index = 0;
-  chunks = chunkValues(assignmentIds, IN_QUERY_CHUNK_SIZE);
-  while (index < chunks.length) {
-    await appendSubmissionQuery(submissions, buildSubmissionBatchQuery("assignmentId", chunks[index], safeFilters), {
-      classId: "",
-      assignmentId: chunks[index].join(","),
-      courseId: "",
-      locationId: "",
-      scope: "assignmentId",
-      filters: readSubmissionDebugFilters(safeFilters),
-      queryShape: readSubmissionBatchQueryShape("assignmentId", safeFilters)
-    }, queryErrors);
-    await appendSubmissionQuery(submissions, buildSubmissionBatchQuery("courseAssignmentId", chunks[index], safeFilters), {
-      classId: "",
-      assignmentId: chunks[index].join(","),
-      courseId: "",
-      locationId: "",
-      scope: "courseAssignmentId",
-      filters: readSubmissionDebugFilters(safeFilters),
-      queryShape: readSubmissionBatchQueryShape("courseAssignmentId", safeFilters)
-    }, queryErrors);
+      queryShape: readSubmissionQueryShape("teacherOwnershipIds", safeFilters)
+    });
     index = index + 1;
   }
 
   index = 0;
-  chunks = chunkValues(classIds, IN_QUERY_CHUNK_SIZE);
-  while (index < chunks.length) {
-    await appendSubmissionQuery(submissions, buildSubmissionBatchQuery("classId", chunks[index], safeFilters), {
-      classId: chunks[index].join(","),
+  while (index < assignmentIds.length) {
+    await appendSubmissionQuery(submissions, buildSubmissionQuery("assignmentId", assignmentIds[index], safeFilters), {
+      classId: "",
+      assignmentId: assignmentIds[index],
+      courseId: "",
+      queryShape: readSubmissionQueryShape("assignmentId", safeFilters)
+    });
+    await appendSubmissionQuery(submissions, buildSubmissionQuery("courseAssignmentId", assignmentIds[index], safeFilters), {
+      classId: "",
+      assignmentId: assignmentIds[index],
+      courseId: "",
+      queryShape: readSubmissionQueryShape("courseAssignmentId", safeFilters)
+    });
+    index = index + 1;
+  }
+
+  index = 0;
+  while (index < classIds.length) {
+    await appendSubmissionQuery(submissions, buildSubmissionQuery("classId", classIds[index], safeFilters), {
+      classId: classIds[index],
       assignmentId: "",
       courseId: "",
-      locationId: "",
-      scope: "classId",
-      filters: readSubmissionDebugFilters(safeFilters),
-      queryShape: readSubmissionBatchQueryShape("classId", safeFilters)
-    }, queryErrors);
+      queryShape: readSubmissionQueryShape("classId", safeFilters)
+    });
     index = index + 1;
   }
 
   if (assignmentIds.length === 0 && classIds.length === 0) {
     index = 0;
-    chunks = chunkValues(courseIds, IN_QUERY_CHUNK_SIZE);
-    while (index < chunks.length) {
-      await appendSubmissionQuery(submissions, buildSubmissionBatchQuery("courseId", chunks[index], safeFilters), {
+    while (index < courseIds.length) {
+      await appendSubmissionQuery(submissions, buildSubmissionQuery("courseId", courseIds[index], safeFilters), {
         classId: "",
         assignmentId: "",
-        courseId: chunks[index].join(","),
-        locationId: "",
-        scope: "courseId",
-        filters: readSubmissionDebugFilters(safeFilters),
-        queryShape: readSubmissionBatchQueryShape("courseId", safeFilters)
-      }, queryErrors);
+        courseId: courseIds[index],
+        queryShape: readSubmissionQueryShape("courseId", safeFilters)
+      });
       index = index + 1;
     }
   }
 
-  return filterScopedSubmissions(submissions, safeFilters);
+  return submissions.filter(function (submission) {
+    return isSubmissionInOwnedScope(submission, safeFilters)
+      && matchesOptional(submission.reviewStatus, safeFilters.reviewStatus)
+      && matchesOptional(submission.courseId, safeFilters.courseId)
+      && matchesOptional(submission.moduleId, safeFilters.moduleId);
+  }).sort(compareSubmissionByCreatedAt);
 }
 
 export async function getExternalTaskSubmissionsForTeacher(filters) {
@@ -178,11 +154,10 @@ export async function getExternalTaskSubmissionsForTeacher(filters) {
 
 export function isSubmissionInOwnedScope(submission, filters) {
   var safeFilters = filters || {};
-  var classIds = readTextArray([safeFilters.classIds]);
-  var assignmentIds = readTextArray([safeFilters.assignmentIds, safeFilters.courseAssignmentIds]);
-  var courseIds = readTextArray([safeFilters.courseIds]);
-  var teacherIds = readTextArray([safeFilters.teacherIds]);
-  var locationIds = readTextArray([safeFilters.locationIds]);
+  var classIds = safeFilters.classIds || [];
+  var assignmentIds = safeFilters.assignmentIds || [];
+  var courseIds = safeFilters.courseIds || [];
+  var teacherIds = safeFilters.teacherIds || [];
 
   if (Array.isArray(submission.teacherOwnershipIds) && submission.teacherOwnershipIds.some(function (teacherId) {
     return teacherIds.indexOf(teacherId) !== -1;
@@ -202,11 +177,7 @@ export function isSubmissionInOwnedScope(submission, filters) {
     return true;
   }
 
-  if (submission.locationId && locationIds.indexOf(submission.locationId) !== -1) {
-    return true;
-  }
-
-  return assignmentIds.length === 0 && classIds.length === 0 && locationIds.length === 0 && submission.courseId && courseIds.indexOf(submission.courseId) !== -1;
+  return assignmentIds.length === 0 && classIds.length === 0 && submission.courseId && courseIds.indexOf(submission.courseId) !== -1;
 }
 
 function normalizeTeacherSubmissionFilters(filters) {
@@ -218,10 +189,6 @@ function normalizeTeacherSubmissionFilters(filters) {
 
   if (safeFilters.classId && (!Array.isArray(safeFilters.classIds) || safeFilters.classIds.length === 0)) {
     safeFilters.classIds = [safeFilters.classId];
-  }
-
-  if (safeFilters.locationId && (!Array.isArray(safeFilters.locationIds) || safeFilters.locationIds.length === 0)) {
-    safeFilters.locationIds = [safeFilters.locationId];
   }
 
   return safeFilters;
@@ -251,26 +218,6 @@ function buildSubmissionQuery(scopeField, scopeValue, filters, operator) {
   return query(collection(db, "externalTaskSubmissions"), where(scopeField, operator || "==", scopeValue));
 }
 
-function buildSubmissionBatchQuery(scopeField, scopeValues, filters) {
-  var constraints = [where(scopeField, "in", scopeValues)];
-
-  if (filters && filters.reviewStatus) {
-    constraints.push(where("reviewStatus", "==", filters.reviewStatus));
-  }
-
-  return query(collection(db, "externalTaskSubmissions"), ...constraints);
-}
-
-function buildSubmissionArrayQuery(scopeField, scopeValues, filters) {
-  var constraints = [where(scopeField, "array-contains-any", scopeValues)];
-
-  if (filters && filters.reviewStatus) {
-    constraints.push(where("reviewStatus", "==", filters.reviewStatus));
-  }
-
-  return query(collection(db, "externalTaskSubmissions"), ...constraints);
-}
-
 function readSubmissionQueryShape(scopeField, filters) {
   var operatorLabel = scopeField === "teacherOwnershipIds" ? "array-contains" : "==";
 
@@ -279,128 +226,28 @@ function readSubmissionQueryShape(scopeField, filters) {
     : "externalTaskSubmissions where " + scopeField + " " + operatorLabel + " scopeValue";
 }
 
-function readSubmissionBatchQueryShape(scopeField, filters) {
-  return filters && filters.reviewStatus
-    ? "externalTaskSubmissions where " + scopeField + " in scopeValues and reviewStatus == " + filters.reviewStatus
-    : "externalTaskSubmissions where " + scopeField + " in scopeValues";
-}
-
-function readSubmissionArrayQueryShape(scopeField, filters) {
-  return filters && filters.reviewStatus
-    ? "externalTaskSubmissions where " + scopeField + " array-contains-any scopeValues and reviewStatus == " + filters.reviewStatus
-    : "externalTaskSubmissions where " + scopeField + " array-contains-any scopeValues";
-}
-
-function readSubmissionDebugFilters(filters) {
-  var safeFilters = filters || {};
-
-  return {
-    reviewStatus: safeFilters.reviewStatus || "",
-    classId: safeFilters.classId || "",
-    courseId: safeFilters.courseId || "",
-    moduleId: safeFilters.moduleId || "",
-    assignmentIds: Array.isArray(safeFilters.assignmentIds) ? safeFilters.assignmentIds.slice() : [],
-    courseAssignmentIds: Array.isArray(safeFilters.courseAssignmentIds) ? safeFilters.courseAssignmentIds.slice() : [],
-    classIds: Array.isArray(safeFilters.classIds) ? safeFilters.classIds.slice() : [],
-    locationIds: Array.isArray(safeFilters.locationIds) ? safeFilters.locationIds.slice() : [],
-    teacherIds: Array.isArray(safeFilters.teacherIds) ? safeFilters.teacherIds.slice() : []
-  };
-}
-
-function chunkValues(values, chunkSize) {
-  var chunks = [];
-  var index = 0;
-  var safeValues = Array.isArray(values) ? values : [];
-
-  while (index < safeValues.length) {
-    chunks.push(safeValues.slice(index, index + chunkSize));
-    index = index + chunkSize;
-  }
-
-  return chunks;
-}
-
-function readTextArray(values) {
-  var result = [];
-  appendTextValues(result, values);
-  return result;
-}
-
-function appendTextValues(result, value) {
-  if (typeof value === "string" && value.trim() && result.indexOf(value.trim()) === -1) {
-    result.push(value.trim());
-    return;
-  }
-
-  if (!Array.isArray(value)) {
-    return;
-  }
-
-  var index = 0;
-  while (index < value.length) {
-    appendTextValues(result, value[index]);
-    index = index + 1;
-  }
-}
-
-async function appendSubmissionQuery(submissions, submissionsQuery, details, queryErrors) {
+async function appendSubmissionQuery(submissions, submissionsQuery, details) {
   console.info("[teacher-dashboard:submissions-query]", {
     classId: details && details.classId ? details.classId : "",
     assignmentId: details && details.assignmentId ? details.assignmentId : "",
     courseId: details && details.courseId ? details.courseId : "",
-    locationId: details && details.locationId ? details.locationId : "",
-    scope: details && details.scope ? details.scope : "",
-    filters: details && details.filters ? details.filters : {},
     queryShape: details && details.queryShape ? details.queryShape : "externalTaskSubmissions scoped query"
   });
 
   try {
-    var beforeCount = submissions.length;
     var snapshot = await getDocs(submissionsQuery);
     snapshot.forEach(function (submissionSnap) {
       addUniqueRecord(submissions, Object.assign({ id: submissionSnap.id }, submissionSnap.data() || {}));
     });
-    return {
-      ok: true,
-      count: submissions.length - beforeCount
-    };
   } catch (error) {
     console.warn("[teacher-dashboard:submissions-query-failed]", {
       classId: details && details.classId ? details.classId : "",
       assignmentId: details && details.assignmentId ? details.assignmentId : "",
       courseId: details && details.courseId ? details.courseId : "",
-      locationId: details && details.locationId ? details.locationId : "",
-      scope: details && details.scope ? details.scope : "",
-      filters: details && details.filters ? details.filters : {},
       queryShape: details && details.queryShape ? details.queryShape : "externalTaskSubmissions scoped query",
-      errorCode: error && error.code ? error.code : "",
-      errorMessage: error && error.message ? error.message : readErrorMessage(error)
+      errorMessage: readErrorMessage(error)
     });
-
-    if (Array.isArray(queryErrors)) {
-      queryErrors.push({
-        collection: "externalTaskSubmissions",
-        scope: details && details.queryShape ? details.queryShape : "externalTaskSubmissions scoped query",
-        filters: details && details.filters ? details.filters : {},
-        errorCode: error && error.code ? error.code : "",
-        message: readErrorMessage(error)
-      });
-    }
-
-    return {
-      ok: false,
-      count: 0
-    };
   }
-}
-
-function filterScopedSubmissions(submissions, safeFilters) {
-  return submissions.filter(function (submission) {
-    return isSubmissionInOwnedScope(submission, safeFilters)
-      && matchesOptional(submission.reviewStatus, safeFilters.reviewStatus)
-      && matchesOptional(submission.courseId, safeFilters.courseId)
-      && matchesOptional(submission.moduleId, safeFilters.moduleId);
-  }).sort(compareSubmissionByCreatedAt);
 }
 
 function compareSubmissionByCreatedAt(a, b) {

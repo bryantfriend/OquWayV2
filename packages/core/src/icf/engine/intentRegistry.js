@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.210-student-course-hydration";
+import * as IntentExports from "../intents/intents.js?v=1.1.83-student-assignment-load";
 
 const registry = {
   // Demo Verification
@@ -14,8 +14,6 @@ const registry = {
   UpdateCourseMetadataIntent: IntentExports.UpdateCourseMetadataIntent,
   DeleteCourseIntent: IntentExports.DeleteCourseIntent,
   ArchiveCourseIntent: IntentExports.ArchiveCourseIntent,
-  RestoreCourseIntent: IntentExports.RestoreCourseIntent,
-  PermanentlyDeleteCourseIntent: IntentExports.PermanentlyDeleteCourseIntent,
 
   // Course Assignments
   AssignCourseAssistantsIntent: IntentExports.AssignCourseAssistantsIntent,
@@ -37,9 +35,6 @@ const registry = {
   LoadExternalTaskSubmissionsIntent: IntentExports.LoadExternalTaskSubmissionsIntent,
   ReviewExternalTaskSubmissionIntent: IntentExports.ReviewExternalTaskSubmissionIntent,
   ResubmitExternalTaskIntent: IntentExports.ResubmitExternalTaskIntent,
-
-  // Emotional Check-Ins
-  RecordEmotionalCheckInIntent: IntentExports.RecordEmotionalCheckInIntent,
 
   // Teacher Dashboard
   TeacherLoginIntent: IntentExports.TeacherLoginIntent,
@@ -249,3 +244,5 @@ export function hasIntent(intentType) {
 export function listIntents() {
   return Object.keys(registry);
 }
+
+

@@ -1,6 +1,6 @@
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
-import { getExternalTaskSubmissionById } from "../../../../../../../domain/externalTasks/index.js?v=1.1.162-modal-stack";
-import { getUserProfileByAuthUid, getUserRoles } from "../../../../../../../domain/users/index.js?v=1.1.162-modal-stack";
+import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
+import { getExternalTaskSubmissionById } from "../../../../../../../domain/externalTasks/index.js";
+import { getUserProfileByAuthUid, getUserRoles } from "../../../../../../../domain/users/index.js";
 
 export async function attachTeacherProfileContext(executionState) {
   var actor = executionState.actor || {};
@@ -229,4 +229,5 @@ function readErrorMessage(error) {
 
   return error.code ? error.code + " " + error.message : error.message || String(error);
 }
+
 

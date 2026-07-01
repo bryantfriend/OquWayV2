@@ -1,7 +1,6 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { OQUWAY_BUILD_VERSION } from "../../../packages/shared/version.js?v=1.1.213-emotional-checkin-owner";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.151-student-loading-practice-context";
-import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.151-student-loading-practice-context";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.82-shared-command-center-shell";
+import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.82-shared-command-center-shell";
 
 var appElement = document.getElementById("app");
 var startupMessage = consumeStartupMessage();
@@ -37,15 +36,11 @@ var fruitLabels = {
   cherry: "🍒"
 };
 
-console.log("[oquway-build]", OQUWAY_BUILD_VERSION);
-
 if (appElement) {
   appElement.addEventListener("click", handleClick);
   appElement.addEventListener("change", handleChange);
   appElement.addEventListener("submit", handleSubmit);
 }
-
-render();
 
 onAuthStateChanged(auth, function (user) {
   if (user) {
@@ -55,10 +50,6 @@ onAuthStateChanged(auth, function (user) {
         messageType: state.messageType || "info"
       });
       loadStartupLoginOptions();
-      return;
-    }
-
-    if (state.isBusy) {
       return;
     }
 
@@ -95,14 +86,6 @@ function buildView() {
   var hasDirectLocation = state.directLocationLocked && selectedLocation;
   var html = "";
 
-  if (state.isLoading) {
-    return buildLoginLoading("Opening student login...", "Getting locations, classes, and student cards ready.", "🎒");
-  }
-
-  if (state.isBusy) {
-    return buildLoginLoading(readBusyTitle(), state.message || "Preparing the next step.", "🍉");
-  }
-
   html += '<section class="login-hero">';
   if (hasDirectLocation) {
     html += '<div><h1>Welcome to ' + escapeHtml(readLocationName(selectedLocation)) + '</h1><p>Choose your class, pick your name card, and sign in with the method your teacher prepared.</p></div>';
@@ -128,7 +111,9 @@ function buildView() {
   html += '</aside>';
   html += '<section class="login-panel">';
 
-  if (state.locations.length === 0) {
+  if (state.isLoading) {
+    html += '<div class="login-empty">Loading login options...</div>';
+  } else if (state.locations.length === 0) {
     html += '<div class="login-empty">No active locations found yet.</div>';
   } else if (!state.selectedLocationId) {
     html += '<div class="login-empty">Choose your location to begin.</div>';
@@ -141,38 +126,6 @@ function buildView() {
   html += '</section>';
   html += '</section>';
   return html;
-}
-
-function buildLoginLoading(title, note, icon) {
-  return '<section class="login-loading-screen" role="status" aria-live="polite">'
-    + '<div class="login-loading-card">'
-    + '<div class="login-loading-orbit" aria-hidden="true"><span>' + escapeHtml(icon) + '</span><i></i><b></b></div>'
-    + '<p class="login-loading-kicker">OquWay launch pad</p>'
-    + '<h1>' + escapeHtml(title) + '</h1>'
-    + '<p>' + escapeHtml(note) + '</p>'
-    + '<div class="login-loading-dots" aria-hidden="true"><span></span><span></span><span></span></div>'
-    + '</div>'
-    + '</section>';
-}
-
-function readBusyTitle() {
-  if (state.message && state.message.indexOf("fruits") !== -1) {
-    return "Checking your fruit code...";
-  }
-
-  if (state.message && state.message.indexOf("students") !== -1) {
-    return "Gathering student cards...";
-  }
-
-  if (state.message && state.message.indexOf("classes") !== -1) {
-    return "Finding your classes...";
-  }
-
-  if (state.message && state.message.indexOf("Signing") !== -1) {
-    return "Signing you in...";
-  }
-
-  return "Getting things ready...";
 }
 
 function buildLocationCards() {
@@ -637,8 +590,7 @@ async function submitFruitLogin() {
   }, "guest-student");
 
   if (result && result.emitted && result.emitted.success) {
-    await logStudentLoginSuccessDebug(result.emitted.data ? result.emitted.data.student : null);
-    await routeToStudentDashboardAfterSessionStart(result.emitted.data ? result.emitted.data.student : null);
+    await routeToStudentDashboardAfterSessionStart();
     return;
   }
 
@@ -663,7 +615,7 @@ async function submitStandardLogin() {
   }, "guest-student");
 
   if (result && result.emitted && result.emitted.success) {
-    await routeToStudentDashboardAfterSessionStart(result.emitted.data ? result.emitted.data.student : null);
+    await routeToStudentDashboardAfterSessionStart();
     return;
   }
 
@@ -678,7 +630,7 @@ async function verifyCurrentStudent() {
   var result = await runLoginIntent("LoadStudentProfileIntent", {}, auth.currentUser.uid);
 
   if (result && result.emitted && result.emitted.success) {
-    await routeToStudentDashboardAfterSessionStart(result.emitted.data ? result.emitted.data.student : null);
+    await routeToStudentDashboardAfterSessionStart();
     return;
   }
 
@@ -698,8 +650,7 @@ async function startStudentSession() {
 
   if (result && result.emitted && result.emitted.success) {
     return {
-      success: true,
-      actorId: result.emitted.data && result.emitted.data.actorId ? result.emitted.data.actorId : auth.currentUser.uid
+      success: true
     };
   }
 
@@ -715,68 +666,22 @@ async function startStudentSession() {
   };
 }
 
-async function routeToStudentDashboardAfterSessionStart(studentProfile) {
+async function routeToStudentDashboardAfterSessionStart() {
   var sessionResult = await startStudentSession();
 
   if (sessionResult.success) {
-    markStudentSessionStarted(studentProfile, sessionResult.actorId);
-    window.location.href = buildStudentDashboardUrl();
+    markStudentSessionStarted();
+    window.location.href = "../student-dashboard/index.html";
   }
 }
 
-function markStudentSessionStarted(studentProfile, actorId) {
-  var sessionUid = actorId || (auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : "");
-
-  if (!window.sessionStorage || !sessionUid) {
+function markStudentSessionStarted() {
+  if (!window.sessionStorage || !auth.currentUser || !auth.currentUser.uid) {
     return;
   }
 
-  var safeProfile = buildSessionStudentProfile(studentProfile, sessionUid);
-
-  window.sessionStorage.setItem("oquwayStudentSessionUid", sessionUid);
+  window.sessionStorage.setItem("oquwayStudentSessionUid", auth.currentUser.uid);
   window.sessionStorage.setItem("oquwayStudentSessionStartedAt", String(Date.now()));
-  window.sessionStorage.setItem("oquwayStudentClassId", safeProfile.classId || state.selectedClassId || "");
-  window.sessionStorage.setItem("oquwayStudentClassName", safeProfile.className || readClassName(findClass(state.selectedClassId)));
-  window.sessionStorage.setItem("oquwayStudentLocationId", safeProfile.locationId || state.selectedLocationId || "");
-  window.sessionStorage.setItem("oquwayStudentProfile", JSON.stringify(safeProfile));
-}
-
-function buildSessionStudentProfile(studentProfile, sessionUid) {
-  var classItem = findClass(state.selectedClassId);
-  var profile = studentProfile && typeof studentProfile === "object" ? studentProfile : {};
-
-  return {
-    id: readText(profile.id || state.selectedStudentId),
-    uid: readText(profile.uid),
-    authUid: sessionUid || readText(profile.authUid),
-    userId: readText(profile.userId),
-    studentId: readText(profile.studentId || state.selectedStudentId),
-    profileUserId: readText(profile.profileUserId),
-    name: readText(profile.name),
-    displayName: readText(profile.displayName),
-    photoUrl: readText(profile.photoUrl),
-    role: readText(profile.role || "student"),
-    roles: Array.isArray(profile.roles) && profile.roles.length > 0 ? profile.roles.slice() : ["student"],
-    status: readText(profile.status || "active"),
-    isActive: profile.isActive === true,
-    classId: readText(profile.classId || state.selectedClassId),
-    classIds: mergeTextLists(profile.classIds, [state.selectedClassId]),
-    className: readText(profile.className || readClassName(classItem)),
-    locationId: readText(profile.locationId || state.selectedLocationId),
-    locationIds: mergeTextLists(profile.locationIds, [state.selectedLocationId])
-  };
-}
-
-function buildStudentDashboardUrl() {
-  var params = new URLSearchParams();
-
-  params.set("cb", OQUWAY_BUILD_VERSION);
-
-  if (window.location.search.indexOf("debug=true") !== -1) {
-    params.set("debug", "true");
-  }
-
-  return "../student-dashboard/index.html?" + params.toString();
 }
 
 function hasConfirmedStudentSession(uid) {
@@ -889,84 +794,6 @@ function findClass(classId) {
   return null;
 }
 
-function findStudent(studentId) {
-  var studentIndex = 0;
-
-  while (studentIndex < state.students.length) {
-    if (state.students[studentIndex].id === studentId) {
-      return state.students[studentIndex];
-    }
-
-    studentIndex = studentIndex + 1;
-  }
-
-  return null;
-}
-
-async function logStudentLoginSuccessDebug(studentProfile) {
-  if (!isStudentLoginDebugEnabled()) {
-    return;
-  }
-
-  var authUser = auth.currentUser || null;
-  var tokenClaims = {};
-
-  try {
-    var tokenResult = authUser && typeof authUser.getIdTokenResult === "function"
-      ? await authUser.getIdTokenResult(true)
-      : null;
-    tokenClaims = tokenResult && tokenResult.claims ? tokenResult.claims : {};
-  } catch (error) {
-    tokenClaims = {
-      error: error.message || String(error)
-    };
-  }
-
-  console.log("[student-login-debug] selectedStudent", sanitizeDebugStudent(findStudent(state.selectedStudentId)));
-  console.log("[student-login-debug] returnedStudent", sanitizeDebugStudent(studentProfile));
-  console.log("[student-login-debug] authUser", {
-    uid: authUser && authUser.uid ? authUser.uid : "",
-    email: authUser && authUser.email ? authUser.email : ""
-  });
-  console.log("[student-login-debug] tokenClaims", sanitizeDebugClaims(tokenClaims));
-}
-
-function sanitizeDebugStudent(student) {
-  return {
-    id: student && student.id ? student.id : "",
-    uid: student && student.uid ? student.uid : "",
-    authUid: student && student.authUid ? student.authUid : "",
-    studentId: student && student.studentId ? student.studentId : "",
-    name: readStudentName(student),
-    displayName: student && student.displayName ? student.displayName : "",
-    classId: student && student.classId ? student.classId : "",
-    className: student && student.className ? student.className : "",
-    locationId: student && student.locationId ? student.locationId : ""
-  };
-}
-
-function sanitizeDebugClaims(claims) {
-  return {
-    role: claims && claims.role ? claims.role : "",
-    roles: Array.isArray(claims && claims.roles) ? claims.roles : [],
-    studentId: claims && claims.studentId ? claims.studentId : "",
-    classId: claims && claims.classId ? claims.classId : "",
-    className: claims && claims.className ? claims.className : "",
-    locationId: claims && claims.locationId ? claims.locationId : ""
-  };
-}
-
-function isStudentLoginDebugEnabled() {
-  return window.location.search.indexOf("debug=true") !== -1
-    || isDevelopmentHost();
-}
-
-function isDevelopmentHost() {
-  return window.location.hostname === "localhost"
-    || window.location.hostname === "127.0.0.1"
-    || window.location.hostname === "";
-}
-
 function readLoginMode(value) {
   if (value === "standard" || value === "hybrid") {
     return value;
@@ -1013,42 +840,6 @@ function readFruitLabel(fruit) {
   }
 
   return "";
-}
-
-function mergeTextLists(primaryValues, fallbackValues) {
-  var result = [];
-
-  appendTextValues(result, primaryValues);
-  appendTextValues(result, fallbackValues);
-
-  return result;
-}
-
-function appendTextValues(result, value) {
-  if (typeof value === "string") {
-    appendUniqueText(result, value);
-    return;
-  }
-
-  if (!Array.isArray(value)) {
-    return;
-  }
-
-  value.forEach(function (item) {
-    appendTextValues(result, item);
-  });
-}
-
-function appendUniqueText(result, value) {
-  var text = readText(value);
-
-  if (text && result.indexOf(text) === -1) {
-    result.push(text);
-  }
-}
-
-function readText(value) {
-  return typeof value === "string" ? value : "";
 }
 
 function readMessageClass() {

@@ -4,13 +4,9 @@ let state = {
     statusFilter: "all",
     filterTag: "Filter by Tag",
     sortBy: "Date Created",
-    isArchivedModalOpen: false,
+    showArchived: false,
     isCreateModalOpen: false,
     isFetching: false,
-    archivePendingCourseId: "",
-    restorePendingCourseId: "",
-    permanentDeletePendingCourseId: "",
-    isArchivedListReloading: false,
     error: null
 };
 

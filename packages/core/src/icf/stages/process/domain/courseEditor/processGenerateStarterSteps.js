@@ -2,7 +2,7 @@ import {
   createLearningModesForTemplate,
   createStarterStepsForMode,
   normalizeLearningContentPayload
-} from "../moduleEditor/learningArchitecture.js?v=1.1.162-modal-stack";
+} from "../moduleEditor/learningArchitecture.js?v=1.1.82-shared-command-center-shell";
 
 export function processGenerateStarterSteps(executionState) {
   var payload = executionState.payload || {};

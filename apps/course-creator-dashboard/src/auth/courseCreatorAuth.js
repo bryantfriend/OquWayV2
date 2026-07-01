@@ -3,8 +3,8 @@ import {
     getUserProfileByAuthUid,
     getUserRoles,
     normalizeUserRole
-} from "../../../../packages/domain/users/index.js?v=1.1.152-course-builder-loading-timeout";
-import { canAccessCourseCreator } from "../../../../packages/permissions/index.js?v=1.1.152-course-builder-loading-timeout";
+} from "../../../../packages/domain/users/index.js?v=1.1.82-shared-command-center-shell";
+import { canAccessCourseCreator } from "../../../../packages/permissions/index.js?v=1.1.82-shared-command-center-shell";
 
 export const ALLOWED_COURSE_CREATOR_ROLES = [
     "superAdmin",

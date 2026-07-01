@@ -49,7 +49,6 @@ function createInitialState() {
     statusMessage: "",
     student: null,
     courses: [],
-    assignmentDebug: null,
     continueLearning: null,
     dailyBonus: null,
     intentionPoints: {
@@ -59,10 +58,6 @@ function createInitialState() {
       social: 0
     },
     progressSummary: null,
-    activeStudentSection: "home",
-    profileTab: "overview",
-    activityHistoryRange: "30",
-    courseFocusActive: false,
     selectedCourseId: null,
     selectedModuleId: null,
     selectedSessionId: null,

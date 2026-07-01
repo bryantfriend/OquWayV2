@@ -1,8 +1,8 @@
 import { sendPasswordResetEmail } from "firebase/auth";
-import { auth, collection, db, deleteDoc, doc, getDoc, getDocs, limit, query, serverTimestamp, setDoc } from "../../../../../packages/firebase/index.js?v=1.1.82-shared-command-center-shell";
+import { auth, collection, db, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../packages/firebase/index.js?v=1.1.82-shared-command-center-shell";
 
 export async function getUsers() {
-  var snapshot = await getDocs(query(collection(db, "users"), limit(100)));
+  var snapshot = await getDocs(collection(db, "users"));
   var users = [];
 
   snapshot.forEach(function (userSnap) {
@@ -64,33 +64,20 @@ function buildUserProfileRecord(payload, isCreate) {
   var record = {
     displayName: payload.displayName,
     email: payload.email,
+    phone: payload.phone,
     photoUrl: payload.photoUrl,
-    photoURL: payload.photoUrl,
     roles: payload.roles,
+    role: readLegacyRole(payload.roles),
     locationIds: payload.locationIds,
+    primaryLocationId: payload.primaryLocationId,
+    locationId: payload.primaryLocationId,
     status: payload.status,
+    name: payload.displayName,
+    classId: payload.classId,
+    childStudentIds: payload.childStudentIds,
     classIds: payload.classIds,
     updatedAt: serverTimestamp()
   };
-
-  var legacyRole = readLegacyRole(payload.roles);
-
-  if (legacyRole) {
-    record.role = legacyRole;
-  }
-
-  if (payload.displayName) {
-    record.name = payload.displayName;
-  }
-
-  if (payload.primaryLocationId) {
-    record.primaryLocationId = payload.primaryLocationId;
-    record.locationId = payload.primaryLocationId;
-  }
-
-  if (payload.classId) {
-    record.classId = payload.classId;
-  }
 
   if (isCreate) {
     record.createdAt = serverTimestamp();

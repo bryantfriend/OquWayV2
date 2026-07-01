@@ -104,8 +104,6 @@ function addRole(roles, role) {
   }
 }
 
-export * from "./roleService.js?v=1.1.162-modal-stack";
-export * from "./studentIdentity.js?v=1.1.162-modal-stack";
-export * from "./teacherIdentity.js?v=1.1.162-modal-stack";
-export * from "./userQueries.js?v=1.1.162-modal-stack";
-export * from "./userRepository.js?v=1.1.162-modal-stack";
+export * from "./roleService.js";
+export * from "./userQueries.js";
+export * from "./userRepository.js";

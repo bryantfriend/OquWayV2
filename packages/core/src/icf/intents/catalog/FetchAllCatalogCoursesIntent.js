@@ -1,7 +1,7 @@
-import { catalogAttachSystemContext } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
-import { catalogRequireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.162-modal-stack";
-import { catalogCourseFetchAllProcessing } from "../../stages/process/processors.js?v=1.1.162-modal-stack";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.162-modal-stack";
+import { catalogAttachSystemContext } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
+import { catalogRequireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.82-shared-command-center-shell";
+import { catalogCourseFetchAllProcessing } from "../../stages/process/processors.js?v=1.1.82-shared-command-center-shell";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.82-shared-command-center-shell";
 
 export function FetchAllCatalogCoursesIntent() {
     return {
@@ -16,7 +16,7 @@ export function FetchAllCatalogCoursesIntent() {
         ],
         process: [
             catalogCourseFetchAllProcessing
-        ],
+        ],
         emit: [
             emitIntentResult
         ]

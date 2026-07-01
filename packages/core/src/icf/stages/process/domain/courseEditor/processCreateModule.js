@@ -1,11 +1,11 @@
-import { db, collection, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
-import { createDefaultPracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.162-modal-stack";
+import { db, collection, doc, getDoc, getDocs, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
+import { createDefaultPracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.82-shared-command-center-shell";
 import {
   createDefaultLearningContent,
   createLearningModesForTemplate,
   createStarterStepsForMode,
   normalizeLearningContentPayload
-} from "../moduleEditor/learningArchitecture.js?v=1.1.162-modal-stack";
+} from "../moduleEditor/learningArchitecture.js?v=1.1.82-shared-command-center-shell";
 
 export async function processCreateModule(executionState) {
   const payload = executionState.payload;

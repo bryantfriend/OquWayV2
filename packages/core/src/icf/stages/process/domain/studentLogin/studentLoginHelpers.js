@@ -1,4 +1,4 @@
-import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.162-modal-stack";
+import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.82-shared-command-center-shell";
 
 export async function callStudentLoginFunction(payload) {
   return callCallableFunction("studentLogin", payload);
@@ -49,18 +49,11 @@ export function sanitizeProfile(profile) {
 
   return {
     id: readText(profile.id),
-    uid: readText(profile.uid),
-    authUid: readText(profile.authUid),
-    userId: readText(profile.userId),
-    studentId: readText(profile.studentId || profile.id),
-    profileUserId: readText(profile.profileUserId),
     name: readText(profile.name),
     displayName: readText(profile.displayName),
     photoUrl: readText(profile.photoUrl),
     classId: readText(profile.classId) || readFirstText(classIds),
     classIds: classIds,
-    className: readText(profile.className),
-    classCode: readText(profile.classCode || profile.code),
     locationId: readText(profile.locationId || profile.primaryLocationId || profile.schoolId) || readFirstText(locationIds),
     locationIds: locationIds,
     primaryLocationId: readText(profile.primaryLocationId),

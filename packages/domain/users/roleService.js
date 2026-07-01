@@ -90,9 +90,6 @@ export function readStudentProfileRejectReason(userProfile) {
 export function hasStudentClass(userProfile) {
   return Boolean(
     readTextField(userProfile, "classId")
-      || readTextField(userProfile, "primaryClassId")
-      || readTextField(userProfile, "className")
-      || readTextField(userProfile, "classCode")
       || readTextArray(userProfile && userProfile.classIds).length > 0
       || readTextArray(userProfile && userProfile.assignedClassIds).length > 0
       || readRecordList(userProfile && userProfile.assignedClasses, "class").length > 0
@@ -112,47 +109,14 @@ export function hasStudentLocation(userProfile) {
   );
 }
 
-export function resolveStudentId(userProfile, actor) {
-  return readTextValue(readTokenClaim(actor, "studentId"))
-    || readTextValue(userProfile && userProfile.id)
-    || readTextValue(userProfile && userProfile.studentId)
-    || readTextValue(userProfile && userProfile.profileUserId)
-    || readTextValue(userProfile && userProfile.uid)
-    || readTextValue(userProfile && userProfile.authUid)
-    || readTextValue(actor && actor.id);
-}
-
-export function readStudentIdentifiers(userProfile, actor) {
-  var ids = [];
-
-  appendUniqueText(ids, readTokenClaim(actor, "studentId"));
-  appendUniqueText(ids, userProfile && userProfile.id);
-  appendUniqueText(ids, userProfile && userProfile.studentId);
-  appendUniqueText(ids, userProfile && userProfile.profileUserId);
-  appendUniqueText(ids, userProfile && userProfile.uid);
-  appendUniqueText(ids, userProfile && userProfile.authUid);
-  appendUniqueText(ids, actor && actor.id);
-
-  return ids;
-}
-
 export function hasExplicitStudentRole(userProfile) {
   return getUserRoles(userProfile).indexOf("student") !== -1;
 }
 
 export function readStudentClassIds(userProfile) {
-  return readStudentClassIdentifiers(userProfile, null);
-}
-
-export function readStudentClassIdentifiers(userProfile, actor) {
   var ids = [];
 
-  appendUniqueText(ids, readTokenClaim(actor, "classId"));
-  appendUniqueText(ids, readTokenClaim(actor, "className"));
   appendUniqueText(ids, readTextField(userProfile, "classId"));
-  appendUniqueText(ids, readTextField(userProfile, "primaryClassId"));
-  appendUniqueText(ids, readTextField(userProfile, "className"));
-  appendUniqueText(ids, readTextField(userProfile, "classCode"));
   appendTextValues(ids, userProfile && userProfile.classIds);
   appendTextValues(ids, userProfile && userProfile.assignedClassIds);
   appendTextValues(ids, readRecordList(userProfile && userProfile.assignedClasses, "class"));
@@ -380,7 +344,7 @@ function readRecordId(value, targetType) {
   }
 
   if (targetType === "class") {
-    return readTextValue(value.id || value.classId || value.primaryClassId || value.classCode || value.className || value.code || value.name || value.refId || value.uid);
+    return readTextValue(value.id || value.classId || value.refId || value.uid);
   }
 
   return readTextValue(value.id || value.locationId || value.schoolId || value.refId || value.uid);
@@ -409,12 +373,6 @@ function appendUniqueText(values, value) {
   }
 }
 
-function readTokenClaim(actor, fieldName) {
-  var claims = actor && actor.claims && typeof actor.claims === "object" ? actor.claims : {};
-
-  return readTextValue(claims[fieldName]);
-}
-
 function readTextValue(value) {
-  return typeof value === "string" ? value.trim() : "";
+  return typeof value === "string" ? value : "";
 }

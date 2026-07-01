@@ -1,7 +1,5 @@
-import { collection, db, doc, getDocs, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.192-timed-sequence";
-import { addStepToPracticeMode, createDefaultPracticeModes, isValidPracticeModeKey } from "./practiceModeShells.js?v=1.1.192-timed-sequence";
-import { normalizeActivityTemplateId } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.192-timed-sequence";
-import { countModuleSteps as countSharedModuleSteps } from "../../../../../../../domain/progress/index.js";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
+import { addStepToPracticeMode, createDefaultPracticeModes, isValidPracticeModeKey } from "./practiceModeShells.js?v=1.1.82-shared-command-center-shell";
 
 export async function processAddStepToLearningMode(executionState) {
   var payload = executionState.payload;
@@ -63,16 +61,14 @@ export async function processAddStepToLearningMode(executionState) {
 
 function createStep(payload) {
   var now = Date.now();
-  var stepType = payload.stepTypeId || payload.stepType;
 
   return {
     id: generateId("step"),
     type: payload.stepType,
-    stepTypeId: stepType,
-    title: payload.title || createDefaultStepTitle(stepType),
+    stepTypeId: payload.stepTypeId || payload.stepType,
+    title: payload.title || createDefaultStepTitle(payload.stepTypeId || payload.stepType),
     instructions: payload.instructions || "",
     config: payload.config && typeof payload.config === "object" && !Array.isArray(payload.config) ? payload.config : {},
-    activityTemplate: normalizeActivityTemplateId(stepType, payload.activityTemplate),
     order: 1,
     status: payload.status || "draft",
     createdAt: now,
@@ -81,28 +77,6 @@ function createStep(payload) {
 }
 
 function createDefaultStepTitle(stepType) {
-  var titles = {
-    "intro-card": "Intro Card",
-    "card-reveal": "Card Reveal",
-    sorting: "Sorting",
-    "multiple-choice": "Multiple Choice",
-    "multi-select": "Multi Select",
-    "scenario-choice": "Scenario Choice",
-    "scenario-simulator": "Scenario Simulator",
-    "sequence-memory": "Sequence Memory",
-    "timed-sequence": "Timed Sequence Challenge",
-    "practice-challenge": "Competitive Collector",
-    "creative-canvas": "Creative Canvas",
-    roadmap: "Roadmap",
-    matching: "Matching",
-    ordering: "Ordering",
-    reflection: "Reflection"
-  };
-
-  if (titles[stepType]) {
-    return { en: titles[stepType], ru: "", ky: "" };
-  }
-
   if (stepType === "textBriefing") {
     return { en: "Primer", ru: "", ky: "" };
   }
@@ -177,9 +151,6 @@ async function saveLegacySession(executionState, payload, session) {
 }
 
 async function saveLearningModeSessionLink(executionState, payload, modeId, learningMode) {
-  var moduleStepCount = readUpdatedModuleStepCount(executionState, modeId, learningMode.stepCount);
-  var courseStepCount = await readUpdatedCourseStepCount(readCourseCollectionName(executionState), payload.courseId, payload.moduleId, moduleStepCount, executionState.context.module);
-
   await setDoc(doc(db, readCourseCollectionName(executionState), payload.courseId, "modules", payload.moduleId, "learningModes", modeId), Object.assign({}, learningMode, {
     updatedAt: serverTimestamp()
   }), { merge: true });
@@ -188,13 +159,7 @@ async function saveLearningModeSessionLink(executionState, payload, modeId, lear
     learningModes: {
       [modeId]: learningMode
     },
-    stepCount: moduleStepCount,
-    stepsInitialized: true,
-    updatedAt: serverTimestamp()
-  }, { merge: true });
-
-  await setDoc(doc(db, readCourseCollectionName(executionState), payload.courseId), {
-    stepCount: courseStepCount,
+    stepCount: readUpdatedModuleStepCount(executionState, modeId, learningMode.stepCount),
     updatedAt: serverTimestamp()
   }, { merge: true });
 }
@@ -202,34 +167,22 @@ async function saveLearningModeSessionLink(executionState, payload, modeId, lear
 function readUpdatedModuleStepCount(executionState, updatedModeId, updatedModeStepCount) {
   var module = executionState.context.module || {};
   var modes = module.learningModes && typeof module.learningModes === "object" ? module.learningModes : {};
-  var nextModes = Object.assign({}, modes, {
-    [updatedModeId]: Object.assign({}, modes[updatedModeId] || {}, {
-      stepCount: readNumber(updatedModeStepCount, 0)
-    })
-  });
-
-  return countSharedModuleSteps(Object.assign({}, module, {
-    learningModes: nextModes
-  }));
-}
-
-async function readUpdatedCourseStepCount(collectionName, courseId, updatedModuleId, updatedModuleStepCount, currentModule) {
-  var modulesSnapshot = await getDocs(collection(db, collectionName, courseId, "modules"));
+  var modeIds = Object.keys(modes);
   var total = 0;
-  var sawUpdatedModule = false;
+  var index = 0;
 
-  modulesSnapshot.forEach(function (moduleDoc) {
-    if (moduleDoc.id === updatedModuleId) {
-      total = total + readNumber(updatedModuleStepCount, 0);
-      sawUpdatedModule = true;
-      return;
+  while (index < modeIds.length) {
+    if (modeIds[index] === updatedModeId) {
+      total = total + readNumber(updatedModeStepCount, 0);
+    } else {
+      total = total + readNumber(modes[modeIds[index]].stepCount, 0);
     }
 
-    total = total + countSharedModuleSteps(moduleDoc.data() || {});
-  });
+    index = index + 1;
+  }
 
-  if (!sawUpdatedModule) {
-    total = total + readNumber(updatedModuleStepCount, countSharedModuleSteps(currentModule));
+  if (modeIds.indexOf(updatedModeId) === -1) {
+    total = total + readNumber(updatedModeStepCount, 0);
   }
 
   return total;

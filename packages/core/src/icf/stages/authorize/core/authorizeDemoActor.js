@@ -1,4 +1,4 @@
-import { hasAnyRole } from "./roleAuthorization.js?v=1.1.162-modal-stack";
+import { hasAnyRole } from "./roleAuthorization.js?v=1.1.82-shared-command-center-shell";
 
 export function authorizeDemoActor(executionState) {
   if (!executionState.actor || !executionState.actor.id) {

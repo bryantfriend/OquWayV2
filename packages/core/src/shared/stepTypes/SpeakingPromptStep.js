@@ -1,4 +1,5 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.162-modal-stack";
+import { BaseStep } from "./BaseStep.js?v=1.1.82-shared-command-center-shell";
+import { buildSharedActivityCss, buildSvgMicrophone } from "../../../../../packages/ui/shared/visualHelpers.js?v=1.1.83-student-assignment-load";
 
 export class SpeakingPromptStep extends BaseStep {
   static get type() {
@@ -65,15 +66,29 @@ export class SpeakingPromptStep extends BaseStep {
     var speakingSeconds = this.readNumber(config, "speakingSeconds", 60);
     var html = "";
 
-    html += '<article class="oqu-player-step oqu-player-speaking">';
-    html += '<h2>Speaking Challenge</h2>';
-    html += '<p>' + this.escapeHtml(prompt) + '</p>';
-    html += '<div class="oqu-player-timer-row">';
-    html += '<span>Prepare: ' + preparationSeconds + 's</span>';
-    html += '<span>Speak: ' + speakingSeconds + 's</span>';
+    html += buildSharedActivityCss();
+
+    html += '<article class="oqu-player-step oqu-player-speaking oqu-enhanced-card" style="max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; text-align: center;">';
+    
+    html += '<div class="oqu-icon-badge oqu-anim-pulse" style="width: 80px; height: 80px; border-radius: 50%; font-size: 2rem; margin-bottom: 24px; background: var(--soft-coral); color: var(--coral);">' + buildSvgMicrophone() + '</div>';
+    
+    html += '<h2 style="font-size: 1.5rem; font-weight: 700; color: var(--ink); margin-bottom: 12px;">Speaking Challenge</h2>';
+    html += '<p style="color: var(--muted); font-size: 1.1rem; line-height: 1.5; margin-bottom: 32px;">' + this.escapeHtml(prompt) + '</p>';
+    
+    html += '<div class="oqu-player-timer-row" style="display: flex; gap: 16px; width: 100%; margin-bottom: 24px;">';
+    html += '<div style="flex: 1; background: var(--bg-color); padding: 16px; border-radius: 12px; border: 1px solid var(--line);">';
+    html += '<div style="font-size: 0.85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Prepare</div>';
+    html += '<div style="font-size: 1.5rem; font-weight: 700; color: var(--ink);">' + preparationSeconds + 's</div>';
     html += '</div>';
-    html += '<button type="button" class="oqu-player-record-shell" data-step-complete>Practice Complete</button>';
-    html += '<button type="button" class="oqu-player-complete-btn">Complete</button>';
+    html += '<div style="flex: 1; background: var(--bg-color); padding: 16px; border-radius: 12px; border: 1px solid var(--line);">';
+    html += '<div style="font-size: 0.85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Speak</div>';
+    html += '<div style="font-size: 1.5rem; font-weight: 700; color: var(--ink);">' + speakingSeconds + 's</div>';
+    html += '</div>';
+    html += '</div>';
+    
+    html += '<div class="oqu-player-record-shell" style="width: 100%; background: #f1f5f9; padding: 16px; border-radius: 12px; color: #64748b; font-weight: 500; border: 2px dashed #cbd5e1; margin-bottom: 24px;">Microphone Recording Coming Soon</div>';
+    
+    html += '<button type="button" class="oqu-player-complete-btn" style="width: 100%; background: var(--blue); color: white; border: none; padding: 14px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: transform 0.2s;">Complete Practice</button>';
     html += '</article>';
 
     return html;

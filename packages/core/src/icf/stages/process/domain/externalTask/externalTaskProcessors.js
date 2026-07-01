@@ -5,8 +5,7 @@ import {
   getStudentExternalTaskSubmissions,
   updateExternalTaskReview,
   uploadExternalTaskFile
-} from "../../../../../../../domain/externalTasks/index.js?v=1.1.162-modal-stack";
-import { resolveActorStudentId, resolveActorStudentIdentity } from "../../../../../../../domain/users/index.js?v=1.1.162-modal-stack";
+} from "../../../../../../../domain/externalTasks/index.js?v=1.1.82-shared-command-center-shell";
 
 export async function processLoadExternalTaskStep(executionState) {
   var payload = executionState.payload || {};
@@ -19,15 +18,11 @@ export async function processLoadExternalTaskStep(executionState) {
       courseAssignmentId: payload.courseAssignmentId || payload.assignmentId,
       moduleId: payload.moduleId,
       stepId: payload.stepId,
-      studentId: resolveActorStudentId(actor, executionState.context.studentProfile, payload)
+      studentId: actor.id
     });
 
-    var latestSubmission = readLatestSubmission(submissions);
-
-    logExternalTaskStudentDebug(executionState, payload, latestSubmission);
-
     executionState.result = {
-      submission: latestSubmission,
+      submission: readLatestSubmission(submissions),
       submissions: submissions
     };
 
@@ -42,7 +37,7 @@ export async function processUploadExternalTaskFile(executionState) {
   var payload = executionState.payload || {};
 
   try {
-    var fileRecord = await uploadExternalTaskFile(payload, executionState.actor || {}, executionState.context.studentProfile || {}, payload.submissionId, payload.file);
+    var fileRecord = await uploadExternalTaskFile(payload, executionState.actor || {}, payload.submissionId, payload.file);
     executionState.result = {
       file: fileRecord
     };
@@ -65,8 +60,6 @@ export async function processSubmitExternalTask(executionState) {
       submission: submission
     };
 
-    logExternalTaskStudentDebug(executionState, executionState.payload || {}, submission);
-
     return { valid: true, data: executionState.result };
   } catch (error) {
     logExternalTaskProcessError("SubmitExternalTaskIntent", executionState, error, "externalTaskSubmissions");
@@ -85,8 +78,6 @@ export async function processResubmitExternalTask(executionState) {
     executionState.result = {
       submission: submission
     };
-
-    logExternalTaskStudentDebug(executionState, executionState.payload || {}, submission);
 
     return { valid: true, data: executionState.result };
   } catch (error) {
@@ -145,28 +136,6 @@ function readLatestSubmission(submissions) {
   return Array.isArray(submissions) && submissions.length > 0 ? submissions[0] : null;
 }
 
-function logExternalTaskStudentDebug(executionState, payload, submission) {
-  if (!isExternalTaskDebugEnabled()) {
-    return;
-  }
-
-  var actor = executionState.actor || {};
-  var identity = resolveActorStudentIdentity(actor, executionState.context.studentProfile, payload);
-
-  console.log("[external-task-student-debug]", {
-    resolvedStudentId: identity.resolvedStudentId || "",
-    authUid: identity.authUid || "",
-    tokenStudentId: identity.tokenStudentId || "",
-    courseId: payload && payload.courseId ? payload.courseId : "",
-    assignmentId: payload && (payload.assignmentId || payload.courseAssignmentId) ? (payload.assignmentId || payload.courseAssignmentId) : "",
-    moduleId: payload && payload.moduleId ? payload.moduleId : "",
-    stepId: payload && payload.stepId ? payload.stepId : "",
-    latestSubmissionId: submission ? (submission.id || submission.submissionId || "") : "",
-    latestReviewStatus: submission ? (submission.reviewStatus || "pending") : "",
-    attemptNumber: submission ? (submission.attemptNumber || 1) : 0
-  });
-}
-
 function createProcessError(code, message) {
   return {
     valid: false,
@@ -191,12 +160,6 @@ function logExternalTaskProcessError(intentName, executionState, error, path) {
     firebaseErrorCode: error && error.code ? error.code : "",
     message: readErrorMessage(error)
   });
-}
-
-function isExternalTaskDebugEnabled() {
-  return typeof window !== "undefined"
-    && window.location
-    && window.location.search.indexOf("debug=true") !== -1;
 }
 
 function isDevelopmentHost() {

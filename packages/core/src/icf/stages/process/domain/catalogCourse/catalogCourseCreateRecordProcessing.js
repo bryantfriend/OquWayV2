@@ -1,4 +1,4 @@
-import { db, collection, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
+import { db, collection, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
 
 function generateId() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -40,7 +40,6 @@ function createCourseRecord(id, payload, context) {
         languages: readLanguages(payload.languages, payload.defaultLanguage),
         tags: readTags(payload.tags),
         slug: readText(payload.slug),
-        displayTemplate: readDisplayTemplate(payload.displayTemplate),
         version: readVersion(payload.version),
         createdBy: readText(context.createdBy),
         createdByName: readText(context.createdByName),
@@ -126,14 +125,6 @@ function readStatus(status) {
     }
 
     return "draft";
-}
-
-function readDisplayTemplate(displayTemplate) {
-    if (displayTemplate === "adventurePath" || displayTemplate === "compactGrid") {
-        return displayTemplate;
-    }
-
-    return "basic";
 }
 
 function readDefaultLanguage(defaultLanguage) {

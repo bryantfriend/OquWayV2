@@ -1,9 +1,7 @@
-import { findFirstPlayableTarget, validateStudentCourseOpen } from "../../../../../../../domain/courses/index.js";
-
 export async function processContinueLearning(executionState) {
   var payload = executionState.payload || {};
   var courses = Array.isArray(payload.courses) ? payload.courses : [];
-  var recommendation = selectLearningPath(courses) || createEmptyRecommendation();
+  var recommendation = selectLearningPath(courses) || findInProgressCourse(courses) || findFirstCourse(courses) || createEmptyRecommendation();
 
   executionState.result = {
     continueLearning: recommendation
@@ -32,14 +30,6 @@ function selectLearningPath(courses) {
 function selectCourseLearningPath(course) {
   var modules = Array.isArray(course && course.modules) ? course.modules : [];
   var moduleIndex = 0;
-  var courseValidation = validateStudentCourseOpen(course, {
-    assignmentId: course && (course.assignmentId || course.courseAssignmentId || "profile-course"),
-    requireAssignment: false
-  });
-
-  if (!courseValidation.playable) {
-    return null;
-  }
 
   while (moduleIndex < modules.length) {
     var module = modules[moduleIndex];
@@ -67,7 +57,7 @@ function selectCourseLearningPath(course) {
       reason = "fallbackPrimary";
     }
 
-    if (selected && hasPlayableSessionContent(selected)) {
+    if (selected) {
       return normalizeRecommendation({
         id: course.id || course.courseId,
         title: course.title,
@@ -84,7 +74,7 @@ function selectCourseLearningPath(course) {
     moduleIndex = moduleIndex + 1;
   }
 
-  return normalizePlayableTargetRecommendation(course, findFirstPlayableTarget(course));
+  return null;
 }
 
 function findModeSession(module, modeType) {
@@ -160,41 +150,6 @@ function countSessionSteps(session) {
     var steps = practiceModes[key] && Array.isArray(practiceModes[key].steps) ? practiceModes[key].steps : [];
     return count + steps.length;
   }, 0);
-}
-
-function hasPlayableSessionContent(session) {
-  return countSessionSteps(session) > 0 || hasItems(session && session.pages) || hasItems(session && session.blocks) || hasItems(session && session.steps);
-}
-
-function normalizePlayableTargetRecommendation(course, target) {
-  if (!target || !target.moduleId) {
-    return null;
-  }
-
-  var module = findModuleById(Array.isArray(course && course.modules) ? course.modules : [], target.moduleId);
-  var session = module && target.sessionId ? findSessionById(Array.isArray(module.sessions) ? module.sessions : [], target.sessionId) : null;
-
-  return normalizeRecommendation({
-    id: course.id || course.courseId,
-    title: course.title,
-    moduleId: target.moduleId,
-    sessionId: target.sessionId,
-    moduleTitle: module ? module.title : "",
-    progressPercent: session ? readSessionProgressPercent(session) : 0,
-    lastOpenedAt: session ? readProgressUpdatedAt(session) : 0,
-    learningModeId: target.learningModeId,
-    recommendationReason: target.recommendationReason || "firstPlayable"
-  }, session && readSessionProgressPercent(session) > 0 ? "Continue Learning" : "Start Learning");
-}
-
-function findModuleById(modules, moduleId) {
-  return modules.find(function (module) {
-    return module && (module.id === moduleId || module.moduleId === moduleId);
-  }) || null;
-}
-
-function hasItems(value) {
-  return Array.isArray(value) && value.length > 0;
 }
 
 function countSessionCompletedSteps(session) {

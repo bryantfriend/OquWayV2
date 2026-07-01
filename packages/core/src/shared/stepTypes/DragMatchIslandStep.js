@@ -1,4 +1,5 @@
-import { BaseStep } from "./BaseStep.js?v=1.1.162-modal-stack";
+import { BaseStep } from "./BaseStep.js?v=1.1.82-shared-command-center-shell";
+import { buildSharedActivityCss, buildSvgIslandMap } from "../../../../../packages/ui/shared/visualHelpers.js?v=1.1.83-student-assignment-load";
 
 export class DragMatchIslandStep extends BaseStep {
   static get type() {
@@ -72,22 +73,42 @@ export class DragMatchIslandStep extends BaseStep {
     var theme = this.readText(config, "theme", "sunny");
     var html = "";
 
-    html += '<article class="oqu-player-step oqu-full-experience-step oqu-drag-island-step">';
-    html += '<div class="oqu-experience-kicker">Games · ' + this.escapeHtml(theme) + '</div>';
-    html += '<section class="oqu-island-header">';
-    html += '<div>';
-    html += '<h2>' + this.escapeHtml(title) + '</h2>';
-    html += '<p>' + this.escapeHtml(subtitle) + '</p>';
+    html += buildSharedActivityCss();
+
+    html += '<article class="oqu-player-step oqu-full-experience-step oqu-drag-island-step oqu-theme-' + this.escapeHtml(theme) + '" style="background: linear-gradient(to bottom, #bae6fd, #e0f2fe); border-radius: 24px; padding: 32px; max-width: 800px; margin: 0 auto; box-shadow: 0 10px 25px rgba(14, 165, 233, 0.15); border: 2px solid white; position: relative; overflow: hidden;">';
+    
+    // Water ripples overlay
+    html += '<div class="oqu-decorative-overlay" style="background-image: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.4) 2px, transparent 2px); background-size: 40px 40px; opacity: 0.5;"></div>';
+    
+    html += '<div class="oqu-interactive-content">';
+    html += '<div class="oqu-island-topbar" style="display: flex; justify-content: flex-start; margin-bottom: 24px;">';
+    html += '<div class="oqu-island-kicker" style="background: white; color: #0284c7; padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">' + buildSvgIslandMap() + ' Drag & Match</div>';
     html += '</div>';
-    html += '<div class="oqu-island-sun">☀</div>';
+    
+    html += '<section class="oqu-island-header" style="text-align: center; margin-bottom: 32px;">';
+    html += '<div class="oqu-island-header-text">';
+    html += '<h2 style="font-size: 2.5rem; color: #0369a1; margin-bottom: 8px; text-shadow: 0 2px 4px rgba(255,255,255,0.8); font-weight: 900;">' + this.escapeHtml(title) + '</h2>';
+    html += '<p style="font-size: 1.2rem; color: #0284c7; font-weight: 500;">' + this.escapeHtml(subtitle) + '</p>';
+    html += '</div>';
     html += '</section>';
-    html += '<div class="oqu-island-board">';
-    html += '<div class="oqu-island-water">Matching area placeholder</div>';
-    html += '<div class="oqu-island-card-row">';
+    
+    html += '<div class="oqu-island-board" style="background: #fef3c7; border-radius: 24px; padding: 24px; border: 4px solid #fde68a; box-shadow: inset 0 0 20px rgba(217, 119, 6, 0.1); margin-bottom: 32px;">';
+    
+    html += '<div class="oqu-island-drop-zones" style="display: flex; gap: 16px; margin-bottom: 32px; justify-content: center;">';
+    html += '<div class="oqu-island-drop-zone" style="flex: 1; max-width: 200px; height: 120px; background: rgba(255,255,255,0.5); border: 2px dashed #d97706; border-radius: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;"><span class="oqu-drop-placeholder" style="color: #b45309; font-weight: bold; opacity: 0.6;">Drop Area 1</span></div>';
+    html += '<div class="oqu-island-drop-zone" style="flex: 1; max-width: 200px; height: 120px; background: rgba(255,255,255,0.5); border: 2px dashed #d97706; border-radius: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;"><span class="oqu-drop-placeholder" style="color: #b45309; font-weight: bold; opacity: 0.6;">Drop Area 2</span></div>';
+    html += '</div>';
+    
+    html += '<div class="oqu-island-card-row" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;">';
     html += this.renderItemCards(items);
     html += '</div>';
+    
     html += '</div>';
-    html += '<button type="button" class="oqu-player-complete-btn">Complete Island Match</button>';
+    
+    html += '<div class="oqu-island-footer" style="text-align: center;">';
+    html += '<button type="button" class="oqu-player-complete-btn oqu-island-btn oqu-anim-pulse" style="background: #f59e0b; color: white; border: none; border-bottom: 4px solid #d97706; padding: 16px 40px; border-radius: 30px; font-weight: 800; font-size: 1.2rem; cursor: pointer; transition: transform 0.1s;">Complete Match</button>';
+    html += '</div>';
+    html += '</div>';
     html += '</article>';
 
     return html;
@@ -102,14 +123,14 @@ export class DragMatchIslandStep extends BaseStep {
       var itemText = itemList[itemIndex].trim();
 
       if (itemText.length > 0) {
-        html += '<span class="oqu-island-card">' + this.escapeHtml(itemText) + '</span>';
+        html += '<span class="oqu-island-draggable-card" style="background: white; padding: 12px 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; color: #334155; font-weight: 600; cursor: grab; display: inline-flex; align-items: center; gap: 8px;"><i class="fa-solid fa-grip-vertical oqu-drag-handle" style="color: #cbd5e1;"></i> ' + this.escapeHtml(itemText) + '</span>';
       }
 
       itemIndex = itemIndex + 1;
     }
 
     if (html.length === 0) {
-      html += '<span class="oqu-island-card">Card</span>';
+      html += '<span class="oqu-island-draggable-card" style="background: white; padding: 12px 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); color: #334155; font-weight: 600; cursor: grab;"><i class="fa-solid fa-grip-vertical oqu-drag-handle" style="color: #cbd5e1;"></i> Card</span>';
     }
 
     return html;

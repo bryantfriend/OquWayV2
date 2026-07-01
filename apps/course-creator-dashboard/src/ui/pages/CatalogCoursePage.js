@@ -1,6 +1,6 @@
-import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.152-course-builder-loading-timeout";
-import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.152-course-builder-loading-timeout";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.160-lesson-paths";
+import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.82-shared-command-center-shell";
+import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.82-shared-command-center-shell";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.82-shared-command-center-shell";
 import { signOut } from "firebase/auth";
 
 export class CatalogCoursePage {
@@ -14,12 +14,12 @@ export class CatalogCoursePage {
         <nav class="builder-nav">
           <div class="builder-brand"><span>OquWay</span><small>Course Builder 2.0</small></div>
           <div class="builder-nav-actions">
-            <button type="button" id="builderUserProfileBtn" class="builder-user-area" aria-label="Open profile">
-              <span id="builderUserName">${escapeHtml(readCurrentUserName())}</span>
-              <small>${escapeHtml(readCurrentUserRoleLabel())}</small>
-            </button>
-            <button id="courseBuilderLogoutBtn" class="builder-btn builder-btn-ghost"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</button>
+            <div class="builder-user-chip">
+              <span>${escapeHtml(readCurrentUserLabel())}</span>
+              <small>Course Creator</small>
+            </div>
             <a href="#location-login-settings" class="builder-btn builder-btn-ghost">Login Modes</a>
+            <button id="courseCreatorLogoutBtn" class="builder-btn builder-btn-ghost">Log Out</button>
             <button id="openCreateModalBtn" class="builder-btn builder-btn-primary"><i class="fa-solid fa-plus"></i> New Course</button>
           </div>
         </nav>
@@ -43,8 +43,8 @@ export class CatalogCoursePage {
               <option value="all">All statuses</option>
               <option value="draft">Draft</option>
               <option value="published">Published</option>
+              <option value="archived">Archived</option>
             </select>
-            <button id="openArchivedCoursesBtn" class="builder-btn builder-btn-ghost"><i class="fa-solid fa-box-archive"></i> View Archived Courses</button>
           </section>
 
           <section id="courseBuilderStatus" class="builder-status" hidden></section>
@@ -88,41 +88,6 @@ export class CatalogCoursePage {
             </div>
           </div>
         </div>
-
-        <div id="archivedCoursesModal" class="builder-modal hidden">
-          <div class="builder-modal-panel builder-modal-panel-wide">
-            <div class="builder-modal-head">
-              <div>
-                <p class="builder-eyebrow">Archive</p>
-                <h2>Archived Courses</h2>
-              </div>
-              <button id="closeArchivedCoursesBtn" class="builder-icon-btn" aria-label="Close archived courses"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <section id="archivedCoursesStatus" class="builder-status" hidden></section>
-            <section id="archivedCoursesList" class="builder-archive-list"></section>
-            <div class="builder-modal-actions">
-              <button id="doneArchivedCoursesBtn" class="builder-btn builder-btn-primary">Done</button>
-            </div>
-          </div>
-        </div>
-
-        <div id="builderProfileModal" class="builder-modal hidden">
-          <div class="builder-modal-panel">
-            <div class="builder-modal-head">
-              <div>
-                <p class="builder-eyebrow">Profile</p>
-                <h2>Your profile</h2>
-              </div>
-              <button id="closeBuilderProfileBtn" class="builder-icon-btn" aria-label="Close profile"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <section class="builder-profile-view">
-              ${buildProfileModalContent()}
-            </section>
-            <div class="builder-modal-actions">
-              <button id="doneBuilderProfileBtn" class="builder-btn builder-btn-primary">Done</button>
-            </div>
-          </div>
-        </div>
       </div>
     `;
   }
@@ -136,10 +101,6 @@ export class CatalogCoursePage {
         courseCreatorStore.setState({
           courses: result.emitted.data || [],
           isFetching: false,
-          archivePendingCourseId: "",
-          restorePendingCourseId: "",
-          permanentDeletePendingCourseId: "",
-          isArchivedListReloading: false,
           error: null
         });
         return;
@@ -149,7 +110,6 @@ export class CatalogCoursePage {
     } catch (error) {
       courseCreatorStore.setState({
         isFetching: false,
-        isArchivedListReloading: false,
         error: error.message
       });
     }
@@ -158,8 +118,6 @@ export class CatalogCoursePage {
   renderCourses(state) {
     var grid = document.getElementById("courseGrid");
     var status = document.getElementById("courseBuilderStatus");
-
-    this.renderArchivedCourses(state);
 
     if (!grid) {
       return;
@@ -186,9 +144,7 @@ export class CatalogCoursePage {
     }
 
     hideStatus(status);
-    grid.innerHTML = courses.map(function (course) {
-      return buildCourseCard(course, state);
-    }).join("");
+    grid.innerHTML = courses.map(buildCourseCard.bind(this)).join("");
   }
 
   attachEvents() {
@@ -201,53 +157,8 @@ export class CatalogCoursePage {
     this.loadData();
     this.bindFilters();
     this.bindCreateModal();
-    this.bindArchivedModal();
     this.bindCourseActions();
-    this.bindSessionControls();
-    this.bindProfileModal();
-  }
-
-  bindProfileModal() {
-    var modal = document.getElementById("builderProfileModal");
-    var openButton = document.getElementById("builderUserProfileBtn");
-    var closeButton = document.getElementById("closeBuilderProfileBtn");
-    var doneButton = document.getElementById("doneBuilderProfileBtn");
-
-    openButton.addEventListener("click", function () {
-      modal.classList.remove("hidden");
-    });
-
-    closeButton.addEventListener("click", function () {
-      modal.classList.add("hidden");
-    });
-
-    doneButton.addEventListener("click", function () {
-      modal.classList.add("hidden");
-    });
-
-    modal.addEventListener("click", function (event) {
-      if (event.target === modal) {
-        modal.classList.add("hidden");
-      }
-    });
-  }
-
-  bindSessionControls() {
-    var logoutButton = document.getElementById("courseBuilderLogoutBtn");
-
-    if (!logoutButton) {
-      return;
-    }
-
-    logoutButton.addEventListener("click", function () {
-      logoutButton.disabled = true;
-      logoutButton.textContent = "Logging out...";
-      signOut(auth).catch(function (error) {
-        logoutButton.disabled = false;
-        logoutButton.innerHTML = '<i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out';
-        showPageStatus("error", error.message);
-      });
-    });
+    this.bindAuthActions();
   }
 
   bindFilters() {
@@ -261,92 +172,6 @@ export class CatalogCoursePage {
     statusFilter.addEventListener("change", function () {
       courseCreatorStore.setState({ statusFilter: statusFilter.value });
     });
-  }
-
-  bindArchivedModal() {
-    var self = this;
-    var modal = document.getElementById("archivedCoursesModal");
-    var openButton = document.getElementById("openArchivedCoursesBtn");
-    var closeButton = document.getElementById("closeArchivedCoursesBtn");
-    var doneButton = document.getElementById("doneArchivedCoursesBtn");
-    var list = document.getElementById("archivedCoursesList");
-
-    openButton.addEventListener("click", function () {
-      hideStatus(document.getElementById("archivedCoursesStatus"));
-      courseCreatorStore.setState({ isArchivedModalOpen: true });
-    });
-
-    closeButton.addEventListener("click", function () {
-      courseCreatorStore.setState({ isArchivedModalOpen: false });
-    });
-
-    doneButton.addEventListener("click", function () {
-      courseCreatorStore.setState({ isArchivedModalOpen: false });
-    });
-
-    modal.addEventListener("click", function (event) {
-      if (event.target === modal) {
-        courseCreatorStore.setState({ isArchivedModalOpen: false });
-      }
-    });
-
-    document.addEventListener("keydown", function (event) {
-      if (event.key === "Escape" && courseCreatorStore.getState().isArchivedModalOpen) {
-        courseCreatorStore.setState({ isArchivedModalOpen: false });
-      }
-    });
-
-    list.addEventListener("click", function (event) {
-      var button = event.target.closest("[data-archived-course-action]");
-
-      if (!button) {
-        return;
-      }
-
-      var courseId = button.getAttribute("data-id");
-      var action = button.getAttribute("data-archived-course-action");
-
-      if (action === "restore") {
-        self.restoreCourse(courseId);
-        return;
-      }
-
-      if (action === "permanent-delete") {
-        self.permanentlyDeleteCourse(courseId);
-      }
-    });
-  }
-
-  renderArchivedCourses(state) {
-    var modal = document.getElementById("archivedCoursesModal");
-    var list = document.getElementById("archivedCoursesList");
-
-    if (!modal || !list) {
-      return;
-    }
-
-    modal.classList.toggle("hidden", state.isArchivedModalOpen !== true);
-
-    if (state.isArchivedListReloading) {
-      list.innerHTML = buildArchivedReloadingState();
-      return;
-    }
-
-    if (state.isFetching) {
-      list.innerHTML = buildArchivedSkeletonRows(3);
-      return;
-    }
-
-    var archivedCourses = getArchivedCourses(state.courses || []);
-
-    if (archivedCourses.length === 0) {
-      list.innerHTML = buildArchivedEmptyState();
-      return;
-    }
-
-    list.innerHTML = archivedCourses.map(function (course) {
-      return buildArchivedCourseRow(course, state);
-    }).join("");
   }
 
   bindCourseActions() {
@@ -394,15 +219,26 @@ export class CatalogCoursePage {
     });
   }
 
-  archiveCourse(courseId) {
-    var self = this;
-    var currentState = courseCreatorStore.getState();
+  bindAuthActions() {
+    var logoutButton = document.getElementById("courseCreatorLogoutBtn");
 
-    if (currentState.archivePendingCourseId) {
+    if (!logoutButton) {
       return;
     }
 
-    courseCreatorStore.setState({ archivePendingCourseId: courseId });
+    logoutButton.addEventListener("click", function () {
+      logoutButton.disabled = true;
+      logoutButton.textContent = "Logging out...";
+      signOut(auth).catch(function (error) {
+        logoutButton.disabled = false;
+        logoutButton.textContent = "Log Out";
+        showPageStatus("error", error.message);
+      });
+    });
+  }
+
+  archiveCourse(courseId) {
+    var self = this;
     showPageStatus("loading", "Archiving course...");
     catalogCourseService.archiveCourse(courseId).then(function (result) {
       if (!result || !result.emitted || !result.emitted.success) {
@@ -412,7 +248,6 @@ export class CatalogCoursePage {
       self.loadData();
     }).catch(function (error) {
       showPageStatus("error", error.message);
-      courseCreatorStore.setState({ archivePendingCourseId: "" });
     });
   }
 
@@ -432,67 +267,6 @@ export class CatalogCoursePage {
       self.loadData();
     }).catch(function (error) {
       showPageStatus("error", error.message);
-    });
-  }
-
-  restoreCourse(courseId) {
-    var self = this;
-    var currentState = courseCreatorStore.getState();
-
-    if (currentState.restorePendingCourseId || currentState.permanentDeletePendingCourseId) {
-      return;
-    }
-
-    courseCreatorStore.setState({ restorePendingCourseId: courseId });
-    showArchivedStatus("loading", "Restoring course to draft...");
-
-    catalogCourseService.restoreCourse(courseId).then(function (result) {
-      if (!result || !result.emitted || !result.emitted.success) {
-        throw new Error(self.readResultErrorMessage(result));
-      }
-
-      showArchivedStatus("success", "Course restored to draft.");
-      self.loadData();
-    }).catch(function (error) {
-      showArchivedStatus("error", error.message);
-      courseCreatorStore.setState({ restorePendingCourseId: "" });
-    });
-  }
-
-  permanentlyDeleteCourse(courseId) {
-    var self = this;
-    var currentState = courseCreatorStore.getState();
-
-    if (currentState.restorePendingCourseId || currentState.permanentDeletePendingCourseId) {
-      return;
-    }
-
-    if (!confirm("Permanently delete this archived course? This cannot be undone.")) {
-      return;
-    }
-
-    courseCreatorStore.setState({ permanentDeletePendingCourseId: courseId });
-    showArchivedStatus("loading", "Permanently deleting course...");
-
-    catalogCourseService.permanentlyDeleteCourse(courseId).then(function (result) {
-      if (!result || !result.emitted || !result.emitted.success) {
-        throw new Error(self.readResultErrorMessage(result));
-      }
-
-      showArchivedStatus("loading", "Refreshing archived courses...");
-      courseCreatorStore.setState({
-        permanentDeletePendingCourseId: "",
-        isArchivedListReloading: true
-      });
-      window.setTimeout(function () {
-        self.loadData();
-      }, 500);
-    }).catch(function (error) {
-      showArchivedStatus("error", error.message);
-      courseCreatorStore.setState({
-        permanentDeletePendingCourseId: "",
-        isArchivedListReloading: false
-      });
     });
   }
 
@@ -559,33 +333,24 @@ export class CatalogCoursePage {
   }
 }
 
-function buildCourseCard(course, state) {
+function buildCourseCard(course) {
   var title = readLocalizedText(course.title, course.defaultLanguage) || "Untitled Course";
   var description = readLocalizedText(course.description, course.defaultLanguage) || "Add a description before publishing.";
   var status = readCourseStatus(course);
-  var isArchivePending = state && state.archivePendingCourseId === course.id;
-  var isAnyArchivePending = Boolean(state && state.archivePendingCourseId);
-  var cardClass = isArchivePending ? " builder-course-card-archiving" : "";
-  var actionDisabled = isArchivePending ? " disabled" : "";
-  var archiveDisabled = isAnyArchivePending || status === "archived" ? " disabled" : "";
-  var archiveLabel = isArchivePending
-    ? '<span class="oqu-spinner oqu-spinner-blue"></span> Archiving...'
-    : (status === "archived" ? "Archived" : "Archive");
   var moduleCount = readVerifiedCount(course, "moduleCount");
   var stepCount = readVerifiedCount(course, "stepCount");
   var countSource = course.countSource || course.moduleCountSource || "catalogCourses";
   var moduleLabel = buildCountLabel(moduleCount, "module");
-  var stepLabel = buildCountLabel(stepCount, "learning activity");
+  var stepLabel = buildCountLabel(stepCount, "step");
   var legacySourceLabel = countSource === "courses" ? '<span class="builder-count-source">Legacy source</span>' : "";
-  var iconHtml = buildCourseIconHtml(course, title, "builder-course-card-icon");
+  var iconUrl = readCourseIconUrl(course);
 
   return `
-    <article class="builder-course-card${cardClass}" aria-busy="${isArchivePending ? "true" : "false"}">
+    <article class="builder-course-card">
       <div class="builder-course-card-top">
-        ${iconHtml}
+        <img src="${escapeHtml(iconUrl)}" alt="">
         <span class="builder-badge builder-badge-${escapeHtml(status)}">${escapeHtml(status)}</span>
       </div>
-      ${isArchivePending ? '<div class="builder-archive-overlay"><span class="oqu-spinner oqu-spinner-blue"></span><strong>Archiving course...</strong></div>' : ''}
       <h2>${escapeHtml(title)}</h2>
       <p>${escapeHtml(description)}</p>
       <div class="builder-course-meta">
@@ -595,45 +360,20 @@ function buildCourseCard(course, state) {
         <span>${escapeHtml(readUpdatedLabel(course.updatedAt || course.createdAt))}</span>
       </div>
       <div class="builder-card-actions">
-        <button data-course-action="edit" data-id="${escapeHtml(course.id)}"${actionDisabled}>Edit</button>
-        <button data-course-action="preview" data-id="${escapeHtml(course.id)}"${actionDisabled}>Preview</button>
-        <button data-course-action="publish" data-id="${escapeHtml(course.id)}"${actionDisabled}>Publish</button>
-        <button data-course-action="assign" data-id="${escapeHtml(course.id)}"${actionDisabled}>Assign</button>
-        <button class="${isArchivePending ? "builder-archive-btn-pending" : ""}" data-course-action="archive" data-id="${escapeHtml(course.id)}"${archiveDisabled}>${archiveLabel}</button>
+        <button data-course-action="edit" data-id="${escapeHtml(course.id)}">Edit</button>
+        <button data-course-action="preview" data-id="${escapeHtml(course.id)}">Preview</button>
+        <button data-course-action="publish" data-id="${escapeHtml(course.id)}">Publish</button>
+        <button data-course-action="assign" data-id="${escapeHtml(course.id)}">Assign</button>
+        <button data-course-action="archive" data-id="${escapeHtml(course.id)}">Archive</button>
       </div>
     </article>
   `;
-}
-
-function buildCourseIconHtml(course, title, className) {
-  var iconUrl = readCourseIconUrl(course);
-  var safeClassName = className || "builder-course-card-icon";
-
-  if (iconUrl) {
-    return '<span class="' + escapeHtml(safeClassName) + '"><img src="' + escapeHtml(iconUrl) + '" alt=""></span>';
-  }
-
-  return '<span class="' + escapeHtml(safeClassName) + ' builder-course-card-icon-fallback">' + escapeHtml(readCourseInitial(title)) + '</span>';
-}
-
-function readCourseIconUrl(course) {
-  var value = course && (course.iconUrl || course.heroImageUrl || course.imageUrl || course.thumbnailUrl);
-  return typeof value === "string" ? value.trim() : "";
-}
-
-function readCourseInitial(title) {
-  var value = typeof title === "string" ? title.trim() : "";
-  return value ? value.charAt(0).toUpperCase() : "C";
 }
 
 function filterCourses(courses, searchQuery, statusFilter) {
   var query = searchQuery.toLowerCase().trim();
 
   return courses.filter(function (course) {
-    if (readCourseStatus(course) === "archived") {
-      return false;
-    }
-
     var statusMatches = statusFilter === "all" || readCourseStatus(course) === statusFilter;
     var text = [
       readLocalizedText(course.title, course.defaultLanguage),
@@ -644,68 +384,6 @@ function filterCourses(courses, searchQuery, statusFilter) {
 
     return statusMatches && (!query || text.indexOf(query) !== -1);
   });
-}
-
-function getArchivedCourses(courses) {
-  return courses.filter(function (course) {
-    return readCourseStatus(course) === "archived";
-  }).sort(compareByUpdatedDate);
-}
-
-function buildArchivedCourseRow(course, state) {
-  var title = readLocalizedText(course.title, course.defaultLanguage) || "Untitled Course";
-  var description = readLocalizedText(course.description, course.defaultLanguage) || "No description yet.";
-  var moduleCount = readVerifiedCount(course, "moduleCount");
-  var stepCount = readVerifiedCount(course, "stepCount");
-  var isRestorePending = state && state.restorePendingCourseId === course.id;
-  var isDeletePending = state && state.permanentDeletePendingCourseId === course.id;
-  var isAnyPending = Boolean(state && (state.restorePendingCourseId || state.permanentDeletePendingCourseId));
-  var disabled = isAnyPending ? " disabled" : "";
-  var restoreLabel = isRestorePending
-    ? '<span class="oqu-spinner oqu-spinner-blue"></span> Restoring...'
-    : "Restore to Draft";
-  var deleteLabel = isDeletePending
-    ? '<span class="oqu-spinner oqu-spinner-blue"></span> Deleting...'
-    : "Permanently Delete";
-
-  return `
-    <article class="builder-archive-row" aria-busy="${isRestorePending || isDeletePending ? "true" : "false"}">
-      <div>
-        <span class="builder-badge builder-badge-archived">archived</span>
-        <h3>${escapeHtml(title)}</h3>
-        <p>${escapeHtml(description)}</p>
-        <div class="builder-course-meta">
-          <span>${escapeHtml(buildCountLabel(moduleCount, "module"))}</span>
-          <span>${escapeHtml(buildCountLabel(stepCount, "learning activity"))}</span>
-          <span>${escapeHtml(readUpdatedLabel(course.updatedAt || course.createdAt))}</span>
-        </div>
-      </div>
-      <div class="builder-archive-row-actions">
-        <button data-archived-course-action="restore" data-id="${escapeHtml(course.id)}"${disabled}>${restoreLabel}</button>
-        <button class="builder-danger-btn" data-archived-course-action="permanent-delete" data-id="${escapeHtml(course.id)}"${disabled}>${deleteLabel}</button>
-      </div>
-    </article>
-  `;
-}
-
-function buildArchivedEmptyState() {
-  return '<section class="builder-empty builder-archive-empty"><img src="./src/assets/empty-course.svg" alt=""><h2>No archived courses</h2><p>Archived courses will appear here after they are removed from the active builder list.</p></section>';
-}
-
-function buildArchivedReloadingState() {
-  return '<section class="builder-archive-reloading" aria-live="polite" aria-busy="true"><div><span class="oqu-spinner oqu-spinner-blue"></span><strong>Reloading archived courses...</strong><small>Updating the list after permanent delete.</small></div>' + buildArchivedSkeletonRows(3) + '</section>';
-}
-
-function buildArchivedSkeletonRows(count) {
-  var html = "";
-  var index = 0;
-
-  while (index < count) {
-    html += '<article class="builder-archive-row builder-skeleton"><div></div><span></span><p></p></article>';
-    index = index + 1;
-  }
-
-  return html;
 }
 
 function readCreatePayload() {
@@ -783,10 +461,6 @@ function showCreateStatus(type, message) {
   showStatus(document.getElementById("createStatusBanner"), type, message);
 }
 
-function showArchivedStatus(type, message) {
-  showStatus(document.getElementById("archivedCoursesStatus"), type, message);
-}
-
 function showPageStatus(type, message) {
   showStatus(document.getElementById("courseBuilderStatus"), type, message);
 }
@@ -854,75 +528,44 @@ function readCourseStatus(course) {
 
 function readVerifiedCount(course, key) {
   if (!course) {
-    return null;
-  }
-
-  if (course.countError) {
-    return null;
+    return 0;
   }
 
   return typeof course[key] === "number" ? course[key] : 0;
 }
 
 function buildCountLabel(count, label) {
-  if (count === null) {
-    return "Unavailable";
-  }
-
   return count + " " + label + (count === 1 ? "" : "s");
 }
 
-function buildProfileModalContent() {
-  var user = auth.currentUser;
-  var displayName = user && user.displayName ? user.displayName : "Not set";
-  var email = user && user.email ? user.email : "Not available";
-  var photoUrl = user && user.photoURL ? user.photoURL : "";
-  var initials = readProfileInitials(displayName, email);
-  var html = "";
-
-  html += '<div class="builder-profile-card">';
-  html += photoUrl
-    ? '<img class="builder-profile-avatar" src="' + escapeHtml(photoUrl) + '" alt="">'
-    : '<div class="builder-profile-avatar builder-profile-avatar-fallback">' + escapeHtml(initials) + '</div>';
-  html += '<div class="builder-profile-fields">';
-  html += '<label>Display name<span>' + escapeHtml(displayName) + '</span></label>';
-  html += '<label>Email<span>' + escapeHtml(email) + '</span></label>';
-  html += '<label>Profile photo<span>' + escapeHtml(photoUrl || "Not set") + '</span></label>';
-  html += '</div>';
-  html += '</div>';
-  html += '<p class="builder-profile-note">Profile editing is view-only here until an own-profile update intent is available for this dashboard.</p>';
-
-  return html;
-}
-
-function readProfileInitials(displayName, email) {
-  var source = displayName && displayName !== "Not set" ? displayName : email;
-  var parts = String(source || "User").split(/[ .@_-]+/).filter(Boolean);
-  var initials = "";
-
-  if (parts.length > 0) {
-    initials += parts[0].charAt(0);
+function readCourseIconUrl(course) {
+  if (!course) {
+    return "./src/assets/module-stack.svg";
   }
 
-  if (parts.length > 1) {
-    initials += parts[1].charAt(0);
+  if (typeof course.iconUrl === "string" && course.iconUrl.trim()) {
+    return course.iconUrl.trim();
   }
 
-  return initials.toUpperCase() || "U";
+  if (typeof course.imageUrl === "string" && course.imageUrl.trim()) {
+    return course.imageUrl.trim();
+  }
+
+  if (typeof course.coverImageUrl === "string" && course.coverImageUrl.trim()) {
+    return course.coverImageUrl.trim();
+  }
+
+  return "./src/assets/module-stack.svg";
 }
 
-function readCurrentUserName() {
+function readCurrentUserLabel() {
   var user = auth.currentUser;
 
   if (!user) {
-    return "Signed in";
+    return "Course Creator";
   }
 
-  return user.displayName || user.email || "Signed in";
-}
-
-function readCurrentUserRoleLabel() {
-  return "Course Creator";
+  return user.displayName || user.email || "Course Creator";
 }
 
 function readUpdatedLabel(value) {
@@ -953,16 +596,6 @@ function readDate(value) {
   }
 
   return null;
-}
-
-function compareByUpdatedDate(a, b) {
-  return readDateMillis(b.updatedAt || b.createdAt) - readDateMillis(a.updatedAt || a.createdAt);
-}
-
-function readDateMillis(value) {
-  var date = readDate(value);
-
-  return date ? date.getTime() : 0;
 }
 
 function escapeHtml(value) {

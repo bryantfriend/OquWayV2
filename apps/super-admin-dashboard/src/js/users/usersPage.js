@@ -1,7 +1,7 @@
-import { updateAppState } from "../app/appState.js?v=1.1.162-modal-stack";
-import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.162-modal-stack";
-import { renderUsersRoleCards, renderUsersTableRows } from "./usersRenderer.js?v=1.1.162-modal-stack";
-import { collectUserRoles } from "../../../../../packages/domain/users/index.js?v=1.1.162-modal-stack";
+import { updateAppState } from "../app/appState.js?v=1.1.82-shared-command-center-shell";
+import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.82-shared-command-center-shell";
+import { renderUsersRoleCards, renderUsersTableRows } from "./usersRenderer.js?v=1.1.82-shared-command-center-shell";
+import { collectUserRoles } from "../../../../../packages/domain/users/index.js?v=1.1.82-shared-command-center-shell";
 
 export async function loadUsersPage(context) {
   var result = await runAdminIntent("LoadUsersIntent", {}, context || {});
@@ -36,7 +36,9 @@ function userMatchesRoleFilter(user, roleFilter) {
 
   if (roleFilter === "admin") {
     return roles.indexOf("schoolAdmin") !== -1
-      || roles.indexOf("superAdmin") !== -1;
+      || roles.indexOf("regionalAdmin") !== -1
+      || roles.indexOf("ministryUser") !== -1
+      || roles.indexOf("platformAdmin") !== -1;
   }
 
   return roles.indexOf(roleFilter) !== -1;

@@ -1,6 +1,7 @@
-import { browserLocalPersistence, setPersistence, signInWithCustomToken } from "firebase/auth";
-import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.162-modal-stack";
-import { callStudentLoginFunction, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.162-modal-stack";
+import { signInWithCustomToken } from "firebase/auth";
+import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.82-shared-command-center-shell";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
+import { callStudentLoginFunction, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.82-shared-command-center-shell";
 
 export async function processStudentFruitLogin(executionState) {
   var payload = executionState.payload;
@@ -29,9 +30,7 @@ export async function processStudentFruitLogin(executionState) {
       throw new Error("Student login service did not return a custom token.");
     }
 
-    await setPersistence(auth, browserLocalPersistence);
-    var credential = await signInWithCustomToken(auth, token);
-    await credential.user.getIdToken(true);
+    await signInWithCustomToken(auth, token);
     logFruitLoginDebug("signed-in", {
       studentId: payload.studentId,
       locationId: payload.locationId,
@@ -40,7 +39,7 @@ export async function processStudentFruitLogin(executionState) {
       authUid: auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : "",
       submittedNormalizedSequence: []
     });
-    var studentProfile = Object.assign({ id: payload.studentId }, data.student || {});
+    var studentProfile = await loadStudentProfile(payload.studentId);
 
     executionState.result = {
       student: sanitizeProfile(studentProfile),
@@ -59,6 +58,16 @@ export async function processStudentFruitLogin(executionState) {
       ]
     };
   }
+}
+
+async function loadStudentProfile(studentId) {
+  var userSnap = await getDoc(doc(db, "users", studentId));
+
+  if (!userSnap.exists()) {
+    return { id: studentId };
+  }
+
+  return Object.assign({ id: userSnap.id }, userSnap.data());
 }
 
 function logFruitLoginDebug(eventName, details) {

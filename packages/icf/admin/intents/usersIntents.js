@@ -1,9 +1,9 @@
 import { addAdminContext } from "../stages/addContext.js";
-import { requireUserManagementAccess } from "../stages/authorize.js";
+import { allowAuthorizedLegacyFlow, requireAdminAccess } from "../stages/authorize.js";
 import { emitResult } from "../stages/emit.js";
 import { normalizeUserId, normalizeUserPayload } from "../stages/normalize.js";
 import { callService } from "../stages/process.js";
-import { allowAnyPayload, requireEmail, requireUserCreatePayload, requireUserId } from "../stages/validate.js";
+import { allowAnyPayload, requireEmail, requireUserId } from "../stages/validate.js";
 
 export function createUsersIntentRegistrar(services) {
   var safeServices = services || {};
@@ -14,7 +14,7 @@ export function createUsersIntentRegistrar(services) {
       validate: [allowAnyPayload],
       normalize: [],
       addContext: [addAdminContext],
-      authorize: [requireUserManagementAccess],
+      authorize: [allowAuthorizedLegacyFlow],
       process: [callService(safeServices.getUsers)],
       emit: [emitResult]
     });
@@ -24,7 +24,7 @@ export function createUsersIntentRegistrar(services) {
       validate: [allowAnyPayload],
       normalize: [],
       addContext: [addAdminContext],
-      authorize: [requireUserManagementAccess],
+      authorize: [allowAuthorizedLegacyFlow],
       process: [callService(function (payload) { return payload; })],
       emit: [emitResult]
     });
@@ -34,17 +34,17 @@ export function createUsersIntentRegistrar(services) {
       validate: [requireUserId],
       normalize: [normalizeUserId],
       addContext: [addAdminContext],
-      authorize: [requireUserManagementAccess],
+      authorize: [requireAdminAccess],
       process: [callService(safeServices.getUser)],
       emit: [emitResult]
     });
 
     registerIntent({
       type: "CreateUserIntent",
-      validate: [requireUserCreatePayload],
+      validate: [allowAnyPayload],
       normalize: [normalizeUserPayload],
       addContext: [addAdminContext],
-      authorize: [requireUserManagementAccess],
+      authorize: [requireAdminAccess],
       process: [callService(safeServices.createUser)],
       emit: [emitResult]
     });
@@ -54,7 +54,7 @@ export function createUsersIntentRegistrar(services) {
       validate: [requireUserId],
       normalize: [normalizeUserPayload],
       addContext: [addAdminContext],
-      authorize: [requireUserManagementAccess],
+      authorize: [requireAdminAccess],
       process: [callService(safeServices.updateUser)],
       emit: [emitResult]
     });
@@ -64,7 +64,7 @@ export function createUsersIntentRegistrar(services) {
       validate: [requireUserId],
       normalize: [normalizeUserId],
       addContext: [addAdminContext],
-      authorize: [requireUserManagementAccess],
+      authorize: [requireAdminAccess],
       process: [callService(safeServices.disableUser)],
       emit: [emitResult]
     });
@@ -74,7 +74,7 @@ export function createUsersIntentRegistrar(services) {
       validate: [requireUserId],
       normalize: [normalizeUserId],
       addContext: [addAdminContext],
-      authorize: [requireUserManagementAccess],
+      authorize: [requireAdminAccess],
       process: [callService(safeServices.deleteUser)],
       emit: [emitResult]
     });
@@ -84,7 +84,7 @@ export function createUsersIntentRegistrar(services) {
       validate: [requireUserId],
       normalize: [normalizeUserId],
       addContext: [addAdminContext],
-      authorize: [requireUserManagementAccess],
+      authorize: [requireAdminAccess],
       process: [callService(safeServices.resetFruitPassword)],
       emit: [emitResult]
     });
@@ -94,7 +94,7 @@ export function createUsersIntentRegistrar(services) {
       validate: [requireEmail],
       normalize: [],
       addContext: [addAdminContext],
-      authorize: [requireUserManagementAccess],
+      authorize: [requireAdminAccess],
       process: [callService(safeServices.sendPasswordReset)],
       emit: [emitResult]
     });

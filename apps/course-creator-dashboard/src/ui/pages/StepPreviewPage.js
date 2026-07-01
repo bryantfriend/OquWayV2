@@ -1,9 +1,9 @@
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.154-emotional-check-in-prototype";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.192-timed-sequence";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.82-shared-command-center-shell";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.82-shared-command-center-shell";
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../../../../../packages/domain/steps/index.js?v=1.1.192-timed-sequence";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.82-shared-command-center-shell";
 
 export class StepPreviewPage {
   constructor(courseId, moduleId, modeId, stepId) {
@@ -229,7 +229,7 @@ function validatePreviewData(data, stepId) {
   }
 
   if (!StepTypeDefinition) {
-    return new Error("Step type " + stepType + " is not registered with the preview renderer.");
+    return new Error("Invalid step config: unsupported step type " + stepType + ".");
   }
 
   if (step.config && (typeof step.config !== "object" || Array.isArray(step.config))) {

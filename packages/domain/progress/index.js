@@ -125,27 +125,13 @@ export function countCourseCompletedSteps(course) {
 }
 
 export function countModuleSteps(module) {
-  var canonicalCount = countCanonicalModuleSteps(module);
-  var moduleSteps = module && Array.isArray(module.steps) ? module.steps : [];
   var sessions = module && Array.isArray(module.sessions) ? module.sessions : [];
   var total = 0;
   var sessionIndex = 0;
 
-  if (canonicalCount > 0) {
-    return canonicalCount;
-  }
-
-  if (moduleSteps.length > 0) {
-    return countUniqueSteps(moduleSteps);
-  }
-
   while (sessionIndex < sessions.length) {
     total = total + countSessionSteps(sessions[sessionIndex]);
     sessionIndex = sessionIndex + 1;
-  }
-
-  if (total === 0 && module && typeof module.stepCount === "number") {
-    return module.stepCount;
   }
 
   return total;
@@ -176,66 +162,6 @@ export function countSessionSteps(session) {
   }
 
   return total;
-}
-
-export function countCanonicalModuleSteps(module) {
-  var learningModes = module && module.learningModes && typeof module.learningModes === "object" && !Array.isArray(module.learningModes)
-    ? module.learningModes
-    : {};
-  var modeIds = Object.keys(learningModes);
-  var seenStepIds = {};
-  var generatedCount = 0;
-  var total = 0;
-  var modeIndex = 0;
-
-  while (modeIndex < modeIds.length) {
-    total = total + countCanonicalModeSteps(learningModes[modeIds[modeIndex]], seenStepIds, generatedCount);
-    generatedCount = generatedCount + 100000;
-    modeIndex = modeIndex + 1;
-  }
-
-  return total;
-}
-
-function countCanonicalModeSteps(mode, seenStepIds, generatedOffset) {
-  var steps = mode && Array.isArray(mode.steps) ? mode.steps : [];
-  var stepOrder = mode && Array.isArray(mode.stepOrder) ? mode.stepOrder : [];
-  var count = 0;
-  var index = 0;
-
-  if (steps.length > 0) {
-    while (index < steps.length) {
-      if (trackUniqueStep(steps[index], seenStepIds, "step-" + (generatedOffset + index))) {
-        count = count + 1;
-      }
-      index = index + 1;
-    }
-    return count;
-  }
-
-  while (index < stepOrder.length) {
-    if (trackUniqueStepId(stepOrder[index], seenStepIds, "ordered-step-" + (generatedOffset + index))) {
-      count = count + 1;
-    }
-    index = index + 1;
-  }
-
-  return count;
-}
-
-function countUniqueSteps(steps) {
-  var seenStepIds = {};
-  var count = 0;
-  var index = 0;
-
-  while (index < steps.length) {
-    if (trackUniqueStep(steps[index], seenStepIds, "module-step-" + index)) {
-      count = count + 1;
-    }
-    index = index + 1;
-  }
-
-  return count;
 }
 
 export function countSessionCompletedSteps(session) {
@@ -435,19 +361,4 @@ function readStepExternalTaskSubmission(step) {
 
 function readStepId(step) {
   return step && typeof step.id === "string" ? step.id : "";
-}
-
-function trackUniqueStep(step, seenStepIds, fallbackId) {
-  return trackUniqueStepId(readStepId(step), seenStepIds, fallbackId);
-}
-
-function trackUniqueStepId(stepId, seenStepIds, fallbackId) {
-  var safeStepId = typeof stepId === "string" && stepId.length > 0 ? stepId : fallbackId;
-
-  if (!safeStepId || seenStepIds[safeStepId]) {
-    return false;
-  }
-
-  seenStepIds[safeStepId] = true;
-  return true;
 }

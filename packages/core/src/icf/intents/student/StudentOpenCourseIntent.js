@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateCourseId } from "../../stages/validate/validators.js?v=1.1.213-emotional-checkin-owner";
-import { normalizeCourseId } from "../../stages/normalize/normalizers.js?v=1.1.213-emotional-checkin-owner";
-import { attachActorContext, attachActorRoleContext, attachStudentProfileContext, attachStudentOpenCourseContext } from "../../stages/addContext/contexts.js?v=1.1.213-emotional-checkin-owner";
-import { requireStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.213-emotional-checkin-owner";
-import { processStudentOpenCourse } from "../../stages/process/processors.js?v=1.1.213-emotional-checkin-owner";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.213-emotional-checkin-owner";
+import { validateAuthenticated, validateCourseId } from "../../stages/validate/validators.js?v=1.1.82-shared-command-center-shell";
+import { normalizeCourseId } from "../../stages/normalize/normalizers.js?v=1.1.82-shared-command-center-shell";
+import { attachActorContext, attachActorRoleContext, attachStudentProfileContext, attachStudentOpenCourseContext } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
+import { requireStudentAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.82-shared-command-center-shell";
+import { processStudentOpenCourse } from "../../stages/process/processors.js?v=1.1.83-student-assignment-load";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.82-shared-command-center-shell";
 
 export function StudentOpenCourseIntent() {
   return {

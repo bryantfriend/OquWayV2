@@ -1,11 +1,5 @@
-import { collection, db, doc, getDocs, query, serverTimestamp, setDoc, where } from "../../firebase/index.js";
+import { collection, db, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "../../firebase/index.js";
 import { isActiveAssignment, normalizeCourseAssignment } from "./index.js";
-import {
-  readStudentClassIdentifiers as readDomainStudentClassIdentifiers,
-  readStudentIdentifiers as readDomainStudentIdentifiers,
-  readStudentLocationIds as readDomainStudentLocationIds,
-  resolveStudentId
-} from "../users/index.js";
 
 export async function getCourseAssignments(filters) {
   var safeFilters = filters || {};
@@ -58,11 +52,12 @@ export async function getAssignmentsForClass(classId) {
 }
 
 export async function getActiveAssignmentsForStudent(studentProfile) {
-  var actor = studentProfile && studentProfile.__actor ? studentProfile.__actor : null;
-  var studentId = resolveStudentId(studentProfile, actor);
-  var targets = buildStudentAssignmentTargets(studentId, studentProfile, actor);
+  var studentId = readTextValue(studentProfile && (studentProfile.id || studentProfile.studentId || studentProfile.uid || studentProfile.authUid));
+  var targets = buildStudentAssignmentTargets(studentId, studentProfile);
   var result = createStudentAssignmentResult(studentProfile);
   var targetIndex = 0;
+
+  await appendResolvedClassIdentityTargets(targets, result);
 
   while (targetIndex < targets.length) {
     await appendTargetAssignments(result, targets[targetIndex]);
@@ -116,13 +111,32 @@ export function normalizeAssignment(rawAssignment) {
   return normalizeCourseAssignment(rawAssignment);
 }
 
-export function buildStudentAssignmentTargets(studentId, studentProfile, actor) {
+export function buildStudentAssignmentTargets(studentId, studentProfile) {
   var targets = [];
 
   addTarget(targets, "student", studentId || "");
-  addTargetList(targets, "student", readDomainStudentIdentifiers(studentProfile, actor));
-  addTargetList(targets, "class", readDomainStudentClassIdentifiers(studentProfile, actor));
-  addTargetList(targets, "location", readDomainStudentLocationIds(studentProfile));
+  addTarget(targets, "student", studentProfile && studentProfile.id ? studentProfile.id : "");
+  addTarget(targets, "student", studentProfile && studentProfile.studentId ? studentProfile.studentId : "");
+  addTarget(targets, "student", studentProfile && studentProfile.authUid ? studentProfile.authUid : "");
+  addTarget(targets, "student", studentProfile && studentProfile.uid ? studentProfile.uid : "");
+  addTarget(targets, "student", studentProfile && studentProfile.userId ? studentProfile.userId : "");
+  addTarget(targets, "student", studentProfile && studentProfile.profileUserId ? studentProfile.profileUserId : "");
+  addTarget(targets, "class", readTextField(studentProfile, "classId"));
+  addTargetList(targets, "class", readArrayField(studentProfile, "classIds"));
+  addTargetList(targets, "class", readArrayField(studentProfile, "assignedClassIds"));
+  addRecordTargetList(targets, "class", studentProfile ? studentProfile.assignedClasses : null);
+  addRecordTargetList(targets, "class", studentProfile ? studentProfile.classRefs : null);
+  addRecordTargetList(targets, "class", studentProfile ? studentProfile.classes : null);
+  addClassIdentityTargets(targets, studentProfile);
+  addRecordClassIdentityTargetList(targets, studentProfile ? studentProfile.assignedClasses : null);
+  addRecordClassIdentityTargetList(targets, studentProfile ? studentProfile.classRefs : null);
+  addRecordClassIdentityTargetList(targets, studentProfile ? studentProfile.classes : null);
+  addTarget(targets, "location", readTextField(studentProfile, "locationId"));
+  addTarget(targets, "location", readTextField(studentProfile, "primaryLocationId"));
+  addTarget(targets, "location", readTextField(studentProfile, "schoolId"));
+  addTarget(targets, "location", readTextField(studentProfile, "locId"));
+  addTargetList(targets, "location", readArrayField(studentProfile, "locationIds"));
+  addTargetList(targets, "location", readArrayField(studentProfile, "schoolIds"));
 
   return targets;
 }
@@ -143,58 +157,165 @@ async function loadAssignments(assignmentQuery) {
 }
 
 async function loadAssignmentsForTarget(target) {
-  return loadAssignmentsForTargetField(target, "targetId");
-}
-
-async function loadAssignmentsForTargetField(target, fieldName) {
-  var assignments = fieldName === "targetId"
-    ? await loadAssignments(query(
-      collection(db, "courseAssignments"),
-      where("targetType", "==", target.targetType),
-      where("targetId", "==", target.targetId)
-    ))
-    : await loadAssignments(query(
-      collection(db, "courseAssignments"),
-      where(fieldName, "==", target.targetId)
-    ));
-
-  return assignments.filter(function (assignment) {
-    return assignment && assignment.targetType === target.targetType;
-  });
+  return loadAssignments(query(
+    collection(db, "courseAssignments"),
+    where("targetType", "==", target.targetType),
+    where("targetId", "==", target.targetId)
+  ));
 }
 
 async function appendTargetAssignments(result, target) {
-  var fieldNames = readAssignmentTargetFieldNames(target.targetType);
-  var fieldIndex = 0;
+  var queries = buildAssignmentQueriesForTarget(target);
+  var queryIndex = 0;
+  var appendedCount = 0;
 
-  while (fieldIndex < fieldNames.length) {
-    await appendTargetFieldAssignments(result, target, fieldNames[fieldIndex]);
-    fieldIndex = fieldIndex + 1;
+  while (queryIndex < queries.length) {
+    result.queryPaths.push(queries[queryIndex].queryPath);
+
+    try {
+      var assignments = await queries[queryIndex].loader();
+      var visibleAssignments = filterAssignmentsForTarget(assignments, target);
+      var beforeCount = result.assignmentIds.length;
+
+      appendAssignments(result, visibleAssignments, target);
+      appendedCount = appendedCount + (result.assignmentIds.length - beforeCount);
+    } catch (error) {
+      addReasonCount(result.rejectionReasons, "assignment-query-failed");
+      result.warnings.push({
+        code: "STUDENT_ASSIGNMENT_QUERY_FAILED",
+        message: queries[queryIndex].queryPath + " failed: " + readErrorMessage(error)
+      });
+      logAssignmentLoadWarning("STUDENT_ASSIGNMENT_QUERY_FAILED", {
+        queryPath: queries[queryIndex].queryPath,
+        targetType: target.targetType,
+        targetId: target.targetId,
+        errorMessage: readErrorMessage(error)
+      });
+    }
+
+    queryIndex = queryIndex + 1;
+  }
+
+  if (appendedCount === 0) {
+    addReasonCount(result.rejectionReasons, "no-assignment-for-target");
   }
 }
 
-async function appendTargetFieldAssignments(result, target, fieldName) {
-  var queryPath = "courseAssignments where targetType=" + target.targetType + ", " + fieldName + "=" + target.targetId;
-
-  result.queryPaths.push(queryPath);
-
-  try {
-    var assignments = await loadAssignmentsForTargetField(target, fieldName);
-    var visibleAssignments = assignments.filter(isVisibleAssignment);
-
-    appendAssignments(result, visibleAssignments, target);
-
-    if (assignments.length === 0) {
-      addReasonCount(result.rejectionReasons, "no-assignment-for-target");
+function buildAssignmentQueriesForTarget(target) {
+  var queries = [
+    {
+      queryPath: "courseAssignments where targetType=" + target.targetType + ", targetId=" + target.targetId,
+      loader: function () {
+        return loadAssignmentsForTarget(target);
+      }
     }
-  } catch (error) {
-    addReasonCount(result.rejectionReasons, "assignment-query-failed");
-    result.queryErrors.push(queryPath + " failed: " + readErrorMessage(error));
-    result.warnings.push({
-      code: "STUDENT_ASSIGNMENT_QUERY_FAILED",
-      message: queryPath + " failed: " + readErrorMessage(error)
+  ];
+
+  if (target.targetType === "student") {
+    queries.push({
+      queryPath: "courseAssignments where studentId=" + target.targetId + " filtered targetType=student",
+      loader: function () {
+        return loadAssignmentsByField("studentId", target.targetId);
+      }
+    });
+  } else if (target.targetType === "class") {
+    queries.push({
+      queryPath: "courseAssignments where classId=" + target.targetId + " filtered targetType=class",
+      loader: function () {
+        return loadAssignmentsByField("classId", target.targetId);
+      }
+    });
+  } else if (target.targetType === "location") {
+    queries.push({
+      queryPath: "courseAssignments where locationId=" + target.targetId + " filtered targetType=location",
+      loader: function () {
+        return loadAssignmentsByField("locationId", target.targetId);
+      }
     });
   }
+
+  return queries;
+}
+
+async function loadAssignmentsByField(fieldName, fieldValue) {
+  return loadAssignments(query(
+    collection(db, "courseAssignments"),
+    where(fieldName, "==", fieldValue)
+  ));
+}
+
+async function appendResolvedClassIdentityTargets(targets, result) {
+  var classTargetIds = [];
+  var targetIndex = 0;
+
+  while (targetIndex < targets.length) {
+    if (targets[targetIndex].targetType === "class") {
+      addUniqueText(classTargetIds, targets[targetIndex].targetId);
+    }
+    targetIndex = targetIndex + 1;
+  }
+
+  var classIndex = 0;
+  while (classIndex < classTargetIds.length) {
+    await appendClassIdentityTargetsFromDocument(targets, result, classTargetIds[classIndex]);
+    classIndex = classIndex + 1;
+  }
+}
+
+async function appendClassIdentityTargetsFromDocument(targets, result, classId) {
+  if (!classId) {
+    return;
+  }
+
+  result.queryPaths.push("classes/" + classId + " identity read");
+
+  try {
+    var classSnap = await getDoc(doc(db, "classes", classId));
+
+    if (classSnap.exists()) {
+      addClassIdentityTargets(targets, Object.assign({ id: classSnap.id }, classSnap.data() || {}));
+    }
+  } catch (error) {
+    addReasonCount(result.rejectionReasons, "class-identity-read-failed");
+    result.warnings.push({
+      code: "STUDENT_CLASS_IDENTITY_READ_FAILED",
+      message: "Class identity read failed for " + classId + ": " + readErrorMessage(error)
+    });
+    logAssignmentLoadWarning("STUDENT_CLASS_IDENTITY_READ_FAILED", {
+      classId: classId,
+      errorMessage: readErrorMessage(error)
+    });
+  }
+}
+
+function filterAssignmentsForTarget(assignments, target) {
+  return assignments.filter(function (assignment) {
+    return isVisibleAssignment(assignment) && matchesAssignmentTarget(assignment, target);
+  });
+}
+
+function matchesAssignmentTarget(assignment, target) {
+  if (!assignment || assignment.targetType !== target.targetType) {
+    return false;
+  }
+
+  if (assignment.targetId === target.targetId) {
+    return true;
+  }
+
+  if (target.targetType === "student") {
+    return assignment.studentId === target.targetId;
+  }
+
+  if (target.targetType === "class") {
+    return assignment.classId === target.targetId;
+  }
+
+  if (target.targetType === "location") {
+    return assignment.locationId === target.targetId;
+  }
+
+  return false;
 }
 
 function appendAssignments(result, assignments, target) {
@@ -230,25 +351,6 @@ function appendAssignment(result, assignment, target) {
     if (!result.assignmentIdByCourseId[assignment.courseId]) {
       result.assignmentIdByCourseId[assignment.courseId] = assignment.id;
     }
-  }
-
-  appendAssignmentCourseAlias(result, assignment, assignment.catalogCourseId);
-  appendAssignmentCourseAlias(result, assignment, assignment.canonicalCourseId);
-  appendAssignmentCourseAlias(result, assignment, assignment.moduleCourseId);
-  appendAssignmentCourseAlias(result, assignment, assignment.sourceCourseId);
-  appendAssignmentCourseAlias(result, assignment, assignment.publishedCourseId);
-  appendAssignmentCourseAlias(result, assignment, assignment.targetCourseId);
-}
-
-function appendAssignmentCourseAlias(result, assignment, courseId) {
-  var safeCourseId = readTextValue(courseId);
-
-  if (!safeCourseId || safeCourseId === assignment.courseId) {
-    return;
-  }
-
-  if (!result.assignmentIdByCourseId[safeCourseId]) {
-    result.assignmentIdByCourseId[safeCourseId] = assignment.id;
   }
 }
 
@@ -312,10 +414,8 @@ function createStudentAssignmentResult(studentProfile) {
     locationIds: readStudentLocationIds(studentProfile),
     warnings: [],
     queryPaths: [],
-    queryErrors: [],
     rejectionReasons: {},
-    source: "courseAssignments",
-    studentIdentifiers: readDomainStudentIdentifiers(studentProfile, studentProfile && studentProfile.__actor ? studentProfile.__actor : null)
+    source: "courseAssignments"
   };
 }
 
@@ -352,27 +452,29 @@ function cleanAssignmentRecord(record) {
 }
 
 function readStudentClassIds(studentProfile) {
-  return readDomainStudentClassIdentifiers(studentProfile, studentProfile && studentProfile.__actor ? studentProfile.__actor : null);
+  var ids = [];
+
+  addUniqueText(ids, readTextField(studentProfile, "classId"));
+  addTextList(ids, readArrayField(studentProfile, "classIds"));
+  addTextList(ids, readArrayField(studentProfile, "assignedClassIds"));
+  addRecordTextList(ids, studentProfile ? studentProfile.assignedClasses : null, "class");
+  addRecordTextList(ids, studentProfile ? studentProfile.classRefs : null, "class");
+  addRecordTextList(ids, studentProfile ? studentProfile.classes : null, "class");
+
+  return ids;
 }
 
 function readStudentLocationIds(studentProfile) {
-  return readDomainStudentLocationIds(studentProfile);
-}
+  var ids = [];
 
-function readAssignmentTargetFieldNames(targetType) {
-  if (targetType === "student") {
-    return ["targetId", "studentId"];
-  }
+  addUniqueText(ids, readTextField(studentProfile, "locationId"));
+  addUniqueText(ids, readTextField(studentProfile, "primaryLocationId"));
+  addUniqueText(ids, readTextField(studentProfile, "schoolId"));
+  addUniqueText(ids, readTextField(studentProfile, "locId"));
+  addTextList(ids, readArrayField(studentProfile, "locationIds"));
+  addTextList(ids, readArrayField(studentProfile, "schoolIds"));
 
-  if (targetType === "class") {
-    return ["targetId", "classId"];
-  }
-
-  if (targetType === "location") {
-    return ["targetId", "locationId"];
-  }
-
-  return ["targetId"];
+  return ids;
 }
 
 function addTarget(targets, targetType, targetId) {
@@ -406,6 +508,37 @@ function addRecordTargetList(targets, targetType, values) {
     addTarget(targets, targetType, readRecordId(source[valueIndex], targetType));
     valueIndex = valueIndex + 1;
   }
+}
+
+function addRecordClassIdentityTargetList(targets, values) {
+  var source = Array.isArray(values) ? values : [];
+  var valueIndex = 0;
+
+  while (valueIndex < source.length) {
+    addClassIdentityTargets(targets, source[valueIndex]);
+    valueIndex = valueIndex + 1;
+  }
+}
+
+function addClassIdentityTargets(targets, source) {
+  if (!source || typeof source !== "object") {
+    return;
+  }
+
+  addTarget(targets, "class", source.id);
+  addTarget(targets, "class", source.classId);
+  addTarget(targets, "class", source.classCode);
+  addTarget(targets, "class", source.code);
+  addTarget(targets, "class", source.className);
+  addTarget(targets, "class", source.name);
+  addTarget(targets, "class", source.displayName);
+  addTarget(targets, "class", source.title);
+  addTarget(targets, "class", source.label);
+  addTarget(targets, "class", source.section);
+  addTarget(targets, "class", source.shortName);
+  addTarget(targets, "class", readLocalizedText(source.name));
+  addTarget(targets, "class", readLocalizedText(source.title));
+  addTarget(targets, "class", readLocalizedText(source.displayName));
 }
 
 function hasTarget(targets, targetType, targetId) {
@@ -484,4 +617,35 @@ function readErrorMessage(error) {
 
 function readTextValue(value) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function readLocalizedText(value) {
+  if (!value || typeof value !== "object") {
+    return "";
+  }
+
+  return readTextValue(value.en || value.english || value.default || value.value);
+}
+
+function logAssignmentLoadWarning(code, details) {
+  if (!isStudentAssignmentDebugEnabled() || typeof console === "undefined" || !console.warn) {
+    return;
+  }
+
+  console.warn("[student-assignment-load:warning]", Object.assign({ code: code }, details || {}));
+}
+
+function isStudentAssignmentDebugEnabled() {
+  if (typeof window === "undefined" || !window.location) {
+    return false;
+  }
+
+  var hostname = window.location.hostname;
+  var search = window.location.search || "";
+
+  return hostname === "localhost"
+    || hostname === "127.0.0.1"
+    || hostname === ""
+    || search.indexOf("debugStudentCourses=1") !== -1
+    || search.indexOf("debug=student-courses") !== -1;
 }

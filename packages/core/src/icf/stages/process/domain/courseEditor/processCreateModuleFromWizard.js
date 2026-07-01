@@ -1,4 +1,4 @@
-import { processCreateModule } from "./processCreateModule.js?v=1.1.162-modal-stack";
+import { processCreateModule } from "./processCreateModule.js?v=1.1.82-shared-command-center-shell";
 
 export async function processCreateModuleFromWizard(executionState) {
   var payload = executionState.payload || {};

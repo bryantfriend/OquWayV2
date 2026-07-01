@@ -1,5 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
-import { getDownloadURL, ref, storage, uploadBytes } from "../../../../../infrastructure/firebase/storage.js?v=1.1.162-modal-stack";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
+import { getDownloadURL, ref, storage, uploadBytes } from "../../../../../infrastructure/firebase/storage.js?v=1.1.82-shared-command-center-shell";
 import { createDefaultStepConfig } from "../../../../../../../domain/steps/index.js";
 
 export async function processUploadStepMedia(executionState) {
@@ -16,7 +16,6 @@ export async function processUploadStepMedia(executionState) {
   }
 
   try {
-    var collectionName = readCourseCollectionName(executionState);
     var storagePath = buildStoragePath(payload);
     var storageRef = ref(storage, storagePath);
     var metadata = {
@@ -33,7 +32,7 @@ export async function processUploadStepMedia(executionState) {
     });
     var updatedLearningMode = createUpdatedLearningMode(learningMode, updatedStep);
 
-    await setDoc(doc(db, collectionName, payload.courseId, "modules", payload.moduleId, "learningModes", payload.modeId, "steps", payload.stepId), {
+    await setDoc(doc(db, "catalogCourses", payload.courseId, "modules", payload.moduleId, "learningModes", payload.modeId, "steps", payload.stepId), {
       id: payload.stepId,
       type: updatedStep.type,
       stepTypeId: updatedStep.stepTypeId || updatedStep.type,
@@ -44,13 +43,13 @@ export async function processUploadStepMedia(executionState) {
       updatedAt: serverTimestamp()
     }, { merge: true });
 
-    await setDoc(doc(db, collectionName, payload.courseId, "modules", payload.moduleId, "learningModes", payload.modeId), {
+    await setDoc(doc(db, "catalogCourses", payload.courseId, "modules", payload.moduleId, "learningModes", payload.modeId), {
       stepCount: updatedLearningMode.stepCount,
       stepOrder: updatedLearningMode.stepOrder,
       updatedAt: serverTimestamp()
     }, { merge: true });
 
-    await setDoc(doc(db, collectionName, payload.courseId, "modules", payload.moduleId), {
+    await setDoc(doc(db, "catalogCourses", payload.courseId, "modules", payload.moduleId), {
       learningModes: {
         [payload.modeId]: updatedLearningMode
       },
@@ -91,7 +90,7 @@ function findStepById(steps, stepId) {
 
 function stepSupportsMediaField(step, mediaField) {
   if (mediaField === "imageUrl") {
-    return step.type === "vocabulary" || step.type === "textBriefing" || step.type === "intro-card";
+    return step.type === "vocabulary" || step.type === "textBriefing";
   }
 
   if (mediaField === "audioUrl") {
@@ -192,10 +191,4 @@ function createProcessError(code, message) {
       }
     ]
   };
-}
-
-function readCourseCollectionName(executionState) {
-  return executionState.context && executionState.context.courseCollectionName
-    ? executionState.context.courseCollectionName
-    : "catalogCourses";
 }

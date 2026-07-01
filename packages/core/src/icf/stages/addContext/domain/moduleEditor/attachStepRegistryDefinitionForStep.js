@@ -1,29 +1,17 @@
-import { getStepTypeDefinition } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.162-modal-stack";
+import { db, doc, getDoc, collection, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
 
 export async function attachStepRegistryDefinitionForStep(executionState) {
     const { payload } = executionState;
     if (!payload.stepType) return { valid: true };
-    const StepTypeDefinition = getStepTypeDefinition(payload.stepType);
-
-    if (!StepTypeDefinition) {
-        return {
-            valid: false,
-            errors: [
-                {
-                    code: "STEP_TYPE_UNSUPPORTED",
-                    message: "Unsupported step type: " + payload.stepType
-                }
-            ]
-        };
-    }
 
     return {
         valid: true,
         data: {
             stepDefinition: {
                 type: payload.stepType,
-                defaultConfig: StepTypeDefinition.createConfig()
+                defaultConfig: { title: "New " + payload.stepType }
             }
         }
     };
 }
+

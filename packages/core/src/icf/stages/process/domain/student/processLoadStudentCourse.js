@@ -1,24 +1,13 @@
 import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
 import { normalizePracticeModes } from "../moduleEditor/practiceModeShells.js?v=1.1.82-shared-command-center-shell";
-import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.213-emotional-checkin-owner";
-import { getModulesForCourse } from "../../../../../../../domain/modules/index.js?v=1.1.213-emotional-checkin-owner";
+import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.js?v=1.1.83-student-assignment-load";
 import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.82-shared-command-center-shell";
-import {
-  isStudentDashboardProfile,
-  readStudentClassIdentifiers,
-  readStudentClassIds,
-  readStudentIdentifiers,
-  readStudentLocationIds,
-  readStudentProfileRejectReason,
-  resolveStudentId
-} from "../../../../../../../domain/users/index.js";
+import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js";
 import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.82-shared-command-center-shell";
 
 export async function processLoadStudentCourse(executionState) {
   var actor = executionState.actor;
   var studentProfile = executionState.context.studentProfile;
-  var resolvedStudentId = resolveStudentId(studentProfile, actor);
-  var resolvedActor = createResolvedStudentActor(actor, resolvedStudentId);
 
   try {
     if (!studentProfile && !isPreviewActor(actor)) {
@@ -40,24 +29,22 @@ export async function processLoadStudentCourse(executionState) {
       }
     }
 
-    var courseAssignmentResult = await loadAssignedCourseIds(resolvedActor, studentProfile, executionState);
+    var courseAssignmentResult = await loadAssignedCourseIds(actor, studentProfile, executionState);
     appendWarnings(executionState, courseAssignmentResult.warnings);
 
-    var courses = await loadStudentCourses(resolvedActor, courseAssignmentResult.courseIds, executionState, courseAssignmentResult.assignmentIdByCourseId);
-    var debugInfo = buildStudentCourseDebugInfo({
-      actor: actor,
-      studentProfile: studentProfile,
-      resolvedStudentId: resolvedStudentId,
-      courseAssignmentResult: courseAssignmentResult,
-      courses: courses
-    });
+    var courses = await loadStudentCourses(actor, courseAssignmentResult.courseIds, executionState, courseAssignmentResult.assignmentIdByCourseId);
 
-    logStudentCourseDebug(Object.assign({}, debugInfo, {
-      studentId: resolvedStudentId,
+    logStudentCourseDebug({
+      studentProfile: studentProfile,
+      studentId: studentProfile && studentProfile.id ? studentProfile.id : "",
       uid: actor && actor.id ? actor.id : "",
+      authUid: actor && actor.authUid ? actor.authUid : actor && actor.uid ? actor.uid : actor && actor.id ? actor.id : "",
       locationId: readFirstProfileLocationId(studentProfile),
       classId: readFirstProfileClassId(studentProfile),
+      className: readProfileClassNameForDebug(studentProfile),
       classIds: readProfileClassIds(studentProfile),
+      assignments: courseAssignmentResult.mergedAssignments || [],
+      courses: courses,
       queryPaths: courseAssignmentResult.queryPaths,
       directCount: courseAssignmentResult.directCount || 0,
       classCount: courseAssignmentResult.classCount || 0,
@@ -65,16 +52,14 @@ export async function processLoadStudentCourse(executionState) {
       mergedCount: courseAssignmentResult.mergedCount || courseAssignmentResult.assignmentCount || 0,
       rawCourseCount: courseAssignmentResult.courseIds.length,
       filteredCourseCount: courses.length,
-      debugRequested: shouldEmitDebug(executionState),
       rejectionReasons: courseAssignmentResult.rejectionReasons
-    }));
+    });
 
     executionState.result = {
       student: studentProfile,
       courses: courses,
       assignmentCount: courseAssignmentResult.assignmentCount,
       assignmentSource: courseAssignmentResult.source,
-      debugInfo: shouldEmitDebug(executionState) ? debugInfo : null,
       emptyStateMessage: courses.length === 0 ? "No courses assigned yet." : ""
     };
 
@@ -99,7 +84,7 @@ async function loadStudentCourses(actor, assignedCourseIds, executionState, assi
 
   if (assignedCourseIds.length > 0) {
     courseSnaps = await loadAssignedCourseSnaps(assignedCourseIds, executionState);
-  } else if (isPreviewActor(actor) && shouldAllowPreviewCourseFallback(executionState)) {
+  } else if (isPreviewActor(actor)) {
     executionState.warnings.push({
       code: "STUDENT_DASHBOARD_DEV_FALLBACK",
       message: "No assignments found for preview student. Showing visible courses as a development fallback."
@@ -114,21 +99,12 @@ async function loadStudentCourses(actor, assignedCourseIds, executionState, assi
       await buildCourseTree(actor, courseSnaps[courseIndex]),
       assignmentIdByCourseId || {}
     );
-    logStudentCourseHydration(actor, course, executionState);
     courses.push(await attachExternalTaskSubmissionsToCourse(actor, course));
     courseIndex = courseIndex + 1;
   }
 
   courses.sort(compareByOrderThenTitle);
   return courses;
-}
-
-function shouldAllowPreviewCourseFallback(executionState) {
-  return Boolean(
-    executionState
-      && executionState.payload
-      && executionState.payload.allowPreviewCourseFallback === true
-  );
 }
 
 async function attachExternalTaskSubmissionsToCourse(actor, course) {
@@ -296,7 +272,7 @@ async function loadAssignedCourseSnaps(courseIds, executionState) {
 }
 
 async function loadCourseSnap(courseId, executionState) {
-  var sources = ["catalogCourses", "courses"];
+  var sources = ["courses", "catalogCourses"];
   var sourceIndex = 0;
 
   while (sourceIndex < sources.length) {
@@ -326,11 +302,8 @@ async function loadCourseSnap(courseId, executionState) {
 
 async function loadAssignedCourseIds(actor, studentProfile, executionState) {
   var contextCourseIds = executionState && executionState.context ? executionState.context.assignedCourseIds : [];
-  var profileWithActor = Object.assign({}, studentProfile || {}, {
-    __actor: actor || null
-  });
 
-  return getAssignedCourseIds(actor && actor.id ? actor.id : "", profileWithActor, contextCourseIds);
+  return getAssignedCourseIds(actor && actor.id ? actor.id : "", studentProfile, contextCourseIds);
 }
 
 function addUniqueText(values, value) {
@@ -514,6 +487,17 @@ function readFirstProfileClassId(profile) {
   return classIds.length > 0 ? classIds[0] : "";
 }
 
+function readProfileClassNameForDebug(profile) {
+  return readTextValue(profile && (
+    profile.className
+      || profile.classTitle
+      || profile.classCode
+      || profile.code
+      || profile.assignedClassName
+      || profile.homeroomName
+  ));
+}
+
 function readProfileClassIds(profile) {
   return readStudentClassIds(profile);
 }
@@ -534,88 +518,67 @@ function addTextList(target, values) {
 }
 
 function logStudentCourseDebug(details) {
-  if (!isDevelopmentHost() && !details.debugRequested) {
+  if (!isDevelopmentHost()) {
     return;
   }
 
+  console.log("[student-course-debug] profile", details.studentProfile);
+
+  if (console.table) {
+    console.table(summarizeAssignmentsForDebug(details.assignments));
+  } else {
+    console.log("[student-course-debug] assignments", summarizeAssignmentsForDebug(details.assignments));
+  }
+
+  console.log("[student-course-debug] courses", details.courses);
+
   console.info("[student-course-debug]", {
-    resolvedStudentId: details.resolvedStudentId || details.studentId,
-    authUid: details.authUid || details.uid,
-    tokenStudentId: details.tokenStudentId || "",
-    profileId: details.profileId || "",
-    classIdentifiers: details.classIdentifiers || details.classIds,
-    studentIdentifiers: details.studentIdentifiers || [],
+    studentId: details.studentId,
+    uid: details.uid,
+    authUid: details.authUid,
     locationId: details.locationId,
     classId: details.classId,
+    className: details.className,
+    classIds: details.classIds,
     queryPath: details.queryPaths,
-    directAssignmentCount: details.directAssignmentCount || details.directCount,
-    classAssignmentCount: details.classAssignmentCount || details.classCount,
+    directCount: details.directCount,
+    classCount: details.classCount,
     locationCount: details.locationCount,
-    mergedAssignmentCount: details.mergedAssignmentCount || details.mergedCount,
-    loadedCourseCount: details.loadedCourseCount || details.filteredCourseCount,
-    courseIds: details.courseIds || [],
-    queryErrors: details.queryErrors || [],
+    mergedCount: details.mergedCount,
+    rawCourseCount: details.rawCourseCount,
+    filteredCourseCount: details.filteredCourseCount,
     rejectionReasons: details.rejectionReasons
   });
 
   console.info("[assignments:student-load]", {
-    studentId: details.resolvedStudentId || details.studentId,
-    classIds: details.classIdentifiers || details.classIds,
-    directCount: details.directAssignmentCount || details.directCount,
-    classCount: details.classAssignmentCount || details.classCount,
-    mergedCount: details.mergedAssignmentCount || details.mergedCount
+    studentId: details.studentId,
+    classIds: details.classIds,
+    directCount: details.directCount,
+    classCount: details.classCount,
+    mergedCount: details.mergedCount
   });
 }
 
-function buildStudentCourseDebugInfo(details) {
-  var actor = details.actor || {};
-  var studentProfile = details.studentProfile || {};
-  var assignmentResult = details.courseAssignmentResult || {};
-  var courses = Array.isArray(details.courses) ? details.courses : [];
+function summarizeAssignmentsForDebug(assignments) {
+  var source = Array.isArray(assignments) ? assignments : [];
+  var result = [];
+  var index = 0;
 
-  return {
-    resolvedStudentId: details.resolvedStudentId || "",
-    authUid: actor.id || "",
-    tokenStudentId: actor.claims && typeof actor.claims.studentId === "string" ? actor.claims.studentId : "",
-    profileId: studentProfile.id || "",
-    classIdentifiers: readStudentClassIdentifiers(studentProfile, actor),
-    studentIdentifiers: readStudentIdentifiers(studentProfile, actor),
-    directAssignmentCount: assignmentResult.directCount || 0,
-    classAssignmentCount: assignmentResult.classCount || 0,
-    mergedAssignmentCount: assignmentResult.mergedCount || assignmentResult.assignmentCount || 0,
-    loadedCourseCount: courses.length,
-    courseIds: courses.map(function (course) {
-      return course && course.id ? course.id : "";
-    }).filter(Boolean),
-    queryErrors: readQueryErrors(assignmentResult)
-  };
-}
-
-function readQueryErrors(assignmentResult) {
-  var errors = Array.isArray(assignmentResult && assignmentResult.queryErrors) ? assignmentResult.queryErrors.slice() : [];
-  var warnings = Array.isArray(assignmentResult && assignmentResult.warnings) ? assignmentResult.warnings : [];
-  var warningIndex = 0;
-
-  while (warningIndex < warnings.length) {
-    if (warnings[warningIndex] && warnings[warningIndex].code === "STUDENT_ASSIGNMENT_QUERY_FAILED") {
-      errors.push(warnings[warningIndex].message || warnings[warningIndex].code);
-    }
-    warningIndex = warningIndex + 1;
+  while (index < source.length) {
+    result.push({
+      id: source[index].id || "",
+      courseId: source[index].courseId || "",
+      targetType: source[index].targetType || "",
+      targetId: source[index].targetId || "",
+      classId: source[index].classId || "",
+      studentId: source[index].studentId || "",
+      status: source[index].status || "",
+      visibility: source[index].visibility || ""
+    });
+    index = index + 1;
   }
 
-  return errors.filter(function (error, index, list) {
-    return error && list.indexOf(error) === index;
-  });
-}
-
-function shouldEmitDebug(executionState) {
-  return Boolean(executionState && executionState.payload && executionState.payload.debug === true);
-}
-
-function createResolvedStudentActor(actor, resolvedStudentId) {
-  return Object.assign({}, actor || {}, {
-    id: resolvedStudentId || (actor && actor.id ? actor.id : "")
-  });
+  return result;
 }
 
 function isDevelopmentHost() {
@@ -623,9 +586,14 @@ function isDevelopmentHost() {
     return false;
   }
 
-  return window.location.hostname === "localhost"
-    || window.location.hostname === "127.0.0.1"
-    || window.location.hostname === "";
+  var hostname = window.location.hostname;
+  var search = window.location.search || "";
+
+  return hostname === "localhost"
+    || hostname === "127.0.0.1"
+    || hostname === ""
+    || search.indexOf("debugStudentCourses=1") !== -1
+    || search.indexOf("debug=student-courses") !== -1;
 }
 
 function readRecordList(values, targetType) {
@@ -684,24 +652,15 @@ function isStudentVisibleCourse(courseData) {
   }
 
   return courseData.status === "active"
+    || courseData.status === "draft"
     || courseData.status === "published"
     || courseData.status === "ready";
 }
 
 async function buildCourseTree(actor, courseSnap) {
   var course = Object.assign({ id: courseSnap.id }, courseSnap.data());
-  var courseRecordSource = readCourseCollectionName(courseSnap);
-  var moduleContext = await loadModuleContext(actor, courseRecordSource, course.id, course);
-
-  return Object.assign({}, course, {
-    source: courseRecordSource,
-    courseRecordSource: courseRecordSource,
-    canonicalCourseId: moduleContext.canonicalCourseId,
-    moduleCourseId: moduleContext.moduleCourseId,
-    moduleSource: moduleContext.moduleSource,
-    moduleCount: moduleContext.modules.length,
-    modules: moduleContext.modules
-  });
+  course.modules = await loadModules(actor, readCourseCollectionName(courseSnap), course.id);
+  return course;
 }
 
 function readCourseCollectionName(courseSnap) {
@@ -712,167 +671,23 @@ function readCourseCollectionName(courseSnap) {
   return "courses";
 }
 
-async function loadModuleContext(actor, courseCollectionName, courseId, course) {
-  var sources = buildCanonicalModuleSourceOrder(courseCollectionName);
-  var modules = await getModulesForCourse(courseId, {
-    sources: sources,
-    course: course || {}
-  });
-  var moduleSource = readLoadedModuleSource(modules) || (sources.length > 0 ? sources[0] : "catalogCourses");
-  modules.sort(compareByOrderThenTitle);
-  var moduleIndex = 0;
+async function loadModules(actor, courseCollectionName, courseId) {
+  var modulesSnap = await getDocs(collection(db, courseCollectionName, courseId, "modules"));
+  var modules = [];
 
+  modulesSnap.forEach(function (moduleSnap) {
+    modules.push(Object.assign({ id: moduleSnap.id }, moduleSnap.data()));
+  });
+
+  modules.sort(compareByOrderThenTitle);
+
+  var moduleIndex = 0;
   while (moduleIndex < modules.length) {
-    modules[moduleIndex] = await hydrateModuleForStudent(actor, modules[moduleIndex].source || moduleSource, courseId, modules[moduleIndex]);
+    modules[moduleIndex].sessions = await loadSessions(actor, courseCollectionName, courseId, modules[moduleIndex].id);
     moduleIndex = moduleIndex + 1;
   }
 
-  if (modules.length === 0 && hasStoredModuleHints(course)) {
-    console.warn("[student-course-hydration:empty]", {
-      courseId: courseId,
-      canonicalPath: "catalogCourses/" + courseId + "/modules",
-      fallbackPath: courseCollectionName === "courses" ? "courses/" + courseId + "/modules" : "",
-      courseStatus: course && (course.status || course.state) ? course.status || course.state : "",
-      storedModuleCount: readStoredModuleCount(course)
-    });
-  }
-
-  return {
-    modules: modules,
-    moduleSource: moduleSource,
-    moduleCourseId: courseId,
-    canonicalCourseId: courseId
-  };
-}
-
-function buildCanonicalModuleSourceOrder(courseCollectionName) {
-  var sources = [];
-
-  addModuleSource(sources, "catalogCourses");
-  addModuleSource(sources, courseCollectionName);
-  addModuleSource(sources, "courses");
-
-  return sources;
-}
-
-function addModuleSource(sources, source) {
-  if ((source === "catalogCourses" || source === "courses") && sources.indexOf(source) === -1) {
-    sources.push(source);
-  }
-}
-
-function readLoadedModuleSource(modules) {
-  var safeModules = Array.isArray(modules) ? modules : [];
-
-  if (safeModules.length > 0 && safeModules[0] && (safeModules[0].source === "catalogCourses" || safeModules[0].source === "courses")) {
-    return safeModules[0].source;
-  }
-
-  return "";
-}
-function hasStoredModuleHints(course) {
-  return readStoredModuleCount(course) > 0;
-}
-
-function readStoredModuleCount(course) {
-  if (!course || typeof course !== "object") {
-    return 0;
-  }
-
-  if (Array.isArray(course.modules) && course.modules.length > 0) {
-    return course.modules.length;
-  }
-
-  if (Array.isArray(course.moduleIds) && course.moduleIds.length > 0) {
-    return course.moduleIds.length;
-  }
-
-  if (Array.isArray(course.moduleOrder) && course.moduleOrder.length > 0) {
-    return course.moduleOrder.length;
-  }
-
-  if (typeof course.moduleCount === "number" && Number.isFinite(course.moduleCount)) {
-    return Math.max(0, Math.round(course.moduleCount));
-  }
-
-  return 0;
-}
-
-function logStudentCourseHydration(actor, course, executionState) {
-  if (!shouldEmitDebug(executionState) && !isDevelopmentHost()) {
-    return;
-  }
-
-  var modules = course && Array.isArray(course.modules) ? course.modules : [];
-  var moduleSource = course && course.moduleSource ? course.moduleSource : "catalogCourses";
-  var courseId = course && course.id ? course.id : "";
-
-  console.log("[student-course-hydration]", {
-    actorId: actor && actor.id ? actor.id : "",
-    courseId: courseId,
-    assignmentId: course && (course.assignmentId || course.courseAssignmentId) ? course.assignmentId || course.courseAssignmentId : "",
-    courseStatus: course && (course.status || course.state) ? course.status || course.state : "",
-    moduleReadPath: moduleSource + "/" + courseId + "/modules",
-    loadedModuleCount: modules.length,
-    visibleModuleCount: countVisibleStudentModules(modules),
-    completedModuleCount: countCompletedStudentModules(modules),
-    moduleIds: modules.map(readModuleIdForLog),
-    moduleStatuses: modules.map(readModuleStatusForLog)
-  });
-}
-
-function countVisibleStudentModules(modules) {
-  var safeModules = Array.isArray(modules) ? modules : [];
-  var count = 0;
-  var index = 0;
-
-  while (index < safeModules.length) {
-    if (isStudentVisibleModule(safeModules[index])) {
-      count = count + 1;
-    }
-    index = index + 1;
-  }
-
-  return count;
-}
-
-function countCompletedStudentModules(modules) {
-  var safeModules = Array.isArray(modules) ? modules : [];
-  var count = 0;
-  var index = 0;
-
-  while (index < safeModules.length) {
-    if (readTextValue(safeModules[index] && (safeModules[index].learningStatus || safeModules[index].status)).toLowerCase() === "complete") {
-      count = count + 1;
-    }
-    index = index + 1;
-  }
-
-  return count;
-}
-
-function isStudentVisibleModule(module) {
-  var status = readTextValue(module && module.status).toLowerCase();
-
-  return !status || status === "published" || status === "active" || status === "ready" || status === "assigned";
-}
-
-function readModuleIdForLog(module) {
-  return module && (module.id || module.moduleId) ? module.id || module.moduleId : "";
-}
-
-function readModuleStatusForLog(module) {
-  return module && module.status ? module.status : "";
-}
-async function hydrateModuleForStudent(actor, courseCollectionName, courseId, module) {
-  var moduleId = readTextValue(module && (module.id || module.moduleId));
-  var sessions = await loadSessions(actor, courseCollectionName, courseId, moduleId);
-  var learningModes = await loadLearningModes(courseCollectionName, courseId, moduleId, module ? module.learningModes : {});
-
-  return Object.assign({}, module, {
-    learningModes: learningModes,
-    sessions: await hydrateSessionsFromLearningModes(actor, courseId, moduleId, sessions, learningModes)
-  });
+  return modules;
 }
 
 async function loadSessions(actor, courseCollectionName, courseId, moduleId) {
@@ -894,264 +709,6 @@ async function loadSessions(actor, courseCollectionName, courseId, moduleId) {
   }
 
   return sessions;
-}
-
-async function loadLearningModes(courseCollectionName, courseId, moduleId, embeddedLearningModes) {
-  var learningModes = normalizeEmbeddedLearningModes(embeddedLearningModes);
-  var modesSnap = null;
-  var modeRecords = [];
-  var modeIndex = 0;
-
-  try {
-    modesSnap = await getDocs(collection(db, courseCollectionName, courseId, "modules", moduleId, "learningModes"));
-  } catch (error) {
-    return learningModes;
-  }
-
-  modesSnap.forEach(function (modeSnap) {
-    modeRecords.push(Object.assign({ id: modeSnap.id, key: modeSnap.id }, modeSnap.data() || {}));
-  });
-
-  while (modeIndex < modeRecords.length) {
-    learningModes[modeRecords[modeIndex].id] = await hydrateLearningModeSteps(
-      courseCollectionName,
-      courseId,
-      moduleId,
-      Object.assign({}, learningModes[modeRecords[modeIndex].id] || {}, modeRecords[modeIndex])
-    );
-    modeIndex = modeIndex + 1;
-  }
-
-  return learningModes;
-}
-
-function normalizeEmbeddedLearningModes(embeddedLearningModes) {
-  var modes = embeddedLearningModes && typeof embeddedLearningModes === "object" && !Array.isArray(embeddedLearningModes)
-    ? embeddedLearningModes
-    : {};
-  var modeIds = Object.keys(modes);
-  var normalized = {};
-  var modeIndex = 0;
-
-  while (modeIndex < modeIds.length) {
-    normalized[modeIds[modeIndex]] = Object.assign({
-      id: modeIds[modeIndex],
-      key: modeIds[modeIndex]
-    }, modes[modeIds[modeIndex]] || {});
-    modeIndex = modeIndex + 1;
-  }
-
-  return normalized;
-}
-
-async function hydrateLearningModeSteps(courseCollectionName, courseId, moduleId, learningMode) {
-  var steps = Array.isArray(learningMode.steps) ? learningMode.steps.slice() : [];
-
-  if (steps.length === 0) {
-    try {
-      steps = await loadLearningModeSteps(courseCollectionName, courseId, moduleId, learningMode.id || learningMode.key);
-    } catch (error) {
-      steps = [];
-    }
-  }
-
-  steps = sortStepsByStableOrder(steps, learningMode.stepOrder);
-
-  return Object.assign({}, learningMode, {
-    steps: steps,
-    stepOrder: steps.map(function (step) {
-      return step && step.id ? step.id : "";
-    }).filter(Boolean),
-    stepCount: steps.length
-  });
-}
-
-async function loadLearningModeSteps(courseCollectionName, courseId, moduleId, modeId) {
-  var stepsSnap = await getDocs(collection(db, courseCollectionName, courseId, "modules", moduleId, "learningModes", modeId, "steps"));
-  var steps = [];
-
-  stepsSnap.forEach(function (stepSnap) {
-    steps.push(Object.assign({ id: stepSnap.id }, stepSnap.data() || {}));
-  });
-
-  return steps;
-}
-
-async function hydrateSessionsFromLearningModes(actor, courseId, moduleId, sessions, learningModes) {
-  var hydratedSessions = Array.isArray(sessions) ? sessions.slice() : [];
-  var modeIds = Object.keys(learningModes || {});
-  var modeIndex = 0;
-
-  while (modeIndex < modeIds.length) {
-    hydratedSessions = await hydrateSessionForLearningMode(actor, courseId, moduleId, hydratedSessions, learningModes[modeIds[modeIndex]], modeIds[modeIndex]);
-    modeIndex = modeIndex + 1;
-  }
-
-  hydratedSessions.sort(compareSessionOrder);
-  return hydratedSessions;
-}
-
-async function hydrateSessionForLearningMode(actor, courseId, moduleId, sessions, learningMode, modeId) {
-  var steps = Array.isArray(learningMode && learningMode.steps) ? learningMode.steps : [];
-  var sessionIndex = findLearningModeSessionIndex(sessions, learningMode, modeId);
-  var session = sessionIndex >= 0 ? sessions[sessionIndex] : createSessionFromLearningMode(learningMode, modeId, sessions.length + 1);
-  var practiceModeKey = readPracticeModeKeyForLearningMode(learningMode);
-  var practiceModes = normalizePracticeModes(session.practiceModes);
-  var currentMode = practiceModes[practiceModeKey] || {};
-  var hydratedSession = null;
-
-  if (steps.length === 0) {
-    return sessions;
-  }
-
-  practiceModes[practiceModeKey] = Object.assign({}, currentMode, {
-    key: practiceModeKey,
-    title: normalizeLocalizedTitle(learningMode.title, currentMode.title),
-    purpose: readTextValue(learningMode.purpose) || currentMode.purpose || "",
-    status: learningMode.status || currentMode.status || "draft",
-    enabled: learningMode.enabled !== false,
-    steps: sortStepsByStableOrder(steps, learningMode.stepOrder)
-  });
-
-  hydratedSession = Object.assign({}, session, {
-    learningModeId: modeId,
-    learningModeType: learningMode.modeType || session.learningModeType || "custom",
-    isLearningModeShell: true,
-    practiceModes: practiceModes,
-    progress: session.progress || await loadProgress(actor, courseId, moduleId, session.id)
-  });
-
-  if (sessionIndex >= 0) {
-    sessions[sessionIndex] = hydratedSession;
-    return sessions;
-  }
-
-  sessions.push(hydratedSession);
-  return sessions;
-}
-
-function findLearningModeSessionIndex(sessions, learningMode, modeId) {
-  var legacySessionId = readTextValue(learningMode && learningMode.legacySessionId);
-  var sessionIndex = 0;
-
-  while (sessionIndex < sessions.length) {
-    if ((legacySessionId && sessions[sessionIndex].id === legacySessionId) || sessions[sessionIndex].learningModeId === modeId) {
-      return sessionIndex;
-    }
-
-    sessionIndex = sessionIndex + 1;
-  }
-
-  return -1;
-}
-
-function createSessionFromLearningMode(learningMode, modeId, order) {
-  return {
-    id: readTextValue(learningMode && learningMode.legacySessionId) || "mode-" + modeId,
-    title: normalizeLocalizedTitle(learningMode ? learningMode.title : "", { en: "Learning Mode", ru: "", ky: "" }),
-    description: readTextValue(learningMode && learningMode.purpose),
-    sessionNumber: readNumber(learningMode && learningMode.order, order),
-    order: readNumber(learningMode && learningMode.order, order),
-    status: learningMode && learningMode.status ? learningMode.status : "draft",
-    learningModeId: modeId,
-    learningModeType: learningMode && learningMode.modeType ? learningMode.modeType : "custom",
-    isLearningModeShell: true,
-    practiceModes: normalizePracticeModes(null)
-  };
-}
-
-function readPracticeModeKeyForLearningMode(learningMode) {
-  if (learningMode && isValidStudentPracticeModeKey(learningMode.practiceModeKey)) {
-    return learningMode.practiceModeKey;
-  }
-
-  if (learningMode && learningMode.modeType === "review") {
-    return "afterClass";
-  }
-
-  if (learningMode && learningMode.modeType === "practice") {
-    return "dailyPractice";
-  }
-
-  if (learningMode && learningMode.modeType === "assessment") {
-    return "classroomLesson";
-  }
-
-  return "beforeClass";
-}
-
-function isValidStudentPracticeModeKey(practiceModeKey) {
-  return practiceModeKey === "beforeClass"
-    || practiceModeKey === "classroomLesson"
-    || practiceModeKey === "afterClass"
-    || practiceModeKey === "dailyPractice";
-}
-
-function sortStepsByStableOrder(steps, stepOrder) {
-  var safeSteps = Array.isArray(steps) ? steps.slice() : [];
-  var order = Array.isArray(stepOrder) ? stepOrder : [];
-  var orderIndexByStepId = {};
-
-  order.forEach(function (stepId, index) {
-    if (typeof stepId === "string" && stepId.length > 0) {
-      orderIndexByStepId[stepId] = index;
-    }
-  });
-
-  safeSteps.sort(function (firstStep, secondStep) {
-    var firstId = firstStep && firstStep.id ? firstStep.id : "";
-    var secondId = secondStep && secondStep.id ? secondStep.id : "";
-    var firstHasOrder = Object.prototype.hasOwnProperty.call(orderIndexByStepId, firstId);
-    var secondHasOrder = Object.prototype.hasOwnProperty.call(orderIndexByStepId, secondId);
-
-    if (firstHasOrder && secondHasOrder) {
-      return orderIndexByStepId[firstId] - orderIndexByStepId[secondId];
-    }
-
-    if (firstHasOrder) {
-      return -1;
-    }
-
-    if (secondHasOrder) {
-      return 1;
-    }
-
-    return readStepOrder(firstStep) - readStepOrder(secondStep);
-  });
-
-  return safeSteps;
-}
-
-function normalizeLocalizedTitle(title, fallbackTitle) {
-  if (typeof title === "string" && title.trim().length > 0) {
-    return { en: title.trim(), ru: "", ky: "" };
-  }
-
-  if (title && typeof title === "object" && !Array.isArray(title)) {
-    return {
-      en: readTextValue(title.en) || readTextValue(fallbackTitle && fallbackTitle.en) || "Learning Mode",
-      ru: readTextValue(title.ru) || readTextValue(fallbackTitle && fallbackTitle.ru),
-      ky: readTextValue(title.ky) || readTextValue(fallbackTitle && fallbackTitle.ky)
-    };
-  }
-
-  return fallbackTitle || { en: "Learning Mode", ru: "", ky: "" };
-}
-
-function readNumber(value, fallbackValue) {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-
-  return fallbackValue;
-}
-
-function readStepOrder(step) {
-  if (step && typeof step.order === "number" && Number.isFinite(step.order)) {
-    return step.order;
-  }
-
-  return 0;
 }
 
 async function loadProgress(actor, courseId, moduleId, sessionId) {

@@ -42,14 +42,14 @@ export function validateExternalTaskSubmissionsQuery(executionState) {
 
 export function validateExternalTaskReviewPayload(executionState) {
   var payload = executionState.payload || {};
-  var allowed = ["pending", "complete", "needsWork", "incomplete"];
+  var allowed = ["complete", "needsWork", "incomplete"];
 
   if (!payload.submissionId) {
     return createError("EXTERNAL_TASK_SUBMISSION_REQUIRED", "Submission ID is required.");
   }
 
   if (allowed.indexOf(payload.reviewStatus) === -1) {
-    return createError("EXTERNAL_TASK_REVIEW_STATUS_INVALID", "Review status must be pending, complete, needsWork, or incomplete.");
+    return createError("EXTERNAL_TASK_REVIEW_STATUS_INVALID", "Review status must be complete, needsWork, or incomplete.");
   }
 
   return { valid: true };

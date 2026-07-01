@@ -1,5 +1,5 @@
 import { roleFilterCards } from "../../../../../packages/shared/constants/admin.js?v=1.1.82-shared-command-center-shell";
-import { escapeHtml } from "../../../../../packages/shared/formatting/index.js?v=1.1.82-shared-command-center-shell";
+import { escapeHtml, formatDateTime } from "../../../../../packages/shared/formatting/index.js?v=1.1.82-shared-command-center-shell";
 import { collectUserRoles } from "../../../../../packages/domain/users/index.js?v=1.1.82-shared-command-center-shell";
 import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.82-shared-command-center-shell";
 
@@ -33,12 +33,13 @@ export function renderUsersTableRows(users) {
 
   while (index < users.length) {
     html += '<article class="sa-user-card"><div class="sa-user-summary">'
-      + '<div class="sa-user-profile-cell"><div class="sa-avatar sa-avatar-fallback">' + escapeHtml(readInitials(users[index].displayName || users[index].email || users[index].id)) + '</div><div class="sa-user-main"><h3>' + escapeHtml(users[index].displayName || users[index].email || users[index].id) + '</h3><small>' + escapeHtml(users[index].id) + '</small></div></div>'
-      + '<div class="sa-user-meta"><span>' + escapeHtml(users[index].email || "No email") + '</span></div>'
+      + '<div class="sa-user-profile-cell"><div class="sa-avatar sa-avatar-fallback">' + escapeHtml(readInitials(users[index].displayName || users[index].email || users[index].id)) + '</div><div class="sa-user-main"><h3>' + escapeHtml(users[index].displayName || users[index].email || users[index].id) + '</h3><p>' + escapeHtml(users[index].email || "No email") + '</p></div></div>'
       + '<div class="sa-role-badges">' + escapeHtml((users[index].roles || []).join(", ")) + '</div>'
       + '<div class="sa-user-meta"><span>' + escapeHtml((users[index].locationIds || []).join(", ") || "No location scope") + '</span></div>'
+      + '<div class="sa-user-meta"><span>' + escapeHtml((users[index].classIds || []).join(", ") || users[index].classId || "No classes") + '</span></div>'
       + '<div>' + createStatusBadge(users[index].status || "active", { className: "sa-status", statusClassPrefix: "sa-status-" }) + '</div>'
-      + '<div class="sa-row-actions"><button type="button" class="sa-btn sa-btn-secondary" data-action="edit-user" data-id="' + escapeHtml(users[index].id) + '">View</button><button type="button" class="sa-btn sa-btn-secondary" data-action="open-user-edit-modal" data-id="' + escapeHtml(users[index].id) + '">Edit</button><button type="button" class="sa-btn sa-btn-secondary" data-action="disable-user" data-id="' + escapeHtml(users[index].id) + '">Disable</button></div>'
+      + '<div class="sa-user-meta"><span>' + escapeHtml(formatDateTime(users[index].lastActiveAt || users[index].updatedAt)) + '</span></div>'
+      + '<div class="sa-row-actions"></div>'
       + '</div></article>';
     index = index + 1;
   }

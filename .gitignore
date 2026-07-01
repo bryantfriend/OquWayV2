@@ -16,7 +16,6 @@ test-results/
 coverage/
 dist/
 build/
-*.local-before-rebase.md
 
 # OS/editor noise
 .DS_Store

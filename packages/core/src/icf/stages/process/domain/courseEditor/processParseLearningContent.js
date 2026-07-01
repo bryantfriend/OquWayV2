@@ -1,4 +1,4 @@
-import { parseLearningContentText } from "../moduleEditor/learningArchitecture.js?v=1.1.162-modal-stack";
+import { parseLearningContentText } from "../moduleEditor/learningArchitecture.js?v=1.1.82-shared-command-center-shell";
 
 export function processParseLearningContent(executionState) {
   var payload = executionState.payload || {};

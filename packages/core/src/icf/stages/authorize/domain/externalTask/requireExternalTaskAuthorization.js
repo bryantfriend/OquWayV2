@@ -1,4 +1,4 @@
-import { canReviewExternalTask, canSubmitExternalTask } from "../../../../../../../permissions/index.js?v=1.1.162-modal-stack";
+import { canReviewExternalTask, canSubmitExternalTask } from "../../../../../../../permissions/index.js?v=1.1.82-shared-command-center-shell";
 
 export function requireExternalTaskStudentAuthorization(executionState) {
   var actor = executionState.actor;

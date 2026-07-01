@@ -1,5 +1,5 @@
 import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.82-shared-command-center-shell";
-import { collection, db, deleteDoc, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
+import { collection, db, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
 
 export async function processLoadAdminProfile(executionState) {
   var actor = executionState.actor;
@@ -274,29 +274,6 @@ export async function processUpdateClass(executionState) {
     return { valid: true };
   } catch (error) {
     return createProcessError("CLASS_UPDATE_FAILED", error.message);
-  }
-}
-
-export async function processDeleteClass(executionState) {
-  var payload = executionState.payload;
-
-  try {
-    var classRef = doc(db, "classes", payload.classId);
-    var classSnap = await getDoc(classRef);
-
-    if (!classSnap.exists()) {
-      return createProcessError("CLASS_NOT_FOUND", "Class was not found.");
-    }
-
-    await deleteDoc(classRef);
-    executionState.result = {
-      classId: payload.classId,
-      deleted: true
-    };
-
-    return { valid: true };
-  } catch (error) {
-    return createProcessError("CLASS_DELETE_FAILED", "Failed to delete class: " + error.message);
   }
 }
 

@@ -1,6 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.162-modal-stack";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
 import { createDefaultProgressDocument as createSharedDefaultProgressDocument } from "../../../../../../../domain/progress/index.js";
-import { resolveActorStudentId } from "../../../../../../../domain/users/index.js?v=1.1.162-modal-stack";
 
 export function createDefaultProgressDocument(courseId, moduleId, sessionId) {
   return createSharedDefaultProgressDocument(courseId, moduleId, sessionId);
@@ -87,7 +86,7 @@ export async function saveStudentPracticeModeProgress(actor, payload, completedS
   var existingProgress = readPracticeModeProgressFromPayload(payload);
   var completionResults = Object.assign({}, existingProgress.completionResults);
   var saveData = {};
-  var progressRef = doc(db, "studentProgress", resolveActorStudentId(actor), "courses", payload.courseId, "sessions", payload.sessionId);
+  var progressRef = doc(db, "studentProgress", actor.id, "courses", payload.courseId, "sessions", payload.sessionId);
 
   if (payload.stepId && payload.completionResult) {
     completionResults[payload.stepId] = readCompletionResult(payload.completionResult);

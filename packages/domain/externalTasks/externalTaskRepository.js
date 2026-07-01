@@ -1,13 +1,12 @@
 import { db, doc, getDoc, serverTimestamp, setDoc } from "../../firebase/index.js";
-import { getDownloadURL, ref, storage, uploadBytes } from "../../firebase/storage/index.js?v=1.1.162-modal-stack";
+import { getDownloadURL, ref, storage, uploadBytes } from "../../firebase/storage/index.js?v=1.1.82-shared-command-center-shell";
 import { getCourseAssignments } from "../assignments/index.js";
-import { resolveActorStudentId } from "../users/index.js?v=1.1.162-modal-stack";
 import {
   canResubmitExternalTaskSubmission,
   normalizeExternalTaskSubmission,
   readExternalTaskAttemptNumber
-} from "./externalTaskModel.js?v=1.1.162-modal-stack";
-import { getStudentExternalTaskSubmissions, getLatestStudentExternalTaskSubmission } from "./externalTaskQueries.js?v=1.1.162-modal-stack";
+} from "./externalTaskModel.js?v=1.1.82-shared-command-center-shell";
+import { getStudentExternalTaskSubmissions, getLatestStudentExternalTaskSubmission } from "./externalTaskQueries.js?v=1.1.82-shared-command-center-shell";
 
 export async function getExternalTaskSubmissionById(submissionId) {
   if (!submissionId) {
@@ -42,12 +41,12 @@ export async function createStudentExternalTaskSubmission(payload, actor, profil
   var files = Array.isArray(safePayload.files) ? safePayload.files : [];
   var uploadedFiles = [];
   var fileIndex = 0;
-  var previousSubmissions = await getStudentExternalTaskSubmissions(createStudentSubmissionFilters(safePayload, safeActor, safeProfile));
+  var previousSubmissions = await getStudentExternalTaskSubmissions(createStudentSubmissionFilters(safePayload, safeActor));
   var attemptNumber = readExternalTaskAttemptNumber(previousSubmissions);
   var assignment = await loadSubmissionAssignment(safePayload, safeActor, safeProfile);
 
   while (fileIndex < files.length) {
-    uploadedFiles.push(await uploadExternalTaskFile(safePayload, safeActor, safeProfile, submissionId, files[fileIndex]));
+    uploadedFiles.push(await uploadExternalTaskFile(safePayload, safeActor, submissionId, files[fileIndex]));
     fileIndex = fileIndex + 1;
   }
 
@@ -66,8 +65,7 @@ export async function createStudentExternalTaskSubmission(payload, actor, profil
 export async function createStudentExternalTaskResubmission(payload, actor, profile) {
   var safePayload = payload || {};
   var safeActor = actor || {};
-  var safeProfile = profile || {};
-  var latestSubmission = await getLatestStudentExternalTaskSubmission(createStudentSubmissionFilters(safePayload, safeActor, safeProfile));
+  var latestSubmission = await getLatestStudentExternalTaskSubmission(createStudentSubmissionFilters(safePayload, safeActor));
 
   if (!latestSubmission) {
     throw new Error("No previous external task submission was found to resubmit.");
@@ -86,17 +84,14 @@ export async function createStudentExternalTaskResubmission(payload, actor, prof
   );
 }
 
-export async function uploadExternalTaskFile(payload, actor, profile, submissionId, file) {
+export async function uploadExternalTaskFile(payload, actor, submissionId, file) {
   validateUploadFile(file, payload);
 
-  var storagePath = buildStoragePath(payload || {}, actor || {}, profile || {}, submissionId, file.name);
-  var studentId = resolveActorStudentId(actor || {}, profile || {}, payload || {});
+  var storagePath = buildStoragePath(payload || {}, actor || {}, submissionId, file.name);
   var storageRef = ref(storage, storagePath);
   var metadata = {
     contentType: file.type || "application/octet-stream"
   };
-
-  logExternalTaskUploadDebug(storagePath, studentId, payload);
 
   await uploadBytes(storageRef, file, metadata);
 
@@ -118,14 +113,14 @@ async function writeStudentExternalTaskSubmission(payload, actor, profile, submi
   return normalizeExternalTaskSubmission(Object.assign({ id: submissionId }, record));
 }
 
-function createStudentSubmissionFilters(payload, actor, profile) {
+function createStudentSubmissionFilters(payload, actor) {
   return {
     courseId: payload.courseId,
     assignmentId: payload.assignmentId || payload.courseAssignmentId,
     courseAssignmentId: payload.courseAssignmentId || payload.assignmentId,
     moduleId: payload.moduleId,
     stepId: payload.stepId,
-    studentId: resolveActorStudentId(actor, profile, payload)
+    studentId: actor && actor.id ? actor.id : ""
   };
 }
 
@@ -145,7 +140,7 @@ async function loadSubmissionAssignment(payload, actor, profile) {
     }
   }
 
-  addAssignmentTarget(targets, "student", resolveActorStudentId(actor, profile, payload));
+  addAssignmentTarget(targets, "student", actor && actor.id ? actor.id : "");
   addAssignmentTarget(targets, "student", profile && profile.id ? profile.id : "");
   addAssignmentTarget(targets, "class", payload.classId || (profile ? profile.classId : ""));
   addAssignmentTarget(targets, "location", payload.locationId || (profile ? (profile.locationId || profile.primaryLocationId) : ""));
@@ -183,7 +178,6 @@ function addAssignmentTarget(targets, targetType, targetId) {
 
 function createSubmissionRecord(payload, actor, profile, submissionId, files, attemptNumber, assignment, previousSubmissionId) {
   var assignmentId = payload.assignmentId || payload.courseAssignmentId || (assignment && assignment.id ? assignment.id : "");
-  var studentId = resolveActorStudentId(actor, profile, payload);
 
   return {
     submissionId: submissionId,
@@ -194,8 +188,8 @@ function createSubmissionRecord(payload, actor, profile, submissionId, files, at
     courseId: payload.courseId,
     assignmentId: assignmentId,
     courseAssignmentId: assignmentId,
-    studentId: studentId,
-    studentName: profile.displayName || profile.name || studentId || "",
+    studentId: actor.id || "",
+    studentName: profile.displayName || profile.name || actor.id || "",
     classId: payload.classId || profile.classId || "",
     locationId: payload.locationId || profile.locationId || profile.primaryLocationId || "",
     taskTitle: payload.taskTitle,
@@ -266,12 +260,12 @@ function validateUploadFile(file, payload) {
   }
 }
 
-function buildStoragePath(payload, actor, profile, submissionId, fileName) {
+function buildStoragePath(payload, actor, submissionId, fileName) {
   return "external-task-submissions/"
     + cleanSegment(payload.courseId) + "/"
     + cleanSegment(payload.moduleId) + "/"
     + cleanSegment(payload.stepId) + "/"
-    + cleanSegment(resolveActorStudentId(actor, profile, payload)) + "/"
+    + cleanSegment(actor.id) + "/"
     + cleanSegment(submissionId) + "/"
     + Date.now() + "-" + cleanFileName(fileName);
 }
@@ -304,22 +298,4 @@ function isAllowedContentType(contentType) {
 function readNumber(value, fallback) {
   var numberValue = typeof value === "number" ? value : Number(value);
   return Number.isFinite(numberValue) ? numberValue : fallback;
-}
-
-function logExternalTaskUploadDebug(path, studentId, payload) {
-  if (!isExternalTaskDebugEnabled()) {
-    return;
-  }
-
-  console.log("[external-task-upload-debug]", {
-    path: path,
-    studentId: studentId || "",
-    fileCount: Array.isArray(payload && payload.files) ? payload.files.length : 1
-  });
-}
-
-function isExternalTaskDebugEnabled() {
-  return typeof window !== "undefined"
-    && window.location
-    && window.location.search.indexOf("debug=true") !== -1;
 }

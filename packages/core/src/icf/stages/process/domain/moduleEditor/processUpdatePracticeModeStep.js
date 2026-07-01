@@ -1,6 +1,5 @@
-import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.192-timed-sequence";
-import { updatePracticeModeStep } from "./practiceModeShells.js?v=1.1.192-timed-sequence";
-import { normalizeActivityTemplateId } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.192-timed-sequence";
+import { db, doc, serverTimestamp, setDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
+import { updatePracticeModeStep } from "./practiceModeShells.js?v=1.1.82-shared-command-center-shell";
 
 export async function processUpdatePracticeModeStep(executionState) {
   var payload = executionState.payload;
@@ -26,34 +25,28 @@ export async function processUpdatePracticeModeStep(executionState) {
 }
 
 function createStepPatch(payload) {
-  var stepType = payload.stepType || payload.stepTypeId || payload.type || "";
-
   return {
     title: payload.title,
     instructions: payload.instructions,
     config: payload.config,
-    activityTemplate: normalizeActivityTemplateId(stepType, payload.activityTemplate),
     status: payload.status
   };
 }
 
 async function savePracticeModes(executionState, payload, practiceModes) {
-  var collectionName = readCourseCollectionName(executionState);
-
   await setDoc(doc(db, readCourseCollectionName(executionState), payload.courseId, "modules", payload.moduleId, "sessions", payload.sessionId), {
     practiceModes: practiceModes,
     updatedAt: serverTimestamp()
   }, { merge: true });
 
   if (payload.modeId) {
-    await setDoc(doc(db, collectionName, payload.courseId, "modules", payload.moduleId, "learningModes", payload.modeId, "steps", payload.stepId), {
+    await setDoc(doc(db, "catalogCourses", payload.courseId, "modules", payload.moduleId, "learningModes", payload.modeId, "steps", payload.stepId), {
       id: payload.stepId,
       type: payload.stepType,
       stepTypeId: payload.stepType,
       title: payload.title,
       instructions: payload.instructions,
       config: payload.config,
-      activityTemplate: normalizeActivityTemplateId(payload.stepType, payload.activityTemplate),
       status: payload.status,
       updatedAt: serverTimestamp()
     }, { merge: true });

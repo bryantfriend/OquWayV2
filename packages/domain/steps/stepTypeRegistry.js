@@ -1,19 +1,13 @@
 import {
   createDefaultStepConfig,
-  getActivityTemplateOptions,
-  getDefaultActivityTemplateId,
   getStepTypeDefinition,
-  normalizeActivityTemplateId,
   isSupportedStepType,
   listStepTypeDefinitions
-} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.192-timed-sequence";
+} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.82-shared-command-center-shell";
 
 export {
   createDefaultStepConfig,
-  getActivityTemplateOptions,
-  getDefaultActivityTemplateId,
   getStepTypeDefinition,
-  normalizeActivityTemplateId,
   isSupportedStepType,
   listStepTypeDefinitions
 };

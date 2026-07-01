@@ -29,8 +29,6 @@ export function normalizeTeacherDashboardPayload(executionState) {
     data: {
       classId: normalizeText(payload.classId),
       courseId: normalizeText(payload.courseId),
-      assignmentId: normalizeText(payload.assignmentId || payload.courseAssignmentId),
-      courseAssignmentId: normalizeText(payload.courseAssignmentId || payload.assignmentId),
       moduleId: normalizeText(payload.moduleId),
       reviewStatus: Object.prototype.hasOwnProperty.call(payload, "reviewStatus") ? normalizeText(payload.reviewStatus) : "pending",
       studentSearch: normalizeText(payload.studentSearch || payload.searchStudentName)

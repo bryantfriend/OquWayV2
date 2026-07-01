@@ -1,6 +1,6 @@
-import { createIntent } from "../../../../../packages/icf/index.js?v=1.1.152-course-builder-loading-timeout";
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.152-course-builder-loading-timeout";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.152-course-builder-loading-timeout";
+import { createIntent } from "../../../../../packages/icf/index.js?v=1.1.82-shared-command-center-shell";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.82-shared-command-center-shell";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.82-shared-command-center-shell";
 
 function getActor() {
     const user = auth.currentUser;
@@ -46,14 +46,6 @@ export const catalogCourseService = {
 
     async archiveCourse(courseId) {
         return runNamedIntent("ArchiveCourseIntent", { courseId: courseId });
-    },
-
-    async restoreCourse(courseId) {
-        return runNamedIntent("RestoreCourseIntent", { courseId: courseId });
-    },
-
-    async permanentlyDeleteCourse(courseId) {
-        return runNamedIntent("PermanentlyDeleteCourseIntent", { courseId: courseId });
     },
 
     async deleteCourse(courseId) {

@@ -1,9 +1,9 @@
-import { catalogCourseRequireTitleValidation } from "../../stages/validate/validators.js?v=1.1.162-modal-stack";
-import { catalogCourseNormalizeTitleNormalization } from "../../stages/normalize/normalizers.js?v=1.1.162-modal-stack";
-import { catalogAttachSystemContext } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
-import { catalogRequireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.162-modal-stack";
-import { catalogCourseCreateRecordProcessing } from "../../stages/process/processors.js?v=1.1.162-modal-stack";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.162-modal-stack";
+import { catalogCourseRequireTitleValidation } from "../../stages/validate/validators.js?v=1.1.82-shared-command-center-shell";
+import { catalogCourseNormalizeTitleNormalization } from "../../stages/normalize/normalizers.js?v=1.1.82-shared-command-center-shell";
+import { catalogAttachSystemContext } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
+import { catalogRequireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.82-shared-command-center-shell";
+import { catalogCourseCreateRecordProcessing } from "../../stages/process/processors.js?v=1.1.82-shared-command-center-shell";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.82-shared-command-center-shell";
 
 export function CreateCatalogCourseIntent() {
     return {
@@ -22,7 +22,7 @@ export function CreateCatalogCourseIntent() {
         ],
         process: [
             catalogCourseCreateRecordProcessing
-        ],
+        ],
         emit: [
             emitIntentResult
         ]

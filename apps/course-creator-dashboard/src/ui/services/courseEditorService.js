@@ -1,12 +1,8 @@
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.153-student-course-journey-polish";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.153-student-course-journey-polish";
-import { courseEditorStore } from "../state/courseEditorState.js?v=1.1.153-student-course-journey-polish";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.153-student-course-journey-polish";
-import { getDownloadURL, ref, storage, uploadBytes } from "../../../../../packages/firebase/storage/index.js?v=1.1.153-student-course-journey-polish";
-import { compressImageFile } from "./imageCompression.js?v=1.1.198-course-creator-advanced-upgrades";
-
-var openCourseRequestId = 0;
-var OPEN_COURSE_TIMEOUT_MS = 20000;
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.82-shared-command-center-shell";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.82-shared-command-center-shell";
+import { courseEditorStore } from "../state/courseEditorState.js?v=1.1.82-shared-command-center-shell";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.82-shared-command-center-shell";
+import { getDownloadURL, ref, storage, uploadBytes } from "../../../../../packages/firebase/storage/index.js?v=1.1.82-shared-command-center-shell";
 
 function getActor() {
   return auth.currentUser ? { id: auth.currentUser.uid, role: "ROLE_COURSE_CREATOR" } : null;
@@ -14,19 +10,9 @@ function getActor() {
 
 export const courseEditorService = {
   openCourseEditor: async function (courseId) {
-    var requestId = openCourseRequestId + 1;
-    openCourseRequestId = requestId;
     courseEditorStore.setState({ isFetching: true, error: null });
     try {
-      var result = await withTimeout(
-        runIntentPipeline(getIntentDefinition("OpenCourseEditorIntent"), { payload: { courseId: courseId }, actor: getActor() }),
-        OPEN_COURSE_TIMEOUT_MS,
-        "Course loading timed out. The course may still be reachable, but the builder did not receive the module data in time."
-      );
-
-      if (requestId !== openCourseRequestId) {
-        return;
-      }
+      var result = await runIntentPipeline(getIntentDefinition("OpenCourseEditorIntent"), { payload: { courseId: courseId }, actor: getActor() });
 
       if (result && result.emitted && result.emitted.success) {
         var openData = result.emitted.data || {};
@@ -71,9 +57,7 @@ export const courseEditorService = {
         courseEditorStore.setState({ error: errMsg, isFetching: false });
       }
     } catch (error) {
-      if (requestId === openCourseRequestId) {
-        courseEditorStore.setState({ error: error.message, isFetching: false });
-      }
+      courseEditorStore.setState({ error: error.message, isFetching: false });
     }
   },
 
@@ -246,42 +230,34 @@ export const courseEditorService = {
     }
   },
 
-  uploadCourseIcon: async function (courseId, file, options) {
-    var state = courseEditorStore.getState();
-    var course = state.course || {};
-    var iconFile = file;
-
-    if (!options || options.autoCompress !== false) {
-      try {
-        iconFile = await compressImageFile(file, {
-          maxDimension: 768,
-          quality: 0.82,
-          outputType: readCompressionOutputType(file)
-        });
-      } catch (error) {
-        console.warn("[course-icon] Compression failed; uploading the original image.", error);
-        iconFile = file;
-      }
+  uploadCourseIcon: async function (courseId, file) {
+    if (!file) {
+      throw new Error("Choose an image before uploading.");
     }
 
-    var iconUrl = await uploadEditorImageFile("course-icons/" + courseId, iconFile);
+    if (!/^image\//.test(file.type || "")) {
+      throw new Error("Course icon must be an image file.");
+    }
 
-    return await this.updateCourseMetadata(courseId, {
-      title: course.title,
-      description: course.description,
-      subject: course.subject || "",
-      level: course.level || "",
-      grade: course.grade || course.level || "",
-      language: course.language || course.defaultLanguage || "en",
-      status: course.status || "draft",
-      tags: Array.isArray(course.tags) ? course.tags.slice() : [],
-      languages: Array.isArray(course.languages) ? course.languages.slice() : ["en"],
-      defaultLanguage: course.defaultLanguage || "en",
-      iconUrl: iconUrl,
-      heroImageUrl: course.heroImageUrl || "",
-      themeColor: course.themeColor || "",
-      accentColor: course.accentColor || ""
+    var compressedFile = await compressCourseIconImage(file);
+    var extension = readUploadExtension(compressedFile);
+    var storagePath = "course-icons/" + courseId + "/course-icon-" + Date.now() + "." + extension;
+    var storageRef = ref(storage, storagePath);
+
+    await uploadBytes(storageRef, compressedFile, {
+      contentType: compressedFile.type || "image/webp",
+      customMetadata: {
+        courseId: courseId,
+        uploadedBy: auth.currentUser ? auth.currentUser.uid : ""
+      }
     });
+
+    return {
+      iconUrl: await getDownloadURL(storageRef),
+      storagePath: storagePath,
+      size: compressedFile.size,
+      contentType: compressedFile.type
+    };
   },
 
   updateModuleField: async function (courseId, moduleId, fieldKey, value) {
@@ -351,24 +327,6 @@ export const courseEditorService = {
         }
       };
     }
-  },
-
-  uploadModuleIcon: async function (courseId, moduleId, file) {
-    var state = courseEditorStore.getState();
-    var modules = Array.isArray(state.modules) ? state.modules : [];
-    var module = findModuleById(modules, moduleId) || {};
-    var iconUrl = await uploadEditorImageFile("module-icons/" + courseId + "/" + moduleId, file);
-
-    return await this.updateModule(courseId, moduleId, {
-      title: module.title || { en: "Untitled Module", ru: "", ky: "" },
-      description: module.description || { en: "", ru: "", ky: "" },
-      status: module.status || "draft",
-      iconUrl: iconUrl,
-      pathType: module.pathType || "main",
-      pathGroup: module.pathGroup || "",
-      pathOrder: typeof module.pathOrder === "number" ? module.pathOrder : module.order,
-      parentModuleId: module.parentModuleId || ""
-    });
   },
 
   selectModule: function (moduleId) {
@@ -551,6 +509,81 @@ courseEditorService.archiveCourse = async function (courseId) {
   });
 };
 
+function compressCourseIconImage(file) {
+  return new Promise(function (resolve) {
+    if (typeof document === "undefined" || typeof Image === "undefined") {
+      resolve(file);
+      return;
+    }
+
+    var reader = new FileReader();
+
+    reader.onload = function () {
+      var image = new Image();
+
+      image.onload = function () {
+        var maxSize = 512;
+        var scale = Math.min(1, maxSize / Math.max(image.width, image.height));
+        var canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(image.width * scale));
+        canvas.height = Math.max(1, Math.round(image.height * scale));
+        var context = canvas.getContext("2d");
+
+        if (!context) {
+          resolve(file);
+          return;
+        }
+
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(function (blob) {
+          if (!blob) {
+            resolve(file);
+            return;
+          }
+
+          resolve(new File([blob], createCompressedFileName(file.name), {
+            type: blob.type || "image/webp",
+            lastModified: Date.now()
+          }));
+        }, "image/webp", 0.84);
+      };
+
+      image.onerror = function () {
+        resolve(file);
+      };
+
+      image.src = String(reader.result || "");
+    };
+
+    reader.onerror = function () {
+      resolve(file);
+    };
+
+    reader.readAsDataURL(file);
+  });
+}
+
+function createCompressedFileName(fileName) {
+  var safeName = typeof fileName === "string" && fileName ? fileName : "course-icon";
+  return safeName.replace(/\.[^.]+$/, "") + ".webp";
+}
+
+function readUploadExtension(file) {
+  if (file && file.type === "image/png") {
+    return "png";
+  }
+
+  if (file && (file.type === "image/jpeg" || file.type === "image/jpg")) {
+    return "jpg";
+  }
+
+  if (file && file.type === "image/gif") {
+    return "gif";
+  }
+
+  return "webp";
+}
+
 function readIntentErrorMessage(result) {
   if (result && result.emitted && result.emitted.errors && result.emitted.errors.length > 0) {
     if (result.emitted.errors[0].message) {
@@ -575,81 +608,12 @@ function readIntentErrorMessage(result) {
   return "Unknown course metadata error";
 }
 
-function withTimeout(promise, timeoutMs, message) {
-  return new Promise(function (resolve, reject) {
-    var timerId = window.setTimeout(function () {
-      reject(new Error(message || "Request timed out."));
-    }, timeoutMs);
-
-    promise.then(function (value) {
-      window.clearTimeout(timerId);
-      resolve(value);
-    }).catch(function (error) {
-      window.clearTimeout(timerId);
-      reject(error);
-    });
-  });
-}
-
 function readModuleId(module) {
   if (!module) {
     return "";
   }
 
   return module.id || module.moduleId || "";
-}
-
-function findModuleById(modules, moduleId) {
-  var safeModules = Array.isArray(modules) ? modules : [];
-  var index = 0;
-
-  while (index < safeModules.length) {
-    if (readModuleId(safeModules[index]) === moduleId) {
-      return safeModules[index];
-    }
-
-    index = index + 1;
-  }
-
-  return null;
-}
-
-function readCompressionOutputType(file) {
-  if (file && (file.type === "image/jpeg" || file.type === "image/webp")) {
-    return file.type;
-  }
-
-  return "image/jpeg";
-}
-
-async function uploadEditorImageFile(folderPath, file) {
-  var safeFile = validateEditorImageFile(file);
-  var fileName = Date.now() + "-" + sanitizeStorageFileName(safeFile.name || "image");
-  var fileRef = ref(storage, folderPath + "/" + fileName);
-  var snapshot = await uploadBytes(fileRef, safeFile, {
-    contentType: safeFile.type || "image/png"
-  });
-
-  return await getDownloadURL(snapshot.ref);
-}
-
-function validateEditorImageFile(file) {
-  if (!file) {
-    throw new Error("Choose an image before uploading.");
-  }
-
-  if (typeof file.type === "string" && file.type.indexOf("image/") !== 0) {
-    throw new Error("Only image files can be uploaded.");
-  }
-
-  return file;
-}
-
-function sanitizeStorageFileName(fileName) {
-  return String(fileName || "image")
-    .toLowerCase()
-    .replace(/[^a-z0-9._-]+/g, "-")
-    .replace(/(^-|-$)+/g, "") || "image";
 }
 
 function findClearlyInvalidModuleSteps(modules) {

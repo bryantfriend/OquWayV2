@@ -1,4 +1,4 @@
-import { getCourseById } from "../../../../../../../domain/courses/index.js?v=1.1.162-modal-stack";
+import { getCourseById } from "../../../../../../../domain/courses/index.js";
 
 export async function attachCourseDocument(executionState) {
     const { payload } = executionState;

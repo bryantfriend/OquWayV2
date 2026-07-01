@@ -1,5 +1,5 @@
-import { auth } from "../../packages/firebase/auth/index.js?v=1.1.152-course-builder-loading-timeout";
-import { verifyCourseCreatorAccess, normalizeRole } from "./src/auth/courseCreatorAuth.js?v=1.1.152-course-builder-loading-timeout";
+import { auth } from "../../packages/firebase/auth/index.js?v=1.1.82-shared-command-center-shell";
+import { verifyCourseCreatorAccess, normalizeRole } from "./src/auth/courseCreatorAuth.js?v=1.1.82-shared-command-center-shell";
 import {
     signInWithEmailAndPassword,
     onAuthStateChanged,
@@ -17,9 +17,6 @@ const resetEmailInput = document.getElementById("resetEmail");
 const resetSubmitBtn = document.getElementById("resetSubmitBtn");
 const resetCancelBtn = document.getElementById("resetCancelBtn");
 const resetStatus = document.getElementById("resetStatus");
-const loginLoadingPanel = document.getElementById("loginLoadingPanel");
-const loginLoadingTitle = document.getElementById("loginLoadingTitle");
-const loginLoadingNote = document.getElementById("loginLoadingNote");
 const returnToUrl = captureReturnToUrl();
 let redirectStarted = false;
 
@@ -30,20 +27,7 @@ onAuthStateChanged(auth, async function (user) {
         return;
     }
 
-    showLoginLoading("Opening Course Builder...", "Checking your staff session and preparing the catalog.");
-    const access = await withTimeout(
-        verifyCourseCreatorAccess(user, { source: "login-auth-state" }),
-        20000,
-        "Access check timed out. Refresh and try again."
-    ).catch(function (error) {
-        errorDiv.textContent = error.message;
-        hideLoginLoading();
-        return { allowed: false, role: "", timedOut: true };
-    });
-
-    if (access.timedOut) {
-        return;
-    }
+    const access = await verifyCourseCreatorAccess(user, { source: "login-auth-state" });
 
     if (access.allowed) {
         redirectToReturnTo();
@@ -68,13 +52,8 @@ loginBtn.addEventListener("click", async function () {
         logCourseCreatorLogin("login started", { email: email });
         loginBtn.disabled = true;
         loginBtn.textContent = "Checking access...";
-        showLoginLoading("Checking access...", "Signing in, verifying your role, and opening Course Builder.");
         const credential = await signInWithEmailAndPassword(auth, email, password);
-        const access = await withTimeout(
-            verifyCourseCreatorAccess(credential.user, { source: "login-submit" }),
-            20000,
-            "Access check timed out. Refresh and try again."
-        );
+        const access = await verifyCourseCreatorAccess(credential.user, { source: "login-submit" });
 
         if (!access.allowed) {
             await rejectUnauthorizedUser(access.role);
@@ -84,7 +63,6 @@ loginBtn.addEventListener("click", async function () {
         redirectToReturnTo();
     } catch (error) {
         errorDiv.textContent = readFriendlyLoginError(error);
-        hideLoginLoading();
     } finally {
         loginBtn.disabled = false;
         loginBtn.textContent = "Login";
@@ -168,38 +146,6 @@ function setResetLoading(isLoading) {
     resetSubmitBtn.disabled = isLoading;
     resetCancelBtn.disabled = isLoading;
     resetSubmitBtn.textContent = isLoading ? "Sending..." : "Send Reset Link";
-}
-
-function showLoginLoading(title, note) {
-    if (!loginLoadingPanel) {
-        return;
-    }
-
-    loginLoadingTitle.textContent = title || "Opening Course Builder...";
-    loginLoadingNote.textContent = note || "Preparing your course workspace.";
-    loginLoadingPanel.classList.add("is-visible");
-}
-
-function hideLoginLoading() {
-    if (loginLoadingPanel) {
-        loginLoadingPanel.classList.remove("is-visible");
-    }
-}
-
-function withTimeout(promise, timeoutMs, message) {
-    return new Promise(function (resolve, reject) {
-        const timerId = window.setTimeout(function () {
-            reject(new Error(message || "Request timed out."));
-        }, timeoutMs);
-
-        promise.then(function (value) {
-            window.clearTimeout(timerId);
-            resolve(value);
-        }).catch(function (error) {
-            window.clearTimeout(timerId);
-            reject(error);
-        });
-    });
 }
 
 function isValidEmail(value) {
@@ -303,7 +249,6 @@ async function rejectUnauthorizedUser(role) {
 
     clearStoredReturnTo();
     errorDiv.textContent = message;
-    hideLoginLoading();
 }
 
 function showInitialLoginMessage() {

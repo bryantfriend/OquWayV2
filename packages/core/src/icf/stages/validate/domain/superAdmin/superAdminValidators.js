@@ -10,7 +10,6 @@ export function validateLocationPayload(executionState) {
   validateEnum(errors, "loginMode", payload.loginMode, ["fruit", "standard", "hybrid"]);
   validateLoginSlug(errors, payload.loginSlug);
   validateOptionalUrl(errors, "photoUrl", payload.photoUrl || payload.imageUrl);
-  validateOptionalUrl(errors, "iconUrl", payload.iconUrl);
   validateOptionalUrl(errors, "website", payload.website);
   validateOptionalUrl(errors, "twoGisUrl", payload.twoGisUrl);
   validateOptionalUrl(errors, "socialLinks.instagram", payload.socialLinks && payload.socialLinks.instagram);
@@ -42,7 +41,6 @@ export function validateLocationUpdatePayload(executionState) {
   validateEnum(errors, "loginMode", payload.loginMode, ["fruit", "standard", "hybrid"]);
   validateLoginSlug(errors, payload.loginSlug);
   validateOptionalUrl(errors, "photoUrl", payload.photoUrl || payload.imageUrl);
-  validateOptionalUrl(errors, "iconUrl", payload.iconUrl);
   validateOptionalUrl(errors, "website", payload.website);
   validateOptionalUrl(errors, "twoGisUrl", payload.twoGisUrl);
   validateOptionalUrl(errors, "socialLinks.instagram", payload.socialLinks && payload.socialLinks.instagram);
@@ -92,17 +90,6 @@ export function validateClassUpdatePayload(executionState) {
   }
 
   validateEnum(errors, "status", payload.status, ["active", "inactive", "archived"]);
-
-  return buildValidationResult(errors);
-}
-
-export function validateClassDeletePayload(executionState) {
-  var payload = executionState.payload || {};
-  var errors = [];
-
-  if (!isNonEmptyText(payload.classId)) {
-    errors.push({ code: "CLASS_ID_REQUIRED", message: "Class ID is required." });
-  }
 
   return buildValidationResult(errors);
 }

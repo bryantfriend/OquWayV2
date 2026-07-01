@@ -5,7 +5,6 @@ import {
     getDoc,
     getDocs,
     initializeFirestore,
-    limit,
     memoryLocalCache,
     orderBy,
     query,
@@ -15,7 +14,7 @@ import {
     writeBatch
 } from "firebase/firestore";
 
-import { firebaseApp } from "./firebaseApp.js?v=1.1.162-modal-stack";
+import { firebaseApp } from "./firebaseApp.js?v=1.1.82-shared-command-center-shell";
 
 export const db = initializeFirestore(firebaseApp, {
     localCache: memoryLocalCache()
@@ -27,7 +26,6 @@ export {
     doc,
     getDoc,
     getDocs,
-    limit,
     orderBy,
     query,
     serverTimestamp,

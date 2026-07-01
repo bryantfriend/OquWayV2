@@ -1,17 +1,13 @@
-import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.153-student-course-journey-polish';
-import { courseEditorService } from '../services/courseEditorService.js?v=1.1.153-student-course-journey-polish';
-import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.153-student-course-journey-polish';
-import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.153-student-course-journey-polish';
+import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.82-shared-command-center-shell';
+import { courseEditorService } from '../services/courseEditorService.js?v=1.1.82-shared-command-center-shell';
+import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.82-shared-command-center-shell';
+import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.82-shared-command-center-shell';
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge
-} from '../../../../../packages/ui/index.js?v=1.1.153-student-course-journey-polish';
-import {
-  countModuleSteps as countSharedModuleSteps
-} from '../../../../../packages/domain/progress/index.js?v=1.1.201-course-creator-stability-followup';
-import { PracticeModePlayer } from '../../../../../packages/shared/player/index.js?v=1.1.201-course-creator-stability-followup';
+} from '../../../../../packages/ui/index.js?v=1.1.82-shared-command-center-shell';
 
 export class CourseOverviewPage {
   constructor(courseId, options) {
@@ -29,24 +25,12 @@ export class CourseOverviewPage {
     this.assignmentsLoading = false;
     this.assignmentPendingId = "";
     this.assignmentPendingAction = "";
-    this.assignmentModalOpen = false;
-    this.selectedAssignmentTargetId = "";
+    this.assignmentTargets = null;
     this.assignmentTargetsLoading = false;
-    this.assignmentTargetsError = "";
-    this.assignmentTargets = {
-      classes: [],
-      students: [],
-      locations: [],
-      warnings: []
-    };
     this.externalTaskSubmissions = [];
     this.externalTaskLoading = false;
     this.externalTaskPendingId = "";
     this.externalTaskStatusFilter = "pending";
-    this.courseArchivePending = false;
-    this.previewCourseData = null;
-    this.coursePreviewPlayer = null;
-    this.coursePreviewPlayerSignature = '';
     this.ALL_LANGUAGES = [
       { code: 'en', name: 'English (en)' },
       { code: 'ru', name: 'Russian (ru)' },
@@ -75,7 +59,6 @@ export class CourseOverviewPage {
             <button id="archiveCourseBtn" class="border border-orange-200 bg-orange-50 hover:bg-orange-100 text-orange-700 px-4 py-2 rounded-lg font-medium shadow-sm transition flex items-center gap-2">
               <i class="fa-solid fa-box-archive"></i> Archive
             </button>
-            <span id="archiveCourseStatus" class="hidden rounded-full border px-3 py-2 text-xs font-black"></span>
             <button id="publishCourseBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition flex items-center gap-2">
               <i class="fa-solid fa-arrow-up-from-bracket"></i> Publish Update
             </button>
@@ -96,15 +79,25 @@ export class CourseOverviewPage {
               </div>
             </div>
 
-            <div id="courseCommandCenter" class="mb-4"></div>
             <div id="moduleRepairBanner" class="hidden mb-4"></div>
-            <div id="publishReadinessPanel" class="mb-4"></div>
-            <div id="moduleMapEditor" class="mb-5"></div>
-            <div id="moduleDependencyBuilder" class="mb-5"></div>
-            <div id="courseVersionTimeline" class="mb-5"></div>
-            <div id="assignmentPreviewMatrix" class="mb-5"></div>
-            <div id="accessibilityLocalizationAudit" class="mb-5"></div>
 
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-200">
+                    <th class="py-3 px-6 font-semibold w-12 text-center">Order</th>
+                    <th class="py-3 px-6 font-semibold">Module Title</th>
+                    <th class="py-3 px-6 font-semibold text-center w-24">Status</th>
+                    <th class="py-3 px-6 font-semibold text-center w-24">Steps</th>
+                    <th class="py-3 px-6 font-semibold text-center w-32">Updated</th>
+                    <th class="py-3 px-6 font-semibold text-right w-32">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="moduleTableBody" class="divide-y divide-gray-100 text-sm">
+                  ${buildModuleSkeletonRows(3)}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <!-- Right Column: Course Settings -->
@@ -119,6 +112,20 @@ export class CourseOverviewPage {
                 })}
               </div>
 
+              <div class="mb-5 rounded-xl border border-gray-200 bg-white p-3">
+                <div class="flex items-center gap-3">
+                  <img id="courseIconPreview" class="h-16 w-16 rounded-xl border border-gray-200 bg-gray-50 object-cover" src="./src/assets/module-stack.svg" alt="">
+                  <div class="min-w-0 flex-1">
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Course Icon</label>
+                    <input id="courseIconInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="block w-full text-xs text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-blue-700 hover:file:bg-blue-100">
+                    <p id="courseIconStatus" class="mt-1 text-[11px] font-semibold text-gray-400">PNG, JPG, WEBP, or GIF.</p>
+                  </div>
+                </div>
+                <button id="uploadCourseIconBtn" class="mt-3 w-full rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700 hover:bg-blue-100 transition">
+                  Upload Icon
+                </button>
+              </div>
+
               <div class="space-y-4">
                 <div>
                   <label class="block text-xs font-semibold text-gray-700 mb-1">Course Title</label>
@@ -131,86 +138,12 @@ export class CourseOverviewPage {
                 </div>
 
                 <div>
-                  <label class="block text-xs font-semibold text-gray-700 mb-1">Course Icon</label>
-                  <div class="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
-                    <div id="courseIconPreview" class="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-gray-200 bg-white grid place-items-center text-xs font-black text-gray-400">Icon</div>
-                    <div class="min-w-0 flex-1">
-                      <input type="file" id="courseIconUploadInput" accept="image/*" class="w-full text-xs font-semibold text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-xs file:font-black file:text-blue-700 hover:file:bg-blue-100">
-                      <label class="mt-2 flex items-center gap-2 text-[11px] font-bold text-gray-600">
-                        <input id="courseIconAutoCompressInput" type="checkbox" checked class="h-3.5 w-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                        Auto compress picture
-                      </label>
-                      <p id="courseIconUploadStatus" class="mt-1 hidden text-xs font-semibold"></p>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
                   <label class="block text-xs font-semibold text-gray-700 mb-1">Status</label>
                   <select id="courseStatusSelect" class="course-meta-input w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="draft">Draft</option>
                     <option value="published">Published</option>
                     <option value="archived">Archived</option>
                   </select>
-                </div>
-
-                <div>
-                  <label class="block text-xs font-semibold text-gray-700 mb-1">Module Display Template</label>
-                  <select id="courseDisplayTemplateSelect" class="course-meta-input w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="basic">Basic</option>
-                    <option value="adventurePath">Adventure Path</option>
-                    <option value="compactGrid">Compact Grid</option>
-                  </select>
-                  <div id="moduleDisplayTemplatePreview" class="mt-2"></div>
-                </div>
-
-                <div class="rounded-xl border border-blue-100 bg-blue-50/60 p-3">
-                  <div class="mb-3 flex items-center justify-between gap-2">
-                    <div>
-                      <label class="block text-xs font-black text-blue-900">Template-Aware Theme</label>
-                      <p class="mt-1 text-[11px] font-semibold leading-4 text-blue-700">Visual controls for previews and student module renderers.</p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <span id="courseThemeSwatch" class="h-9 w-9 rounded-2xl border-4 border-white bg-blue-500 shadow-sm"></span>
-                      <button id="editCourseThemeBtn" type="button" class="rounded-lg border border-blue-100 bg-white px-3 py-2 text-[11px] font-black text-blue-700 shadow-sm hover:bg-blue-50">Edit</button>
-                    </div>
-                  </div>
-                  <div id="courseThemePreview" class="mb-3"></div>
-                  <div class="grid grid-cols-2 gap-2">
-                    <div>
-                      <label class="block text-[10px] font-black uppercase tracking-wide text-blue-800 mb-1">Accent</label>
-                      <select id="courseThemeAccentSelect" class="course-meta-input w-full rounded-lg border border-blue-100 bg-white px-2 py-2 text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="blue">Blue</option>
-                        <option value="emerald">Emerald</option>
-                        <option value="rose">Rose</option>
-                        <option value="amber">Amber</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label class="block text-[10px] font-black uppercase tracking-wide text-blue-800 mb-1">Icons</label>
-                      <select id="courseIconStyleSelect" class="course-meta-input w-full rounded-lg border border-blue-100 bg-white px-2 py-2 text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="numbered">Numbered</option>
-                        <option value="courseIcon">Course Icon</option>
-                        <option value="minimal">Minimal</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label class="block text-[10px] font-black uppercase tracking-wide text-blue-800 mb-1">Badges</label>
-                      <select id="courseBadgeStyleSelect" class="course-meta-input w-full rounded-lg border border-blue-100 bg-white px-2 py-2 text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="pill">Pill</option>
-                        <option value="soft">Soft</option>
-                        <option value="solid">Solid</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label class="block text-[10px] font-black uppercase tracking-wide text-blue-800 mb-1">Density</label>
-                      <select id="coursePathDensitySelect" class="course-meta-input w-full rounded-lg border border-blue-100 bg-white px-2 py-2 text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="comfortable">Comfortable</option>
-                        <option value="compact">Compact</option>
-                        <option value="spacious">Spacious</option>
-                      </select>
-                    </div>
-                  </div>
                 </div>
 
                 <div>
@@ -268,14 +201,53 @@ export class CourseOverviewPage {
                 <div id="assignmentStatusMessage" class="hidden mb-3 text-xs font-semibold"></div>
 
                 <div class="space-y-3">
-                  <button id="openAssignmentModalBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg shadow-sm transition text-sm">
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Target Type</label>
+                    <select id="assignmentTargetTypeSelect" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      <option value="class">Class</option>
+                      <option value="student">Student</option>
+                      <option value="location">Location</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Target ID</label>
+                    <div class="flex gap-2">
+                      <input id="assignmentTargetIdInput" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Choose or paste target ID">
+                      <button id="openAssignmentTargetsBtn" class="shrink-0 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700 hover:bg-blue-100" type="button">Browse</button>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Initial Status</label>
+                    <select id="assignmentStatusSelect" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      <option value="active">Active</option>
+                      <option value="paused">Paused</option>
+                    </select>
+                  </div>
+                  <button id="createAssignmentBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg shadow-sm transition text-sm">
                     Assign Course
                   </button>
-                  <p class="text-[11px] font-semibold leading-4 text-gray-500">Choose from available classes, students, or locations instead of pasting an ID.</p>
                 </div>
 
                 <div id="assignmentList" class="mt-5 space-y-2">
                   ${buildAssignmentSkeletonRows(2)}
+                </div>
+              </div>
+
+              <div id="assignmentTargetModal" class="fixed inset-0 z-40 hidden items-center justify-center bg-black/35 px-4">
+                <div class="w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-gray-200 overflow-hidden">
+                  <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+                    <div>
+                      <h3 class="text-sm font-black text-gray-900">Assign Course</h3>
+                      <p class="text-xs text-gray-500">Choose a class, student, or location you can access.</p>
+                    </div>
+                    <button id="closeAssignmentTargetsBtn" class="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700" type="button"><i class="fa-solid fa-xmark"></i></button>
+                  </div>
+                  <div id="assignmentTargetsBody" class="max-h-[60vh] overflow-y-auto p-5">
+                    ${createLoadingState('Loading assignment targets...', {
+                      className: 'flex items-center gap-2 text-xs font-bold text-gray-500',
+                      beforeHtml: '<i class="fa-solid fa-circle-notch fa-spin text-blue-500"></i>'
+                    })}
+                  </div>
                 </div>
               </div>
 
@@ -303,127 +275,16 @@ export class CourseOverviewPage {
 
         </main>
 
-        <div id="coursePreviewModal" class="fixed inset-0 bg-slate-950/70 hidden flex items-center justify-center z-50 p-6">
-          <div class="bg-white rounded-[28px] shadow-2xl w-full max-w-5xl max-h-[88vh] overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-blue-50 to-emerald-50">
+        <div id="coursePreviewModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center z-50 p-6 transition-all duration-300">
+          <div class="bg-white rounded-[28px] shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col relative transform transition-all duration-300 scale-95 opacity-0 data-[open=true]:scale-100 data-[open=true]:opacity-100">
+            <button id="closeCoursePreviewBtn" class="absolute -top-4 -right-4 bg-white hover:bg-gray-50 text-gray-700 w-10 h-10 rounded-full font-bold text-sm shadow-md border border-gray-100 flex items-center justify-center focus:outline-none focus:ring-4 focus:ring-blue-500/20 z-10 transition-transform hover:scale-105"><i class="fa-solid fa-xmark"></i></button>
+            <div class="px-8 py-5 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-blue-50 to-emerald-50 rounded-t-[28px]">
               <div>
                 <p class="text-[10px] font-black text-blue-600 uppercase tracking-wide">Preview Mode</p>
                 <h2 class="text-xl font-black text-gray-950">Student Course Preview</h2>
               </div>
-              <div class="flex items-center gap-2">
-                <label class="sr-only" for="coursePreviewTemplateSelect">Preview template</label>
-                <select id="coursePreviewTemplateSelect" class="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-black text-gray-700 shadow-sm">
-                  <option value="basic">Basic</option>
-                  <option value="adventurePath">Adventure Path</option>
-                  <option value="compactGrid">Compact Grid</option>
-                </select>
-                <label class="sr-only" for="coursePreviewDeviceSelect">Preview size</label>
-                <select id="coursePreviewDeviceSelect" class="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-black text-gray-700 shadow-sm">
-                  <option value="desktop">Desktop</option>
-                  <option value="tablet">Tablet</option>
-                  <option value="mobile">Mobile</option>
-                </select>
-                <button id="closeCoursePreviewBtn" class="border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 px-3 py-2 rounded-xl font-bold text-sm">Exit Preview</button>
-              </div>
             </div>
-            <div id="coursePreviewBody" class="p-6 overflow-y-auto max-h-[72vh]"></div>
-          </div>
-        </div>
-
-        <div id="assignmentModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/70 p-6">
-          <div class="w-full max-w-3xl overflow-hidden rounded-[28px] bg-white shadow-2xl">
-            <div class="flex items-center justify-between gap-4 border-b border-gray-100 bg-blue-50 px-6 py-4">
-              <div>
-                <p class="text-[10px] font-black uppercase tracking-wide text-blue-600">Assign Course</p>
-                <h2 class="text-xl font-black text-gray-950">Choose an audience</h2>
-              </div>
-              <button id="closeAssignmentModalBtn" class="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50">Close</button>
-            </div>
-            <div class="grid gap-4 p-6">
-              <div id="assignmentModalStatus" class="hidden rounded-xl border px-3 py-2 text-xs font-semibold"></div>
-              <div class="grid gap-3 md:grid-cols-[180px_1fr_140px]">
-                <div>
-                  <label class="block text-xs font-semibold text-gray-700 mb-1">Target Type</label>
-                  <select id="assignmentTargetTypeSelect" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="class">Class</option>
-                    <option value="student">Student</option>
-                    <option value="location">Location</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-xs font-semibold text-gray-700 mb-1">Search</label>
-                  <input id="assignmentTargetSearchInput" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Filter available targets">
-                </div>
-                <div>
-                  <label class="block text-xs font-semibold text-gray-700 mb-1">Initial Status</label>
-                  <select id="assignmentStatusSelect" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="active">Active</option>
-                    <option value="paused">Paused</option>
-                  </select>
-                </div>
-              </div>
-              <div id="assignmentTargetList" class="max-h-[42vh] overflow-y-auto rounded-2xl border border-gray-200 bg-gray-50 p-3"></div>
-              <div class="flex items-center justify-end gap-2 border-t border-gray-100 pt-4">
-                <button id="cancelAssignmentModalBtn" class="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50">Cancel</button>
-                <button id="createAssignmentBtn" class="rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300" disabled>
-                  Assign Course
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div id="courseThemeModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/70 p-6">
-          <div class="w-full max-w-2xl overflow-hidden rounded-[28px] bg-white shadow-2xl">
-            <div class="flex items-center justify-between gap-4 border-b border-gray-100 bg-blue-50 px-6 py-4">
-              <div>
-                <p class="text-[10px] font-black uppercase tracking-wide text-blue-600">Template-Aware Theme</p>
-                <h2 class="text-xl font-black text-gray-950">Edit course visual theme</h2>
-              </div>
-              <button id="closeCourseThemeModalBtn" class="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50">Close</button>
-            </div>
-            <div class="grid gap-4 p-6">
-              <div id="courseThemeModalPreview"></div>
-              <div class="grid gap-3 md:grid-cols-2">
-                <div>
-                  <label class="block text-[10px] font-black uppercase tracking-wide text-blue-800 mb-1">Accent</label>
-                  <select id="themeModalAccentSelect" class="w-full rounded-lg border border-blue-100 bg-white px-3 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="blue">Blue</option>
-                    <option value="emerald">Emerald</option>
-                    <option value="rose">Rose</option>
-                    <option value="amber">Amber</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-[10px] font-black uppercase tracking-wide text-blue-800 mb-1">Icons</label>
-                  <select id="themeModalIconStyleSelect" class="w-full rounded-lg border border-blue-100 bg-white px-3 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="numbered">Numbered</option>
-                    <option value="courseIcon">Course Icon</option>
-                    <option value="minimal">Minimal</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-[10px] font-black uppercase tracking-wide text-blue-800 mb-1">Badges</label>
-                  <select id="themeModalBadgeStyleSelect" class="w-full rounded-lg border border-blue-100 bg-white px-3 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="pill">Pill</option>
-                    <option value="soft">Soft</option>
-                    <option value="solid">Solid</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-[10px] font-black uppercase tracking-wide text-blue-800 mb-1">Density</label>
-                  <select id="themeModalDensitySelect" class="w-full rounded-lg border border-blue-100 bg-white px-3 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="comfortable">Comfortable</option>
-                    <option value="compact">Compact</option>
-                    <option value="spacious">Spacious</option>
-                  </select>
-                </div>
-              </div>
-              <div class="flex items-center justify-end gap-2 border-t border-gray-100 pt-4">
-                <button id="cancelCourseThemeModalBtn" class="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50">Cancel</button>
-                <button id="saveCourseThemeModalBtn" class="rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-blue-700">Save Theme</button>
-              </div>
-            </div>
+            <div id="coursePreviewBody" class="p-8 overflow-y-auto flex-1 max-h-[calc(90vh-84px)] rounded-b-[28px]"></div>
           </div>
         </div>
 
@@ -463,7 +324,7 @@ export class CourseOverviewPage {
 
     container.innerHTML = this.localTags.map(function (t, i) {
       return '<span class="bg-blue-50 text-blue-600 border border-blue-100 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase shadow-sm">'
-        + t
+        + escapeHtml(t)
         + '<i class="fa-solid fa-xmark cursor-pointer text-blue-300 hover:text-red-500 transition remove-tag-btn" data-index="' + i + '"></i>'
         + '</span>';
     }).join('');
@@ -619,89 +480,15 @@ export class CourseOverviewPage {
         return;
       }
 
-      self.previewCourseData = result.emitted.data.course;
-      self.syncCoursePreviewControls();
-      self.renderCoursePreviewBody();
+      body.innerHTML = buildCoursePreview(result.emitted.data.course);
+      
+      // Trigger animation
+      setTimeout(function() {
+        modal.firstElementChild.setAttribute("data-open", "true");
+      }, 10);
     }).catch(function (error) {
       body.innerHTML = '<div class="text-center py-12 text-red-600 font-black">' + escapeHtml(error.message) + '</div>';
     });
-  }
-
-  syncCoursePreviewControls() {
-    var templateSelect = document.getElementById('coursePreviewTemplateSelect');
-    var deviceSelect = document.getElementById('coursePreviewDeviceSelect');
-    var template = normalizeCourseDisplayTemplate(this.previewCourseData && this.previewCourseData.displayTemplate);
-
-    if (templateSelect) {
-      templateSelect.value = template;
-    }
-
-    if (deviceSelect && !deviceSelect.value) {
-      deviceSelect.value = 'desktop';
-    }
-  }
-
-  renderCoursePreviewBody() {
-    var body = document.getElementById('coursePreviewBody');
-    var templateSelect = document.getElementById('coursePreviewTemplateSelect');
-    var deviceSelect = document.getElementById('coursePreviewDeviceSelect');
-
-    if (!body || !this.previewCourseData) {
-      return;
-    }
-
-    body.innerHTML = buildCoursePreview(this.previewCourseData, {
-      displayTemplate: templateSelect ? templateSelect.value : this.previewCourseData.displayTemplate,
-      device: deviceSelect ? deviceSelect.value : 'desktop'
-    });
-    this.mountCoursePreviewPlayer();
-  }
-
-  mountCoursePreviewPlayer() {
-    var target = document.getElementById('coursePreviewPlayerRoot');
-    var preview = createCoursePreviewPlayerData(this.previewCourseData);
-    var self = this;
-
-    if (!target || !preview || preview.steps.length === 0) {
-      return;
-    }
-
-    if (!this.coursePreviewPlayer || this.coursePreviewPlayerSignature !== preview.signature) {
-      if (this.coursePreviewPlayer) {
-        this.coursePreviewPlayer.destroy();
-      }
-
-      this.coursePreviewPlayer = new PracticeModePlayer({
-        courseId: this.courseId,
-        moduleId: preview.moduleId,
-        sessionId: preview.sessionId,
-        practiceModeKey: preview.modeId,
-        practiceMode: preview.practiceMode,
-        steps: preview.steps,
-        actor: {
-          id: 'course-creator-preview',
-          role: 'courseCreator'
-        },
-        mode: 'preview',
-        persistProgress: false,
-        backLabel: 'Course Preview',
-        onBack: function () {
-          self.renderCoursePreviewBody();
-        }
-      });
-      this.coursePreviewPlayerSignature = preview.signature;
-    }
-
-    this.coursePreviewPlayer.mount(target);
-  }
-
-  destroyCoursePreviewPlayer() {
-    if (this.coursePreviewPlayer) {
-      this.coursePreviewPlayer.destroy();
-    }
-
-    this.coursePreviewPlayer = null;
-    this.coursePreviewPlayerSignature = '';
   }
 
   openModuleTitleModal(moduleId) {
@@ -1066,7 +853,7 @@ export class CourseOverviewPage {
     var messages = [
       'Creating module...',
       'Building Learning Content...',
-      'Creating Main Path...',
+      'Creating Primary Mode...',
       'Preparing starter steps...',
       'Almost ready...'
     ];
@@ -1164,7 +951,7 @@ export class CourseOverviewPage {
 
     if (this.options.focusAssignment) {
       setTimeout(function () {
-        var assignmentButton = document.getElementById('openAssignmentModalBtn');
+        var assignmentButton = document.getElementById('createAssignmentBtn');
         if (assignmentButton) {
           assignmentButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
@@ -1210,42 +997,36 @@ export class CourseOverviewPage {
       }
     });
 
-    document.getElementById('openAssignmentModalBtn').addEventListener('click', function () {
-      self.openAssignmentModal();
-    });
-
-    document.getElementById('closeAssignmentModalBtn').addEventListener('click', function () {
-      self.closeAssignmentModal();
-    });
-
-    document.getElementById('cancelAssignmentModalBtn').addEventListener('click', function () {
-      self.closeAssignmentModal();
-    });
-
-    document.getElementById('assignmentModal').addEventListener('click', function (e) {
-      if (e.target.id === 'assignmentModal') {
-        self.closeAssignmentModal();
-      }
-    });
-
-    document.getElementById('assignmentTargetTypeSelect').addEventListener('change', function () {
-      self.clearSelectedAssignmentTarget();
-      self.renderAssignmentTargets();
-    });
-
-    document.getElementById('assignmentTargetSearchInput').addEventListener('input', function () {
-      self.renderAssignmentTargets();
-    });
-
-    document.getElementById('assignmentTargetList').addEventListener('click', function (e) {
-      var targetBtn = e.target.closest('.assignment-target-option');
-      if (targetBtn) {
-        self.selectAssignmentTarget(targetBtn.getAttribute('data-target-id'));
-      }
-    });
-
     document.getElementById('createAssignmentBtn').addEventListener('click', function () {
       self.createAssignment();
+    });
+
+    document.getElementById('openAssignmentTargetsBtn').addEventListener('click', function () {
+      self.openAssignmentTargetsModal();
+    });
+
+    document.getElementById('closeAssignmentTargetsBtn').addEventListener('click', function () {
+      self.closeAssignmentTargetsModal();
+    });
+
+    document.getElementById('assignmentTargetModal').addEventListener('click', function (e) {
+      if (e.target.id === 'assignmentTargetModal') {
+        self.closeAssignmentTargetsModal();
+      }
+    });
+
+    document.getElementById('assignmentTargetsBody').addEventListener('click', function (e) {
+      var targetButton = e.target.closest('.assignment-target-option');
+      if (targetButton) {
+        self.selectAssignmentTarget(
+          targetButton.getAttribute('data-target-type'),
+          targetButton.getAttribute('data-target-id')
+        );
+      }
+    });
+
+    document.getElementById('uploadCourseIconBtn').addEventListener('click', function () {
+      self.uploadCourseIcon();
     });
 
     document.getElementById('assignmentList').addEventListener('click', function (e) {
@@ -1265,13 +1046,6 @@ export class CourseOverviewPage {
       }
     });
 
-    document.getElementById('accessibilityLocalizationAudit').addEventListener('click', function (e) {
-      var target = e.target.closest('[data-quality-target]');
-      if (target) {
-        self.handleQualityCheckClick(target.getAttribute('data-quality-target'));
-      }
-    });
-
     document.getElementById('publishCourseBtn').addEventListener('click', function () {
       courseEditorService.publishCourse(self.courseId);
     });
@@ -1280,65 +1054,23 @@ export class CourseOverviewPage {
       self.previewCourse();
     });
 
-    document.getElementById('coursePreviewTemplateSelect').addEventListener('change', function () {
-      self.renderCoursePreviewBody();
-    });
-
-    document.getElementById('coursePreviewDeviceSelect').addEventListener('change', function () {
-      self.renderCoursePreviewBody();
-    });
-
-    document.getElementById('courseDisplayTemplateSelect').addEventListener('change', function () {
-      self.renderTemplatePreviewControls();
-    });
-
-    document.getElementById('editCourseThemeBtn').addEventListener('click', function () {
-      self.openCourseThemeModal();
-    });
-
-    document.getElementById('closeCourseThemeModalBtn').addEventListener('click', function () {
-      self.closeCourseThemeModal();
-    });
-
-    document.getElementById('cancelCourseThemeModalBtn').addEventListener('click', function () {
-      self.closeCourseThemeModal();
-    });
-
-    document.getElementById('saveCourseThemeModalBtn').addEventListener('click', function () {
-      self.saveCourseThemeModal();
-    });
-
-    document.getElementById('courseThemeModal').addEventListener('click', function (e) {
-      if (e.target.id === 'courseThemeModal') {
-        self.closeCourseThemeModal();
-      }
-    });
-
-    ['themeModalAccentSelect', 'themeModalIconStyleSelect', 'themeModalBadgeStyleSelect', 'themeModalDensitySelect'].forEach(function (id) {
-      document.getElementById(id).addEventListener('change', function () {
-        self.renderCourseThemeModalPreview();
-      });
-    });
-
-    ['courseThemeAccentSelect', 'courseIconStyleSelect', 'courseBadgeStyleSelect', 'coursePathDensitySelect'].forEach(function (id) {
-      document.getElementById(id).addEventListener('change', function () {
-        self.renderThemePreviewControls();
-        self.renderTemplatePreviewControls();
-      });
-    });
-
     document.getElementById('archiveCourseBtn').addEventListener('click', function () {
-      self.archiveCourse();
-    });
-
-    document.getElementById('courseIconUploadInput').addEventListener('change', function (event) {
-      var file = event.target.files && event.target.files[0] ? event.target.files[0] : null;
-      self.uploadCourseIcon(file, event.target);
+      courseEditorService.archiveCourse(self.courseId).then(function (result) {
+        if (!result || !result.emitted || !result.emitted.success) {
+          alert('Archive failed: ' + self.readResultErrorMessage(result));
+          return;
+        }
+        alert('Course archived.');
+        courseEditorService.openCourseEditor(self.courseId);
+      });
     });
 
     document.getElementById('closeCoursePreviewBtn').addEventListener('click', function () {
-      self.destroyCoursePreviewPlayer();
-      document.getElementById('coursePreviewModal').classList.add('hidden');
+      var modal = document.getElementById('coursePreviewModal');
+      modal.firstElementChild.removeAttribute('data-open');
+      setTimeout(function() {
+        modal.classList.add('hidden');
+      }, 300);
     });
 
     document.getElementById('addModuleBtn').addEventListener('click', function () {
@@ -1350,90 +1082,6 @@ export class CourseOverviewPage {
       if (repairBtn) {
         self.repairCourseModules();
       }
-    });
-
-    var moduleMapEditor = document.getElementById('moduleMapEditor');
-    var draggedMapIndex = null;
-
-    moduleMapEditor.addEventListener('click', function (e) {
-      var openBtn = e.target.closest('.module-map-open-btn');
-      var reorderBtn = e.target.closest('.module-map-reorder-btn');
-
-      if (openBtn) {
-        window.location.hash = '#module-editor?courseId=' + self.courseId + '&moduleId=' + openBtn.getAttribute('data-id');
-        return;
-      }
-
-      if (reorderBtn) {
-        var fromIndex = parseInt(reorderBtn.getAttribute('data-index'), 10);
-        var direction = reorderBtn.getAttribute('data-direction') === 'up' ? -1 : 1;
-        var toIndex = fromIndex + direction;
-        if (toIndex >= 0) {
-          courseEditorService.reorderModules(self.courseId, fromIndex, toIndex).then(function () {
-            courseEditorService.saveDraft(self.courseId);
-          });
-        }
-      }
-    });
-
-    moduleMapEditor.addEventListener('dragstart', function (e) {
-      var card = e.target.closest('.module-map-card');
-      if (!card) {
-        return;
-      }
-      draggedMapIndex = parseInt(card.getAttribute('data-index'), 10);
-      e.dataTransfer.effectAllowed = 'move';
-      card.classList.add('opacity-50');
-    });
-
-    moduleMapEditor.addEventListener('dragover', function (e) {
-      var card = e.target.closest('.module-map-card');
-      if (!card) {
-        return;
-      }
-      e.preventDefault();
-      card.classList.add('ring-2', 'ring-blue-300');
-    });
-
-    moduleMapEditor.addEventListener('dragleave', function (e) {
-      var card = e.target.closest('.module-map-card');
-      if (card) {
-        card.classList.remove('ring-2', 'ring-blue-300');
-      }
-    });
-
-    moduleMapEditor.addEventListener('drop', function (e) {
-      var card = e.target.closest('.module-map-card');
-      if (!card) {
-        return;
-      }
-      e.preventDefault();
-      card.classList.remove('ring-2', 'ring-blue-300');
-      var dropIndex = parseInt(card.getAttribute('data-index'), 10);
-      if (draggedMapIndex !== null && draggedMapIndex !== dropIndex) {
-        courseEditorService.reorderModules(self.courseId, draggedMapIndex, dropIndex).then(function () {
-          courseEditorService.saveDraft(self.courseId);
-        });
-      }
-      draggedMapIndex = null;
-    });
-
-    moduleMapEditor.addEventListener('dragend', function () {
-      var cards = moduleMapEditor.querySelectorAll('.module-map-card');
-      for (var mapIndex = 0; mapIndex < cards.length; mapIndex++) {
-        cards[mapIndex].classList.remove('opacity-50', 'ring-2', 'ring-blue-300');
-      }
-      draggedMapIndex = null;
-    });
-
-    var dependencyBuilder = document.getElementById('moduleDependencyBuilder');
-    dependencyBuilder.addEventListener('click', function (e) {
-      var saveBtn = e.target.closest('.module-dependency-save-btn');
-      if (!saveBtn) {
-        return;
-      }
-
-      self.saveModuleDependencyRule(saveBtn);
     });
 
     document.getElementById('moduleWizardCloseBtn').addEventListener('click', function () {
@@ -1472,87 +1120,78 @@ export class CourseOverviewPage {
 
     // Event delegation for opening Module Step Editor and Title Modal
     var tbody = document.getElementById('moduleTableBody');
-    if (tbody) {
-      tbody.addEventListener('click', function (e) {
-        var editBtn = e.target.closest('.open-module-btn');
-        if (editBtn) {
-          var moduleId = editBtn.getAttribute('data-id');
-          window.location.hash = '#module-editor?courseId=' + self.courseId + '&moduleId=' + moduleId;
-          return;
-        }
+    tbody.addEventListener('click', function (e) {
+      var editBtn = e.target.closest('.open-module-btn');
+      if (editBtn) {
+        var moduleId = editBtn.getAttribute('data-id');
+        window.location.hash = '#module-editor?courseId=' + self.courseId + '&moduleId=' + moduleId;
+        return;
+      }
 
-        var titleBtn = e.target.closest('.edit-module-name-btn');
-        if (titleBtn) {
-          var moduleId = titleBtn.getAttribute('data-id');
-          self.openModuleTitleModal(moduleId);
-        }
-      });
+      var titleBtn = e.target.closest('.edit-module-name-btn');
+      if (titleBtn) {
+        var moduleId = titleBtn.getAttribute('data-id');
+        self.openModuleTitleModal(moduleId);
+      }
+    });
 
-      tbody.addEventListener('change', function (e) {
-        var iconInput = e.target.closest('.module-icon-upload-input');
-        if (iconInput) {
-          self.uploadModuleIcon(iconInput.getAttribute('data-id'), iconInput.files && iconInput.files[0] ? iconInput.files[0] : null, iconInput);
-        }
-      });
+    // Drag and Drop Module Reordering
+    var draggedRowIndex = null;
 
-      // Drag and Drop Module Reordering
-      var draggedRowIndex = null;
+    tbody.addEventListener('dragstart', function (e) {
+      var row = e.target.closest('tr.module-row');
+      if (!row) {
+        return;
+      }
+      draggedRowIndex = parseInt(row.getAttribute('data-index'), 10);
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/html', row.innerHTML);
+      row.classList.add('opacity-50');
+    });
 
-      tbody.addEventListener('dragstart', function (e) {
-        var row = e.target.closest('tr.module-row');
-        if (!row) {
-          return;
-        }
-        draggedRowIndex = parseInt(row.getAttribute('data-index'), 10);
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/html', row.innerHTML);
-        row.classList.add('opacity-50');
-      });
+    tbody.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      var row = e.target.closest('tr.module-row');
+      if (row && row.getAttribute('data-index') !== String(draggedRowIndex)) {
+        row.classList.add('bg-blue-50', 'border-t-2', 'border-blue-400');
+      }
+      return false;
+    });
 
-      tbody.addEventListener('dragover', function (e) {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-        var row = e.target.closest('tr.module-row');
-        if (row && row.getAttribute('data-index') !== String(draggedRowIndex)) {
-          row.classList.add('bg-blue-50', 'border-t-2', 'border-blue-400');
-        }
-        return false;
-      });
+    tbody.addEventListener('dragleave', function (e) {
+      var row = e.target.closest('tr.module-row');
+      if (row) {
+        row.classList.remove('bg-blue-50', 'border-t-2', 'border-blue-400');
+      }
+    });
 
-      tbody.addEventListener('dragleave', function (e) {
-        var row = e.target.closest('tr.module-row');
-        if (row) {
-          row.classList.remove('bg-blue-50', 'border-t-2', 'border-blue-400');
+    tbody.addEventListener('drop', function (e) {
+      e.stopPropagation();
+      var row = e.target.closest('tr.module-row');
+      if (row) {
+        row.classList.remove('bg-blue-50', 'border-t-2', 'border-blue-400');
+        var dropIndex = parseInt(row.getAttribute('data-index'), 10);
+        if (draggedRowIndex !== null && draggedRowIndex !== dropIndex) {
+          courseEditorService.reorderModules(self.courseId, draggedRowIndex, dropIndex).then(function () {
+            courseEditorService.saveDraft(self.courseId);
+          });
         }
-      });
+      }
+      return false;
+    });
 
-      tbody.addEventListener('drop', function (e) {
-        e.stopPropagation();
-        var row = e.target.closest('tr.module-row');
-        if (row) {
-          row.classList.remove('bg-blue-50', 'border-t-2', 'border-blue-400');
-          var dropIndex = parseInt(row.getAttribute('data-index'), 10);
-          if (draggedRowIndex !== null && draggedRowIndex !== dropIndex) {
-            courseEditorService.reorderModules(self.courseId, draggedRowIndex, dropIndex).then(function () {
-              courseEditorService.saveDraft(self.courseId);
-            });
-          }
-        }
-        return false;
-      });
-
-      tbody.addEventListener('dragend', function (e) {
-        var row = e.target.closest('tr.module-row');
-        if (row) {
-          row.classList.remove('opacity-50');
-        }
-        var rows = tbody.querySelectorAll('tr.module-row');
-        for (var i = 0; i < rows.length; i++) {
-          rows[i].classList.remove('bg-blue-50', 'border-t-2', 'border-blue-400');
-        }
-        draggedRowIndex = null;
-      });
-    }
+    tbody.addEventListener('dragend', function (e) {
+      var row = e.target.closest('tr.module-row');
+      if (row) {
+        row.classList.remove('opacity-50');
+      }
+      var rows = tbody.querySelectorAll('tr.module-row');
+      for (var i = 0; i < rows.length; i++) {
+        rows[i].classList.remove('bg-blue-50', 'border-t-2', 'border-blue-400');
+      }
+      draggedRowIndex = null;
+    });
 
     // Track when user is typing/editing locally so we don't accidentally overwrite with state polling
     var inputs = document.querySelectorAll('.course-meta-input');
@@ -1614,15 +1253,6 @@ export class CourseOverviewPage {
       var subject = document.getElementById('courseSubjectInput').value.trim();
       var level = document.getElementById('courseLevelInput').value.trim();
       var status = document.getElementById('courseStatusSelect').value || 'draft';
-      var displayTemplate = normalizeCourseDisplayTemplate(document.getElementById('courseDisplayTemplateSelect').value);
-      var visualTheme = normalizeCourseVisualTheme({
-        visualTheme: {
-          accentColor: document.getElementById('courseThemeAccentSelect').value,
-          moduleIconStyle: document.getElementById('courseIconStyleSelect').value,
-          badgeStyle: document.getElementById('courseBadgeStyleSelect').value,
-          pathDensity: document.getElementById('coursePathDensitySelect').value
-        }
-      });
       var langs = [];
       for (var i = 0; i < langsSelect.options.length; i++) {
         if (langsSelect.options[i].selected) {
@@ -1643,22 +1273,17 @@ export class CourseOverviewPage {
         level: level,
         language: defaultLang || 'en',
         status: status,
-        displayTemplate: displayTemplate,
-        visualTheme: visualTheme,
         tags: self.localTags.slice(),
         languages: langs.length ? langs : ['en'],
         defaultLanguage: defaultLang || 'en',
-        iconUrl: course.iconUrl || '',
-        heroImageUrl: course.heroImageUrl || '',
-        themeColor: readThemeHexColor(visualTheme.accentColor),
-        accentColor: readThemeHexColor(visualTheme.accentColor)
+        iconUrl: course.iconUrl || ''
       }).then(function (result) {
         btn.disabled = false;
         btn.classList.remove('oqu-btn-pending');
 
         if (!result || !result.emitted || !result.emitted.success) {
-          self.setSaveSettingsError(self.readResultErrorMessage(result));
           btn.textContent = 'Save Settings';
+          self.showCourseIconStatus('error', self.readResultErrorMessage(result));
           return;
         }
 
@@ -1673,7 +1298,6 @@ export class CourseOverviewPage {
         btn.textContent = 'Save Settings';
         btn.disabled = false;
         btn.classList.remove('oqu-btn-pending');
-        self.setSaveSettingsError(err.message || 'Could not save changes.');
         console.error('[CourseOverview] Save settings failed:', err);
       });
     });
@@ -1711,208 +1335,15 @@ export class CourseOverviewPage {
     });
   }
 
-  archiveCourse() {
-    var self = this;
-
-    if (this.courseArchivePending) {
-      return;
-    }
-
-    this.setCourseArchivePendingState(true, 'Archiving course...', 'loading');
-
-    courseEditorService.archiveCourse(this.courseId).then(function (result) {
-      if (!result || !result.emitted || !result.emitted.success) {
-        throw new Error(self.readResultErrorMessage(result));
-      }
-
-      self.setCourseArchivePendingState(false, 'Course archived.', 'success');
-      self.refreshCourseArchiveControls({ status: 'archived', isArchived: true });
-      courseEditorService.openCourseEditor(self.courseId);
-    }).catch(function (error) {
-      self.setCourseArchivePendingState(false, error.message, 'error');
-    });
-  }
-
-  setCourseArchivePendingState(isPending, message, type) {
-    var archiveBtn = document.getElementById('archiveCourseBtn');
-    var controlsToLock = ['previewCourseBtn', 'publishCourseBtn', 'saveMetadataBtn'];
-
-    this.courseArchivePending = isPending;
-
-    if (archiveBtn) {
-      archiveBtn.disabled = isPending;
-      archiveBtn.classList.toggle('oqu-btn-pending', isPending);
-      archiveBtn.innerHTML = isPending
-        ? '<span class="oqu-spinner oqu-spinner-blue"></span> Archiving...'
-        : '<i class="fa-solid fa-box-archive"></i> Archive';
-    }
-
-    controlsToLock.forEach(function (id) {
-      var element = document.getElementById(id);
-      if (element) {
-        element.disabled = isPending;
-        element.classList.toggle('opacity-60', isPending);
-        element.classList.toggle('cursor-not-allowed', isPending);
-      }
-    });
-
-    this.setCourseArchiveStatus(message, type || (isPending ? 'loading' : ''));
-  }
-
-  setCourseArchiveStatus(message, type) {
-    var status = document.getElementById('archiveCourseStatus');
-
-    if (!status) {
-      return;
-    }
-
-    if (!message) {
-      status.textContent = '';
-      status.className = 'hidden rounded-full border px-3 py-2 text-xs font-black';
-      return;
-    }
-
-    status.className = readCourseArchiveStatusClass(type);
-    status.innerHTML = type === 'loading'
-      ? '<span class="oqu-spinner oqu-spinner-blue"></span> ' + escapeHtml(message)
-      : escapeHtml(message);
-  }
-
-  refreshCourseArchiveControls(course) {
-    var archiveBtn = document.getElementById('archiveCourseBtn');
-    var isArchived = Boolean(course && (course.isArchived || course.status === 'archived'));
-
-    if (!archiveBtn || this.courseArchivePending) {
-      return;
-    }
-
-    archiveBtn.disabled = isArchived;
-    archiveBtn.classList.toggle('oqu-btn-pending', false);
-    archiveBtn.classList.toggle('opacity-60', isArchived);
-    archiveBtn.classList.toggle('cursor-not-allowed', isArchived);
-    archiveBtn.innerHTML = isArchived
-      ? '<i class="fa-solid fa-box-archive"></i> Archived'
-      : '<i class="fa-solid fa-box-archive"></i> Archive';
-
-    if (isArchived) {
-      this.setCourseArchiveStatus('This course is archived.', 'success');
-    }
-  }
-
-  uploadCourseIcon(file, input) {
-    var self = this;
-
-    if (!file) {
-      return;
-    }
-
-    this.setCourseIconUploadStatus('Uploading icon...', 'loading');
-    if (input) {
-      input.disabled = true;
-    }
-
-    courseEditorService.uploadCourseIcon(this.courseId, file, {
-      autoCompress: isCheckboxChecked('courseIconAutoCompressInput', true)
-    }).then(function (result) {
-      if (!result || !result.emitted || !result.emitted.success) {
-        throw new Error(self.readResultErrorMessage(result));
-      }
-
-      self.setCourseIconUploadStatus('Course icon saved.', 'success');
-    }).catch(function (error) {
-      self.setCourseIconUploadStatus(error.message, 'error');
-    }).finally(function () {
-      if (input) {
-        input.disabled = false;
-        input.value = '';
-      }
-    });
-  }
-
-  uploadModuleIcon(moduleId, file, input) {
-    var row = input ? input.closest('tr') : null;
-    var status = row ? row.querySelector('.module-icon-upload-status') : null;
-    var self = this;
-
-    if (!moduleId || !file) {
-      return;
-    }
-
-    if (input) {
-      input.disabled = true;
-    }
-
-    if (status) {
-      status.className = 'module-icon-upload-status text-[10px] font-black text-blue-600';
-      status.textContent = 'Uploading...';
-    }
-
-    courseEditorService.uploadModuleIcon(this.courseId, moduleId, file).then(function (result) {
-      if (!result || !result.emitted || !result.emitted.success) {
-        throw new Error(self.readResultErrorMessage(result));
-      }
-
-      if (status) {
-        status.className = 'module-icon-upload-status text-[10px] font-black text-green-600';
-        status.textContent = 'Saved';
-      }
-    }).catch(function (error) {
-      if (status) {
-        status.className = 'module-icon-upload-status text-[10px] font-black text-red-600';
-        status.textContent = error.message;
-      }
-    }).finally(function () {
-      if (input) {
-        input.disabled = false;
-        input.value = '';
-      }
-    });
-  }
-
-  setCourseIconUploadStatus(message, type) {
-    var status = document.getElementById('courseIconUploadStatus');
-
-    if (!status) {
-      return;
-    }
-
-    status.className = 'mt-1 text-xs font-semibold ' + readUploadStatusClass(type);
-    status.textContent = message || '';
-    status.classList.toggle('hidden', !message);
-  }
-
-  renderCourseIconPreview(course) {
-    var preview = document.getElementById('courseIconPreview');
-    var iconUrl = course && typeof course.iconUrl === 'string' ? course.iconUrl.trim() : '';
-
-    if (!preview) {
-      return;
-    }
-
-    if (iconUrl) {
-      preview.innerHTML = '<img src="' + escapeHtml(iconUrl) + '" alt="" class="h-full w-full object-cover">';
-      return;
-    }
-
-    preview.textContent = 'Icon';
-  }
-
   updateUI(state) {
     if (state.error && !state.course) {
       document.getElementById('headerContextualTitle').textContent = 'Could not load course';
       this.renderCourseSummary(null, state);
-      this.renderCourseCommandCenter(state);
-      this.renderPublishReadiness(state);
-      this.renderModuleMapEditor([], null);
-      this.renderModuleDependencyBuilder([], null);
-      this.renderCourseVersionTimeline(null, []);
-      this.renderAssignmentPreviewMatrix(null, []);
-      this.renderAccessibilityLocalizationAudit(null, []);
-      setOptionalElementHtml('moduleTableBody', '<tr><td colspan="6" class="py-6 border-b bg-red-50">'
+      document.getElementById('moduleTableBody').innerHTML = '<tr><td colspan="6" class="py-6 border-b bg-red-50">'
         + createErrorState('Could not load course', state.error, {
           className: 'rounded-xl border border-red-100 bg-red-50 p-4 text-sm font-bold text-red-700 flex flex-col gap-1'
         })
-        + '</td></tr>');
+        + '</td></tr>';
       return;
     }
 
@@ -1920,14 +1351,7 @@ export class CourseOverviewPage {
       this.logCourseHeaderRender(state, null, 'Loading course...');
       document.getElementById('headerContextualTitle').textContent = 'Loading course...';
       this.renderCourseSummary(null, state);
-      this.renderCourseCommandCenter(state);
-      this.renderPublishReadiness(state);
-      this.renderModuleMapEditor([], null);
-      this.renderModuleDependencyBuilder([], null);
-      this.renderCourseVersionTimeline(null, []);
-      this.renderAssignmentPreviewMatrix(null, []);
-      this.renderAccessibilityLocalizationAudit(null, []);
-      setOptionalElementHtml('moduleTableBody', buildModuleSkeletonRows(3));
+      document.getElementById('moduleTableBody').innerHTML = buildModuleSkeletonRows(3);
       return;
     }
 
@@ -1949,13 +1373,9 @@ export class CourseOverviewPage {
         var statusSelect = document.getElementById('courseStatusSelect');
         statusSelect.value = course.status || 'draft';
 
-        var displayTemplateSelect = document.getElementById('courseDisplayTemplateSelect');
-        displayTemplateSelect.value = normalizeCourseDisplayTemplate(course.displayTemplate);
-        this.renderThemeControls(course);
-
         document.getElementById('courseSubjectInput').value = course.subject || '';
         document.getElementById('courseLevelInput').value = course.level || '';
-        this.renderCourseIconPreview(course);
+        this.updateCourseIconPreview(course.iconUrl || course.coverImageUrl || '');
 
         this.localTags = (course.tags || []).slice();
         this.renderTags();
@@ -1968,20 +1388,13 @@ export class CourseOverviewPage {
         this.renderDefaultLangSelect(dLangSelect, supportedLangs, course.defaultLanguage || 'en');
       }
 
-      this.renderCourseIconPreview(course);
       document.getElementById('courseVersionText').textContent = course.version || 1;
       document.getElementById('courseStatusText').textContent = course.status || 'draft';
       this.renderCourseSummary(course, state);
-      this.renderCourseCommandCenter(state);
-      this.renderPublishReadiness(state);
-      this.refreshCourseArchiveControls(course);
     } else {
       this.logCourseHeaderRender(state, null, 'Untitled Course');
       document.getElementById('headerContextualTitle').textContent = 'Course not found';
       this.renderCourseSummary(null, state);
-      this.renderCourseCommandCenter(state);
-      this.renderPublishReadiness(state);
-      this.refreshCourseArchiveControls(null);
     }
 
     var saveIndicator = document.getElementById('saveStatusIndicator');
@@ -2000,104 +1413,7 @@ export class CourseOverviewPage {
     }
 
     this.renderModuleRepairBanner(state);
-    this.renderCourseCommandCenter(state);
-    this.renderPublishReadiness(state);
-    this.renderModuleMapEditor(state.modules, state.course);
-    this.renderModuleDependencyBuilder(state.modules, state.course);
-    this.renderCourseVersionTimeline(state.course, state.modules);
-    this.renderAssignmentPreviewMatrix(state.course, state.modules);
-    this.renderAccessibilityLocalizationAudit(state.course, state.modules);
     this.renderModuleList(state.modules, state.course, state.moduleSourceCheck);
-  }
-
-  renderThemeControls(course) {
-    var theme = normalizeCourseVisualTheme(course);
-    setInputValue('courseThemeAccentSelect', theme.accentColor);
-    setInputValue('courseIconStyleSelect', theme.moduleIconStyle);
-    setInputValue('courseBadgeStyleSelect', theme.badgeStyle);
-    setInputValue('coursePathDensitySelect', theme.pathDensity);
-    var swatch = document.getElementById('courseThemeSwatch');
-    if (swatch) {
-      swatch.className = 'h-9 w-9 rounded-2xl border-4 border-white shadow-sm ' + readThemeAccentBackgroundClass(theme.accentColor);
-    }
-    this.renderThemePreviewControls();
-    this.renderTemplatePreviewControls();
-  }
-
-  renderThemePreviewControls() {
-    var preview = document.getElementById('courseThemePreview');
-    var theme = readThemeFromControls();
-    var swatch = document.getElementById('courseThemeSwatch');
-
-    if (swatch) {
-      swatch.className = 'h-9 w-9 rounded-2xl border-4 border-white shadow-sm ' + readThemeAccentBackgroundClass(theme.accentColor);
-    }
-
-    if (preview) {
-      preview.innerHTML = buildCourseThemeMiniPreview(theme);
-    }
-  }
-
-  renderTemplatePreviewControls() {
-    var preview = document.getElementById('moduleDisplayTemplatePreview');
-    var select = document.getElementById('courseDisplayTemplateSelect');
-    var template = normalizeCourseDisplayTemplate(select ? select.value : '');
-    var theme = readThemeFromControls();
-
-    if (preview) {
-      preview.innerHTML = buildModuleDisplayTemplateMiniPreview(template, theme);
-    }
-  }
-
-  openCourseThemeModal() {
-    var modal = document.getElementById('courseThemeModal');
-    var theme = readThemeFromControls();
-
-    setInputValue('themeModalAccentSelect', theme.accentColor);
-    setInputValue('themeModalIconStyleSelect', theme.moduleIconStyle);
-    setInputValue('themeModalBadgeStyleSelect', theme.badgeStyle);
-    setInputValue('themeModalDensitySelect', theme.pathDensity);
-    this.renderCourseThemeModalPreview();
-
-    if (modal) {
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-  }
-
-  closeCourseThemeModal() {
-    var modal = document.getElementById('courseThemeModal');
-
-    if (modal) {
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
-  }
-
-  renderCourseThemeModalPreview() {
-    var preview = document.getElementById('courseThemeModalPreview');
-
-    if (preview) {
-      preview.innerHTML = buildCourseThemeMiniPreview(readThemeFromThemeModalControls());
-    }
-  }
-
-  saveCourseThemeModal() {
-    var theme = readThemeFromThemeModalControls();
-    var saveButton = document.getElementById('saveMetadataBtn');
-
-    setInputValue('courseThemeAccentSelect', theme.accentColor);
-    setInputValue('courseIconStyleSelect', theme.moduleIconStyle);
-    setInputValue('courseBadgeStyleSelect', theme.badgeStyle);
-    setInputValue('coursePathDensitySelect', theme.pathDensity);
-    this.userHasEditedMetadata = true;
-    this.renderThemePreviewControls();
-    this.renderTemplatePreviewControls();
-    this.closeCourseThemeModal();
-
-    if (saveButton) {
-      saveButton.click();
-    }
   }
 
   renderCourseSummary(course, state) {
@@ -2141,16 +1457,12 @@ export class CourseOverviewPage {
     var stepCount = countCourseSteps(safeModules);
     var updatedAt = formatCourseDate(course.updatedAt || course.modifiedAt || course.createdAt);
     var assignmentsSummary = summarizeAssignments(this.assignments);
-    var iconHtml = buildCourseOverviewIcon(course, title);
 
     summary.innerHTML = '<div class="space-y-3">'
       + '<div class="flex items-start justify-between gap-3">'
-      + '<div class="flex min-w-0 items-start gap-3">'
-      + iconHtml
       + '<div class="min-w-0">'
       + '<div class="text-sm font-black text-gray-900 truncate">' + escapeHtml(title) + '</div>'
       + '<p class="mt-1 line-clamp-2 text-xs font-medium text-gray-500">' + escapeHtml(description) + '</p>'
-      + '</div>'
       + '</div>'
       + createStatusBadge(status, {
         className: 'shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wide bg-white text-gray-700 border-gray-200',
@@ -2167,130 +1479,6 @@ export class CourseOverviewPage {
       + escapeHtml(assignmentsSummary)
       + '</div>'
       + '</div>';
-  }
-
-  renderPublishReadiness(state) {
-    var panel = document.getElementById('publishReadinessPanel');
-    var checklist = buildCourseReadinessChecklist(state ? state.course : null, state ? state.modules : [], this.assignments);
-
-    if (!panel) {
-      return;
-    }
-
-    if (!state || (!state.course && state.isFetching)) {
-      panel.innerHTML = '';
-      return;
-    }
-
-    panel.innerHTML = buildCourseReadinessPanel(checklist);
-  }
-
-  renderCourseCommandCenter(state) {
-    var panel = document.getElementById('courseCommandCenter');
-
-    if (!panel) {
-      return;
-    }
-
-    panel.innerHTML = buildCourseCommandCenter(state ? state.course : null, state ? state.modules : [], this.assignments, this.externalTaskSubmissions);
-  }
-
-  renderModuleMapEditor(modules, course) {
-    var panel = document.getElementById('moduleMapEditor');
-
-    if (!panel) {
-      return;
-    }
-
-    panel.innerHTML = buildVisualModuleMapEditor(modules, course);
-  }
-
-  renderModuleDependencyBuilder(modules, course) {
-    var panel = document.getElementById('moduleDependencyBuilder');
-
-    if (!panel) {
-      return;
-    }
-
-    panel.innerHTML = buildModuleDependencyBuilder(modules, course);
-  }
-
-  renderCourseVersionTimeline(course, modules) {
-    var panel = document.getElementById('courseVersionTimeline');
-
-    if (!panel) {
-      return;
-    }
-
-    panel.innerHTML = buildCourseVersionTimeline(course, modules, this.assignments);
-  }
-
-  renderAssignmentPreviewMatrix(course, modules) {
-    var panel = document.getElementById('assignmentPreviewMatrix');
-
-    if (!panel) {
-      return;
-    }
-
-    panel.innerHTML = buildAssignmentPreviewMatrix(course, modules, this.assignments);
-  }
-
-  renderAccessibilityLocalizationAudit(course, modules) {
-    var panel = document.getElementById('accessibilityLocalizationAudit');
-
-    if (!panel) {
-      return;
-    }
-
-    panel.innerHTML = buildAccessibilityLocalizationAudit(course, modules);
-  }
-
-  saveModuleDependencyRule(saveBtn) {
-    var row = saveBtn.closest('.module-dependency-row');
-    var moduleId = saveBtn.getAttribute('data-module-id');
-    var state = courseEditorStore.getState();
-    var modules = state && Array.isArray(state.modules) ? state.modules : [];
-    var module = modules.find(function (candidate) {
-      return readModuleId(candidate) === moduleId;
-    });
-
-    if (!row || !module) {
-      return;
-    }
-
-    var typeSelect = row.querySelector('.module-dependency-type');
-    var prerequisiteSelect = row.querySelector('.module-dependency-prerequisite');
-    var thresholdInput = row.querySelector('.module-dependency-threshold');
-    var unlockRuleType = normalizeModuleDependencyType(typeSelect ? typeSelect.value : 'open');
-    var prerequisiteModuleId = prerequisiteSelect && prerequisiteSelect.value ? prerequisiteSelect.value : '';
-    var threshold = thresholdInput ? parseInt(thresholdInput.value, 10) : 100;
-
-    saveBtn.disabled = true;
-    saveBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving';
-
-    courseEditorService.updateModule(this.courseId, moduleId, {
-      title: module.title || '',
-      description: module.description || '',
-      status: module.status || 'draft',
-      iconUrl: typeof module.iconUrl === 'string' ? module.iconUrl : '',
-      pathType: typeof module.pathType === 'string' ? module.pathType : '',
-      pathGroup: typeof module.pathGroup === 'string' ? module.pathGroup : '',
-      parentModuleId: typeof module.parentModuleId === 'string' ? module.parentModuleId : '',
-      pathOrder: typeof module.pathOrder === 'number' ? module.pathOrder : undefined,
-      unlockRuleType: unlockRuleType,
-      prerequisiteModuleId: unlockRuleType === 'moduleComplete' || unlockRuleType === 'previousComplete' ? prerequisiteModuleId : '',
-      unlockThresholdPercent: unlockRuleType === 'percentComplete' ? clampPercent(threshold) : 100
-    }).then(function () {
-      saveBtn.disabled = false;
-      saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Saved';
-      setTimeout(function () {
-        saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save';
-      }, 1200);
-    }).catch(function (error) {
-      saveBtn.disabled = false;
-      saveBtn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Retry';
-      console.error('[course-overview:dependency-save-failed]', error);
-    });
   }
 
   renderModuleRepairBanner(state) {
@@ -2346,10 +1534,6 @@ export class CourseOverviewPage {
       self.assignmentsLoading = false;
       self.renderAssignments();
       self.renderCourseSummary(courseEditorStore.getState().course, courseEditorStore.getState());
-      self.renderCourseCommandCenter(courseEditorStore.getState());
-      self.renderPublishReadiness(courseEditorStore.getState());
-      self.renderCourseVersionTimeline(courseEditorStore.getState().course, courseEditorStore.getState().modules);
-      self.renderAssignmentPreviewMatrix(courseEditorStore.getState().course, courseEditorStore.getState().modules);
       self.showAssignmentStatus('success', 'Assignments loaded.');
       setTimeout(function () {
         self.hideAssignmentStatus();
@@ -2358,185 +1542,109 @@ export class CourseOverviewPage {
       self.assignmentsLoading = false;
       self.renderAssignments();
       self.renderCourseSummary(courseEditorStore.getState().course, courseEditorStore.getState());
-      self.renderCourseCommandCenter(courseEditorStore.getState());
-      self.renderPublishReadiness(courseEditorStore.getState());
-      self.renderCourseVersionTimeline(courseEditorStore.getState().course, courseEditorStore.getState().modules);
-      self.renderAssignmentPreviewMatrix(courseEditorStore.getState().course, courseEditorStore.getState().modules);
       self.showAssignmentStatus('error', error.message);
     });
   }
 
-  handleQualityCheckClick(target) {
-    var safeTarget = target || "";
-    var state = courseEditorStore.getState();
-    var modules = Array.isArray(state.modules) ? state.modules : [];
-
-    if (safeTarget === "course-settings") {
-      scrollElementIntoView('courseTitleInput');
-      return;
-    }
-
-    if (safeTarget === "module-map") {
-      scrollElementIntoView('moduleMapEditor');
-      return;
-    }
-
-    if (safeTarget === "assignment") {
-      scrollElementIntoView('assignmentList');
-      return;
-    }
-
-    if (safeTarget === "first-module-editor" && modules.length > 0) {
-      var moduleId = readModuleId(modules[0]);
-      if (moduleId) {
-        window.location.hash = "#module-editor?courseId=" + encodeURIComponent(this.courseId) + "&moduleId=" + encodeURIComponent(moduleId);
-        return;
-      }
-    }
-
-    this.showAssignmentStatus('error', 'That quality check does not have a direct editor target yet.');
-  }
-
-  openAssignmentModal() {
-    var modal = document.getElementById('assignmentModal');
-
-    this.assignmentModalOpen = true;
-    this.clearSelectedAssignmentTarget();
-
-    if (modal) {
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-
-    this.loadAssignmentTargets();
-  }
-
-  closeAssignmentModal() {
-    var modal = document.getElementById('assignmentModal');
-
-    this.assignmentModalOpen = false;
-
-    if (modal) {
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
-  }
-
-  loadAssignmentTargets() {
+  uploadCourseIcon() {
     var self = this;
+    var input = document.getElementById('courseIconInput');
+    var button = document.getElementById('uploadCourseIconBtn');
+    var file = input && input.files && input.files.length > 0 ? input.files[0] : null;
 
-    if (this.assignmentTargetsLoading) {
+    if (!file) {
+      this.showCourseIconStatus('error', 'Choose an image before uploading.');
       return;
     }
 
-    this.assignmentTargetsLoading = true;
-    this.assignmentTargetsError = "";
-    this.renderAssignmentTargets();
-    this.showAssignmentModalStatus('loading', 'Loading available assignment targets...');
+    button.disabled = true;
+    button.textContent = 'Uploading...';
+    this.showCourseIconStatus('loading', 'Compressing and uploading icon...');
 
-    courseAssignmentService.listAssignableTargets().then(function (targets) {
-      self.assignmentTargets = Object.assign({
-        classes: [],
-        students: [],
-        locations: [],
-        warnings: []
-      }, targets || {});
-      self.assignmentTargetsLoading = false;
-      self.renderAssignmentTargets();
+    courseEditorService.uploadCourseIcon(this.courseId, file).then(function (uploadResult) {
+      var metadata = self.readCurrentMetadataPayload(uploadResult.iconUrl);
+      return courseEditorService.updateCourseMetadata(self.courseId, metadata).then(function (result) {
+        if (!result || !result.emitted || !result.emitted.success) {
+          throw new Error(self.readResultErrorMessage(result));
+        }
 
-      if (self.assignmentTargets.warnings && self.assignmentTargets.warnings.length > 0) {
-        self.showAssignmentModalStatus('error', self.assignmentTargets.warnings[0]);
-      } else {
-        self.hideAssignmentModalStatus();
-      }
+        self.userHasEditedMetadata = false;
+        self.updateCourseIconPreview(uploadResult.iconUrl);
+        self.showCourseIconStatus('success', 'Course icon saved.');
+      });
     }).catch(function (error) {
-      self.assignmentTargetsLoading = false;
-      self.assignmentTargetsError = error.message;
-      self.renderAssignmentTargets();
-      self.showAssignmentModalStatus('error', error.message);
+      self.showCourseIconStatus('error', error.message);
+    }).then(function () {
+      button.disabled = false;
+      button.textContent = 'Upload Icon';
     });
   }
 
-  renderAssignmentTargets() {
-    var list = document.getElementById('assignmentTargetList');
-    var typeSelect = document.getElementById('assignmentTargetTypeSelect');
-    var searchInput = document.getElementById('assignmentTargetSearchInput');
-    var createButton = document.getElementById('createAssignmentBtn');
-    var targetType = typeSelect ? typeSelect.value : 'class';
-    var query = searchInput ? searchInput.value.trim().toLowerCase() : '';
-    var targets = this.readAssignmentTargetsForType(targetType).filter(function (target) {
-      return !query || readAssignmentTargetSearchText(target).indexOf(query) !== -1;
-    });
+  readCurrentMetadataPayload(iconUrl) {
+    var state = courseEditorStore.getState();
+    var course = state.course || {};
+    var langsSelect = document.getElementById('courseLangsSelect');
+    var defaultLang = document.getElementById('courseDefaultLangSelect').value || 'en';
+    var langs = [];
+    var index = 0;
 
-    if (createButton) {
-      createButton.disabled = !this.selectedAssignmentTargetId;
+    for (index = 0; index < langsSelect.options.length; index++) {
+      if (langsSelect.options[index].selected) {
+        langs.push(langsSelect.options[index].value);
+      }
     }
 
-    if (!list) {
-      return;
-    }
-
-    if (this.assignmentTargetsLoading) {
-      list.innerHTML = buildAssignmentTargetLoadingRows();
-      return;
-    }
-
-    if (this.assignmentTargetsError) {
-      list.innerHTML = '<div class="rounded-xl border border-red-100 bg-red-50 p-4 text-sm font-bold text-red-700">' + escapeHtml(this.assignmentTargetsError) + '</div>';
-      return;
-    }
-
-    if (targets.length === 0) {
-      list.innerHTML = '<div class="rounded-xl border border-dashed border-gray-300 bg-white p-5 text-center text-sm font-semibold text-gray-500">No available ' + escapeHtml(readAssignmentTargetTypeLabel(targetType).toLowerCase()) + ' targets found.</div>';
-      return;
-    }
-
-    list.innerHTML = targets.map(function (target) {
-      return buildAssignmentTargetOption(target, targetType, target.id === this.selectedAssignmentTargetId);
-    }, this).join('');
+    return {
+      title: this.buildLocalizedText(course.title, defaultLang, document.getElementById('courseTitleInput').value.trim()),
+      description: this.buildLocalizedText(course.description, defaultLang, document.getElementById('courseDescriptionInput').value.trim()),
+      subject: document.getElementById('courseSubjectInput').value.trim(),
+      level: document.getElementById('courseLevelInput').value.trim(),
+      language: defaultLang,
+      status: document.getElementById('courseStatusSelect').value || 'draft',
+      tags: this.localTags.slice(),
+      languages: langs.length ? langs : [defaultLang],
+      defaultLanguage: defaultLang,
+      iconUrl: iconUrl || course.iconUrl || ''
+    };
   }
 
-  readAssignmentTargetsForType(targetType) {
-    if (targetType === 'student') {
-      return Array.isArray(this.assignmentTargets.students) ? this.assignmentTargets.students : [];
+  updateCourseIconPreview(iconUrl) {
+    var preview = document.getElementById('courseIconPreview');
+
+    if (!preview) {
+      return;
     }
 
-    if (targetType === 'location') {
-      return Array.isArray(this.assignmentTargets.locations) ? this.assignmentTargets.locations : [];
-    }
-
-    return Array.isArray(this.assignmentTargets.classes) ? this.assignmentTargets.classes : [];
+    preview.src = iconUrl || './src/assets/module-stack.svg';
   }
 
-  selectAssignmentTarget(targetId) {
-    this.selectedAssignmentTargetId = targetId || "";
-    this.renderAssignmentTargets();
-  }
+  showCourseIconStatus(type, message) {
+    var status = document.getElementById('courseIconStatus');
 
-  clearSelectedAssignmentTarget() {
-    this.selectedAssignmentTargetId = "";
-    var createButton = document.getElementById('createAssignmentBtn');
-
-    if (createButton) {
-      createButton.disabled = true;
+    if (!status) {
+      return;
     }
+
+    status.textContent = message;
+    status.className = 'mt-1 text-[11px] font-semibold ' + readCourseIconStatusClass(type);
   }
 
   createAssignment() {
     var self = this;
     var targetTypeSelect = document.getElementById('assignmentTargetTypeSelect');
+    var targetIdInput = document.getElementById('assignmentTargetIdInput');
     var statusSelect = document.getElementById('assignmentStatusSelect');
     var createButton = document.getElementById('createAssignmentBtn');
-    var targetId = this.selectedAssignmentTargetId || "";
+    var targetId = targetIdInput.value.trim();
 
     if (!targetId) {
-      this.showAssignmentModalStatus('error', 'Choose a class, student, or location before assigning the course.');
+      this.showAssignmentStatus('error', 'Add a target ID before assigning the course.');
       return;
     }
 
     createButton.disabled = true;
     createButton.textContent = 'Assigning...';
-    this.showAssignmentModalStatus('loading', 'Creating assignment...');
+    this.showAssignmentStatus('loading', 'Creating assignment...');
 
     courseAssignmentService.createCourseAssignment(
       this.courseId,
@@ -2544,16 +1652,15 @@ export class CourseOverviewPage {
       targetId,
       statusSelect.value
     ).then(function () {
+      targetIdInput.value = '';
       createButton.disabled = false;
       createButton.textContent = 'Assign Course';
-      self.clearSelectedAssignmentTarget();
-      self.closeAssignmentModal();
       self.showAssignmentStatus('success', 'Course assignment saved.');
       self.loadAssignments();
     }).catch(function (error) {
       createButton.disabled = false;
       createButton.textContent = 'Assign Course';
-      self.showAssignmentModalStatus('error', error.message);
+      self.showAssignmentStatus('error', error.message);
     });
   }
 
@@ -2615,7 +1722,7 @@ export class CourseOverviewPage {
     }
 
     if (!this.assignments || this.assignments.length === 0) {
-      list.innerHTML = '<div class="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-center text-xs text-gray-500 font-medium">No assignments yet. Use Assign Course to choose a class, student, or location.</div>';
+      list.innerHTML = '<div class="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-center text-xs text-gray-500 font-medium">No assignments yet. Add a class, student, or location target above.</div>';
       return;
     }
 
@@ -2630,6 +1737,90 @@ export class CourseOverviewPage {
     }).join('');
   }
 
+  openAssignmentTargetsModal() {
+    var modal = document.getElementById('assignmentTargetModal');
+
+    if (!modal) {
+      return;
+    }
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    this.loadAssignmentTargets();
+  }
+
+  closeAssignmentTargetsModal() {
+    var modal = document.getElementById('assignmentTargetModal');
+
+    if (!modal) {
+      return;
+    }
+
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+
+  loadAssignmentTargets() {
+    var self = this;
+
+    if (this.assignmentTargets && !this.assignmentTargetsLoading) {
+      this.renderAssignmentTargets();
+      return;
+    }
+
+    this.assignmentTargetsLoading = true;
+    this.renderAssignmentTargets();
+
+    courseAssignmentService.listAssignableTargets().then(function (targets) {
+      self.assignmentTargets = targets;
+      self.assignmentTargetsLoading = false;
+      self.renderAssignmentTargets();
+    }).catch(function (error) {
+      self.assignmentTargets = {
+        classes: [],
+        students: [],
+        locations: [],
+        warnings: [error.message]
+      };
+      self.assignmentTargetsLoading = false;
+      self.renderAssignmentTargets();
+    });
+  }
+
+  renderAssignmentTargets() {
+    var body = document.getElementById('assignmentTargetsBody');
+
+    if (!body) {
+      return;
+    }
+
+    if (this.assignmentTargetsLoading) {
+      body.innerHTML = createLoadingState('Loading assignment targets...', {
+        className: 'flex items-center gap-2 text-xs font-bold text-gray-500',
+        beforeHtml: '<i class="fa-solid fa-circle-notch fa-spin text-blue-500"></i>'
+      });
+      return;
+    }
+
+    body.innerHTML = buildAssignmentTargetsHtml(this.assignmentTargets);
+  }
+
+  selectAssignmentTarget(targetType, targetId) {
+    var targetTypeSelect = document.getElementById('assignmentTargetTypeSelect');
+    var targetIdInput = document.getElementById('assignmentTargetIdInput');
+
+    if (targetTypeSelect) {
+      targetTypeSelect.value = targetType || 'class';
+    }
+
+    if (targetIdInput) {
+      targetIdInput.value = targetId || '';
+    }
+
+    this.closeAssignmentTargetsModal();
+    this.showAssignmentStatus('success', 'Assignment target selected.');
+  }
+
   loadExternalTaskSubmissions() {
     var self = this;
     this.externalTaskLoading = true;
@@ -2641,13 +1832,11 @@ export class CourseOverviewPage {
       reviewStatus: this.externalTaskStatusFilter
     }).then(function (submissions) {
       self.externalTaskSubmissions = submissions;
-      self.renderCourseCommandCenter(courseEditorStore.getState());
       self.showExternalTaskStatus('success', 'Review queue loaded.');
       setTimeout(function () {
         self.hideExternalTaskStatus();
       }, 1400);
     }).catch(function (error) {
-      self.renderCourseCommandCenter(courseEditorStore.getState());
       self.showExternalTaskStatus('error', error.message);
     }).finally(function () {
       self.externalTaskLoading = false;
@@ -2771,40 +1960,6 @@ export class CourseOverviewPage {
     }
   }
 
-  showAssignmentModalStatus(type, message) {
-    var statusMessage = document.getElementById('assignmentModalStatus');
-
-    if (!statusMessage) {
-      return;
-    }
-
-    var colorClass = 'text-blue-700 bg-blue-50 border-blue-100';
-
-    if (type === 'error') {
-      colorClass = 'text-red-700 bg-red-50 border-red-100';
-    }
-
-    if (type === 'success') {
-      colorClass = 'text-green-700 bg-green-50 border-green-100';
-    }
-
-    statusMessage.className = 'rounded-xl border px-3 py-2 text-xs font-semibold ' + colorClass;
-    statusMessage.textContent = message;
-  }
-
-  hideAssignmentModalStatus() {
-    var statusMessage = document.getElementById('assignmentModalStatus');
-
-    if (statusMessage) {
-      statusMessage.className = 'hidden rounded-xl border px-3 py-2 text-xs font-semibold';
-      statusMessage.textContent = '';
-    }
-  }
-
-  setSaveSettingsError(message) {
-    this.showAssignmentStatus('error', message || 'Could not save changes.');
-  }
-
   renderModuleList(modules, course, moduleSourceCheck) {
     var tbody = document.getElementById('moduleTableBody');
     var safeModules = Array.isArray(modules) ? modules : [];
@@ -2821,10 +1976,6 @@ export class CourseOverviewPage {
       renderedModuleTitles: safeModules.map(readModuleTitle),
       moduleSource: moduleSourceCheck && moduleSourceCheck.moduleSource ? moduleSourceCheck.moduleSource : 'catalogCourses'
     });
-
-    if (!tbody) {
-      return;
-    }
 
     if (safeModules.length === 0) {
       var courseModuleCount = course && typeof course.moduleCount === 'number' ? course.moduleCount : 0;
@@ -2885,7 +2036,6 @@ export class CourseOverviewPage {
         + '</td>'
         + '<td class="py-4 px-6 border-b border-gray-100 font-semibold text-gray-900 pointer-events-none">'
         + '<div class="flex items-center gap-3">'
-        + renderModuleIconPreview(moduleDisplay)
         + '<span class="text-base">' + escapeHtml(moduleDisplay.title) + '</span>'
         + '<button data-id="' + escapeHtml(moduleDisplay.id) + '" class="edit-module-name-btn hidden group-hover:flex bg-white hover:bg-gray-100 border border-gray-200 text-gray-500 hover:text-blue-600 transition w-6 h-6 items-center justify-center rounded-md shadow-sm opacity-0 group-hover:opacity-100 pointer-events-auto"><i class="fa-solid fa-pen text-[10px]"></i></button>'
         + dirtyDot
@@ -2901,16 +2051,9 @@ export class CourseOverviewPage {
         + escapeHtml(formatCourseDate(moduleDisplay.updatedAt))
         + '</td>'
         + '<td class="py-4 px-6 border-b border-gray-100 text-right">'
-        + '<div class="flex flex-col items-end gap-2">'
-        + '<label class="pointer-events-auto inline-flex cursor-pointer items-center gap-1 rounded border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-xs font-black text-emerald-700 hover:bg-emerald-100">'
-        + '<i class="fa-solid fa-image"></i> Icon'
-        + '<input data-id="' + escapeHtml(moduleDisplay.id) + '" class="module-icon-upload-input hidden" type="file" accept="image/*">'
-        + '</label>'
-        + '<span class="module-icon-upload-status text-[10px] font-black text-gray-400"></span>'
         + '<button data-id="' + escapeHtml(moduleDisplay.id) + '" class="open-module-btn border border-gray-200 bg-white hover:bg-gray-50 text-blue-600 hover:text-blue-700 px-3 py-1.5 rounded text-sm font-bold transition shadow-sm items-center gap-1 inline-flex">'
-        + 'Edit Lesson Paths <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>'
+        + 'Edit Learning Modes <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>'
         + '</button>'
-        + '</div>'
         + '</td>'
         + '</tr>';
     }).join('');
@@ -3169,16 +2312,20 @@ function restoreModuleBtn(btn, html) {
   btn.classList.remove('oqu-btn-pending');
 }
 
-function readCourseArchiveStatusClass(type) {
-  if (type === 'success') {
-    return 'rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700';
-  }
-
+function readCourseIconStatusClass(type) {
   if (type === 'error') {
-    return 'rounded-full border border-red-200 bg-red-50 px-3 py-2 text-xs font-black text-red-700';
+    return 'text-red-600';
   }
 
-  return 'inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-black text-blue-700';
+  if (type === 'success') {
+    return 'text-emerald-600';
+  }
+
+  if (type === 'loading') {
+    return 'text-blue-600';
+  }
+
+  return 'text-gray-400';
 }
 
 function setModuleWizardControlsDisabled(isDisabled) {
@@ -3237,100 +2384,6 @@ function buildModuleSkeletonRows(rowCount) {
   return rows;
 }
 
-function buildAssignmentTargetLoadingRows() {
-  return '<div class="grid gap-2">'
-    + '<div class="h-16 animate-pulse rounded-xl bg-white"></div>'
-    + '<div class="h-16 animate-pulse rounded-xl bg-white"></div>'
-    + '<div class="h-16 animate-pulse rounded-xl bg-white"></div>'
-    + '</div>';
-}
-
-function buildAssignmentTargetOption(target, targetType, isSelected) {
-  var label = readAssignmentTargetName(target, targetType);
-  var meta = readAssignmentTargetMeta(target, targetType);
-  var selectedClass = isSelected ? 'border-blue-300 bg-blue-50 ring-2 ring-blue-100' : 'border-gray-200 bg-white hover:bg-gray-50';
-  var iconClass = targetType === 'student' ? 'fa-solid fa-user-graduate' : (targetType === 'location' ? 'fa-solid fa-location-dot' : 'fa-solid fa-users');
-
-  return '<button type="button" class="assignment-target-option mb-2 flex w-full items-center gap-3 rounded-xl border p-3 text-left transition ' + selectedClass + '" data-target-id="' + escapeHtml(target.id || '') + '">'
-    + '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-700"><i class="' + iconClass + '"></i></span>'
-    + '<span class="min-w-0 flex-1">'
-    + '<strong class="block truncate text-sm text-gray-950">' + escapeHtml(label) + '</strong>'
-    + '<small class="mt-0.5 block truncate text-[11px] font-semibold text-gray-500">' + escapeHtml(meta) + '</small>'
-    + '</span>'
-    + (isSelected ? '<i class="fa-solid fa-circle-check text-blue-600"></i>' : '')
-    + '</button>';
-}
-
-function readAssignmentTargetName(target, targetType) {
-  if (!target) {
-    return 'Untitled ' + readAssignmentTargetTypeLabel(targetType);
-  }
-
-  if (typeof target.name === 'string' && target.name.trim()) {
-    return target.name.trim();
-  }
-
-  if (typeof target.displayName === 'string' && target.displayName.trim()) {
-    return target.displayName.trim();
-  }
-
-  if (target.title) {
-    return readPreviewText(target.title, '');
-  }
-
-  if (targetType === 'student') {
-    return [target.firstName, target.lastName].filter(Boolean).join(' ') || target.email || target.id || 'Student';
-  }
-
-  return target.id || 'Untitled ' + readAssignmentTargetTypeLabel(targetType);
-}
-
-function readAssignmentTargetMeta(target, targetType) {
-  var parts = [readAssignmentTargetTypeLabel(targetType)];
-
-  if (target && target.locationName) {
-    parts.push(target.locationName);
-  } else if (target && target.locationId) {
-    parts.push('Location ' + target.locationId);
-  }
-
-  if (target && target.className && targetType !== 'class') {
-    parts.push(target.className);
-  } else if (target && target.classId && targetType !== 'class') {
-    parts.push('Class ' + target.classId);
-  }
-
-  if (target && target.email) {
-    parts.push(target.email);
-  }
-
-  return parts.join(' - ');
-}
-
-function readAssignmentTargetSearchText(target) {
-  return [
-    target && target.id,
-    target && target.name,
-    target && target.displayName,
-    target && target.email,
-    target && target.className,
-    target && target.locationName,
-    target && target.title && readPreviewText(target.title, '')
-  ].filter(Boolean).join(' ').toLowerCase();
-}
-
-function readAssignmentTargetTypeLabel(targetType) {
-  if (targetType === 'student') {
-    return 'Student';
-  }
-
-  if (targetType === 'location') {
-    return 'Location';
-  }
-
-  return 'Class';
-}
-
 function buildAssignmentRow(assignment, options) {
   var rowOptions = options || {};
   var assignmentId = escapeHtml(assignment.id || '');
@@ -3358,6 +2411,67 @@ function buildAssignmentRow(assignment, options) {
     + '<button class="assignment-archive-btn flex-1 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1.5 text-[11px] font-bold text-gray-600 hover:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed" data-id="' + assignmentId + '"' + buttonDisabled + '>' + archiveLabel + '</button>'
     + '</div>'
     + '</div>';
+}
+
+function buildAssignmentTargetsHtml(targets) {
+  var safeTargets = targets || { classes: [], students: [], locations: [], warnings: [] };
+  var html = '';
+
+  html += buildAssignmentTargetWarnings(safeTargets.warnings || []);
+  html += buildAssignmentTargetGroup('Classes', 'class', safeTargets.classes || []);
+  html += buildAssignmentTargetGroup('Students', 'student', safeTargets.students || []);
+  html += buildAssignmentTargetGroup('Locations', 'location', safeTargets.locations || []);
+
+  if ((safeTargets.classes || []).length === 0 && (safeTargets.students || []).length === 0 && (safeTargets.locations || []).length === 0) {
+    html += '<div class="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-5 text-center text-sm font-semibold text-gray-500">No assignable targets were visible to this account.</div>';
+  }
+
+  return html;
+}
+
+function buildAssignmentTargetWarnings(warnings) {
+  if (!warnings || warnings.length === 0) {
+    return '';
+  }
+
+  return '<div class="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs font-semibold text-amber-800">'
+    + warnings.map(function (warning) {
+      return '<div>' + escapeHtml(warning) + '</div>';
+    }).join('')
+    + '</div>';
+}
+
+function buildAssignmentTargetGroup(title, targetType, targets) {
+  var safeTargets = Array.isArray(targets) ? targets : [];
+
+  if (safeTargets.length === 0) {
+    return '';
+  }
+
+  return '<section class="mb-5">'
+    + '<h4 class="mb-2 text-xs font-black uppercase tracking-wide text-gray-500">' + escapeHtml(title) + '</h4>'
+    + '<div class="grid gap-2">'
+    + safeTargets.map(function (target) {
+      return buildAssignmentTargetButton(targetType, target);
+    }).join('')
+    + '</div>'
+    + '</section>';
+}
+
+function buildAssignmentTargetButton(targetType, target) {
+  var detail = target.detail ? '<span class="text-[11px] font-semibold text-gray-400">' + escapeHtml(target.detail) + '</span>' : '';
+
+  return '<button type="button" class="assignment-target-option flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-3 py-3 text-left hover:border-blue-300 hover:bg-blue-50" data-target-type="'
+    + escapeHtml(targetType)
+    + '" data-target-id="'
+    + escapeHtml(target.id || '')
+    + '">'
+    + '<span class="min-w-0">'
+    + '<span class="block truncate text-sm font-bold text-gray-900">' + escapeHtml(target.label || target.id || 'Target') + '</span>'
+    + detail
+    + '</span>'
+    + '<span class="rounded-full bg-gray-100 px-2 py-1 text-[10px] font-black uppercase text-gray-500">' + escapeHtml(targetType) + '</span>'
+    + '</button>';
 }
 
 function readAssignmentPendingLabel(action) {
@@ -3507,40 +2621,6 @@ function setInputValue(id, value) {
   }
 }
 
-function setOptionalElementHtml(id, html) {
-  var element = document.getElementById(id);
-
-  if (element) {
-    element.innerHTML = html;
-  }
-}
-
-function isCheckboxChecked(id, fallbackValue) {
-  var element = document.getElementById(id);
-
-  if (!element) {
-    return Boolean(fallbackValue);
-  }
-
-  return element.checked === true;
-}
-
-function scrollElementIntoView(id) {
-  var element = document.getElementById(id);
-
-  if (!element) {
-    return;
-  }
-
-  element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-  if (typeof element.focus === 'function') {
-    setTimeout(function () {
-      element.focus();
-    }, 250);
-  }
-}
-
 function readInputValue(id) {
   var element = document.getElementById(id);
   if (!element) {
@@ -3644,1021 +2724,40 @@ function normalizeModuleTemplateKey(value) {
   return 'custom';
 }
 
-function normalizeCourseDisplayTemplate(value) {
-  if (value === 'adventurePath' || value === 'compactGrid') {
-    return value;
-  }
-
-  return 'basic';
-}
-
-function buildCourseCommandCenter(course, modules, assignments, submissions) {
-  var safeModules = Array.isArray(modules) ? modules : [];
-  var safeAssignments = Array.isArray(assignments) ? assignments : [];
-  var safeSubmissions = Array.isArray(submissions) ? submissions : [];
-  var checklist = buildCourseReadinessChecklist(course, safeModules, safeAssignments);
-  var blockers = checklist.filter(function (item) {
-    return !item.passed && item.severity === 'required';
-  }).length;
-  var activeAssignments = safeAssignments.filter(function (assignment) {
-    return assignment && assignment.status !== 'archived' && assignment.status !== 'deleted';
-  }).length;
-  var pendingReviews = safeSubmissions.filter(function (submission) {
-    return submission && (!submission.reviewStatus || submission.reviewStatus === 'pending' || submission.reviewStatus === 'needsWork');
-  }).length;
-  var theme = normalizeCourseVisualTheme(course);
-  var templateLabel = readCourseDisplayTemplateLabel(normalizeCourseDisplayTemplate(course && course.displayTemplate)).replace(' Preview', '');
-
-  return '<section class="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">'
-    + '<div class="flex items-start justify-between gap-4">'
-    + '<div><p class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">Course Builder Command Center</p><h2 class="mt-1 text-xl font-black text-slate-950">Build health at a glance</h2><p class="mt-1 text-xs font-semibold leading-5 text-slate-500">A quick scan of readiness, module structure, assignments, reviews, and visual style.</p></div>'
-    + '<span class="rounded-full px-3 py-2 text-[10px] font-black uppercase tracking-wide ' + (blockers === 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700') + '">' + (blockers === 0 ? 'Ready' : blockers + ' blockers') + '</span>'
-    + '</div>'
-    + '<div class="mt-4 grid gap-3 md:grid-cols-5">'
-    + buildCommandCenterMetric('Modules', String(safeModules.length), countCourseSteps(safeModules) + ' steps', 'fa-solid fa-layer-group', theme.accentColor)
-    + buildCommandCenterMetric('Publish', blockers === 0 ? 'Pass' : String(blockers), blockers === 0 ? 'No blockers' : 'Needs attention', 'fa-solid fa-circle-check', blockers === 0 ? 'emerald' : 'amber')
-    + buildCommandCenterMetric('Assignments', String(activeAssignments), 'active targets', 'fa-solid fa-user-group', theme.accentColor)
-    + buildCommandCenterMetric('Reviews', String(pendingReviews), 'pending items', 'fa-solid fa-inbox', pendingReviews > 0 ? 'rose' : theme.accentColor)
-    + buildCommandCenterMetric('Display', templateLabel, theme.pathDensity + ' density', 'fa-solid fa-wand-magic-sparkles', theme.accentColor)
-    + '</div>'
-    + '</section>';
-}
-
-function buildCommandCenterMetric(label, value, detail, icon, accentColor) {
-  return '<div class="rounded-2xl border border-slate-100 bg-slate-50 p-3">'
-    + '<div class="flex items-center justify-between gap-2"><span class="text-[10px] font-black uppercase tracking-wide text-slate-400">' + escapeHtml(label) + '</span><span class="grid h-8 w-8 place-items-center rounded-xl text-xs ' + readThemeAccentSoftClass(accentColor) + '"><i class="' + escapeHtml(icon) + '"></i></span></div>'
-    + '<div class="mt-3 truncate text-lg font-black text-slate-950">' + escapeHtml(value) + '</div>'
-    + '<div class="mt-1 truncate text-[11px] font-bold text-slate-500">' + escapeHtml(detail) + '</div>'
-    + '</div>';
-}
-
-function buildVisualModuleMapEditor(modules, course) {
-  var safeModules = Array.isArray(modules) ? modules : [];
-  var theme = normalizeCourseVisualTheme(course);
-  var accentClass = readThemeAccentSoftClass(theme.accentColor);
-  var html = '<section class="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">';
-
-  html += '<div class="mb-4 flex items-start justify-between gap-4"><div><p class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">Visual Module Map Editor</p><h2 class="mt-1 text-lg font-black text-slate-950">Drag modules to reorder the journey</h2></div><span class="rounded-full bg-slate-50 px-3 py-2 text-[10px] font-black uppercase text-slate-500">' + safeModules.length + ' modules</span></div>';
-
-  if (safeModules.length === 0) {
-    html += '<div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm font-bold text-slate-500">Create modules to use the visual map.</div></section>';
-    return html;
-  }
-
-  html += '<div class="grid gap-3 md:grid-cols-3 xl:grid-cols-4">';
-  safeModules.forEach(function (module, index) {
-    var moduleId = readModuleId(module);
-    var title = readModuleTitle(module) || 'Untitled Module';
-    var stepCount = countModuleSteps(module);
-    html += '<article draggable="true" class="module-map-card rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:-translate-y-0.5 hover:shadow-md" data-index="' + index + '">';
-    html += '<div class="flex items-start justify-between gap-3"><span class="grid h-11 w-11 place-items-center rounded-2xl text-sm font-black ' + accentClass + '">' + buildThemedModuleIcon(module, course, index, theme) + '</span><span class="rounded-full bg-white px-2 py-1 text-[10px] font-black text-slate-500">' + stepCount + ' steps</span></div>';
-    html += '<h3 class="mt-3 min-h-[40px] text-sm font-black leading-5 text-slate-950">' + escapeHtml(title) + '</h3>';
-    html += '<div class="mt-4 flex items-center justify-between gap-2">';
-    html += '<div class="flex gap-1"><button type="button" class="module-map-reorder-btn rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10px] font-black text-slate-600 disabled:opacity-40" data-index="' + index + '" data-direction="up"' + (index === 0 ? ' disabled' : '') + '><i class="fa-solid fa-arrow-up"></i></button><button type="button" class="module-map-reorder-btn rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10px] font-black text-slate-600 disabled:opacity-40" data-index="' + index + '" data-direction="down"' + (index === safeModules.length - 1 ? ' disabled' : '') + '><i class="fa-solid fa-arrow-down"></i></button></div>';
-    html += '<button type="button" class="module-map-open-btn rounded-lg bg-slate-950 px-3 py-1.5 text-[10px] font-black text-white" data-id="' + escapeHtml(moduleId) + '">Edit</button>';
-    html += '</div>';
-    html += '</article>';
-  });
-  html += '</div></section>';
-  return html;
-}
-
-function buildModuleDependencyBuilder(modules, course) {
-  var safeModules = Array.isArray(modules) ? modules : [];
-  var html = '<section class="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">';
-
-  html += '<div class="mb-4 flex items-start justify-between gap-4"><div><p class="text-[10px] font-black uppercase tracking-[0.18em] text-indigo-600">Module Dependency Builder</p><h2 class="mt-1 text-lg font-black text-slate-950">Choose how modules unlock</h2><p class="mt-1 text-xs font-semibold text-slate-500">This edits module metadata through the existing course editor service.</p></div><span class="rounded-full bg-indigo-50 px-3 py-2 text-[10px] font-black uppercase text-indigo-700">' + safeModules.length + ' rules</span></div>';
-
-  if (safeModules.length === 0) {
-    html += '<div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm font-bold text-slate-500">Create modules before setting dependencies.</div></section>';
-    return html;
-  }
-
-  html += '<div class="grid gap-3">';
-  safeModules.forEach(function (module, index) {
-    var moduleId = readModuleId(module);
-    var rule = readModuleDependencyRule(module, index, safeModules);
-    html += '<article class="module-dependency-row rounded-2xl border border-slate-200 bg-slate-50 p-4" data-module-id="' + escapeHtml(moduleId) + '">';
-    html += '<div class="mb-3 flex flex-wrap items-start justify-between gap-3"><div><div class="text-[10px] font-black uppercase tracking-wide text-slate-400">Module ' + (index + 1) + '</div><h3 class="text-sm font-black text-slate-950">' + escapeHtml(readModuleTitle(module) || 'Untitled Module') + '</h3></div><span class="rounded-full bg-white px-2 py-1 text-[10px] font-black text-slate-500">' + countModuleSteps(module) + ' steps</span></div>';
-    html += '<div class="grid gap-3 md:grid-cols-[1.2fr_1.2fr_0.8fr_auto]">';
-    html += '<label class="text-[11px] font-black uppercase tracking-wide text-slate-500">Unlock rule<select class="module-dependency-type mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold normal-case tracking-normal text-slate-800">' + buildModuleDependencyTypeOptions(rule.type) + '</select></label>';
-    html += '<label class="text-[11px] font-black uppercase tracking-wide text-slate-500">Prerequisite<select class="module-dependency-prerequisite mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold normal-case tracking-normal text-slate-800">' + buildModuleDependencyModuleOptions(safeModules, moduleId, rule.prerequisiteModuleId) + '</select></label>';
-    html += '<label class="text-[11px] font-black uppercase tracking-wide text-slate-500">Percent<input type="number" min="0" max="100" step="5" class="module-dependency-threshold mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold normal-case tracking-normal text-slate-800" value="' + rule.thresholdPercent + '"></label>';
-    html += '<button type="button" class="module-dependency-save-btn self-end rounded-lg bg-slate-950 px-4 py-2 text-xs font-black text-white disabled:opacity-60" data-module-id="' + escapeHtml(moduleId) + '"><i class="fa-solid fa-floppy-disk"></i> Save</button>';
-    html += '</div>';
-    html += '<p class="mt-3 text-xs font-semibold text-slate-500">' + escapeHtml(readModuleDependencySummary(rule, safeModules)) + '</p>';
-    html += '</article>';
-  });
-  html += '</div></section>';
-  return html;
-}
-
-function buildCourseVersionTimeline(course, modules, assignments) {
-  var safeModules = Array.isArray(modules) ? modules : [];
-  var safeAssignments = Array.isArray(assignments) ? assignments : [];
-  var latestModules = safeModules.slice().sort(compareModuleDatesDesc).slice(0, 3);
-  var html = '<section class="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">';
-
-  html += '<div class="mb-4 flex items-start justify-between gap-4"><div><p class="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Course Version Timeline</p><h2 class="mt-1 text-lg font-black text-slate-950">Recent publishing context</h2></div><span class="rounded-full bg-slate-50 px-3 py-2 text-[10px] font-black uppercase text-slate-600">v' + escapeHtml(String(course && course.version || 1)) + '</span></div>';
-
-  if (!course) {
-    html += '<div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm font-bold text-slate-500">Load a course to view its timeline.</div></section>';
-    return html;
-  }
-
-  html += '<ol class="relative grid gap-3 border-l-2 border-slate-100 pl-5">';
-  html += buildTimelineItem('Created', formatCourseDate(course.createdAt), 'Initial course document and metadata.');
-  html += buildTimelineItem('Last Updated', formatCourseDate(course.updatedAt || course.modifiedAt || course.createdAt), 'Current status: ' + (course.status || 'draft') + '.');
-  html += buildTimelineItem('Display System', readCourseDisplayTemplateLabel(normalizeCourseDisplayTemplate(course.displayTemplate)), 'Theme: ' + normalizeCourseVisualTheme(course).accentColor + ', assignments: ' + safeAssignments.length + '.');
-  latestModules.forEach(function (module) {
-    html += buildTimelineItem(readModuleTitle(module) || 'Untitled Module', formatCourseDate(module.updatedAt || module.modifiedAt || module.createdAt), countModuleSteps(module) + ' steps in this module.');
-  });
-  html += '</ol></section>';
-  return html;
-}
-
-function buildAssignmentPreviewMatrix(course, modules, assignments) {
-  var safeModules = Array.isArray(modules) ? modules : [];
-  var safeAssignments = Array.isArray(assignments) ? assignments : [];
-  var checklist = buildCourseReadinessChecklist(course, safeModules, safeAssignments);
-  var blockers = checklist.filter(function (item) {
-    return !item.passed && item.severity === 'required';
-  });
-  var html = '<section class="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">';
-
-  html += '<div class="mb-4 flex items-start justify-between gap-4"><div><p class="text-[10px] font-black uppercase tracking-[0.18em] text-cyan-600">Assignment Preview Matrix</p><h2 class="mt-1 text-lg font-black text-slate-950">How learners will receive this course</h2></div><span class="rounded-full bg-cyan-50 px-3 py-2 text-[10px] font-black uppercase text-cyan-700">' + safeAssignments.length + ' assignments</span></div>';
-
-  if (safeAssignments.length === 0) {
-    html += '<div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm font-bold text-slate-500">No assignments yet. The matrix will populate when the course is assigned.</div></section>';
-    return html;
-  }
-
-  html += '<div class="overflow-hidden rounded-2xl border border-slate-200"><table class="w-full text-left text-sm"><thead class="bg-slate-50 text-[10px] font-black uppercase tracking-wide text-slate-500"><tr><th class="px-4 py-3">Target</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Visibility</th><th class="px-4 py-3">Publish State</th><th class="px-4 py-3">Readiness</th></tr></thead><tbody class="divide-y divide-slate-100">';
-  safeAssignments.forEach(function (assignment) {
-    var target = readAssignmentTargetLabel(assignment);
-    var status = assignment && assignment.status ? assignment.status : 'active';
-    var visibility = readCourseVisibility(course);
-    var publishState = course && course.status === 'published' ? 'Published' : 'Draft preview';
-    var readiness = blockers.length === 0 ? 'Ready' : blockers.length + ' blocker' + (blockers.length === 1 ? '' : 's');
-    var readinessClass = blockers.length === 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700';
-    html += '<tr class="bg-white"><td class="px-4 py-3 font-bold text-slate-900">' + escapeHtml(target) + '</td><td class="px-4 py-3 text-slate-600">' + escapeHtml(status) + '</td><td class="px-4 py-3 text-slate-600">' + escapeHtml(visibility) + '</td><td class="px-4 py-3 text-slate-600">' + escapeHtml(publishState) + '</td><td class="px-4 py-3"><span class="rounded-full px-2 py-1 text-[10px] font-black uppercase ' + readinessClass + '">' + escapeHtml(readiness) + '</span></td></tr>';
-  });
-  html += '</tbody></table></div></section>';
-  return html;
-}
-
-function buildAccessibilityLocalizationAudit(course, modules) {
-  var safeModules = Array.isArray(modules) ? modules : [];
-  var findings = collectAccessibilityLocalizationFindings(course, safeModules);
-  var issueCount = findings.filter(function (item) {
-    return item.level !== 'pass';
-  }).length;
-  var html = '<section class="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">';
-
-  html += '<div class="mb-4 flex items-start justify-between gap-4"><div><p class="text-[10px] font-black uppercase tracking-[0.18em] text-rose-600">Accessibility & Localization Audit</p><h2 class="mt-1 text-lg font-black text-slate-950">Content quality checks</h2></div><span class="rounded-full ' + (issueCount === 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700') + ' px-3 py-2 text-[10px] font-black uppercase">' + issueCount + ' issues</span></div>';
-
-  if (!course) {
-    html += '<div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm font-bold text-slate-500">Load a course to run the audit.</div></section>';
-    return html;
-  }
-
-  html += '<div class="grid gap-3 md:grid-cols-2">';
-  findings.forEach(function (finding) {
-    var className = finding.level === 'pass' ? 'border-emerald-100 bg-emerald-50 text-emerald-800' : (finding.level === 'warning' ? 'border-amber-100 bg-amber-50 text-amber-800' : 'border-rose-100 bg-rose-50 text-rose-800');
-    var icon = finding.level === 'pass' ? 'fa-solid fa-check' : (finding.level === 'warning' ? 'fa-solid fa-circle-info' : 'fa-solid fa-triangle-exclamation');
-    html += '<button type="button" data-quality-target="' + escapeHtml(finding.target || '') + '" class="text-left rounded-2xl border p-4 transition hover:-translate-y-0.5 hover:shadow-sm ' + className + '"><div class="flex items-center gap-2 text-sm font-black"><i class="' + icon + '"></i><span>' + escapeHtml(finding.label) + '</span></div><p class="mt-2 text-xs font-semibold leading-5 opacity-80">' + escapeHtml(finding.detail) + '</p></button>';
-  });
-  html += '</div></section>';
-  return html;
-}
-
-function readThemeFromControls() {
-  return normalizeCourseVisualTheme({
-    visualTheme: {
-      accentColor: readInputValue('courseThemeAccentSelect') || 'blue',
-      moduleIconStyle: readInputValue('courseIconStyleSelect') || 'numbered',
-      badgeStyle: readInputValue('courseBadgeStyleSelect') || 'pill',
-      pathDensity: readInputValue('coursePathDensitySelect') || 'comfortable'
-    }
-  });
-}
-
-function readThemeFromThemeModalControls() {
-  return normalizeCourseVisualTheme({
-    visualTheme: {
-      accentColor: readInputValue('themeModalAccentSelect') || 'blue',
-      moduleIconStyle: readInputValue('themeModalIconStyleSelect') || 'numbered',
-      badgeStyle: readInputValue('themeModalBadgeStyleSelect') || 'pill',
-      pathDensity: readInputValue('themeModalDensitySelect') || 'comfortable'
-    }
-  });
-}
-
-function buildCourseThemeMiniPreview(theme) {
-  var accent = readThemeAccentSoftClass(theme.accentColor);
-  var badge = readThemeBadgeClass('current', theme);
-  var densityText = theme.pathDensity === 'compact' ? 'Tight path spacing' : (theme.pathDensity === 'spacious' ? 'Wide path spacing' : 'Balanced path spacing');
-
-  return '<div class="rounded-2xl border border-white bg-white p-3 shadow-sm">'
-    + '<div class="flex items-center justify-between gap-3">'
-    + '<div class="flex min-w-0 items-center gap-3">'
-    + '<span class="grid h-11 w-11 place-items-center rounded-2xl text-sm font-black ' + accent + '">' + (theme.moduleIconStyle === 'minimal' ? '<i class="fa-solid fa-minus"></i>' : '1') + '</span>'
-    + '<div class="min-w-0"><div class="truncate text-sm font-black text-slate-950">Sample module card</div><div class="text-[11px] font-bold text-slate-500">' + escapeHtml(densityText) + '</div></div>'
-    + '</div>'
-    + '<span class="rounded-full px-2 py-1 text-[10px] font-black uppercase ' + badge + '">Current</span>'
-    + '</div>'
-    + '</div>';
-}
-
-function buildModuleDisplayTemplateMiniPreview(template, theme) {
-  if (template === 'adventurePath') {
-    return '<div class="rounded-xl border border-emerald-100 bg-emerald-50 p-3">'
-      + '<div class="relative h-24 rounded-lg bg-white/70">'
-      + '<div class="absolute left-[18%] top-3 h-8 w-20 rounded-xl border border-emerald-200 bg-white"></div>'
-      + '<div class="absolute right-[18%] top-14 h-8 w-20 rounded-xl border border-blue-200 bg-white"></div>'
-      + '<div class="absolute left-[34%] top-8 h-10 w-[32%] rounded-full border-2 border-dashed border-blue-200"></div>'
-      + '</div><p class="mt-2 text-[11px] font-bold text-emerald-800">Journey-style path with visible progression.</p></div>';
-  }
-
-  if (template === 'compactGrid') {
-    return '<div class="rounded-xl border border-slate-200 bg-slate-50 p-3">'
-      + '<div class="grid grid-cols-3 gap-2">'
-      + '<span class="h-14 rounded-lg bg-white shadow-sm"></span><span class="h-14 rounded-lg bg-white shadow-sm"></span><span class="h-14 rounded-lg bg-white shadow-sm"></span>'
-      + '</div><p class="mt-2 text-[11px] font-bold text-slate-600">Dense card grid for courses with many modules.</p></div>';
-  }
-
-  return '<div class="rounded-xl border border-blue-100 bg-blue-50 p-3">'
-    + '<div class="grid gap-2"><span class="h-8 rounded-lg bg-white shadow-sm"></span><span class="h-8 rounded-lg bg-white shadow-sm"></span><span class="h-8 rounded-lg bg-white shadow-sm"></span></div>'
-    + '<p class="mt-2 text-[11px] font-bold text-blue-800">Simple vertical module list.</p></div>';
-}
-
-function normalizeCourseVisualTheme(course) {
-  var theme = course && course.visualTheme && typeof course.visualTheme === 'object' ? course.visualTheme : {};
-  var accentColor = theme.accentColor || course && course.accentColor || 'blue';
-  var moduleIconStyle = theme.moduleIconStyle || 'numbered';
-  var badgeStyle = theme.badgeStyle || 'pill';
-  var pathDensity = theme.pathDensity || 'comfortable';
-
-  if (['blue', 'emerald', 'rose', 'amber'].indexOf(accentColor) === -1) {
-    accentColor = 'blue';
-  }
-
-  if (['numbered', 'courseIcon', 'minimal'].indexOf(moduleIconStyle) === -1) {
-    moduleIconStyle = 'numbered';
-  }
-
-  if (['pill', 'soft', 'solid'].indexOf(badgeStyle) === -1) {
-    badgeStyle = 'pill';
-  }
-
-  if (['comfortable', 'compact', 'spacious'].indexOf(pathDensity) === -1) {
-    pathDensity = 'comfortable';
-  }
-
-  return {
-    accentColor: accentColor,
-    moduleIconStyle: moduleIconStyle,
-    badgeStyle: badgeStyle,
-    pathDensity: pathDensity
-  };
-}
-
-function readThemeHexColor(accentColor) {
-  if (accentColor === 'emerald') { return '#10b981'; }
-  if (accentColor === 'rose') { return '#f43f5e'; }
-  if (accentColor === 'amber') { return '#f59e0b'; }
-  return '#2563eb';
-}
-
-function readThemeAccentBackgroundClass(accentColor) {
-  if (accentColor === 'emerald') { return 'bg-emerald-500'; }
-  if (accentColor === 'rose') { return 'bg-rose-500'; }
-  if (accentColor === 'amber') { return 'bg-amber-500'; }
-  return 'bg-blue-500';
-}
-
-function readThemeAccentSoftClass(accentColor) {
-  if (accentColor === 'emerald') { return 'bg-emerald-100 text-emerald-700'; }
-  if (accentColor === 'rose') { return 'bg-rose-100 text-rose-700'; }
-  if (accentColor === 'amber') { return 'bg-amber-100 text-amber-700'; }
-  return 'bg-blue-100 text-blue-700';
-}
-
-function readThemeAccentBorderClass(accentColor) {
-  if (accentColor === 'emerald') { return 'border-emerald-200 text-emerald-800'; }
-  if (accentColor === 'rose') { return 'border-rose-200 text-rose-800'; }
-  if (accentColor === 'amber') { return 'border-amber-200 text-amber-800'; }
-  return 'border-blue-200 text-blue-800';
-}
-
-function readThemeBadgeClass(state, theme) {
-  var accentColor = state === 'completed' ? 'emerald' : (state === 'locked' ? 'slate' : theme.accentColor);
-
-  if (accentColor === 'slate') {
-    return 'bg-slate-100 text-slate-500';
-  }
-
-  if (theme.badgeStyle === 'solid') {
-    if (accentColor === 'emerald') { return 'bg-emerald-600 text-white'; }
-    if (accentColor === 'rose') { return 'bg-rose-600 text-white'; }
-    if (accentColor === 'amber') { return 'bg-amber-500 text-white'; }
-    return 'bg-blue-600 text-white';
-  }
-
-  return readThemeAccentSoftClass(accentColor);
-}
-
-function readThemePathRowHeight(theme) {
-  if (theme.pathDensity === 'compact') { return 112; }
-  if (theme.pathDensity === 'spacious') { return 168; }
-  return 138;
-}
-
-function normalizeModuleDependencyType(value) {
-  if (value === 'previousComplete' || value === 'moduleComplete' || value === 'percentComplete') {
-    return value;
-  }
-
-  return 'open';
-}
-
-function readModuleDependencyRule(module, index, modules) {
-  var rule = module && module.unlockRules && typeof module.unlockRules === 'object' ? module.unlockRules : {};
-  var type = normalizeModuleDependencyType(module && module.unlockRuleType || rule.type || rule.unlockRuleType || (index === 0 ? 'open' : 'previousComplete'));
-  var prerequisiteModuleId = module && typeof module.prerequisiteModuleId === 'string' ? module.prerequisiteModuleId : (typeof rule.prerequisiteModuleId === 'string' ? rule.prerequisiteModuleId : '');
-
-  if (!prerequisiteModuleId && type === 'previousComplete' && index > 0) {
-    prerequisiteModuleId = readModuleId(modules[index - 1]);
-  }
-
-  return {
-    type: type,
-    prerequisiteModuleId: prerequisiteModuleId,
-    thresholdPercent: clampPercent(module && typeof module.unlockThresholdPercent === 'number' ? module.unlockThresholdPercent : (typeof rule.thresholdPercent === 'number' ? rule.thresholdPercent : 100))
-  };
-}
-
-function buildModuleDependencyTypeOptions(selectedType) {
-  var options = [
-    { value: 'open', label: 'Open immediately' },
-    { value: 'previousComplete', label: 'Previous module complete' },
-    { value: 'moduleComplete', label: 'Specific module complete' },
-    { value: 'percentComplete', label: 'Course percent complete' }
-  ];
-
-  return options.map(function (option) {
-    return '<option value="' + option.value + '"' + (option.value === selectedType ? ' selected' : '') + '>' + escapeHtml(option.label) + '</option>';
-  }).join('');
-}
-
-function buildModuleDependencyModuleOptions(modules, currentModuleId, selectedModuleId) {
-  var html = '<option value="">No prerequisite</option>';
-
-  (modules || []).forEach(function (module, index) {
-    var moduleId = readModuleId(module);
-    if (!moduleId || moduleId === currentModuleId) {
-      return;
-    }
-
-    html += '<option value="' + escapeHtml(moduleId) + '"' + (moduleId === selectedModuleId ? ' selected' : '') + '>Module ' + (index + 1) + ': ' + escapeHtml(readModuleTitle(module) || 'Untitled Module') + '</option>';
-  });
-
-  return html;
-}
-
-function readModuleDependencySummary(rule, modules) {
-  if (rule.type === 'open') {
-    return 'Students can open this module as soon as the course is visible.';
-  }
-
-  if (rule.type === 'percentComplete') {
-    return 'Students unlock this module after reaching ' + rule.thresholdPercent + '% course completion.';
-  }
-
-  var prerequisite = (modules || []).find(function (module) {
-    return readModuleId(module) === rule.prerequisiteModuleId;
-  });
-  var prerequisiteTitle = prerequisite ? readModuleTitle(prerequisite) : 'the selected prerequisite';
-
-  if (rule.type === 'previousComplete') {
-    return 'Students unlock this module after completing ' + prerequisiteTitle + '.';
-  }
-
-  return 'Students unlock this module after completing ' + prerequisiteTitle + '.';
-}
-
-function clampPercent(value) {
-  var numberValue = parseInt(value, 10);
-
-  if (Number.isNaN(numberValue)) {
-    return 100;
-  }
-
-  return Math.max(0, Math.min(100, numberValue));
-}
-
-function buildThemedModuleIcon(module, course, index, theme) {
-  var moduleIconUrl = module && typeof module.iconUrl === 'string' ? module.iconUrl.trim() : '';
-  var courseIconUrl = course && typeof course.iconUrl === 'string' ? course.iconUrl.trim() : '';
-
-  if (theme.moduleIconStyle === 'minimal') {
-    return '<i class="fa-solid fa-circle"></i>';
-  }
-
-  if (theme.moduleIconStyle === 'courseIcon' && (moduleIconUrl || courseIconUrl)) {
-    return '<img src="' + escapeHtml(moduleIconUrl || courseIconUrl) + '" alt="" class="h-full w-full rounded-2xl object-cover">';
-  }
-
-  return String(index + 1);
-}
-
-function buildCourseReadinessChecklist(course, modules, assignments) {
-  var safeModules = Array.isArray(modules) ? modules : [];
-  var safeAssignments = Array.isArray(assignments) ? assignments : [];
-  var title = readPreviewText(course && course.title, '');
-  var displayTemplate = course && typeof course.displayTemplate === 'string' ? course.displayTemplate : '';
-  var normalizedTemplate = normalizeCourseDisplayTemplate(displayTemplate);
-  var activeAssignments = safeAssignments.filter(function (assignment) {
-    return assignment && assignment.status !== 'archived' && assignment.status !== 'deleted';
-  });
-  var invalidSteps = collectInvalidCourseSteps(safeModules);
-  var untitledModules = safeModules.filter(function (module) {
-    return !module || !readModuleTitle(module) || readModuleTitle(module) === 'Untitled Module';
-  });
-  var emptyModules = safeModules.filter(function (module) {
-    return countModuleSteps(module) === 0;
-  });
-
-  return [
-    createReadinessItem('Course title', Boolean(title), 'Add a clear course title before publishing.', 'required'),
-    createReadinessItem('At least one module', safeModules.length > 0, 'Create a module so students have a course path.', 'required'),
-    createReadinessItem('Module titles', untitledModules.length === 0, untitledModules.length + ' module title' + (untitledModules.length === 1 ? '' : 's') + ' need review.', 'required'),
-    createReadinessItem('Student steps', emptyModules.length === 0 && safeModules.length > 0, emptyModules.length + ' module' + (emptyModules.length === 1 ? '' : 's') + ' do not have student steps yet.', 'required'),
-    createReadinessItem('Step data', invalidSteps.length === 0, invalidSteps.length + ' step' + (invalidSteps.length === 1 ? '' : 's') + ' need a title or type.', 'required'),
-    createReadinessItem('Assignments', activeAssignments.length > 0, 'Assign the course to a class, student, or location when ready.', 'warning'),
-    createReadinessItem('Display template', !displayTemplate || displayTemplate === normalizedTemplate, 'Invalid template values fall back to Basic.', 'warning'),
-    createReadinessItem('Teacher review flow', hasReviewableCourseStep(safeModules), 'Add a Speaking Recording or teacher-review step if this course needs teacher feedback.', 'warning')
-  ];
-}
-
-function createReadinessItem(label, passed, message, severity) {
-  return {
-    label: label,
-    passed: Boolean(passed),
-    message: message,
-    severity: severity || 'required'
-  };
-}
-
-function buildCourseReadinessPanel(checklist) {
-  var items = Array.isArray(checklist) ? checklist : [];
-  var blockers = items.filter(function (item) {
-    return !item.passed && item.severity === 'required';
-  });
-  var warnings = items.filter(function (item) {
-    return !item.passed && item.severity !== 'required';
-  });
-  var ready = blockers.length === 0;
-  var panelClass = ready ? 'border-emerald-200 bg-emerald-50 text-emerald-900' : 'border-amber-200 bg-amber-50 text-amber-900';
-  var iconClass = ready ? 'fa-solid fa-circle-check text-emerald-600' : 'fa-solid fa-triangle-exclamation text-amber-600';
-  var headline = ready ? 'Ready to publish' : blockers.length + ' publish blocker' + (blockers.length === 1 ? '' : 's');
-  var subline = warnings.length > 0 ? warnings.length + ' advisory item' + (warnings.length === 1 ? '' : 's') + ' to review.' : 'Core course structure is ready.';
-  var html = '<section class="rounded-xl border px-4 py-3 shadow-sm ' + panelClass + '">';
-
-  html += '<div class="flex items-start justify-between gap-4">';
-  html += '<div><div class="flex items-center gap-2 text-sm font-black"><i class="' + iconClass + '"></i><span>Publish Readiness Checklist</span></div><p class="mt-1 text-xs font-bold opacity-80">' + escapeHtml(headline + '. ' + subline) + '</p></div>';
-  html += '<span class="rounded-full bg-white/80 px-3 py-1 text-[10px] font-black uppercase tracking-wide">' + (ready ? 'Pass' : 'Needs work') + '</span>';
-  html += '</div>';
-  html += '<div class="mt-3 grid gap-2 md:grid-cols-2">';
-  items.forEach(function (item) {
-    var itemClass = item.passed ? 'border-emerald-100 bg-white text-emerald-800' : (item.severity === 'required' ? 'border-amber-100 bg-white text-amber-800' : 'border-blue-100 bg-white text-blue-800');
-    var itemIcon = item.passed ? 'fa-solid fa-check' : (item.severity === 'required' ? 'fa-solid fa-xmark' : 'fa-solid fa-circle-info');
-    html += '<div class="rounded-lg border px-3 py-2 text-xs font-bold ' + itemClass + '"><div class="flex items-center gap-2"><i class="' + itemIcon + '"></i><span>' + escapeHtml(item.label) + '</span></div>' + (!item.passed ? '<p class="mt-1 font-semibold opacity-75">' + escapeHtml(item.message) + '</p>' : '') + '</div>';
-  });
-  html += '</div>';
-  html += '</section>';
-  return html;
-}
-
-function buildTimelineItem(label, dateText, detail) {
-  return '<li class="relative rounded-2xl border border-slate-100 bg-slate-50 p-4"><span class="absolute -left-[29px] top-5 h-3 w-3 rounded-full border-2 border-white bg-blue-500"></span><div class="flex flex-wrap items-center justify-between gap-2"><strong class="text-sm font-black text-slate-950">' + escapeHtml(label) + '</strong><span class="rounded-full bg-white px-2 py-1 text-[10px] font-black uppercase text-slate-500">' + escapeHtml(dateText || 'Unknown') + '</span></div><p class="mt-2 text-xs font-semibold text-slate-500">' + escapeHtml(detail || '') + '</p></li>';
-}
-
-function compareModuleDatesDesc(a, b) {
-  return readTimeValue(b && (b.updatedAt || b.modifiedAt || b.createdAt)) - readTimeValue(a && (a.updatedAt || a.modifiedAt || a.createdAt));
-}
-
-function readTimeValue(value) {
-  if (!value) {
-    return 0;
-  }
-
-  if (typeof value.toDate === 'function') {
-    return value.toDate().getTime();
-  }
-
-  if (typeof value.seconds === 'number') {
-    return value.seconds * 1000;
-  }
-
-  var parsed = Date.parse(value);
-  return Number.isNaN(parsed) ? 0 : parsed;
-}
-
-function readAssignmentTargetLabel(assignment) {
-  if (!assignment) {
-    return 'Unknown target';
-  }
-
-  return assignment.className || assignment.classTitle || assignment.studentName || assignment.groupName || assignment.targetName || assignment.classId || assignment.studentId || assignment.groupId || assignment.id || 'Assigned audience';
-}
-
-function collectAccessibilityLocalizationFindings(course, modules) {
-  var languages = normalizeCourseLanguages(course);
-  var findings = [];
-  var titleMissing = readLocalizedMissingCodes(course && course.title, languages);
-  var descriptionMissing = readLocalizedMissingCodes(course && course.description, languages);
-  var moduleTitleMissing = [];
-  var longTitles = [];
-  var missingInstructions = [];
-  var mediaNeedsAlt = [];
-
-  if (titleMissing.length > 0) {
-    findings.push(createAuditFinding('error', 'Course title translations', 'Missing title values for: ' + titleMissing.join(', ') + '.', 'course-settings'));
-  } else {
-    findings.push(createAuditFinding('pass', 'Course title translations', 'All configured course languages have a title value.', 'course-settings'));
-  }
-
-  if (descriptionMissing.length > 0) {
-    findings.push(createAuditFinding('warning', 'Course description translations', 'Missing description values for: ' + descriptionMissing.join(', ') + '.', 'course-settings'));
-  } else {
-    findings.push(createAuditFinding('pass', 'Course description translations', 'All configured course languages have a description value.', 'course-settings'));
-  }
-
-  modules.forEach(function (module, moduleIndex) {
-    var missingCodes = readLocalizedMissingCodes(module && module.title, languages);
-    var moduleTitle = readModuleTitle(module) || ('Module ' + (moduleIndex + 1));
-    if (missingCodes.length > 0) {
-      moduleTitleMissing.push(moduleTitle + ' (' + missingCodes.join(', ') + ')');
-    }
-
-    if (moduleTitle.length > 48) {
-      longTitles.push(moduleTitle);
-    }
-
-    collectPreviewModuleSteps(module).forEach(function (step) {
-      var stepTitle = readPreviewText(step && step.title, 'Untitled Step');
-      var instructions = readStepConfigValue(step, 'instructions') || readStepConfigValue(step, 'prompt') || readStepConfigValue(step, 'body');
-      var imageUrl = readStepConfigValue(step, 'imageUrl') || readStepConfigValue(step, 'iconUrl');
-      var audioUrl = readStepConfigValue(step, 'audioUrl') || readStepConfigValue(step, 'mediaUrl');
-      var altText = readStepConfigValue(step, 'altText') || readStepConfigValue(step, 'imageAlt');
-      var transcript = readStepConfigValue(step, 'transcript') || readStepConfigValue(step, 'caption');
-
-      if (!instructions) {
-        missingInstructions.push(stepTitle);
-      }
-
-      if (imageUrl && !altText) {
-        mediaNeedsAlt.push(stepTitle + ' image alt text');
-      }
-
-      if (audioUrl && !transcript) {
-        mediaNeedsAlt.push(stepTitle + ' transcript');
-      }
-
-      if (stepTitle.length > 64) {
-        longTitles.push(stepTitle);
-      }
-    });
-  });
-
-  findings.push(moduleTitleMissing.length === 0
-    ? createAuditFinding('pass', 'Module localization', 'Module titles cover the configured language set.', 'module-map')
-    : createAuditFinding('warning', 'Module localization', moduleTitleMissing.slice(0, 4).join('; ') + (moduleTitleMissing.length > 4 ? ' and more.' : '.'), 'module-map'));
-
-  findings.push(missingInstructions.length === 0
-    ? createAuditFinding('pass', 'Step instructions', 'Student-facing steps include readable prompts or instructions.', 'first-module-editor')
-    : createAuditFinding('warning', 'Step instructions', missingInstructions.slice(0, 5).join(', ') + (missingInstructions.length > 5 ? ' and more need prompts.' : ' need prompts.'), 'first-module-editor'));
-
-  findings.push(mediaNeedsAlt.length === 0
-    ? createAuditFinding('pass', 'Media support text', 'Images and audio with detectable media fields include alt text or transcripts.', 'first-module-editor')
-    : createAuditFinding('error', 'Media support text', mediaNeedsAlt.slice(0, 5).join(', ') + (mediaNeedsAlt.length > 5 ? ' and more need support text.' : ' need support text.'), 'first-module-editor'));
-
-  findings.push(longTitles.length === 0
-    ? createAuditFinding('pass', 'Mobile text fit', 'Module and step titles fit expected compact layouts.', 'module-map')
-    : createAuditFinding('warning', 'Mobile text fit', longTitles.slice(0, 5).join(', ') + (longTitles.length > 5 ? ' and more may wrap heavily.' : ' may wrap heavily.'), 'module-map'));
-
-  return findings;
-}
-
-function createAuditFinding(level, label, detail, target) {
-  return {
-    level: level,
-    label: label,
-    detail: detail,
-    target: target || ""
-  };
-}
-
-function normalizeCourseLanguages(course) {
-  var languages = course && Array.isArray(course.languages) && course.languages.length > 0 ? course.languages.slice() : [course && course.defaultLanguage || 'en'];
-
-  if (languages.indexOf(course && course.defaultLanguage || 'en') === -1) {
-    languages.unshift(course && course.defaultLanguage || 'en');
-  }
-
-  return languages.filter(Boolean);
-}
-
-function readLocalizedMissingCodes(value, languages) {
-  if (typeof value === 'string') {
-    return value.trim() ? [] : languages.slice();
-  }
-
-  if (!value || typeof value !== 'object') {
-    return languages.slice();
-  }
-
-  return languages.filter(function (languageCode) {
-    return !value[languageCode] || typeof value[languageCode] !== 'string' || !value[languageCode].trim();
-  });
-}
-
-function readStepConfigValue(step, fieldName) {
-  if (!step || typeof step !== 'object') {
-    return '';
-  }
-
-  if (typeof step[fieldName] === 'string' && step[fieldName].trim()) {
-    return step[fieldName].trim();
-  }
-
-  if (step.config && typeof step.config[fieldName] === 'string' && step.config[fieldName].trim()) {
-    return step.config[fieldName].trim();
-  }
-
-  if (step.content && typeof step.content[fieldName] === 'string' && step.content[fieldName].trim()) {
-    return step.content[fieldName].trim();
-  }
-
-  return '';
-}
-
-function collectInvalidCourseSteps(modules) {
-  var invalidSteps = [];
-
-  (modules || []).forEach(function (module) {
-    collectPreviewModuleSteps(module).forEach(function (step) {
-      if (!step || !readPreviewStepType(step) || !readPreviewText(step.title, '')) {
-        invalidSteps.push(step || {});
-      }
-    });
-  });
-
-  return invalidSteps;
-}
-
-function hasReviewableCourseStep(modules) {
-  var found = false;
-
-  (modules || []).forEach(function (module) {
-    collectPreviewModuleSteps(module).forEach(function (step) {
-      var stepType = readPreviewStepType(step);
-      if (stepType === 'speakingPrompt' || stepType === 'creative-canvas' || stepType === 'reflection' || stepType === 'reflectionShell' || stepType === 'externalTask') {
-        found = true;
-      }
-    });
-  });
-
-  return found;
-}
-
-function collectPreviewModuleSteps(module) {
-  var steps = [];
-  var learningModes = module && module.learningModes && typeof module.learningModes === 'object' ? module.learningModes : {};
-
-  if (module && Array.isArray(module.steps)) {
-    steps = steps.concat(module.steps);
-  }
-
-  Object.keys(learningModes).forEach(function (modeId) {
-    if (learningModes[modeId] && Array.isArray(learningModes[modeId].steps)) {
-      steps = steps.concat(learningModes[modeId].steps);
-    }
-  });
-
-  if (module && Array.isArray(module.sessions)) {
-    module.sessions.forEach(function (session) {
-      steps = steps.concat(readPreviewSteps(session));
-    });
-  }
-
-  return steps;
-}
-
-function readPreviewStepType(step) {
-  if (!step || typeof step !== 'object') {
-    return '';
-  }
-
-  return step.type || step.stepType || step.kind || '';
-}
-
-function buildCoursePreview(course, options) {
+function buildCoursePreview(course) {
   var modules = Array.isArray(course && course.modules) ? course.modules : [];
   var title = readPreviewText(course ? course.title : null, 'Untitled Course');
   var description = readPreviewText(course ? course.description : null, 'Student preview shows the course exactly as learners will scan it.');
-  var template = normalizeCourseDisplayTemplate(options && options.displayTemplate ? options.displayTemplate : course && course.displayTemplate);
-  var theme = normalizeCourseVisualTheme(course);
-  var device = normalizePreviewDevice(options && options.device);
-  var frameClass = readPreviewDeviceFrameClass(device);
 
-  var html = '<section class="mx-auto ' + frameClass + ' transition-all">';
-  html += '<div class="space-y-6 rounded-[28px] border border-slate-200 bg-slate-50 p-4 shadow-inner">';
-  html += buildCoursePreviewHero(course, title, description, template, theme);
-  html += '<section class="rounded-[28px] border border-emerald-100 bg-white p-4 shadow-sm">';
-  html += '<div class="mb-3"><p class="text-[10px] font-black uppercase tracking-wide text-emerald-600">Interactive Student Preview</p><h2 class="text-lg font-black text-slate-950">First available learning path</h2><p class="mt-1 text-xs font-semibold text-slate-500">Local preview only. No student progress, diagnostics, scores, or analytics are written.</p></div>';
-  html += '<div id="coursePreviewPlayerRoot" class="course-player-root"></div>';
-  html += '</section>';
+  var html = '<section class="space-y-6">';
+  html += '<div class="rounded-[28px] border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-emerald-50 p-6">';
+  html += '<div class="flex items-start justify-between gap-4"><div><p class="text-[10px] font-black uppercase tracking-wide text-blue-600">Preview Mode</p><h1 class="text-3xl font-black text-slate-950">' + escapeHtml(title) + '</h1><p class="mt-2 max-w-2xl text-sm font-semibold leading-6 text-slate-600">' + escapeHtml(description) + '</p></div><img src="./src/assets/preview-student.svg" alt="" class="w-32 h-32 object-contain"></div>';
+  html += '</div>';
 
   if (modules.length === 0) {
     html += '<div class="rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-10 text-center"><h2 class="text-xl font-black text-slate-900">No modules yet</h2><p class="mt-2 text-sm font-semibold text-slate-500">Add a module and student steps before publishing.</p></div>';
-    html += '</div>';
     html += '</section>';
     return html;
   }
 
-  html += renderCourseModules(course, modules, {
-    displayTemplate: template,
-    visualTheme: theme
-  });
-  html += '</div>';
+  html += modules.map(function (module, index) {
+    return buildPreviewModule(module, index);
+  }).join('');
   html += '</section>';
   return html;
 }
 
-function buildCoursePreviewHero(course, title, description, template, theme) {
-  var iconUrl = course && typeof course.iconUrl === 'string' ? course.iconUrl.trim() : '';
-  var templateLabel = readCourseDisplayTemplateLabel(template);
-  var accentClass = readThemeAccentSoftClass(theme.accentColor);
-  var iconHtml = iconUrl
-    ? '<img src="' + escapeHtml(iconUrl) + '" alt="" class="h-20 w-20 rounded-3xl object-cover ring-4 ring-white shadow-sm">'
-    : '<div class="grid h-20 w-20 place-items-center rounded-3xl text-2xl font-black shadow-sm ring-1 ring-white ' + accentClass + '">' + escapeHtml(title.charAt(0).toUpperCase() || 'C') + '</div>';
-
-  return '<div class="rounded-[28px] border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-emerald-50 p-6">'
-    + '<div class="flex items-start justify-between gap-4">'
-    + '<div class="min-w-0">'
-    + '<p class="text-[10px] font-black uppercase tracking-wide text-blue-600">' + escapeHtml(templateLabel) + '</p>'
-    + '<h1 class="text-3xl font-black text-slate-950">' + escapeHtml(title) + '</h1>'
-    + '<p class="mt-2 max-w-2xl text-sm font-semibold leading-6 text-slate-600">' + escapeHtml(description) + '</p>'
-    + '</div>'
-    + iconHtml
-    + '</div>'
-    + '</div>';
-}
-
-function createCoursePreviewPlayerData(course) {
-  var modules = Array.isArray(course && course.modules) ? course.modules : [];
-  var moduleIndex = 0;
-
-  while (moduleIndex < modules.length) {
-    var module = modules[moduleIndex];
-    var previewMode = readFirstPreviewLearningMode(module);
-
-    if (previewMode && previewMode.steps.length > 0) {
-      return {
-        moduleId: readModuleId(module) || String(moduleIndex),
-        modeId: previewMode.modeId,
-        sessionId: previewMode.sessionId,
-        practiceMode: {
-          key: previewMode.modeId,
-          title: previewMode.title || { en: 'Student Preview', ru: '', ky: '' },
-          steps: previewMode.steps
-        },
-        steps: previewMode.steps,
-        signature: [
-          readModuleId(module) || String(moduleIndex),
-          previewMode.modeId,
-          previewMode.steps.map(function (step) { return readStepIdValue(step); }).join(',')
-        ].join('|')
-      };
-    }
-
-    moduleIndex = moduleIndex + 1;
-  }
-
-  return null;
-}
-
-function readFirstPreviewLearningMode(module) {
-  var modes = module && module.learningModes && typeof module.learningModes === 'object' && !Array.isArray(module.learningModes)
-    ? module.learningModes
-    : {};
-  var modeIds = Object.keys(modes).sort(function (firstModeId, secondModeId) {
-    var first = modes[firstModeId] || {};
-    var second = modes[secondModeId] || {};
-    return readModeSortOrder(firstModeId, first) - readModeSortOrder(secondModeId, second);
-  });
-  var index = 0;
-
-  while (index < modeIds.length) {
-    var modeId = modeIds[index];
-    var mode = modes[modeId];
-    var steps = readPlayerPreviewSteps(mode && mode.steps);
-
-    if (steps.length > 0) {
-      return {
-        modeId: modeId,
-        sessionId: mode && mode.legacySessionId ? mode.legacySessionId : '',
-        title: mode && mode.title ? mode.title : { en: 'Student Preview', ru: '', ky: '' },
-        steps: steps
-      };
-    }
-
-    index = index + 1;
-  }
-
-  return readFirstPreviewSessionMode(module);
-}
-
-function readFirstPreviewSessionMode(module) {
-  var sessions = module && Array.isArray(module.sessions) ? module.sessions : [];
-  var sessionIndex = 0;
-
-  while (sessionIndex < sessions.length) {
-    var session = sessions[sessionIndex];
-    var practiceModes = session && session.practiceModes && typeof session.practiceModes === 'object' ? session.practiceModes : {};
-    var keys = Object.keys(practiceModes);
-    var keyIndex = 0;
-
-    while (keyIndex < keys.length) {
-      var mode = practiceModes[keys[keyIndex]];
-      var steps = readPlayerPreviewSteps(mode && mode.steps);
-
-      if (steps.length > 0) {
-        return {
-          modeId: keys[keyIndex],
-          sessionId: session.id || '',
-          title: mode.title || session.title || { en: 'Student Preview', ru: '', ky: '' },
-          steps: steps
-        };
-      }
-
-      keyIndex = keyIndex + 1;
-    }
-
-    sessionIndex = sessionIndex + 1;
-  }
-
-  return null;
-}
-
-function readPlayerPreviewSteps(steps) {
-  return Array.isArray(steps)
-    ? steps.slice().sort(function (firstStep, secondStep) {
-      return (firstStep.order || 0) - (secondStep.order || 0);
-    })
-    : [];
-}
-
-function readModeSortOrder(modeId, mode) {
-  if (modeId === 'primary') {
-    return -1000;
-  }
-
-  return typeof mode.order === 'number' ? mode.order : 99;
-}
-
-function readStepIdValue(step) {
-  return step && typeof step.id === 'string' ? step.id : '';
-}
-
-function renderCourseModules(course, modules, progress) {
-  var template = normalizeCourseDisplayTemplate(progress && progress.displayTemplate ? progress.displayTemplate : course && course.displayTemplate);
-  var theme = progress && progress.visualTheme ? progress.visualTheme : normalizeCourseVisualTheme(course);
-
-  if (template === 'adventurePath') {
-    return renderAdventurePathModules(course, modules, theme);
-  }
-
-  if (template === 'compactGrid') {
-    return renderCompactGridModules(course, modules, theme);
-  }
-
-  return renderBasicModuleList(course, modules, theme);
-}
-
-function renderBasicModuleList(course, modules, theme) {
-  return modules.map(function (module, index) {
-    return buildPreviewModule(module, index, course, theme);
-  }).join('');
-}
-
-function renderAdventurePathModules(course, modules, theme) {
-  var rowHeight = readThemePathRowHeight(theme);
-  var pathHeight = Math.max(160, modules.length * rowHeight);
-  var html = '<div class="rounded-[28px] border bg-white p-5 shadow-sm ' + readThemeAccentBorderClass(theme.accentColor) + '">';
-
-  html += '<div class="mb-4 flex items-center justify-between gap-4"><div><p class="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-600">Adventure Path</p><h2 class="text-xl font-black text-slate-950">' + escapeHtml(readPreviewText(course && course.title, 'Course Journey')) + '</h2></div><span class="rounded-full bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700">' + modules.length + ' modules</span></div>';
-  html += '<div class="relative overflow-hidden rounded-[26px] bg-gradient-to-b from-emerald-50 via-sky-50 to-white px-4 py-8" style="min-height:' + pathHeight + 'px">';
-  html += buildAdventurePathSvg(modules.length, rowHeight);
-
-  modules.forEach(function (module, index) {
-    html += buildAdventurePathNode(module, index, rowHeight, course, theme);
-  });
-
-  html += '</div>';
-  html += '</div>';
-  return html;
-}
-
-function buildAdventurePathSvg(moduleCount, rowHeight) {
-  var height = Math.max(160, moduleCount * rowHeight);
-  var points = [];
-  var index = 0;
-
-  while (index < moduleCount) {
-    points.push({
-      x: index % 2 === 0 ? 32 : 68,
-      y: 68 + (index * rowHeight)
-    });
-    index = index + 1;
-  }
-
-  var path = '';
-  if (points.length > 0) {
-    path = 'M ' + points[0].x + ' ' + points[0].y;
-    index = 1;
-    while (index < points.length) {
-      var previous = points[index - 1];
-      var current = points[index];
-      var midY = previous.y + ((current.y - previous.y) / 2);
-      path += ' C ' + previous.x + ' ' + midY + ', ' + current.x + ' ' + midY + ', ' + current.x + ' ' + current.y;
-      index = index + 1;
-    }
-  }
-
-  return '<svg class="absolute inset-0 h-full w-full" viewBox="0 0 100 ' + height + '" preserveAspectRatio="none" aria-hidden="true">'
-    + '<path d="' + path + '" fill="none" stroke="#93c5fd" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="0 0"></path>'
-    + '</svg>';
-}
-
-function buildAdventurePathNode(module, index, rowHeight, course, theme) {
-  var state = readPreviewModuleState(module, index);
-  var sideClass = index % 2 === 0 ? 'left-[8%]' : 'right-[8%]';
-  var stateClass = state.state === 'completed'
-    ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-    : state.state === 'current'
-      ? 'scale-110 bg-white shadow-[0_0_36px_rgba(37,99,235,0.20)] ring-4 ring-white ' + readThemeAccentBorderClass(theme.accentColor)
-      : 'border-slate-200 bg-slate-100 text-slate-400 opacity-75';
-  var icon = state.state === 'completed' ? 'fa-solid fa-check' : (state.state === 'locked' ? 'fa-solid fa-lock' : 'fa-solid fa-play');
-  var top = 24 + (index * rowHeight);
-
-  return '<article class="absolute w-[42%] ' + sideClass + ' rounded-[24px] border p-4 transition ' + stateClass + '" style="top:' + top + 'px">'
-    + '<div class="flex items-start gap-3">'
-    + '<div class="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white/80 text-sm font-black shadow-sm">' + (theme.moduleIconStyle === 'numbered' ? '<i class="' + icon + '"></i>' : buildThemedModuleIcon(module, course, index, theme)) + '</div>'
-    + '<div class="min-w-0"><div class="text-[10px] font-black uppercase tracking-wide">' + escapeHtml(state.label) + '</div><h3 class="mt-1 truncate text-base font-black">' + escapeHtml(readPreviewText(module && (module.title || (module.config && module.config.title)), 'Untitled Module')) + '</h3><p class="mt-1 text-xs font-bold opacity-75">' + countPreviewModuleSteps(module) + ' steps</p></div>'
-    + '</div>'
-    + '</article>';
-}
-
-function renderCompactGridModules(course, modules, theme) {
-  var html = '<div class="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(150px,1fr))]">';
-
-  modules.forEach(function (module, index) {
-    var state = readPreviewModuleState(module, index);
-    var stepCount = countPreviewModuleSteps(module);
-    var progressPercent = modules.length <= 1 ? 0 : Math.round((index / Math.max(1, modules.length - 1)) * 100);
-    var stateClass = state.state === 'completed' ? 'border-emerald-200 bg-emerald-50' : (state.state === 'locked' ? 'border-slate-200 bg-slate-100 opacity-75' : 'border-blue-200 bg-white ring-2 ring-blue-100');
-    var iconUrl = module && typeof module.iconUrl === 'string' ? module.iconUrl.trim() : '';
-    var iconHtml = iconUrl && theme.moduleIconStyle !== 'numbered'
-      ? '<img src="' + escapeHtml(iconUrl) + '" alt="" class="h-11 w-11 rounded-2xl object-cover">'
-      : '<div class="grid h-11 w-11 place-items-center overflow-hidden rounded-2xl text-xs font-black ' + readThemeAccentSoftClass(theme.accentColor) + '">' + buildThemedModuleIcon(module, course, index, theme) + '</div>';
-
-    html += '<article class="rounded-[22px] border p-4 shadow-sm ' + stateClass + '">'
-      + '<div class="flex items-start justify-between gap-3">' + iconHtml + '<span class="rounded-full px-2 py-1 text-[10px] font-black uppercase ' + readThemeBadgeClass(state.state, theme) + '">' + escapeHtml(state.label) + '</span></div>'
-      + '<h3 class="mt-4 min-h-[42px] text-sm font-black leading-5 text-slate-950">' + escapeHtml(readPreviewText(module && (module.title || (module.config && module.config.title)), 'Untitled Module')) + '</h3>'
-      + '<div class="mt-3 text-[11px] font-bold text-slate-500">' + stepCount + ' step' + (stepCount === 1 ? '' : 's') + '</div>'
-      + '<div class="mt-3 h-2 rounded-full bg-white ring-1 ring-slate-100"><div class="h-2 rounded-full bg-emerald-500" style="width:' + progressPercent + '%"></div></div>'
-      + '</article>';
-  });
-
-  html += '</div>';
-  return html;
-}
-
-function buildPreviewModule(module, index, course, theme) {
-  module = module || {};
-  var sessions = Array.isArray(module.sessions) ? module.sessions : [];
+function buildPreviewModule(module, index) {
+  var previewGroups = readPreviewGroups(module);
   var stepCount = countPreviewModuleSteps(module);
   var html = '<article class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">';
-  html += '<div class="flex items-start gap-4"><div class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl text-sm font-black ' + readThemeAccentSoftClass(theme.accentColor) + '">' + buildThemedModuleIcon(module, course, index, theme) + '</div><div class="min-w-0 flex-1"><h2 class="text-xl font-black text-slate-950">' + escapeHtml(readPreviewText(module.title || (module.config && module.config.title), 'Untitled Module')) + '</h2><p class="mt-1 text-sm font-semibold text-slate-500">' + stepCount + ' student step' + (stepCount === 1 ? '' : 's') + '</p></div></div>';
+  html += '<div class="flex items-start gap-4"><div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-sm font-black text-blue-700">' + (index + 1) + '</div><div class="min-w-0 flex-1"><h2 class="text-xl font-black text-slate-950">' + escapeHtml(readPreviewText(module.title || (module.config && module.config.title), 'Untitled Module')) + '</h2><p class="mt-1 text-sm font-semibold text-slate-500">' + stepCount + ' student step' + (stepCount === 1 ? '' : 's') + '</p></div></div>';
 
-  if (sessions.length === 0) {
+  if (previewGroups.length === 0) {
     html += '<div class="mt-4 rounded-2xl bg-slate-50 p-4 text-sm font-semibold text-slate-500">No sessions or steps yet.</div>';
   } else {
     html += '<div class="mt-4 grid gap-3">';
-    html += sessions.map(buildPreviewSession).join('');
+    html += previewGroups.map(buildPreviewSession).join('');
     html += '</div>';
   }
 
@@ -4673,75 +2772,13 @@ function buildPreviewSession(session) {
   if (steps.length > 0) {
     html += '<ol class="mt-3 grid gap-2">';
     html += steps.map(function (step, index) {
-      return '<li class="flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-sm font-semibold text-slate-700"><span class="flex h-7 w-7 items-center justify-center rounded-full bg-blue-50 text-[11px] font-black text-blue-700">' + (index + 1) + '</span><span class="min-w-0 flex-1">' + escapeHtml(readPreviewText(step.title, 'Untitled Step')) + '</span><small class="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black uppercase text-slate-500">' + escapeHtml(step.type || 'step') + '</small></li>';
+      return '<li class="flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-sm font-semibold text-slate-700"><span class="flex h-7 w-7 items-center justify-center rounded-full bg-blue-50 text-[11px] font-black text-blue-700">' + (index + 1) + '</span><span class="min-w-0 flex-1">' + escapeHtml(readPreviewStepTitle(step)) + '</span><small class="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black uppercase text-slate-500">' + escapeHtml(step.type || step.stepTypeId || 'step') + '</small></li>';
     }).join('');
     html += '</ol>';
   }
 
   html += '</div>';
   return html;
-}
-
-function readPreviewModuleState(module, index) {
-  var rawStatus = module && typeof module.status === 'string' ? module.status.toLowerCase() : '';
-
-  if (rawStatus === 'complete' || rawStatus === 'completed') {
-    return {
-      state: 'completed',
-      label: 'Complete'
-    };
-  }
-
-  if (rawStatus === 'locked') {
-    return {
-      state: 'locked',
-      label: 'Locked'
-    };
-  }
-
-  if (index === 0) {
-    return {
-      state: 'current',
-      label: 'Current'
-    };
-  }
-
-  return {
-    state: 'locked',
-    label: 'Locked'
-  };
-}
-
-function normalizePreviewDevice(value) {
-  if (value === 'mobile' || value === 'tablet') {
-    return value;
-  }
-
-  return 'desktop';
-}
-
-function readPreviewDeviceFrameClass(device) {
-  if (device === 'mobile') {
-    return 'max-w-[420px]';
-  }
-
-  if (device === 'tablet') {
-    return 'max-w-[720px]';
-  }
-
-  return 'max-w-none';
-}
-
-function readCourseDisplayTemplateLabel(template) {
-  if (template === 'adventurePath') {
-    return 'Adventure Path Preview';
-  }
-
-  if (template === 'compactGrid') {
-    return 'Compact Grid Preview';
-  }
-
-  return 'Basic Preview';
 }
 
 function readPreviewSteps(session) {
@@ -4760,8 +2797,45 @@ function readPreviewSteps(session) {
   return steps;
 }
 
+function readPreviewGroups(module) {
+  var groups = [];
+  var learningModes = module && module.learningModes && typeof module.learningModes === 'object' ? module.learningModes : {};
+
+  Object.keys(learningModes).forEach(function (modeId) {
+    var mode = learningModes[modeId];
+    if (mode && Array.isArray(mode.steps) && mode.steps.length > 0) {
+      groups.push({
+        id: mode.id || modeId,
+        title: mode.title || mode.name || mode.label || modeId,
+        order: typeof mode.order === 'number' ? mode.order : groups.length,
+        practiceModes: {
+          primary: {
+            steps: mode.steps
+          }
+        }
+      });
+    }
+  });
+
+  if (groups.length > 0) {
+    groups.sort(function (first, second) {
+      return (first.order || 0) - (second.order || 0);
+    });
+    return groups;
+  }
+
+  return Array.isArray(module.sessions) ? module.sessions : [];
+}
+
 function countPreviewModuleSteps(module) {
-  return collectPreviewModuleSteps(module).length;
+  var sessions = readPreviewGroups(module);
+  var count = 0;
+
+  sessions.forEach(function (session) {
+    count = count + readPreviewSteps(session).length;
+  });
+
+  return count;
 }
 
 function countCourseSteps(modules) {
@@ -4776,7 +2850,40 @@ function countCourseSteps(modules) {
 }
 
 function countModuleSteps(module) {
-  return countSharedModuleSteps(module);
+  if (!module || typeof module !== 'object') {
+    return 0;
+  }
+
+  if (typeof module.stepCount === 'number') {
+    return module.stepCount;
+  }
+
+  if (Array.isArray(module.steps)) {
+    return module.steps.length;
+  }
+
+  if (Array.isArray(module.sessions)) {
+    return countPreviewModuleSteps(module);
+  }
+
+  return countLearningModeSteps(module.learningModes);
+}
+
+function countLearningModeSteps(learningModes) {
+  if (!learningModes || typeof learningModes !== 'object') {
+    return 0;
+  }
+
+  var count = 0;
+  Object.keys(learningModes).forEach(function (modeId) {
+    var mode = learningModes[modeId];
+
+    if (mode && Array.isArray(mode.steps)) {
+      count = count + mode.steps.length;
+    }
+  });
+
+  return count;
 }
 
 function readPreviewText(value, fallback) {
@@ -4789,6 +2896,21 @@ function readPreviewText(value, fallback) {
   }
 
   return fallback;
+}
+
+function readPreviewStepTitle(step) {
+  if (!step || typeof step !== 'object') {
+    return 'Untitled Step';
+  }
+
+  return readPreviewText(step.title, '')
+    || readPreviewText(step.name, '')
+    || readPreviewText(step.displayName, '')
+    || readPreviewText(step.taskTitle, '')
+    || readPreviewText(step.prompt, '')
+    || readPreviewText(step.config && step.config.title, '')
+    || readPreviewText(step.config && step.config.prompt, '')
+    || 'Untitled Step';
 }
 
 function readModuleId(module) {
@@ -4836,33 +2958,10 @@ function normalizeModuleDisplay(module, index) {
     statusLabel: readModuleStatusLabel(status),
     statusClass: readModuleStatusClass(status),
     stepCount: countModuleSteps(module),
-    iconUrl: module && typeof module.iconUrl === 'string' ? module.iconUrl : '',
     updatedAt: module ? module.updatedAt || module.modifiedAt || module.createdAt || null : null,
     isDirty: Boolean(module && module.isDirty),
     index: index
   };
-}
-
-function renderModuleIconPreview(moduleDisplay) {
-  var iconUrl = moduleDisplay && typeof moduleDisplay.iconUrl === 'string' ? moduleDisplay.iconUrl.trim() : '';
-
-  if (iconUrl) {
-    return '<span class="h-10 w-10 shrink-0 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"><img src="' + escapeHtml(iconUrl) + '" alt="" class="h-full w-full object-cover"></span>';
-  }
-
-  return '<span class="h-10 w-10 shrink-0 rounded-xl border border-blue-100 bg-blue-50 text-blue-600 grid place-items-center shadow-sm"><i class="fa-solid fa-folder-open"></i></span>';
-}
-
-function readUploadStatusClass(type) {
-  if (type === 'error') {
-    return 'text-red-600';
-  }
-
-  if (type === 'success') {
-    return 'text-green-600';
-  }
-
-  return 'text-blue-600';
 }
 
 function readModuleDisplayText(values, fallback) {
@@ -4984,16 +3083,6 @@ function summarizeAssignments(assignments) {
   }
 
   return activeAssignments.length + ' active assignment' + (activeAssignments.length === 1 ? '' : 's') + ' connected to this course.';
-}
-
-function buildCourseOverviewIcon(course, title) {
-  var iconUrl = course && typeof course.iconUrl === 'string' ? course.iconUrl.trim() : '';
-
-  if (iconUrl) {
-    return '<span class="h-12 w-12 shrink-0 overflow-hidden rounded-2xl border border-blue-100 bg-blue-50 shadow-sm"><img src="' + escapeHtml(iconUrl) + '" alt="" class="h-full w-full object-cover"></span>';
-  }
-
-  return '<span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-blue-100 bg-blue-50 text-sm font-black text-blue-700 shadow-sm">' + escapeHtml(readPreviewText(title, 'C').charAt(0).toUpperCase() || 'C') + '</span>';
 }
 
 function buildCourseSummaryItem(label, value) {

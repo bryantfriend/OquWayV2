@@ -1,11 +1,11 @@
-import { catalogCourseRequireModuleIdValidation } from "../../stages/validate/validators.js?v=1.1.162-modal-stack";
-import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
-import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
-import { attachExistingModuleContext } from "../../stages/addContext/contexts.js?v=1.1.162-modal-stack";
-import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.162-modal-stack";
-import { preventModificationIfPublishedAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.162-modal-stack";
-import { catalogModuleDeleteProcessing } from "../../stages/process/processors.js?v=1.1.162-modal-stack";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.162-modal-stack";
+import { catalogCourseRequireModuleIdValidation } from "../../stages/validate/validators.js?v=1.1.82-shared-command-center-shell";
+import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
+import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
+import { attachExistingModuleContext } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
+import { requireCourseCreatorOwnershipAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.82-shared-command-center-shell";
+import { preventModificationIfPublishedAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.82-shared-command-center-shell";
+import { catalogModuleDeleteProcessing } from "../../stages/process/processors.js?v=1.1.82-shared-command-center-shell";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.82-shared-command-center-shell";
 
 export function DeleteCatalogModuleIntent() {
     return {
@@ -26,7 +26,7 @@ export function DeleteCatalogModuleIntent() {
         ],
         process: [
             catalogModuleDeleteProcessing
-        ],
+        ],
         emit: [
             emitIntentResult
         ]

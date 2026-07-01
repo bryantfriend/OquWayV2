@@ -1,4 +1,4 @@
-import { processDuplicateLearningMode } from "./processDuplicateLearningMode.js?v=1.1.162-modal-stack";
+import { processDuplicateLearningMode } from "./processDuplicateLearningMode.js?v=1.1.82-shared-command-center-shell";
 
 export async function processGenerateModeFromPrimary(executionState) {
   executionState.payload = Object.assign({}, executionState.payload, {
