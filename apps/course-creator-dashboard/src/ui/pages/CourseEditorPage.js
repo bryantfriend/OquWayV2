@@ -160,8 +160,8 @@ export class CourseEditorPage {
           </div>
 
         </div>
-        <div id="stepPreviewModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/70 p-6">
-          <div class="w-full max-w-3xl overflow-hidden rounded-3xl bg-white shadow-2xl">
+        <div id="stepPreviewModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/70 p-4 md:p-6">
+          <div class="oqu-step-preview-modal-panel w-full overflow-hidden rounded-3xl bg-white shadow-2xl">
             <div class="flex items-center justify-between gap-4 border-b border-slate-100 px-5 py-4">
               <div>
                 <div class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">Preview</div>
@@ -169,7 +169,7 @@ export class CourseEditorPage {
               </div>
               <button type="button" class="close-step-preview-modal rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-600 hover:bg-slate-50">Close</button>
             </div>
-            <div id="stepPreviewModalBody" class="max-h-[72vh] overflow-y-auto bg-slate-50 p-6"></div>
+            <div id="stepPreviewModalBody" class="oqu-step-preview-modal-body overflow-y-auto bg-slate-50 p-4 md:p-6"></div>
           </div>
         </div>
         ${buildAddPathModalHtml()}
@@ -2496,15 +2496,15 @@ export class CourseEditorPage {
     var StepTypeDefinition = getStepTypeDefinition(readStepType(step));
 
     if (StepTypeDefinition && typeof StepTypeDefinition.renderPlayer === "function") {
-      return '<div class="mx-auto max-w-3xl">'
-        + '<div class="oqu-preview-card oqu-step-render-preview-card">'
+      return '<div class="oqu-step-preview-modal-stage">'
+        + '<div class="oqu-preview-card oqu-step-render-preview-card oqu-step-preview-modal-card">'
         + '<div id="step-preview-modal-render-target" class="oqu-inline-step-preview-target" data-step-id="' + escapeHtml(readStepId(step, "preview")) + '"></div>'
         + '<div id="step-preview-modal-status" class="mt-4 hidden rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700">Preview complete. No student progress was saved.</div>'
         + '</div>'
         + '</div>';
     }
 
-    return '<div class="mx-auto max-w-xl">' + this.buildStepPreviewCard(step) + '</div>';
+    return '<div class="oqu-step-preview-modal-stage oqu-step-preview-modal-stage-card">' + this.buildStepPreviewCard(step) + '</div>';
   }
 
   renderStepPreviewIntoModal(step, previewContext) {
