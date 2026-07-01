@@ -1,6 +1,6 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.82-shared-command-center-shell";
-import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.82-shared-command-center-shell";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.84-student-login-cache-refresh";
+import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.84-student-login-cache-refresh";
 
 var appElement = document.getElementById("app");
 var startupMessage = consumeStartupMessage();
