@@ -1,7 +1,7 @@
-import { updateAppState } from "../app/appState.js?v=1.1.82-shared-command-center-shell";
-import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.82-shared-command-center-shell";
-import { renderUsersRoleCards, renderUsersTableRows } from "./usersRenderer.js?v=1.1.82-shared-command-center-shell";
-import { collectUserRoles } from "../../../../../packages/domain/users/index.js?v=1.1.82-shared-command-center-shell";
+import { updateAppState } from "../app/appState.js?v=1.1.217-super-admin-modules-users-modal-stack";
+import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.217-super-admin-modules-users-modal-stack";
+import { renderUsersRoleCards, renderUsersTableRows } from "./usersRenderer.js?v=1.1.217-super-admin-modules-users-modal-stack";
+import { collectUserRoles } from "../../../../../packages/domain/users/index.js?v=1.1.217-super-admin-modules-users-modal-stack";
 
 export async function loadUsersPage(context) {
   var result = await runAdminIntent("LoadUsersIntent", {}, context || {});

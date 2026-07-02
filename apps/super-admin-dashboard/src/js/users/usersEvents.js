@@ -1,4 +1,4 @@
-import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.82-shared-command-center-shell";
+import { runAdminIntent } from "../../../../../packages/icf/admin/index.js?v=1.1.217-super-admin-modules-users-modal-stack";
 
 export function bindUsersEvents(rootElement, handlers) {
   rootElement.addEventListener("click", function (event) {

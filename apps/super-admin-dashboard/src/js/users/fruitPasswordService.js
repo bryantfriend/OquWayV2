@@ -1,4 +1,4 @@
-import { fruitOptions } from "../../../../../packages/shared/constants/admin.js?v=1.1.82-shared-command-center-shell";
+import { fruitOptions } from "../../../../../packages/shared/constants/admin.js?v=1.1.217-super-admin-modules-users-modal-stack";
 
 export function createRandomFruitPassword() {
   var values = [];

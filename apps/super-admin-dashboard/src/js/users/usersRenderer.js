@@ -1,7 +1,7 @@
-import { roleFilterCards } from "../../../../../packages/shared/constants/admin.js?v=1.1.82-shared-command-center-shell";
-import { escapeHtml, formatDateTime } from "../../../../../packages/shared/formatting/index.js?v=1.1.82-shared-command-center-shell";
-import { collectUserRoles } from "../../../../../packages/domain/users/index.js?v=1.1.82-shared-command-center-shell";
-import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.82-shared-command-center-shell";
+import { roleFilterCards } from "../../../../../packages/shared/constants/admin.js?v=1.1.217-super-admin-modules-users-modal-stack";
+import { escapeHtml, formatDateTime } from "../../../../../packages/shared/formatting/index.js?v=1.1.217-super-admin-modules-users-modal-stack";
+import { collectUserRoles } from "../../../../../packages/domain/users/index.js?v=1.1.217-super-admin-modules-users-modal-stack";
+import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.217-super-admin-modules-users-modal-stack";
 
 export function renderUsersRoleCards(users, selectedRoleFilter) {
   var html = '<section class="sa-role-card-grid" aria-label="Role filters">';

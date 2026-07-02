@@ -1,13 +1,14 @@
 import { getIdTokenResult, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth, collection, db, deleteDoc, doc, functions, getDoc, getDocs, httpsCallable, serverTimestamp, setDoc, storage } from "../../../../../packages/firebase/index.js?v=1.1.82-shared-command-center-shell";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.82-shared-command-center-shell";
-import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.82-shared-command-center-shell";
-import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.82-shared-command-center-shell";
-import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.82-shared-command-center-shell";
-import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.82-shared-command-center-shell";
+import { auth, collection, db, deleteDoc, doc, functions, getDoc, getDocs, httpsCallable, serverTimestamp, setDoc, storage } from "../../../../../packages/firebase/index.js?v=1.1.217-super-admin-modules-users-modal-stack";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.217-super-admin-modules-users-modal-stack";
+import { collectUserRoles, getUserProfile, isTeacherUser, normalizeRoles, normalizeUserRole } from "../../../../../packages/domain/users/index.js?v=1.1.217-super-admin-modules-users-modal-stack";
+import { COURSE_CREATOR_URL, roleFilterCards, userRoleFilterOptions, userStatuses } from "../../../../../packages/shared/constants/admin.js?v=1.1.217-super-admin-modules-users-modal-stack";
+import { getModulesForCourse } from "../../../../../packages/domain/modules/moduleRepository.js?v=1.1.217-super-admin-modules-users-modal-stack";
+import { userRoles } from "../../../../../packages/shared/constants/roles.js?v=1.1.217-super-admin-modules-users-modal-stack";
+import { createCommandCenterDangerZone, createCommandCenterHeader, createCommandCenterKpiGrid, createCommandCenterShell, createCommandCenterTabs, createEmptyState, createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.217-super-admin-modules-users-modal-stack";
 
 var appElement = document.getElementById("app");
-var appVersion = "1.1.85";
+var appVersion = "1.1.217";
 var adminCallableFunctions = functions;
 var state = {
   isLoading: true,
@@ -60,6 +61,7 @@ var state = {
   userForm: createUserForm(),
   activeUserId: "",
   userCreateOpen: false,
+  userCreateSourceLocationId: "",
   userEditModal: createUserEditModalState(),
   classForm: createClassForm(),
   studentForm: createStudentForm(),
@@ -104,6 +106,7 @@ var state = {
     includeAllLocations: false,
     selectedIds: []
   },
+  modalStack: [],
   classStaffPicker: {
     isOpen: false,
     classId: "",
@@ -329,12 +332,13 @@ async function refreshAllData() {
     searchText: state.filters.searchText
   });
   var coursesResult = await readCoursesForAdmin();
+  var courses = readDataList(coursesResult, "courses");
   var assignmentsResult = await readCourseAssignmentsForAdmin({
     courseId: state.assignmentFilters.courseId,
     targetType: state.assignmentFilters.targetType,
     status: state.assignmentFilters.status
   });
-  var overviewData = await loadOverviewData();
+  var overviewData = await loadOverviewData(courses);
   var refreshMessage = readRefreshMessage([locationsResult, classesResult, studentsResult, coursesResult, assignmentsResult]);
 
   setState({
@@ -344,7 +348,7 @@ async function refreshAllData() {
     users: dedupeVisibleUserProfiles(overviewData.users.map(getSafeUser)),
     classes: readDataList(classesResult, "classes"),
     students: readDataList(studentsResult, "students"),
-    courses: readDataList(coursesResult, "courses"),
+    courses: courses,
     assignments: readDataList(assignmentsResult, "assignments"),
     overviewData: overviewData,
     message: refreshMessage,
@@ -352,22 +356,24 @@ async function refreshAllData() {
   });
 }
 
-async function loadOverviewData() {
+async function loadOverviewData(courses) {
   var overviewData = createOverviewData();
   var usersResult = await readOptionalCollection("users");
   var modulesResult = await readOptionalCollection("modules");
+  var courseModulesResult = await readCourseModulesForAdmin(courses || []);
   var auditResult = await readOptionalCollection("auditLogs");
   var activityResult = await readOptionalCollection("activityLogs");
   var externalTaskResult = await readOptionalCollection("externalTaskSubmissions");
 
   overviewData.users = usersResult.items;
-  overviewData.modules = modulesResult.items;
+  overviewData.modules = dedupeRecords(modulesResult.items.concat(courseModulesResult.items));
   overviewData.auditLogs = auditResult.items;
   overviewData.activityLogs = activityResult.items;
   overviewData.externalTaskSubmissions = externalTaskResult.items;
   overviewData.collectionStatus = {
     users: usersResult,
-    modules: modulesResult,
+    modules: mergeCollectionStatuses("modules", [modulesResult, courseModulesResult]),
+    courseModules: courseModulesResult,
     auditLogs: auditResult,
     activityLogs: activityResult,
     externalTaskSubmissions: externalTaskResult
@@ -400,6 +406,74 @@ async function readOptionalCollection(collectionName) {
   return result;
 }
 
+async function readCourseModulesForAdmin(courses) {
+  var result = {
+    name: "courseModules",
+    available: true,
+    items: [],
+    error: ""
+  };
+  var errors = [];
+  var index = 0;
+
+  while (index < courses.length) {
+    var course = courses[index] || {};
+    var courseId = readSafeString(course.id || course.courseId);
+
+    if (courseId) {
+      try {
+        var modules = await getModulesForCourse(courseId, { course: course });
+        modules.forEach(function (moduleRecord) {
+          var moduleId = readSafeString(moduleRecord.id || moduleRecord.moduleId);
+          if (moduleId) {
+            result.items.push(Object.assign({}, moduleRecord, {
+              id: moduleId,
+              moduleId: moduleId,
+              courseId: courseId,
+              catalogCourseId: courseId,
+              parentCourseId: courseId,
+              courseModuleSource: moduleRecord.source || "catalogCourses"
+            }));
+          }
+        });
+      } catch (error) {
+        errors.push(courseId + ": " + (error && error.message ? error.message : "Could not load course modules."));
+      }
+    }
+
+    index = index + 1;
+  }
+
+  if (errors.length > 0) {
+    result.available = false;
+    result.error = errors.join(" ");
+  }
+
+  return result;
+}
+
+function mergeCollectionStatuses(name, statuses) {
+  var errors = [];
+  var available = false;
+  var index = 0;
+
+  while (index < statuses.length) {
+    if (statuses[index] && statuses[index].available !== false) {
+      available = true;
+    }
+    if (statuses[index] && statuses[index].error) {
+      errors.push(statuses[index].error);
+    }
+    index = index + 1;
+  }
+
+  return {
+    name: name,
+    available: available,
+    items: [],
+    error: errors.join(" ")
+  };
+}
 async function readCoursesForAdmin() {
   var coursesResult = await readOptionalCollection("courses");
 
@@ -475,6 +549,60 @@ function render() {
   appElement.innerHTML = buildDashboardView();
 }
 
+function buildModalLayer(key, markup) {
+  if (!markup) {
+    return "";
+  }
+
+  return markup.replace(/^<div class="([^"]*)"/, '<div class="$1 sa-modal-layer" data-modal-layer="' + escapeHtml(key) + '" style="z-index: ' + readModalLayerZIndex(key) + '"');
+}
+
+function readModalLayerZIndex(key) {
+  var stack = Array.isArray(state.modalStack) ? state.modalStack : [];
+  var index = stack.indexOf(key);
+
+  if (index === -1) {
+    index = stack.length;
+  }
+
+  return 80 + (index * 20);
+}
+
+function openModalLayer(key) {
+  var stack = Array.isArray(state.modalStack) ? state.modalStack.slice() : [];
+  var index = stack.indexOf(key);
+
+  if (index !== -1) {
+    stack.splice(index, 1);
+  }
+
+  stack.push(key);
+  return stack;
+}
+
+function closeModalLayer(key) {
+  var stack = Array.isArray(state.modalStack) ? state.modalStack.slice() : [];
+  var index = stack.indexOf(key);
+
+  if (index !== -1) {
+    stack.splice(index, 1);
+  }
+
+  return stack;
+}
+
+function closeModalLayers(keys) {
+  var stack = Array.isArray(state.modalStack) ? state.modalStack.slice() : [];
+
+  keys.forEach(function (key) {
+    var index = stack.indexOf(key);
+    if (index !== -1) {
+      stack.splice(index, 1);
+    }
+  });
+
+  return stack;
+}
 function buildLoadingView() {
   var title = state.authPhase === "profileLoading" ? "Checking admin access..." : "Loading Super Admin Dashboard";
   var note = state.authPhase === "profileLoading" ? "Verifying your profile and permissions." : "Checking access and loading school data.";
@@ -494,7 +622,7 @@ function buildLoginView() {
   return '<section class="sa-access-card sa-login-card"><p class="sa-eyebrow">Admin Login</p><h1>Sign in to Super Admin</h1><p>Use a super admin or platform admin account. We will bring you back here after login.</p>'
     + buildMessage()
     + '<div class="sa-form"><label>Email<input type="email" data-login-field="email" value="' + escapeHtml(state.loginEmail) + '" placeholder="admin@example.com"></label><label><span class="sa-password-label-row"><span>Password</span><button type="button" class="sa-text-link" data-action="open-staff-login-reset">Forgot password?</button></span><input type="password" data-login-field="password" value="' + escapeHtml(state.loginPassword) + '" placeholder="Password"></label><button type="button" class="sa-btn" data-action="admin-login"' + disabled(state.isSaving) + '>' + buildButtonContent("Log in", "admin-login") + '</button><button type="button" class="sa-btn sa-btn-secondary" data-action="go-admin-login">Go to Login</button></div></section>'
-    + buildStaffPasswordResetModal();
+    + buildModalLayer("staffReset", buildStaffPasswordResetModal());
 }
 
 function buildDashboardView() {
@@ -512,19 +640,20 @@ function buildDashboardView() {
   html += buildMessage();
   html += buildActiveTab();
   html += '</main>';
-  html += buildResetModal();
-  html += buildClassCommandCenterModal();
-  html += buildUserCommandCenterModal();
-  html += buildUserEditModal();
-  html += buildCourseCommandCenterModal();
-  html += buildModuleCommandCenterModal();
-  html += buildClassPickerModal();
-  html += buildClassStaffPickerModal();
-  html += buildAssignmentCoursePickerModal();
-  html += buildAssignmentTargetPickerModal();
-  html += buildAssignmentStaffPickerModal();
-  html += buildAssignmentDeleteModal();
-  html += buildLocationCommandCenterModal();
+  html += buildModalLayer("fruitReset", buildResetModal());
+  html += buildModalLayer("classCommandCenter", buildClassCommandCenterModal());
+  html += buildModalLayer("userCommandCenter", buildUserCommandCenterModal());
+  html += buildModalLayer("userEdit", buildUserEditModal());
+  html += buildModalLayer("userCreate", buildUserCreateModal());
+  html += buildModalLayer("courseCommandCenter", buildCourseCommandCenterModal());
+  html += buildModalLayer("moduleCommandCenter", buildModuleCommandCenterModal());
+  html += buildModalLayer("classPicker", buildClassPickerModal());
+  html += buildModalLayer("classStaffPicker", buildClassStaffPickerModal());
+  html += buildModalLayer("assignmentCoursePicker", buildAssignmentCoursePickerModal());
+  html += buildModalLayer("assignmentTargetPicker", buildAssignmentTargetPickerModal());
+  html += buildModalLayer("assignmentStaffPicker", buildAssignmentStaffPickerModal());
+  html += buildModalLayer("assignmentDelete", buildAssignmentDeleteModal());
+  html += buildModalLayer("locationCommandCenter", buildLocationCommandCenterModal());
   html += buildOperationToast();
   html += '</section>';
 
@@ -1380,13 +1509,28 @@ function readActiveUserRoleLabel() {
 }
 
 function buildUserCreatePanel() {
-  if (!state.userCreateOpen) {
+  if (!state.userCreateOpen || state.userCreateSourceLocationId) {
     return "";
   }
 
   return '<article class="sa-card"><div class="sa-section-title"><div><h2>Create User Profile</h2><p>This creates a Firestore profile only. Firebase Auth accounts are not created from this screen.</p></div></div>' + buildUserForm("new", state.userForm, true) + '</article>';
 }
 
+function buildUserCreateModal() {
+  if (!state.userCreateOpen || !state.userCreateSourceLocationId) {
+    return "";
+  }
+
+  var location = findLocation(state.userCreateSourceLocationId);
+  var title = location && location.name ? "Create User for " + location.name : "Create User Profile";
+
+  return '<div class="sa-modal-backdrop sa-user-create-backdrop"><section class="sa-modal sa-user-edit-modal" role="dialog" aria-modal="true" aria-label="Create user">'
+    + '<button type="button" class="sa-modal-close" data-action="close-create-user" aria-label="Close user creator">&times;</button>'
+    + '<div class="sa-section-title"><div><p class="sa-eyebrow">Location Users</p><h2>' + escapeHtml(title) + '</h2><p>This uses the existing authorized Create User profile flow.</p></div></div>'
+    + buildMessage()
+    + '<div class="sa-user-edit-body">' + buildUserForm("new", state.userForm, true) + '</div>'
+    + '</section></div>';
+}
 function buildUserFilters() {
   var html = '<div class="sa-user-filters">';
   html += '<label>Search<input data-user-filter="searchText" value="' + escapeHtml(state.userFilters.searchText) + '" placeholder="Name, email, or phone"></label>';
@@ -2031,9 +2175,22 @@ function buildModuleOverviewTab(moduleRecord, context) {
 
 function buildCourseModulesTab(course, context) {
   var html = '<section class="sa-command-tab-stack">';
+  var moduleResolution = context.moduleResolution || readCourseModuleResolution(course, context.modules || []);
+
+  if (moduleResolution.state === "loading") {
+    return html + createEmptyState("Loading modules...", "Checking the course module catalog for this course.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
+  }
+
+  if (moduleResolution.state === "malformed") {
+    return html + buildCourseModuleWarningState("Course payload needs review.", "This course loaded, but its module relationship could not be prepared safely.") + '</section>';
+  }
+
+  if (moduleResolution.state === "error") {
+    return html + buildCourseModuleErrorState(moduleResolution.message) + '</section>';
+  }
 
   if (context.modules.length === 0) {
-    return html + createEmptyState("No modules found.", "Modules will appear here when connected to this course.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
+    return html + createEmptyState("No connected modules yet.", "This course does not have connected modules yet.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
   }
 
   html += '<div class="sa-command-table sa-course-modules-table"><div class="sa-command-table-head"><span>Module</span><span>Status</span><span>Tracks</span><span>Pages</span><span>Steps</span><span>Updated</span></div>';
@@ -2044,7 +2201,21 @@ function buildCourseModulesTab(course, context) {
   html += '</div></section>';
   return html;
 }
+function buildCourseModuleErrorState(message) {
+  var safeMessage = readSafeString(message) || "Could not load modules for this course.";
 
+  return '<article class="sa-command-panel sa-command-warning-panel">'
+    + '<div class="sa-command-panel-head"><h3>Could not load modules</h3><button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data">Retry</button></div>'
+    + '<p>' + escapeHtml(safeMessage) + '</p>'
+    + '</article>';
+}
+
+function buildCourseModuleWarningState(title, message) {
+  return '<article class="sa-command-panel sa-command-warning-panel">'
+    + '<div class="sa-command-panel-head"><h3>' + escapeHtml(title) + '</h3><button type="button" class="sa-btn sa-btn-secondary" data-action="refresh-data">Retry</button></div>'
+    + '<p>' + escapeHtml(message) + '</p>'
+    + '</article>';
+}
 function buildCourseAssignmentsTab(course, context) {
   var html = '<section class="sa-command-tab-stack">';
 
@@ -2658,10 +2829,10 @@ function buildLocationHealthCard(stats) {
 
 function buildLocationCommandUsersTab(command, location) {
   var users = readLocationCommandUsers(location.id, command.userRoleFilter, command.userSearchText);
-  var html = '<section class="sa-command-tab-stack"><div class="sa-command-toolbar"><label>Role' + buildBasicOptionsSelect('data-location-command-filter="userRole"', command.userRoleFilter, ["student", "teacher", "parent", "admin", "assistant"], "All") + '</label><label>Search<input data-location-command-filter="userSearch" value="' + escapeHtml(command.userSearchText) + '" placeholder="Name, email, UID"></label></div>';
+  var html = '<section class="sa-command-tab-stack"><div class="sa-command-toolbar"><label>Role' + buildLocationUserRoleSelect(location.id, command.userRoleFilter) + '</label><label>Search<input data-location-command-filter="userSearch" value="' + escapeHtml(command.userSearchText) + '" placeholder="Name, email, UID"></label><button type="button" class="sa-btn" data-action="open-location-create-user" data-id="' + escapeHtml(location.id) + '">Create User</button></div>';
 
   if (users.length === 0) {
-    return html + createEmptyState("No users found.", "Try another role filter or search term.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
+    return html + createEmptyState("No users match this filter.", "Try All roles or adjust the search term.", { className: "sa-command-empty", titleTag: "strong", messageTag: "span" }) + '</section>';
   }
 
   html += '<div class="sa-command-table sa-command-users-table"><div class="sa-command-table-head"><span>Avatar</span><span>Name</span><span>Role</span><span>Primary Class</span><span>Status</span></div>';
@@ -2673,6 +2844,61 @@ function buildLocationCommandUsersTab(command, location) {
   return html;
 }
 
+function buildLocationUserRoleSelect(locationId, selectedValue) {
+  var options = readLocationUserRoleOptions(locationId, selectedValue);
+  var html = '<select data-location-command-filter="userRole">';
+  var index = 0;
+
+  while (index < options.length) {
+    html += '<option value="' + escapeHtml(options[index].value) + '"' + selected(selectedValue, options[index].value) + '>' + escapeHtml(options[index].label + ' (' + options[index].count + ')') + '</option>';
+    index = index + 1;
+  }
+
+  html += '</select>';
+  return html;
+}
+
+function readLocationUserRoleOptions(locationId, selectedValue) {
+  var locationUsers = readLocationCommandUsers(locationId, "", "");
+  var roleKeys = ["student", "teacher", "admin"];
+  var options = [{ value: "", label: "All", count: locationUsers.length }];
+  var seen = { student: true, teacher: true, admin: true };
+
+  locationUsers.forEach(function (user) {
+    user.roles.forEach(function (role) {
+      if (!isAdminLikeRole(role) && !seen[role]) {
+        seen[role] = true;
+        roleKeys.push(role);
+      }
+    });
+  });
+
+  roleKeys.forEach(function (roleKey) {
+    var count = countLocationUsersForRoleFilter(locationUsers, roleKey);
+    if (count > 0 || roleKey === selectedValue || roleKey === "student" || roleKey === "teacher" || roleKey === "admin") {
+      options.push({ value: roleKey, label: readRoleLabel(roleKey), count: count });
+    }
+  });
+
+  return options;
+}
+
+function countLocationUsersForRoleFilter(users, roleFilter) {
+  return countItems(users, function (user) {
+    return userMatchesRoleFilter(user, roleFilter);
+  });
+}
+
+function isAdminLikeRole(role) {
+  var normalizedRole = normalizeUserRole(role);
+
+  return normalizedRole === "admin"
+    || normalizedRole === "schoolAdmin"
+    || normalizedRole === "regionalAdmin"
+    || normalizedRole === "ministryUser"
+    || normalizedRole === "platformAdmin"
+    || normalizedRole === "superAdmin";
+}
 function buildLocationCommandClassesTab(location) {
   var classes = readLocationCommandClasses(location.id);
   var html = '<section class="sa-command-tab-stack">';
@@ -3999,6 +4225,41 @@ function updateOverviewFilter(field, value) {
   render();
 }
 
+function openCreateUserFromLocation(locationId) {
+  var location = findLocation(locationId);
+  var locationIds = location && location.id ? [location.id] : [];
+
+  if (!location || !location.id) {
+    setState({ message: "Choose a location first.", messageType: "error" });
+    return;
+  }
+
+  setState({
+    userCreateOpen: true,
+    userCreateSourceLocationId: location.id,
+    activeUserId: "",
+    userForm: Object.assign(createUserForm(), {
+      locationIds: locationIds,
+      primaryLocationId: location.id
+    }),
+    modalStack: openModalLayer("userCreate"),
+    message: ""
+  });
+}
+
+function closeCreateUser() {
+  if (state.isSaving) {
+    return;
+  }
+
+  setState({
+    userCreateOpen: false,
+    userCreateSourceLocationId: "",
+    userForm: createUserForm(),
+    modalStack: closeModalLayer("userCreate"),
+    message: ""
+  });
+}
 function updateLocationCommandFilter(field, value) {
   var nextState = Object.assign({}, state.locationCommandCenter);
 
@@ -4034,6 +4295,7 @@ function openLocationCommandCenter(locationId) {
       isOpen: true,
       locationId: location.id
     }),
+    modalStack: openModalLayer("locationCommandCenter"),
     message: ""
   });
 }
@@ -4042,6 +4304,7 @@ function closeLocationCommandCenter() {
   setState({
     locationCommandCenter: createLocationCommandCenterState(),
     activeLocationId: "",
+    modalStack: closeModalLayer("locationCommandCenter"),
     message: ""
   });
 }
@@ -4151,6 +4414,7 @@ async function openClassCommandCenter(classId) {
       isOpen: true,
       classId: form.classId
     }),
+    modalStack: openModalLayer("classCommandCenter"),
     message: ""
   });
 }
@@ -4158,6 +4422,7 @@ async function openClassCommandCenter(classId) {
 function closeClassCommandCenter() {
   setState({
     classCommandCenter: createClassCommandCenterState(),
+    modalStack: closeModalLayer("classCommandCenter"),
     message: ""
   });
 }
@@ -4200,6 +4465,7 @@ async function openUserCommandCenter(userId) {
       isOpen: true,
       userId: user.id
     }),
+    modalStack: openModalLayer("userCommandCenter"),
     message: ""
   });
 }
@@ -4208,6 +4474,7 @@ function closeUserCommandCenter() {
   setState({
     userCommandCenter: createUserCommandCenterState(),
     activeUserId: "",
+    modalStack: closeModalLayer("userCommandCenter"),
     message: ""
   });
 }
@@ -4286,6 +4553,7 @@ async function openCourseCommandCenter(courseId) {
       courseId: course.id
     }),
     moduleCommandCenter: createModuleCommandCenterState(),
+    modalStack: openModalLayer("courseCommandCenter"),
     message: ""
   });
 }
@@ -4294,6 +4562,7 @@ function closeCourseCommandCenter() {
   setState({
     courseCommandCenter: createCourseCommandCenterState(),
     moduleCommandCenter: createModuleCommandCenterState(),
+    modalStack: closeModalLayers(["courseCommandCenter", "moduleCommandCenter"]),
     message: ""
   });
 }
@@ -4341,6 +4610,7 @@ async function openModuleCommandCenter(value) {
       courseId: ids.courseId,
       moduleId: moduleRecord.id
     }),
+    modalStack: openModalLayer("moduleCommandCenter"),
     message: ""
   });
 }
@@ -4348,6 +4618,7 @@ async function openModuleCommandCenter(value) {
 function closeModuleCommandCenter() {
   setState({
     moduleCommandCenter: createModuleCommandCenterState(),
+    modalStack: closeModalLayer("moduleCommandCenter"),
     message: ""
   });
 }
@@ -4557,6 +4828,7 @@ function openClassPicker(formId, mode) {
     ? (form.classId ? [form.classId] : [])
     : splitCommaList(form.classIdsText);
 
+  state.modalStack = openModalLayer("classPicker");
   state.classPicker = {
     isOpen: true,
     formId: formId,
@@ -4569,6 +4841,7 @@ function openClassPicker(formId, mode) {
 }
 
 function closeClassPicker() {
+  state.modalStack = closeModalLayer("classPicker");
   state.classPicker = {
     isOpen: false,
     formId: "",
@@ -4585,6 +4858,7 @@ function openClassStaffPicker(classId, mode) {
   var form = normalizeClassForm(classRecord);
   var selectedIds = mode === "assistants" ? form.assistantIds.slice() : (form.primaryTeacherId ? [form.primaryTeacherId] : []);
 
+  state.modalStack = openModalLayer("classStaffPicker");
   state.classStaffPicker = {
     isOpen: true,
     classId: classId,
@@ -4596,6 +4870,7 @@ function openClassStaffPicker(classId, mode) {
 }
 
 function closeClassStaffPicker() {
+  state.modalStack = closeModalLayer("classStaffPicker");
   state.classStaffPicker = {
     isOpen: false,
     classId: "",
@@ -4670,6 +4945,7 @@ function openUserEditModal(userId) {
       draft: normalizeUserForm(user),
       error: ""
     },
+    modalStack: openModalLayer("userEdit"),
     message: ""
   });
 }
@@ -4682,6 +4958,7 @@ function closeUserEditModal() {
   setState({
     activeUserId: "",
     userEditModal: createUserEditModalState(),
+    modalStack: closeModalLayer("userEdit"),
     message: ""
   });
 }
@@ -4822,7 +5099,15 @@ async function handleAction(action, id) {
   } else if (action === "restore-location") {
     await archiveLocation(id, false);
   } else if (action === "toggle-create-user") {
-    setState({ userCreateOpen: !state.userCreateOpen, activeUserId: "", message: "" });
+    if (state.userCreateOpen) {
+      closeCreateUser();
+    } else {
+      setState({ userCreateOpen: true, userCreateSourceLocationId: "", activeUserId: "", userForm: createUserForm(), message: "" });
+    }
+  } else if (action === "open-location-create-user") {
+    openCreateUserFromLocation(id);
+  } else if (action === "close-create-user") {
+    closeCreateUser();
   } else if (action === "edit-user" || action === "open-user-command-center") {
     await openUserCommandCenter(id);
   } else if (action === "close-user-command-center") {
@@ -4955,7 +5240,7 @@ async function handleAction(action, id) {
       openFruitPasswordReset(id);
     }
   } else if (action === "close-reset-fruit") {
-    setState({ resetStudentId: "", resetFruitPassword: [], fruitResetSaveStatus: "", fruitResetSaveMessage: "" });
+    setState({ resetStudentId: "", resetFruitPassword: [], fruitResetSaveStatus: "", fruitResetSaveMessage: "", modalStack: closeModalLayer("fruitReset") });
   } else if (action === "regenerate-reset-fruit") {
     setState({ resetFruitPassword: createRandomFruitPassword(), fruitResetSaveStatus: "", fruitResetSaveMessage: "", message: "" });
   } else if (action === "confirm-reset-fruit") {
@@ -5221,6 +5506,7 @@ function openStaffLoginPasswordReset() {
     staffResetEmail: state.staffResetEmail || state.loginEmail,
     staffResetStatus: "",
     staffResetStatusType: "info",
+    modalStack: openModalLayer("staffReset"),
     message: ""
   });
 }
@@ -5229,7 +5515,8 @@ function closeStaffLoginPasswordReset() {
   setState({
     staffResetOpen: false,
     staffResetStatus: "",
-    staffResetStatusType: "info"
+    staffResetStatusType: "info",
+    modalStack: closeModalLayer("staffReset")
   });
 }
 
@@ -5389,6 +5676,7 @@ function openAssignmentCoursePicker() {
       statusFilter: "",
       isLoading: true
     },
+    modalStack: openModalLayer("assignmentCoursePicker"),
     message: ""
   });
   window.setTimeout(function () {
@@ -5400,6 +5688,7 @@ function openAssignmentCoursePicker() {
 }
 
 function closeAssignmentCoursePicker(shouldRender) {
+  state.modalStack = closeModalLayer("assignmentCoursePicker");
   state.assignmentCoursePicker = {
     isOpen: false,
     searchText: "",
@@ -5429,6 +5718,7 @@ function openAssignmentTargetPicker() {
       includeAllLocations: false,
       isLoading: true
     },
+    modalStack: openModalLayer("assignmentTargetPicker"),
     message: ""
   });
   window.setTimeout(function () {
@@ -5440,6 +5730,7 @@ function openAssignmentTargetPicker() {
 }
 
 function closeAssignmentTargetPicker(shouldRender) {
+  state.modalStack = closeModalLayer("assignmentTargetPicker");
   state.assignmentTargetPicker = {
     isOpen: false,
     targetType: "class",
@@ -5489,6 +5780,7 @@ function openAssignmentStaffPicker(assignmentId, mode) {
     ? ownership.assistantIds.slice()
     : (ownership.responsibleTeacherId ? [ownership.responsibleTeacherId] : []);
 
+  state.modalStack = openModalLayer("assignmentStaffPicker");
   state.assignmentStaffPicker = {
     isOpen: true,
     assignmentId: assignmentId || "new",
@@ -5500,6 +5792,7 @@ function openAssignmentStaffPicker(assignmentId, mode) {
 }
 
 function closeAssignmentStaffPicker() {
+  state.modalStack = closeModalLayer("assignmentStaffPicker");
   state.assignmentStaffPicker = {
     isOpen: false,
     assignmentId: "",
@@ -5591,6 +5884,7 @@ function openDeleteAssignmentModal(assignmentId) {
       status: "",
       message: ""
     },
+    modalStack: openModalLayer("assignmentDelete"),
     message: ""
   });
 }
@@ -5601,7 +5895,8 @@ function closeDeleteAssignmentModal() {
       assignmentId: "",
       status: "",
       message: ""
-    }
+    },
+    modalStack: closeModalLayer("assignmentDelete")
   });
 }
 
@@ -5736,6 +6031,8 @@ async function saveUserProfile(mode, userId) {
     if (mode === "create") {
       state.userForm = createUserForm();
       state.userCreateOpen = false;
+      state.userCreateSourceLocationId = "";
+      state.modalStack = closeModalLayer("userCreate");
     }
 
     state.activeUserId = "";
@@ -5828,7 +6125,7 @@ function openFruitPasswordReset(userId) {
     return;
   }
 
-  setState({ resetStudentId: userId, resetFruitPassword: fruitPassword, fruitResetSaveStatus: "", fruitResetSaveMessage: "", message: "" });
+  setState({ resetStudentId: userId, resetFruitPassword: fruitPassword, fruitResetSaveStatus: "", fruitResetSaveMessage: "", modalStack: openModalLayer("fruitReset"), message: "" });
 }
 
 async function authorizeTeacherLogin(userId) {
@@ -8949,6 +9246,10 @@ function userMatchesRoleFilter(user, roleFilter) {
     return true;
   }
 
+  if (safeFilter === "admin" && isAdminLikeUser(safeUser)) {
+    return true;
+  }
+
   if (!card || card.roles.length === 0) {
     return roles.indexOf(normalizeUserRole(safeFilter)) !== -1;
   }
@@ -9112,7 +9413,7 @@ function readUserDisplayName(userId) {
 
 function getSafeUser(user) {
   var safeUser = user || {};
-  var roles = collectUserRoles(safeUser);
+  var roles = mergeRoleLists(collectUserRoles(safeUser), [safeUser.roleType, safeUser.userType]);
   var locationIds = normalizeIdList(safeUser.locationIds || safeUser.locations || safeUser.locationId);
   var primaryLocationId = readSafeString(safeUser.primaryLocationId || safeUser.locationId);
 
@@ -9615,6 +9916,7 @@ function readCourseCompletionLabel(context) {
 
 function readCourseCommandContext(course) {
   var modules = readCourseCommandModules(course);
+  var moduleResolution = readCourseModuleResolution(course, modules);
   var assignments = readCourseCommandAssignments(course.id);
   var classes = readCourseCommandClasses(assignments);
   var locations = readCourseCommandLocations(assignments, classes, course);
@@ -9625,6 +9927,7 @@ function readCourseCommandContext(course) {
   return {
     course: course,
     modules: modules,
+    moduleResolution: moduleResolution,
     assignments: assignments,
     classes: classes,
     locations: locations,
@@ -9691,9 +9994,49 @@ function moduleBelongsToCourse(moduleRecord, courseId) {
     return false;
   }
 
-  return readSafeString(moduleRecord.courseId || moduleRecord.catalogCourseId || moduleRecord.parentCourseId || moduleRecord.courseRefId) === courseId;
+  var courseIds = normalizeMixedIdList([
+    moduleRecord.courseId,
+    moduleRecord.catalogCourseId,
+    moduleRecord.parentCourseId,
+    moduleRecord.courseRefId,
+    moduleRecord.courseIds,
+    moduleRecord.catalogCourseIds,
+    moduleRecord.parentCourseIds
+  ]);
+
+  return courseIds.indexOf(courseId) !== -1;
 }
 
+function readCourseModuleResolution(course, modules) {
+  var courseId = readSafeString(course && (course.id || course.courseId));
+  var courseModulesStatus = state.overviewData && state.overviewData.collectionStatus ? state.overviewData.collectionStatus.courseModules : null;
+
+  if (!courseId) {
+    return {
+      state: "malformed",
+      message: "The selected course does not have a usable course id."
+    };
+  }
+
+  if (state.isRefreshing && modules.length === 0) {
+    return {
+      state: "loading",
+      message: "Loading modules for this course."
+    };
+  }
+
+  if (courseModulesStatus && courseModulesStatus.available === false && modules.length === 0) {
+    return {
+      state: "error",
+      message: courseModulesStatus.error || "Could not load course modules."
+    };
+  }
+
+  return {
+    state: "ready",
+    message: ""
+  };
+}
 function readCourseCommandAssignments(courseId) {
   return state.assignments.filter(function (assignment) {
     return readSafeString(assignment.courseId || assignment.catalogCourseId) === courseId;
@@ -10492,6 +10835,9 @@ function readRoleLabel(role) {
     student: "Student",
     teacher: "Teacher",
     parent: "Parent",
+    assistant: "Assistant",
+    admin: "Admin",
+    courseCreator: "Course Creator",
     schoolAdmin: "School Admin",
     regionalAdmin: "Regional Admin",
     ministryUser: "Ministry User",
