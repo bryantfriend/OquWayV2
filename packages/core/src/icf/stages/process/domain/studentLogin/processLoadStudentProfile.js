@@ -1,5 +1,5 @@
-import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
-import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.82-shared-command-center-shell";
+import { db, doc, getDoc } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.220-student-dashboard-timeout-helper";
+import { hasStudentRole, isActiveStudentProfile, sanitizeProfile } from "./studentLoginHelpers.js?v=1.1.220-student-dashboard-timeout-helper";
 
 export async function processLoadStudentProfile(executionState) {
   var actor = executionState.actor;

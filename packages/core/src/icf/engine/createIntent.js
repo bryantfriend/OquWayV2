@@ -1,6 +1,6 @@
 // createIntent.js
 
-import { getIntentDefinition } from "./intentRegistry.js?v=1.1.219-course-creator-all-courses";
+import { getIntentDefinition } from "./intentRegistry.js?v=1.1.220-student-dashboard-timeout-helper";
 
 export function createIntent(intentInput) {
   const intentType = readIntentType(intentInput);

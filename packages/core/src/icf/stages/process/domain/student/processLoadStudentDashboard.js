@@ -1,5 +1,5 @@
-import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.85-visual-helpers-syntax";
-import { processContinueLearning } from "./processContinueLearning.js?v=1.1.82-shared-command-center-shell";
+import { processLoadStudentCourse } from "./processLoadStudentCourse.js?v=1.1.220-student-dashboard-timeout-helper";
+import { processContinueLearning } from "./processContinueLearning.js?v=1.1.220-student-dashboard-timeout-helper";
 import { calculateCourseCompletion, calculateCourseProgressSummary } from "../../../../../../../domain/progress/index.js";
 
 export async function processLoadStudentDashboard(executionState) {

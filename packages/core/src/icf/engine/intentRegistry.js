@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.219-course-creator-all-courses";
+import * as IntentExports from "../intents/intents.js?v=1.1.220-student-dashboard-timeout-helper";
 
 const registry = {
   // Demo Verification

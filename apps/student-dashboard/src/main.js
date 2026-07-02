@@ -1,6 +1,6 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.218-dashboard-calm-teacher-functional";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.218-dashboard-calm-teacher-functional";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.220-student-dashboard-timeout-helper";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.220-student-dashboard-timeout-helper";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,16 +13,16 @@ import {
   readModuleLearningStatus,
   readModuleLastOpenedAt,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.218-dashboard-calm-teacher-functional";
+} from "../../../packages/domain/progress/index.js?v=1.1.220-student-dashboard-timeout-helper";
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.218-dashboard-calm-teacher-functional";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.218-dashboard-calm-teacher-functional";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.218-dashboard-calm-teacher-functional";
+} from "../../../packages/ui/index.js?v=1.1.220-student-dashboard-timeout-helper";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.220-student-dashboard-timeout-helper";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.220-student-dashboard-timeout-helper";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;

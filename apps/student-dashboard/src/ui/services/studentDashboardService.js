@@ -1,7 +1,7 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.218-dashboard-calm-teacher-functional";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.218-dashboard-calm-teacher-functional";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.218-dashboard-calm-teacher-functional";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.218-dashboard-calm-teacher-functional";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.220-student-dashboard-timeout-helper";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.220-student-dashboard-timeout-helper";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.220-student-dashboard-timeout-helper";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.220-student-dashboard-timeout-helper";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
@@ -342,6 +342,29 @@ async function runStudentIntent(intentType, payload) {
       source: "student-dashboard"
     }
   });
+}
+
+async function runStudentIntentWithTimeout(intentType, payload, timeoutMs) {
+  var safeTimeoutMs = typeof timeoutMs === "number" && timeoutMs > 0 ? timeoutMs : 30000;
+  var timeoutId = null;
+  var timeoutPromise = new Promise(function (_resolve, reject) {
+    timeoutId = window.setTimeout(function () {
+      var timeoutError = new Error("STUDENT_DASHBOARD_LOAD_TIMEOUT");
+      timeoutError.intentType = intentType;
+      reject(timeoutError);
+    }, safeTimeoutMs);
+  });
+
+  try {
+    return await Promise.race([
+      runStudentIntent(intentType, payload),
+      timeoutPromise
+    ]);
+  } finally {
+    if (timeoutId !== null) {
+      window.clearTimeout(timeoutId);
+    }
+  }
 }
 
 function getActor() {
