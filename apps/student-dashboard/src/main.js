@@ -1,6 +1,6 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.87-student-course-open-fix";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.87-student-course-open-fix";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.216-student-dashboard-staff-login";
+import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.216-student-dashboard-staff-login";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,16 +13,16 @@ import {
   readModuleLearningStatus,
   readModuleLastOpenedAt,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.87-student-course-open-fix";
+} from "../../../packages/domain/progress/index.js?v=1.1.216-student-dashboard-staff-login";
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.87-student-course-open-fix";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.87-student-course-open-fix";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.87-student-course-open-fix";
+} from "../../../packages/ui/index.js?v=1.1.216-student-dashboard-staff-login";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.216-student-dashboard-staff-login";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.216-student-dashboard-staff-login";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
@@ -35,6 +35,10 @@ studentDashboardStore.subscribe(function (state) {
 
 if (appElement) {
   appElement.addEventListener("click", handleAppClick);
+  console.log("[StudentDashboard] render target", appElement);
+  render(studentDashboardStore.getState());
+} else {
+  console.error("[StudentDashboard] render target missing: #app");
 }
 
 onAuthStateChanged(auth, function (user) {
@@ -151,6 +155,12 @@ window.goStudentLogin = resetStudentLogin;
 window.resetStudentLogin = resetStudentLogin;
 
 function render(state) {
+  console.log("[StudentDashboard] render called", {
+    isLoading: state && state.isLoading === true,
+    hasError: Boolean(state && state.error),
+    courseCount: state && Array.isArray(state.courses) ? state.courses.length : 0
+  });
+
   if (!appElement) {
     return;
   }
@@ -535,6 +545,11 @@ function buildDashboardView(state) {
       className: "student-error",
       titleTag: "span"
     });
+
+    if (courses.length === 0) {
+      html += '<div class="student-error-actions"><button type="button" class="student-reload-btn">Retry</button></div>';
+      return html;
+    }
   }
 
   if (state.statusMessage) {
@@ -542,7 +557,7 @@ function buildDashboardView(state) {
   }
 
   if (courses.length === 0) {
-    html += createEmptyState("No assigned courses yet", "No courses assigned yet.", {
+    html += createEmptyState("No assigned courses yet", "No courses are assigned yet. Please ask your teacher to assign a course.", {
       className: "student-empty",
       beforeHtml: '<img class="student-empty-illustration" src="./src/assets/empty-courses.svg" alt="">',
       afterHtml: buildDailyBonusCard(state.dailyBonus, true) + buildIntentionPoints(state.intentionPoints)

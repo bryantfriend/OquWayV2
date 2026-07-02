@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../firebase/index.js";
+import { collection, db, getDocs, query, where } from "../../firebase/firestore/index.js?v=1.1.216-student-dashboard-staff-login";
 import { isStudentProfile } from "./roleService.js";
 
 export async function getStudentsForClasses(classIds) {

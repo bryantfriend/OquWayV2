@@ -1,7 +1,7 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.85-visual-helpers-syntax";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.85-visual-helpers-syntax";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.85-visual-helpers-syntax";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.85-visual-helpers-syntax";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.216-student-dashboard-staff-login";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.216-student-dashboard-staff-login";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.216-student-dashboard-staff-login";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.216-student-dashboard-staff-login";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {
@@ -15,10 +15,12 @@ export const studentDashboardService = {
     }
 
     try {
-      var result = await runStudentIntent("LoadStudentProfileIntent", {});
+      var profileResult = await runStudentIntent("LoadStudentProfileIntent", {});
+      console.log("[StudentDashboard] profile result", profileResult);
 
-      if (result && result.emitted && result.emitted.success) {
-        var profile = result.emitted.data.student;
+      if (profileResult && profileResult.emitted && profileResult.emitted.success) {
+        var profileData = readIntentData(profileResult);
+        var profile = profileData.student;
         logStartupProfileResult(true, profile);
 
         if (isValidStudentProfile(profile)) {
@@ -30,7 +32,7 @@ export const studentDashboardService = {
       }
 
       logStartupProfileResult(false, null);
-      throw new Error(readIntentErrorMessage(result));
+      throw new Error(readIntentErrorMessage(profileResult));
     } catch (error) {
       studentDashboardStore.setState({
         isLoading: false,
@@ -65,29 +67,40 @@ export const studentDashboardService = {
         return null;
       }
 
-      var result = await runStudentIntent("LoadStudentDashboardIntent", {});
+      var dashboardResult = await runStudentIntentWithTimeout("LoadStudentDashboardIntent", {}, 30000);
+      console.log("[StudentDashboard] dashboard result", dashboardResult);
+      console.log("[StudentDashboard] dashboard result keys", Object.keys(dashboardResult || {}));
 
-      if (result && result.emitted && result.emitted.success) {
-        var courses = result.emitted.data.courses || [];
+      if (dashboardResult && dashboardResult.emitted && dashboardResult.emitted.success) {
+        var dashboardPayload = resolveDashboardPayload(dashboardResult);
+        var courses = dashboardPayload.courses;
+        console.log("[StudentDashboard] resolved dashboard payload", dashboardPayload);
+        console.log("[StudentDashboard] resolved courses", courses);
+        console.log("[StudentDashboard] resolved modules", readDashboardModulesForDebug(courses));
         studentDashboardStore.setState({
           isLoading: false,
-          student: result.emitted.data.student,
+          student: dashboardPayload.student,
           courses: courses,
-          continueLearning: result.emitted.data.continueLearning || null,
-          dailyBonus: result.emitted.data.dailyBonus || null,
-          intentionPoints: result.emitted.data.intentionPoints || createEmptyIntentionPoints(),
-          progressSummary: result.emitted.data.progressSummary || null,
+          continueLearning: dashboardPayload.continueLearning || null,
+          dailyBonus: dashboardPayload.dailyBonus || null,
+          intentionPoints: dashboardPayload.intentionPoints || createEmptyIntentionPoints(),
+          progressSummary: dashboardPayload.progressSummary || null,
           selectedCourseId: readFirstCourseId(courses),
           actorIsPreview: auth.currentUser ? false : true
         });
-        return result.emitted.data;
+        return dashboardPayload;
       }
 
-      throw new Error(readIntentErrorMessage(result));
+      throw new Error(readIntentErrorMessage(dashboardResult));
     } catch (error) {
+      console.warn("[StudentDashboard] dashboard hydration failed", {
+        message: error.message
+      });
       studentDashboardStore.setState({
         isLoading: false,
-        error: "Could not load courses.",
+        error: error && error.message === "MALFORMED_STUDENT_DASHBOARD_PAYLOAD"
+          ? "We loaded your profile, but could not prepare your dashboard."
+          : readDashboardLoadErrorMessage(error),
         statusMessage: "",
         actorIsPreview: auth.currentUser ? false : true
       });
@@ -102,7 +115,7 @@ export const studentDashboardService = {
       });
 
       if (result && result.emitted && result.emitted.success) {
-        return result.emitted.data.continueLearning;
+        return readIntentData(result).continueLearning;
       }
 
       throw new Error(readIntentErrorMessage(result));
@@ -133,14 +146,15 @@ export const studentDashboardService = {
       });
 
       if (result && result.emitted && result.emitted.success) {
+        var openCourseData = readIntentData(result);
         console.info("[student-course:open-result]", {
           courseId: courseId,
-          hasCourse: Boolean(result.emitted.data.course),
-          moduleCount: result.emitted.data.modules ? result.emitted.data.modules.length : 0,
-          hasActivity: result.emitted.data.hasActivity === true,
-          openTarget: result.emitted.data.openTarget || null
+          hasCourse: Boolean(openCourseData.course),
+          moduleCount: openCourseData.modules ? openCourseData.modules.length : 0,
+          hasActivity: openCourseData.hasActivity === true,
+          openTarget: openCourseData.openTarget || null
         });
-        return result.emitted.data;
+        return openCourseData;
       }
 
       throw new Error(readIntentErrorMessage(result));
@@ -164,11 +178,12 @@ export const studentDashboardService = {
       var result = await runStudentIntent("ClaimDailyBonusIntent", {});
 
       if (result && result.emitted && result.emitted.success) {
+        var bonusData = readIntentData(result);
         studentDashboardStore.setState({
-          dailyBonus: result.emitted.data.dailyBonus,
+          dailyBonus: bonusData.dailyBonus,
           statusMessage: "Daily bonus claimed."
         });
-        return result.emitted.data.dailyBonus;
+        return bonusData.dailyBonus;
       }
 
       throw new Error(readIntentErrorMessage(result));
@@ -197,7 +212,7 @@ export const studentDashboardService = {
       });
 
       if (result && result.emitted && result.emitted.success) {
-        return result.emitted.data;
+        return readIntentData(result);
       }
 
       throw new Error(readIntentErrorMessage(result));
@@ -228,7 +243,7 @@ export const studentDashboardService = {
       });
 
       if (result && result.emitted && result.emitted.success) {
-        return result.emitted.data;
+        return readIntentData(result);
       }
 
       throw new Error(readIntentErrorMessage(result));
@@ -258,7 +273,7 @@ export const studentDashboardService = {
       });
 
       if (result && result.emitted && result.emitted.success) {
-        return result.emitted.data;
+        return readIntentData(result);
       }
 
       throw new Error(readIntentErrorMessage(result));
@@ -289,7 +304,7 @@ export const studentDashboardService = {
           isSavingProgress: false,
           statusMessage: "Submitted for teacher review."
         });
-        return result.emitted.data;
+        return readIntentData(result);
       }
 
       throw new Error(readIntentErrorMessage(result));
@@ -308,7 +323,7 @@ export const studentDashboardService = {
       var result = await runStudentIntent("LoadStudentExternalTaskSubmissionIntent", payload || {});
 
       if (result && result.emitted && result.emitted.success) {
-        return result.emitted.data;
+        return readIntentData(result);
       }
 
       return null;
@@ -446,6 +461,83 @@ function createEmptyIntentionPoints() {
   };
 }
 
+function readDashboardModulesForDebug(courses) {
+  var modules = [];
+  var safeCourses = Array.isArray(courses) ? courses : [];
+  var courseIndex = 0;
+
+  while (courseIndex < safeCourses.length) {
+    var course = safeCourses[courseIndex];
+    var courseModules = course && Array.isArray(course.modules) ? course.modules : [];
+    var moduleIndex = 0;
+
+    while (moduleIndex < courseModules.length) {
+      modules.push(courseModules[moduleIndex]);
+      moduleIndex = moduleIndex + 1;
+    }
+
+    courseIndex = courseIndex + 1;
+  }
+
+  return modules;
+}
+
+function readDashboardLoadErrorMessage(error) {
+  if (error && error.message === "STUDENT_DASHBOARD_LOAD_TIMEOUT") {
+    return "Could not load courses. Please check your connection and try again.";
+  }
+
+  return "Could not load courses.";
+}
+
+function readIntentData(result) {
+  var data = result && result.emitted ? result.emitted.data : null;
+
+  if (data && typeof data === "object" && data.valid === true && data.data && typeof data.data === "object") {
+    return data.data;
+  }
+
+  if (data && typeof data === "object" && data.ok === true && data.data && typeof data.data === "object") {
+    return data.data;
+  }
+
+  return data || {};
+}
+
+function resolveDashboardPayload(result) {
+  var payload = readIntentData(result);
+
+  if (!isValidDashboardPayload(payload)) {
+    console.warn("[StudentDashboard] malformed dashboard payload", {
+      hasPayload: Boolean(payload),
+      hasStudent: Boolean(payload && payload.student),
+      coursesIsArray: Boolean(payload && Array.isArray(payload.courses)),
+      keys: payload && typeof payload === "object" ? Object.keys(payload) : []
+    });
+    throw new Error("MALFORMED_STUDENT_DASHBOARD_PAYLOAD");
+  }
+
+  return {
+    student: payload.student || null,
+    courses: payload.courses,
+    continueLearning: payload.continueLearning || null,
+    dailyBonus: payload.dailyBonus || null,
+    intentionPoints: payload.intentionPoints || createEmptyIntentionPoints(),
+    progressSummary: payload.progressSummary || null
+  };
+}
+
+function isValidDashboardPayload(payload) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return false;
+  }
+
+  if (!Array.isArray(payload.courses)) {
+    return false;
+  }
+
+  return true;
+}
 function summarizeCoursesForContinue(courses) {
   var summaries = [];
   var courseIndex = 0;
