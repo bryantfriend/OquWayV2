@@ -1,13 +1,13 @@
-import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.82-shared-command-center-shell';
-import { courseEditorService } from '../services/courseEditorService.js?v=1.1.82-shared-command-center-shell';
-import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.82-shared-command-center-shell';
-import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.82-shared-command-center-shell';
+import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.219-course-creator-all-courses';
+import { courseEditorService } from '../services/courseEditorService.js?v=1.1.219-course-creator-all-courses';
+import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.219-course-creator-all-courses';
+import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.219-course-creator-all-courses';
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge
-} from '../../../../../packages/ui/index.js?v=1.1.82-shared-command-center-shell';
+} from '../../../../../packages/ui/index.js?v=1.1.219-course-creator-all-courses';
 
 export class CourseOverviewPage {
   constructor(courseId, options) {
@@ -481,7 +481,7 @@ export class CourseOverviewPage {
       }
 
       body.innerHTML = buildCoursePreview(result.emitted.data.course);
-      
+
       // Trigger animation
       setTimeout(function() {
         modal.firstElementChild.setAttribute("data-open", "true");

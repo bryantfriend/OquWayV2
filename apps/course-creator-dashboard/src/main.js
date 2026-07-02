@@ -1,11 +1,11 @@
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.82-shared-command-center-shell";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.219-course-creator-all-courses";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.82-shared-command-center-shell";
-import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.82-shared-command-center-shell";
-import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.82-shared-command-center-shell";
-import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.82-shared-command-center-shell";
-import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.82-shared-command-center-shell";
-import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.82-shared-command-center-shell";
+import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.219-course-creator-all-courses";
+import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.219-course-creator-all-courses";
+import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.219-course-creator-all-courses";
+import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.219-course-creator-all-courses";
+import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.219-course-creator-all-courses";
+import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.219-course-creator-all-courses";
 
 console.warn("[course-creator-build-check] latest build active");
 

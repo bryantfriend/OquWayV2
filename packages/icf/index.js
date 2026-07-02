@@ -1,3 +1,3 @@
-export { createIntent } from "../core/src/icf/engine/createIntent.js?v=1.1.218-dashboard-calm-teacher-functional";
-export { runIntentPipeline } from "../core/src/icf/engine/runIntentPipeline.js?v=1.1.218-dashboard-calm-teacher-functional";
-export { getIntentDefinition } from "../core/src/icf/engine/intentRegistry.js?v=1.1.218-dashboard-calm-teacher-functional";
+export { createIntent } from "../core/src/icf/engine/createIntent.js?v=1.1.219-course-creator-all-courses";
+export { runIntentPipeline } from "../core/src/icf/engine/runIntentPipeline.js?v=1.1.219-course-creator-all-courses";
+export { getIntentDefinition } from "../core/src/icf/engine/intentRegistry.js?v=1.1.219-course-creator-all-courses";

@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.218-dashboard-calm-teacher-functional";
+import * as IntentExports from "../intents/intents.js?v=1.1.219-course-creator-all-courses";
 
 const registry = {
   // Demo Verification

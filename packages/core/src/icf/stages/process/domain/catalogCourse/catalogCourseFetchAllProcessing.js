@@ -1,4 +1,4 @@
-import { db, collection, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
+import { db, collection, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.219-course-creator-all-courses";
 
 const COURSE_COUNT_CONCURRENCY = 8;
 
@@ -35,23 +35,20 @@ export async function catalogCourseFetchAllProcessing(executionState) {
 
 async function readCatalogCoursesWithLegacyFallback() {
   const coursesById = {};
+  const legacyCoursesSnapshot = await getDocs(collection(db, "courses"));
   const catalogCoursesSnapshot = await getDocs(query(collection(db, "catalogCourses"), where("isDeleted", "==", false)));
+
+  legacyCoursesSnapshot.forEach(function (courseDoc) {
+    const course = Object.assign({ id: courseDoc.id, courseRecordSource: "courses" }, courseDoc.data());
+
+    if (course.isDeleted !== true) {
+      coursesById[courseDoc.id] = course;
+    }
+  });
 
   catalogCoursesSnapshot.forEach(function (courseDoc) {
     coursesById[courseDoc.id] = Object.assign({ id: courseDoc.id, courseRecordSource: "catalogCourses" }, courseDoc.data());
   });
-
-  if (Object.keys(coursesById).length === 0) {
-    const legacyCoursesSnapshot = await getDocs(collection(db, "courses"));
-
-    legacyCoursesSnapshot.forEach(function (courseDoc) {
-      const course = Object.assign({ id: courseDoc.id, courseRecordSource: "courses" }, courseDoc.data());
-
-      if (course.isDeleted !== true) {
-        coursesById[courseDoc.id] = course;
-      }
-    });
-  }
 
   return Object.keys(coursesById).map(function (courseId) {
     return coursesById[courseId];

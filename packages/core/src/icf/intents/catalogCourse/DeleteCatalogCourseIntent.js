@@ -1,10 +1,10 @@
-import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
-import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
-import { attachExistingCourseContext } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
-import { requireSuperAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.82-shared-command-center-shell";
-import { preventDeleteIfInUseAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.82-shared-command-center-shell";
-import { catalogCourseDeleteProcessing } from "../../stages/process/processors.js?v=1.1.82-shared-command-center-shell";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.82-shared-command-center-shell";
+import { attachActorContext } from "../../stages/addContext/contexts.js?v=1.1.219-course-creator-all-courses";
+import { attachTimestampContext, attachUpdatedByContext } from "../../stages/addContext/contexts.js?v=1.1.219-course-creator-all-courses";
+import { attachExistingCourseContext } from "../../stages/addContext/contexts.js?v=1.1.219-course-creator-all-courses";
+import { requireSuperAdminAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.219-course-creator-all-courses";
+import { preventDeleteIfInUseAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.219-course-creator-all-courses";
+import { catalogCourseDeleteProcessing } from "../../stages/process/processors.js?v=1.1.219-course-creator-all-courses";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.219-course-creator-all-courses";
 
 export function DeleteCatalogCourseIntent() {
     return {
@@ -23,7 +23,7 @@ export function DeleteCatalogCourseIntent() {
         ],
         process: [
             catalogCourseDeleteProcessing
-        ],
+        ],
         emit: [
             emitIntentResult
         ]

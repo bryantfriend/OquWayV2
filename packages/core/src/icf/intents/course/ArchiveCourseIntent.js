@@ -1,9 +1,9 @@
-import { validateAuthenticated, validateCourseId } from "../../stages/validate/validators.js?v=1.1.82-shared-command-center-shell";
-import { normalizeCourseId } from "../../stages/normalize/normalizers.js?v=1.1.82-shared-command-center-shell";
-import { attachActorContext, attachActorRoleContext, attachTimestampContext, attachUpdatedByContext, attachCourseDocument } from "../../stages/addContext/contexts.js?v=1.1.82-shared-command-center-shell";
-import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.82-shared-command-center-shell";
-import { catalogCourseArchiveProcessing } from "../../stages/process/processors.js?v=1.1.82-shared-command-center-shell";
-import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.82-shared-command-center-shell";
+import { validateAuthenticated, validateCourseId } from "../../stages/validate/validators.js?v=1.1.219-course-creator-all-courses";
+import { normalizeCourseId } from "../../stages/normalize/normalizers.js?v=1.1.219-course-creator-all-courses";
+import { attachActorContext, attachActorRoleContext, attachTimestampContext, attachUpdatedByContext, attachCourseDocument } from "../../stages/addContext/contexts.js?v=1.1.219-course-creator-all-courses";
+import { requireCourseCreatorAuthorization } from "../../stages/authorize/authorizers.js?v=1.1.219-course-creator-all-courses";
+import { catalogCourseArchiveProcessing } from "../../stages/process/processors.js?v=1.1.219-course-creator-all-courses";
+import { emitIntentResult } from "../../stages/emit/emitters.js?v=1.1.219-course-creator-all-courses";
 
 export function ArchiveCourseIntent() {
   return {

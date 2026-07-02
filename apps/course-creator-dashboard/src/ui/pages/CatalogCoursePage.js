@@ -1,6 +1,6 @@
-import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.82-shared-command-center-shell";
-import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.82-shared-command-center-shell";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.82-shared-command-center-shell";
+import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.219-course-creator-all-courses";
+import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.219-course-creator-all-courses";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.219-course-creator-all-courses";
 import { signOut } from "firebase/auth";
 
 export class CatalogCoursePage {
