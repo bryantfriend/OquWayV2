@@ -1,9 +1,9 @@
-import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.82-shared-command-center-shell";
+import { teacherDashboardService } from "./ui/services/teacherDashboardService.js?v=1.1.218-dashboard-calm-teacher-functional";
 import {
   createEmptyState,
   createLoadingState,
   createStatusBadge
-} from "../../../packages/ui/index.js?v=1.1.82-shared-command-center-shell";
+} from "../../../packages/ui/index.js?v=1.1.218-dashboard-calm-teacher-functional";
 
 var app = document.getElementById("app");
 var state = {
@@ -18,6 +18,12 @@ var state = {
   students: [],
   submissions: [],
   summary: null,
+  classDetail: null,
+  courseDetail: null,
+  isClassDetailLoading: false,
+  isCourseDetailLoading: false,
+  classDetailError: "",
+  courseDetailError: "",
   selectedClassId: "",
   selectedCourseId: "",
   activeTab: "classes",
@@ -79,16 +85,26 @@ async function loadDashboard() {
       reviewStatus: readReviewStatusForQuery() || "pending",
       classId: state.selectedClassId
     });
+    var classes = data.classes || [];
+    var courses = data.courses || [];
+    var selectedClassId = recordExists(classes, state.selectedClassId) ? state.selectedClassId : "";
+    var selectedCourseId = recordExists(courses, state.selectedCourseId) ? state.selectedCourseId : "";
 
     setState({
       isLoading: false,
       isLoggingIn: false,
       teacher: data.teacher,
-      classes: data.classes || [],
-      courses: data.courses || [],
+      classes: classes,
+      courses: courses,
       students: data.students || [],
       submissions: data.submissions || [],
       summary: data.summary || null,
+      selectedClassId: selectedClassId,
+      selectedCourseId: selectedCourseId,
+      classDetail: selectedClassId ? state.classDetail : null,
+      courseDetail: selectedCourseId ? state.courseDetail : null,
+      classDetailError: selectedClassId ? state.classDetailError : "",
+      courseDetailError: selectedCourseId ? state.courseDetailError : "",
       message: "",
       error: "",
       unauthorized: false
@@ -103,6 +119,8 @@ async function loadDashboard() {
       students: [],
       submissions: [],
       summary: null,
+      classDetail: null,
+      courseDetail: null,
       error: error.message,
       message: ""
     });
@@ -224,6 +242,8 @@ async function handleClick(event) {
   var courseButton = event.target.closest("[data-course-assignment-id]");
   var tabButton = event.target.closest("[data-teacher-tab]");
   var reviewButton = event.target.closest("[data-review-status]");
+  var retryClassButton = event.target.closest("[data-action=retry-class-detail]");
+  var retryCourseButton = event.target.closest("[data-action=retry-course-detail]");
 
   if (logoutButton) {
     await teacherDashboardService.logout();
@@ -232,6 +252,16 @@ async function handleClick(event) {
 
   if (refreshButton) {
     await loadDashboard();
+    return;
+  }
+
+  if (retryClassButton) {
+    await loadSelectedClassDetail(state.selectedClassId);
+    return;
+  }
+
+  if (retryCourseButton) {
+    await loadSelectedCourseDetail(state.selectedCourseId, retryCourseButton.getAttribute("data-course-id") || "");
     return;
   }
 
@@ -256,19 +286,23 @@ async function handleClick(event) {
   }
 
   if (classButton) {
-    setState({
-      selectedClassId: classButton.getAttribute("data-class-id") || "",
-      activeTab: "classes"
-    });
-    await loadDashboard();
+    var classId = classButton.getAttribute("data-class-id") || "";
+    if (!classId) {
+      setState({
+        selectedClassId: "",
+        classDetail: null,
+        classDetailError: "",
+        isClassDetailLoading: false,
+        activeTab: "classes"
+      });
+      return;
+    }
+    await loadSelectedClassDetail(classId);
     return;
   }
 
   if (courseButton) {
-    setState({
-      selectedCourseId: courseButton.getAttribute("data-course-assignment-id") || "",
-      activeTab: "courses"
-    });
+    await loadSelectedCourseDetail(courseButton.getAttribute("data-course-assignment-id") || "", courseButton.getAttribute("data-course-id") || "");
     return;
   }
 
@@ -277,6 +311,67 @@ async function handleClick(event) {
   }
 }
 
+async function loadSelectedClassDetail(classId) {
+  if (!classId) {
+    return;
+  }
+
+  setState({
+    selectedClassId: classId,
+    activeTab: "classes",
+    isClassDetailLoading: true,
+    classDetailError: "",
+    classDetail: null
+  });
+
+  try {
+    var data = await teacherDashboardService.loadClassDetail(classId);
+    setState({
+      isClassDetailLoading: false,
+      classDetail: data,
+      classDetailError: "",
+      message: ""
+    });
+  } catch (error) {
+    setState({
+      isClassDetailLoading: false,
+      classDetailError: "We could not load this class. Please try again.",
+      message: "",
+      error: error.message || ""
+    });
+  }
+}
+
+async function loadSelectedCourseDetail(cardId, courseId) {
+  if (!cardId && !courseId) {
+    return;
+  }
+
+  setState({
+    selectedCourseId: cardId || courseId,
+    activeTab: "courses",
+    isCourseDetailLoading: true,
+    courseDetailError: "",
+    courseDetail: null
+  });
+
+  try {
+    var data = await teacherDashboardService.loadCourseDetail(cardId || "", courseId || cardId || "");
+    setState({
+      isCourseDetailLoading: false,
+      courseDetail: data,
+      courseDetailError: "",
+      message: ""
+    });
+  } catch (error) {
+    setState({
+      isCourseDetailLoading: false,
+      courseDetailError: "We could not load this course. Please try again.",
+      message: "",
+      error: error.message || ""
+    });
+  }
+}
 async function handleChange(event) {
   var statusSelect = event.target.closest("#reviewStatusFilter");
   var classSelect = event.target.closest("#reviewClassFilter");
@@ -666,7 +761,7 @@ function buildTeacherTabButton(tabName, label, count) {
 
 function buildActiveTeacherTab() {
   if (state.activeTab === "courses") {
-    return buildCourseCards();
+    return buildCourseCards() + buildCourseDetailPanel();
   }
 
   if (state.activeTab === "reviews") {
@@ -675,7 +770,7 @@ function buildActiveTeacherTab() {
 
   return '<section class="teacher-grid">'
     + buildClassCards()
-    + buildStudentsView()
+    + buildClassDetailPanel()
     + '</section>';
 }
 
@@ -712,7 +807,7 @@ function buildCourseCards() {
 
   html += '<div class="teacher-course-list">';
   courses.forEach(function (course) {
-    html += '<button type="button" class="teacher-course-card' + (state.selectedCourseId === course.id ? " active" : "") + '" data-course-assignment-id="' + escapeHtml(course.id) + '">'
+    html += '<button type="button" class="teacher-course-card' + (state.selectedCourseId === course.id ? " active" : "") + '" data-course-assignment-id="' + escapeHtml(course.id) + '" data-course-id="' + escapeHtml(course.courseId || "") + '">'
       + buildCourseBookSvg(course.courseTitle || course.courseId || "course")
       + '<div><strong>' + escapeHtml(course.courseTitle || "Untitled Course") + '</strong>'
       + '<span>' + escapeHtml(course.targetName || "Assigned target") + '</span></div>'
@@ -724,16 +819,97 @@ function buildCourseCards() {
   return html + '</div></section>';
 }
 
-function buildStudentsView() {
-  var students = filterStudentsForSelectedClass(state.students || []);
-  var html = '<section class="teacher-card-section"><div class="teacher-section-title"><div><h2>Students</h2><p>Progress and review signals</p></div>' + buildSectionGlyphSvg("students") + '</div>';
+function buildClassDetailPanel() {
+  var selectedClass = findRecordById(state.classes || [], state.selectedClassId);
+  var detail = state.classDetail || null;
+  var summary = detail && detail.summary ? detail.summary : {};
+  var students = detail && Array.isArray(detail.students) ? detail.students : filterStudentsForSelectedClass(state.students || []);
+  var courses = detail && Array.isArray(detail.courses) ? detail.courses : [];
+  var submissions = detail && Array.isArray(detail.submissions) ? detail.submissions : [];
+  var html = '<section class="teacher-card-section teacher-detail-panel"><div class="teacher-section-title"><div><h2>'
+    + escapeHtml(selectedClass ? selectedClass.name : "Class Detail") + '</h2><p>Students, courses, and pending reviews</p></div>' + buildSectionGlyphSvg("students") + '</div>';
 
-  if (students.length === 0) {
-    return html + buildEmptyState("students", "No students found.", "Students assigned to this class will appear here.") + '</section>';
+  if (!state.selectedClassId) {
+    return html + buildStudentsView(students, "All Assigned Students", "No students are assigned yet.") + '</section>';
+  }
+
+  if (state.isClassDetailLoading) {
+    return html + createLoadingState("Loading class details...", {
+      className: "teacher-review-loading",
+      beforeHtml: buildSavingSvg()
+    }) + '</section>';
+  }
+
+  if (state.classDetailError) {
+    return html + buildDetailErrorState(state.classDetailError, "retry-class-detail") + '</section>';
+  }
+
+  html += buildDetailSummary([
+    { label: "Students", value: summary.studentCount == null ? students.length : summary.studentCount },
+    { label: "Courses", value: summary.courseCount == null ? courses.length : summary.courseCount },
+    { label: "Pending Reviews", value: summary.pendingSubmissionsCount == null ? countPending(submissions) : summary.pendingSubmissionsCount }
+  ]);
+  html += buildDetailCourseList(courses);
+  html += buildStudentsView(students, "Assigned Students", "No students are assigned yet.");
+  html += buildDetailSubmissionList(submissions);
+
+  return html + '</section>';
+}
+
+function buildCourseDetailPanel() {
+  var selectedCourse = findRecordById(state.courses || [], state.selectedCourseId);
+  var detail = state.courseDetail || null;
+  var course = detail && detail.course ? detail.course : selectedCourse;
+  var summary = detail && detail.summary ? detail.summary : {};
+  var modules = detail && Array.isArray(detail.modules) ? detail.modules : [];
+  var students = detail && Array.isArray(detail.students) ? detail.students : [];
+  var submissions = detail && Array.isArray(detail.submissions) ? detail.submissions : [];
+  var html = '<section class="teacher-card-section teacher-wide-section teacher-detail-panel"><div class="teacher-section-title"><div><h2>'
+    + escapeHtml(course ? course.courseTitle || course.title || "Course Detail" : "Course Detail") + '</h2><p>Modules, assigned learners, and review work</p></div>' + buildSectionGlyphSvg("courses") + '</div>';
+
+  if (!state.selectedCourseId) {
+    return html + buildEmptyState("courses", "Select a course to see details.", "Course modules, students, and pending reviews will appear here.") + '</section>';
+  }
+
+  if (state.isCourseDetailLoading) {
+    return html + createLoadingState("Loading course details...", {
+      className: "teacher-review-loading",
+      beforeHtml: buildSavingSvg()
+    }) + '</section>';
+  }
+
+  if (state.courseDetailError) {
+    return html + buildDetailErrorState(state.courseDetailError, "retry-course-detail", course ? course.courseId || "" : "") + '</section>';
+  }
+
+  if (!course) {
+    return html + buildDetailErrorState("We could not load this course. Please try again.", "retry-course-detail") + '</section>';
+  }
+
+  html += '<div class="teacher-detail-context"><strong>' + escapeHtml(course.targetName || "Assigned target") + '</strong><span>'
+    + escapeHtml(course.ownershipRole || "Assigned") + '</span></div>';
+  html += buildDetailSummary([
+    { label: "Students", value: summary.studentCount == null ? students.length : summary.studentCount },
+    { label: "Modules", value: summary.moduleCount == null ? modules.length : summary.moduleCount },
+    { label: "Pending Reviews", value: summary.pendingSubmissionsCount == null ? countPending(submissions) : summary.pendingSubmissionsCount }
+  ]);
+  html += buildModuleList(modules);
+  html += buildStudentsView(students, "Assigned Students", "No students are assigned yet.");
+  html += buildDetailSubmissionList(submissions);
+
+  return html + '</section>';
+}
+
+function buildStudentsView(students, title, emptyMessage) {
+  var safeStudents = Array.isArray(students) ? students : [];
+  var html = '<section class="teacher-detail-block"><div class="teacher-section-title teacher-detail-title"><div><h3>' + escapeHtml(title || "Students") + '</h3><p>Progress and review signals</p></div></div>';
+
+  if (safeStudents.length === 0) {
+    return html + buildEmptyState("students", emptyMessage || "No students are assigned yet.", "Assigned students will appear here.") + '</section>';
   }
 
   html += '<div class="teacher-student-list">';
-  students.forEach(function (student) {
+  safeStudents.forEach(function (student) {
     html += '<article class="teacher-student-row">'
       + '<div class="teacher-avatar">' + buildStudentAvatar(student) + '</div>'
       + '<div><strong>' + escapeHtml(student.name) + '</strong><span>' + escapeHtml(student.currentCourseProgress || "No progress yet") + '</span></div>'
@@ -746,6 +922,74 @@ function buildStudentsView() {
   return html + '</div></section>';
 }
 
+function buildDetailSummary(items) {
+  var html = '<div class="teacher-detail-kpis">';
+  items.forEach(function (item) {
+    html += '<article><strong>' + escapeHtml(String(item.value || 0)) + '</strong><span>' + escapeHtml(item.label) + '</span></article>';
+  });
+  return html + '</div>';
+}
+
+function buildDetailCourseList(courses) {
+  var safeCourses = Array.isArray(courses) ? courses : [];
+  var html = '<section class="teacher-detail-block"><div class="teacher-section-title teacher-detail-title"><div><h3>Assigned Courses</h3><p>Courses connected to this class</p></div></div>';
+
+  if (safeCourses.length === 0) {
+    return html + buildEmptyState("courses", "No courses are assigned yet.", "Assigned courses will appear here.") + '</section>';
+  }
+
+  html += '<div class="teacher-detail-list">';
+  safeCourses.forEach(function (course) {
+    html += '<article><strong>' + escapeHtml(course.courseTitle || course.title || "Untitled Course") + '</strong><span>'
+      + escapeHtml(course.targetName || course.ownershipRole || "Assigned") + '</span><small>'
+      + escapeHtml(String(course.studentCount || 0)) + ' students | ' + escapeHtml(String(course.pendingSubmissionsCount || 0)) + ' pending</small></article>';
+  });
+
+  return html + '</div></section>';
+}
+
+function buildModuleList(modules) {
+  var safeModules = Array.isArray(modules) ? modules : [];
+  var html = '<section class="teacher-detail-block"><div class="teacher-section-title teacher-detail-title"><div><h3>Modules</h3><p>Connected course modules</p></div></div>';
+
+  if (safeModules.length === 0) {
+    return html + buildEmptyState("courses", "No modules are connected yet.", "Modules will appear when this course has published or draft module records.") + '</section>';
+  }
+
+  html += '<div class="teacher-detail-list">';
+  safeModules.forEach(function (moduleRecord) {
+    html += '<article><strong>' + escapeHtml(moduleRecord.title || "Untitled Module") + '</strong><span>'
+      + escapeHtml(moduleRecord.status || "Module") + '</span><small>'
+      + escapeHtml(formatDate(moduleRecord.updatedAt) || "No recent update") + '</small></article>';
+  });
+
+  return html + '</div></section>';
+}
+
+function buildDetailSubmissionList(submissions) {
+  var pendingSubmissions = (submissions || []).filter(function (submission) {
+    return (submission.reviewStatus || "pending") === "pending";
+  });
+  var html = '<section class="teacher-detail-block"><div class="teacher-section-title teacher-detail-title"><div><h3>Pending Reviews</h3><p>External Task work needing review</p></div></div>';
+
+  if (pendingSubmissions.length === 0) {
+    return html + buildEmptyState("reviews", "No pending reviews.", "New submitted work will appear here.") + '</section>';
+  }
+
+  html += '<div class="teacher-detail-list">';
+  pendingSubmissions.slice(0, 6).forEach(function (submission) {
+    html += '<article><strong>' + escapeHtml(submission.studentName || submission.studentId || "Student") + '</strong><span>'
+      + escapeHtml(readSubmissionContext(submission)) + '</span><small>'
+      + escapeHtml(formatDate(submission.createdAt) || "Recently submitted") + '</small></article>';
+  });
+
+  return html + '</div></section>';
+}
+
+function buildDetailErrorState(message, action, courseId) {
+  return '<div class="teacher-detail-error"><strong>' + escapeHtml(message) + '</strong>'
+    + '<button type="button" class="teacher-secondary-btn" data-action="' + escapeHtml(action) + '" data-course-id="' + escapeHtml(courseId || "") + '">Retry</button></div>';
+}
 function buildReviewQueue() {
   var submissions = getFilteredReviewSubmissions();
   var html = '<section class="teacher-review-section">'
@@ -1033,6 +1277,19 @@ function buildStatusMessages() {
   return html;
 }
 
+function recordExists(records, id) {
+  return !id || !!findRecordById(records, id);
+}
+
+function findRecordById(records, id) {
+  if (!id) {
+    return null;
+  }
+
+  return (records || []).find(function (record) {
+    return record && record.id === id;
+  }) || null;
+}
 function filterStudentsForSelectedClass(students) {
   if (!state.selectedClassId) {
     return students;

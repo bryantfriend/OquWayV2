@@ -104,6 +104,6 @@ function addRole(roles, role) {
   }
 }
 
-export * from "./roleService.js";
-export * from "./userQueries.js";
-export * from "./userRepository.js";
+export * from "./roleService.js?v=1.1.218-dashboard-calm-teacher-functional";
+export * from "./userQueries.js?v=1.1.218-dashboard-calm-teacher-functional";
+export * from "./userRepository.js?v=1.1.218-dashboard-calm-teacher-functional";

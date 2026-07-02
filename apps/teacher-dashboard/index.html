@@ -286,6 +286,11 @@
       to { transform: rotate(360deg); }
     }
 
+    .teacher-login-shell .teacher-svg *,
+    .teacher-dashboard-shell .teacher-svg * {
+      animation: none !important;
+    }
+
     .teacher-login-shell {
       min-height: 100vh;
       display: grid;
@@ -1128,12 +1133,95 @@
       margin-bottom: 4px;
     }
 
+
+    .teacher-detail-panel {
+      display: grid;
+      gap: 14px;
+    }
+
+    .teacher-detail-context,
+    .teacher-detail-kpis,
+    .teacher-detail-list,
+    .teacher-detail-error {
+      display: grid;
+      gap: 10px;
+    }
+
+    .teacher-detail-context {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      border: 1px solid #dbeafe;
+      border-radius: 8px;
+      background: #eff6ff;
+      padding: 12px;
+    }
+
+    .teacher-detail-context strong,
+    .teacher-detail-context span {
+      min-width: 0;
+    }
+
+    .teacher-detail-kpis {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .teacher-detail-kpis article,
+    .teacher-detail-list article {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: white;
+      padding: 12px;
+    }
+
+    .teacher-detail-kpis strong {
+      display: block;
+      font-size: 22px;
+      color: #1d4ed8;
+    }
+
+    .teacher-detail-kpis span,
+    .teacher-detail-list span,
+    .teacher-detail-list small,
+    .teacher-detail-title p {
+      color: #64748b;
+      font-weight: 700;
+    }
+
+    .teacher-detail-block {
+      display: grid;
+      gap: 10px;
+    }
+
+    .teacher-detail-title {
+      margin-bottom: 0;
+    }
+
+    .teacher-detail-title h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .teacher-detail-list article {
+      display: grid;
+      gap: 4px;
+    }
+
+    .teacher-detail-error {
+      align-items: start;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      background: #fff1f2;
+      color: #991b1b;
+      padding: 14px;
+    }
     @media (max-width: 860px) {
       .teacher-login-shell,
       .teacher-grid,
       .teacher-metrics,
       .teacher-tabs,
-      .teacher-filters {
+      .teacher-filters,
+      .teacher-detail-kpis,
+      .teacher-detail-context {
         grid-template-columns: 1fr;
       }
 
@@ -1167,6 +1255,16 @@
         max-width: 120px;
       }
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      .teacher-login-shell .teacher-svg *,
+      .teacher-dashboard-shell .teacher-svg *,
+      .teacher-login-shell *,
+      .teacher-dashboard-shell * {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
   </style>
   <!-- Import map for Firebase -->
   <script type="importmap">
@@ -1191,7 +1289,7 @@
     </main>
   </div>
 
-  <script type="module" src="./src/main.js?v=1.1.82-shared-command-center-shell"></script>
+  <script type="module" src="./src/main.js?v=1.1.218-dashboard-calm-teacher-functional"></script>
 </body>
 
 </html>

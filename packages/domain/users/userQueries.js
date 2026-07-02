@@ -1,4 +1,4 @@
-import { collection, db, getDocs, query, where } from "../../firebase/firestore/index.js?v=1.1.216-student-dashboard-staff-login";
+import { collection, db, getDocs, query, where } from "../../firebase/firestore/index.js?v=1.1.218-dashboard-calm-teacher-functional";
 import { isStudentProfile } from "./roleService.js";
 
 export async function getStudentsForClasses(classIds) {
@@ -26,7 +26,18 @@ export async function getStudentsForClasses(classIds) {
 }
 
 export function userInClass(userProfile, classId) {
-  return readTextArray([userProfile.classId, userProfile.classIds, userProfile.assignedClassIds]).indexOf(classId) !== -1;
+  return readUserClassIds(userProfile).indexOf(classId) !== -1;
+}
+
+export function readUserClassIds(userProfile) {
+  return readTextArray([
+    userProfile && userProfile.classId,
+    userProfile && userProfile.classIds,
+    userProfile && userProfile.assignedClassIds,
+    userProfile && userProfile.assignedClasses,
+    userProfile && userProfile.classRefs,
+    userProfile && userProfile.classes
+  ]);
 }
 
 async function appendStudentQuery(students, studentsQuery, details) {
@@ -89,14 +100,20 @@ function appendTextValues(result, value) {
     return;
   }
 
-  if (!Array.isArray(value)) {
+  if (Array.isArray(value)) {
+    var index = 0;
+    while (index < value.length) {
+      appendTextValues(result, value[index]);
+      index = index + 1;
+    }
     return;
   }
 
-  var index = 0;
-  while (index < value.length) {
-    appendTextValues(result, value[index]);
-    index = index + 1;
+  if (value && typeof value === "object") {
+    appendTextValues(result, value.id);
+    appendTextValues(result, value.classId);
+    appendTextValues(result, value.classID);
+    appendTextValues(result, value.refId);
   }
 }
 

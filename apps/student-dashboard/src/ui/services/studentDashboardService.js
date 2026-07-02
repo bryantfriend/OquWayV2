@@ -1,7 +1,7 @@
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.216-student-dashboard-staff-login";
-import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.216-student-dashboard-staff-login";
-import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.216-student-dashboard-staff-login";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.216-student-dashboard-staff-login";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.218-dashboard-calm-teacher-functional";
+import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.218-dashboard-calm-teacher-functional";
+import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.218-dashboard-calm-teacher-functional";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.218-dashboard-calm-teacher-functional";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {

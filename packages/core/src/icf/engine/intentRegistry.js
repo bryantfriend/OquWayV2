@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.85-visual-helpers-syntax";
+import * as IntentExports from "../intents/intents.js?v=1.1.218-dashboard-calm-teacher-functional";
 
 const registry = {
   // Demo Verification
