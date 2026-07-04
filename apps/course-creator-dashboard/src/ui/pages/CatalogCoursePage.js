@@ -1,8 +1,8 @@
-import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.219-course-creator-all-courses";
-import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.219-course-creator-all-courses";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.219-course-creator-all-courses";
+import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.222-activity-step-rendering";
+import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.222-activity-step-rendering";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.222-activity-step-rendering";
 import { signOut } from "firebase/auth";
-import { COURSE_CREATOR_VERSION } from "../../version.js?v=1.1.221-course-creator-version-label";
+import { COURSE_CREATOR_VERSION } from "../../version.js?v=1.1.222-activity-step-rendering";
 
 export class CatalogCoursePage {
   constructor() {

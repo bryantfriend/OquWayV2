@@ -1,7 +1,7 @@
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../stepTypes/stepTypeRegistry.js?v=1.1.82-shared-command-center-shell";
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.222-activity-step-rendering";
 
 export class PracticeModePlayer {
   constructor(options) {
@@ -100,8 +100,9 @@ export class PracticeModePlayer {
   renderCurrentStep() {
     var target = document.getElementById("course-player-step-render-target");
     var step = this.readCurrentStep();
-    var StepTypeDefinition = getStepTypeDefinition(readStepType(step));
-    var config = createDefaultStepConfig(readStepType(step), readStepConfig(step));
+    var stepType = readStepType(step);
+    var StepTypeDefinition = getStepTypeDefinition(stepType);
+    var config = createDefaultStepConfig(stepType, readStepConfig(step));
     var self = this;
 
     if (!target) {
@@ -518,11 +519,39 @@ function readLocalizedText(value, fallbackText) {
 }
 
 function readStepType(step) {
-  if (!step || typeof step.type !== "string") {
+  if (!step) {
     return "";
   }
 
-  return step.type;
+  if (typeof step.type === "string" && step.type.length > 0) {
+    return normalizeStepType(step.type);
+  }
+
+  if (typeof step.stepType === "string" && step.stepType.length > 0) {
+    return normalizeStepType(step.stepType);
+  }
+
+  if (typeof step.stepTypeId === "string" && step.stepTypeId.length > 0) {
+    return normalizeStepType(step.stepTypeId);
+  }
+
+  if (step.config && typeof step.config === "object" && !Array.isArray(step.config) && typeof step.config.type === "string") {
+    return normalizeStepType(step.config.type);
+  }
+
+  if (typeof step.activityType === "string" && step.activityType.length > 0) {
+    return normalizeStepType(step.activityType);
+  }
+
+  return "";
+}
+
+function normalizeStepType(stepType) {
+  if (stepType === "card-reveal") {
+    return "cardReveal";
+  }
+
+  return stepType;
 }
 
 function readStepId(step, fallbackText) {

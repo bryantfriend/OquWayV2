@@ -1,9 +1,9 @@
 import {
   getLearningActivityDefinition,
   listLearningActivityDefinitions
-} from "../../../../../packages/domain/learningActivities/index.js?v=1.1.220-activity-studio";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.219-course-creator-all-courses";
-import { COURSE_CREATOR_VERSION } from "../../version.js?v=1.1.221-course-creator-version-label";
+} from "../../../../../packages/domain/learningActivities/index.js?v=1.1.222-activity-step-rendering";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.222-activity-step-rendering";
+import { COURSE_CREATOR_VERSION } from "../../version.js?v=1.1.222-activity-step-rendering";
 
 export class ActivityStudioPage {
   constructor(options) {

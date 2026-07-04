@@ -10,6 +10,10 @@ import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.82-shared-co
 import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.82-shared-command-center-shell";
 import { CardRevealStep } from "./CardRevealStep.js?v=1.1.220-activity-studio";
 
+var stepTypeAliases = {
+  "card-reveal": "cardReveal"
+};
+
 var stepTypes = {
   textBriefing: TextBriefingStep,
   vocabulary: VocabularyStep,
@@ -25,11 +29,13 @@ var stepTypes = {
 };
 
 export function getStepTypeDefinition(stepType) {
-  if (!stepType || !stepTypes[stepType]) {
+  var normalizedStepType = normalizeStepType(stepType);
+
+  if (!normalizedStepType || !stepTypes[normalizedStepType]) {
     return null;
   }
 
-  return stepTypes[stepType];
+  return stepTypes[normalizedStepType];
 }
 
 export function listStepTypeDefinitions() {
@@ -64,4 +70,11 @@ export function createDefaultStepConfig(stepType, config) {
   }
 
   return StepTypeDefinition.createConfig(config);
+}
+export function normalizeStepType(stepType) {
+  if (typeof stepType !== "string" || stepType.length === 0) {
+    return "";
+  }
+
+  return stepTypeAliases[stepType] || stepType;
 }

@@ -1,12 +1,12 @@
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.219-course-creator-all-courses";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.219-course-creator-all-courses";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.222-activity-step-rendering";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.222-activity-step-rendering";
 import {
   getStepTypeDefinition,
   listStepTypeDefinitions,
   validateStepConfig
-} from "../../../../../packages/domain/steps/index.js?v=1.1.219-course-creator-all-courses";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.219-course-creator-all-courses";
-import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.219-course-creator-all-courses";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.222-activity-step-rendering";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.222-activity-step-rendering";
+import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.222-activity-step-rendering";
 
 export class CourseEditorPage {
   constructor(courseId, moduleId) {
@@ -2828,10 +2828,39 @@ function readStepId(step, fallbackValue) {
 }
 
 function readStepType(step) {
-  if (!step || typeof step.type !== "string") {
+  if (!step) {
     return "";
   }
-  return step.type;
+
+  if (typeof step.type === "string" && step.type.length > 0) {
+    return normalizeStepType(step.type);
+  }
+
+  if (typeof step.stepType === "string" && step.stepType.length > 0) {
+    return normalizeStepType(step.stepType);
+  }
+
+  if (typeof step.stepTypeId === "string" && step.stepTypeId.length > 0) {
+    return normalizeStepType(step.stepTypeId);
+  }
+
+  if (step.config && typeof step.config === "object" && !Array.isArray(step.config) && typeof step.config.type === "string") {
+    return normalizeStepType(step.config.type);
+  }
+
+  if (typeof step.activityType === "string" && step.activityType.length > 0) {
+    return normalizeStepType(step.activityType);
+  }
+
+  return "";
+}
+
+function normalizeStepType(stepType) {
+  if (stepType === "card-reveal") {
+    return "cardReveal";
+  }
+
+  return stepType;
 }
 
 function readStepConfig(step) {
@@ -2907,6 +2936,7 @@ function readStepTypeIcon(stepType) {
   if (stepType === "customExperience") { return "✦"; }
   if (stepType === "cyberCodeMission") { return "⌨"; }
   if (stepType === "dragMatchIsland") { return "🏝"; }
+  if (stepType === "cardReveal") { return "🃏"; }
   return "🔷";
 }
 
@@ -2944,6 +2974,7 @@ function readStepDefinitionIcon(stepType) {
   if (stepType === "cyberCodeMission") { return "fa-solid fa-code"; }
   if (stepType === "dragMatchIsland") { return "fa-solid fa-gamepad"; }
   if (stepType === "externalTask") { return "fa-solid fa-clipboard-check"; }
+  if (stepType === "cardReveal") { return "fa-solid fa-clone"; }
   return "fa-solid fa-puzzle-piece";
 }
 

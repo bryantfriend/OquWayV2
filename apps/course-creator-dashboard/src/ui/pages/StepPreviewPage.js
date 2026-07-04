@@ -1,9 +1,9 @@
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.219-course-creator-all-courses";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.219-course-creator-all-courses";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.222-activity-step-rendering";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.222-activity-step-rendering";
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../../../../../packages/domain/steps/index.js?v=1.1.219-course-creator-all-courses";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.222-activity-step-rendering";
 
 export class StepPreviewPage {
   constructor(courseId, moduleId, modeId, stepId) {
@@ -255,14 +255,34 @@ function readStepType(step) {
   }
 
   if (typeof step.type === "string" && step.type.length > 0) {
-    return step.type;
+    return normalizeStepType(step.type);
+  }
+
+  if (typeof step.stepType === "string" && step.stepType.length > 0) {
+    return normalizeStepType(step.stepType);
   }
 
   if (typeof step.stepTypeId === "string" && step.stepTypeId.length > 0) {
-    return step.stepTypeId;
+    return normalizeStepType(step.stepTypeId);
+  }
+
+  if (step.config && typeof step.config === "object" && !Array.isArray(step.config) && typeof step.config.type === "string") {
+    return normalizeStepType(step.config.type);
+  }
+
+  if (typeof step.activityType === "string" && step.activityType.length > 0) {
+    return normalizeStepType(step.activityType);
   }
 
   return "";
+}
+
+function normalizeStepType(stepType) {
+  if (stepType === "card-reveal") {
+    return "cardReveal";
+  }
+
+  return stepType;
 }
 
 function readStepId(step, fallback) {

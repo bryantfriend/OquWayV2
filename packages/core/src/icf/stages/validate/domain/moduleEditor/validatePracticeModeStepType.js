@@ -1,4 +1,4 @@
-import { isSupportedStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.82-shared-command-center-shell";
+import { isSupportedStepType, normalizeStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.222-activity-step-rendering";
 
 export function validatePracticeModeStepType(executionState) {
   var payload = executionState.payload;
@@ -34,13 +34,8 @@ export function validatePracticeModeStepType(executionState) {
 }
 
 function readStepType(payload) {
-  if (payload && typeof payload.stepType === "string") {
-    return payload.stepType;
-  }
+  var config = payload && payload.config && typeof payload.config === "object" && !Array.isArray(payload.config) ? payload.config : {};
+  var stepType = payload && (payload.stepType || payload.stepTypeId || payload.type || payload.activityType || config.type || config.stepType || config.activityType);
 
-  if (payload && typeof payload.stepTypeId === "string") {
-    return payload.stepTypeId;
-  }
-
-  return "";
+  return normalizeStepType(stepType || "");
 }
