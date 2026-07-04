@@ -4,7 +4,7 @@ import {
   isSupportedStepType,
   listStepTypeDefinitions,
   normalizeStepType
-} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.222-activity-step-rendering";
+} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.224-learning-activity-editor-stability";
 
 export {
   createDefaultStepConfig,

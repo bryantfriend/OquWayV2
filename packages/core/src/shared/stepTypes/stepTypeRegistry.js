@@ -11,7 +11,15 @@ import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.82-shared-command-
 import { CardRevealStep } from "./CardRevealStep.js?v=1.1.220-activity-studio";
 
 var stepTypeAliases = {
-  "card-reveal": "cardReveal"
+  "card-reveal": "cardReveal",
+  "intro-card": "textBriefing",
+  introCard: "textBriefing",
+  sorting: "dragMatchIsland",
+  roadmap: "customExperience",
+  "multiple-choice": "customExperience",
+  multipleChoice: "customExperience",
+  "multi-select": "customExperience",
+  multiSelect: "customExperience"
 };
 
 var stepTypes = {

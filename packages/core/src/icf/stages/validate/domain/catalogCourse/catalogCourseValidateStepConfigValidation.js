@@ -1,8 +1,8 @@
-import { requireStringValidation } from "../../validators.js?v=1.1.222-activity-step-rendering";
-import { requireNonEmptyArrayValidation } from "../../validators.js?v=1.1.222-activity-step-rendering";
-import { requireEnumValidation } from "../../validators.js?v=1.1.222-activity-step-rendering";
-import { requireUUIDValidation } from "../../validators.js?v=1.1.222-activity-step-rendering";
-import { isSupportedStepType, normalizeStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.222-activity-step-rendering";
+import { requireStringValidation } from "../../validators.js?v=1.1.224-learning-activity-editor-stability";
+import { requireNonEmptyArrayValidation } from "../../validators.js?v=1.1.224-learning-activity-editor-stability";
+import { requireEnumValidation } from "../../validators.js?v=1.1.224-learning-activity-editor-stability";
+import { requireUUIDValidation } from "../../validators.js?v=1.1.224-learning-activity-editor-stability";
+import { isSupportedStepType, normalizeStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.224-learning-activity-editor-stability";
 
 export function catalogCourseValidateStepConfigValidation(executionState) {
     const { payload } = executionState;

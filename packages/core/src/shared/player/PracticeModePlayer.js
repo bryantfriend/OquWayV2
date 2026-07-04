@@ -1,7 +1,7 @@
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../stepTypes/stepTypeRegistry.js?v=1.1.222-activity-step-rendering";
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.224-learning-activity-editor-stability";
 
 export class PracticeModePlayer {
   constructor(options) {
@@ -443,7 +443,7 @@ export class PracticeModePlayer {
 
     html += '<article class="oqu-player-step course-player-fallback-step">';
     html += '<h2>' + escapeHtml(title) + '</h2>';
-    html += '<div class="course-player-fallback-label">Unsupported step type</div>';
+    html += '<div class="course-player-fallback-label">Unsupported learning activity type</div>';
     html += '<p>' + escapeHtml(message) + '</p>';
     html += '<div class="course-player-fallback-type">Type: ' + escapeHtml(safeType) + '</div>';
     html += '</article>';

@@ -1,7 +1,7 @@
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.222-activity-step-rendering";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.222-activity-step-rendering";
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.222-activity-step-rendering";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.222-activity-step-rendering";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.224-learning-activity-editor-stability";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.224-learning-activity-editor-stability";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.224-learning-activity-editor-stability";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.224-learning-activity-editor-stability";
 
 function getActor() {
   return auth.currentUser ? { id: auth.currentUser.uid, role: "ROLE_COURSE_CREATOR" } : null;
@@ -291,6 +291,9 @@ export const moduleEditorService = {
       practiceModeKey: safeOptions.practiceModeKey || "beforeClass",
       stepType: stepTypeId,
       stepTypeId: stepTypeId,
+      title: safeOptions.title || null,
+      instructions: safeOptions.instructions || "",
+      config: safeOptions.config && typeof safeOptions.config === "object" && !Array.isArray(safeOptions.config) ? safeOptions.config : {},
       courseContext: courseContext
     };
 

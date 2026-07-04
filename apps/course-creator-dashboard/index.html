@@ -977,6 +977,65 @@
       cursor: not-allowed;
     }
 
+
+    .oqu-step-drag-handle {
+      width: 24px;
+      height: 24px;
+      border: 1px solid #e5e7eb;
+      background: #f8fafc;
+      color: #64748b;
+      border-radius: 7px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      flex-shrink: 0;
+      transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+    }
+
+    .oqu-step-drag-handle:hover {
+      background: #eff6ff;
+      border-color: #93c5fd;
+      color: #1d4ed8;
+    }
+
+    .oqu-step-drag-handle:active {
+      cursor: grabbing;
+    }
+
+    .oqu-step-tile.is-dragging {
+      opacity: 0.52;
+      border-style: dashed;
+    }
+
+    .oqu-step-drop-zone {
+      height: 0;
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      overflow: visible;
+      pointer-events: none;
+    }
+
+    .oqu-step-drop-zone span {
+      display: block;
+      width: 100%;
+      height: 0;
+      border-radius: 9999px;
+      background: #2563eb;
+      box-shadow: 0 0 0 0 rgba(37,99,235,0);
+      transition: height 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    .oqu-step-drop-zone.is-visible {
+      height: 8px;
+      margin: 2px 0;
+    }
+
+    .oqu-step-drop-zone.is-visible span {
+      height: 3px;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.14);
+    }
     .oqu-step-delete-btn {
       border: 1px solid #fee2e2;
       background: #fff7f7;
@@ -1363,6 +1422,88 @@
       letter-spacing: 0.06em;
     }
 
+
+    .oqu-activity-preview-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      background: rgba(15,23,42,0.42);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .oqu-activity-preview-modal {
+      width: min(940px, 100%);
+      max-height: min(780px, 92vh);
+      background: #ffffff;
+      border: 1px solid rgba(219,234,254,0.95);
+      border-radius: 18px;
+      box-shadow: 0 30px 90px rgba(15,23,42,0.3);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .oqu-activity-preview-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 20px;
+      border-bottom: 1px solid #eef2ff;
+      background: #fff;
+      flex-shrink: 0;
+    }
+
+    .oqu-activity-preview-header h2 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.2;
+      color: #0f172a;
+      font-weight: 900;
+    }
+
+    .oqu-activity-preview-meta {
+      margin-top: 5px;
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 800;
+    }
+
+    .oqu-activity-preview-close {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      border: 1px solid #e5e7eb;
+      background: #f8fafc;
+      color: #64748b;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.12s ease, color 0.12s ease;
+    }
+
+    .oqu-activity-preview-close:hover {
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .oqu-activity-preview-player {
+      min-height: 420px;
+      overflow-y: auto;
+      padding: 20px;
+      background: #f8fafc;
+    }
+
+    .oqu-activity-preview-error {
+      border: 1px solid #fde68a;
+      background: #fffbeb;
+      border-radius: 12px;
+      padding: 16px;
+    }
     /* ── Student preview ──────────────────────────────────────────── */
 
     .oqu-student-preview-shell {
@@ -2814,7 +2955,7 @@
       <p class="mt-2 text-slate-600">Loading catalog, module, and lesson tools...</p>
     </section>
   </div>
-  <script type="module" src="./src/main.js?v=1.1.223-learning-activity-catalog"></script>
+  <script type="module" src="./src/main.js?v=1.1.224-learning-activity-editor-stability"></script>
 </body>
 
 </html>
