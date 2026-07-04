@@ -3,6 +3,7 @@ import {
   listLearningActivityDefinitions
 } from "../../../../../packages/domain/learningActivities/index.js?v=1.1.220-activity-studio";
 import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.219-course-creator-all-courses";
+import { COURSE_CREATOR_VERSION } from "../../version.js?v=1.1.221-course-creator-version-label";
 
 export class ActivityStudioPage {
   constructor(options) {
@@ -194,7 +195,7 @@ export class ActivityStudioPage {
     var activity = this.readSelectedActivity();
 
     return '<nav class="builder-nav">'
-      + '<div class="builder-brand"><span>OquWay</span><small>Activity Studio</small></div>'
+      + '<div class="builder-brand"><span>OquWay</span><small>Activity Studio v' + escapeHtml(COURSE_CREATOR_VERSION) + '</small></div>'
       + '<div class="builder-nav-actions">'
       + '<a href="#" class="builder-btn builder-btn-ghost"><i class="fa-solid fa-table-cells-large"></i> Courses</a>'
       + '</div>'

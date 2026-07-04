@@ -2,6 +2,7 @@ import { catalogCourseService } from "../services/catalogCourseService.js?v=1.1.
 import { courseCreatorStore } from "../state/courseCreatorState.js?v=1.1.219-course-creator-all-courses";
 import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.219-course-creator-all-courses";
 import { signOut } from "firebase/auth";
+import { COURSE_CREATOR_VERSION } from "../../version.js?v=1.1.221-course-creator-version-label";
 
 export class CatalogCoursePage {
   constructor() {
@@ -12,7 +13,7 @@ export class CatalogCoursePage {
     return `
       <div id="course-builder-root" class="builder-shell min-h-screen">
         <nav class="builder-nav">
-          <div class="builder-brand"><span>OquWay</span><small>Course Builder 2.0</small></div>
+          <div class="builder-brand"><span>OquWay</span><small>Course Builder v${escapeHtml(COURSE_CREATOR_VERSION)}</small></div>
           <div class="builder-nav-actions">
             <div class="builder-user-chip">
               <span>${escapeHtml(readCurrentUserLabel())}</span>
