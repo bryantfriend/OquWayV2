@@ -1,9 +1,9 @@
 import {
   getLearningActivityDefinition,
   listLearningActivityDefinitions
-} from "../../../../../packages/domain/learningActivities/index.js?v=1.1.224-learning-activity-editor-stability";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.224-learning-activity-editor-stability";
-import { COURSE_CREATOR_VERSION } from "../../version.js?v=1.1.224-learning-activity-editor-stability";
+} from "../../../../../packages/domain/learningActivities/index.js?v=1.1.225-learning-activity-source-folders";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.225-learning-activity-source-folders";
+import { COURSE_CREATOR_VERSION } from "../../version.js?v=1.1.225-learning-activity-source-folders";
 
 export class ActivityStudioPage {
   constructor(options) {

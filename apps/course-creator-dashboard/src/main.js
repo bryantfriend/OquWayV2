@@ -1,12 +1,12 @@
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.224-learning-activity-editor-stability";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.225-learning-activity-source-folders";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.224-learning-activity-editor-stability";
-import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.224-learning-activity-editor-stability";
-import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.224-learning-activity-editor-stability";
-import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.224-learning-activity-editor-stability";
-import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.224-learning-activity-editor-stability";
-import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.224-learning-activity-editor-stability";
-import { ActivityStudioPage } from "./ui/pages/ActivityStudioPage.js?v=1.1.224-learning-activity-editor-stability";
+import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.225-learning-activity-source-folders";
+import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.225-learning-activity-source-folders";
+import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.225-learning-activity-source-folders";
+import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.225-learning-activity-source-folders";
+import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.225-learning-activity-source-folders";
+import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.225-learning-activity-source-folders";
+import { ActivityStudioPage } from "./ui/pages/ActivityStudioPage.js?v=1.1.225-learning-activity-source-folders";
 
 console.warn("[course-creator-build-check] latest build active");
 

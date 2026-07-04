@@ -1,4 +1,4 @@
-import { createDefaultStepConfig, normalizeStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.224-learning-activity-editor-stability";
+import { createDefaultStepConfig, normalizeStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.225-learning-activity-source-folders";
 
 export function normalizePracticeModeStep(executionState) {
   var payload = executionState.payload;

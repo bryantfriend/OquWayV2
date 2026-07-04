@@ -1,7 +1,7 @@
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.224-learning-activity-editor-stability";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.224-learning-activity-editor-stability";
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.224-learning-activity-editor-stability";
-import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.224-learning-activity-editor-stability";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.225-learning-activity-source-folders";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.225-learning-activity-source-folders";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.225-learning-activity-source-folders";
+import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.225-learning-activity-source-folders";
 
 function getActor() {
   return auth.currentUser ? { id: auth.currentUser.uid, role: "ROLE_COURSE_CREATOR" } : null;

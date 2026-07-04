@@ -3,9 +3,9 @@ import {
   destroyCardRevealActivity,
   getCardRevealDefaultContent,
   renderCardRevealActivity
-} from "../learningActivities/card-reveal/cardReveal.activity.js?v=1.1.220-activity-studio";
-import { cardRevealSchema, normalizeCardRevealConfig } from "../learningActivities/card-reveal/cardReveal.schema.js?v=1.1.220-activity-studio";
-import { cardRevealActivityDefinition } from "../learningActivities/card-reveal/cardReveal.registry.js?v=1.1.220-activity-studio";
+} from "../learningActivities/card-reveal/cardReveal.activity.js?v=1.1.225-learning-activity-source-folders";
+import { cardRevealSchema, normalizeCardRevealConfig } from "../learningActivities/card-reveal/cardReveal.schema.js?v=1.1.225-learning-activity-source-folders";
+import { cardRevealActivityDefinition } from "../learningActivities/card-reveal/cardReveal.registry.js?v=1.1.225-learning-activity-source-folders";
 
 export class CardRevealStep extends BaseStep {
   static get type() {
