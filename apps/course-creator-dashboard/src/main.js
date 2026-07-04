@@ -6,6 +6,7 @@ import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.219-course-
 import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.219-course-creator-all-courses";
 import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.219-course-creator-all-courses";
 import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.219-course-creator-all-courses";
+import { ActivityStudioPage } from "./ui/pages/ActivityStudioPage.js?v=1.1.220-activity-studio";
 
 console.warn("[course-creator-build-check] latest build active");
 
@@ -34,6 +35,13 @@ function initApp() {
         });
     } else if (hash.startsWith("#location-login-settings")) {
         currentPage = new LocationLoginSettingsPage();
+    } else if (hash.startsWith("#activity-studio")) {
+        const params = new URLSearchParams(hash.replace("#activity-studio?", ""));
+        currentPage = new ActivityStudioPage({
+            activityType: params.get("activityType") || "",
+            templateId: params.get("templateId") || "",
+            tab: params.get("tab") || ""
+        });
     } else if (hash.startsWith("#module-editor")) {
         const params = new URLSearchParams(hash.replace("#module-editor?", ""));
         const courseId = params.get("courseId");

@@ -1,0 +1,18 @@
+.oqu-classic-card-reveal {
+  display: grid;
+  gap: 12px;
+}
+
+.oqu-classic-card-reveal-card {
+  border: 1px solid #dbe5f2;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 16px;
+  text-align: left;
+}
+
+.oqu-classic-card-reveal-card.is-revealed {
+  border-color: #34d399;
+  background: #ecfdf5;
+}

@@ -18,6 +18,7 @@ export class CatalogCoursePage {
               <span>${escapeHtml(readCurrentUserLabel())}</span>
               <small>Course Creator</small>
             </div>
+            <a href="#activity-studio" class="builder-btn builder-btn-ghost"><i class="fa-solid fa-code"></i> Activity Studio</a>
             <a href="#location-login-settings" class="builder-btn builder-btn-ghost">Login Modes</a>
             <button id="courseCreatorLogoutBtn" class="builder-btn builder-btn-ghost">Log Out</button>
             <button id="openCreateModalBtn" class="builder-btn builder-btn-primary"><i class="fa-solid fa-plus"></i> New Course</button>

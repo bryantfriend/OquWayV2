@@ -28,6 +28,7 @@ export class PracticeModePlayer {
     this.onBack = typeof safeOptions.onBack === "function" ? safeOptions.onBack : null;
     this.onStateChange = typeof safeOptions.onStateChange === "function" ? safeOptions.onStateChange : null;
     this.onStepComplete = typeof safeOptions.onStepComplete === "function" ? safeOptions.onStepComplete : null;
+    this.onActivityInteraction = typeof safeOptions.onActivityInteraction === "function" ? safeOptions.onActivityInteraction : null;
     this.onExternalTaskSubmit = typeof safeOptions.onExternalTaskSubmit === "function" ? safeOptions.onExternalTaskSubmit : null;
     this.onExternalTaskLoad = typeof safeOptions.onExternalTaskLoad === "function" ? safeOptions.onExternalTaskLoad : null;
     this.backLabel = readString(safeOptions.backLabel, "");
@@ -122,6 +123,11 @@ export class PracticeModePlayer {
               return self.onExternalTaskSubmit(step, submissionRequest, self.createStateSnapshot());
             }
             return Promise.reject(new Error("External task submission is not available here."));
+          },
+          onInteraction: function (interaction) {
+            if (self.onActivityInteraction) {
+              self.onActivityInteraction(step, interaction, self.createStateSnapshot());
+            }
           },
           onComplete: function (completionResult) {
             self.completeCurrentStep(completionResult);

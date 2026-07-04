@@ -1,0 +1,73 @@
+import { BaseStep } from "./BaseStep.js?v=1.1.82-shared-command-center-shell";
+import {
+  destroyCardRevealActivity,
+  getCardRevealDefaultContent,
+  renderCardRevealActivity
+} from "../learningActivities/card-reveal/cardReveal.activity.js?v=1.1.220-activity-studio";
+import { cardRevealSchema, normalizeCardRevealConfig } from "../learningActivities/card-reveal/cardReveal.schema.js?v=1.1.220-activity-studio";
+import { cardRevealActivityDefinition } from "../learningActivities/card-reveal/cardReveal.registry.js?v=1.1.220-activity-studio";
+
+export class CardRevealStep extends BaseStep {
+  static get type() {
+    return "cardReveal";
+  }
+
+  static get label() {
+    return "Card Reveal";
+  }
+
+  static get description() {
+    return "A template-backed reveal activity where the base engine owns validation, events, and completion.";
+  }
+
+  static get category() {
+    return "Interactive";
+  }
+
+  static get complexity() {
+    return "Easy";
+  }
+
+  static get previewMode() {
+    return "full";
+  }
+
+  static get completionMode() {
+    return "interaction";
+  }
+
+  static get defaultConfig() {
+    return getCardRevealDefaultContent();
+  }
+
+  static get editorSchema() {
+    return cardRevealSchema;
+  }
+
+  static get activityDefinition() {
+    return cardRevealActivityDefinition;
+  }
+
+  static createConfig(config) {
+    return normalizeCardRevealConfig(config);
+  }
+
+  static renderPlayer(container, config, callbacks) {
+    if (!container) {
+      return;
+    }
+
+    destroyCardRevealActivity(container.__oquCardRevealContext);
+    container.__oquCardRevealContext = renderCardRevealActivity(container, this.createConfig(config), callbacks);
+  }
+
+  static renderPlayerShell(config) {
+    var safeConfig = this.createConfig(config);
+    var cards = Array.isArray(safeConfig.cards) ? safeConfig.cards : [];
+
+    return '<article class="rounded-lg border border-sky-100 bg-sky-50 p-4 text-sm text-sky-900">'
+      + '<strong>' + this.escapeHtml(safeConfig.title || "Card Reveal") + '</strong>'
+      + '<p class="mt-1">' + this.escapeHtml(cards.length + " cards configured") + '</p>'
+      + '</article>';
+  }
+}
