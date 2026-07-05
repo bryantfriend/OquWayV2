@@ -1,5 +1,8 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.225-learning-activity-source-folders";
-import { DragMatchIslandStep } from "../../stepTypes/DragMatchIslandStep.js?v=1.1.225-learning-activity-source-folders";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.226-learning-activity-files";
+import { DragMatchIslandStep } from "../../stepTypes/DragMatchIslandStep.js?v=1.1.226-learning-activity-files";
+import { sortingSchema } from "./sorting.schema.js?v=1.1.226-learning-activity-files";
+import { sortingStandardMeta } from "./templates/sorting-standard/sortingStandard.meta.js?v=1.1.226-learning-activity-files";
+import * as sortingStandardTemplate from "./templates/sorting-standard/sortingStandard.template.js?v=1.1.226-learning-activity-files";
 
 export const sortingActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: DragMatchIslandStep,
@@ -13,10 +16,13 @@ export const sortingActivityDefinition = createStepBackedActivityDefinition({
   templateId: "sorting-standard",
   templateDisplayName: "Sorting Standard",
   registryFile: "packages/core/src/shared/learningActivities/sorting/sorting.registry.js",
-  seedConfig: {
-      "title": "Sort the Ideas",
-      "subtitle": "Move each item to the best matching place.",
-      "items": "Example 1\nExample 2\nExample 3\nExample 4",
-      "theme": "sunny"
-  }
+  activityFile: "packages/core/src/shared/learningActivities/sorting/sorting.activity.js",
+  schemaFile: "packages/core/src/shared/learningActivities/sorting/sorting.schema.js",
+  schema: sortingSchema,
+  templates: [
+    {
+      meta: sortingStandardMeta,
+      module: sortingStandardTemplate
+    }
+  ]
 });

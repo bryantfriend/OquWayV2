@@ -1,5 +1,8 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.225-learning-activity-source-folders";
-import { ExternalTaskStep } from "../../stepTypes/ExternalTaskStep.js?v=1.1.225-learning-activity-source-folders";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.226-learning-activity-files";
+import { ExternalTaskStep } from "../../stepTypes/ExternalTaskStep.js?v=1.1.226-learning-activity-files";
+import { externalTaskSchema } from "./externalTask.schema.js?v=1.1.226-learning-activity-files";
+import { externalTaskStandardMeta } from "./templates/external-task-standard/externalTaskStandard.meta.js?v=1.1.226-learning-activity-files";
+import * as externalTaskStandardTemplate from "./templates/external-task-standard/externalTaskStandard.template.js?v=1.1.226-learning-activity-files";
 
 export const externalTaskActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: ExternalTaskStep,
@@ -13,19 +16,13 @@ export const externalTaskActivityDefinition = createStepBackedActivityDefinition
   templateId: "externalTask-standard",
   templateDisplayName: "External Task Standard",
   registryFile: "packages/core/src/shared/learningActivities/external-task/externalTask.registry.js",
-  seedConfig: {
-      "title": "Create a One-Slide Summary",
-      "instructions": "Create one slide that explains the lesson idea, then upload proof for review.",
-      "checklist": [
-          "Slide has a title",
-          "Slide has one useful example",
-          "Slide is saved clearly"
-      ],
-      "proofRequired": "false",
-      "allowedProofTypes": "image,document",
-      "allowStudentNote": "true",
-      "maxFiles": 3,
-      "maxFileSizeMb": 10,
-      "completionMode": "teacherReview"
-  }
+  activityFile: "packages/core/src/shared/learningActivities/external-task/externalTask.activity.js",
+  schemaFile: "packages/core/src/shared/learningActivities/external-task/externalTask.schema.js",
+  schema: externalTaskSchema,
+  templates: [
+    {
+      meta: externalTaskStandardMeta,
+      module: externalTaskStandardTemplate
+    }
+  ]
 });

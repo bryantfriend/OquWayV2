@@ -1,4 +1,4 @@
-import { isSupportedStepType, normalizeStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.225-learning-activity-source-folders";
+import { isSupportedStepType, normalizeStepType } from "../../../../../shared/stepTypes/stepTypeRegistry.js?v=1.1.226-learning-activity-files";
 
 export function validatePracticeModeStepType(executionState) {
   var payload = executionState.payload;

@@ -1,8 +1,8 @@
-import { cardRevealSchema } from "./cardReveal.schema.js?v=1.1.225-learning-activity-source-folders";
-import { classicCardRevealMeta } from "./templates/classic-card-reveal/classicCardReveal.meta.js?v=1.1.225-learning-activity-source-folders";
-import * as classicCardRevealTemplate from "./templates/classic-card-reveal/classicCardReveal.template.js?v=1.1.225-learning-activity-source-folders";
-import { mysteryFlipCardsMeta } from "./templates/mystery-flip-cards/mysteryFlipCards.meta.js?v=1.1.225-learning-activity-source-folders";
-import * as mysteryFlipCardsTemplate from "./templates/mystery-flip-cards/mysteryFlipCards.template.js?v=1.1.225-learning-activity-source-folders";
+import { cardRevealSchema } from "./cardReveal.schema.js?v=1.1.226-learning-activity-files";
+import { classicCardRevealMeta } from "./templates/classic-card-reveal/classicCardReveal.meta.js?v=1.1.226-learning-activity-files";
+import * as classicCardRevealTemplate from "./templates/classic-card-reveal/classicCardReveal.template.js?v=1.1.226-learning-activity-files";
+import { mysteryFlipCardsMeta } from "./templates/mystery-flip-cards/mysteryFlipCards.meta.js?v=1.1.226-learning-activity-files";
+import * as mysteryFlipCardsTemplate from "./templates/mystery-flip-cards/mysteryFlipCards.template.js?v=1.1.226-learning-activity-files";
 
 export const cardRevealActivityDefinition = {
   activityType: "cardReveal",

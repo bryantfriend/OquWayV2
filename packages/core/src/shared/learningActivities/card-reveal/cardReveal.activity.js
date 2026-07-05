@@ -2,11 +2,11 @@ import {
   getDefaultCardRevealContent,
   normalizeCardRevealConfig,
   validateCardRevealConfig
-} from "./cardReveal.schema.js?v=1.1.225-learning-activity-source-folders";
+} from "./cardReveal.schema.js?v=1.1.226-learning-activity-files";
 import {
   cardRevealActivityDefinition,
   getCardRevealTemplateDefinition
-} from "./cardReveal.registry.js?v=1.1.225-learning-activity-source-folders";
+} from "./cardReveal.registry.js?v=1.1.226-learning-activity-files";
 
 export function createCardRevealActivityContext(container, config, callbacks) {
   var safeCallbacks = callbacks && typeof callbacks === "object" ? callbacks : {};

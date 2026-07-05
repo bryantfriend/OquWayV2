@@ -1,5 +1,8 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.225-learning-activity-source-folders";
-import { DragMatchIslandStep } from "../../stepTypes/DragMatchIslandStep.js?v=1.1.225-learning-activity-source-folders";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.226-learning-activity-files";
+import { DragMatchIslandStep } from "../../stepTypes/DragMatchIslandStep.js?v=1.1.226-learning-activity-files";
+import { dragMatchIslandSchema } from "./dragMatchIsland.schema.js?v=1.1.226-learning-activity-files";
+import { dragMatchIslandStandardMeta } from "./templates/drag-match-island-standard/dragMatchIslandStandard.meta.js?v=1.1.226-learning-activity-files";
+import * as dragMatchIslandStandardTemplate from "./templates/drag-match-island-standard/dragMatchIslandStandard.template.js?v=1.1.226-learning-activity-files";
 
 export const dragMatchIslandActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: DragMatchIslandStep,
@@ -13,10 +16,13 @@ export const dragMatchIslandActivityDefinition = createStepBackedActivityDefinit
   templateId: "dragMatchIsland-standard",
   templateDisplayName: "Drag Match Island Standard",
   registryFile: "packages/core/src/shared/learningActivities/drag-match-island/dragMatchIsland.registry.js",
-  seedConfig: {
-      "title": "Input Device Island",
-      "subtitle": "Match each item to the right place.",
-      "items": "Keyboard\nMouse\nMonitor\nPrinter",
-      "theme": "sunny"
-  }
+  activityFile: "packages/core/src/shared/learningActivities/drag-match-island/dragMatchIsland.activity.js",
+  schemaFile: "packages/core/src/shared/learningActivities/drag-match-island/dragMatchIsland.schema.js",
+  schema: dragMatchIslandSchema,
+  templates: [
+    {
+      meta: dragMatchIslandStandardMeta,
+      module: dragMatchIslandStandardTemplate
+    }
+  ]
 });

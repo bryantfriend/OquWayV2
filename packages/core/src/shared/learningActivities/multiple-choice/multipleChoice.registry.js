@@ -1,5 +1,8 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.225-learning-activity-source-folders";
-import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.225-learning-activity-source-folders";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.226-learning-activity-files";
+import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.226-learning-activity-files";
+import { multipleChoiceSchema } from "./multipleChoice.schema.js?v=1.1.226-learning-activity-files";
+import { multipleChoiceStandardMeta } from "./templates/multiple-choice-standard/multipleChoiceStandard.meta.js?v=1.1.226-learning-activity-files";
+import * as multipleChoiceStandardTemplate from "./templates/multiple-choice-standard/multipleChoiceStandard.template.js?v=1.1.226-learning-activity-files";
 
 export const multipleChoiceActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: CustomExperienceStep,
@@ -13,11 +16,13 @@ export const multipleChoiceActivityDefinition = createStepBackedActivityDefiniti
   templateId: "multiple-choice-standard",
   templateDisplayName: "Multiple Choice Standard",
   registryFile: "packages/core/src/shared/learningActivities/multiple-choice/multipleChoice.registry.js",
-  seedConfig: {
-      "experienceType": "multiple-choice",
-      "title": "Check Your Understanding",
-      "theme": "assessment",
-      "instructions": "Choose the best answer, then complete the activity.",
-      "data": "{\"question\":\"What is the best answer?\",\"choices\":[\"A\",\"B\",\"C\"]}"
-  }
+  activityFile: "packages/core/src/shared/learningActivities/multiple-choice/multipleChoice.activity.js",
+  schemaFile: "packages/core/src/shared/learningActivities/multiple-choice/multipleChoice.schema.js",
+  schema: multipleChoiceSchema,
+  templates: [
+    {
+      meta: multipleChoiceStandardMeta,
+      module: multipleChoiceStandardTemplate
+    }
+  ]
 });

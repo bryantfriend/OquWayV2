@@ -1,5 +1,8 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.225-learning-activity-source-folders";
-import { ListeningStep } from "../../stepTypes/ListeningStep.js?v=1.1.225-learning-activity-source-folders";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.226-learning-activity-files";
+import { ListeningStep } from "../../stepTypes/ListeningStep.js?v=1.1.226-learning-activity-files";
+import { listeningSchema } from "./listening.schema.js?v=1.1.226-learning-activity-files";
+import { listeningStandardMeta } from "./templates/listening-standard/listeningStandard.meta.js?v=1.1.226-learning-activity-files";
+import * as listeningStandardTemplate from "./templates/listening-standard/listeningStandard.template.js?v=1.1.226-learning-activity-files";
 
 export const listeningActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: ListeningStep,
@@ -13,8 +16,13 @@ export const listeningActivityDefinition = createStepBackedActivityDefinition({
   templateId: "listening-standard",
   templateDisplayName: "Listening Standard",
   registryFile: "packages/core/src/shared/learningActivities/listening/listening.registry.js",
-  seedConfig: {
-      "questionPrompt": "Listen for the main idea.",
-      "transcript": "The speaker explains how to check whether a website is safe."
-  }
+  activityFile: "packages/core/src/shared/learningActivities/listening/listening.activity.js",
+  schemaFile: "packages/core/src/shared/learningActivities/listening/listening.schema.js",
+  schema: listeningSchema,
+  templates: [
+    {
+      meta: listeningStandardMeta,
+      module: listeningStandardTemplate
+    }
+  ]
 });

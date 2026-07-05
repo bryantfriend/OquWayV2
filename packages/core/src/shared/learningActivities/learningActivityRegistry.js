@@ -1,20 +1,20 @@
-import { normalizeStepType } from "../stepTypes/stepTypeRegistry.js?v=1.1.225-learning-activity-source-folders";
-import { cardRevealActivityDefinition } from "./card-reveal/cardReveal.registry.js?v=1.1.225-learning-activity-source-folders";
-import { customExperienceActivityDefinition } from "./custom-experience/customExperience.registry.js?v=1.1.225-learning-activity-source-folders";
-import { cyberCodeMissionActivityDefinition } from "./cyber-code-mission/cyberCodeMission.registry.js?v=1.1.225-learning-activity-source-folders";
-import { dragMatchIslandActivityDefinition } from "./drag-match-island/dragMatchIsland.registry.js?v=1.1.225-learning-activity-source-folders";
-import { externalTaskActivityDefinition } from "./external-task/externalTask.registry.js?v=1.1.225-learning-activity-source-folders";
-import { introCardActivityDefinition } from "./intro-card/introCard.registry.js?v=1.1.225-learning-activity-source-folders";
-import { listeningActivityDefinition } from "./listening/listening.registry.js?v=1.1.225-learning-activity-source-folders";
-import { multiSelectActivityDefinition } from "./multi-select/multiSelect.registry.js?v=1.1.225-learning-activity-source-folders";
-import { multipleChoiceActivityDefinition } from "./multiple-choice/multipleChoice.registry.js?v=1.1.225-learning-activity-source-folders";
-import { phraseActivityDefinition } from "./phrase/phrase.registry.js?v=1.1.225-learning-activity-source-folders";
-import { reflectionActivityDefinition } from "./reflection/reflection.registry.js?v=1.1.225-learning-activity-source-folders";
-import { roadmapActivityDefinition } from "./roadmap/roadmap.registry.js?v=1.1.225-learning-activity-source-folders";
-import { sortingActivityDefinition } from "./sorting/sorting.registry.js?v=1.1.225-learning-activity-source-folders";
-import { speakingPromptActivityDefinition } from "./speaking-prompt/speakingPrompt.registry.js?v=1.1.225-learning-activity-source-folders";
-import { textBriefingActivityDefinition } from "./text-briefing/textBriefing.registry.js?v=1.1.225-learning-activity-source-folders";
-import { vocabularyActivityDefinition } from "./vocabulary/vocabulary.registry.js?v=1.1.225-learning-activity-source-folders";
+import { normalizeStepType } from "../stepTypes/stepTypeRegistry.js?v=1.1.226-learning-activity-files";
+import { cardRevealActivityDefinition } from "./card-reveal/cardReveal.registry.js?v=1.1.226-learning-activity-files";
+import { customExperienceActivityDefinition } from "./custom-experience/customExperience.registry.js?v=1.1.226-learning-activity-files";
+import { cyberCodeMissionActivityDefinition } from "./cyber-code-mission/cyberCodeMission.registry.js?v=1.1.226-learning-activity-files";
+import { dragMatchIslandActivityDefinition } from "./drag-match-island/dragMatchIsland.registry.js?v=1.1.226-learning-activity-files";
+import { externalTaskActivityDefinition } from "./external-task/externalTask.registry.js?v=1.1.226-learning-activity-files";
+import { introCardActivityDefinition } from "./intro-card/introCard.registry.js?v=1.1.226-learning-activity-files";
+import { listeningActivityDefinition } from "./listening/listening.registry.js?v=1.1.226-learning-activity-files";
+import { multiSelectActivityDefinition } from "./multi-select/multiSelect.registry.js?v=1.1.226-learning-activity-files";
+import { multipleChoiceActivityDefinition } from "./multiple-choice/multipleChoice.registry.js?v=1.1.226-learning-activity-files";
+import { phraseActivityDefinition } from "./phrase/phrase.registry.js?v=1.1.226-learning-activity-files";
+import { reflectionActivityDefinition } from "./reflection/reflection.registry.js?v=1.1.226-learning-activity-files";
+import { roadmapActivityDefinition } from "./roadmap/roadmap.registry.js?v=1.1.226-learning-activity-files";
+import { sortingActivityDefinition } from "./sorting/sorting.registry.js?v=1.1.226-learning-activity-files";
+import { speakingPromptActivityDefinition } from "./speaking-prompt/speakingPrompt.registry.js?v=1.1.226-learning-activity-files";
+import { textBriefingActivityDefinition } from "./text-briefing/textBriefing.registry.js?v=1.1.226-learning-activity-files";
+import { vocabularyActivityDefinition } from "./vocabulary/vocabulary.registry.js?v=1.1.226-learning-activity-files";
 
 var learningActivityDefinitions = [
   cardRevealActivityDefinition,

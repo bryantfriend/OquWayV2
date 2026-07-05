@@ -1,5 +1,8 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.225-learning-activity-source-folders";
-import { TextBriefingStep } from "../../stepTypes/TextBriefingStep.js?v=1.1.225-learning-activity-source-folders";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.226-learning-activity-files";
+import { TextBriefingStep } from "../../stepTypes/TextBriefingStep.js?v=1.1.226-learning-activity-files";
+import { introCardSchema } from "./introCard.schema.js?v=1.1.226-learning-activity-files";
+import { introCardStandardMeta } from "./templates/intro-card-standard/introCardStandard.meta.js?v=1.1.226-learning-activity-files";
+import * as introCardStandardTemplate from "./templates/intro-card-standard/introCardStandard.template.js?v=1.1.226-learning-activity-files";
 
 export const introCardActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: TextBriefingStep,
@@ -13,9 +16,13 @@ export const introCardActivityDefinition = createStepBackedActivityDefinition({
   templateId: "intro-card-standard",
   templateDisplayName: "Intro Card Standard",
   registryFile: "packages/core/src/shared/learningActivities/intro-card/introCard.registry.js",
-  seedConfig: {
-      "heading": "Lesson Introduction",
-      "bodyText": "Start here to understand the main idea.",
-      "calloutText": "Look for the one concept you should remember."
-  }
+  activityFile: "packages/core/src/shared/learningActivities/intro-card/introCard.activity.js",
+  schemaFile: "packages/core/src/shared/learningActivities/intro-card/introCard.schema.js",
+  schema: introCardSchema,
+  templates: [
+    {
+      meta: introCardStandardMeta,
+      module: introCardStandardTemplate
+    }
+  ]
 });

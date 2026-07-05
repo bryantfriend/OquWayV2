@@ -1,7 +1,7 @@
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../stepTypes/stepTypeRegistry.js?v=1.1.225-learning-activity-source-folders";
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.226-learning-activity-files";
 
 export class PracticeModePlayer {
   constructor(options) {

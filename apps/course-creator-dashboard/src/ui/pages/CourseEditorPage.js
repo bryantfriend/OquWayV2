@@ -1,18 +1,18 @@
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.225-learning-activity-source-folders";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.225-learning-activity-source-folders";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.226-learning-activity-files";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.226-learning-activity-files";
 import {
   getStepTypeDefinition,
   normalizeStepType as normalizeRegisteredStepType,
   validateStepConfig
-} from "../../../../../packages/domain/steps/index.js?v=1.1.225-learning-activity-source-folders";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.226-learning-activity-files";
 import {
   getLearningActivityDefinition,
   getLearningActivityTemplateDefinition,
   listLearningActivityDefinitions,
   normalizeLearningActivityTemplateId
-} from "../../../../../packages/domain/learningActivities/index.js?v=1.1.225-learning-activity-source-folders";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.225-learning-activity-source-folders";
-import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.225-learning-activity-source-folders";
+} from "../../../../../packages/domain/learningActivities/index.js?v=1.1.226-learning-activity-files";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.226-learning-activity-files";
+import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.226-learning-activity-files";
 
 export class CourseEditorPage {
   constructor(courseId, moduleId) {

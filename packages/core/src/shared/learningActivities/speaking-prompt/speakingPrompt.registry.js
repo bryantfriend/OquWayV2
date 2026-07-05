@@ -1,5 +1,8 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.225-learning-activity-source-folders";
-import { SpeakingPromptStep } from "../../stepTypes/SpeakingPromptStep.js?v=1.1.225-learning-activity-source-folders";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.226-learning-activity-files";
+import { SpeakingPromptStep } from "../../stepTypes/SpeakingPromptStep.js?v=1.1.226-learning-activity-files";
+import { speakingPromptSchema } from "./speakingPrompt.schema.js?v=1.1.226-learning-activity-files";
+import { speakingPromptStandardMeta } from "./templates/speaking-prompt-standard/speakingPromptStandard.meta.js?v=1.1.226-learning-activity-files";
+import * as speakingPromptStandardTemplate from "./templates/speaking-prompt-standard/speakingPromptStandard.template.js?v=1.1.226-learning-activity-files";
 
 export const speakingPromptActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: SpeakingPromptStep,
@@ -13,9 +16,13 @@ export const speakingPromptActivityDefinition = createStepBackedActivityDefiniti
   templateId: "speakingPrompt-standard",
   templateDisplayName: "Speaking Prompt Standard",
   registryFile: "packages/core/src/shared/learningActivities/speaking-prompt/speakingPrompt.registry.js",
-  seedConfig: {
-      "prompt": "Explain one way to stay safe online.",
-      "preparationSeconds": 20,
-      "speakingSeconds": 45
-  }
+  activityFile: "packages/core/src/shared/learningActivities/speaking-prompt/speakingPrompt.activity.js",
+  schemaFile: "packages/core/src/shared/learningActivities/speaking-prompt/speakingPrompt.schema.js",
+  schema: speakingPromptSchema,
+  templates: [
+    {
+      meta: speakingPromptStandardMeta,
+      module: speakingPromptStandardTemplate
+    }
+  ]
 });

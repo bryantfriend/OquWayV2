@@ -1,5 +1,8 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.225-learning-activity-source-folders";
-import { CyberCodeMissionStep } from "../../stepTypes/CyberCodeMissionStep.js?v=1.1.225-learning-activity-source-folders";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.226-learning-activity-files";
+import { CyberCodeMissionStep } from "../../stepTypes/CyberCodeMissionStep.js?v=1.1.226-learning-activity-files";
+import { cyberCodeMissionSchema } from "./cyberCodeMission.schema.js?v=1.1.226-learning-activity-files";
+import { cyberCodeMissionStandardMeta } from "./templates/cyber-code-mission-standard/cyberCodeMissionStandard.meta.js?v=1.1.226-learning-activity-files";
+import * as cyberCodeMissionStandardTemplate from "./templates/cyber-code-mission-standard/cyberCodeMissionStandard.template.js?v=1.1.226-learning-activity-files";
 
 export const cyberCodeMissionActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: CyberCodeMissionStep,
@@ -13,12 +16,13 @@ export const cyberCodeMissionActivityDefinition = createStepBackedActivityDefini
   templateId: "cyberCodeMission-standard",
   templateDisplayName: "Cyber Code Mission Standard",
   registryFile: "packages/core/src/shared/learningActivities/cyber-code-mission/cyberCodeMission.registry.js",
-  seedConfig: {
-      "missionTitle": "Repair the Signal",
-      "missionSubtitle": "Find the missing HTML structure.",
-      "instructions": "Inspect the starter code and complete the mission checklist.",
-      "starterCode": "<h1>Welcome</h1>\n<p>Stay curious.</p>",
-      "successMessage": "Signal restored.",
-      "theme": "neon"
-  }
+  activityFile: "packages/core/src/shared/learningActivities/cyber-code-mission/cyberCodeMission.activity.js",
+  schemaFile: "packages/core/src/shared/learningActivities/cyber-code-mission/cyberCodeMission.schema.js",
+  schema: cyberCodeMissionSchema,
+  templates: [
+    {
+      meta: cyberCodeMissionStandardMeta,
+      module: cyberCodeMissionStandardTemplate
+    }
+  ]
 });

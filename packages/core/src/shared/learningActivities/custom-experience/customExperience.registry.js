@@ -1,5 +1,8 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.225-learning-activity-source-folders";
-import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.225-learning-activity-source-folders";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.226-learning-activity-files";
+import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.226-learning-activity-files";
+import { customExperienceSchema } from "./customExperience.schema.js?v=1.1.226-learning-activity-files";
+import { customExperienceStandardMeta } from "./templates/custom-experience-standard/customExperienceStandard.meta.js?v=1.1.226-learning-activity-files";
+import * as customExperienceStandardTemplate from "./templates/custom-experience-standard/customExperienceStandard.template.js?v=1.1.226-learning-activity-files";
 
 export const customExperienceActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: CustomExperienceStep,
@@ -13,11 +16,13 @@ export const customExperienceActivityDefinition = createStepBackedActivityDefini
   templateId: "customExperience-standard",
   templateDisplayName: "Custom Experience Standard",
   registryFile: "packages/core/src/shared/learningActivities/custom-experience/customExperience.registry.js",
-  seedConfig: {
-      "experienceType": "interactive-shell",
-      "title": "Custom Learning Experience",
-      "theme": "studio",
-      "instructions": "Use this shell to prototype a specialized activity.",
-      "data": "{\"mode\":\"preview\"}"
-  }
+  activityFile: "packages/core/src/shared/learningActivities/custom-experience/customExperience.activity.js",
+  schemaFile: "packages/core/src/shared/learningActivities/custom-experience/customExperience.schema.js",
+  schema: customExperienceSchema,
+  templates: [
+    {
+      meta: customExperienceStandardMeta,
+      module: customExperienceStandardTemplate
+    }
+  ]
 });

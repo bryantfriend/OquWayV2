@@ -1,5 +1,8 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.225-learning-activity-source-folders";
-import { TextBriefingStep } from "../../stepTypes/TextBriefingStep.js?v=1.1.225-learning-activity-source-folders";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.226-learning-activity-files";
+import { TextBriefingStep } from "../../stepTypes/TextBriefingStep.js?v=1.1.226-learning-activity-files";
+import { textBriefingSchema } from "./textBriefing.schema.js?v=1.1.226-learning-activity-files";
+import { textBriefingStandardMeta } from "./templates/text-briefing-standard/textBriefingStandard.meta.js?v=1.1.226-learning-activity-files";
+import * as textBriefingStandardTemplate from "./templates/text-briefing-standard/textBriefingStandard.template.js?v=1.1.226-learning-activity-files";
 
 export const textBriefingActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: TextBriefingStep,
@@ -13,9 +16,13 @@ export const textBriefingActivityDefinition = createStepBackedActivityDefinition
   templateId: "textBriefing-standard",
   templateDisplayName: "Text Briefing Standard",
   registryFile: "packages/core/src/shared/learningActivities/text-briefing/textBriefing.registry.js",
-  seedConfig: {
-      "heading": "Digital Safety Briefing",
-      "bodyText": "Read the key idea, then continue when you are ready.",
-      "calloutText": "Pause and look for the one idea you can use today."
-  }
+  activityFile: "packages/core/src/shared/learningActivities/text-briefing/textBriefing.activity.js",
+  schemaFile: "packages/core/src/shared/learningActivities/text-briefing/textBriefing.schema.js",
+  schema: textBriefingSchema,
+  templates: [
+    {
+      meta: textBriefingStandardMeta,
+      module: textBriefingStandardTemplate
+    }
+  ]
 });

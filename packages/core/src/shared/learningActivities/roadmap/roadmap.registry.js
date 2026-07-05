@@ -1,5 +1,8 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.225-learning-activity-source-folders";
-import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.225-learning-activity-source-folders";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.226-learning-activity-files";
+import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.226-learning-activity-files";
+import { roadmapSchema } from "./roadmap.schema.js?v=1.1.226-learning-activity-files";
+import { roadmapStandardMeta } from "./templates/roadmap-standard/roadmapStandard.meta.js?v=1.1.226-learning-activity-files";
+import * as roadmapStandardTemplate from "./templates/roadmap-standard/roadmapStandard.template.js?v=1.1.226-learning-activity-files";
 
 export const roadmapActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: CustomExperienceStep,
@@ -13,11 +16,13 @@ export const roadmapActivityDefinition = createStepBackedActivityDefinition({
   templateId: "roadmap-standard",
   templateDisplayName: "Roadmap Standard",
   registryFile: "packages/core/src/shared/learningActivities/roadmap/roadmap.registry.js",
-  seedConfig: {
-      "experienceType": "roadmap",
-      "title": "Learning Roadmap",
-      "theme": "pathway",
-      "instructions": "Review the checkpoints before you continue.",
-      "data": "{\"checkpoints\":[\"Start\",\"Practice\",\"Apply\"]}"
-  }
+  activityFile: "packages/core/src/shared/learningActivities/roadmap/roadmap.activity.js",
+  schemaFile: "packages/core/src/shared/learningActivities/roadmap/roadmap.schema.js",
+  schema: roadmapSchema,
+  templates: [
+    {
+      meta: roadmapStandardMeta,
+      module: roadmapStandardTemplate
+    }
+  ]
 });

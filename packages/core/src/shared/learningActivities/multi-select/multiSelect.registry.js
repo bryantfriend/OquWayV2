@@ -1,5 +1,8 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.225-learning-activity-source-folders";
-import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.225-learning-activity-source-folders";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.226-learning-activity-files";
+import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.226-learning-activity-files";
+import { multiSelectSchema } from "./multiSelect.schema.js?v=1.1.226-learning-activity-files";
+import { multiSelectStandardMeta } from "./templates/multi-select-standard/multiSelectStandard.meta.js?v=1.1.226-learning-activity-files";
+import * as multiSelectStandardTemplate from "./templates/multi-select-standard/multiSelectStandard.template.js?v=1.1.226-learning-activity-files";
 
 export const multiSelectActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: CustomExperienceStep,
@@ -13,11 +16,13 @@ export const multiSelectActivityDefinition = createStepBackedActivityDefinition(
   templateId: "multi-select-standard",
   templateDisplayName: "Multi Select Standard",
   registryFile: "packages/core/src/shared/learningActivities/multi-select/multiSelect.registry.js",
-  seedConfig: {
-      "experienceType": "multi-select",
-      "title": "Select All That Apply",
-      "theme": "assessment",
-      "instructions": "Select every correct option, then complete the activity.",
-      "data": "{\"question\":\"Which options apply?\",\"choices\":[\"A\",\"B\",\"C\"]}"
-  }
+  activityFile: "packages/core/src/shared/learningActivities/multi-select/multiSelect.activity.js",
+  schemaFile: "packages/core/src/shared/learningActivities/multi-select/multiSelect.schema.js",
+  schema: multiSelectSchema,
+  templates: [
+    {
+      meta: multiSelectStandardMeta,
+      module: multiSelectStandardTemplate
+    }
+  ]
 });

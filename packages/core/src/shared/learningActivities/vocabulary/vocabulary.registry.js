@@ -1,5 +1,8 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.225-learning-activity-source-folders";
-import { VocabularyStep } from "../../stepTypes/VocabularyStep.js?v=1.1.225-learning-activity-source-folders";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.226-learning-activity-files";
+import { VocabularyStep } from "../../stepTypes/VocabularyStep.js?v=1.1.226-learning-activity-files";
+import { vocabularySchema } from "./vocabulary.schema.js?v=1.1.226-learning-activity-files";
+import { vocabularyStandardMeta } from "./templates/vocabulary-standard/vocabularyStandard.meta.js?v=1.1.226-learning-activity-files";
+import * as vocabularyStandardTemplate from "./templates/vocabulary-standard/vocabularyStandard.template.js?v=1.1.226-learning-activity-files";
 
 export const vocabularyActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: VocabularyStep,
@@ -13,9 +16,13 @@ export const vocabularyActivityDefinition = createStepBackedActivityDefinition({
   templateId: "vocabulary-standard",
   templateDisplayName: "Vocabulary Standard",
   registryFile: "packages/core/src/shared/learningActivities/vocabulary/vocabulary.registry.js",
-  seedConfig: {
-      "word": "Algorithm",
-      "translation": "A clear sequence of steps",
-      "exampleSentence": "We followed an algorithm to solve the problem."
-  }
+  activityFile: "packages/core/src/shared/learningActivities/vocabulary/vocabulary.activity.js",
+  schemaFile: "packages/core/src/shared/learningActivities/vocabulary/vocabulary.schema.js",
+  schema: vocabularySchema,
+  templates: [
+    {
+      meta: vocabularyStandardMeta,
+      module: vocabularyStandardTemplate
+    }
+  ]
 });

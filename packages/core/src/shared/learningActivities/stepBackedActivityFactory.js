@@ -9,39 +9,15 @@ export function createStepBackedActivityDefinition(options) {
   var complexity = readText(safeOptions.complexity, readStepDefinitionText(StepTypeDefinition, "complexity", "Easy"));
   var templateId = readText(safeOptions.templateId, activityType + "-standard");
   var registryFile = readText(safeOptions.registryFile, "packages/core/src/shared/learningActivities/" + activityType + "/" + activityType + ".registry.js");
+  var activityFile = readText(safeOptions.activityFile, "");
+  var schemaFile = readText(safeOptions.schemaFile, "");
   var seedConfig = safeOptions.seedConfig && typeof safeOptions.seedConfig === "object" && !Array.isArray(safeOptions.seedConfig)
     ? safeOptions.seedConfig
     : {};
-
-  return {
-    activityType: activityType,
-    legacyStepType: legacyStepType,
-    displayName: displayName,
-    description: description,
-    icon: readText(safeOptions.icon, readStepDefinitionIcon(legacyStepType)),
-    category: category,
-    complexity: complexity,
-    defaultTemplate: templateId,
-    defaultTemplateId: templateId,
-    baseFiles: {
-      registry: registryFile,
-      stepType: "packages/core/src/shared/stepTypes/" + readStepDefinitionName(StepTypeDefinition),
-      preview: "apps/course-creator-dashboard/src/ui/pages/ActivityStudioPage.js"
-    },
-    schema: StepTypeDefinition && StepTypeDefinition.editorSchema ? StepTypeDefinition.editorSchema : { fields: [] },
-    previewHandler: {
-      type: "PracticeModePlayer",
-      route: "#activity-studio"
-    },
-    previewRenderer: {
-      type: "PracticeModePlayer",
-      legacyStepType: legacyStepType
-    },
-    inspectorAdapter: {
-      type: "StepTypeEditorSchema",
-      legacyStepType: legacyStepType
-    },
-    templates: [
+  var schema = safeOptions.schema || (StepTypeDefinition && StepTypeDefinition.editorSchema ? StepTypeDefinition.editorSchema : { fields: [] });
+  var templates = Array.isArray(safeOptions.templates) && safeOptions.templates.length > 0
+    ? safeOptions.templates
+    : [
       {
         meta: createTemplateMeta(StepTypeDefinition, {
           activityType: activityType,
@@ -54,7 +30,39 @@ export function createStepBackedActivityDefinition(options) {
         }),
         module: createTemplateModule(StepTypeDefinition, templateId, seedConfig, activityType)
       }
-    ]
+    ];
+
+  return {
+    activityType: activityType,
+    legacyStepType: legacyStepType,
+    displayName: displayName,
+    description: description,
+    icon: readText(safeOptions.icon, readStepDefinitionIcon(legacyStepType)),
+    category: category,
+    complexity: complexity,
+    defaultTemplate: templateId,
+    defaultTemplateId: templateId,
+    baseFiles: {
+      activity: activityFile,
+      schema: schemaFile,
+      registry: registryFile,
+      stepType: "packages/core/src/shared/stepTypes/" + readStepDefinitionName(StepTypeDefinition),
+      preview: "apps/course-creator-dashboard/src/ui/pages/ActivityStudioPage.js"
+    },
+    schema: schema,
+    previewHandler: {
+      type: "PracticeModePlayer",
+      route: "#activity-studio"
+    },
+    previewRenderer: {
+      type: "PracticeModePlayer",
+      legacyStepType: legacyStepType
+    },
+    inspectorAdapter: {
+      type: "StepTypeEditorSchema",
+      legacyStepType: legacyStepType
+    },
+    templates: templates
   };
 }
 
