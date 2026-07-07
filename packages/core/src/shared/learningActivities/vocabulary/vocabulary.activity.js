@@ -1,5 +1,5 @@
-import { VocabularyStep } from "../../stepTypes/VocabularyStep.js?v=1.1.226-learning-activity-files";
-import { getVocabularyDefaultContent, normalizeVocabularyConfig, validateVocabularyConfig } from "./vocabulary.schema.js?v=1.1.226-learning-activity-files";
+import { VocabularyStep } from "../../stepTypes/VocabularyStep.js?v=1.1.228-learning-activity-drag-interactions";
+import { getVocabularyDefaultContent, normalizeVocabularyConfig, validateVocabularyConfig } from "./vocabulary.schema.js?v=1.1.228-learning-activity-drag-interactions";
 
 export function createVocabularyActivityContext(container, config, callbacks) {
   var normalized = normalizeVocabularyConfig(config);

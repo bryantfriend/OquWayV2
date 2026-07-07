@@ -1,5 +1,5 @@
-import { CyberCodeMissionStep } from "../../stepTypes/CyberCodeMissionStep.js?v=1.1.226-learning-activity-files";
-import { getCyberCodeMissionDefaultContent, normalizeCyberCodeMissionConfig, validateCyberCodeMissionConfig } from "./cyberCodeMission.schema.js?v=1.1.226-learning-activity-files";
+import { CyberCodeMissionStep } from "../../stepTypes/CyberCodeMissionStep.js?v=1.1.228-learning-activity-drag-interactions";
+import { getCyberCodeMissionDefaultContent, normalizeCyberCodeMissionConfig, validateCyberCodeMissionConfig } from "./cyberCodeMission.schema.js?v=1.1.228-learning-activity-drag-interactions";
 
 export function createCyberCodeMissionActivityContext(container, config, callbacks) {
   var normalized = normalizeCyberCodeMissionConfig(config);

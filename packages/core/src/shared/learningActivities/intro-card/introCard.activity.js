@@ -1,5 +1,5 @@
-import { TextBriefingStep } from "../../stepTypes/TextBriefingStep.js?v=1.1.226-learning-activity-files";
-import { getIntroCardDefaultContent, normalizeIntroCardConfig, validateIntroCardConfig } from "./introCard.schema.js?v=1.1.226-learning-activity-files";
+import { TextBriefingStep } from "../../stepTypes/TextBriefingStep.js?v=1.1.228-learning-activity-drag-interactions";
+import { getIntroCardDefaultContent, normalizeIntroCardConfig, validateIntroCardConfig } from "./introCard.schema.js?v=1.1.228-learning-activity-drag-interactions";
 
 export function createIntroCardActivityContext(container, config, callbacks) {
   var normalized = normalizeIntroCardConfig(config);

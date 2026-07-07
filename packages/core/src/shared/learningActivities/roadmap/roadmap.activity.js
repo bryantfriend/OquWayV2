@@ -1,5 +1,5 @@
-import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.226-learning-activity-files";
-import { getRoadmapDefaultContent, normalizeRoadmapConfig, validateRoadmapConfig } from "./roadmap.schema.js?v=1.1.226-learning-activity-files";
+import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.228-learning-activity-drag-interactions";
+import { getRoadmapDefaultContent, normalizeRoadmapConfig, validateRoadmapConfig } from "./roadmap.schema.js?v=1.1.228-learning-activity-drag-interactions";
 
 export function createRoadmapActivityContext(container, config, callbacks) {
   var normalized = normalizeRoadmapConfig(config);

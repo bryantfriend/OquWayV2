@@ -39,6 +39,7 @@ export function destroyTemplate(activityContext) {
 
 export function getTemplateDefaultContent() {
   return {
+    templateId: "classic-card-reveal",
     title: "Card Reveal",
     instructions: "Select each card to reveal the answer.",
     cards: [
@@ -50,6 +51,7 @@ export function getTemplateDefaultContent() {
 
 export function getTemplatePreviewContent() {
   return {
+    templateId: "classic-card-reveal",
     title: "Classic Card Reveal",
     instructions: "Click each card to reveal the answer.",
     cards: [

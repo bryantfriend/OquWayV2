@@ -1,13 +1,13 @@
 export const textBriefingStandardMeta = {
   templateId: "textBriefing-standard",
   activityType: "textBriefing",
-  displayName: "Text Briefing Standard",
-  description: "A structured reading or instruction card for introducing lesson content.",
+  displayName: "Briefing Card",
+  description: "A short reading or explanation step.",
   supportsPreview: true,
   supportsStudentMode: true,
   supportsTeacherPreview: true,
   requiredContentFields: [],
-  visualFeatures: ["Basic", "Easy", "step-type-backed"],
+  visualFeatures: ["studio-card", "choice", "Easy"],
   files: {
     template: "packages/core/src/shared/learningActivities/text-briefing/templates/text-briefing-standard/textBriefingStandard.template.js",
     css: "packages/core/src/shared/learningActivities/text-briefing/templates/text-briefing-standard/textBriefingStandard.css",

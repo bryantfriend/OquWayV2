@@ -1,13 +1,13 @@
 export const roadmapStandardMeta = {
   templateId: "roadmap-standard",
   activityType: "roadmap",
-  displayName: "Roadmap Standard",
-  description: "Show a learning path or sequence using the custom experience shell.",
+  displayName: "Learning Roadmap",
+  description: "A roadmap activity shell for multi-step learning paths.",
   supportsPreview: true,
   supportsStudentMode: true,
   supportsTeacherPreview: true,
   requiredContentFields: [],
-  visualFeatures: ["Custom", "Medium", "step-type-backed"],
+  visualFeatures: ["story-path", "choice", "Medium"],
   files: {
     template: "packages/core/src/shared/learningActivities/roadmap/templates/roadmap-standard/roadmapStandard.template.js",
     css: "packages/core/src/shared/learningActivities/roadmap/templates/roadmap-standard/roadmapStandard.css",

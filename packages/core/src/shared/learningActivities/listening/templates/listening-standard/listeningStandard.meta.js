@@ -1,13 +1,13 @@
 export const listeningStandardMeta = {
   templateId: "listening-standard",
   activityType: "listening",
-  displayName: "Listening Standard",
-  description: "Guide learners through a listening prompt or transcript-based check.",
+  displayName: "Listen and Check",
+  description: "A listening challenge shell.",
   supportsPreview: true,
   supportsStudentMode: true,
   supportsTeacherPreview: true,
   requiredContentFields: [],
-  visualFeatures: ["Media", "Medium", "step-type-backed"],
+  visualFeatures: ["studio-card", "media", "Easy"],
   files: {
     template: "packages/core/src/shared/learningActivities/listening/templates/listening-standard/listeningStandard.template.js",
     css: "packages/core/src/shared/learningActivities/listening/templates/listening-standard/listeningStandard.css",

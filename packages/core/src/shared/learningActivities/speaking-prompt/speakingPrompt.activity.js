@@ -1,5 +1,5 @@
-import { SpeakingPromptStep } from "../../stepTypes/SpeakingPromptStep.js?v=1.1.226-learning-activity-files";
-import { getSpeakingPromptDefaultContent, normalizeSpeakingPromptConfig, validateSpeakingPromptConfig } from "./speakingPrompt.schema.js?v=1.1.226-learning-activity-files";
+import { SpeakingPromptStep } from "../../stepTypes/SpeakingPromptStep.js?v=1.1.228-learning-activity-drag-interactions";
+import { getSpeakingPromptDefaultContent, normalizeSpeakingPromptConfig, validateSpeakingPromptConfig } from "./speakingPrompt.schema.js?v=1.1.228-learning-activity-drag-interactions";
 
 export function createSpeakingPromptActivityContext(container, config, callbacks) {
   var normalized = normalizeSpeakingPromptConfig(config);

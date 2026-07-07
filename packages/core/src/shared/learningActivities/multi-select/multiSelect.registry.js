@@ -1,20 +1,24 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.226-learning-activity-files";
-import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.226-learning-activity-files";
-import { multiSelectSchema } from "./multiSelect.schema.js?v=1.1.226-learning-activity-files";
-import { multiSelectStandardMeta } from "./templates/multi-select-standard/multiSelectStandard.meta.js?v=1.1.226-learning-activity-files";
-import * as multiSelectStandardTemplate from "./templates/multi-select-standard/multiSelectStandard.template.js?v=1.1.226-learning-activity-files";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.228-learning-activity-drag-interactions";
+import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.228-learning-activity-drag-interactions";
+import { multiSelectSchema } from "./multiSelect.schema.js?v=1.1.228-learning-activity-drag-interactions";
+import { multiSelectStandardMeta } from "./templates/multi-select-standard/multiSelectStandard.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as multiSelectStandardTemplate from "./templates/multi-select-standard/multiSelectStandard.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { multiSelectSafetyScanMeta } from "./templates/multi-select-safety-scan/multiSelectSafetyScan.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as multiSelectSafetyScanTemplate from "./templates/multi-select-safety-scan/multiSelectSafetyScan.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { multiSelectTeamDraftMeta } from "./templates/multi-select-team-draft/multiSelectTeamDraft.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as multiSelectTeamDraftTemplate from "./templates/multi-select-team-draft/multiSelectTeamDraft.template.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const multiSelectActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: CustomExperienceStep,
   activityType: "multi-select",
   legacyStepType: "customExperience",
   displayName: "Multi Select",
-  description: "Ask learners to select more than one answer using the custom activity shell.",
+  description: "A multi-select activity shell backed by the custom experience player.",
   icon: "fa-regular fa-square-check",
-  category: "Assessment",
+  category: "Quiz",
   complexity: "Medium",
   templateId: "multi-select-standard",
-  templateDisplayName: "Multi Select Standard",
+  templateDisplayName: "Pick All That Apply",
   registryFile: "packages/core/src/shared/learningActivities/multi-select/multiSelect.registry.js",
   activityFile: "packages/core/src/shared/learningActivities/multi-select/multiSelect.activity.js",
   schemaFile: "packages/core/src/shared/learningActivities/multi-select/multiSelect.schema.js",
@@ -23,6 +27,14 @@ export const multiSelectActivityDefinition = createStepBackedActivityDefinition(
     {
       meta: multiSelectStandardMeta,
       module: multiSelectStandardTemplate
+    },
+    {
+      meta: multiSelectSafetyScanMeta,
+      module: multiSelectSafetyScanTemplate
+    },
+    {
+      meta: multiSelectTeamDraftMeta,
+      module: multiSelectTeamDraftTemplate
     }
   ]
 });

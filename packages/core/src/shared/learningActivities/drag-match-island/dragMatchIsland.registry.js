@@ -1,20 +1,24 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.226-learning-activity-files";
-import { DragMatchIslandStep } from "../../stepTypes/DragMatchIslandStep.js?v=1.1.226-learning-activity-files";
-import { dragMatchIslandSchema } from "./dragMatchIsland.schema.js?v=1.1.226-learning-activity-files";
-import { dragMatchIslandStandardMeta } from "./templates/drag-match-island-standard/dragMatchIslandStandard.meta.js?v=1.1.226-learning-activity-files";
-import * as dragMatchIslandStandardTemplate from "./templates/drag-match-island-standard/dragMatchIslandStandard.template.js?v=1.1.226-learning-activity-files";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.228-learning-activity-drag-interactions";
+import { DragMatchIslandStep } from "../../stepTypes/DragMatchIslandStep.js?v=1.1.228-learning-activity-drag-interactions";
+import { dragMatchIslandSchema } from "./dragMatchIsland.schema.js?v=1.1.228-learning-activity-drag-interactions";
+import { dragMatchIslandStandardMeta } from "./templates/drag-match-island-standard/dragMatchIslandStandard.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as dragMatchIslandStandardTemplate from "./templates/drag-match-island-standard/dragMatchIslandStandard.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { dragMatchIslandTreasureSortMeta } from "./templates/drag-match-island-treasure-sort/dragMatchIslandTreasureSort.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as dragMatchIslandTreasureSortTemplate from "./templates/drag-match-island-treasure-sort/dragMatchIslandTreasureSort.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { dragMatchIslandHarborPairsMeta } from "./templates/drag-match-island-harbor-pairs/dragMatchIslandHarborPairs.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as dragMatchIslandHarborPairsTemplate from "./templates/drag-match-island-harbor-pairs/dragMatchIslandHarborPairs.template.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const dragMatchIslandActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: DragMatchIslandStep,
   activityType: "dragMatchIsland",
   legacyStepType: "dragMatchIsland",
   displayName: "Drag Match Island",
-  description: "A playful matching shell for arranging cards or concepts.",
+  description: "A playful island shell for matching and sorting challenges.",
   icon: "fa-solid fa-gamepad",
   category: "Games",
   complexity: "Medium",
   templateId: "dragMatchIsland-standard",
-  templateDisplayName: "Drag Match Island Standard",
+  templateDisplayName: "Island Match",
   registryFile: "packages/core/src/shared/learningActivities/drag-match-island/dragMatchIsland.registry.js",
   activityFile: "packages/core/src/shared/learningActivities/drag-match-island/dragMatchIsland.activity.js",
   schemaFile: "packages/core/src/shared/learningActivities/drag-match-island/dragMatchIsland.schema.js",
@@ -23,6 +27,14 @@ export const dragMatchIslandActivityDefinition = createStepBackedActivityDefinit
     {
       meta: dragMatchIslandStandardMeta,
       module: dragMatchIslandStandardTemplate
+    },
+    {
+      meta: dragMatchIslandTreasureSortMeta,
+      module: dragMatchIslandTreasureSortTemplate
+    },
+    {
+      meta: dragMatchIslandHarborPairsMeta,
+      module: dragMatchIslandHarborPairsTemplate
     }
   ]
 });

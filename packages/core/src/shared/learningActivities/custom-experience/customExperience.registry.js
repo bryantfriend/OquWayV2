@@ -1,8 +1,12 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.226-learning-activity-files";
-import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.226-learning-activity-files";
-import { customExperienceSchema } from "./customExperience.schema.js?v=1.1.226-learning-activity-files";
-import { customExperienceStandardMeta } from "./templates/custom-experience-standard/customExperienceStandard.meta.js?v=1.1.226-learning-activity-files";
-import * as customExperienceStandardTemplate from "./templates/custom-experience-standard/customExperienceStandard.template.js?v=1.1.226-learning-activity-files";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.228-learning-activity-drag-interactions";
+import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.228-learning-activity-drag-interactions";
+import { customExperienceSchema } from "./customExperience.schema.js?v=1.1.228-learning-activity-drag-interactions";
+import { customExperienceStandardMeta } from "./templates/custom-experience-standard/customExperienceStandard.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as customExperienceStandardTemplate from "./templates/custom-experience-standard/customExperienceStandard.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { customExperienceLabSimulatorMeta } from "./templates/custom-experience-lab-simulator/customExperienceLabSimulator.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as customExperienceLabSimulatorTemplate from "./templates/custom-experience-lab-simulator/customExperienceLabSimulator.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { customExperienceQuestHubMeta } from "./templates/custom-experience-quest-hub/customExperienceQuestHub.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as customExperienceQuestHubTemplate from "./templates/custom-experience-quest-hub/customExperienceQuestHub.template.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const customExperienceActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: CustomExperienceStep,
@@ -14,7 +18,7 @@ export const customExperienceActivityDefinition = createStepBackedActivityDefini
   category: "Custom",
   complexity: "Medium",
   templateId: "customExperience-standard",
-  templateDisplayName: "Custom Experience Standard",
+  templateDisplayName: "Studio Card",
   registryFile: "packages/core/src/shared/learningActivities/custom-experience/customExperience.registry.js",
   activityFile: "packages/core/src/shared/learningActivities/custom-experience/customExperience.activity.js",
   schemaFile: "packages/core/src/shared/learningActivities/custom-experience/customExperience.schema.js",
@@ -23,6 +27,14 @@ export const customExperienceActivityDefinition = createStepBackedActivityDefini
     {
       meta: customExperienceStandardMeta,
       module: customExperienceStandardTemplate
+    },
+    {
+      meta: customExperienceLabSimulatorMeta,
+      module: customExperienceLabSimulatorTemplate
+    },
+    {
+      meta: customExperienceQuestHubMeta,
+      module: customExperienceQuestHubTemplate
     }
   ]
 });

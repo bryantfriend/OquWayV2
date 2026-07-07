@@ -1,13 +1,13 @@
 export const dragMatchIslandStandardMeta = {
   templateId: "dragMatchIsland-standard",
   activityType: "dragMatchIsland",
-  displayName: "Drag Match Island Standard",
-  description: "A playful matching shell for arranging cards or concepts.",
+  displayName: "Island Match",
+  description: "A playful island shell for matching and sorting challenges.",
   supportsPreview: true,
   supportsStudentMode: true,
   supportsTeacherPreview: true,
   requiredContentFields: [],
-  visualFeatures: ["Games", "Medium", "step-type-backed"],
+  visualFeatures: ["island-board", "drag", "Medium"],
   files: {
     template: "packages/core/src/shared/learningActivities/drag-match-island/templates/drag-match-island-standard/dragMatchIslandStandard.template.js",
     css: "packages/core/src/shared/learningActivities/drag-match-island/templates/drag-match-island-standard/dragMatchIslandStandard.css",

@@ -4,7 +4,7 @@ import {
   isSupportedStepType,
   listStepTypeDefinitions,
   normalizeStepType
-} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.226-learning-activity-files";
+} from "../../core/src/shared/stepTypes/stepTypeRegistry.js?v=1.1.228-learning-activity-drag-interactions";
 
 export {
   createDefaultStepConfig,

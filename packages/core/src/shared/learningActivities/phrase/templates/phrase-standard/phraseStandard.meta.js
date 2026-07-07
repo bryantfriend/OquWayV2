@@ -1,13 +1,13 @@
 export const phraseStandardMeta = {
   templateId: "phrase-standard",
   activityType: "phrase",
-  displayName: "Phrase Standard",
-  description: "Practice a useful phrase with meaning and usage support.",
+  displayName: "Phrase Card",
+  description: "A useful phrase practice shell.",
   supportsPreview: true,
   supportsStudentMode: true,
   supportsTeacherPreview: true,
   requiredContentFields: [],
-  visualFeatures: ["Basic", "Easy", "step-type-backed"],
+  visualFeatures: ["studio-card", "media", "Easy"],
   files: {
     template: "packages/core/src/shared/learningActivities/phrase/templates/phrase-standard/phraseStandard.template.js",
     css: "packages/core/src/shared/learningActivities/phrase/templates/phrase-standard/phraseStandard.css",

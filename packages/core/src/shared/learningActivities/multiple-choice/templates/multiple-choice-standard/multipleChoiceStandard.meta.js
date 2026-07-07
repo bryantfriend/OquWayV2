@@ -1,13 +1,13 @@
 export const multipleChoiceStandardMeta = {
   templateId: "multiple-choice-standard",
   activityType: "multiple-choice",
-  displayName: "Multiple Choice Standard",
-  description: "Ask learners to choose one answer using the custom activity shell.",
+  displayName: "Quick Choice",
+  description: "A single-choice activity shell backed by the custom experience player.",
   supportsPreview: true,
   supportsStudentMode: true,
   supportsTeacherPreview: true,
   requiredContentFields: [],
-  visualFeatures: ["Assessment", "Easy", "step-type-backed"],
+  visualFeatures: ["studio-card", "choice", "Easy"],
   files: {
     template: "packages/core/src/shared/learningActivities/multiple-choice/templates/multiple-choice-standard/multipleChoiceStandard.template.js",
     css: "packages/core/src/shared/learningActivities/multiple-choice/templates/multiple-choice-standard/multipleChoiceStandard.css",

@@ -1,4 +1,4 @@
-import { PhraseStep } from "../../stepTypes/PhraseStep.js?v=1.1.226-learning-activity-files";
+import { PhraseStep } from "../../stepTypes/PhraseStep.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const phraseSchema = PhraseStep.editorSchema || { fields: [] };
 

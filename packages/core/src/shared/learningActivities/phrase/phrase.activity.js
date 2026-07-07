@@ -1,5 +1,5 @@
-import { PhraseStep } from "../../stepTypes/PhraseStep.js?v=1.1.226-learning-activity-files";
-import { getPhraseDefaultContent, normalizePhraseConfig, validatePhraseConfig } from "./phrase.schema.js?v=1.1.226-learning-activity-files";
+import { PhraseStep } from "../../stepTypes/PhraseStep.js?v=1.1.228-learning-activity-drag-interactions";
+import { getPhraseDefaultContent, normalizePhraseConfig, validatePhraseConfig } from "./phrase.schema.js?v=1.1.228-learning-activity-drag-interactions";
 
 export function createPhraseActivityContext(container, config, callbacks) {
   var normalized = normalizePhraseConfig(config);

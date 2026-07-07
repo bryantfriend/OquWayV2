@@ -1,5 +1,5 @@
-import { DragMatchIslandStep } from "../../stepTypes/DragMatchIslandStep.js?v=1.1.226-learning-activity-files";
-import { getSortingDefaultContent, normalizeSortingConfig, validateSortingConfig } from "./sorting.schema.js?v=1.1.226-learning-activity-files";
+import { DragMatchIslandStep } from "../../stepTypes/DragMatchIslandStep.js?v=1.1.228-learning-activity-drag-interactions";
+import { getSortingDefaultContent, normalizeSortingConfig, validateSortingConfig } from "./sorting.schema.js?v=1.1.228-learning-activity-drag-interactions";
 
 export function createSortingActivityContext(container, config, callbacks) {
   var normalized = normalizeSortingConfig(config);

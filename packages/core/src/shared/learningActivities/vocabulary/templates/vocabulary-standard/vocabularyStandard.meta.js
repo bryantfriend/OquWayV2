@@ -1,13 +1,13 @@
 export const vocabularyStandardMeta = {
   templateId: "vocabulary-standard",
   activityType: "vocabulary",
-  displayName: "Vocabulary Standard",
-  description: "Practice a key word with translation and example context.",
+  displayName: "Flip Word Card",
+  description: "A vocabulary review shell.",
   supportsPreview: true,
   supportsStudentMode: true,
   supportsTeacherPreview: true,
   requiredContentFields: [],
-  visualFeatures: ["Basic", "Easy", "step-type-backed"],
+  visualFeatures: ["studio-card", "media", "Easy"],
   files: {
     template: "packages/core/src/shared/learningActivities/vocabulary/templates/vocabulary-standard/vocabularyStandard.template.js",
     css: "packages/core/src/shared/learningActivities/vocabulary/templates/vocabulary-standard/vocabularyStandard.css",

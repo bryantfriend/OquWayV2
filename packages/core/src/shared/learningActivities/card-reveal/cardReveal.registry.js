@@ -1,8 +1,10 @@
-import { cardRevealSchema } from "./cardReveal.schema.js?v=1.1.226-learning-activity-files";
-import { classicCardRevealMeta } from "./templates/classic-card-reveal/classicCardReveal.meta.js?v=1.1.226-learning-activity-files";
-import * as classicCardRevealTemplate from "./templates/classic-card-reveal/classicCardReveal.template.js?v=1.1.226-learning-activity-files";
-import { mysteryFlipCardsMeta } from "./templates/mystery-flip-cards/mysteryFlipCards.meta.js?v=1.1.226-learning-activity-files";
-import * as mysteryFlipCardsTemplate from "./templates/mystery-flip-cards/mysteryFlipCards.template.js?v=1.1.226-learning-activity-files";
+import { cardRevealSchema } from "./cardReveal.schema.js?v=1.1.228-learning-activity-drag-interactions";
+import { classicCardRevealMeta } from "./templates/classic-card-reveal/classicCardReveal.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as classicCardRevealTemplate from "./templates/classic-card-reveal/classicCardReveal.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { mysteryFlipCardsMeta } from "./templates/mystery-flip-cards/mysteryFlipCards.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as mysteryFlipCardsTemplate from "./templates/mystery-flip-cards/mysteryFlipCards.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { speedRevealStackMeta } from "./templates/speed-reveal-stack/speedRevealStack.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as speedRevealStackTemplate from "./templates/speed-reveal-stack/speedRevealStack.template.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const cardRevealActivityDefinition = {
   activityType: "cardReveal",
@@ -42,6 +44,10 @@ export const cardRevealActivityDefinition = {
     {
       meta: mysteryFlipCardsMeta,
       module: mysteryFlipCardsTemplate
+    },
+    {
+      meta: speedRevealStackMeta,
+      module: speedRevealStackTemplate
     }
   ]
 };

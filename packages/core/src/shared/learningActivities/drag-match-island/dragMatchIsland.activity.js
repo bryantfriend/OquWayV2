@@ -1,5 +1,5 @@
-import { DragMatchIslandStep } from "../../stepTypes/DragMatchIslandStep.js?v=1.1.226-learning-activity-files";
-import { getDragMatchIslandDefaultContent, normalizeDragMatchIslandConfig, validateDragMatchIslandConfig } from "./dragMatchIsland.schema.js?v=1.1.226-learning-activity-files";
+import { DragMatchIslandStep } from "../../stepTypes/DragMatchIslandStep.js?v=1.1.228-learning-activity-drag-interactions";
+import { getDragMatchIslandDefaultContent, normalizeDragMatchIslandConfig, validateDragMatchIslandConfig } from "./dragMatchIsland.schema.js?v=1.1.228-learning-activity-drag-interactions";
 
 export function createDragMatchIslandActivityContext(container, config, callbacks) {
   var normalized = normalizeDragMatchIslandConfig(config);

@@ -1,4 +1,4 @@
-import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.226-learning-activity-files";
+import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const roadmapSchema = CustomExperienceStep.editorSchema || { fields: [] };
 

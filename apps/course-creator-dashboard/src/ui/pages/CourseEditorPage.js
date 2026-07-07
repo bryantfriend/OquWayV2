@@ -1,18 +1,18 @@
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.226-learning-activity-files";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.226-learning-activity-files";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.228-learning-activity-drag-interactions";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.228-learning-activity-drag-interactions";
 import {
   getStepTypeDefinition,
   normalizeStepType as normalizeRegisteredStepType,
   validateStepConfig
-} from "../../../../../packages/domain/steps/index.js?v=1.1.226-learning-activity-files";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.228-learning-activity-drag-interactions";
 import {
   getLearningActivityDefinition,
   getLearningActivityTemplateDefinition,
   listLearningActivityDefinitions,
   normalizeLearningActivityTemplateId
-} from "../../../../../packages/domain/learningActivities/index.js?v=1.1.226-learning-activity-files";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.226-learning-activity-files";
-import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.226-learning-activity-files";
+} from "../../../../../packages/domain/learningActivities/index.js?v=1.1.228-learning-activity-drag-interactions";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.228-learning-activity-drag-interactions";
+import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.228-learning-activity-drag-interactions";
 
 export class CourseEditorPage {
   constructor(courseId, moduleId) {
@@ -787,13 +787,62 @@ export class CourseEditorPage {
   }
 
   handleInspectorChange(event) {
+    var templateInput = event.target.closest(".inspector-template-select");
     var mediaInput = event.target.closest(".inspector-media-upload");
+
+    if (templateInput) {
+      this.applyTemplateSelectionToInspector(templateInput);
+      return;
+    }
+
     if (!mediaInput) {
       this.handleInspectorInput(event);
       return;
     }
 
     this.uploadInspectorMedia(mediaInput);
+  }
+
+  applyTemplateSelectionToInspector(templateInput) {
+    var state = moduleEditorStore.getState();
+    var session = this.findSelectedSession(state);
+    var currentStep = session ? findPracticeModeStep(session, state.selectedPracticeModeKey || "beforeClass", state.selectedStepId) : null;
+    var activityDefinition = null;
+    var templateDefinition = null;
+    var templateConfig = {};
+    var nextConfig = {};
+    var fields = [];
+    var fieldIndex = 0;
+    var propsPane = document.getElementById("configEditorPane");
+    var stepType = currentStep ? readStepType(currentStep) : "";
+    var activityType = currentStep ? readStepActivityType(currentStep) : stepType;
+
+    if (!propsPane || !currentStep) {
+      this.handleInspectorInput({ target: templateInput });
+      return;
+    }
+
+    activityDefinition = getLearningActivityDefinition(activityType) || getLearningActivityDefinition(stepType);
+    if (!activityDefinition) {
+      this.handleInspectorInput({ target: templateInput });
+      return;
+    }
+
+    templateDefinition = getLearningActivityTemplateDefinition(activityDefinition.activityType, templateInput.value);
+    templateConfig = readTemplateConfig(templateDefinition);
+    nextConfig = createSafeStepConfig(activityDefinition.legacyStepType || stepType, Object.assign({}, templateConfig, {
+      type: activityDefinition.legacyStepType || stepType,
+      activityType: activityDefinition.activityType,
+      templateId: templateInput.value
+    }));
+
+    fields = propsPane.querySelectorAll(".inspector-config-field");
+    while (fieldIndex < fields.length) {
+      writeConfigValueToInspectorField(fields[fieldIndex], nextConfig);
+      fieldIndex = fieldIndex + 1;
+    }
+
+    this.refreshPreviewFromInspector();
   }
 
   uploadInspectorMedia(mediaInput) {
@@ -3058,6 +3107,28 @@ function readStepConfigFromInspector(propsPane, stepType, fallbackConfig) {
   }
 
   return config;
+}
+
+function writeConfigValueToInspectorField(input, config) {
+  var key = input.getAttribute("data-config-key");
+  var type = input.getAttribute("data-config-type");
+  var value = key && Object.prototype.hasOwnProperty.call(config, key) ? config[key] : "";
+
+  if (!key) {
+    return;
+  }
+
+  if (type === "number") {
+    input.value = String(typeof value === "number" && Number.isFinite(value) ? value : Number(value) || 0);
+    return;
+  }
+
+  if (type === "textarea") {
+    input.value = Array.isArray(value) ? value.join("\n") : String(value == null ? "" : value);
+    return;
+  }
+
+  input.value = Array.isArray(value) ? value.join(", ") : String(value == null ? "" : value);
 }
 
 function readConfigInputValue(input, type) {

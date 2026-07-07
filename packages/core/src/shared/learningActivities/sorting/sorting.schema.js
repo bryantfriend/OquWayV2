@@ -1,4 +1,4 @@
-import { DragMatchIslandStep } from "../../stepTypes/DragMatchIslandStep.js?v=1.1.226-learning-activity-files";
+import { DragMatchIslandStep } from "../../stepTypes/DragMatchIslandStep.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const sortingSchema = DragMatchIslandStep.editorSchema || { fields: [] };
 

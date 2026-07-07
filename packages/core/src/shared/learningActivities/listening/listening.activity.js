@@ -1,5 +1,5 @@
-import { ListeningStep } from "../../stepTypes/ListeningStep.js?v=1.1.226-learning-activity-files";
-import { getListeningDefaultContent, normalizeListeningConfig, validateListeningConfig } from "./listening.schema.js?v=1.1.226-learning-activity-files";
+import { ListeningStep } from "../../stepTypes/ListeningStep.js?v=1.1.228-learning-activity-drag-interactions";
+import { getListeningDefaultContent, normalizeListeningConfig, validateListeningConfig } from "./listening.schema.js?v=1.1.228-learning-activity-drag-interactions";
 
 export function createListeningActivityContext(container, config, callbacks) {
   var normalized = normalizeListeningConfig(config);

@@ -1,5 +1,5 @@
-import { ReflectionStep } from "../../stepTypes/ReflectionStep.js?v=1.1.226-learning-activity-files";
-import { getReflectionDefaultContent, normalizeReflectionConfig, validateReflectionConfig } from "./reflection.schema.js?v=1.1.226-learning-activity-files";
+import { ReflectionStep } from "../../stepTypes/ReflectionStep.js?v=1.1.228-learning-activity-drag-interactions";
+import { getReflectionDefaultContent, normalizeReflectionConfig, validateReflectionConfig } from "./reflection.schema.js?v=1.1.228-learning-activity-drag-interactions";
 
 export function createReflectionActivityContext(container, config, callbacks) {
   var normalized = normalizeReflectionConfig(config);

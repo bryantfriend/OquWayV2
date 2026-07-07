@@ -1,20 +1,24 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.226-learning-activity-files";
-import { ExternalTaskStep } from "../../stepTypes/ExternalTaskStep.js?v=1.1.226-learning-activity-files";
-import { externalTaskSchema } from "./externalTask.schema.js?v=1.1.226-learning-activity-files";
-import { externalTaskStandardMeta } from "./templates/external-task-standard/externalTaskStandard.meta.js?v=1.1.226-learning-activity-files";
-import * as externalTaskStandardTemplate from "./templates/external-task-standard/externalTaskStandard.template.js?v=1.1.226-learning-activity-files";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.228-learning-activity-drag-interactions";
+import { ExternalTaskStep } from "../../stepTypes/ExternalTaskStep.js?v=1.1.228-learning-activity-drag-interactions";
+import { externalTaskSchema } from "./externalTask.schema.js?v=1.1.228-learning-activity-drag-interactions";
+import { externalTaskStandardMeta } from "./templates/external-task-standard/externalTaskStandard.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as externalTaskStandardTemplate from "./templates/external-task-standard/externalTaskStandard.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { externalTaskScreenshotProofMeta } from "./templates/external-task-screenshot-proof/externalTaskScreenshotProof.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as externalTaskScreenshotProofTemplate from "./templates/external-task-screenshot-proof/externalTaskScreenshotProof.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { externalTaskOfflineProjectMeta } from "./templates/external-task-offline-project/externalTaskOfflineProject.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as externalTaskOfflineProjectTemplate from "./templates/external-task-offline-project/externalTaskOfflineProject.template.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const externalTaskActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: ExternalTaskStep,
   activityType: "externalTask",
   legacyStepType: "externalTask",
   displayName: "External Task",
-  description: "Assign work outside the player and collect proof for review.",
+  description: "A real-world or software task submitted for teacher review.",
   icon: "fa-solid fa-upload",
   category: "Assessment",
   complexity: "Medium",
   templateId: "externalTask-standard",
-  templateDisplayName: "External Task Standard",
+  templateDisplayName: "Proof Upload",
   registryFile: "packages/core/src/shared/learningActivities/external-task/externalTask.registry.js",
   activityFile: "packages/core/src/shared/learningActivities/external-task/externalTask.activity.js",
   schemaFile: "packages/core/src/shared/learningActivities/external-task/externalTask.schema.js",
@@ -23,6 +27,14 @@ export const externalTaskActivityDefinition = createStepBackedActivityDefinition
     {
       meta: externalTaskStandardMeta,
       module: externalTaskStandardTemplate
+    },
+    {
+      meta: externalTaskScreenshotProofMeta,
+      module: externalTaskScreenshotProofTemplate
+    },
+    {
+      meta: externalTaskOfflineProjectMeta,
+      module: externalTaskOfflineProjectTemplate
     }
   ]
 });

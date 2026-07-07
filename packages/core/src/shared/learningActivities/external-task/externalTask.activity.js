@@ -1,5 +1,5 @@
-import { ExternalTaskStep } from "../../stepTypes/ExternalTaskStep.js?v=1.1.226-learning-activity-files";
-import { getExternalTaskDefaultContent, normalizeExternalTaskConfig, validateExternalTaskConfig } from "./externalTask.schema.js?v=1.1.226-learning-activity-files";
+import { ExternalTaskStep } from "../../stepTypes/ExternalTaskStep.js?v=1.1.228-learning-activity-drag-interactions";
+import { getExternalTaskDefaultContent, normalizeExternalTaskConfig, validateExternalTaskConfig } from "./externalTask.schema.js?v=1.1.228-learning-activity-drag-interactions";
 
 export function createExternalTaskActivityContext(container, config, callbacks) {
   var normalized = normalizeExternalTaskConfig(config);

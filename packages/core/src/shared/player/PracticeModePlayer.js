@@ -1,7 +1,12 @@
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../stepTypes/stepTypeRegistry.js?v=1.1.226-learning-activity-files";
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.228-learning-activity-drag-interactions";
+import {
+  getLearningActivityDefinition,
+  getLearningActivityTemplateDefinition,
+  normalizeLearningActivityTemplateId
+} from "../learningActivities/learningActivityRegistry.js?v=1.1.228-learning-activity-drag-interactions";
 
 export class PracticeModePlayer {
   constructor(options) {
@@ -109,6 +114,10 @@ export class PracticeModePlayer {
       return;
     }
 
+    if (this.renderTemplateBackedStep(target, step, stepType, config)) {
+      return;
+    }
+
     if (StepTypeDefinition && typeof StepTypeDefinition.renderPlayer === "function") {
       try {
         StepTypeDefinition.renderPlayer(target, config, {
@@ -144,6 +153,74 @@ export class PracticeModePlayer {
     target.innerHTML = this.buildFallbackStepHtml(step, "This step type cannot be played yet, but it is safely stored.");
   }
 
+  renderTemplateBackedStep(target, step, stepType, config) {
+    var activityType = readActivityType(step, config);
+    var activityDefinition = getLearningActivityDefinition(activityType) || getLearningActivityDefinition(stepType);
+    var templateId = "";
+    var templateDefinition = null;
+    var self = this;
+
+    if (!activityDefinition || activityDefinition.activityType === "cardReveal") {
+      return false;
+    }
+
+    templateId = normalizeLearningActivityTemplateId(
+      activityDefinition.activityType,
+      readString(config.templateId, activityDefinition.defaultTemplateId || activityDefinition.defaultTemplate || "")
+    );
+    templateDefinition = getLearningActivityTemplateDefinition(activityDefinition.activityType, templateId);
+
+    if (!templateDefinition || !templateDefinition.module || typeof templateDefinition.module.renderTemplate !== "function") {
+      return false;
+    }
+
+    try {
+      templateDefinition.module.renderTemplate({
+        activityType: activityDefinition.activityType,
+        templateId: templateId,
+        container: target,
+        content: Object.assign({}, config, {
+          activityType: activityDefinition.activityType,
+          templateId: templateId
+        }),
+        context: this.createCurrentStepContext(step),
+        templateMetadata: templateDefinition.meta || {},
+        templateState: {},
+        callbacks: {
+          context: this.createCurrentStepContext(step),
+          onExternalTaskLoad: function () {
+            if (self.onExternalTaskLoad) {
+              return self.onExternalTaskLoad(step, self.createStateSnapshot());
+            }
+            return Promise.resolve(null);
+          },
+          onExternalTaskSubmit: function (submissionRequest) {
+            if (self.onExternalTaskSubmit) {
+              return self.onExternalTaskSubmit(step, submissionRequest, self.createStateSnapshot());
+            }
+            return Promise.resolve({ submission: { reviewStatus: "complete", status: "playtest" } });
+          },
+          onInteraction: function (interaction) {
+            if (self.onActivityInteraction) {
+              self.onActivityInteraction(step, interaction, self.createStateSnapshot());
+            }
+          },
+          onComplete: function (completionResult) {
+            self.completeCurrentStep(completionResult);
+          }
+        },
+        onInteraction: function (interaction) {
+          if (self.onActivityInteraction) {
+            self.onActivityInteraction(step, interaction, self.createStateSnapshot());
+          }
+        }
+      });
+      return true;
+    } catch (error) {
+      target.innerHTML = this.buildFallbackStepHtml(step, "This template had trouble rendering, but the player stayed safe.");
+      return true;
+    }
+  }
   handleClick(event) {
     var target = event.target;
     var backButton = null;
@@ -560,6 +637,22 @@ function readStepId(step, fallbackText) {
   }
 
   return step.id;
+}
+
+function readActivityType(step, config) {
+  if (config && typeof config.activityType === "string" && config.activityType.length > 0) {
+    return config.activityType;
+  }
+
+  if (step && typeof step.activityType === "string" && step.activityType.length > 0) {
+    return step.activityType;
+  }
+
+  if (step && step.config && typeof step.config === "object" && !Array.isArray(step.config) && typeof step.config.activityType === "string") {
+    return step.config.activityType;
+  }
+
+  return "";
 }
 
 function readStepConfig(step) {

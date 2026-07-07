@@ -39,6 +39,7 @@ export function destroyTemplate(activityContext) {
 
 export function getTemplateDefaultContent() {
   return {
+    templateId: "mystery-flip-cards",
     title: "Mystery Flip Cards",
     instructions: "Open every card to reveal the hidden answer.",
     cards: [
@@ -51,6 +52,7 @@ export function getTemplateDefaultContent() {
 
 export function getTemplatePreviewContent() {
   return {
+    templateId: "mystery-flip-cards",
     title: "Mystery Flip Cards",
     instructions: "Flip the cards to uncover each computing concept.",
     cards: [

@@ -1,5 +1,5 @@
-import { TextBriefingStep } from "../../stepTypes/TextBriefingStep.js?v=1.1.226-learning-activity-files";
-import { getTextBriefingDefaultContent, normalizeTextBriefingConfig, validateTextBriefingConfig } from "./textBriefing.schema.js?v=1.1.226-learning-activity-files";
+import { TextBriefingStep } from "../../stepTypes/TextBriefingStep.js?v=1.1.228-learning-activity-drag-interactions";
+import { getTextBriefingDefaultContent, normalizeTextBriefingConfig, validateTextBriefingConfig } from "./textBriefing.schema.js?v=1.1.228-learning-activity-drag-interactions";
 
 export function createTextBriefingActivityContext(container, config, callbacks) {
   var normalized = normalizeTextBriefingConfig(config);

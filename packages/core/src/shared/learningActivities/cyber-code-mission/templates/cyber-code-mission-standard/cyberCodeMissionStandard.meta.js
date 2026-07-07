@@ -1,13 +1,13 @@
 export const cyberCodeMissionStandardMeta = {
   templateId: "cyberCodeMission-standard",
   activityType: "cyberCodeMission",
-  displayName: "Cyber Code Mission Standard",
-  description: "A coding mission shell with starter code, instructions, and success feedback.",
+  displayName: "Terminal Repair",
+  description: "A cyber-styled shell for coding and HTML missions.",
   supportsPreview: true,
   supportsStudentMode: true,
   supportsTeacherPreview: true,
   requiredContentFields: [],
-  visualFeatures: ["Coding", "Hard", "step-type-backed"],
+  visualFeatures: ["terminal-run", "terminal", "Advanced"],
   files: {
     template: "packages/core/src/shared/learningActivities/cyber-code-mission/templates/cyber-code-mission-standard/cyberCodeMissionStandard.template.js",
     css: "packages/core/src/shared/learningActivities/cyber-code-mission/templates/cyber-code-mission-standard/cyberCodeMissionStandard.css",

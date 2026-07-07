@@ -8,7 +8,7 @@ import { CustomExperienceStep } from "./CustomExperienceStep.js?v=1.1.82-shared-
 import { CyberCodeMissionStep } from "./CyberCodeMissionStep.js?v=1.1.82-shared-command-center-shell";
 import { DragMatchIslandStep } from "./DragMatchIslandStep.js?v=1.1.82-shared-command-center-shell";
 import { ExternalTaskStep } from "./ExternalTaskStep.js?v=1.1.82-shared-command-center-shell";
-import { CardRevealStep } from "./CardRevealStep.js?v=1.1.226-learning-activity-files";
+import { CardRevealStep } from "./CardRevealStep.js?v=1.1.228-learning-activity-drag-interactions";
 
 var stepTypeAliases = {
   "card-reveal": "cardReveal",

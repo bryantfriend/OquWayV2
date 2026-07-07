@@ -1,20 +1,24 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.226-learning-activity-files";
-import { CyberCodeMissionStep } from "../../stepTypes/CyberCodeMissionStep.js?v=1.1.226-learning-activity-files";
-import { cyberCodeMissionSchema } from "./cyberCodeMission.schema.js?v=1.1.226-learning-activity-files";
-import { cyberCodeMissionStandardMeta } from "./templates/cyber-code-mission-standard/cyberCodeMissionStandard.meta.js?v=1.1.226-learning-activity-files";
-import * as cyberCodeMissionStandardTemplate from "./templates/cyber-code-mission-standard/cyberCodeMissionStandard.template.js?v=1.1.226-learning-activity-files";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.228-learning-activity-drag-interactions";
+import { CyberCodeMissionStep } from "../../stepTypes/CyberCodeMissionStep.js?v=1.1.228-learning-activity-drag-interactions";
+import { cyberCodeMissionSchema } from "./cyberCodeMission.schema.js?v=1.1.228-learning-activity-drag-interactions";
+import { cyberCodeMissionStandardMeta } from "./templates/cyber-code-mission-standard/cyberCodeMissionStandard.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as cyberCodeMissionStandardTemplate from "./templates/cyber-code-mission-standard/cyberCodeMissionStandard.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { cyberCodeMissionDebugBriefMeta } from "./templates/cyber-code-mission-debug-brief/cyberCodeMissionDebugBrief.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as cyberCodeMissionDebugBriefTemplate from "./templates/cyber-code-mission-debug-brief/cyberCodeMissionDebugBrief.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { cyberCodeMissionHtmlRescueMeta } from "./templates/cyber-code-mission-html-rescue/cyberCodeMissionHtmlRescue.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as cyberCodeMissionHtmlRescueTemplate from "./templates/cyber-code-mission-html-rescue/cyberCodeMissionHtmlRescue.template.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const cyberCodeMissionActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: CyberCodeMissionStep,
   activityType: "cyberCodeMission",
   legacyStepType: "cyberCodeMission",
   displayName: "Cyber Code Mission",
-  description: "A coding mission shell with starter code, instructions, and success feedback.",
+  description: "A cyber-styled shell for coding and HTML missions.",
   icon: "fa-solid fa-code",
   category: "Coding",
-  complexity: "Hard",
+  complexity: "Advanced",
   templateId: "cyberCodeMission-standard",
-  templateDisplayName: "Cyber Code Mission Standard",
+  templateDisplayName: "Terminal Repair",
   registryFile: "packages/core/src/shared/learningActivities/cyber-code-mission/cyberCodeMission.registry.js",
   activityFile: "packages/core/src/shared/learningActivities/cyber-code-mission/cyberCodeMission.activity.js",
   schemaFile: "packages/core/src/shared/learningActivities/cyber-code-mission/cyberCodeMission.schema.js",
@@ -23,6 +27,14 @@ export const cyberCodeMissionActivityDefinition = createStepBackedActivityDefini
     {
       meta: cyberCodeMissionStandardMeta,
       module: cyberCodeMissionStandardTemplate
+    },
+    {
+      meta: cyberCodeMissionDebugBriefMeta,
+      module: cyberCodeMissionDebugBriefTemplate
+    },
+    {
+      meta: cyberCodeMissionHtmlRescueMeta,
+      module: cyberCodeMissionHtmlRescueTemplate
     }
   ]
 });

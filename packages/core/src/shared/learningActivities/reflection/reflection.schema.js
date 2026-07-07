@@ -1,4 +1,4 @@
-import { ReflectionStep } from "../../stepTypes/ReflectionStep.js?v=1.1.226-learning-activity-files";
+import { ReflectionStep } from "../../stepTypes/ReflectionStep.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const reflectionSchema = ReflectionStep.editorSchema || { fields: [] };
 

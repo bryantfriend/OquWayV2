@@ -1,20 +1,24 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.226-learning-activity-files";
-import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.226-learning-activity-files";
-import { multipleChoiceSchema } from "./multipleChoice.schema.js?v=1.1.226-learning-activity-files";
-import { multipleChoiceStandardMeta } from "./templates/multiple-choice-standard/multipleChoiceStandard.meta.js?v=1.1.226-learning-activity-files";
-import * as multipleChoiceStandardTemplate from "./templates/multiple-choice-standard/multipleChoiceStandard.template.js?v=1.1.226-learning-activity-files";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.228-learning-activity-drag-interactions";
+import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.228-learning-activity-drag-interactions";
+import { multipleChoiceSchema } from "./multipleChoice.schema.js?v=1.1.228-learning-activity-drag-interactions";
+import { multipleChoiceStandardMeta } from "./templates/multiple-choice-standard/multipleChoiceStandard.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as multipleChoiceStandardTemplate from "./templates/multiple-choice-standard/multipleChoiceStandard.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { multipleChoiceScenarioMeta } from "./templates/multiple-choice-scenario/multipleChoiceScenario.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as multipleChoiceScenarioTemplate from "./templates/multiple-choice-scenario/multipleChoiceScenario.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { multipleChoiceCheckpointMeta } from "./templates/multiple-choice-checkpoint/multipleChoiceCheckpoint.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as multipleChoiceCheckpointTemplate from "./templates/multiple-choice-checkpoint/multipleChoiceCheckpoint.template.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const multipleChoiceActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: CustomExperienceStep,
   activityType: "multiple-choice",
   legacyStepType: "customExperience",
   displayName: "Multiple Choice",
-  description: "Ask learners to choose one answer using the custom activity shell.",
+  description: "A single-choice activity shell backed by the custom experience player.",
   icon: "fa-regular fa-circle-dot",
-  category: "Assessment",
+  category: "Quiz",
   complexity: "Easy",
   templateId: "multiple-choice-standard",
-  templateDisplayName: "Multiple Choice Standard",
+  templateDisplayName: "Quick Choice",
   registryFile: "packages/core/src/shared/learningActivities/multiple-choice/multipleChoice.registry.js",
   activityFile: "packages/core/src/shared/learningActivities/multiple-choice/multipleChoice.activity.js",
   schemaFile: "packages/core/src/shared/learningActivities/multiple-choice/multipleChoice.schema.js",
@@ -23,6 +27,14 @@ export const multipleChoiceActivityDefinition = createStepBackedActivityDefiniti
     {
       meta: multipleChoiceStandardMeta,
       module: multipleChoiceStandardTemplate
+    },
+    {
+      meta: multipleChoiceScenarioMeta,
+      module: multipleChoiceScenarioTemplate
+    },
+    {
+      meta: multipleChoiceCheckpointMeta,
+      module: multipleChoiceCheckpointTemplate
     }
   ]
 });

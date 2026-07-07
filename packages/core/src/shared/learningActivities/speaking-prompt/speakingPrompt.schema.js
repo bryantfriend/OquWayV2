@@ -1,4 +1,4 @@
-import { SpeakingPromptStep } from "../../stepTypes/SpeakingPromptStep.js?v=1.1.226-learning-activity-files";
+import { SpeakingPromptStep } from "../../stepTypes/SpeakingPromptStep.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const speakingPromptSchema = SpeakingPromptStep.editorSchema || { fields: [] };
 

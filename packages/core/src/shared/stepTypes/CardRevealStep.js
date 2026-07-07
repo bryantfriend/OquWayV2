@@ -3,9 +3,9 @@ import {
   destroyCardRevealActivity,
   getCardRevealDefaultContent,
   renderCardRevealActivity
-} from "../learningActivities/card-reveal/cardReveal.activity.js?v=1.1.226-learning-activity-files";
-import { cardRevealSchema, normalizeCardRevealConfig } from "../learningActivities/card-reveal/cardReveal.schema.js?v=1.1.226-learning-activity-files";
-import { cardRevealActivityDefinition } from "../learningActivities/card-reveal/cardReveal.registry.js?v=1.1.226-learning-activity-files";
+} from "../learningActivities/card-reveal/cardReveal.activity.js?v=1.1.228-learning-activity-drag-interactions";
+import { cardRevealSchema, normalizeCardRevealConfig } from "../learningActivities/card-reveal/cardReveal.schema.js?v=1.1.228-learning-activity-drag-interactions";
+import { cardRevealActivityDefinition } from "../learningActivities/card-reveal/cardReveal.registry.js?v=1.1.228-learning-activity-drag-interactions";
 
 export class CardRevealStep extends BaseStep {
   static get type() {

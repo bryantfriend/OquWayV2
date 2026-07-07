@@ -1,5 +1,5 @@
-import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.226-learning-activity-files";
-import { getMultipleChoiceDefaultContent, normalizeMultipleChoiceConfig, validateMultipleChoiceConfig } from "./multipleChoice.schema.js?v=1.1.226-learning-activity-files";
+import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.228-learning-activity-drag-interactions";
+import { getMultipleChoiceDefaultContent, normalizeMultipleChoiceConfig, validateMultipleChoiceConfig } from "./multipleChoice.schema.js?v=1.1.228-learning-activity-drag-interactions";
 
 export function createMultipleChoiceActivityContext(container, config, callbacks) {
   var normalized = normalizeMultipleChoiceConfig(config);

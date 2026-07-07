@@ -1,4 +1,4 @@
-import { VocabularyStep } from "../../stepTypes/VocabularyStep.js?v=1.1.226-learning-activity-files";
+import { VocabularyStep } from "../../stepTypes/VocabularyStep.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const vocabularySchema = VocabularyStep.editorSchema || { fields: [] };
 

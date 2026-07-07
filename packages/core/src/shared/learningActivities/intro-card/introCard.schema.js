@@ -1,4 +1,4 @@
-import { TextBriefingStep } from "../../stepTypes/TextBriefingStep.js?v=1.1.226-learning-activity-files";
+import { TextBriefingStep } from "../../stepTypes/TextBriefingStep.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const introCardSchema = TextBriefingStep.editorSchema || { fields: [] };
 

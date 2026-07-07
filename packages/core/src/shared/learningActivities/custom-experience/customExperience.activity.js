@@ -1,5 +1,5 @@
-import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.226-learning-activity-files";
-import { getCustomExperienceDefaultContent, normalizeCustomExperienceConfig, validateCustomExperienceConfig } from "./customExperience.schema.js?v=1.1.226-learning-activity-files";
+import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.228-learning-activity-drag-interactions";
+import { getCustomExperienceDefaultContent, normalizeCustomExperienceConfig, validateCustomExperienceConfig } from "./customExperience.schema.js?v=1.1.228-learning-activity-drag-interactions";
 
 export function createCustomExperienceActivityContext(container, config, callbacks) {
   var normalized = normalizeCustomExperienceConfig(config);
