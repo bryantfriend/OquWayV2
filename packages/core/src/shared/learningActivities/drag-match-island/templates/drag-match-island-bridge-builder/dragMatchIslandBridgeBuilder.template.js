@@ -1,0 +1,36 @@
+import { getDragMatchIslandDefaultContent } from "../../dragMatchIsland.schema.js?v=1.1.228-learning-activity-drag-interactions";
+import {
+  destroyMiniGameTemplate,
+  mergeTemplateContent,
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+
+const TEMPLATE_ID = "dragMatchIsland-bridge-builder";
+const TEMPLATE_PATCH = {
+  "title": "Bridge Builder",
+  "subtitle": "Unlock the safe route across the island.",
+  "items": "Identify\nGroup\nMatch\nCheck",
+  "theme": "bridge"
+};
+const TEMPLATE_OPTIONS = {
+  "title": "Bridge Builder",
+  "archetype": "timeline-unlock",
+  "eyebrow": "Drag Match",
+  "accent": "#16a34a"
+};
+
+export function renderTemplate(activityContext) {
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
+}
+
+export function destroyTemplate(activityContext) {
+  destroyMiniGameTemplate(activityContext);
+}
+
+export function getTemplateDefaultContent() {
+  return mergeTemplateContent(TEMPLATE_ID, getDragMatchIslandDefaultContent(), TEMPLATE_PATCH);
+}
+
+export function getTemplatePreviewContent() {
+  return getTemplateDefaultContent();
+}

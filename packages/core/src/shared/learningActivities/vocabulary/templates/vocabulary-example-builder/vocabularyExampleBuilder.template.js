@@ -1,31 +1,29 @@
 import { getVocabularyDefaultContent } from "../../vocabulary.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "vocabulary-example-builder";
 const TEMPLATE_PATCH = {
-  word: "Variable",
-  translation: "A named place to store information",
-  exampleSentence: "A score variable can change during a game."
+  "word": "Variable",
+  "translation": "A named place to store information",
+  "exampleSentence": "A score variable can change during a game."
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Vocabulary",
-  title: "Example Builder",
-  layout: "field-lab",
-  interaction: "choice",
-  accent: "#0891b2",
-  completeLabel: "Complete activity"
+  "title": "Example Builder",
+  "archetype": "builder-workbench",
+  "eyebrow": "Vocabulary",
+  "accent": "#0891b2"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

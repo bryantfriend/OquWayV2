@@ -1,31 +1,30 @@
 import { getSpeakingPromptDefaultContent } from "../../speakingPrompt.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "speakingPrompt-timed-pitch";
 const TEMPLATE_PATCH = {
-  prompt: "Give a short pitch that includes the problem, solution, and evidence.",
-  preparationSeconds: 60,
-  speakingSeconds: 120
+  "prompt": "Pitch your best digital safety tip in under one minute.",
+  "preparationSeconds": 15,
+  "speakingSeconds": 45
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Speaking Prompt",
-  title: "Timed Pitch",
-  layout: "skill-sprint",
-  interaction: "text",
-  accent: "#16a34a",
-  completeLabel: "Complete activity"
+  "title": "Timed Pitch",
+  "archetype": "boss-battle",
+  "eyebrow": "Speaking",
+  "accent": "#dc2626",
+  "bossName": "Timer"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

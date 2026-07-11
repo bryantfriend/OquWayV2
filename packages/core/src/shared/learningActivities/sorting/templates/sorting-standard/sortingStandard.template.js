@@ -1,32 +1,35 @@
 import { getSortingDefaultContent } from "../../sorting.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "sorting-standard";
 const TEMPLATE_PATCH = {
-  title: "Sort the Set",
-  subtitle: "Choose how the items should be grouped.",
-  items: "Input\nProcess\nOutput\nStorage",
-  theme: "sorting"
+  "title": "Sort the Ideas",
+  "subtitle": "Move each item to the best matching place.",
+  "items": "Example 1\nExample 2\nExample 3\nExample 4",
+  "theme": "sunny"
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Sorting",
-  title: "Sort the Set",
-  layout: "island-board",
-  interaction: "drag",
-  accent: "#0284c7",
-  completeLabel: "Complete activity"
+  "title": "Sort the Set",
+  "archetype": "drag-bays",
+  "eyebrow": "Sorting",
+  "accent": "#2563eb",
+  "zones": [
+    "Group A",
+    "Group B",
+    "Review"
+  ]
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

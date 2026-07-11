@@ -1,31 +1,29 @@
 import { getReflectionDefaultContent } from "../../reflection.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "reflection-learning-journal";
 const TEMPLATE_PATCH = {
-  question: "Describe what challenged you and what helped you move forward.",
-  responseType: "longText",
-  minWords: 20
+  "question": "Describe what challenged you and what helped you move forward.",
+  "responseType": "longText",
+  "minWords": 20
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Reflection",
-  title: "Learning Journal",
-  layout: "story-path",
-  interaction: "text",
-  accent: "#ea580c",
-  completeLabel: "Complete activity"
+  "title": "Learning Journal",
+  "archetype": "card-stack",
+  "eyebrow": "Reflection",
+  "accent": "#ea580c"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

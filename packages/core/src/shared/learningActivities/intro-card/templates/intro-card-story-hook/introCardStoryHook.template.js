@@ -1,31 +1,29 @@
 import { getIntroCardDefaultContent } from "../../introCard.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "intro-card-story-hook";
 const TEMPLATE_PATCH = {
-  heading: "The Story Starts Here",
-  bodyText: "Set the scene with a learner-friendly scenario.",
-  calloutText: "Keep this question in mind as you work."
+  "heading": "Story Hook",
+  "bodyText": "A student has a problem to solve. Your lesson will help them solve it.",
+  "calloutText": "Choose the first clue."
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Intro Card",
-  title: "Story Hook",
-  layout: "story-path",
-  interaction: "choice",
-  accent: "#ea580c",
-  completeLabel: "Complete activity"
+  "title": "Story Hook",
+  "archetype": "quest-map",
+  "eyebrow": "Intro",
+  "accent": "#ea580c"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

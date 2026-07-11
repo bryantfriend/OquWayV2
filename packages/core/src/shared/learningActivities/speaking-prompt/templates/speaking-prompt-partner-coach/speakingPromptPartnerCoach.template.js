@@ -1,31 +1,29 @@
 import { getSpeakingPromptDefaultContent } from "../../speakingPrompt.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "speakingPrompt-partner-coach";
 const TEMPLATE_PATCH = {
-  prompt: "Pretend you are coaching a classmate through the task.",
-  preparationSeconds: 45,
-  speakingSeconds: 90
+  "prompt": "Coach a partner through saving a file correctly.",
+  "preparationSeconds": 30,
+  "speakingSeconds": 60
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Speaking Prompt",
-  title: "Partner Coach",
-  layout: "story-path",
-  interaction: "text",
-  accent: "#ea580c",
-  completeLabel: "Complete activity"
+  "title": "Partner Coach",
+  "archetype": "dialog-builder",
+  "eyebrow": "Speaking",
+  "accent": "#16a34a"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

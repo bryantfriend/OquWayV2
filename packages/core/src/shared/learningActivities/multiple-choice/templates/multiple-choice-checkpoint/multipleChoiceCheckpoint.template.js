@@ -1,32 +1,31 @@
 import { getMultipleChoiceDefaultContent } from "../../multipleChoice.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "multiple-choice-checkpoint";
 const TEMPLATE_PATCH = {
-  title: "Checkpoint",
-  theme: "checkpoint",
-  instructions: "Pick the concept that matches the example.",
-  data: "Input\nOutput\nProcess\nStorage"
+  "experienceType": "multiple-choice",
+  "title": "Checkpoint Gate",
+  "theme": "checkpoint",
+  "instructions": "Unlock the question gate one checkpoint at a time.",
+  "data": "Read question\nCompare answers\nChoose best\nExplain why"
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Multiple Choice",
-  title: "Checkpoint",
-  layout: "skill-sprint",
-  interaction: "choice",
-  accent: "#16a34a",
-  completeLabel: "Complete activity"
+  "title": "Checkpoint Gate",
+  "archetype": "timeline-unlock",
+  "eyebrow": "Multiple Choice",
+  "accent": "#16a34a"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

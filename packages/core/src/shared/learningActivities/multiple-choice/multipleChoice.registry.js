@@ -7,6 +7,10 @@ import { multipleChoiceScenarioMeta } from "./templates/multiple-choice-scenario
 import * as multipleChoiceScenarioTemplate from "./templates/multiple-choice-scenario/multipleChoiceScenario.template.js?v=1.1.228-learning-activity-drag-interactions";
 import { multipleChoiceCheckpointMeta } from "./templates/multiple-choice-checkpoint/multipleChoiceCheckpoint.meta.js?v=1.1.228-learning-activity-drag-interactions";
 import * as multipleChoiceCheckpointTemplate from "./templates/multiple-choice-checkpoint/multipleChoiceCheckpoint.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { multipleChoiceBossBattleMeta } from "./templates/multiple-choice-boss-battle/multipleChoiceBossBattle.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as multipleChoiceBossBattleTemplate from "./templates/multiple-choice-boss-battle/multipleChoiceBossBattle.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { multipleChoiceMysteryDoorMeta } from "./templates/multiple-choice-mystery-door/multipleChoiceMysteryDoor.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as multipleChoiceMysteryDoorTemplate from "./templates/multiple-choice-mystery-door/multipleChoiceMysteryDoor.template.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const multipleChoiceActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: CustomExperienceStep,
@@ -35,6 +39,14 @@ export const multipleChoiceActivityDefinition = createStepBackedActivityDefiniti
     {
       meta: multipleChoiceCheckpointMeta,
       module: multipleChoiceCheckpointTemplate
+    },
+    {
+      meta: multipleChoiceBossBattleMeta,
+      module: multipleChoiceBossBattleTemplate
+    },
+    {
+      meta: multipleChoiceMysteryDoorMeta,
+      module: multipleChoiceMysteryDoorTemplate
     }
   ]
 });

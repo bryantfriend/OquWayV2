@@ -1,31 +1,29 @@
 import { getPhraseDefaultContent } from "../../phrase.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "phrase-confidence-repeat";
 const TEMPLATE_PATCH = {
-  phrase: "Let me try again.",
-  meaning: "A growth mindset phrase.",
-  usageExample: "Let me try again after I fix the mistake."
+  "phrase": "I can try again.",
+  "meaning": "Use this when you want to keep practicing.",
+  "usageExample": "I made a mistake, but I can try again."
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Phrase",
-  title: "Confidence Repeat",
-  layout: "skill-sprint",
-  interaction: "media",
-  accent: "#16a34a",
-  completeLabel: "Complete activity"
+  "title": "Confidence Repeat",
+  "archetype": "mood-meter",
+  "eyebrow": "Phrase",
+  "accent": "#7c3aed"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

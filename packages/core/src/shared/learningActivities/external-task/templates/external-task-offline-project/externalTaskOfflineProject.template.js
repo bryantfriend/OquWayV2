@@ -1,41 +1,39 @@
 import { getExternalTaskDefaultContent } from "../../externalTask.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "externalTask-offline-project";
 const TEMPLATE_PATCH = {
-  title: "Offline Build Challenge",
-  instructions: "Complete the project away from OquWay and upload a file or photo.",
-  checklist: [
-    "Followed the brief",
-    "Included all required parts",
-    "Saved or photographed the work"
+  "title": "Offline Project",
+  "instructions": "Build the project in Word, PowerPoint, or Excel, then upload it.",
+  "checklist": [
+    "Open the correct app",
+    "Complete every requirement",
+    "Save with your name"
   ],
-  proofRequired: "true",
-  allowedProofTypes: "image,document",
-  allowStudentNote: "true",
-  maxFiles: 4,
-  maxFileSizeMb: 10,
-  completionMode: "teacherReview"
+  "proofRequired": "true",
+  "allowedProofTypes": "document,spreadsheet,presentation",
+  "allowStudentNote": "true",
+  "maxFiles": 3,
+  "maxFileSizeMb": 20,
+  "completionMode": "teacherReview"
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "External Task",
-  title: "Offline Project",
-  layout: "story-path",
-  interaction: "external",
-  accent: "#ea580c",
-  completeLabel: "Submit for review"
+  "title": "Offline Project",
+  "archetype": "builder-workbench",
+  "eyebrow": "External Task",
+  "accent": "#16a34a"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

@@ -3,10 +3,14 @@ import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=
 import { customExperienceSchema } from "./customExperience.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import { customExperienceStandardMeta } from "./templates/custom-experience-standard/customExperienceStandard.meta.js?v=1.1.228-learning-activity-drag-interactions";
 import * as customExperienceStandardTemplate from "./templates/custom-experience-standard/customExperienceStandard.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { customExperienceLabSimulatorMeta } from "./templates/custom-experience-lab-simulator/customExperienceLabSimulator.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as customExperienceLabSimulatorTemplate from "./templates/custom-experience-lab-simulator/customExperienceLabSimulator.template.js?v=1.1.228-learning-activity-drag-interactions";
 import { customExperienceQuestHubMeta } from "./templates/custom-experience-quest-hub/customExperienceQuestHub.meta.js?v=1.1.228-learning-activity-drag-interactions";
 import * as customExperienceQuestHubTemplate from "./templates/custom-experience-quest-hub/customExperienceQuestHub.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { customExperienceLabSimulatorMeta } from "./templates/custom-experience-lab-simulator/customExperienceLabSimulator.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as customExperienceLabSimulatorTemplate from "./templates/custom-experience-lab-simulator/customExperienceLabSimulator.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { customExperienceMysteryBoxMeta } from "./templates/custom-experience-mystery-box/customExperienceMysteryBox.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as customExperienceMysteryBoxTemplate from "./templates/custom-experience-mystery-box/customExperienceMysteryBox.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { customExperiencePrototypeWorkbenchMeta } from "./templates/custom-experience-prototype-workbench/customExperiencePrototypeWorkbench.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as customExperiencePrototypeWorkbenchTemplate from "./templates/custom-experience-prototype-workbench/customExperiencePrototypeWorkbench.template.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const customExperienceActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: CustomExperienceStep,
@@ -18,7 +22,7 @@ export const customExperienceActivityDefinition = createStepBackedActivityDefini
   category: "Custom",
   complexity: "Medium",
   templateId: "customExperience-standard",
-  templateDisplayName: "Studio Card",
+  templateDisplayName: "Studio Control Room",
   registryFile: "packages/core/src/shared/learningActivities/custom-experience/customExperience.registry.js",
   activityFile: "packages/core/src/shared/learningActivities/custom-experience/customExperience.activity.js",
   schemaFile: "packages/core/src/shared/learningActivities/custom-experience/customExperience.schema.js",
@@ -29,12 +33,20 @@ export const customExperienceActivityDefinition = createStepBackedActivityDefini
       module: customExperienceStandardTemplate
     },
     {
+      meta: customExperienceQuestHubMeta,
+      module: customExperienceQuestHubTemplate
+    },
+    {
       meta: customExperienceLabSimulatorMeta,
       module: customExperienceLabSimulatorTemplate
     },
     {
-      meta: customExperienceQuestHubMeta,
-      module: customExperienceQuestHubTemplate
+      meta: customExperienceMysteryBoxMeta,
+      module: customExperienceMysteryBoxTemplate
+    },
+    {
+      meta: customExperiencePrototypeWorkbenchMeta,
+      module: customExperiencePrototypeWorkbenchTemplate
     }
   ]
 });

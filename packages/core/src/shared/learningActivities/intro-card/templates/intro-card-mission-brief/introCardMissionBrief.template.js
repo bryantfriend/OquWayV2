@@ -1,31 +1,29 @@
 import { getIntroCardDefaultContent } from "../../introCard.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "intro-card-mission-brief";
 const TEMPLATE_PATCH = {
-  heading: "Mission Brief",
-  bodyText: "Your goal is to solve the challenge step by step.",
-  calloutText: "Look for clues and explain your choices."
+  "heading": "Mission Brief",
+  "bodyText": "Your job is to learn the skill and prove it with practice.",
+  "calloutText": "Read the mission before you begin."
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Intro Card",
-  title: "Mission Brief",
-  layout: "terminal-run",
-  interaction: "choice",
-  accent: "#0f766e",
-  completeLabel: "Complete activity"
+  "title": "Mission Brief",
+  "archetype": "terminal-challenge",
+  "eyebrow": "Intro",
+  "accent": "#16a34a"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

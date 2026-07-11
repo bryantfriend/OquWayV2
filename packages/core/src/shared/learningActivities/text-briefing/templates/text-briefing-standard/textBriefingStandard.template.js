@@ -1,31 +1,29 @@
 import { getTextBriefingDefaultContent } from "../../textBriefing.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "textBriefing-standard";
 const TEMPLATE_PATCH = {
-  heading: "Key Idea",
-  bodyText: "Read this short explanation before you try the activity.",
-  calloutText: "Focus on the words that explain cause and effect."
+  "heading": "Digital Safety Briefing",
+  "bodyText": "Read the key idea, then continue when you are ready.",
+  "calloutText": "Pause and look for the one idea you can use today."
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Text Briefing",
-  title: "Briefing Card",
-  layout: "studio-card",
-  interaction: "choice",
-  accent: "#2563eb",
-  completeLabel: "Complete activity"
+  "title": "Briefing Card",
+  "archetype": "card-stack",
+  "eyebrow": "Briefing",
+  "accent": "#2563eb"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

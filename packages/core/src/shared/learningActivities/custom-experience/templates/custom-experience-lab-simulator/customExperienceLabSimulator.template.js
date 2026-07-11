@@ -1,32 +1,30 @@
 import { getCustomExperienceDefaultContent } from "../../customExperience.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "customExperience-lab-simulator";
 const TEMPLATE_PATCH = {
-  title: "Simulation Lab",
-  theme: "lab",
-  instructions: "Choose the tool that best solves the challenge.",
-  data: "Observe\nTest\nImprove"
+  "title": "Lab Simulator",
+  "theme": "lab",
+  "instructions": "Run the simulator commands in a safe practice space.",
+  "data": "load tools\nrun test\nexplain result"
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Custom Experience",
-  title: "Lab Simulator",
-  layout: "field-lab",
-  interaction: "choice",
-  accent: "#0891b2",
-  completeLabel: "Complete activity"
+  "title": "Lab Simulator",
+  "archetype": "terminal-challenge",
+  "eyebrow": "Custom Experience",
+  "accent": "#0891b2"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

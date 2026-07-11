@@ -1,30 +1,28 @@
 import { getListeningDefaultContent } from "../../listening.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "listening-echo-response";
 const TEMPLATE_PATCH = {
-  questionPrompt: "Listen, repeat the sentence, and mark it complete.",
-  transcript: "Repeat this sentence with clear pronunciation."
+  "questionPrompt": "Listen, then choose the best echo response.",
+  "transcript": "I can identify safe websites by checking the address, lock symbol, and source."
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Listening",
-  title: "Echo Response",
-  layout: "skill-sprint",
-  interaction: "media",
-  accent: "#16a34a",
-  completeLabel: "Complete activity"
+  "title": "Echo Response",
+  "archetype": "dialog-builder",
+  "eyebrow": "Listening",
+  "accent": "#16a34a"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

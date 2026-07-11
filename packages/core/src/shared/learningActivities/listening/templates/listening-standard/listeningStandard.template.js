@@ -1,30 +1,28 @@
 import { getListeningDefaultContent } from "../../listening.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "listening-standard";
 const TEMPLATE_PATCH = {
-  questionPrompt: "Listen for the main idea, then complete the check.",
-  transcript: "The speaker explains the main point and gives one example."
+  "questionPrompt": "Listen for the main idea.",
+  "transcript": "The speaker explains how to check whether a website is safe."
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Listening",
-  title: "Listen and Check",
-  layout: "studio-card",
-  interaction: "media",
-  accent: "#2563eb",
-  completeLabel: "Complete activity"
+  "title": "Listen and Check",
+  "archetype": "media-mixer",
+  "eyebrow": "Listening",
+  "accent": "#2563eb"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

@@ -7,6 +7,10 @@ import { speakingPromptPartnerCoachMeta } from "./templates/speaking-prompt-part
 import * as speakingPromptPartnerCoachTemplate from "./templates/speaking-prompt-partner-coach/speakingPromptPartnerCoach.template.js?v=1.1.228-learning-activity-drag-interactions";
 import { speakingPromptTimedPitchMeta } from "./templates/speaking-prompt-timed-pitch/speakingPromptTimedPitch.meta.js?v=1.1.228-learning-activity-drag-interactions";
 import * as speakingPromptTimedPitchTemplate from "./templates/speaking-prompt-timed-pitch/speakingPromptTimedPitch.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { speakingPromptNewsroomMeta } from "./templates/speaking-prompt-newsroom/speakingPromptNewsroom.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as speakingPromptNewsroomTemplate from "./templates/speaking-prompt-newsroom/speakingPromptNewsroom.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { speakingPromptPodcastBoothMeta } from "./templates/speaking-prompt-podcast-booth/speakingPromptPodcastBooth.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as speakingPromptPodcastBoothTemplate from "./templates/speaking-prompt-podcast-booth/speakingPromptPodcastBooth.template.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const speakingPromptActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: SpeakingPromptStep,
@@ -35,6 +39,14 @@ export const speakingPromptActivityDefinition = createStepBackedActivityDefiniti
     {
       meta: speakingPromptTimedPitchMeta,
       module: speakingPromptTimedPitchTemplate
+    },
+    {
+      meta: speakingPromptNewsroomMeta,
+      module: speakingPromptNewsroomTemplate
+    },
+    {
+      meta: speakingPromptPodcastBoothMeta,
+      module: speakingPromptPodcastBoothTemplate
     }
   ]
 });

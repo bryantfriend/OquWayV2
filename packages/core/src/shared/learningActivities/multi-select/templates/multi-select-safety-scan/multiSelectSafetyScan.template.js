@@ -1,32 +1,31 @@
 import { getMultiSelectDefaultContent } from "../../multiSelect.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "multi-select-safety-scan";
 const TEMPLATE_PATCH = {
-  title: "Safety Scan",
-  theme: "safety",
-  instructions: "Select the risky choices.",
-  data: "Clicking pop-ups\nChecking the sender\nSharing personal info\nAsking a teacher"
+  "experienceType": "multi-select",
+  "title": "Safety Scan",
+  "theme": "scanner",
+  "instructions": "Scan each option and select the safe choices.",
+  "data": "Check URL\nShare password\nAsk teacher\nClick pop-up"
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Multi Select",
-  title: "Safety Scan",
-  layout: "field-lab",
-  interaction: "choice",
-  accent: "#dc2626",
-  completeLabel: "Complete activity"
+  "title": "Safety Scan",
+  "archetype": "scanner-grid",
+  "eyebrow": "Multi Select",
+  "accent": "#0891b2"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

@@ -1,32 +1,31 @@
 import { getMultipleChoiceDefaultContent } from "../../multipleChoice.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "multiple-choice-scenario";
 const TEMPLATE_PATCH = {
-  title: "Scenario Choice",
-  theme: "scenario",
-  instructions: "Read the situation and choose the strongest next move.",
-  data: "Ask a clarifying question\nGuess quickly\nIgnore the clue\nSkip the task"
+  "experienceType": "multiple-choice",
+  "title": "Scenario Choice",
+  "theme": "scenario",
+  "instructions": "Read the situation and choose the strongest next move.",
+  "data": "Ask a clarifying question\nGuess quickly\nIgnore the clue\nSkip the task"
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Multiple Choice",
-  title: "Scenario Choice",
-  layout: "story-path",
-  interaction: "choice",
-  accent: "#ea580c",
-  completeLabel: "Complete activity"
+  "title": "Scenario Choice",
+  "archetype": "quest-map",
+  "eyebrow": "Multiple Choice",
+  "accent": "#ea580c"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

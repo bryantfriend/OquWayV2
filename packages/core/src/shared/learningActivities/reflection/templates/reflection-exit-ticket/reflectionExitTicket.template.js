@@ -1,31 +1,29 @@
 import { getReflectionDefaultContent } from "../../reflection.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "reflection-exit-ticket";
 const TEMPLATE_PATCH = {
-  question: "What is one thing you can do now that you could not do before?",
-  responseType: "shortText",
-  minWords: 5
+  "question": "What is one thing you learned before leaving this activity?",
+  "responseType": "shortText",
+  "minWords": 8
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Reflection",
-  title: "Exit Ticket",
-  layout: "studio-card",
-  interaction: "text",
-  accent: "#2563eb",
-  completeLabel: "Complete activity"
+  "title": "Exit Ticket",
+  "archetype": "builder-workbench",
+  "eyebrow": "Reflection",
+  "accent": "#16a34a"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

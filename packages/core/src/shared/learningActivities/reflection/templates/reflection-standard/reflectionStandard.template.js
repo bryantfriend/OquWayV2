@@ -1,31 +1,29 @@
 import { getReflectionDefaultContent } from "../../reflection.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "reflection-standard";
 const TEMPLATE_PATCH = {
-  question: "How confident do you feel about this skill?",
-  responseType: "scale",
-  minWords: 0
+  "question": "How confident do you feel about this skill?",
+  "responseType": "scale",
+  "minWords": 0
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Reflection",
-  title: "Confidence Scale",
-  layout: "reflection-journal",
-  interaction: "reflection",
-  accent: "#7c3aed",
-  completeLabel: "Complete activity"
+  "title": "Confidence Scale",
+  "archetype": "mood-meter",
+  "eyebrow": "Reflection",
+  "accent": "#2563eb"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

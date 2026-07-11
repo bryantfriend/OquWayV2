@@ -1,32 +1,31 @@
 import { getMultipleChoiceDefaultContent } from "../../multipleChoice.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "multiple-choice-standard";
 const TEMPLATE_PATCH = {
-  title: "Quick Choice",
-  theme: "quiz",
-  instructions: "Choose the best answer.",
-  data: "Best answer\nAlmost right\nDistractor\nTry again"
+  "experienceType": "multiple-choice",
+  "title": "Check Your Understanding",
+  "theme": "assessment",
+  "instructions": "Choose the best answer.",
+  "data": "Input\nOutput\nStorage\nNetwork"
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Multiple Choice",
-  title: "Quick Choice",
-  layout: "studio-card",
-  interaction: "choice",
-  accent: "#2563eb",
-  completeLabel: "Complete activity"
+  "title": "Quick Choice",
+  "archetype": "quiz-show",
+  "eyebrow": "Multiple Choice",
+  "accent": "#2563eb"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

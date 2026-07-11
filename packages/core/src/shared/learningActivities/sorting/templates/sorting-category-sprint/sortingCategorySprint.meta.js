@@ -2,15 +2,19 @@ export const sortingCategorySprintMeta = {
   templateId: "sorting-category-sprint",
   activityType: "sorting",
   displayName: "Category Sprint",
-  description: "A sorting activity shell backed by the drag-match player.",
+  description: "Category Sprint turns Sorting into a matrix grid mini-game.",
   supportsPreview: true,
   supportsStudentMode: true,
   supportsTeacherPreview: true,
   requiredContentFields: [],
-  visualFeatures: ["skill-sprint", "drag", "Medium"],
+  visualFeatures: [
+  "matrix-grid",
+  "distinct-interaction",
+  "Medium"
+],
   files: {
-    template: "packages/core/src/shared/learningActivities/sorting/templates/sorting-category-sprint/sortingCategorySprint.template.js",
-    css: "packages/core/src/shared/learningActivities/sorting/templates/sorting-category-sprint/sortingCategorySprint.css",
-    meta: "packages/core/src/shared/learningActivities/sorting/templates/sorting-category-sprint/sortingCategorySprint.meta.js"
-  }
+  "template": "packages/core/src/shared/learningActivities/sorting/templates/sorting-category-sprint/sortingCategorySprint.template.js",
+  "css": "packages/core/src/shared/learningActivities/sorting/templates/sorting-category-sprint/sortingCategorySprint.css",
+  "meta": "packages/core/src/shared/learningActivities/sorting/templates/sorting-category-sprint/sortingCategorySprint.meta.js"
+}
 };

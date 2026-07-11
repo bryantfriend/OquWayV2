@@ -1,31 +1,29 @@
 import { getIntroCardDefaultContent } from "../../introCard.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "intro-card-standard";
 const TEMPLATE_PATCH = {
-  heading: "Welcome In",
-  bodyText: "Start with the big idea and what learners will practice.",
-  calloutText: "Today you will learn by trying, checking, and improving."
+  "heading": "Lesson Introduction",
+  "bodyText": "Start here to understand the main idea.",
+  "calloutText": "Look for the one concept you should remember."
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Intro Card",
-  title: "Welcome Card",
-  layout: "studio-card",
-  interaction: "choice",
-  accent: "#2563eb",
-  completeLabel: "Complete activity"
+  "title": "Welcome Card",
+  "archetype": "card-stack",
+  "eyebrow": "Intro",
+  "accent": "#2563eb"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

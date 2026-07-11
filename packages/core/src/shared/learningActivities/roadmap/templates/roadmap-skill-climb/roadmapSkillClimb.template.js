@@ -1,32 +1,31 @@
 import { getRoadmapDefaultContent } from "../../roadmap.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "roadmap-skill-climb";
 const TEMPLATE_PATCH = {
-  title: "Skill Climb",
-  theme: "climb",
-  instructions: "Pick the skill level you are ready to try.",
-  data: "Warm-up\nGuided challenge\nIndependent try\nStretch goal"
+  "experienceType": "roadmap",
+  "title": "Skill Climb",
+  "theme": "climb",
+  "instructions": "Unlock each rung as your skill grows.",
+  "data": "Learn\nTry\nFix\nMaster"
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Roadmap",
-  title: "Skill Climb",
-  layout: "skill-sprint",
-  interaction: "choice",
-  accent: "#16a34a",
-  completeLabel: "Complete activity"
+  "title": "Skill Climb",
+  "archetype": "timeline-unlock",
+  "eyebrow": "Roadmap",
+  "accent": "#16a34a"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

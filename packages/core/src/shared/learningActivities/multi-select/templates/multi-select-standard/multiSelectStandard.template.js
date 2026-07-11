@@ -1,32 +1,31 @@
 import { getMultiSelectDefaultContent } from "../../multiSelect.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "multi-select-standard";
 const TEMPLATE_PATCH = {
-  title: "Pick All That Apply",
-  theme: "quiz",
-  instructions: "Select every answer that fits the prompt.",
-  data: "Strong password\nShared password\nTwo-factor login\nUnknown link"
+  "experienceType": "multi-select",
+  "title": "Select All That Apply",
+  "theme": "assessment",
+  "instructions": "Select every correct option.",
+  "data": "Strong password\nPublic password\nPrivate account\nUnknown link"
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Multi Select",
-  title: "Pick All That Apply",
-  layout: "studio-card",
-  interaction: "choice",
-  accent: "#2563eb",
-  completeLabel: "Complete activity"
+  "title": "Pick All That Apply",
+  "archetype": "matrix-grid",
+  "eyebrow": "Multi Select",
+  "accent": "#2563eb"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

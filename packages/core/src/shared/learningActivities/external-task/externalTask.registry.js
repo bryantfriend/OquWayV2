@@ -7,6 +7,10 @@ import { externalTaskScreenshotProofMeta } from "./templates/external-task-scree
 import * as externalTaskScreenshotProofTemplate from "./templates/external-task-screenshot-proof/externalTaskScreenshotProof.template.js?v=1.1.228-learning-activity-drag-interactions";
 import { externalTaskOfflineProjectMeta } from "./templates/external-task-offline-project/externalTaskOfflineProject.meta.js?v=1.1.228-learning-activity-drag-interactions";
 import * as externalTaskOfflineProjectTemplate from "./templates/external-task-offline-project/externalTaskOfflineProject.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { externalTaskOfficeQuestMeta } from "./templates/external-task-office-quest/externalTaskOfficeQuest.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as externalTaskOfficeQuestTemplate from "./templates/external-task-office-quest/externalTaskOfficeQuest.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { externalTaskReviewStationMeta } from "./templates/external-task-review-station/externalTaskReviewStation.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as externalTaskReviewStationTemplate from "./templates/external-task-review-station/externalTaskReviewStation.template.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const externalTaskActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: ExternalTaskStep,
@@ -35,6 +39,14 @@ export const externalTaskActivityDefinition = createStepBackedActivityDefinition
     {
       meta: externalTaskOfflineProjectMeta,
       module: externalTaskOfflineProjectTemplate
+    },
+    {
+      meta: externalTaskOfficeQuestMeta,
+      module: externalTaskOfficeQuestTemplate
+    },
+    {
+      meta: externalTaskReviewStationMeta,
+      module: externalTaskReviewStationTemplate
     }
   ]
 });

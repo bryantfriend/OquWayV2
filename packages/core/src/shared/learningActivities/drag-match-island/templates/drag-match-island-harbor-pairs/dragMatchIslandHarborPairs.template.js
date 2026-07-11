@@ -1,32 +1,30 @@
 import { getDragMatchIslandDefaultContent } from "../../dragMatchIsland.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "dragMatchIsland-harbor-pairs";
 const TEMPLATE_PATCH = {
-  title: "Harbor Pairs",
-  subtitle: "Pair each item with its role.",
-  items: "Input device\nOutput device\nStorage\nNetwork",
-  theme: "harbor"
+  "title": "Harbor Pairs",
+  "subtitle": "Sail to each match point.",
+  "items": "Keyboard to typing\nMonitor to display\nPrinter to paper",
+  "theme": "harbor"
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Drag Match Island",
-  title: "Harbor Pairs",
-  layout: "field-lab",
-  interaction: "drag",
-  accent: "#0f766e",
-  completeLabel: "Complete activity"
+  "title": "Harbor Pairs",
+  "archetype": "quest-map",
+  "eyebrow": "Drag Match",
+  "accent": "#0284c7"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

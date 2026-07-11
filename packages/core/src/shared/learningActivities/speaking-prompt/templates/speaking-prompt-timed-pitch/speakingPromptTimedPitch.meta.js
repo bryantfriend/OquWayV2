@@ -2,15 +2,19 @@ export const speakingPromptTimedPitchMeta = {
   templateId: "speakingPrompt-timed-pitch",
   activityType: "speakingPrompt",
   displayName: "Timed Pitch",
-  description: "A speaking prompt shell without recording.",
+  description: "Timed Pitch turns Speaking Prompt into a boss battle mini-game.",
   supportsPreview: true,
   supportsStudentMode: true,
   supportsTeacherPreview: true,
   requiredContentFields: [],
-  visualFeatures: ["skill-sprint", "text", "Easy"],
+  visualFeatures: [
+  "boss-battle",
+  "distinct-interaction",
+  "Easy"
+],
   files: {
-    template: "packages/core/src/shared/learningActivities/speaking-prompt/templates/speaking-prompt-timed-pitch/speakingPromptTimedPitch.template.js",
-    css: "packages/core/src/shared/learningActivities/speaking-prompt/templates/speaking-prompt-timed-pitch/speakingPromptTimedPitch.css",
-    meta: "packages/core/src/shared/learningActivities/speaking-prompt/templates/speaking-prompt-timed-pitch/speakingPromptTimedPitch.meta.js"
-  }
+  "template": "packages/core/src/shared/learningActivities/speaking-prompt/templates/speaking-prompt-timed-pitch/speakingPromptTimedPitch.template.js",
+  "css": "packages/core/src/shared/learningActivities/speaking-prompt/templates/speaking-prompt-timed-pitch/speakingPromptTimedPitch.css",
+  "meta": "packages/core/src/shared/learningActivities/speaking-prompt/templates/speaking-prompt-timed-pitch/speakingPromptTimedPitch.meta.js"
+}
 };

@@ -1,31 +1,29 @@
 import { getPhraseDefaultContent } from "../../phrase.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "phrase-dialog-builder";
 const TEMPLATE_PATCH = {
-  phrase: "I think the answer is...",
-  meaning: "Use this to share an idea carefully.",
-  usageExample: "I think the answer is input because it starts the process."
+  "phrase": "Can you explain that?",
+  "meaning": "Ask for a clearer explanation.",
+  "usageExample": "I heard your idea. Can you explain that?"
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Phrase",
-  title: "Dialog Builder",
-  layout: "story-path",
-  interaction: "choice",
-  accent: "#ea580c",
-  completeLabel: "Complete activity"
+  "title": "Dialog Builder",
+  "archetype": "dialog-builder",
+  "eyebrow": "Phrase",
+  "accent": "#16a34a"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

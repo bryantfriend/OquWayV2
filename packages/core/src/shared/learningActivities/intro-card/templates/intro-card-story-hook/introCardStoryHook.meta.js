@@ -2,15 +2,19 @@ export const introCardStoryHookMeta = {
   templateId: "intro-card-story-hook",
   activityType: "intro-card",
   displayName: "Story Hook",
-  description: "A compact opening card for a lesson or module.",
+  description: "Story Hook turns Intro Card into a quest map mini-game.",
   supportsPreview: true,
   supportsStudentMode: true,
   supportsTeacherPreview: true,
   requiredContentFields: [],
-  visualFeatures: ["story-path", "choice", "Easy"],
+  visualFeatures: [
+  "quest-map",
+  "distinct-interaction",
+  "Easy"
+],
   files: {
-    template: "packages/core/src/shared/learningActivities/intro-card/templates/intro-card-story-hook/introCardStoryHook.template.js",
-    css: "packages/core/src/shared/learningActivities/intro-card/templates/intro-card-story-hook/introCardStoryHook.css",
-    meta: "packages/core/src/shared/learningActivities/intro-card/templates/intro-card-story-hook/introCardStoryHook.meta.js"
-  }
+  "template": "packages/core/src/shared/learningActivities/intro-card/templates/intro-card-story-hook/introCardStoryHook.template.js",
+  "css": "packages/core/src/shared/learningActivities/intro-card/templates/intro-card-story-hook/introCardStoryHook.css",
+  "meta": "packages/core/src/shared/learningActivities/intro-card/templates/intro-card-story-hook/introCardStoryHook.meta.js"
+}
 };

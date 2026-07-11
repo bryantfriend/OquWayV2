@@ -7,6 +7,10 @@ import { roadmapSkillClimbMeta } from "./templates/roadmap-skill-climb/roadmapSk
 import * as roadmapSkillClimbTemplate from "./templates/roadmap-skill-climb/roadmapSkillClimb.template.js?v=1.1.228-learning-activity-drag-interactions";
 import { roadmapProjectLaneMeta } from "./templates/roadmap-project-lane/roadmapProjectLane.meta.js?v=1.1.228-learning-activity-drag-interactions";
 import * as roadmapProjectLaneTemplate from "./templates/roadmap-project-lane/roadmapProjectLane.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { roadmapBossPathMeta } from "./templates/roadmap-boss-path/roadmapBossPath.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as roadmapBossPathTemplate from "./templates/roadmap-boss-path/roadmapBossPath.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { roadmapMapTourMeta } from "./templates/roadmap-map-tour/roadmapMapTour.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as roadmapMapTourTemplate from "./templates/roadmap-map-tour/roadmapMapTour.template.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const roadmapActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: CustomExperienceStep,
@@ -35,6 +39,14 @@ export const roadmapActivityDefinition = createStepBackedActivityDefinition({
     {
       meta: roadmapProjectLaneMeta,
       module: roadmapProjectLaneTemplate
+    },
+    {
+      meta: roadmapBossPathMeta,
+      module: roadmapBossPathTemplate
+    },
+    {
+      meta: roadmapMapTourMeta,
+      module: roadmapMapTourTemplate
     }
   ]
 });

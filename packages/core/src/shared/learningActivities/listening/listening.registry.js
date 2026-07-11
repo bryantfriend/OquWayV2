@@ -3,10 +3,14 @@ import { ListeningStep } from "../../stepTypes/ListeningStep.js?v=1.1.228-learni
 import { listeningSchema } from "./listening.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import { listeningStandardMeta } from "./templates/listening-standard/listeningStandard.meta.js?v=1.1.228-learning-activity-drag-interactions";
 import * as listeningStandardTemplate from "./templates/listening-standard/listeningStandard.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { listeningTranscriptHuntMeta } from "./templates/listening-transcript-hunt/listeningTranscriptHunt.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as listeningTranscriptHuntTemplate from "./templates/listening-transcript-hunt/listeningTranscriptHunt.template.js?v=1.1.228-learning-activity-drag-interactions";
 import { listeningEchoResponseMeta } from "./templates/listening-echo-response/listeningEchoResponse.meta.js?v=1.1.228-learning-activity-drag-interactions";
 import * as listeningEchoResponseTemplate from "./templates/listening-echo-response/listeningEchoResponse.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { listeningTranscriptHuntMeta } from "./templates/listening-transcript-hunt/listeningTranscriptHunt.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as listeningTranscriptHuntTemplate from "./templates/listening-transcript-hunt/listeningTranscriptHunt.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { listeningSoundDetectiveMeta } from "./templates/listening-sound-detective/listeningSoundDetective.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as listeningSoundDetectiveTemplate from "./templates/listening-sound-detective/listeningSoundDetective.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { listeningRadioSequenceMeta } from "./templates/listening-radio-sequence/listeningRadioSequence.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as listeningRadioSequenceTemplate from "./templates/listening-radio-sequence/listeningRadioSequence.template.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const listeningActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: ListeningStep,
@@ -29,12 +33,20 @@ export const listeningActivityDefinition = createStepBackedActivityDefinition({
       module: listeningStandardTemplate
     },
     {
+      meta: listeningEchoResponseMeta,
+      module: listeningEchoResponseTemplate
+    },
+    {
       meta: listeningTranscriptHuntMeta,
       module: listeningTranscriptHuntTemplate
     },
     {
-      meta: listeningEchoResponseMeta,
-      module: listeningEchoResponseTemplate
+      meta: listeningSoundDetectiveMeta,
+      module: listeningSoundDetectiveTemplate
+    },
+    {
+      meta: listeningRadioSequenceMeta,
+      module: listeningRadioSequenceTemplate
     }
   ]
 });

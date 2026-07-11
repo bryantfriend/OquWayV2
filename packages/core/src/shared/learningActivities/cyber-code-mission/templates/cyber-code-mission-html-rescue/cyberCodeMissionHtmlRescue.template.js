@@ -1,34 +1,31 @@
 import { getCyberCodeMissionDefaultContent } from "../../cyberCodeMission.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "cyberCodeMission-html-rescue";
 const TEMPLATE_PATCH = {
-  missionTitle: "HTML Rescue",
-  missionSubtitle: "Rescue the page structure.",
-  instructions: "Study the markup and choose the strongest repair.",
-  starterCode: "<section>\n  <h2>Safety</h2>\n  <p>Protect your password.</p>\n</section>",
-  successMessage: "Page rescued.",
-  theme: "html"
+  "missionTitle": "HTML Rescue",
+  "missionSubtitle": "Scan the page for missing structure.",
+  "instructions": "Find each signal in the HTML rescue field.",
+  "starterCode": "<html>\n<body>\n<h1>Rescue</h1>",
+  "data": "doctype\nhead\nbody\nclosing tag"
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Cyber Code Mission",
-  title: "HTML Rescue",
-  layout: "story-path",
-  interaction: "terminal",
-  accent: "#f59e0b",
-  completeLabel: "Complete activity"
+  "title": "HTML Rescue",
+  "archetype": "scanner-grid",
+  "eyebrow": "Cyber Mission",
+  "accent": "#06b6d4"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

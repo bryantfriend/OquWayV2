@@ -9,6 +9,8 @@ import { reflectionLearningJournalMeta } from "./templates/reflection-learning-j
 import * as reflectionLearningJournalTemplate from "./templates/reflection-learning-journal/reflectionLearningJournal.template.js?v=1.1.228-learning-activity-drag-interactions";
 import { reflectionEmojiCheckInMeta } from "./templates/reflection-emoji-check-in/reflectionEmojiCheckIn.meta.js?v=1.1.228-learning-activity-drag-interactions";
 import * as reflectionEmojiCheckInTemplate from "./templates/reflection-emoji-check-in/reflectionEmojiCheckIn.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { reflectionGrowthGardenMeta } from "./templates/reflection-growth-garden/reflectionGrowthGarden.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as reflectionGrowthGardenTemplate from "./templates/reflection-growth-garden/reflectionGrowthGarden.template.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const reflectionActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: ReflectionStep,
@@ -41,6 +43,10 @@ export const reflectionActivityDefinition = createStepBackedActivityDefinition({
     {
       meta: reflectionEmojiCheckInMeta,
       module: reflectionEmojiCheckInTemplate
+    },
+    {
+      meta: reflectionGrowthGardenMeta,
+      module: reflectionGrowthGardenTemplate
     }
   ]
 });

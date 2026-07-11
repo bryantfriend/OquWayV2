@@ -1,34 +1,31 @@
 import { getCyberCodeMissionDefaultContent } from "../../cyberCodeMission.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "cyberCodeMission-standard";
 const TEMPLATE_PATCH = {
-  missionTitle: "Terminal Repair",
-  missionSubtitle: "Fix the broken signal.",
-  instructions: "Inspect the starter code and decide what should change.",
-  starterCode: "<h1>Signal online</h1>",
-  successMessage: "Signal restored.",
-  theme: "neon"
+  "missionTitle": "Terminal Repair",
+  "missionSubtitle": "Run the command that restores the broken page.",
+  "instructions": "Inspect the starter code and choose the best fix.",
+  "starterCode": "<h1>Welcome</h1>\n<p>Stay curious.</p>",
+  "data": "Add missing tag\nCheck indentation\nRun preview"
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Cyber Code Mission",
-  title: "Terminal Repair",
-  layout: "terminal-run",
-  interaction: "terminal",
-  accent: "#38bdf8",
-  completeLabel: "Complete activity"
+  "title": "Terminal Repair",
+  "archetype": "terminal-challenge",
+  "eyebrow": "Cyber Mission",
+  "accent": "#22c55e"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

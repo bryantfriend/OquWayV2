@@ -1,31 +1,29 @@
 import { getVocabularyDefaultContent } from "../../vocabulary.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "vocabulary-standard";
 const TEMPLATE_PATCH = {
-  word: "Algorithm",
-  translation: "A clear sequence of steps",
-  exampleSentence: "We followed an algorithm to solve the problem."
+  "word": "Algorithm",
+  "translation": "A clear sequence of steps",
+  "exampleSentence": "We followed an algorithm to solve the problem."
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Vocabulary",
-  title: "Flip Word Card",
-  layout: "studio-card",
-  interaction: "media",
-  accent: "#2563eb",
-  completeLabel: "Complete activity"
+  "title": "Flip Word Card",
+  "archetype": "card-stack",
+  "eyebrow": "Vocabulary",
+  "accent": "#2563eb"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

@@ -1,32 +1,36 @@
 import { getRoadmapDefaultContent } from "../../roadmap.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "roadmap-project-lane";
 const TEMPLATE_PATCH = {
-  title: "Project Lane",
-  theme: "project",
-  instructions: "Move through planning, building, and sharing.",
-  data: "Plan\nBuild\nTest\nShare"
+  "experienceType": "roadmap",
+  "title": "Project Lane",
+  "theme": "kanban",
+  "instructions": "Move project work into the right lane.",
+  "data": "Plan file\nBuild slide\nCheck formula\nUpload proof"
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Roadmap",
-  title: "Project Lane",
-  layout: "field-lab",
-  interaction: "choice",
-  accent: "#0891b2",
-  completeLabel: "Complete activity"
+  "title": "Project Lane",
+  "archetype": "drag-bays",
+  "eyebrow": "Roadmap",
+  "accent": "#0891b2",
+  "zones": [
+    "To Do",
+    "Doing",
+    "Done"
+  ]
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

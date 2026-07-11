@@ -7,6 +7,10 @@ import { phraseDialogBuilderMeta } from "./templates/phrase-dialog-builder/phras
 import * as phraseDialogBuilderTemplate from "./templates/phrase-dialog-builder/phraseDialogBuilder.template.js?v=1.1.228-learning-activity-drag-interactions";
 import { phraseConfidenceRepeatMeta } from "./templates/phrase-confidence-repeat/phraseConfidenceRepeat.meta.js?v=1.1.228-learning-activity-drag-interactions";
 import * as phraseConfidenceRepeatTemplate from "./templates/phrase-confidence-repeat/phraseConfidenceRepeat.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { phraseComicStripMeta } from "./templates/phrase-comic-strip/phraseComicStrip.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as phraseComicStripTemplate from "./templates/phrase-comic-strip/phraseComicStrip.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { phraseResponseRadarMeta } from "./templates/phrase-response-radar/phraseResponseRadar.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as phraseResponseRadarTemplate from "./templates/phrase-response-radar/phraseResponseRadar.template.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const phraseActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: PhraseStep,
@@ -35,6 +39,14 @@ export const phraseActivityDefinition = createStepBackedActivityDefinition({
     {
       meta: phraseConfidenceRepeatMeta,
       module: phraseConfidenceRepeatTemplate
+    },
+    {
+      meta: phraseComicStripMeta,
+      module: phraseComicStripTemplate
+    },
+    {
+      meta: phraseResponseRadarMeta,
+      module: phraseResponseRadarTemplate
     }
   ]
 });

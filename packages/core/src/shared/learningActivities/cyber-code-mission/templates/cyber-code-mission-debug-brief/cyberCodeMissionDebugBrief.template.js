@@ -1,34 +1,31 @@
 import { getCyberCodeMissionDefaultContent } from "../../cyberCodeMission.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "cyberCodeMission-debug-brief";
 const TEMPLATE_PATCH = {
-  missionTitle: "Debug Brief",
-  missionSubtitle: "Find the suspicious line.",
-  instructions: "Read the code and explain the likely bug.",
-  starterCode: "if (score > 80) {\n  badge = \"Expert\";\n}",
-  successMessage: "Bug documented.",
-  theme: "debug"
+  "missionTitle": "Debug Brief",
+  "missionSubtitle": "Open bug clues before choosing a fix.",
+  "instructions": "Inspect every clue in the case file.",
+  "starterCode": "const score = 10\nconsole.log(scroe)",
+  "data": "Typo in variable\nMissing semicolon\nConsole clue"
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Cyber Code Mission",
-  title: "Debug Brief",
-  layout: "field-lab",
-  interaction: "terminal",
-  accent: "#22c55e",
-  completeLabel: "Complete activity"
+  "title": "Debug Brief",
+  "archetype": "evidence-board",
+  "eyebrow": "Cyber Mission",
+  "accent": "#f59e0b"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

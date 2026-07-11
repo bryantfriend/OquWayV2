@@ -1,31 +1,29 @@
 import { getTextBriefingDefaultContent } from "../../textBriefing.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "textBriefing-concept-spotlight";
 const TEMPLATE_PATCH = {
-  heading: "Concept Spotlight",
-  bodyText: "This view highlights one important concept and its example.",
-  calloutText: "Ask: what changes, and what stays the same?"
+  "heading": "Concept Spotlight",
+  "bodyText": "Scan the important parts of this idea before you continue.",
+  "calloutText": "The spotlight is on the main concept."
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Text Briefing",
-  title: "Concept Spotlight",
-  layout: "field-lab",
-  interaction: "choice",
-  accent: "#0891b2",
-  completeLabel: "Complete activity"
+  "title": "Concept Spotlight",
+  "archetype": "scanner-grid",
+  "eyebrow": "Briefing",
+  "accent": "#0891b2"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

@@ -7,6 +7,10 @@ import { introCardMissionBriefMeta } from "./templates/intro-card-mission-brief/
 import * as introCardMissionBriefTemplate from "./templates/intro-card-mission-brief/introCardMissionBrief.template.js?v=1.1.228-learning-activity-drag-interactions";
 import { introCardStoryHookMeta } from "./templates/intro-card-story-hook/introCardStoryHook.meta.js?v=1.1.228-learning-activity-drag-interactions";
 import * as introCardStoryHookTemplate from "./templates/intro-card-story-hook/introCardStoryHook.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { introCardMysteryDoorMeta } from "./templates/intro-card-mystery-door/introCardMysteryDoor.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as introCardMysteryDoorTemplate from "./templates/intro-card-mystery-door/introCardMysteryDoor.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { introCardSkillTrailerMeta } from "./templates/intro-card-skill-trailer/introCardSkillTrailer.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as introCardSkillTrailerTemplate from "./templates/intro-card-skill-trailer/introCardSkillTrailer.template.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const introCardActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: TextBriefingStep,
@@ -35,6 +39,14 @@ export const introCardActivityDefinition = createStepBackedActivityDefinition({
     {
       meta: introCardStoryHookMeta,
       module: introCardStoryHookTemplate
+    },
+    {
+      meta: introCardMysteryDoorMeta,
+      module: introCardMysteryDoorTemplate
+    },
+    {
+      meta: introCardSkillTrailerMeta,
+      module: introCardSkillTrailerTemplate
     }
   ]
 });

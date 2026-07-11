@@ -1,32 +1,30 @@
 import { getSortingDefaultContent } from "../../sorting.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "sorting-category-sprint";
 const TEMPLATE_PATCH = {
-  title: "Category Sprint",
-  subtitle: "Choose the category that fits best.",
-  items: "Hardware\nSoftware\nData\nNetwork",
-  theme: "sprint"
+  "title": "Category Sprint",
+  "subtitle": "Select every item in the target category.",
+  "items": "Input\nOutput\nStorage\nProcess",
+  "theme": "sprint"
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Sorting",
-  title: "Category Sprint",
-  layout: "skill-sprint",
-  interaction: "drag",
-  accent: "#16a34a",
-  completeLabel: "Complete activity"
+  "title": "Category Sprint",
+  "archetype": "matrix-grid",
+  "eyebrow": "Sorting",
+  "accent": "#16a34a"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

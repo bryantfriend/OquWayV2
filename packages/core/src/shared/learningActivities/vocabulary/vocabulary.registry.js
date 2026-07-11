@@ -7,6 +7,10 @@ import { vocabularyExampleBuilderMeta } from "./templates/vocabulary-example-bui
 import * as vocabularyExampleBuilderTemplate from "./templates/vocabulary-example-builder/vocabularyExampleBuilder.template.js?v=1.1.228-learning-activity-drag-interactions";
 import { vocabularyRapidReviewMeta } from "./templates/vocabulary-rapid-review/vocabularyRapidReview.meta.js?v=1.1.228-learning-activity-drag-interactions";
 import * as vocabularyRapidReviewTemplate from "./templates/vocabulary-rapid-review/vocabularyRapidReview.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { vocabularyWordLabMeta } from "./templates/vocabulary-word-lab/vocabularyWordLab.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as vocabularyWordLabTemplate from "./templates/vocabulary-word-lab/vocabularyWordLab.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { vocabularyMemoryGridMeta } from "./templates/vocabulary-memory-grid/vocabularyMemoryGrid.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as vocabularyMemoryGridTemplate from "./templates/vocabulary-memory-grid/vocabularyMemoryGrid.template.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const vocabularyActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: VocabularyStep,
@@ -35,6 +39,14 @@ export const vocabularyActivityDefinition = createStepBackedActivityDefinition({
     {
       meta: vocabularyRapidReviewMeta,
       module: vocabularyRapidReviewTemplate
+    },
+    {
+      meta: vocabularyWordLabMeta,
+      module: vocabularyWordLabTemplate
+    },
+    {
+      meta: vocabularyMemoryGridMeta,
+      module: vocabularyMemoryGridTemplate
     }
   ]
 });

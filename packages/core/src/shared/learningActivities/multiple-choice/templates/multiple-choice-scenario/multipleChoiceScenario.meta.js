@@ -2,15 +2,19 @@ export const multipleChoiceScenarioMeta = {
   templateId: "multiple-choice-scenario",
   activityType: "multiple-choice",
   displayName: "Scenario Choice",
-  description: "A single-choice activity shell backed by the custom experience player.",
+  description: "Scenario Choice turns Multiple Choice into a quest map mini-game.",
   supportsPreview: true,
   supportsStudentMode: true,
   supportsTeacherPreview: true,
   requiredContentFields: [],
-  visualFeatures: ["story-path", "choice", "Easy"],
+  visualFeatures: [
+  "quest-map",
+  "distinct-interaction",
+  "Easy"
+],
   files: {
-    template: "packages/core/src/shared/learningActivities/multiple-choice/templates/multiple-choice-scenario/multipleChoiceScenario.template.js",
-    css: "packages/core/src/shared/learningActivities/multiple-choice/templates/multiple-choice-scenario/multipleChoiceScenario.css",
-    meta: "packages/core/src/shared/learningActivities/multiple-choice/templates/multiple-choice-scenario/multipleChoiceScenario.meta.js"
-  }
+  "template": "packages/core/src/shared/learningActivities/multiple-choice/templates/multiple-choice-scenario/multipleChoiceScenario.template.js",
+  "css": "packages/core/src/shared/learningActivities/multiple-choice/templates/multiple-choice-scenario/multipleChoiceScenario.css",
+  "meta": "packages/core/src/shared/learningActivities/multiple-choice/templates/multiple-choice-scenario/multipleChoiceScenario.meta.js"
+}
 };

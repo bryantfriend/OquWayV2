@@ -1,31 +1,29 @@
 import { getTextBriefingDefaultContent } from "../../textBriefing.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "textBriefing-guided-checkpoint";
 const TEMPLATE_PATCH = {
-  heading: "Guided Checkpoint",
-  bodyText: "Pause and check your understanding before continuing.",
-  calloutText: "Choose the statement that best matches the reading."
+  "heading": "Guided Checkpoint",
+  "bodyText": "Move through each checkpoint to understand the idea.",
+  "calloutText": "Do not rush the checkpoints."
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Text Briefing",
-  title: "Guided Checkpoint",
-  layout: "story-path",
-  interaction: "choice",
-  accent: "#ea580c",
-  completeLabel: "Complete activity"
+  "title": "Guided Checkpoint",
+  "archetype": "timeline-unlock",
+  "eyebrow": "Briefing",
+  "accent": "#16a34a"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

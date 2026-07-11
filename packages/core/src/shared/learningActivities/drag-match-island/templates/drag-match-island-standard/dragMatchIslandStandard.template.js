@@ -1,32 +1,35 @@
 import { getDragMatchIslandDefaultContent } from "../../dragMatchIsland.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "dragMatchIsland-standard";
 const TEMPLATE_PATCH = {
-  title: "Island Match",
-  subtitle: "Choose the card that belongs first.",
-  items: "Keyboard\nMouse\nMonitor\nPrinter",
-  theme: "sunny"
+  "title": "Input Device Island",
+  "subtitle": "Drag each item to a useful bay.",
+  "items": "Keyboard\nMouse\nMonitor\nPrinter",
+  "theme": "sunny"
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Drag Match Island",
-  title: "Island Match",
-  layout: "island-board",
-  interaction: "drag",
-  accent: "#0284c7",
-  completeLabel: "Complete activity"
+  "title": "Island Match",
+  "archetype": "drag-bays",
+  "eyebrow": "Drag Match",
+  "accent": "#0891b2",
+  "zones": [
+    "Input",
+    "Output",
+    "Other"
+  ]
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

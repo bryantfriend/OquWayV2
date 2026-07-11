@@ -7,6 +7,10 @@ import { textBriefingConceptSpotlightMeta } from "./templates/text-briefing-conc
 import * as textBriefingConceptSpotlightTemplate from "./templates/text-briefing-concept-spotlight/textBriefingConceptSpotlight.template.js?v=1.1.228-learning-activity-drag-interactions";
 import { textBriefingGuidedCheckpointMeta } from "./templates/text-briefing-guided-checkpoint/textBriefingGuidedCheckpoint.meta.js?v=1.1.228-learning-activity-drag-interactions";
 import * as textBriefingGuidedCheckpointTemplate from "./templates/text-briefing-guided-checkpoint/textBriefingGuidedCheckpoint.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { textBriefingDetectiveFileMeta } from "./templates/text-briefing-detective-file/textBriefingDetectiveFile.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as textBriefingDetectiveFileTemplate from "./templates/text-briefing-detective-file/textBriefingDetectiveFile.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { textBriefingMapTourMeta } from "./templates/text-briefing-map-tour/textBriefingMapTour.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as textBriefingMapTourTemplate from "./templates/text-briefing-map-tour/textBriefingMapTour.template.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const textBriefingActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: TextBriefingStep,
@@ -35,6 +39,14 @@ export const textBriefingActivityDefinition = createStepBackedActivityDefinition
     {
       meta: textBriefingGuidedCheckpointMeta,
       module: textBriefingGuidedCheckpointTemplate
+    },
+    {
+      meta: textBriefingDetectiveFileMeta,
+      module: textBriefingDetectiveFileTemplate
+    },
+    {
+      meta: textBriefingMapTourMeta,
+      module: textBriefingMapTourTemplate
     }
   ]
 });

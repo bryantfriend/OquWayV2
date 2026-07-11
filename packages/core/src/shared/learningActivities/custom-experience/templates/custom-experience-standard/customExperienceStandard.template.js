@@ -1,32 +1,30 @@
 import { getCustomExperienceDefaultContent } from "../../customExperience.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "customExperience-standard";
 const TEMPLATE_PATCH = {
-  title: "Custom Experience",
-  theme: "studio",
-  instructions: "Explore the prompt, choose a path, and complete the activity.",
-  data: "Plan\nBuild\nShare"
+  "title": "Studio Control Room",
+  "theme": "studio",
+  "instructions": "Activate each part of the custom learning experience.",
+  "data": "Goal panel\nPractice panel\nReflection panel"
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Custom Experience",
-  title: "Studio Card",
-  layout: "studio-card",
-  interaction: "choice",
-  accent: "#2563eb",
-  completeLabel: "Complete activity"
+  "title": "Studio Control Room",
+  "archetype": "lab-switchboard",
+  "eyebrow": "Custom Experience",
+  "accent": "#2563eb"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

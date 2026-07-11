@@ -1,41 +1,39 @@
 import { getExternalTaskDefaultContent } from "../../externalTask.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "externalTask-standard";
 const TEMPLATE_PATCH = {
-  title: "Create a PowerPoint slide",
-  instructions: "Create one slide about internet safety, then upload proof.",
-  checklist: [
+  "title": "Create a One-Slide Summary",
+  "instructions": "Create one slide and upload it for teacher review.",
+  "checklist": [
     "Slide has a title",
-    "Slide has one image",
-    "Slide uses readable font"
+    "Slide has one useful example",
+    "File is saved clearly"
   ],
-  proofRequired: "true",
-  allowedProofTypes: "image,document",
-  allowStudentNote: "true",
-  maxFiles: 3,
-  maxFileSizeMb: 10,
-  completionMode: "teacherReview"
+  "proofRequired": "true",
+  "allowedProofTypes": "image,document",
+  "allowStudentNote": "true",
+  "maxFiles": 3,
+  "maxFileSizeMb": 10,
+  "completionMode": "teacherReview"
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "External Task",
-  title: "Proof Upload",
-  layout: "task-brief",
-  interaction: "external",
-  accent: "#2563eb",
-  completeLabel: "Submit for review"
+  "title": "Proof Upload",
+  "archetype": "upload-studio",
+  "eyebrow": "External Task",
+  "accent": "#2563eb"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

@@ -1,32 +1,31 @@
 import { getRoadmapDefaultContent } from "../../roadmap.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "roadmap-standard";
 const TEMPLATE_PATCH = {
-  title: "Learning Roadmap",
-  theme: "roadmap",
-  instructions: "Choose the next milestone in the path.",
-  data: "Start\nPractice\nApply\nReflect"
+  "experienceType": "roadmap",
+  "title": "Learning Roadmap",
+  "theme": "pathway",
+  "instructions": "Review the checkpoints before you continue.",
+  "data": "Start\nPractice\nApply"
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Roadmap",
-  title: "Learning Roadmap",
-  layout: "story-path",
-  interaction: "choice",
-  accent: "#2563eb",
-  completeLabel: "Complete activity"
+  "title": "Learning Roadmap",
+  "archetype": "roadmap-trail",
+  "eyebrow": "Roadmap",
+  "accent": "#2563eb"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {

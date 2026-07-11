@@ -7,6 +7,10 @@ import { multiSelectSafetyScanMeta } from "./templates/multi-select-safety-scan/
 import * as multiSelectSafetyScanTemplate from "./templates/multi-select-safety-scan/multiSelectSafetyScan.template.js?v=1.1.228-learning-activity-drag-interactions";
 import { multiSelectTeamDraftMeta } from "./templates/multi-select-team-draft/multiSelectTeamDraft.meta.js?v=1.1.228-learning-activity-drag-interactions";
 import * as multiSelectTeamDraftTemplate from "./templates/multi-select-team-draft/multiSelectTeamDraft.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { multiSelectThreatRadarMeta } from "./templates/multi-select-threat-radar/multiSelectThreatRadar.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as multiSelectThreatRadarTemplate from "./templates/multi-select-threat-radar/multiSelectThreatRadar.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { multiSelectCollectionCaseMeta } from "./templates/multi-select-collection-case/multiSelectCollectionCase.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as multiSelectCollectionCaseTemplate from "./templates/multi-select-collection-case/multiSelectCollectionCase.template.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const multiSelectActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: CustomExperienceStep,
@@ -35,6 +39,14 @@ export const multiSelectActivityDefinition = createStepBackedActivityDefinition(
     {
       meta: multiSelectTeamDraftMeta,
       module: multiSelectTeamDraftTemplate
+    },
+    {
+      meta: multiSelectThreatRadarMeta,
+      module: multiSelectThreatRadarTemplate
+    },
+    {
+      meta: multiSelectCollectionCaseMeta,
+      module: multiSelectCollectionCaseTemplate
     }
   ]
 });

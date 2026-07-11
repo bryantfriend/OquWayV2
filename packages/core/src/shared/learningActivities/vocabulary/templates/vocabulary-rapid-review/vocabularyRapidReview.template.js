@@ -1,31 +1,30 @@
 import { getVocabularyDefaultContent } from "../../vocabulary.schema.js?v=1.1.228-learning-activity-drag-interactions";
 import {
-  destroyLearningActivityTemplate,
+  destroyMiniGameTemplate,
   mergeTemplateContent,
-  renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+  renderMiniGameTemplate
+} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
 
 const TEMPLATE_ID = "vocabulary-rapid-review";
 const TEMPLATE_PATCH = {
-  word: "Debug",
-  translation: "Find and fix a problem",
-  exampleSentence: "We debug the code after a test fails."
+  "word": "Input",
+  "translation": "Data entered into a computer",
+  "exampleSentence": "A keyboard sends input to the computer."
 };
 const TEMPLATE_OPTIONS = {
-  eyebrow: "Vocabulary",
-  title: "Rapid Review",
-  layout: "skill-sprint",
-  interaction: "choice",
-  accent: "#16a34a",
-  completeLabel: "Complete activity"
+  "title": "Rapid Review",
+  "archetype": "boss-battle",
+  "eyebrow": "Vocabulary",
+  "accent": "#dc2626",
+  "bossName": "Memory Timer"
 };
 
 export function renderTemplate(activityContext) {
-  renderLearningActivityTemplate(activityContext, TEMPLATE_OPTIONS);
+  renderMiniGameTemplate(activityContext, TEMPLATE_OPTIONS);
 }
 
 export function destroyTemplate(activityContext) {
-  destroyLearningActivityTemplate(activityContext);
+  destroyMiniGameTemplate(activityContext);
 }
 
 export function getTemplateDefaultContent() {
