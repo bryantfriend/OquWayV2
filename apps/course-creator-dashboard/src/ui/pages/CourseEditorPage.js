@@ -1758,6 +1758,8 @@ export class CourseEditorPage {
     html += '</div>';
 
     html += '<div class="oqu-inspector-divider"></div>';
+    html += buildModuleReadinessPanel(selectedMode, state.learningContent);
+    html += '<div class="oqu-inspector-divider"></div>';
 
     if (effectiveStepId) {
       // Step inspector
@@ -2634,6 +2636,109 @@ function buildListEmptyState() {
     + '</div>';
 }
 
+function buildModuleReadinessPanel(mode, learningContent) {
+  var report = readModuleReadiness(mode, learningContent);
+  var html = "";
+
+  html += '<div class="rounded-2xl border border-slate-100 bg-slate-50 p-3 mb-4">';
+  html += '<div class="flex items-center justify-between gap-2">';
+  html += '<div><div class="text-[10px] font-black uppercase tracking-widest text-slate-400">ICT Readiness</div>';
+  html += '<div class="mt-1 text-sm font-black text-slate-900">' + escapeHtml(report.completed + '/' + report.total + ' launch signals') + '</div></div>';
+  html += '<span class="rounded-full px-2 py-1 text-[10px] font-black uppercase ' + (report.ready ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700') + '">' + (report.ready ? 'Ready' : 'Build') + '</span>';
+  html += '</div>';
+  html += '<div class="mt-3 grid gap-2">';
+  report.items.forEach(function (item) {
+    html += buildModuleReadinessItem(item);
+  });
+  html += '</div>';
+  html += '<div class="mt-3 rounded-xl border border-sky-100 bg-white p-3 text-[11px] font-bold leading-5 text-slate-500">Suggested ICT arc: hook, teach, active practice, checkpoint, file upload, reflection.</div>';
+  html += '</div>';
+
+  return html;
+}
+
+function buildModuleReadinessItem(item) {
+  var iconClass = item.done ? 'fa-solid fa-check text-emerald-600' : 'fa-solid fa-circle text-slate-300';
+  var textClass = item.done ? 'text-slate-700' : 'text-slate-500';
+
+  return '<div class="flex items-start gap-2 rounded-xl bg-white px-3 py-2">'
+    + '<i class="' + iconClass + ' mt-0.5 text-[11px]"></i>'
+    + '<div class="min-w-0"><div class="text-xs font-black ' + textClass + '">' + escapeHtml(item.label) + '</div>'
+    + '<div class="text-[10px] font-semibold leading-4 text-slate-400">' + escapeHtml(item.detail) + '</div></div>'
+    + '</div>';
+}
+
+function readModuleReadiness(mode, learningContent) {
+  var steps = readSortedSteps(mode && mode.steps);
+  var contentCount = countLearningContentItems(learningContent);
+  var types = steps.map(function (step) { return readStepType(step); });
+  var validSteps = steps.filter(function (step) { return readStepValidation(step).valid; }).length;
+  var items = [
+    {
+      label: 'Learning source added',
+      detail: contentCount > 0 ? contentCount + ' source item(s) available' : 'Add vocabulary, concepts, examples, or notes',
+      done: contentCount > 0
+    },
+    {
+      label: 'Student hook',
+      detail: 'Intro card, card reveal, or lab/quest activity',
+      done: hasAnyStepType(types, ['textBriefing', 'cardReveal', 'customExperience'])
+    },
+    {
+      label: 'Active practice',
+      detail: 'Matching, sorting, flashcards, quiz, coding, or scenario work',
+      done: hasAnyStepType(types, ['dragMatchIsland', 'vocabulary', 'phrase', 'customExperience', 'cyberCodeMission'])
+    },
+    {
+      label: 'Understanding check',
+      detail: 'Reflection, checkpoint, quiz, or student explanation',
+      done: hasAnyStepType(types, ['reflection', 'speakingPrompt', 'customExperience'])
+    },
+    {
+      label: 'Teacher-reviewed evidence',
+      detail: 'External Task for Word, PowerPoint, Excel, screenshots, or files',
+      done: hasAnyStepType(types, ['externalTask'])
+    },
+    {
+      label: 'Preview-safe activities',
+      detail: validSteps + '/' + steps.length + ' activity config(s) valid',
+      done: steps.length > 0 && validSteps === steps.length
+    }
+  ];
+  var completed = items.filter(function (item) { return item.done; }).length;
+
+  return {
+    items: items,
+    completed: completed,
+    total: items.length,
+    ready: completed >= 5
+  };
+}
+
+function countLearningContentItems(learningContent) {
+  var content = normalizeLearningContentForUi(learningContent);
+  return content.vocabulary.length
+    + content.definitions.length
+    + content.concepts.length
+    + content.rules.length
+    + content.examples.length
+    + content.customContent.length
+    + (content.notes ? 1 : 0);
+}
+
+function hasAnyStepType(types, expectedTypes) {
+  var index = 0;
+
+  while (index < expectedTypes.length) {
+    if (types.indexOf(expectedTypes[index]) !== -1) {
+      return true;
+    }
+    index = index + 1;
+  }
+
+  return false;
+}
+
 // ── Step picker options ──────────────────────────────────────────────────────
 
 function buildStepPickerModal(practiceModeKey) {
@@ -2651,9 +2756,9 @@ function buildStepPickerModal(practiceModeKey) {
   html += '</div>';
   html += '<div class="px-6 pb-4"><input type="search" class="step-picker-search w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:border-blue-300 focus:ring-4 focus:ring-blue-100" placeholder="Search learning activities..."></div>';
   html += '<div class="px-6 pb-4 flex flex-wrap gap-2">';
-  html += '<span class="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-emerald-700">Popular: Matching Game</span>';
-  html += '<span class="rounded-full bg-sky-50 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-sky-700">Suggested: Flashcards</span>';
-  html += '<span class="rounded-full bg-violet-50 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-violet-700">Assessment-ready</span>';
+  html += '<span class="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-emerald-700">ICT: Office Upload</span>';
+  html += '<span class="rounded-full bg-sky-50 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-sky-700">Practice: Matching Game</span>';
+  html += '<span class="rounded-full bg-violet-50 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-violet-700">Checkpoint + Reflection</span>';
   html += '</div>';
   html += '<div class="oqu-step-picker-category-list" data-key="' + practiceModeKey + '">';
   html += buildStepPickerOptions();
@@ -2708,7 +2813,7 @@ function buildStepPickerCategory(category, types) {
 function buildStepPickerCard(type) {
   var html = "";
 
-  html += '<button type="button" class="step-type-option oqu-step-picker-card" data-type="' + type.type + '" data-activity-type="' + escapeHtml(type.activityType || type.type) + '" data-search-text="' + escapeHtml((type.label + " " + type.description + " " + type.category + " " + type.complexity).toLowerCase()) + '">';
+  html += '<button type="button" class="step-type-option oqu-step-picker-card" data-type="' + type.type + '" data-activity-type="' + escapeHtml(type.activityType || type.type) + '" data-search-text="' + escapeHtml(readStepPickerSearchText(type)) + '">';
   html += '<span class="oqu-step-picker-card-icon"><i class="' + type.icon + '"></i></span>';
   html += '<span class="oqu-step-picker-card-body">';
   html += '<span class="oqu-step-picker-card-title">' + escapeHtml(type.label) + '</span>';
@@ -2758,8 +2863,44 @@ function createLearningActivityCard(activityDefinition) {
     icon: readString(activityDefinition.icon, readStepDefinitionIcon(legacyStepType)),
     description: readString(activityDefinition.description, "Reusable learning activity."),
     category: readString(activityDefinition.category, "Custom"),
-    complexity: readString(activityDefinition.complexity, "Easy")
+    complexity: readString(activityDefinition.complexity, "Easy"),
+    searchTags: readActivitySearchTags(activityDefinition, legacyStepType)
   };
+}
+
+function readStepPickerSearchText(type) {
+  return [
+    type.label,
+    type.description,
+    type.category,
+    type.complexity,
+    type.activityType,
+    type.type,
+    Array.isArray(type.searchTags) ? type.searchTags.join(" ") : ""
+  ].join(" ").toLowerCase();
+}
+
+function readActivitySearchTags(activityDefinition, legacyStepType) {
+  var tags = [];
+  var activityType = activityDefinition && activityDefinition.activityType ? activityDefinition.activityType : "";
+
+  if (legacyStepType === "externalTask" || activityType === "externalTask") {
+    tags = tags.concat(["word", "doc", "docx", "powerpoint", "ppt", "pptx", "excel", "xls", "xlsx", "office", "microsoft", "upload", "file", "assignment", "teacher review", "proof"]);
+  }
+
+  if (legacyStepType === "cyberCodeMission" || activityType.indexOf("code") !== -1) {
+    tags = tags.concat(["html", "css", "debug", "programming", "coding"]);
+  }
+
+  if (legacyStepType === "dragMatchIsland" || activityType.indexOf("sorting") !== -1) {
+    tags = tags.concat(["matching", "sort", "categorize", "terms", "definitions", "game"]);
+  }
+
+  if (legacyStepType === "reflection") {
+    tags = tags.concat(["exit ticket", "explain", "journal", "understanding check"]);
+  }
+
+  return tags;
 }
 
 function readLearningActivityLegacyStepType(activityDefinition) {
@@ -2973,11 +3114,14 @@ function buildActivityTemplateField(step, config) {
   html += '</div>';
   return html;
 }
+
 function buildStepConfigField(field, config) {
   var key = field.key;
   var label = readString(field.label, key);
   var type = readString(field.type, "text");
   var value = readConfigValue(config, key);
+  var placeholder = readString(field.placeholder, "");
+  var helpText = readString(field.helpText, "");
   var html = "";
   var mediaKind = readMediaKind(key);
 
@@ -2985,15 +3129,19 @@ function buildStepConfigField(field, config) {
   html += '<label class="oqu-inspector-label">' + escapeHtml(label) + '</label>';
 
   if (type === "textarea") {
-    html += '<textarea class="oqu-inspector-textarea inspector-config-field" data-config-key="' + escapeHtml(key) + '" data-config-type="textarea">' + escapeHtml(String(value)) + '</textarea>';
+    html += '<textarea class="oqu-inspector-textarea inspector-config-field" data-config-key="' + escapeHtml(key) + '" data-config-type="textarea" placeholder="' + escapeHtml(placeholder) + '">' + escapeHtml(String(value)) + '</textarea>';
   } else if (type === "number") {
-    html += '<input type="number" class="oqu-inspector-input inspector-config-field" data-config-key="' + escapeHtml(key) + '" data-config-type="number" value="' + escapeHtml(String(value)) + '">';
+    html += '<input type="number" class="oqu-inspector-input inspector-config-field" data-config-key="' + escapeHtml(key) + '" data-config-type="number" value="' + escapeHtml(String(value)) + '" placeholder="' + escapeHtml(placeholder) + '">';
   } else if (type === "select") {
     html += '<select class="oqu-inspector-select inspector-config-field" data-config-key="' + escapeHtml(key) + '" data-config-type="select">';
     html += buildConfigSelectOptions(field.options, String(value));
     html += '</select>';
   } else {
-    html += '<input type="text" class="oqu-inspector-input inspector-config-field" data-config-key="' + escapeHtml(key) + '" data-config-type="text" value="' + escapeHtml(String(value)) + '">';
+    html += '<input type="text" class="oqu-inspector-input inspector-config-field" data-config-key="' + escapeHtml(key) + '" data-config-type="text" value="' + escapeHtml(String(value)) + '" placeholder="' + escapeHtml(placeholder) + '">';
+  }
+
+  if (helpText) {
+    html += '<div class="mt-1 text-[10px] font-semibold leading-4 text-slate-400">' + escapeHtml(helpText) + '</div>';
   }
 
   if (mediaKind) {

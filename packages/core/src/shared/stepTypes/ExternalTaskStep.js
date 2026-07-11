@@ -55,9 +55,9 @@ export class ExternalTaskStep extends BaseStep {
   static get editorSchema() {
     return {
       fields: [
-        { key: "title", label: "Task Title", type: "text" },
-        { key: "instructions", label: "Instructions", type: "textarea" },
-        { key: "checklist", label: "Checklist (one item per line)", type: "textarea" },
+        { key: "title", label: "Task Title", type: "text", placeholder: "Create a formatted Word document" },
+        { key: "instructions", label: "Instructions", type: "textarea", placeholder: "Tell students exactly what to create, where to save it, and what to upload." },
+        { key: "checklist", label: "Checklist (one item per line)", type: "textarea", placeholder: "Document has a title\nUses correct formatting\nFile is uploaded", helpText: "This becomes the student-facing success criteria and your review rubric." },
         {
           key: "proofRequired",
           label: "Proof Required",
@@ -67,7 +67,7 @@ export class ExternalTaskStep extends BaseStep {
             { value: "false", label: "Optional" }
           ]
         },
-        { key: "allowedProofTypes", label: "Allowed Proof Types", type: "text" },
+        { key: "allowedProofTypes", label: "Allowed File Types", type: "text", placeholder: "image,document", helpText: "Use document for Word, PowerPoint, Excel, PDF, text, and CSV uploads. Use image for screenshots." },
         {
           key: "allowStudentNote",
           label: "Student Note",
@@ -77,9 +77,9 @@ export class ExternalTaskStep extends BaseStep {
             { value: "false", label: "Hidden" }
           ]
         },
-        { key: "maxFiles", label: "Max Files", type: "number" },
-        { key: "maxFileSizeMb", label: "Max File Size MB", type: "number" },
-        { key: "referenceUrl", label: "Reference URL", type: "text" },
+        { key: "maxFiles", label: "Max Files", type: "number", helpText: "Office assignments usually need 1 file; allow more when students submit screenshots plus source files." },
+        { key: "maxFileSizeMb", label: "Max File Size MB", type: "number", helpText: "Limit is capped at 10 MB per file for student uploads." },
+        { key: "referenceUrl", label: "Reference URL", type: "text", placeholder: "Optional link to a sample, template, or help page" },
         {
           key: "completionMode",
           label: "Completion Mode",
