@@ -7,6 +7,8 @@ import { reflectionExitTicketMeta } from "./templates/reflection-exit-ticket/ref
 import * as reflectionExitTicketTemplate from "./templates/reflection-exit-ticket/reflectionExitTicket.template.js?v=1.1.228-learning-activity-drag-interactions";
 import { reflectionLearningJournalMeta } from "./templates/reflection-learning-journal/reflectionLearningJournal.meta.js?v=1.1.228-learning-activity-drag-interactions";
 import * as reflectionLearningJournalTemplate from "./templates/reflection-learning-journal/reflectionLearningJournal.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { reflectionEmojiCheckInMeta } from "./templates/reflection-emoji-check-in/reflectionEmojiCheckIn.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as reflectionEmojiCheckInTemplate from "./templates/reflection-emoji-check-in/reflectionEmojiCheckIn.template.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const reflectionActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: ReflectionStep,
@@ -35,6 +37,10 @@ export const reflectionActivityDefinition = createStepBackedActivityDefinition({
     {
       meta: reflectionLearningJournalMeta,
       module: reflectionLearningJournalTemplate
+    },
+    {
+      meta: reflectionEmojiCheckInMeta,
+      module: reflectionEmojiCheckInTemplate
     }
   ]
 });

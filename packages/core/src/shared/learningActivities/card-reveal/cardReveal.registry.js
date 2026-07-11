@@ -5,6 +5,16 @@ import { mysteryFlipCardsMeta } from "./templates/mystery-flip-cards/mysteryFlip
 import * as mysteryFlipCardsTemplate from "./templates/mystery-flip-cards/mysteryFlipCards.template.js?v=1.1.228-learning-activity-drag-interactions";
 import { speedRevealStackMeta } from "./templates/speed-reveal-stack/speedRevealStack.meta.js?v=1.1.228-learning-activity-drag-interactions";
 import * as speedRevealStackTemplate from "./templates/speed-reveal-stack/speedRevealStack.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { treasureHuntMapMeta } from "./templates/treasure-hunt-map/treasureHuntMap.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as treasureHuntMapTemplate from "./templates/treasure-hunt-map/treasureHuntMap.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { digitalFileExplorerMeta } from "./templates/digital-file-explorer/digitalFileExplorer.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as digitalFileExplorerTemplate from "./templates/digital-file-explorer/digitalFileExplorer.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { xRayScannerMeta } from "./templates/x-ray-scanner/xRayScanner.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as xRayScannerTemplate from "./templates/x-ray-scanner/xRayScanner.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { detectiveBoardMeta } from "./templates/detective-board/detectiveBoard.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as detectiveBoardTemplate from "./templates/detective-board/detectiveBoard.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { timeMachineTimelineMeta } from "./templates/time-machine-timeline/timeMachineTimeline.meta.js?v=1.1.228-learning-activity-drag-interactions";
+import * as timeMachineTimelineTemplate from "./templates/time-machine-timeline/timeMachineTimeline.template.js?v=1.1.228-learning-activity-drag-interactions";
 
 export const cardRevealActivityDefinition = {
   activityType: "cardReveal",
@@ -14,8 +24,8 @@ export const cardRevealActivityDefinition = {
   icon: "fa-solid fa-clone",
   category: "Interactive",
   complexity: "Easy",
-  defaultTemplate: "classic-card-reveal",
-  defaultTemplateId: "classic-card-reveal",
+  defaultTemplate: "mystery-flip-cards",
+  defaultTemplateId: "mystery-flip-cards",
   baseFiles: {
     activity: "packages/core/src/shared/learningActivities/card-reveal/cardReveal.activity.js",
     schema: "packages/core/src/shared/learningActivities/card-reveal/cardReveal.schema.js",
@@ -48,6 +58,26 @@ export const cardRevealActivityDefinition = {
     {
       meta: speedRevealStackMeta,
       module: speedRevealStackTemplate
+    },
+    {
+      meta: treasureHuntMapMeta,
+      module: treasureHuntMapTemplate
+    },
+    {
+      meta: digitalFileExplorerMeta,
+      module: digitalFileExplorerTemplate
+    },
+    {
+      meta: xRayScannerMeta,
+      module: xRayScannerTemplate
+    },
+    {
+      meta: detectiveBoardMeta,
+      module: detectiveBoardTemplate
+    },
+    {
+      meta: timeMachineTimelineMeta,
+      module: timeMachineTimelineTemplate
     }
   ]
 };

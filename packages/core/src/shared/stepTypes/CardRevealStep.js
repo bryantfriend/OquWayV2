@@ -2,6 +2,7 @@ import { BaseStep } from "./BaseStep.js?v=1.1.82-shared-command-center-shell";
 import {
   destroyCardRevealActivity,
   getCardRevealDefaultContent,
+  getCardRevealPreviewContent,
   renderCardRevealActivity
 } from "../learningActivities/card-reveal/cardReveal.activity.js?v=1.1.228-learning-activity-drag-interactions";
 import { cardRevealSchema, normalizeCardRevealConfig } from "../learningActivities/card-reveal/cardReveal.schema.js?v=1.1.228-learning-activity-drag-interactions";
@@ -63,11 +64,20 @@ export class CardRevealStep extends BaseStep {
 
   static renderPlayerShell(config) {
     var safeConfig = this.createConfig(config);
-    var cards = Array.isArray(safeConfig.cards) ? safeConfig.cards : [];
+    var previewConfig = Object.assign({}, getCardRevealPreviewContent(safeConfig.templateId), safeConfig);
+    var previewId = "card-reveal-shell-" + Math.random().toString(36).slice(2);
 
-    return '<article class="rounded-lg border border-sky-100 bg-sky-50 p-4 text-sm text-sky-900">'
+    setTimeout(function () {
+      var target = typeof document !== "undefined" ? document.getElementById(previewId) : null;
+      if (target) {
+        renderCardRevealActivity(target, previewConfig, {});
+      }
+    }, 0);
+
+    return '<div id="' + previewId + '" class="oqu-card-reveal-shell-preview">'
+      + '<article class="rounded-lg border border-sky-100 bg-sky-50 p-4 text-sm text-sky-900">'
       + '<strong>' + this.escapeHtml(safeConfig.title || "Card Reveal") + '</strong>'
-      + '<p class="mt-1">' + this.escapeHtml(cards.length + " cards configured") + '</p>'
-      + '</article>';
+      + '<p class="mt-1">Loading ' + this.escapeHtml(safeConfig.templateId || "card reveal") + ' preview...</p>'
+      + '</article></div>';
   }
 }

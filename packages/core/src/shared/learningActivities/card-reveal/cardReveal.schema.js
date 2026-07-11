@@ -17,7 +17,7 @@ export const cardRevealSchema = {
       key: "templateId",
       label: "Template",
       type: "select",
-      options: ["classic-card-reveal", "mystery-flip-cards"]
+      options: ["mystery-flip-cards", "treasure-hunt-map", "digital-file-explorer", "x-ray-scanner", "detective-board", "time-machine-timeline", "classic-card-reveal", "speed-reveal-stack"]
     },
     {
       key: "cards",
@@ -30,21 +30,27 @@ export const cardRevealSchema = {
 
 export function getDefaultCardRevealContent() {
   return {
-    templateId: "classic-card-reveal",
-    title: "Card Reveal",
-    instructions: "Select each card to reveal the answer.",
+    templateId: "mystery-flip-cards",
+    title: "Mystery Flip Cards",
+    instructions: "Flip each card to reveal the hidden concept.",
     cards: [
       {
         id: "card-1",
-        front: "Term",
-        back: "Definition",
-        hint: ""
+        front: "Input",
+        back: "Data entered into a computer system.",
+        hint: "IPO"
       },
       {
         id: "card-2",
-        front: "Question",
-        back: "Answer",
-        hint: ""
+        front: "Output",
+        back: "The result produced by the computer.",
+        hint: "IPO"
+      },
+      {
+        id: "card-3",
+        front: "Process",
+        back: "The work a computer performs on input data.",
+        hint: "IPO"
       }
     ]
   };
