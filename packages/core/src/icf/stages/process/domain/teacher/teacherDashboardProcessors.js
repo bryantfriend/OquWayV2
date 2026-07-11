@@ -941,6 +941,7 @@ async function readAttendanceRecord(classId, attendanceDate) {
 function createAttendanceRecord(payload, scope, classRecord, students) {
   var statuses = payload.statuses || {};
   var notes = payload.notes || {};
+  var lateMinutes = payload.lateMinutes || {};
   var records = {};
   var index = 0;
 
@@ -949,6 +950,7 @@ function createAttendanceRecord(payload, scope, classRecord, students) {
       studentId: students[index].id,
       studentName: readName(students[index], "Student " + students[index].id),
       status: normalizeAttendanceStatus(statuses[students[index].id]),
+      lateMinutes: normalizeAttendanceStatus(statuses[students[index].id]) === "late" ? readLateMinutes(lateMinutes[students[index].id]) : 0,
       note: readText(notes[students[index].id] || "")
     };
     index = index + 1;
@@ -976,6 +978,7 @@ function normalizeAttendanceStudents(students, record) {
 
     return Object.assign({}, student, {
       attendanceStatus: normalizeAttendanceStatus(attendance.status || ""),
+      attendanceLateMinutes: readLateMinutes(attendance.lateMinutes),
       attendanceNote: attendance.note || ""
     });
   });
@@ -988,7 +991,8 @@ function summarizeAttendanceRecord(students, record) {
     absent: 0,
     late: 0,
     excused: 0,
-    unmarked: 0
+    unmarked: 0,
+    lateMinutesTotal: 0
   };
   var records = record && record.records ? record.records : {};
   var safeStudents = Array.isArray(students) ? students : [];
@@ -1000,6 +1004,9 @@ function summarizeAttendanceRecord(students, record) {
       summary.unmarked = summary.unmarked + 1;
     } else {
       summary[status] = summary[status] + 1;
+      if (status === "late") {
+        summary.lateMinutesTotal = summary.lateMinutesTotal + readLateMinutes(records[safeStudents[index].id] ? records[safeStudents[index].id].lateMinutes : 0);
+      }
     }
     index = index + 1;
   }
@@ -1064,6 +1071,15 @@ function cleanRecordSegment(value) {
   return String(value || "unknown").replace(/[^a-zA-Z0-9_-]/g, "-");
 }
 
+function readLateMinutes(value) {
+  var numberValue = typeof value === "number" ? value : Number(value);
+
+  if (!Number.isFinite(numberValue)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(240, Math.round(numberValue)));
+}
 function normalizeAttendanceStatus(value) {
   var text = readText(value);
 

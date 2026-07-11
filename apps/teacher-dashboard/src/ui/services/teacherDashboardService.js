@@ -89,12 +89,13 @@ export const teacherDashboardService = {
     return readIntentData(result);
   },
 
-  reviewSubmission: async function (submissionId, reviewStatus, teacherFeedback) {
+  reviewSubmission: async function (submissionId, reviewStatus, teacherFeedback, score) {
     await refreshCurrentTeacherClaims(false);
     var result = await runTeacherIntent("ReviewExternalTaskSubmissionIntent", {
       submissionId: submissionId,
       reviewStatus: reviewStatus,
-      teacherFeedback: teacherFeedback || ""
+      teacherFeedback: teacherFeedback || "",
+      score: score
     }, getCurrentTeacherActor());
 
     return readIntentData(result);

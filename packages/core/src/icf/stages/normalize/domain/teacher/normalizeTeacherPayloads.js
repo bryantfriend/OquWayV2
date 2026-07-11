@@ -108,6 +108,29 @@ function normalizeAttendanceNotes(notes) {
   return result;
 }
 
+function normalizeAttendanceLateMinutes(lateMinutes) {
+  var safeLateMinutes = lateMinutes && typeof lateMinutes === "object" && !Array.isArray(lateMinutes) ? lateMinutes : {};
+  var result = {};
+  var studentIds = Object.keys(safeLateMinutes);
+  var index = 0;
+
+  while (index < studentIds.length) {
+    result[normalizeText(studentIds[index])] = clampNumber(safeLateMinutes[studentIds[index]], 0, 240, 0);
+    index = index + 1;
+  }
+
+  return result;
+}
+
+function clampNumber(value, min, max, fallback) {
+  var numberValue = typeof value === "number" ? value : Number(value);
+
+  if (!Number.isFinite(numberValue)) {
+    return fallback;
+  }
+
+  return Math.max(min, Math.min(max, Math.round(numberValue)));
+}
 function normalizeAttendanceStatus(value) {
   var text = normalizeText(value);
 

@@ -16,6 +16,7 @@ export function normalizeExternalTaskSubmission(submission) {
     status: readSafeString(safeSubmission.status || "submitted") || "submitted",
     reviewStatus: normalizeExternalTaskReviewStatus(safeSubmission.reviewStatus),
     teacherFeedback: readSafeString(safeSubmission.teacherFeedback),
+    score: readScore(safeSubmission.score),
     files: Array.isArray(safeSubmission.files) ? safeSubmission.files.slice() : [],
     attemptNumber: readAttemptNumber(safeSubmission.attemptNumber),
     previousSubmissionId: readSafeString(safeSubmission.previousSubmissionId)
@@ -59,6 +60,15 @@ export function readExternalTaskAttemptNumber(submissions) {
   return maxAttempt + 1;
 }
 
+function readScore(value) {
+  var numberValue = typeof value === "number" ? value : Number(value);
+
+  if (!Number.isFinite(numberValue)) {
+    return null;
+  }
+
+  return Math.max(0, Math.min(100, Math.round(numberValue)));
+}
 function readAttemptNumber(value) {
   var numberValue = typeof value === "number" ? value : Number(value);
   return Number.isFinite(numberValue) && numberValue > 0 ? Math.round(numberValue) : 1;

@@ -52,9 +52,17 @@ export function validateExternalTaskReviewPayload(executionState) {
     return createError("EXTERNAL_TASK_REVIEW_STATUS_INVALID", "Review status must be complete, needsWork, or incomplete.");
   }
 
+  if (payload.score !== null && payload.score !== undefined && payload.score !== "" && !isScore(payload.score)) {
+    return createError("EXTERNAL_TASK_SCORE_INVALID", "Score must be between 0 and 100.");
+  }
+
   return { valid: true };
 }
 
+function isScore(value) {
+  var numberValue = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(numberValue) && numberValue >= 0 && numberValue <= 100;
+}
 function validateRequiredTextFields(payload, fields) {
   var safePayload = payload || {};
   var index = 0;

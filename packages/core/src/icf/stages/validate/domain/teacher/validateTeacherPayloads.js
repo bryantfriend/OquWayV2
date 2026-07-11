@@ -96,6 +96,11 @@ export function validateTeacherAttendanceSavePayload(executionState) {
       errors.push(createError("TEACHER_ATTENDANCE_STATUS_INVALID", "Attendance status is not supported."));
       break;
     }
+
+    if (statuses[studentIds[index]] === "late" && !isLateMinutes(lateMinutes[studentIds[index]])) {
+      errors.push(createError("TEACHER_ATTENDANCE_LATE_MINUTES_INVALID", "Late students need minutes late between 1 and 240."));
+      break;
+    }
     index = index + 1;
   }
 
@@ -128,6 +133,10 @@ function isIsoDate(value) {
   return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
 
+function isLateMinutes(value) {
+  var numberValue = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(numberValue) && numberValue >= 1 && numberValue <= 240;
+}
 function isAttendanceStatus(value) {
   return value === "present"
     || value === "absent"

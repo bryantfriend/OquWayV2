@@ -540,7 +540,9 @@ async function reviewSubmission(button) {
   var submissionId = button.getAttribute("data-submission-id");
   var reviewStatus = button.getAttribute("data-review-status");
   var feedbackInput = document.querySelector('[data-feedback-id="' + cssEscape(submissionId) + '"]');
+  var scoreInput = document.querySelector('[data-score-id="' + cssEscape(submissionId) + '"]');
   var feedback = feedbackInput ? feedbackInput.value : "";
+  var score = scoreInput && scoreInput.value !== "" ? Number(scoreInput.value) : null;
 
   setState({
     isReviewing: submissionId,
@@ -549,7 +551,7 @@ async function reviewSubmission(button) {
   });
 
   try {
-    await teacherDashboardService.reviewSubmission(submissionId, reviewStatus, feedback);
+    await teacherDashboardService.reviewSubmission(submissionId, reviewStatus, feedback, score);
     await refreshReviewQueue();
     setState({
       isReviewing: "",
@@ -1082,12 +1084,16 @@ function buildAttendanceView() {
   html += buildDetailSummary([
     { label: "Present", value: summary.present || 0 },
     { label: "Absent", value: summary.absent || 0 },
-    { label: "Late", value: summary.late || 0 }
+    { label: "Late", value: summary.late || 0 },
+    { label: "Excused", value: summary.excused || 0 },
+    { label: "Late Mins", value: summary.lateMinutesTotal || 0 }
   ]);
 
   if (students.length === 0) {
     return html + buildEmptyState("students", "No students in this class.", "Students assigned to the selected class will appear here.") + '</section>';
   }
+
+  html += buildAttendanceExportBlock(students, summary);
 
   html += '<div class="teacher-attendance-list">';
   students.forEach(function (student) {
@@ -1097,6 +1103,36 @@ function buildAttendanceView() {
   return html + '</div></section>';
 }
 
+function buildAttendanceExportBlock(students, summary) {
+  var rows = buildAttendanceExportRows(students || []);
+
+  return '<section class="teacher-attendance-export"><div><strong>EDU Page copy table</strong><span>Copy this class view into the school attendance system.</span></div>'
+    + '<textarea readonly rows="' + Math.min(Math.max(rows.length + 1, 4), 12) + '">' + escapeHtml(rows.join("\n")) + '</textarea>'
+    + '<p>Class total: ' + escapeHtml(String(summary.total || students.length || 0)) + ' | Present: ' + escapeHtml(String(summary.present || 0)) + ' | Absent: ' + escapeHtml(String(summary.absent || 0)) + ' | Late: ' + escapeHtml(String(summary.late || 0)) + ' | Excused: ' + escapeHtml(String(summary.excused || 0)) + '</p></section>';
+}
+
+function buildAttendanceExportRows(students) {
+  var rows = ["Student\tStatus\tLate Minutes\tNote"];
+
+  students.forEach(function (student) {
+    rows.push([
+      student.name || "Student",
+      formatAttendanceStatusForExport(student.attendanceStatus),
+      student.attendanceStatus === "late" ? String(student.attendanceLateMinutes || 0) : "",
+      student.attendanceNote || ""
+    ].join("\t"));
+  });
+
+  return rows;
+}
+
+function formatAttendanceStatusForExport(status) {
+  if (status === "present") return "Present";
+  if (status === "absent") return "Absent";
+  if (status === "late") return "Late";
+  if (status === "excused") return "Excused";
+  return "Unmarked";
+}
 function buildAttendanceRow(student) {
   return '<article class="teacher-attendance-row" data-attendance-student-id="' + escapeHtml(student.id || "") + '">'
     + '<div class="teacher-avatar">' + buildStudentAvatar(student) + '</div>'
@@ -1107,6 +1143,7 @@ function buildAttendanceRow(student) {
     + buildAttendanceStatusOption(student.attendanceStatus, "late", "Late")
     + buildAttendanceStatusOption(student.attendanceStatus, "excused", "Excused")
     + '</select>'
+    + '<input class="teacher-late-minutes-input" data-attendance-late-minutes="' + escapeHtml(student.id || "") + '" type="number" min="0" max="240" value="' + escapeHtml(String(student.attendanceLateMinutes || "")) + '" placeholder="Late min">'
     + '<input data-attendance-note="' + escapeHtml(student.id || "") + '" value="' + escapeHtml(student.attendanceNote || "") + '" placeholder="Note">'
     + '</article>';
 }
@@ -1144,7 +1181,9 @@ function buildAttendanceSummaryBlock(summary) {
     + buildDetailSummary([
       { label: "Present", value: summary.present || 0 },
       { label: "Absent", value: summary.absent || 0 },
-      { label: "Late", value: summary.late || 0 }
+      { label: "Late", value: summary.late || 0 },
+      { label: "Excused", value: summary.excused || 0 },
+      { label: "Late Mins", value: summary.lateMinutesTotal || 0 }
     ]) + '</section>';
 }
 
@@ -1165,8 +1204,10 @@ function buildAttendanceStatusOption(currentValue, value, label) {
 function readAttendanceFormPayload() {
   var statuses = {};
   var notes = {};
+  var lateMinutes = {};
   var statusInputs = document.querySelectorAll("[data-attendance-status]");
   var noteInputs = document.querySelectorAll("[data-attendance-note]");
+  var lateMinuteInputs = document.querySelectorAll("[data-attendance-late-minutes]");
   var index = 0;
 
   while (index < statusInputs.length) {
@@ -1180,13 +1221,21 @@ function readAttendanceFormPayload() {
     index = index + 1;
   }
 
+  index = 0;
+  while (index < lateMinuteInputs.length) {
+    lateMinutes[lateMinuteInputs[index].getAttribute("data-attendance-late-minutes") || ""] = lateMinuteInputs[index].value || "";
+    index = index + 1;
+  }
+
   return {
     classId: state.selectedAttendanceClassId,
     attendanceDate: state.attendanceDate || readTodayDate(),
     statuses: statuses,
-    notes: notes
+    notes: notes,
+    lateMinutes: lateMinutes
   };
 }
+
 function buildDetailSummary(items) {
   var html = '<div class="teacher-detail-kpis">';
   items.forEach(function (item) {
@@ -1316,8 +1365,10 @@ function buildSubmissionCard(submission) {
     + '</div>'
     + buildProofPreview(file)
     + '<div class="teacher-submission-notes"><p class="teacher-note"><strong>Student note</strong><span>' + escapeHtml(submission.studentNote || "No student note.") + '</span></p>'
-    + '<p class="teacher-note teacher-feedback-note"><strong>Teacher feedback</strong><span>' + escapeHtml(submission.teacherFeedback || "No feedback saved yet.") + '</span></p></div>'
+    + '<p class="teacher-note teacher-feedback-note"><strong>Teacher feedback</strong><span>' + escapeHtml(submission.teacherFeedback || "No feedback saved yet.") + '</span></p>'
+    + '<p class="teacher-note teacher-feedback-note"><strong>Score</strong><span>' + escapeHtml(readSubmissionScoreLabel(submission)) + '</span></p></div>'
     + '<label class="teacher-feedback-label">Teacher feedback<textarea data-feedback-id="' + escapeHtml(submission.id) + '" rows="3" placeholder="Feedback for the student">' + escapeHtml(submission.teacherFeedback || "") + '</textarea></label>'
+    + '<label class="teacher-score-label">Score<input data-score-id="' + escapeHtml(submission.id) + '" type="number" min="0" max="100" value="' + escapeHtml(readSubmissionScoreValue(submission)) + '" placeholder="0-100"></label>'
     + '<div class="teacher-quick-actions">'
     + buildReviewButton(submission.id, "complete", "Mark Complete", isPending)
     + buildOpenFileAction(file)
@@ -1517,6 +1568,23 @@ function buildOpenFileAction(file) {
   }
 
   return '<a class="teacher-secondary-btn teacher-open-file-btn" href="' + escapeHtml(file.downloadUrl) + '" target="_blank" rel="noopener">Open file</a>';
+}
+
+function readSubmissionScoreLabel(submission) {
+  var value = readSubmissionScoreValue(submission);
+  return value !== "" ? value + "%" : "No score saved yet.";
+}
+
+function readSubmissionScoreValue(submission) {
+  if (submission && typeof submission.score === "number" && Number.isFinite(submission.score)) {
+    return String(submission.score);
+  }
+
+  if (submission && typeof submission.score === "string" && submission.score) {
+    return submission.score;
+  }
+
+  return "";
 }
 
 function readFeedbackSaveStatus(submission) {

@@ -1,0 +1,1836 @@
+{
+  "school": "Oxford International School",
+  "launchScope": {
+    "teacherCount": 1,
+    "teacher": "Bryant",
+    "classes": [
+      "grade-6-a",
+      "grade-6-b",
+      "grade-7-a",
+      "grade-7-b",
+      "grade-8-a",
+      "grade-8-b"
+    ],
+    "estimatedStudents": "60-90",
+    "login": "student card / fruit password"
+  },
+  "attendance": {
+    "statuses": [
+      "present",
+      "absent",
+      "late",
+      "excused"
+    ],
+    "lateRequiresMinutes": true,
+    "export": "teacher dashboard EDU Page copy table"
+  },
+  "review": {
+    "statuses": [
+      "pending",
+      "complete",
+      "needsWork",
+      "incomplete"
+    ],
+    "feedback": "written feedback required when needsWork/incomplete",
+    "scoreRange": "0-100"
+  },
+  "courses": [
+    {
+      "id": "ict-grade-6-2026-2027",
+      "title": "ICT Grade 6 2026-2027",
+      "teacher": "Bryant",
+      "grade": "6",
+      "classes": [
+        "grade-6-a",
+        "grade-6-b"
+      ],
+      "cadence": "3 OquWay modules plus 1 make-up/creative day per week",
+      "modules": [
+        {
+          "id": "module-000",
+          "title": "Welcome to ICT Grade 6 2026-2027 and OquWay",
+          "week": 0,
+          "session": 0,
+          "type": "setup",
+          "externalTask": null
+        },
+        {
+          "id": "module-001",
+          "title": "Input, Process, Output",
+          "week": 1,
+          "session": 1,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-002",
+          "title": "Network and Internet Concepts",
+          "week": 1,
+          "session": 2,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-003",
+          "title": "Components of MS Office",
+          "week": 1,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-004",
+          "title": "Components of the MS Office Window",
+          "week": 2,
+          "session": 1,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-005",
+          "title": "Documentation Using Word",
+          "week": 2,
+          "session": 2,
+          "type": "word",
+          "externalTask": {
+            "tool": "Microsoft Word",
+            "upload": ".docx or PDF",
+            "title": "Word skill proof: Documentation Using Word",
+            "checklist": [
+              "File is named with student name and module number",
+              "Document uses the requested feature",
+              "Document is readable and neatly formatted",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-006",
+          "title": "Tabular Data Manipulation Using Excel",
+          "week": 2,
+          "session": 3,
+          "type": "excel",
+          "externalTask": {
+            "tool": "Microsoft Excel",
+            "upload": ".xlsx or PDF",
+            "title": "Excel skill proof: Tabular Data Manipulation Using Excel",
+            "checklist": [
+              "Workbook is named with student name and module number",
+              "Data is entered correctly",
+              "Required formula/chart/sort/filter skill is visible",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-007",
+          "title": "Presentations Using PowerPoint and Features",
+          "week": 3,
+          "session": 1,
+          "type": "powerpoint",
+          "externalTask": {
+            "tool": "Microsoft PowerPoint",
+            "upload": ".pptx or PDF",
+            "title": "PowerPoint skill proof: Presentations Using PowerPoint and Features",
+            "checklist": [
+              "Presentation has a clear title",
+              "Slides use readable text",
+              "Required visual/formatting feature is included",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-008",
+          "title": "Creating Tables in MS Word",
+          "week": 3,
+          "session": 2,
+          "type": "word",
+          "externalTask": {
+            "tool": "Microsoft Word",
+            "upload": ".docx or PDF",
+            "title": "Word skill proof: Creating Tables in MS Word",
+            "checklist": [
+              "File is named with student name and module number",
+              "Document uses the requested feature",
+              "Document is readable and neatly formatted",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-009",
+          "title": "Modifying Tables in MS Word",
+          "week": 3,
+          "session": 3,
+          "type": "word",
+          "externalTask": {
+            "tool": "Microsoft Word",
+            "upload": ".docx or PDF",
+            "title": "Word skill proof: Modifying Tables in MS Word",
+            "checklist": [
+              "File is named with student name and module number",
+              "Document uses the requested feature",
+              "Document is readable and neatly formatted",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-010",
+          "title": "Formatting Tables in MS Word",
+          "week": 4,
+          "session": 1,
+          "type": "word",
+          "externalTask": {
+            "tool": "Microsoft Word",
+            "upload": ".docx or PDF",
+            "title": "Word skill proof: Formatting Tables in MS Word",
+            "checklist": [
+              "File is named with student name and module number",
+              "Document uses the requested feature",
+              "Document is readable and neatly formatted",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-011",
+          "title": "Inserting Pictures, Clipart, and WordArt",
+          "week": 4,
+          "session": 2,
+          "type": "word",
+          "externalTask": {
+            "tool": "Microsoft Word",
+            "upload": ".docx or PDF",
+            "title": "Word skill proof: Inserting Pictures, Clipart, and WordArt",
+            "checklist": [
+              "File is named with student name and module number",
+              "Document uses the requested feature",
+              "Document is readable and neatly formatted",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-012",
+          "title": "Inserting Page Numbers",
+          "week": 4,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-013",
+          "title": "Editing Slides in MS PowerPoint",
+          "week": 5,
+          "session": 1,
+          "type": "powerpoint",
+          "externalTask": {
+            "tool": "Microsoft PowerPoint",
+            "upload": ".pptx or PDF",
+            "title": "PowerPoint skill proof: Editing Slides in MS PowerPoint",
+            "checklist": [
+              "Presentation has a clear title",
+              "Slides use readable text",
+              "Required visual/formatting feature is included",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-014",
+          "title": "Formatting Tables in MS PowerPoint",
+          "week": 5,
+          "session": 2,
+          "type": "powerpoint",
+          "externalTask": {
+            "tool": "Microsoft PowerPoint",
+            "upload": ".pptx or PDF",
+            "title": "PowerPoint skill proof: Formatting Tables in MS PowerPoint",
+            "checklist": [
+              "Presentation has a clear title",
+              "Slides use readable text",
+              "Required visual/formatting feature is included",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-015",
+          "title": "Text Alignment",
+          "week": 5,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-016",
+          "title": "Bullets and Numbering",
+          "week": 6,
+          "session": 1,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-017",
+          "title": "Changing the Background on a Slide",
+          "week": 6,
+          "session": 2,
+          "type": "powerpoint",
+          "externalTask": {
+            "tool": "Microsoft PowerPoint",
+            "upload": ".pptx or PDF",
+            "title": "PowerPoint skill proof: Changing the Background on a Slide",
+            "checklist": [
+              "Presentation has a clear title",
+              "Slides use readable text",
+              "Required visual/formatting feature is included",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-018",
+          "title": "Adding Graphics in MS PowerPoint",
+          "week": 6,
+          "session": 3,
+          "type": "powerpoint",
+          "externalTask": {
+            "tool": "Microsoft PowerPoint",
+            "upload": ".pptx or PDF",
+            "title": "PowerPoint skill proof: Adding Graphics in MS PowerPoint",
+            "checklist": [
+              "Presentation has a clear title",
+              "Slides use readable text",
+              "Required visual/formatting feature is included",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-019",
+          "title": "Rearranging Slides in a Presentation",
+          "week": 7,
+          "session": 1,
+          "type": "powerpoint",
+          "externalTask": {
+            "tool": "Microsoft PowerPoint",
+            "upload": ".pptx or PDF",
+            "title": "PowerPoint skill proof: Rearranging Slides in a Presentation",
+            "checklist": [
+              "Presentation has a clear title",
+              "Slides use readable text",
+              "Required visual/formatting feature is included",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-020",
+          "title": "Setting Up a Slideshow",
+          "week": 7,
+          "session": 2,
+          "type": "powerpoint",
+          "externalTask": {
+            "tool": "Microsoft PowerPoint",
+            "upload": ".pptx or PDF",
+            "title": "PowerPoint skill proof: Setting Up a Slideshow",
+            "checklist": [
+              "Presentation has a clear title",
+              "Slides use readable text",
+              "Required visual/formatting feature is included",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-021",
+          "title": "MS Excel",
+          "week": 7,
+          "session": 3,
+          "type": "excel",
+          "externalTask": {
+            "tool": "Microsoft Excel",
+            "upload": ".xlsx or PDF",
+            "title": "Excel skill proof: MS Excel",
+            "checklist": [
+              "Workbook is named with student name and module number",
+              "Data is entered correctly",
+              "Required formula/chart/sort/filter skill is visible",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-022",
+          "title": "Opening MS Excel",
+          "week": 8,
+          "session": 1,
+          "type": "excel",
+          "externalTask": {
+            "tool": "Microsoft Excel",
+            "upload": ".xlsx or PDF",
+            "title": "Excel skill proof: Opening MS Excel",
+            "checklist": [
+              "Workbook is named with student name and module number",
+              "Data is entered correctly",
+              "Required formula/chart/sort/filter skill is visible",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-023",
+          "title": "Important Terms Used in Excel",
+          "week": 8,
+          "session": 2,
+          "type": "excel",
+          "externalTask": {
+            "tool": "Microsoft Excel",
+            "upload": ".xlsx or PDF",
+            "title": "Excel skill proof: Important Terms Used in Excel",
+            "checklist": [
+              "Workbook is named with student name and module number",
+              "Data is entered correctly",
+              "Required formula/chart/sort/filter skill is visible",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-024",
+          "title": "Inserting Text, Numbers, and Formulas",
+          "week": 8,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-025",
+          "title": "Cell Alignment",
+          "week": 9,
+          "session": 1,
+          "type": "excel",
+          "externalTask": {
+            "tool": "Microsoft Excel",
+            "upload": ".xlsx or PDF",
+            "title": "Excel skill proof: Cell Alignment",
+            "checklist": [
+              "Workbook is named with student name and module number",
+              "Data is entered correctly",
+              "Required formula/chart/sort/filter skill is visible",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-026",
+          "title": "Saving an MS Excel File",
+          "week": 9,
+          "session": 2,
+          "type": "excel",
+          "externalTask": {
+            "tool": "Microsoft Excel",
+            "upload": ".xlsx or PDF",
+            "title": "Excel skill proof: Saving an MS Excel File",
+            "checklist": [
+              "Workbook is named with student name and module number",
+              "Data is entered correctly",
+              "Required formula/chart/sort/filter skill is visible",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-027",
+          "title": "Opening an Already Saved MS Excel File",
+          "week": 9,
+          "session": 3,
+          "type": "excel",
+          "externalTask": {
+            "tool": "Microsoft Excel",
+            "upload": ".xlsx or PDF",
+            "title": "Excel skill proof: Opening an Already Saved MS Excel File",
+            "checklist": [
+              "Workbook is named with student name and module number",
+              "Data is entered correctly",
+              "Required formula/chart/sort/filter skill is visible",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-028",
+          "title": "Early Calculating Devices",
+          "week": 10,
+          "session": 1,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-029",
+          "title": "Evolution of Computers",
+          "week": 10,
+          "session": 2,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-030",
+          "title": "Classification of Computers",
+          "week": 10,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-031",
+          "title": "Functional Components of a Computer",
+          "week": 11,
+          "session": 1,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-032",
+          "title": "Categorization of Software",
+          "week": 11,
+          "session": 2,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-033",
+          "title": "Operating System",
+          "week": 11,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-034",
+          "title": "Booting",
+          "week": 12,
+          "session": 1,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-035",
+          "title": "Functions of an Operating System",
+          "week": 12,
+          "session": 2,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-036",
+          "title": "Types of Operating Systems",
+          "week": 12,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-037",
+          "title": "Operating System Interface",
+          "week": 13,
+          "session": 1,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-038",
+          "title": "Importance of Shut Down",
+          "week": 13,
+          "session": 2,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-039",
+          "title": "Advantages of the Windows Operating System",
+          "week": 13,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-040",
+          "title": "Search Option",
+          "week": 14,
+          "session": 1,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-041",
+          "title": "Run Option",
+          "week": 14,
+          "session": 2,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-042",
+          "title": "On-Screen Keyboard",
+          "week": 14,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-043",
+          "title": "Control Panel",
+          "week": 15,
+          "session": 1,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-044",
+          "title": "Headers and Footers",
+          "week": 15,
+          "session": 2,
+          "type": "word",
+          "externalTask": {
+            "tool": "Microsoft Word",
+            "upload": ".docx or PDF",
+            "title": "Word skill proof: Headers and Footers",
+            "checklist": [
+              "File is named with student name and module number",
+              "Document uses the requested feature",
+              "Document is readable and neatly formatted",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-045",
+          "title": "Footnotes and Endnotes",
+          "week": 15,
+          "session": 3,
+          "type": "word",
+          "externalTask": {
+            "tool": "Microsoft Word",
+            "upload": ".docx or PDF",
+            "title": "Word skill proof: Footnotes and Endnotes",
+            "checklist": [
+              "File is named with student name and module number",
+              "Document uses the requested feature",
+              "Document is readable and neatly formatted",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-046",
+          "title": "Drop Cap",
+          "week": 16,
+          "session": 1,
+          "type": "word",
+          "externalTask": {
+            "tool": "Microsoft Word",
+            "upload": ".docx or PDF",
+            "title": "Word skill proof: Drop Cap",
+            "checklist": [
+              "File is named with student name and module number",
+              "Document uses the requested feature",
+              "Document is readable and neatly formatted",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-047",
+          "title": "Tab Stop",
+          "week": 16,
+          "session": 2,
+          "type": "word",
+          "externalTask": {
+            "tool": "Microsoft Word",
+            "upload": ".docx or PDF",
+            "title": "Word skill proof: Tab Stop",
+            "checklist": [
+              "File is named with student name and module number",
+              "Document uses the requested feature",
+              "Document is readable and neatly formatted",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-048",
+          "title": "Show/Hide Tool",
+          "week": 16,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-049",
+          "title": "Format Painter",
+          "week": 17,
+          "session": 1,
+          "type": "word",
+          "externalTask": {
+            "tool": "Microsoft Word",
+            "upload": ".docx or PDF",
+            "title": "Word skill proof: Format Painter",
+            "checklist": [
+              "File is named with student name and module number",
+              "Document uses the requested feature",
+              "Document is readable and neatly formatted",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-050",
+          "title": "Columns",
+          "week": 17,
+          "session": 2,
+          "type": "word",
+          "externalTask": {
+            "tool": "Microsoft Word",
+            "upload": ".docx or PDF",
+            "title": "Word skill proof: Columns",
+            "checklist": [
+              "File is named with student name and module number",
+              "Document uses the requested feature",
+              "Document is readable and neatly formatted",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-051",
+          "title": "Increase and Decrease Indentation",
+          "week": 17,
+          "session": 3,
+          "type": "word",
+          "externalTask": {
+            "tool": "Microsoft Word",
+            "upload": ".docx or PDF",
+            "title": "Word skill proof: Increase and Decrease Indentation",
+            "checklist": [
+              "File is named with student name and module number",
+              "Document uses the requested feature",
+              "Document is readable and neatly formatted",
+              "Student uploads the saved file"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "ict-grade-7-2026-2027",
+      "title": "ICT Grade 7 2026-2027",
+      "teacher": "Bryant",
+      "grade": "7",
+      "classes": [
+        "grade-7-a",
+        "grade-7-b"
+      ],
+      "cadence": "3 OquWay modules plus 1 make-up/creative day per week",
+      "modules": [
+        {
+          "id": "module-000",
+          "title": "Welcome to ICT Grade 7 2026-2027 and OquWay",
+          "week": 0,
+          "session": 0,
+          "type": "setup",
+          "externalTask": null
+        },
+        {
+          "id": "module-001",
+          "title": "Computer Network",
+          "week": 1,
+          "session": 1,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-002",
+          "title": "Basic Components of a Network",
+          "week": 1,
+          "session": 2,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-003",
+          "title": "Types of Networks",
+          "week": 1,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-004",
+          "title": "Network Topology",
+          "week": 2,
+          "session": 1,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-005",
+          "title": "Types of Transmission Channels",
+          "week": 2,
+          "session": 2,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-006",
+          "title": "Cell Reference",
+          "week": 2,
+          "session": 3,
+          "type": "excel",
+          "externalTask": {
+            "tool": "Microsoft Excel",
+            "upload": ".xlsx or PDF",
+            "title": "Excel skill proof: Cell Reference",
+            "checklist": [
+              "Workbook is named with student name and module number",
+              "Data is entered correctly",
+              "Required formula/chart/sort/filter skill is visible",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-007",
+          "title": "Sorting Data",
+          "week": 3,
+          "session": 1,
+          "type": "excel",
+          "externalTask": {
+            "tool": "Microsoft Excel",
+            "upload": ".xlsx or PDF",
+            "title": "Excel skill proof: Sorting Data",
+            "checklist": [
+              "Workbook is named with student name and module number",
+              "Data is entered correctly",
+              "Required formula/chart/sort/filter skill is visible",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-008",
+          "title": "Filtering Data",
+          "week": 3,
+          "session": 2,
+          "type": "excel",
+          "externalTask": {
+            "tool": "Microsoft Excel",
+            "upload": ".xlsx or PDF",
+            "title": "Excel skill proof: Filtering Data",
+            "checklist": [
+              "Workbook is named with student name and module number",
+              "Data is entered correctly",
+              "Required formula/chart/sort/filter skill is visible",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-009",
+          "title": "Conditional Formatting",
+          "week": 3,
+          "session": 3,
+          "type": "excel",
+          "externalTask": {
+            "tool": "Microsoft Excel",
+            "upload": ".xlsx or PDF",
+            "title": "Excel skill proof: Conditional Formatting",
+            "checklist": [
+              "Workbook is named with student name and module number",
+              "Data is entered correctly",
+              "Required formula/chart/sort/filter skill is visible",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-010",
+          "title": "Creating Charts",
+          "week": 4,
+          "session": 1,
+          "type": "excel",
+          "externalTask": {
+            "tool": "Microsoft Excel",
+            "upload": ".xlsx or PDF",
+            "title": "Excel skill proof: Creating Charts",
+            "checklist": [
+              "Workbook is named with student name and module number",
+              "Data is entered correctly",
+              "Required formula/chart/sort/filter skill is visible",
+              "Student uploads the saved file"
+            ]
+          }
+        },
+        {
+          "id": "module-011",
+          "title": "World Wide Web",
+          "week": 4,
+          "session": 2,
+          "type": "html",
+          "externalTask": {
+            "tool": "HTML editor/browser",
+            "upload": ".html or zipped project",
+            "title": "Web skill proof: World Wide Web",
+            "checklist": [
+              "HTML file opens in a browser",
+              "Required tags/features are present",
+              "Page is readable",
+              "Student uploads the file or project"
+            ]
+          }
+        },
+        {
+          "id": "module-012",
+          "title": "Protocols on the Web",
+          "week": 4,
+          "session": 3,
+          "type": "html",
+          "externalTask": {
+            "tool": "HTML editor/browser",
+            "upload": ".html or zipped project",
+            "title": "Web skill proof: Protocols on the Web",
+            "checklist": [
+              "HTML file opens in a browser",
+              "Required tags/features are present",
+              "Page is readable",
+              "Student uploads the file or project"
+            ]
+          }
+        },
+        {
+          "id": "module-013",
+          "title": "Components of the Web",
+          "week": 5,
+          "session": 1,
+          "type": "html",
+          "externalTask": {
+            "tool": "HTML editor/browser",
+            "upload": ".html or zipped project",
+            "title": "Web skill proof: Components of the Web",
+            "checklist": [
+              "HTML file opens in a browser",
+              "Required tags/features are present",
+              "Page is readable",
+              "Student uploads the file or project"
+            ]
+          }
+        },
+        {
+          "id": "module-014",
+          "title": "How the Web Works",
+          "week": 5,
+          "session": 2,
+          "type": "html",
+          "externalTask": {
+            "tool": "HTML editor/browser",
+            "upload": ".html or zipped project",
+            "title": "Web skill proof: How the Web Works",
+            "checklist": [
+              "HTML file opens in a browser",
+              "Required tags/features are present",
+              "Page is readable",
+              "Student uploads the file or project"
+            ]
+          }
+        },
+        {
+          "id": "module-015",
+          "title": "Uses of the World Wide Web",
+          "week": 5,
+          "session": 3,
+          "type": "html",
+          "externalTask": {
+            "tool": "HTML editor/browser",
+            "upload": ".html or zipped project",
+            "title": "Web skill proof: Uses of the World Wide Web",
+            "checklist": [
+              "HTML file opens in a browser",
+              "Required tags/features are present",
+              "Page is readable",
+              "Student uploads the file or project"
+            ]
+          }
+        },
+        {
+          "id": "module-016",
+          "title": "HTML Editor",
+          "week": 6,
+          "session": 1,
+          "type": "html",
+          "externalTask": {
+            "tool": "HTML editor/browser",
+            "upload": ".html or zipped project",
+            "title": "Web skill proof: HTML Editor",
+            "checklist": [
+              "HTML file opens in a browser",
+              "Required tags/features are present",
+              "Page is readable",
+              "Student uploads the file or project"
+            ]
+          }
+        },
+        {
+          "id": "module-017",
+          "title": "HTML Tags",
+          "week": 6,
+          "session": 2,
+          "type": "html",
+          "externalTask": {
+            "tool": "HTML editor/browser",
+            "upload": ".html or zipped project",
+            "title": "Web skill proof: HTML Tags",
+            "checklist": [
+              "HTML file opens in a browser",
+              "Required tags/features are present",
+              "Page is readable",
+              "Student uploads the file or project"
+            ]
+          }
+        },
+        {
+          "id": "module-018",
+          "title": "HTML Elements",
+          "week": 6,
+          "session": 3,
+          "type": "html",
+          "externalTask": {
+            "tool": "HTML editor/browser",
+            "upload": ".html or zipped project",
+            "title": "Web skill proof: HTML Elements",
+            "checklist": [
+              "HTML file opens in a browser",
+              "Required tags/features are present",
+              "Page is readable",
+              "Student uploads the file or project"
+            ]
+          }
+        },
+        {
+          "id": "module-019",
+          "title": "HTML Tag Attributes",
+          "week": 7,
+          "session": 1,
+          "type": "html",
+          "externalTask": {
+            "tool": "HTML editor/browser",
+            "upload": ".html or zipped project",
+            "title": "Web skill proof: HTML Tag Attributes",
+            "checklist": [
+              "HTML file opens in a browser",
+              "Required tags/features are present",
+              "Page is readable",
+              "Student uploads the file or project"
+            ]
+          }
+        },
+        {
+          "id": "module-020",
+          "title": "Structure of an HTML Document",
+          "week": 7,
+          "session": 2,
+          "type": "html",
+          "externalTask": {
+            "tool": "HTML editor/browser",
+            "upload": ".html or zipped project",
+            "title": "Web skill proof: Structure of an HTML Document",
+            "checklist": [
+              "HTML file opens in a browser",
+              "Required tags/features are present",
+              "Page is readable",
+              "Student uploads the file or project"
+            ]
+          }
+        },
+        {
+          "id": "module-021",
+          "title": "Important HTML Tags",
+          "week": 7,
+          "session": 3,
+          "type": "html",
+          "externalTask": {
+            "tool": "HTML editor/browser",
+            "upload": ".html or zipped project",
+            "title": "Web skill proof: Important HTML Tags",
+            "checklist": [
+              "HTML file opens in a browser",
+              "Required tags/features are present",
+              "Page is readable",
+              "Student uploads the file or project"
+            ]
+          }
+        },
+        {
+          "id": "module-022",
+          "title": "Heading Tag <h1> to <h6>",
+          "week": 8,
+          "session": 1,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-023",
+          "title": "Paragraph Tag <p>",
+          "week": 8,
+          "session": 2,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-024",
+          "title": "Line Break Tag <br>",
+          "week": 8,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-025",
+          "title": "No-Break Text and Spacing",
+          "week": 9,
+          "session": 1,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-026",
+          "title": "HTML Formatting Tags",
+          "week": 9,
+          "session": 2,
+          "type": "html",
+          "externalTask": {
+            "tool": "HTML editor/browser",
+            "upload": ".html or zipped project",
+            "title": "Web skill proof: HTML Formatting Tags",
+            "checklist": [
+              "HTML file opens in a browser",
+              "Required tags/features are present",
+              "Page is readable",
+              "Student uploads the file or project"
+            ]
+          }
+        },
+        {
+          "id": "module-027",
+          "title": "Horizontal Rule Tag <hr>",
+          "week": 9,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-028",
+          "title": "HTML Comments",
+          "week": 10,
+          "session": 1,
+          "type": "html",
+          "externalTask": {
+            "tool": "HTML editor/browser",
+            "upload": ".html or zipped project",
+            "title": "Web skill proof: HTML Comments",
+            "checklist": [
+              "HTML file opens in a browser",
+              "Required tags/features are present",
+              "Page is readable",
+              "Student uploads the file or project"
+            ]
+          }
+        },
+        {
+          "id": "module-029",
+          "title": "Inserting Images in HTML",
+          "week": 10,
+          "session": 2,
+          "type": "html",
+          "externalTask": {
+            "tool": "HTML editor/browser",
+            "upload": ".html or zipped project",
+            "title": "Web skill proof: Inserting Images in HTML",
+            "checklist": [
+              "HTML file opens in a browser",
+              "Required tags/features are present",
+              "Page is readable",
+              "Student uploads the file or project"
+            ]
+          }
+        },
+        {
+          "id": "module-030",
+          "title": "Hyperlinks in HTML",
+          "week": 10,
+          "session": 3,
+          "type": "html",
+          "externalTask": {
+            "tool": "HTML editor/browser",
+            "upload": ".html or zipped project",
+            "title": "Web skill proof: Hyperlinks in HTML",
+            "checklist": [
+              "HTML file opens in a browser",
+              "Required tags/features are present",
+              "Page is readable",
+              "Student uploads the file or project"
+            ]
+          }
+        },
+        {
+          "id": "module-031",
+          "title": "Creating Lists in HTML",
+          "week": 11,
+          "session": 1,
+          "type": "html",
+          "externalTask": {
+            "tool": "HTML editor/browser",
+            "upload": ".html or zipped project",
+            "title": "Web skill proof: Creating Lists in HTML",
+            "checklist": [
+              "HTML file opens in a browser",
+              "Required tags/features are present",
+              "Page is readable",
+              "Student uploads the file or project"
+            ]
+          }
+        },
+        {
+          "id": "module-032",
+          "title": "Description Lists",
+          "week": 11,
+          "session": 2,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-033",
+          "title": "Nested Lists",
+          "week": 11,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-034",
+          "title": "Inserting Tables in HTML",
+          "week": 12,
+          "session": 1,
+          "type": "html",
+          "externalTask": {
+            "tool": "HTML editor/browser",
+            "upload": ".html or zipped project",
+            "title": "Web skill proof: Inserting Tables in HTML",
+            "checklist": [
+              "HTML file opens in a browser",
+              "Required tags/features are present",
+              "Page is readable",
+              "Student uploads the file or project"
+            ]
+          }
+        },
+        {
+          "id": "module-035",
+          "title": "Changing Text Type, Color, and Size in HTML",
+          "week": 12,
+          "session": 2,
+          "type": "html",
+          "externalTask": {
+            "tool": "HTML editor/browser",
+            "upload": ".html or zipped project",
+            "title": "Web skill proof: Changing Text Type, Color, and Size in HTML",
+            "checklist": [
+              "HTML file opens in a browser",
+              "Required tags/features are present",
+              "Page is readable",
+              "Student uploads the file or project"
+            ]
+          }
+        },
+        {
+          "id": "module-036",
+          "title": "Adjusting Page Margins",
+          "week": 12,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-037",
+          "title": "Programming Languages",
+          "week": 13,
+          "session": 1,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-038",
+          "title": "Generations of Computer Languages",
+          "week": 13,
+          "session": 2,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-039",
+          "title": "Computer Language Translators",
+          "week": 13,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-040",
+          "title": "Important Programming Terms and Translations",
+          "week": 14,
+          "session": 1,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-041",
+          "title": "History of C++",
+          "week": 14,
+          "session": 2,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-042",
+          "title": "Compiling and Debugging a C++ Program",
+          "week": 14,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        }
+      ]
+    },
+    {
+      "id": "ict-grade-8-2026-2027",
+      "title": "ICT Grade 8 2026-2027",
+      "teacher": "Bryant",
+      "grade": "8",
+      "classes": [
+        "grade-8-a",
+        "grade-8-b"
+      ],
+      "cadence": "3 OquWay modules plus 1 make-up/creative day per week",
+      "modules": [
+        {
+          "id": "module-000",
+          "title": "Welcome to ICT Grade 8 2026-2027 and OquWay",
+          "week": 0,
+          "session": 0,
+          "type": "setup",
+          "externalTask": null
+        },
+        {
+          "id": "module-001",
+          "title": "Adobe Photoshop Features",
+          "week": 1,
+          "session": 1,
+          "type": "creative-document",
+          "externalTask": {
+            "tool": "Word, PowerPoint, image editor, or screenshot",
+            "upload": "document, image, or PDF",
+            "title": "Creative proof: Adobe Photoshop Features",
+            "checklist": [
+              "Work clearly shows the module skill",
+              "File is named correctly",
+              "Student uploads proof for teacher review"
+            ]
+          }
+        },
+        {
+          "id": "module-002",
+          "title": "Main Components of the Photoshop Window",
+          "week": 1,
+          "session": 2,
+          "type": "creative-document",
+          "externalTask": {
+            "tool": "Word, PowerPoint, image editor, or screenshot",
+            "upload": "document, image, or PDF",
+            "title": "Creative proof: Main Components of the Photoshop Window",
+            "checklist": [
+              "Work clearly shows the module skill",
+              "File is named correctly",
+              "Student uploads proof for teacher review"
+            ]
+          }
+        },
+        {
+          "id": "module-003",
+          "title": "Opening and Importing Images",
+          "week": 1,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-004",
+          "title": "Photoshop Toolbox",
+          "week": 2,
+          "session": 1,
+          "type": "creative-document",
+          "externalTask": {
+            "tool": "Word, PowerPoint, image editor, or screenshot",
+            "upload": "document, image, or PDF",
+            "title": "Creative proof: Photoshop Toolbox",
+            "checklist": [
+              "Work clearly shows the module skill",
+              "File is named correctly",
+              "Student uploads proof for teacher review"
+            ]
+          }
+        },
+        {
+          "id": "module-005",
+          "title": "Creating a New Image",
+          "week": 2,
+          "session": 2,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-006",
+          "title": "Layers and Layer Palette",
+          "week": 2,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-007",
+          "title": "The Filters Menu",
+          "week": 3,
+          "session": 1,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-008",
+          "title": "Masks",
+          "week": 3,
+          "session": 2,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-009",
+          "title": "Text and Fonts",
+          "week": 3,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-010",
+          "title": "Important Database Terms",
+          "week": 4,
+          "session": 1,
+          "type": "database",
+          "externalTask": null
+        },
+        {
+          "id": "module-011",
+          "title": "Functions of DBMS",
+          "week": 4,
+          "session": 2,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-012",
+          "title": "Database Objects",
+          "week": 4,
+          "session": 3,
+          "type": "database",
+          "externalTask": null
+        },
+        {
+          "id": "module-013",
+          "title": "MS Access",
+          "week": 5,
+          "session": 1,
+          "type": "database",
+          "externalTask": null
+        },
+        {
+          "id": "module-014",
+          "title": "Creating and Modifying Databases",
+          "week": 5,
+          "session": 2,
+          "type": "database",
+          "externalTask": null
+        },
+        {
+          "id": "module-015",
+          "title": "Data Types",
+          "week": 5,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-016",
+          "title": "Primary Key",
+          "week": 6,
+          "session": 1,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-017",
+          "title": "Creating and Modifying Tables in MS Access",
+          "week": 6,
+          "session": 2,
+          "type": "database",
+          "externalTask": null
+        },
+        {
+          "id": "module-018",
+          "title": "Changing the View",
+          "week": 6,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-019",
+          "title": "Visual Basic",
+          "week": 7,
+          "session": 1,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-020",
+          "title": "Starting Visual Basic",
+          "week": 7,
+          "session": 2,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-021",
+          "title": "Components of the Visual Basic Window",
+          "week": 7,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-022",
+          "title": "Executing a Visual Basic Program",
+          "week": 8,
+          "session": 1,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-023",
+          "title": "Inserting Controls in a Visual Basic Project",
+          "week": 8,
+          "session": 2,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-024",
+          "title": "Saving a Project and Form",
+          "week": 8,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-025",
+          "title": "Visual Basic Toolbox",
+          "week": 9,
+          "session": 1,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-026",
+          "title": "Variables",
+          "week": 9,
+          "session": 2,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-027",
+          "title": "Operators in Visual Basic",
+          "week": 9,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-028",
+          "title": "Built-In Functions Used in Visual Basic",
+          "week": 10,
+          "session": 1,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-029",
+          "title": "Important Functions Used in Visual Basic",
+          "week": 10,
+          "session": 2,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-030",
+          "title": "Conditional Statements",
+          "week": 10,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-031",
+          "title": "Compound Comparison with Logical Operators",
+          "week": 11,
+          "session": 1,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-032",
+          "title": "Repetition Statements",
+          "week": 11,
+          "session": 2,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-033",
+          "title": "FOR...NEXT Loops",
+          "week": 11,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-034",
+          "title": "Do Loop",
+          "week": 12,
+          "session": 1,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-035",
+          "title": "Nested Loops",
+          "week": 12,
+          "session": 2,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-036",
+          "title": "Operators in C++",
+          "week": 12,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-037",
+          "title": "Arithmetic Assignment Operators in C++",
+          "week": 13,
+          "session": 1,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-038",
+          "title": "Operator Precedence",
+          "week": 13,
+          "session": 2,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-039",
+          "title": "Conditional Constructs",
+          "week": 13,
+          "session": 3,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-040",
+          "title": "Computer Virus",
+          "week": 14,
+          "session": 1,
+          "type": "creative-document",
+          "externalTask": {
+            "tool": "Word, PowerPoint, image editor, or screenshot",
+            "upload": "document, image, or PDF",
+            "title": "Creative proof: Computer Virus",
+            "checklist": [
+              "Work clearly shows the module skill",
+              "File is named correctly",
+              "Student uploads proof for teacher review"
+            ]
+          }
+        },
+        {
+          "id": "module-041",
+          "title": "What a Virus Cannot Do",
+          "week": 14,
+          "session": 2,
+          "type": "creative-document",
+          "externalTask": {
+            "tool": "Word, PowerPoint, image editor, or screenshot",
+            "upload": "document, image, or PDF",
+            "title": "Creative proof: What a Virus Cannot Do",
+            "checklist": [
+              "Work clearly shows the module skill",
+              "File is named correctly",
+              "Student uploads proof for teacher review"
+            ]
+          }
+        },
+        {
+          "id": "module-042",
+          "title": "How a Computer Virus Spreads",
+          "week": 14,
+          "session": 3,
+          "type": "creative-document",
+          "externalTask": {
+            "tool": "Word, PowerPoint, image editor, or screenshot",
+            "upload": "document, image, or PDF",
+            "title": "Creative proof: How a Computer Virus Spreads",
+            "checklist": [
+              "Work clearly shows the module skill",
+              "File is named correctly",
+              "Student uploads proof for teacher review"
+            ]
+          }
+        },
+        {
+          "id": "module-043",
+          "title": "Types of Computer Viruses",
+          "week": 15,
+          "session": 1,
+          "type": "creative-document",
+          "externalTask": {
+            "tool": "Word, PowerPoint, image editor, or screenshot",
+            "upload": "document, image, or PDF",
+            "title": "Creative proof: Types of Computer Viruses",
+            "checklist": [
+              "Work clearly shows the module skill",
+              "File is named correctly",
+              "Student uploads proof for teacher review"
+            ]
+          }
+        },
+        {
+          "id": "module-044",
+          "title": "Protection Against Computer Viruses",
+          "week": 15,
+          "session": 2,
+          "type": "creative-document",
+          "externalTask": {
+            "tool": "Word, PowerPoint, image editor, or screenshot",
+            "upload": "document, image, or PDF",
+            "title": "Creative proof: Protection Against Computer Viruses",
+            "checklist": [
+              "Work clearly shows the module skill",
+              "File is named correctly",
+              "Student uploads proof for teacher review"
+            ]
+          }
+        },
+        {
+          "id": "module-045",
+          "title": "Troubleshooting",
+          "week": 15,
+          "session": 3,
+          "type": "creative-document",
+          "externalTask": {
+            "tool": "Word, PowerPoint, image editor, or screenshot",
+            "upload": "document, image, or PDF",
+            "title": "Creative proof: Troubleshooting",
+            "checklist": [
+              "Work clearly shows the module skill",
+              "File is named correctly",
+              "Student uploads proof for teacher review"
+            ]
+          }
+        },
+        {
+          "id": "module-046",
+          "title": "Importance of Computer Maintenance",
+          "week": 16,
+          "session": 1,
+          "type": "concept",
+          "externalTask": null
+        },
+        {
+          "id": "module-047",
+          "title": "Areas of Troubleshooting",
+          "week": 16,
+          "session": 2,
+          "type": "creative-document",
+          "externalTask": {
+            "tool": "Word, PowerPoint, image editor, or screenshot",
+            "upload": "document, image, or PDF",
+            "title": "Creative proof: Areas of Troubleshooting",
+            "checklist": [
+              "Work clearly shows the module skill",
+              "File is named correctly",
+              "Student uploads proof for teacher review"
+            ]
+          }
+        },
+        {
+          "id": "module-048",
+          "title": "Steps of Troubleshooting",
+          "week": 16,
+          "session": 3,
+          "type": "creative-document",
+          "externalTask": {
+            "tool": "Word, PowerPoint, image editor, or screenshot",
+            "upload": "document, image, or PDF",
+            "title": "Creative proof: Steps of Troubleshooting",
+            "checklist": [
+              "Work clearly shows the module skill",
+              "File is named correctly",
+              "Student uploads proof for teacher review"
+            ]
+          }
+        },
+        {
+          "id": "module-049",
+          "title": "Common Computer Problems and Troubleshooting",
+          "week": 17,
+          "session": 1,
+          "type": "creative-document",
+          "externalTask": {
+            "tool": "Word, PowerPoint, image editor, or screenshot",
+            "upload": "document, image, or PDF",
+            "title": "Creative proof: Common Computer Problems and Troubleshooting",
+            "checklist": [
+              "Work clearly shows the module skill",
+              "File is named correctly",
+              "Student uploads proof for teacher review"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

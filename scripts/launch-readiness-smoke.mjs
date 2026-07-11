@@ -27,6 +27,7 @@ const checks = [
       "processSaveTeacherAttendance",
       "processLoadTeacherStudentDetail",
       "attendanceRecords",
+      "lateMinutes",
       "readStudentHelpSignals"
     ]
   },
@@ -37,6 +38,9 @@ const checks = [
       "buildNeedsHelpView",
       "buildStudentDetailView",
       "data-action=\"save-attendance\"",
+      "data-attendance-late-minutes",
+      "teacher-attendance-export",
+      "data-score-id",
       "data-action=\"view-student-detail\""
     ]
   },
@@ -45,6 +49,26 @@ const checks = [
     contains: [
       "Teacher feedback:",
       "Read your teacher feedback"
+    ]
+  },
+  {
+    file: "knowledgebase/ICT_Launch_Course_Blueprint.json",
+    contains: [
+      "ICT Grade 6 2026-2027",
+      "ICT Grade 7 2026-2027",
+      "ICT Grade 8 2026-2027",
+      "Microsoft Word",
+      "Microsoft PowerPoint",
+      "Microsoft Excel"
+    ]
+  },
+  {
+    file: "knowledgebase/ICT_Launch_Course_Blueprint.md",
+    contains: [
+      "Grade 6",
+      "Grade 7",
+      "Grade 8",
+      "EDU Page"
     ]
   },
   {

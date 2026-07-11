@@ -114,7 +114,8 @@ export async function processReviewExternalTaskSubmission(executionState) {
       status: payload.reviewStatus === "complete" ? "complete" : "submitted",
       reviewStatus: payload.reviewStatus,
       reviewedBy: reviewerId,
-      teacherFeedback: payload.teacherFeedback || ""
+      teacherFeedback: payload.teacherFeedback || "",
+      score: payload.score
     };
 
     await updateExternalTaskReview(payload.submissionId, update);
@@ -122,7 +123,8 @@ export async function processReviewExternalTaskSubmission(executionState) {
     executionState.result = {
       submissionId: payload.submissionId,
       reviewStatus: payload.reviewStatus,
-      teacherFeedback: payload.teacherFeedback || ""
+      teacherFeedback: payload.teacherFeedback || "",
+      score: payload.score
     };
 
     return { valid: true, data: executionState.result };

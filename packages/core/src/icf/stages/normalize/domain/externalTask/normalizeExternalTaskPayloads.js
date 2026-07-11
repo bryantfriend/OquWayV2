@@ -35,7 +35,8 @@ export function normalizeExternalTaskReviewPayload(executionState) {
     data: {
       submissionId: readText(payload.submissionId),
       reviewStatus: readText(payload.reviewStatus),
-      teacherFeedback: readText(payload.teacherFeedback)
+      teacherFeedback: readText(payload.teacherFeedback),
+      score: clampNumber(payload.score, 0, 100, null)
     }
   };
 }
@@ -77,6 +78,15 @@ function readText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function clampNumber(value, min, max, fallback) {
+  var numberValue = typeof value === "number" ? value : Number(value);
+
+  if (!Number.isFinite(numberValue)) {
+    return fallback;
+  }
+
+  return Math.max(min, Math.min(max, Math.round(numberValue)));
+}
 function readNumber(value, fallback) {
   var numberValue = typeof value === "number" ? value : Number(value);
   return Number.isFinite(numberValue) ? numberValue : fallback;
