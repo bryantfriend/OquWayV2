@@ -306,16 +306,6 @@ async function openStudentCourse(courseId) {
   target = openResult.openTarget || {};
   applyOpenedCourseResult(openResult);
 
-  if (openResult.hasActivity === true && target.moduleId && target.sessionId) {
-    await openPracticeMode(
-      openResult.course.id,
-      target.moduleId,
-      target.sessionId,
-      target.practiceModeKey || "beforeClass"
-    );
-    return;
-  }
-
   studentDashboardStore.setState({
     isCourseOpening: false,
     playerMode: false,
@@ -354,9 +344,11 @@ async function continueLearning() {
     selectedCourseId: recommendation.courseId,
     selectedModuleId: recommendation.moduleId || null,
     selectedSessionId: recommendation.sessionId || null,
-    selectedPracticeModeKey: "beforeClass",
+    selectedPracticeModeKey: recommendation.practiceModeKey || "beforeClass",
     statusMessage: ""
   });
+
+  await openStudentCourse(recommendation.courseId);
 }
 
 function selectModule(moduleId) {
@@ -862,6 +854,7 @@ function buildCourseDetail(course, state) {
     });
   }
 
+  html += '<div class="course-focus-shell">';
   html += '<div class="student-course-heading">';
   html += '<div>';
   html += '<p class="student-eyebrow">Course</p>';
@@ -873,6 +866,7 @@ function buildCourseDetail(course, state) {
   html += '</div>';
 
   html += buildModules(course, state);
+  html += '</div>';
   return html;
 }
 
@@ -894,7 +888,7 @@ function buildModules(course, state) {
     var completedSteps = countModuleCompletedSteps(module);
     var totalSteps = countModuleSteps(module);
     html += '<article class="student-module">';
-    html += '<button type="button" class="student-module-card' + activeClass + '" data-module-id="' + escapeHtml(module.id) + '">';
+    html += '<button type="button" class="student-module-card course-journey-node' + activeClass + '" data-module-id="' + escapeHtml(module.id) + '">';
     html += '<span>' + escapeHtml(readLocalizedText(module.title, "Module")) + '</span>';
     html += '<small>' + escapeHtml(readLearningStatusLabel(moduleStatus)) + ' - ' + completedSteps + ' / ' + totalSteps + ' steps</small>';
     html += '<small>' + escapeHtml(readModuleLastActivityLabel(module)) + '</small>';
@@ -957,7 +951,7 @@ function buildPracticeModeCards(course, module, session) {
     var emptyClass = steps.length === 0 ? " student-practice-empty-mode" : "";
     var completeText = progress.completed ? "Complete" : completionPercent + "% complete";
 
-    html += '<button type="button" class="student-practice-mode-card' + emptyClass + '"';
+    html += '<button type="button" class="student-practice-mode-card course-activity-card' + emptyClass + '"';
     html += ' data-course-id="' + escapeHtml(course.id) + '"';
     html += ' data-module-id="' + escapeHtml(module.id) + '"';
     html += ' data-session-id="' + escapeHtml(session.id) + '"';

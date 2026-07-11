@@ -1,5 +1,4 @@
 import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.219-course-creator-all-courses";
-import { collection, db, getDocs, query, where } from "../../../../../packages/firebase/firestore/index.js?v=1.1.219-course-creator-all-courses";
 import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.219-course-creator-all-courses";
 import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.219-course-creator-all-courses";
 
@@ -61,35 +60,35 @@ export const courseAssignmentService = {
       warnings: []
     };
 
-    await appendReadableCollectionTargets(result, "classes", "classes", readClassTarget);
-    await appendReadableCollectionTargets(result, "locations", "locations", readLocationTarget);
-    await appendReadableStudentTargets(result);
+    await appendIntentTargets(result, "classes", "ListClassesIntent", "classes", readClassTarget);
+    await appendIntentTargets(result, "locations", "ListLocationsIntent", "locations", readLocationTarget);
+    await appendIntentTargets(result, "students", "ListStudentsIntent", "students", readStudentTarget);
     return result;
   }
 };
 
-async function appendReadableCollectionTargets(result, resultKey, collectionName, mapper) {
+async function appendIntentTargets(result, resultKey, intentType, dataKey, mapper) {
   try {
-    var snapshot = await getDocs(collection(db, collectionName));
+    var intentResult = await runCourseAssignmentIntent(intentType, {});
+    var intentData = readIntentDataOrThrow(intentResult);
+    var records = intentData && Array.isArray(intentData[dataKey]) ? intentData[dataKey] : [];
+    var recordIndex = 0;
 
-    snapshot.forEach(function (docSnap) {
-      result[resultKey].push(mapper(docSnap.id, docSnap.data()));
-    });
+    while (recordIndex < records.length) {
+      result[resultKey].push(mapper(readRecordId(records[recordIndex]), records[recordIndex]));
+      recordIndex = recordIndex + 1;
+    }
   } catch (error) {
     result.warnings.push("Could not load " + resultKey + ": " + error.message);
   }
 }
 
-async function appendReadableStudentTargets(result) {
-  try {
-    var snapshot = await getDocs(query(collection(db, "users"), where("role", "==", "student")));
-
-    snapshot.forEach(function (docSnap) {
-      result.students.push(readStudentTarget(docSnap.id, docSnap.data()));
-    });
-  } catch (error) {
-    result.warnings.push("Could not load students: " + error.message);
+function readRecordId(record) {
+  if (record && record.id) {
+    return record.id;
   }
+
+  return "";
 }
 
 function readClassTarget(id, data) {

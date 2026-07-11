@@ -1,5 +1,5 @@
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { collection, db, doc, getDoc, getDocs, query, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.218-dashboard-calm-teacher-functional";
+import { collection, db, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.218-dashboard-calm-teacher-functional";
 import { auth } from "../../../../../infrastructure/firebase/auth.js?v=1.1.218-dashboard-calm-teacher-functional";
 import { getClassesForTeacher } from "../../../../../../../domain/classes/index.js";
 import { getExternalTaskSubmissionsForTeacher } from "../../../../../../../domain/externalTasks/index.js?v=1.1.218-dashboard-calm-teacher-functional";
@@ -222,6 +222,98 @@ export async function processLoadTeacherReviewQueue(executionState) {
   }
 }
 
+
+export async function processLoadTeacherAttendance(executionState) {
+  try {
+    var payload = executionState.payload || {};
+    var data = await buildTeacherDashboardData(executionState);
+    var classId = resolveAttendanceClassId(payload.classId, data.classes);
+    var students = filterStudentsForClassId(data.students, classId);
+    var record = classId ? await readAttendanceRecord(classId, payload.attendanceDate) : null;
+
+    executionState.result = {
+      teacher: data.teacher,
+      classId: classId,
+      attendanceDate: payload.attendanceDate,
+      classes: data.classes,
+      students: normalizeAttendanceStudents(students, record),
+      record: record,
+      summary: summarizeAttendanceRecord(students, record)
+    };
+
+    return { valid: true, data: executionState.result };
+  } catch (error) {
+    return createProcessError("TEACHER_ATTENDANCE_LOAD_FAILED", "Could not load attendance: " + readErrorMessage(error));
+  }
+}
+
+export async function processSaveTeacherAttendance(executionState) {
+  try {
+    var payload = executionState.payload || {};
+    var scope = await loadTeacherOwnershipScope(executionState);
+    var classRecord = findById(scope.classes, payload.classId);
+
+    if (!classRecord) {
+      return createProcessError("TEACHER_ATTENDANCE_SCOPE_DENIED", "This class is outside this teacher's scope.");
+    }
+
+    var students = await loadStudentsForScope([payload.classId], [classRecord], scope.assignments);
+    var record = createAttendanceRecord(payload, scope, classRecord, students);
+
+    await setDoc(doc(db, "attendanceRecords", createAttendanceRecordId(payload.classId, payload.attendanceDate)), record, { merge: true });
+
+    executionState.result = {
+      classId: payload.classId,
+      attendanceDate: payload.attendanceDate,
+      record: record,
+      students: normalizeAttendanceStudents(students, record),
+      summary: summarizeAttendanceRecord(students, record)
+    };
+
+    return { valid: true, data: executionState.result };
+  } catch (error) {
+    return createProcessError("TEACHER_ATTENDANCE_SAVE_FAILED", "Could not save attendance: " + readErrorMessage(error));
+  }
+}
+
+export async function processLoadTeacherStudentDetail(executionState) {
+  try {
+    var payload = executionState.payload || {};
+    var detailExecutionState = Object.assign({}, executionState, {
+      payload: Object.assign({}, payload, { reviewStatus: "" })
+    });
+    var data = await buildTeacherDashboardData(detailExecutionState);
+    var student = findById(data.students, payload.studentId);
+    var studentSubmissions = data.submissions.filter(function (submission) {
+      return submission.studentId === payload.studentId;
+    });
+    var studentCourses = data.courses.filter(function (course) {
+      return student && isStudentInCourseCard(student, course);
+    });
+    var attendanceSummary = student ? await loadAttendanceSummaryForStudent(student, data.classes) : createEmptyAttendanceSummary();
+
+    if (!student) {
+      return createProcessError("TEACHER_STUDENT_SCOPE_DENIED", "This student is outside this teacher's scope.");
+    }
+
+    executionState.result = {
+      student: student,
+      courses: studentCourses,
+      submissions: studentSubmissions,
+      attendanceSummary: attendanceSummary,
+      helpSignals: student.helpSignals || [],
+      summary: {
+        courseCount: studentCourses.length,
+        pendingSubmissionsCount: countPendingSubmissions(studentSubmissions),
+        attendanceConcernCount: attendanceSummary.absent + attendanceSummary.late
+      }
+    };
+
+    return { valid: true, data: executionState.result };
+  } catch (error) {
+    return createProcessError("TEACHER_STUDENT_DETAIL_LOAD_FAILED", "Could not load student detail: " + readErrorMessage(error));
+  }
+}
 async function buildTeacherDashboardData(executionState) {
   var scope = await loadTeacherOwnershipScope(executionState);
   var profile = scope.profile;
@@ -234,7 +326,7 @@ async function buildTeacherDashboardData(executionState) {
     assignmentIds: scope.assignmentIds,
     courseIds: scope.courseIds,
     teacherIds: scope.teacherIds,
-    reviewStatus: (executionState.payload || {}).reviewStatus || "pending"
+    reviewStatus: readDashboardReviewStatus(executionState.payload || {})
   });
   var pendingCountsByClass = countSubmissionsByField(submissions, "classId");
   var pendingCountsByStudent = countSubmissionsByField(submissions, "studentId");
@@ -282,6 +374,13 @@ async function buildTeacherDashboardData(executionState) {
   };
 }
 
+function readDashboardReviewStatus(payload) {
+  if (Object.prototype.hasOwnProperty.call(payload || {}, "reviewStatus")) {
+    return payload.reviewStatus;
+  }
+
+  return "pending";
+}
 async function loadTeacherOwnershipScope(executionState) {
   var context = executionState.context || {};
   var profile = context.teacherProfile || null;
@@ -803,6 +902,257 @@ function normalizeStudentCard(student, progress, pendingCount) {
   };
 }
 
+function resolveAttendanceClassId(classId, classes) {
+  if (classId && findById(classes, classId)) {
+    return classId;
+  }
+
+  return classes && classes.length > 0 ? classes[0].id : "";
+}
+
+function filterStudentsForClassId(students, classId) {
+  if (!classId) {
+    return [];
+  }
+
+  return (students || []).filter(function (student) {
+    return studentInClass(student, classId) || (student.classIds || []).indexOf(classId) !== -1 || student.classId === classId;
+  }).sort(compareByName);
+}
+
+async function readAttendanceRecord(classId, attendanceDate) {
+  if (!classId || !attendanceDate) {
+    return null;
+  }
+
+  try {
+    var recordSnap = await getDoc(doc(db, "attendanceRecords", createAttendanceRecordId(classId, attendanceDate)));
+
+    if (!recordSnap.exists()) {
+      return null;
+    }
+
+    return Object.assign({ id: recordSnap.id }, recordSnap.data() || {});
+  } catch (error) {
+    return null;
+  }
+}
+
+function createAttendanceRecord(payload, scope, classRecord, students) {
+  var statuses = payload.statuses || {};
+  var notes = payload.notes || {};
+  var records = {};
+  var index = 0;
+
+  while (index < students.length) {
+    records[students[index].id] = {
+      studentId: students[index].id,
+      studentName: readName(students[index], "Student " + students[index].id),
+      status: normalizeAttendanceStatus(statuses[students[index].id]),
+      note: readText(notes[students[index].id] || "")
+    };
+    index = index + 1;
+  }
+
+  return {
+    classId: payload.classId,
+    className: classRecord ? readName(classRecord, "Class " + payload.classId) : "",
+    attendanceDate: payload.attendanceDate,
+    locationId: classRecord ? readClassLocationId(classRecord) : "",
+    teacherId: scope.profile && scope.profile.id ? scope.profile.id : "",
+    teacherName: scope.profile ? readName(scope.profile, "Teacher") : "",
+    records: records,
+    summary: summarizeAttendanceRecord(students, { records: records }),
+    updatedAt: serverTimestamp()
+  };
+}
+
+function normalizeAttendanceStudents(students, record) {
+  var safeStudents = Array.isArray(students) ? students : [];
+  var records = record && record.records ? record.records : {};
+
+  return safeStudents.map(function (student) {
+    var attendance = records[student.id] || {};
+
+    return Object.assign({}, student, {
+      attendanceStatus: normalizeAttendanceStatus(attendance.status || ""),
+      attendanceNote: attendance.note || ""
+    });
+  });
+}
+
+function summarizeAttendanceRecord(students, record) {
+  var summary = {
+    total: students ? students.length : 0,
+    present: 0,
+    absent: 0,
+    late: 0,
+    excused: 0,
+    unmarked: 0
+  };
+  var records = record && record.records ? record.records : {};
+  var safeStudents = Array.isArray(students) ? students : [];
+  var index = 0;
+
+  while (index < safeStudents.length) {
+    var status = normalizeAttendanceStatus(records[safeStudents[index].id] ? records[safeStudents[index].id].status : "");
+    if (!status) {
+      summary.unmarked = summary.unmarked + 1;
+    } else {
+      summary[status] = summary[status] + 1;
+    }
+    index = index + 1;
+  }
+
+  return summary;
+}
+
+async function loadAttendanceSummaryForStudent(student, classes) {
+  var classIds = readUserClassIds(student);
+  var summary = createEmptyAttendanceSummary();
+  var index = 0;
+
+  if (classIds.length === 0 && student.classId) {
+    classIds.push(student.classId);
+  }
+
+  while (index < classIds.length) {
+    if (findById(classes, classIds[index])) {
+      await addAttendanceRecordsForStudent(summary, student.id, classIds[index]);
+    }
+    index = index + 1;
+  }
+
+  return summary;
+}
+
+async function addAttendanceRecordsForStudent(summary, studentId, classId) {
+  try {
+    var snapshot = await getDocs(query(collection(db, "attendanceRecords"), where("classId", "==", classId)));
+    snapshot.forEach(function (recordSnap) {
+      var data = recordSnap.data() || {};
+      var record = data.records && data.records[studentId] ? data.records[studentId] : null;
+      var status = record ? normalizeAttendanceStatus(record.status || "") : "";
+
+      if (status) {
+        summary.total = summary.total + 1;
+        summary[status] = summary[status] + 1;
+        summary.lastMarkedAt = readLatestValue(summary.lastMarkedAt, data.attendanceDate || data.updatedAt);
+      }
+    });
+  } catch (error) {
+    return;
+  }
+}
+
+function createEmptyAttendanceSummary() {
+  return {
+    total: 0,
+    present: 0,
+    absent: 0,
+    late: 0,
+    excused: 0,
+    lastMarkedAt: null
+  };
+}
+
+function createAttendanceRecordId(classId, attendanceDate) {
+  return cleanRecordSegment(classId) + "_" + cleanRecordSegment(attendanceDate);
+}
+
+function cleanRecordSegment(value) {
+  return String(value || "unknown").replace(/[^a-zA-Z0-9_-]/g, "-");
+}
+
+function normalizeAttendanceStatus(value) {
+  var text = readText(value);
+
+  if (text === "present" || text === "absent" || text === "late" || text === "excused") {
+    return text;
+  }
+
+  return "";
+}
+
+function isStudentInCourseCard(student, courseCard) {
+  return (courseCard.classIds || []).some(function (classId) {
+    return (student.classIds || []).indexOf(classId) !== -1 || student.classId === classId;
+  }) || (courseCard.studentIds || []).indexOf(student.id) !== -1;
+}
+
+function readStudentHelpSignals(progress, pendingCount) {
+  var signals = [];
+  var progressPercent = progress && typeof progress.progressPercent === "number" ? progress.progressPercent : 0;
+  var lastActiveMillis = progress ? readMillis(progress.lastActiveAt) : 0;
+  var staleAfterMillis = 1000 * 60 * 60 * 24 * 7;
+
+  if (pendingCount > 0) {
+    signals.push("Needs teacher review");
+  }
+
+  if (!progress || progress.courseCount === 0) {
+    signals.push("No course progress yet");
+  } else if (progressPercent > 0 && progressPercent < 35) {
+    signals.push("Low course progress");
+  }
+
+  if (!lastActiveMillis) {
+    signals.push("No recent activity");
+  } else if (Date.now() - lastActiveMillis > staleAfterMillis) {
+    signals.push("Inactive for 7+ days");
+  }
+
+  return signals;
+}
+
+function readCompletedModeCount(progressDoc) {
+  var count = 0;
+  var sessions = progressDoc && progressDoc.sessions && typeof progressDoc.sessions === "object" ? progressDoc.sessions : {};
+  var modes = progressDoc && progressDoc.practiceModes && typeof progressDoc.practiceModes === "object" ? progressDoc.practiceModes : {};
+  var sessionIds = Object.keys(sessions);
+  var modeKeys = Object.keys(modes);
+  var index = 0;
+
+  while (index < modeKeys.length) {
+    if (modes[modeKeys[index]] && modes[modeKeys[index]].completed === true) {
+      count = count + 1;
+    }
+    index = index + 1;
+  }
+
+  index = 0;
+  while (index < sessionIds.length) {
+    count = count + readCompletedModeCount(sessions[sessionIds[index]] || {});
+    index = index + 1;
+  }
+
+  return count;
+}
+
+function calculateProgressPercent(completedCount, totalCount) {
+  if (!totalCount || totalCount < 1) {
+    return completedCount > 0 ? 100 : 0;
+  }
+
+  return Math.max(0, Math.min(100, Math.round((completedCount / totalCount) * 100)));
+}
+
+function readNumber(value, fallback) {
+  var numberValue = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(numberValue) ? numberValue : fallback;
+}
+
+function readLatestValue(currentValue, candidateValue) {
+  if (!currentValue) {
+    return candidateValue || null;
+  }
+
+  if (readMillis(candidateValue) > readMillis(currentValue)) {
+    return candidateValue;
+  }
+
+  return currentValue;
+}
 function readTeacherOwnershipIds(context, profile, actor) {
   var ids = [];
 

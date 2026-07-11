@@ -61,6 +61,7 @@ export { processSaveCourseDraft } from "./domain/courseEditor/processSaveCourseD
 export { processUpdateModuleField } from "./domain/courseEditor/processUpdateModuleField.js?v=1.1.222-activity-step-rendering";
 export { processValidateCourseStructure } from "./domain/courseEditor/processValidateCourseStructure.js?v=1.1.222-activity-step-rendering";
 export { processUpdateCourseField } from "./domain/courseEditor/updateCourseFieldProcessor.js?v=1.1.222-activity-step-rendering";
+export { processUploadCourseIcon } from "./domain/courseEditor/processUploadCourseIcon.js?v=1.1.222-activity-step-rendering";
 export { processPreviewCourse } from "./domain/courseEditor/processPreviewCourse.js?v=1.1.222-activity-step-rendering";
 export { processAddStep } from "./domain/moduleEditor/processAddStep.js?v=1.1.222-activity-step-rendering";
 export { processAddStepToLearningMode } from "./domain/moduleEditor/processAddStepToLearningMode.js?v=1.1.222-activity-step-rendering";
@@ -123,13 +124,16 @@ export {
   processVerifySuperAdminAccess
 } from "./domain/superAdmin/superAdminProcessors.js?v=1.1.222-activity-step-rendering";
 export {
+  processLoadTeacherAttendance,
   processLoadTeacherClasses,
   processLoadTeacherClassDetail,
   processLoadTeacherCourseDetail,
   processLoadTeacherCourses,
   processLoadTeacherDashboard,
   processLoadTeacherReviewQueue,
+  processLoadTeacherStudentDetail,
   processLoadTeacherStudents,
+  processSaveTeacherAttendance,
   processSendTeacherPasswordReset,
   processTeacherLogin
 } from "./domain/teacher/teacherDashboardProcessors.js?v=1.1.222-activity-step-rendering";

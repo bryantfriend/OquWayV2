@@ -3,7 +3,7 @@ import { getStudentProfileByAuthUid, readAssignedCourseIds } from "../../../../.
 export async function attachStudentProfileContext(executionState) {
   var actor = executionState.actor;
 
-  if (!actor || !actor.id) {
+  if (!actor || !actor.id || isPreviewActor(actor)) {
     return {
       valid: true,
       data: {
@@ -42,4 +42,8 @@ export async function attachStudentProfileContext(executionState) {
       }
     };
   }
+}
+
+function isPreviewActor(actor) {
+  return actor && actor.id === "preview-student";
 }

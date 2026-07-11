@@ -38,6 +38,7 @@ const registry = {
 
   // Teacher Dashboard
   TeacherLoginIntent: IntentExports.TeacherLoginIntent,
+  LoadTeacherAttendanceIntent: IntentExports.LoadTeacherAttendanceIntent,
   LoadTeacherClassDetailIntent: IntentExports.LoadTeacherClassDetailIntent,
   LoadTeacherCourseDetailIntent: IntentExports.LoadTeacherCourseDetailIntent,
   LoadTeacherCoursesIntent: IntentExports.LoadTeacherCoursesIntent,
@@ -45,6 +46,8 @@ const registry = {
   LoadTeacherClassesIntent: IntentExports.LoadTeacherClassesIntent,
   LoadTeacherStudentsIntent: IntentExports.LoadTeacherStudentsIntent,
   LoadTeacherReviewQueueIntent: IntentExports.LoadTeacherReviewQueueIntent,
+  LoadTeacherStudentDetailIntent: IntentExports.LoadTeacherStudentDetailIntent,
+  SaveTeacherAttendanceIntent: IntentExports.SaveTeacherAttendanceIntent,
   SendTeacherPasswordResetIntent: IntentExports.SendTeacherPasswordResetIntent,
 
   // Locations / Login Settings
@@ -134,6 +137,7 @@ const registry = {
   PublishCourseIntent: IntentExports.PublishCourseIntent,
   ValidateCourseStructureIntent: IntentExports.ValidateCourseStructureIntent,
   UpdateCourseFieldIntent: IntentExports.UpdateCourseFieldIntent,
+  UploadCourseIconIntent: IntentExports.UploadCourseIconIntent,
   MigrateLegacyModulesToCatalogCourseIntent: IntentExports.MigrateLegacyModulesToCatalogCourseIntent,
 
   // Module Editor

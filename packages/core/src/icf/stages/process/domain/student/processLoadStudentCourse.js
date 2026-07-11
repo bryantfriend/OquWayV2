@@ -4,6 +4,7 @@ import { getAssignedCourseIds } from "../../../../../../../domain/courses/index.
 import { getStudentExternalTaskSubmissions } from "../../../../../../../domain/externalTasks/index.js?v=1.1.82-shared-command-center-shell";
 import { isStudentDashboardProfile, readStudentClassIds, readStudentLocationIds, readStudentProfileRejectReason } from "../../../../../../../domain/users/index.js";
 import { createDefaultProgressDocument } from "./studentProgressHelpers.js?v=1.1.82-shared-command-center-shell";
+import { buildPreviewStudentCourses } from "./previewStudentCourseFixture.js?v=1.1.220-student-dashboard-timeout-helper";
 
 export async function processLoadStudentCourse(executionState) {
   var actor = executionState.actor;
@@ -82,6 +83,14 @@ async function loadStudentCourses(actor, assignedCourseIds, executionState, assi
   var courses = [];
   var courseIndex = 0;
 
+  if (isPreviewActor(actor)) {
+    executionState.warnings.push({
+      code: "STUDENT_DASHBOARD_PREVIEW_FIXTURE",
+      message: "Preview student uses a local fixture course so the dashboard can run without school data."
+    });
+    return buildPreviewStudentCourses(actor);
+  }
+
   if (assignedCourseIds.length > 0) {
     courseSnaps = await loadAssignedCourseSnaps(assignedCourseIds, executionState);
   } else if (isPreviewActor(actor)) {
@@ -89,7 +98,10 @@ async function loadStudentCourses(actor, assignedCourseIds, executionState, assi
       code: "STUDENT_DASHBOARD_DEV_FALLBACK",
       message: "No assignments found for preview student. Showing visible courses as a development fallback."
     });
-    courseSnaps = await loadAllCourseSnaps();
+    courseSnaps = await loadAllCourseSnapsForPreview(executionState);
+    if (courseSnaps.length === 0) {
+      return buildPreviewStudentCourses(actor);
+    }
   } else {
     courseSnaps = [];
   }
@@ -303,7 +315,31 @@ async function loadCourseSnap(courseId, executionState) {
 async function loadAssignedCourseIds(actor, studentProfile, executionState) {
   var contextCourseIds = executionState && executionState.context ? executionState.context.assignedCourseIds : [];
 
+  if (isPreviewActor(actor)) {
+    return createEmptyCourseAssignmentResult("preview");
+  }
+
   return getAssignedCourseIds(actor && actor.id ? actor.id : "", studentProfile, contextCourseIds);
+}
+
+function createEmptyCourseAssignmentResult(source) {
+  return {
+    courseIds: [],
+    assignmentIdByCourseId: {},
+    assignmentCount: 0,
+    warnings: [],
+    source: source || "none",
+    queryPaths: [],
+    rejectionReasons: [],
+    directAssignments: [],
+    classAssignments: [],
+    locationAssignments: [],
+    mergedAssignments: [],
+    directCount: 0,
+    classCount: 0,
+    locationCount: 0,
+    mergedCount: 0
+  };
 }
 
 function addUniqueText(values, value) {
@@ -644,6 +680,28 @@ async function loadAllCourseSnaps() {
   });
 
   return courseSnaps;
+}
+async function loadAllCourseSnapsForPreview(executionState) {
+  try {
+    return await Promise.race([
+      loadAllCourseSnaps(),
+      createPreviewCourseReadTimeout()
+    ]);
+  } catch (error) {
+    executionState.warnings.push({
+      code: "STUDENT_DASHBOARD_PREVIEW_FALLBACK",
+      message: "Preview course reads failed, so a local preview fixture was used: " + readErrorMessage(error)
+    });
+    return [];
+  }
+}
+
+function createPreviewCourseReadTimeout() {
+  return new Promise(function (resolve) {
+    setTimeout(function () {
+      resolve([]);
+    }, 2500);
+  });
 }
 
 function isStudentVisibleCourse(courseData) {

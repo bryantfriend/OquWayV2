@@ -67,10 +67,13 @@ export {
   validateStudentUpdatePayload
 } from "./domain/superAdmin/superAdminValidators.js?v=1.1.222-activity-step-rendering";
 export {
+  validateTeacherAttendanceQueryPayload,
+  validateTeacherAttendanceSavePayload,
   validateTeacherClassPayload,
   validateTeacherLoginPayload,
   validateTeacherPasswordResetPayload,
-  validateTeacherReviewQueuePayload
+  validateTeacherReviewQueuePayload,
+  validateTeacherStudentDetailPayload
 } from "./domain/teacher/validateTeacherPayloads.js?v=1.1.222-activity-step-rendering";
 
 

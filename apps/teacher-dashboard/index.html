@@ -789,7 +789,7 @@
 
     .teacher-student-row {
       display: grid;
-      grid-template-columns: 42px minmax(0, 1fr) 64px auto auto;
+      grid-template-columns: 42px minmax(0, 1fr) 64px auto auto auto;
       align-items: center;
       gap: 12px;
       border: 1px solid #e2e8f0;
@@ -1214,6 +1214,46 @@
       color: #991b1b;
       padding: 14px;
     }
+
+    .teacher-attendance-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .teacher-attendance-row {
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr) minmax(130px, 0.35fr) minmax(160px, 0.55fr);
+      gap: 12px;
+      align-items: center;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px;
+      background: #ffffff;
+    }
+
+    .teacher-attendance-row select,
+    .teacher-attendance-row input {
+      width: 100%;
+      min-width: 0;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 9px 10px;
+      font: inherit;
+    }
+
+    .teacher-attendance-row strong,
+    .teacher-attendance-row span {
+      display: block;
+      min-width: 0;
+    }
+
+    .teacher-attendance-row span {
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
     @media (max-width: 860px) {
       .teacher-login-shell,
       .teacher-grid,

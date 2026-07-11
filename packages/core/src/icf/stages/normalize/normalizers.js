@@ -37,9 +37,11 @@ export {
   normalizeStudentPayload
 } from "./domain/superAdmin/superAdminNormalizers.js?v=1.1.222-activity-step-rendering";
 export {
+  normalizeTeacherAttendancePayload,
   normalizeTeacherDashboardPayload,
   normalizeTeacherLoginPayload,
-  normalizeTeacherPasswordResetPayload
+  normalizeTeacherPasswordResetPayload,
+  normalizeTeacherStudentDetailPayload
 } from "./domain/teacher/normalizeTeacherPayloads.js?v=1.1.222-activity-step-rendering";
 export { normalizeBoolean } from "./domain/courseEditor/normalizeBoolean.js?v=1.1.222-activity-step-rendering";
 export { normalizeLanguagesArray } from "./domain/courseEditor/normalizeLanguagesArray.js?v=1.1.222-activity-step-rendering";

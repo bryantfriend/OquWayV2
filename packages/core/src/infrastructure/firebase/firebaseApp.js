@@ -11,3 +11,66 @@ const firebaseConfig = {
 };
 
 export const firebaseApp = initializeApp(firebaseConfig);
+
+const firebaseEmulatorConnectionState = {};
+
+export function shouldUseFirebaseEmulators() {
+    if (typeof window === "undefined" || !isLocalFirebaseHost()) {
+        return false;
+    }
+
+    rememberFirebaseEmulatorPreference();
+
+    try {
+        return window.localStorage.getItem("oquwayUseFirebaseEmulator") === "true";
+    } catch (error) {
+        return false;
+    }
+}
+
+export function readFirebaseEmulatorHost(serviceName, fallbackHost) {
+    var paramName = "firebase" + serviceName.charAt(0).toUpperCase() + serviceName.slice(1) + "EmulatorHost";
+    var value = "";
+
+    if (typeof window !== "undefined" && window.location && window.location.search) {
+        value = new URLSearchParams(window.location.search).get(paramName) || "";
+    }
+
+    return value || fallbackHost;
+}
+
+export function markFirebaseEmulatorConnected(serviceName) {
+    if (firebaseEmulatorConnectionState[serviceName]) {
+        return false;
+    }
+
+    firebaseEmulatorConnectionState[serviceName] = true;
+    return true;
+}
+
+function rememberFirebaseEmulatorPreference() {
+    var searchParams = null;
+    var requested = "";
+
+    try {
+        searchParams = new URLSearchParams(window.location.search);
+        requested = searchParams.get("useFirebaseEmulator") || searchParams.get("useEmulator") || "";
+
+        if (requested === "1" || requested === "true") {
+            window.localStorage.setItem("oquwayUseFirebaseEmulator", "true");
+        }
+
+        if (requested === "0" || requested === "false") {
+            window.localStorage.removeItem("oquwayUseFirebaseEmulator");
+        }
+    } catch (error) {
+        return;
+    }
+}
+
+function isLocalFirebaseHost() {
+    return window.location
+        && (window.location.hostname === "localhost"
+            || window.location.hostname === "127.0.0.1"
+            || window.location.hostname === "");
+}

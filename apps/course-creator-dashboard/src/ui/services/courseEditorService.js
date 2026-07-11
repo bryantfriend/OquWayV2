@@ -2,7 +2,6 @@ import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.21
 import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.219-course-creator-all-courses";
 import { courseEditorStore } from "../state/courseEditorState.js?v=1.1.219-course-creator-all-courses";
 import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.219-course-creator-all-courses";
-import { getDownloadURL, ref, storage, uploadBytes } from "../../../../../packages/firebase/storage/index.js?v=1.1.219-course-creator-all-courses";
 
 function getActor() {
   return auth.currentUser ? { id: auth.currentUser.uid, role: "ROLE_COURSE_CREATOR" } : null;
@@ -240,24 +239,24 @@ export const courseEditorService = {
     }
 
     var compressedFile = await compressCourseIconImage(file);
-    var extension = readUploadExtension(compressedFile);
-    var storagePath = "course-icons/" + courseId + "/course-icon-" + Date.now() + "." + extension;
-    var storageRef = ref(storage, storagePath);
-
-    await uploadBytes(storageRef, compressedFile, {
-      contentType: compressedFile.type || "image/webp",
-      customMetadata: {
+    var result = await runIntentPipeline(getIntentDefinition("UploadCourseIconIntent"), {
+      payload: {
         courseId: courseId,
-        uploadedBy: auth.currentUser ? auth.currentUser.uid : ""
+        mediaField: "imageUrl",
+        file: compressedFile
+      },
+      actor: getActor(),
+      meta: {
+        createdAt: Date.now(),
+        source: "course-creator-dashboard"
       }
     });
 
-    return {
-      iconUrl: await getDownloadURL(storageRef),
-      storagePath: storagePath,
-      size: compressedFile.size,
-      contentType: compressedFile.type
-    };
+    if (result && result.emitted && result.emitted.success) {
+      return result.emitted.data;
+    }
+
+    throw new Error(readIntentErrorMessage(result));
   },
 
   updateModuleField: async function (courseId, moduleId, fieldKey, value) {
@@ -568,21 +567,6 @@ function createCompressedFileName(fileName) {
   return safeName.replace(/\.[^.]+$/, "") + ".webp";
 }
 
-function readUploadExtension(file) {
-  if (file && file.type === "image/png") {
-    return "png";
-  }
-
-  if (file && (file.type === "image/jpeg" || file.type === "image/jpg")) {
-    return "jpg";
-  }
-
-  if (file && file.type === "image/gif") {
-    return "gif";
-  }
-
-  return "webp";
-}
 
 function readIntentErrorMessage(result) {
   if (result && result.emitted && result.emitted.errors && result.emitted.errors.length > 0) {

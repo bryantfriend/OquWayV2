@@ -135,13 +135,13 @@ export const studentDashboardService = {
     });
 
     console.info("[student-course-card:click]", {
-      studentId: auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : "preview-student",
+      studentId: readStudentActorId(),
       courseId: courseId
     });
 
     try {
       var result = await runStudentIntent("StudentOpenCourseIntent", {
-        studentId: auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : "preview-student",
+        studentId: readStudentActorId(),
         courseId: courseId
       });
 
@@ -367,7 +367,21 @@ async function runStudentIntentWithTimeout(intentType, payload, timeoutMs) {
   }
 }
 
+function readStudentActorId() {
+  if (isPreviewMode()) {
+    return "preview-student";
+  }
+
+  return auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : "preview-student";
+}
 function getActor() {
+  if (isPreviewMode()) {
+    return {
+      id: "preview-student",
+      role: "ROLE_STUDENT"
+    };
+  }
+
   if (auth.currentUser && auth.currentUser.isAnonymous) {
     return {
       id: "anonymous-user",

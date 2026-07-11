@@ -365,14 +365,14 @@ function readStatusCopy(reviewStatus) {
   if (reviewStatus === "needsWork") {
     return {
       title: "Needs Work",
-      message: "Your teacher wants you to improve this."
+      message: "Read your teacher feedback, improve the work, then resubmit."
     };
   }
 
   if (reviewStatus === "incomplete") {
     return {
       title: "Incomplete",
-      message: "This was marked incomplete."
+      message: "Read your teacher feedback and resubmit when it is complete."
     };
   }
 

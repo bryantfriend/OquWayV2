@@ -6,6 +6,14 @@ export async function processClaimDailyBonus(executionState) {
   var rewardXp = 10;
 
   try {
+    if (isPreviewActor(actor)) {
+      executionState.result = buildDailyBonusResult(today, rewardXp);
+      return {
+        valid: true,
+        data: executionState.result
+      };
+    }
+
     await setDoc(doc(db, "users", actor.id), {
       dailyBonus: {
         lastClaimedDate: today,
@@ -14,16 +22,7 @@ export async function processClaimDailyBonus(executionState) {
       }
     }, { merge: true });
 
-    executionState.result = {
-      dailyBonus: {
-        available: false,
-        claimed: true,
-        lastClaimedDate: today,
-        rewardXp: rewardXp,
-        nextAvailableAt: today + "T24:00:00.000Z",
-        countdownLabel: "Available again tomorrow"
-      }
-    };
+    executionState.result = buildDailyBonusResult(today, rewardXp);
 
     return {
       valid: true,
@@ -43,6 +42,22 @@ export async function processClaimDailyBonus(executionState) {
   }
 }
 
+function buildDailyBonusResult(today, rewardXp) {
+  return {
+    dailyBonus: {
+      available: false,
+      claimed: true,
+      lastClaimedDate: today,
+      rewardXp: rewardXp,
+      nextAvailableAt: today + "T24:00:00.000Z",
+      countdownLabel: "Available again tomorrow"
+    }
+  };
+}
+
+function isPreviewActor(actor) {
+  return actor && actor.id === "preview-student";
+}
 function logDailyBonusDebug(error, actor) {
   if (!isDevelopmentHost()) {
     return;

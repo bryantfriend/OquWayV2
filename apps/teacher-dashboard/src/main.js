@@ -12,11 +12,16 @@ var state = {
   isLoggingIn: false,
   isResetting: false,
   isReviewing: "",
+  isAttendanceLoading: false,
+  isSavingAttendance: false,
+  isStudentDetailLoading: false,
   teacher: null,
   classes: [],
   courses: [],
   students: [],
   submissions: [],
+  attendance: null,
+  studentDetail: null,
   summary: null,
   classDetail: null,
   courseDetail: null,
@@ -26,6 +31,9 @@ var state = {
   courseDetailError: "",
   selectedClassId: "",
   selectedCourseId: "",
+  selectedAttendanceClassId: "",
+  selectedStudentId: "",
+  attendanceDate: readTodayDate(),
   activeTab: "classes",
   reviewClassId: "",
   reviewCourseId: "",
@@ -89,6 +97,7 @@ async function loadDashboard() {
     var courses = data.courses || [];
     var selectedClassId = recordExists(classes, state.selectedClassId) ? state.selectedClassId : "";
     var selectedCourseId = recordExists(courses, state.selectedCourseId) ? state.selectedCourseId : "";
+    var selectedAttendanceClassId = recordExists(classes, state.selectedAttendanceClassId) ? state.selectedAttendanceClassId : (classes[0] ? classes[0].id : "");
 
     setState({
       isLoading: false,
@@ -101,6 +110,7 @@ async function loadDashboard() {
       summary: data.summary || null,
       selectedClassId: selectedClassId,
       selectedCourseId: selectedCourseId,
+      selectedAttendanceClassId: selectedAttendanceClassId,
       classDetail: selectedClassId ? state.classDetail : null,
       courseDetail: selectedCourseId ? state.courseDetail : null,
       classDetailError: selectedClassId ? state.classDetailError : "",
@@ -118,6 +128,8 @@ async function loadDashboard() {
       courses: [],
       students: [],
       submissions: [],
+  attendance: null,
+  studentDetail: null,
       summary: null,
       classDetail: null,
       courseDetail: null,
@@ -158,6 +170,89 @@ async function refreshReviewQueue() {
   }
 }
 
+
+async function loadAttendance() {
+  setState({
+    isAttendanceLoading: true,
+    error: "",
+    message: "Loading attendance..."
+  });
+
+  try {
+    var data = await teacherDashboardService.loadAttendance({
+      classId: state.selectedAttendanceClassId,
+      attendanceDate: state.attendanceDate
+    });
+
+    setState({
+      isAttendanceLoading: false,
+      attendance: data,
+      selectedAttendanceClassId: data.classId || state.selectedAttendanceClassId,
+      attendanceDate: data.attendanceDate || state.attendanceDate,
+      message: "",
+      error: ""
+    });
+  } catch (error) {
+    setState({
+      isAttendanceLoading: false,
+      error: error.message,
+      message: ""
+    });
+  }
+}
+
+async function saveAttendance() {
+  var payload = readAttendanceFormPayload();
+
+  setState({
+    isSavingAttendance: true,
+    error: "",
+    message: "Saving attendance..."
+  });
+
+  try {
+    var data = await teacherDashboardService.saveAttendance(payload);
+    setState({
+      isSavingAttendance: false,
+      attendance: data,
+      message: "Attendance saved.",
+      error: ""
+    });
+  } catch (error) {
+    setState({
+      isSavingAttendance: false,
+      error: error.message,
+      message: ""
+    });
+  }
+}
+
+async function loadStudentDetail(studentId, classId) {
+  setState({
+    isStudentDetailLoading: true,
+    selectedStudentId: studentId,
+    activeTab: "studentDetail",
+    studentDetail: null,
+    error: "",
+    message: "Loading student detail..."
+  });
+
+  try {
+    var data = await teacherDashboardService.loadStudentDetail(studentId, classId || "");
+    setState({
+      isStudentDetailLoading: false,
+      studentDetail: data,
+      message: "",
+      error: ""
+    });
+  } catch (error) {
+    setState({
+      isStudentDetailLoading: false,
+      error: error.message,
+      message: ""
+    });
+  }
+}
 async function handleSubmit(event) {
   var loginForm = event.target.closest("#teacherLoginForm");
   var resetForm = event.target.closest("#teacherResetForm");
@@ -244,6 +339,18 @@ async function handleClick(event) {
   var reviewButton = event.target.closest("[data-review-status]");
   var retryClassButton = event.target.closest("[data-action=retry-class-detail]");
   var retryCourseButton = event.target.closest("[data-action=retry-course-detail]");
+  var saveAttendanceButton = event.target.closest("[data-action=save-attendance]");
+  var studentDetailButton = event.target.closest("[data-action=view-student-detail]");
+
+  if (saveAttendanceButton) {
+    await saveAttendance();
+    return;
+  }
+
+  if (studentDetailButton) {
+    await loadStudentDetail(studentDetailButton.getAttribute("data-student-id") || "", studentDetailButton.getAttribute("data-class-id") || "");
+    return;
+  }
 
   if (logoutButton) {
     await teacherDashboardService.logout();
@@ -377,6 +484,8 @@ async function handleChange(event) {
   var classSelect = event.target.closest("#reviewClassFilter");
   var courseSelect = event.target.closest("#reviewCourseFilter");
   var moduleSelect = event.target.closest("#reviewModuleFilter");
+  var attendanceClassSelect = event.target.closest("#attendanceClassSelect");
+  var attendanceDateInput = event.target.closest("#attendanceDateInput");
 
   if (!statusSelect && !classSelect && !courseSelect && !moduleSelect) {
     return;
@@ -750,6 +859,8 @@ function buildTeacherTabs() {
   return '<nav class="teacher-tabs" aria-label="Teacher dashboard sections">'
     + buildTeacherTabButton("classes", "Classes", state.classes.length)
     + buildTeacherTabButton("courses", "Courses", state.courses.length)
+    + buildTeacherTabButton("needsHelp", "Needs Help", countNeedsHelp(state.students))
+    + buildTeacherTabButton("attendance", "Attendance", state.classes.length)
     + buildTeacherTabButton("reviews", "Reviews", countPending(state.submissions))
     + '</nav>';
 }
@@ -766,6 +877,18 @@ function buildActiveTeacherTab() {
 
   if (state.activeTab === "reviews") {
     return buildReviewQueue();
+  }
+
+  if (state.activeTab === "needsHelp") {
+    return buildNeedsHelpView();
+  }
+
+  if (state.activeTab === "attendance") {
+    return buildAttendanceView();
+  }
+
+  if (state.activeTab === "studentDetail") {
+    return buildStudentDetailView();
   }
 
   return '<section class="teacher-grid">'
@@ -912,16 +1035,158 @@ function buildStudentsView(students, title, emptyMessage) {
   safeStudents.forEach(function (student) {
     html += '<article class="teacher-student-row">'
       + '<div class="teacher-avatar">' + buildStudentAvatar(student) + '</div>'
-      + '<div><strong>' + escapeHtml(student.name) + '</strong><span>' + escapeHtml(student.currentCourseProgress || "No progress yet") + '</span></div>'
-      + buildStudentPulseSvg(student.pendingSubmissionsCount > 0)
-      + '<div><span>' + escapeHtml(formatDate(student.lastActiveAt) || "No recent activity") + '</span><small>' + student.pendingSubmissionsCount + ' pending</small></div>'
-      + '<b class="' + (student.pendingSubmissionsCount > 0 ? "needs-review" : "steady") + '">' + (student.pendingSubmissionsCount > 0 ? "Needs review" : "Steady") + '</b>'
+      + '<div><strong>' + escapeHtml(student.name) + '</strong><span>' + escapeHtml(student.currentCourseProgress || "No progress yet") + '</span><small>' + escapeHtml(readHelpSignalText(student)) + '</small></div>'
+      + buildStudentPulseSvg(student.pendingSubmissionsCount > 0 || (student.helpSignals || []).length > 0)
+      + '<div><span>' + escapeHtml(formatDate(student.lastActiveAt) || "No recent activity") + '</span><small>' + student.pendingSubmissionsCount + ' pending | ' + (student.progressPercent || 0) + '%</small></div>'
+      + '<b class="' + ((student.helpSignals || []).length > 0 ? "needs-review" : "steady") + '">' + ((student.helpSignals || []).length > 0 ? "Needs help" : "Steady") + '</b>'
+      + '<button type="button" class="teacher-secondary-btn" data-action="view-student-detail" data-student-id="' + escapeHtml(student.id || "") + '" data-class-id="' + escapeHtml(student.classId || "") + '">Detail</button>'
       + '</article>';
   });
 
   return html + '</div></section>';
 }
 
+function buildNeedsHelpView() {
+  var students = (state.students || []).filter(function (student) {
+    return (student.helpSignals || []).length > 0;
+  });
+  var html = '<section class="teacher-card-section teacher-wide-section"><div class="teacher-section-title"><div><h2>Needs Help</h2><p>Students with pending reviews, low progress, or stale activity</p></div>' + buildSectionGlyphSvg("students") + '</div>';
+
+  if (students.length === 0) {
+    return html + buildEmptyState("students", "No help signals right now.", "Students with review, activity, or progress concerns will appear here.") + '</section>';
+  }
+
+  return html + buildStudentsView(students, "Students To Check", "No help signals right now.") + '</section>';
+}
+
+function buildAttendanceView() {
+  var data = state.attendance || {};
+  var students = data.students || [];
+  var summary = data.summary || {};
+  var html = '<section class="teacher-card-section teacher-wide-section"><div class="teacher-section-title"><div><h2>Attendance</h2><p>Take attendance for an assigned class</p></div>' + buildSectionGlyphSvg("classes") + '</div>';
+
+  html += '<div class="teacher-filters">'
+    + '<label>Class<select id="attendanceClassSelect">' + buildAttendanceClassOptions() + '</select></label>'
+    + '<label>Date<input id="attendanceDateInput" type="date" value="' + escapeHtml(state.attendanceDate || readTodayDate()) + '"></label>'
+    + '<button type="button" class="teacher-secondary-btn" data-action="save-attendance"' + disabled(state.isSavingAttendance || students.length === 0) + '>' + (state.isSavingAttendance ? "Saving..." : "Save Attendance") + '</button>'
+    + '</div>';
+
+  if (state.isAttendanceLoading) {
+    return html + createLoadingState("Loading attendance...", { className: "teacher-review-loading", beforeHtml: buildSavingSvg() }) + '</section>';
+  }
+
+  if (!state.selectedAttendanceClassId) {
+    return html + buildEmptyState("classes", "No class selected.", "Assign classes to this teacher before taking attendance.") + '</section>';
+  }
+
+  html += buildDetailSummary([
+    { label: "Present", value: summary.present || 0 },
+    { label: "Absent", value: summary.absent || 0 },
+    { label: "Late", value: summary.late || 0 }
+  ]);
+
+  if (students.length === 0) {
+    return html + buildEmptyState("students", "No students in this class.", "Students assigned to the selected class will appear here.") + '</section>';
+  }
+
+  html += '<div class="teacher-attendance-list">';
+  students.forEach(function (student) {
+    html += buildAttendanceRow(student);
+  });
+
+  return html + '</div></section>';
+}
+
+function buildAttendanceRow(student) {
+  return '<article class="teacher-attendance-row" data-attendance-student-id="' + escapeHtml(student.id || "") + '">'
+    + '<div class="teacher-avatar">' + buildStudentAvatar(student) + '</div>'
+    + '<div><strong>' + escapeHtml(student.name || "Student") + '</strong><span>' + escapeHtml(readHelpSignalText(student)) + '</span></div>'
+    + '<select data-attendance-status="' + escapeHtml(student.id || "") + '">'
+    + buildAttendanceStatusOption(student.attendanceStatus, "present", "Present")
+    + buildAttendanceStatusOption(student.attendanceStatus, "absent", "Absent")
+    + buildAttendanceStatusOption(student.attendanceStatus, "late", "Late")
+    + buildAttendanceStatusOption(student.attendanceStatus, "excused", "Excused")
+    + '</select>'
+    + '<input data-attendance-note="' + escapeHtml(student.id || "") + '" value="' + escapeHtml(student.attendanceNote || "") + '" placeholder="Note">'
+    + '</article>';
+}
+
+function buildStudentDetailView() {
+  var detail = state.studentDetail || {};
+  var student = detail.student || findRecordById(state.students || [], state.selectedStudentId) || {};
+  var summary = detail.summary || {};
+  var attendanceSummary = detail.attendanceSummary || {};
+  var html = '<section class="teacher-card-section teacher-wide-section teacher-detail-panel"><div class="teacher-section-title"><div><h2>' + escapeHtml(student.name || "Student Detail") + '</h2><p>Progress, attendance, submissions, and feedback context</p></div>' + buildSectionGlyphSvg("students") + '</div>';
+
+  if (state.isStudentDetailLoading) {
+    return html + createLoadingState("Loading student detail...", { className: "teacher-review-loading", beforeHtml: buildSavingSvg() }) + '</section>';
+  }
+
+  if (!detail.student) {
+    return html + buildEmptyState("students", "Select a student.", "Student progress and review context will appear here.") + '</section>';
+  }
+
+  html += '<div class="teacher-detail-context"><strong>' + escapeHtml(readHelpSignalText(student) || "No help signals") + '</strong><span>' + escapeHtml(formatDate(student.lastActiveAt) || "No recent activity") + '</span></div>';
+  html += buildDetailSummary([
+    { label: "Courses", value: summary.courseCount || 0 },
+    { label: "Pending Reviews", value: summary.pendingSubmissionsCount || 0 },
+    { label: "Attendance Concerns", value: summary.attendanceConcernCount || 0 }
+  ]);
+  html += buildAttendanceSummaryBlock(attendanceSummary);
+  html += buildDetailCourseList(detail.courses || []);
+  html += buildDetailSubmissionList(detail.submissions || []);
+
+  return html + '</section>';
+}
+
+function buildAttendanceSummaryBlock(summary) {
+  return '<section class="teacher-detail-block"><div class="teacher-section-title teacher-detail-title"><div><h3>Attendance Summary</h3><p>Recorded attendance for assigned classes</p></div></div>'
+    + buildDetailSummary([
+      { label: "Present", value: summary.present || 0 },
+      { label: "Absent", value: summary.absent || 0 },
+      { label: "Late", value: summary.late || 0 }
+    ]) + '</section>';
+}
+
+function buildAttendanceClassOptions() {
+  if ((state.classes || []).length === 0) {
+    return '<option value="">No classes</option>';
+  }
+
+  return (state.classes || []).map(function (classRecord) {
+    return '<option value="' + escapeHtml(classRecord.id) + '"' + selected(state.selectedAttendanceClassId, classRecord.id) + '>' + escapeHtml(classRecord.name) + '</option>';
+  }).join("");
+}
+
+function buildAttendanceStatusOption(currentValue, value, label) {
+  return '<option value="' + escapeHtml(value) + '"' + selected(currentValue || "present", value) + '>' + escapeHtml(label) + '</option>';
+}
+
+function readAttendanceFormPayload() {
+  var statuses = {};
+  var notes = {};
+  var statusInputs = document.querySelectorAll("[data-attendance-status]");
+  var noteInputs = document.querySelectorAll("[data-attendance-note]");
+  var index = 0;
+
+  while (index < statusInputs.length) {
+    statuses[statusInputs[index].getAttribute("data-attendance-status") || ""] = statusInputs[index].value || "present";
+    index = index + 1;
+  }
+
+  index = 0;
+  while (index < noteInputs.length) {
+    notes[noteInputs[index].getAttribute("data-attendance-note") || ""] = noteInputs[index].value || "";
+    index = index + 1;
+  }
+
+  return {
+    classId: state.selectedAttendanceClassId,
+    attendanceDate: state.attendanceDate || readTodayDate(),
+    statuses: statuses,
+    notes: notes
+  };
+}
 function buildDetailSummary(items) {
   var html = '<div class="teacher-detail-kpis">';
   items.forEach(function (item) {
@@ -1335,6 +1600,25 @@ function addPart(parts, label, value) {
   }
 }
 
+function countNeedsHelp(students) {
+  return (students || []).filter(function (student) {
+    return (student.helpSignals || []).length > 0;
+  }).length;
+}
+
+function readHelpSignalText(student) {
+  var signals = student && Array.isArray(student.helpSignals) ? student.helpSignals : [];
+
+  if (signals.length === 0) {
+    return "No help signals";
+  }
+
+  return signals.slice(0, 3).join(" | ");
+}
+
+function readTodayDate() {
+  return new Date().toISOString().slice(0, 10);
+}
 function countPending(submissions) {
   return (submissions || []).filter(function (submission) {
     return submission.reviewStatus === "pending";

@@ -57,12 +57,84 @@ export function validateTeacherReviewQueuePayload(executionState) {
   return { valid: true };
 }
 
+export function validateTeacherAttendanceQueryPayload(executionState) {
+  var payload = executionState.payload || {};
+  var errors = [];
+
+  if (!isOptionalText(payload.classId)) {
+    errors.push(createError("TEACHER_ATTENDANCE_CLASS_INVALID", "Class ID must be text."));
+  }
+
+  if (payload.attendanceDate && !isIsoDate(payload.attendanceDate)) {
+    errors.push(createError("TEACHER_ATTENDANCE_DATE_INVALID", "Attendance date must use YYYY-MM-DD."));
+  }
+
+  return errors.length > 0 ? { valid: false, errors: errors } : { valid: true };
+}
+
+export function validateTeacherAttendanceSavePayload(executionState) {
+  var payload = executionState.payload || {};
+  var errors = [];
+  var statuses = payload.statuses || {};
+  var studentIds = Object.keys(statuses);
+  var index = 0;
+
+  if (!isOptionalText(payload.classId) || !payload.classId) {
+    errors.push(createError("TEACHER_ATTENDANCE_CLASS_REQUIRED", "Choose a class before saving attendance."));
+  }
+
+  if (!isIsoDate(payload.attendanceDate)) {
+    errors.push(createError("TEACHER_ATTENDANCE_DATE_REQUIRED", "Attendance date must use YYYY-MM-DD."));
+  }
+
+  if (!statuses || typeof statuses !== "object" || Array.isArray(statuses)) {
+    errors.push(createError("TEACHER_ATTENDANCE_STATUSES_REQUIRED", "Attendance statuses are required."));
+  }
+
+  while (index < studentIds.length) {
+    if (!isAttendanceStatus(statuses[studentIds[index]])) {
+      errors.push(createError("TEACHER_ATTENDANCE_STATUS_INVALID", "Attendance status is not supported."));
+      break;
+    }
+    index = index + 1;
+  }
+
+  return errors.length > 0 ? { valid: false, errors: errors } : { valid: true };
+}
+
+export function validateTeacherStudentDetailPayload(executionState) {
+  var payload = executionState.payload || {};
+
+  if (!isOptionalText(payload.studentId) || !payload.studentId) {
+    return {
+      valid: false,
+      errors: [createError("TEACHER_STUDENT_ID_REQUIRED", "Choose a student to view detail.")]
+    };
+  }
+
+  return { valid: true };
+}
 function isEmail(value) {
   return typeof value === "string"
     && value.indexOf("@") > 0
     && value.indexOf(".") > value.indexOf("@") + 1;
 }
 
+function isOptionalText(value) {
+  return value == null || typeof value === "string";
+}
+
+function isIsoDate(value) {
+  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
+function isAttendanceStatus(value) {
+  return value === "present"
+    || value === "absent"
+    || value === "late"
+    || value === "excused"
+    || value === "";
+}
 function createError(code, message) {
   return {
     code: code,

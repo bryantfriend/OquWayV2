@@ -76,6 +76,7 @@ export { ResubmitExternalTaskIntent } from "./externalTask/ResubmitExternalTaskI
 // Teacher Dashboard
 // ----------------------
 export { TeacherLoginIntent } from "./teacher/TeacherLoginIntent.js?v=1.1.220-student-dashboard-timeout-helper";
+export { LoadTeacherAttendanceIntent } from "./teacher/LoadTeacherAttendanceIntent.js?v=1.1.220-student-dashboard-timeout-helper";
 export { LoadTeacherClassDetailIntent } from "./teacher/LoadTeacherClassDetailIntent.js?v=1.1.220-student-dashboard-timeout-helper";
 export { LoadTeacherCourseDetailIntent } from "./teacher/LoadTeacherCourseDetailIntent.js?v=1.1.220-student-dashboard-timeout-helper";
 export { LoadTeacherCoursesIntent } from "./teacher/LoadTeacherCoursesIntent.js?v=1.1.220-student-dashboard-timeout-helper";
@@ -83,6 +84,8 @@ export { LoadTeacherDashboardIntent } from "./teacher/LoadTeacherDashboardIntent
 export { LoadTeacherClassesIntent } from "./teacher/LoadTeacherClassesIntent.js?v=1.1.220-student-dashboard-timeout-helper";
 export { LoadTeacherStudentsIntent } from "./teacher/LoadTeacherStudentsIntent.js?v=1.1.220-student-dashboard-timeout-helper";
 export { LoadTeacherReviewQueueIntent } from "./teacher/LoadTeacherReviewQueueIntent.js?v=1.1.220-student-dashboard-timeout-helper";
+export { LoadTeacherStudentDetailIntent } from "./teacher/LoadTeacherStudentDetailIntent.js?v=1.1.220-student-dashboard-timeout-helper";
+export { SaveTeacherAttendanceIntent } from "./teacher/SaveTeacherAttendanceIntent.js?v=1.1.220-student-dashboard-timeout-helper";
 export { SendTeacherPasswordResetIntent } from "./teacher/SendTeacherPasswordResetIntent.js?v=1.1.220-student-dashboard-timeout-helper";
 
 // ----------------------
@@ -148,6 +151,7 @@ export { SaveCourseDraftIntent } from "./courseEditor/SaveCourseDraftIntent.js?v
 export { PublishCourseIntent } from "./courseEditor/PublishCourseIntent.js?v=1.1.220-student-dashboard-timeout-helper";
 export { ValidateCourseStructureIntent } from "./courseEditor/ValidateCourseStructureIntent.js?v=1.1.220-student-dashboard-timeout-helper";
 export { UpdateCourseFieldIntent } from "./courseEditor/UpdateCourseFieldIntent.js?v=1.1.220-student-dashboard-timeout-helper";
+export { UploadCourseIconIntent } from "./courseEditor/UploadCourseIconIntent.js?v=1.1.220-student-dashboard-timeout-helper";
 export { MigrateLegacyModulesToCatalogCourseIntent } from "./courseEditor/MigrateLegacyModulesToCatalogCourseIntent.js?v=1.1.220-student-dashboard-timeout-helper";
 
 // ----------------------

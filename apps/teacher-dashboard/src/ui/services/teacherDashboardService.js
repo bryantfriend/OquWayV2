@@ -45,6 +45,27 @@ export const teacherDashboardService = {
     return readIntentData(result);
   },
 
+
+  loadAttendance: async function (filters) {
+    await refreshCurrentTeacherClaims(false);
+    var result = await runTeacherIntent("LoadTeacherAttendanceIntent", filters || {}, getCurrentTeacherActor());
+    return readIntentData(result);
+  },
+
+  saveAttendance: async function (payload) {
+    await refreshCurrentTeacherClaims(false);
+    var result = await runTeacherIntent("SaveTeacherAttendanceIntent", payload || {}, getCurrentTeacherActor());
+    return readIntentData(result);
+  },
+
+  loadStudentDetail: async function (studentId, classId) {
+    await refreshCurrentTeacherClaims(false);
+    var result = await runTeacherIntent("LoadTeacherStudentDetailIntent", {
+      studentId: studentId,
+      classId: classId || ""
+    }, getCurrentTeacherActor());
+    return readIntentData(result);
+  },
   loadCourses: async function (filters) {
     await refreshCurrentTeacherClaims(false);
     var result = await runTeacherIntent("LoadTeacherCoursesIntent", filters || {}, getCurrentTeacherActor());

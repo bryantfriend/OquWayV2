@@ -6,7 +6,9 @@ export async function processStudentOpenCourse(executionState) {
   var courseId = readText(payload.courseId);
   var studentId = readText(payload.studentId || (executionState.actor ? executionState.actor.id : ""));
   var courses = Array.isArray(executionState.context.studentOpenCourses) ? executionState.context.studentOpenCourses : [];
-  var assignmentResult = await getAssignedCourseIds(studentId, executionState.context.studentProfile);
+  var assignmentResult = isPreviewActor(executionState.actor)
+    ? createEmptyCourseAssignmentResult("preview")
+    : await getAssignedCourseIds(studentId, executionState.context.studentProfile);
   var assignmentId = assignmentResult.assignmentIdByCourseId[courseId] || "";
   var isAssignedCourse = assignmentResult.courseIds.indexOf(courseId) !== -1;
   var course = executionState.context.studentOpenCourse || findCourseById(courses, courseId);
@@ -75,6 +77,15 @@ export async function processStudentOpenCourse(executionState) {
   };
 }
 
+function createEmptyCourseAssignmentResult(source) {
+  return {
+    courseIds: [],
+    assignmentIdByCourseId: {},
+    assignmentCount: 0,
+    warnings: [],
+    source: source || "none"
+  };
+}
 function attachAssignmentId(course, assignmentId) {
   if (!course) {
     return course;

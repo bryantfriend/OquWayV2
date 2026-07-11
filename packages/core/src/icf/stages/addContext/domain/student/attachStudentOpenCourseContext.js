@@ -1,6 +1,7 @@
 import { db, collection, doc, getDoc, getDocs } from "../../../../../infrastructure/firebase/firestore.js?v=1.1.82-shared-command-center-shell";
 import { normalizePracticeModes } from "../../../process/domain/moduleEditor/practiceModeShells.js?v=1.1.82-shared-command-center-shell";
 import { createDefaultProgressDocument } from "../../../process/domain/student/studentProgressHelpers.js?v=1.1.82-shared-command-center-shell";
+import { findPreviewStudentCourse } from "../../../process/domain/student/previewStudentCourseFixture.js?v=1.1.220-student-dashboard-timeout-helper";
 
 export async function attachStudentOpenCourseContext(executionState) {
   var payload = executionState.payload || {};
@@ -11,9 +12,25 @@ export async function attachStudentOpenCourseContext(executionState) {
   var attemptedModulePaths = [];
 
   try {
+    if (isPreviewActor(actor)) {
+      var previewCourse = findPreviewStudentCourse(courseId, actor);
+
+      if (previewCourse) {
+        return buildPreviewOpenCourseContext(studentId, courseId, previewCourse);
+      }
+    }
+
     var courseContext = await loadCourse(courseId, attemptedCoursePaths);
 
     if (!courseContext.course) {
+      if (isPreviewActor(actor)) {
+        var previewCourse = findPreviewStudentCourse(courseId, actor);
+
+        if (previewCourse) {
+          return buildPreviewOpenCourseContext(studentId, courseId, previewCourse);
+        }
+      }
+
       logAddContextFailure(studentId, courseId, attemptedCoursePaths, attemptedModulePaths, "Course was not found.");
       return {
         valid: false,
@@ -65,6 +82,34 @@ export async function attachStudentOpenCourseContext(executionState) {
   }
 }
 
+function buildPreviewOpenCourseContext(studentId, courseId, course) {
+  var modules = Array.isArray(course.modules) ? course.modules : [];
+
+  console.info("[student-open-course:context]", {
+    studentId: studentId,
+    courseId: courseId,
+    courseFound: true,
+    moduleCount: modules.length,
+    moduleSource: "preview-fixture"
+  });
+
+  return {
+    valid: true,
+    data: {
+      studentOpenCourses: [course],
+      studentOpenCourse: course,
+      studentOpenModules: modules,
+      studentOpenCourseSource: "preview-fixture",
+      studentOpenModuleSource: "preview-fixture",
+      studentOpenFirstRunnableStep: findFirstRunnableStep(course),
+      studentOpenProgressLoaded: true
+    }
+  };
+}
+
+function isPreviewActor(actor) {
+  return actor && actor.id === "preview-student";
+}
 async function loadCourse(courseId, attemptedCoursePaths) {
   var sources = ["catalogCourses", "courses"];
   var sourceIndex = 0;

@@ -122,6 +122,7 @@ export class ActivityStudioPage {
     }
 
     config = readTemplatePreviewContent(activity, template);
+    config.activityType = activity.activityType;
     config.templateId = template.meta.templateId;
 
     this.player = new PracticeModePlayer({
