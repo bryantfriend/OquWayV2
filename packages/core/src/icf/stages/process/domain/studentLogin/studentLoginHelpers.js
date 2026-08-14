@@ -1,4 +1,4 @@
-import { functions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.82-shared-command-center-shell";
+import { functions, regionalFunctions, httpsCallable } from "../../../../../infrastructure/firebase/functions.js?v=1.1.231-platform-performance-release";
 
 export async function callStudentLoginFunction(payload) {
   return callCallableFunction("studentLogin", payload);
@@ -9,9 +9,17 @@ export async function callGetStudentsForClassFunction(payload) {
 }
 
 async function callCallableFunction(functionName, payload) {
-  var callable = httpsCallable(functions, "studentLogin");
+  var response = null;
 
-  var response = await callable(payload);
+  try {
+    response = await httpsCallable(regionalFunctions, "studentLogin")(payload);
+  } catch (error) {
+    if (!shouldRetryLegacyRegion(error)) {
+      throw error;
+    }
+
+    response = await httpsCallable(functions, "studentLogin")(payload);
+  }
 
   if (!response || !response.data) {
     throw new Error(functionName + " returned an empty response.");
@@ -22,6 +30,15 @@ async function callCallableFunction(functionName, payload) {
   }
 
   return response.data;
+}
+
+function shouldRetryLegacyRegion(error) {
+  var code = error && error.code ? error.code : "";
+
+  return code === "functions/internal"
+    || code === "functions/unavailable"
+    || code === "functions/not-found"
+    || code === "functions/deadline-exceeded";
 }
 
 export function sanitizeProfile(profile) {

@@ -1,16 +1,16 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.228-learning-activity-drag-interactions";
-import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.228-learning-activity-drag-interactions";
-import { multiSelectSchema } from "./multiSelect.schema.js?v=1.1.228-learning-activity-drag-interactions";
-import { multiSelectStandardMeta } from "./templates/multi-select-standard/multiSelectStandard.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as multiSelectStandardTemplate from "./templates/multi-select-standard/multiSelectStandard.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { multiSelectSafetyScanMeta } from "./templates/multi-select-safety-scan/multiSelectSafetyScan.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as multiSelectSafetyScanTemplate from "./templates/multi-select-safety-scan/multiSelectSafetyScan.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { multiSelectTeamDraftMeta } from "./templates/multi-select-team-draft/multiSelectTeamDraft.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as multiSelectTeamDraftTemplate from "./templates/multi-select-team-draft/multiSelectTeamDraft.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { multiSelectThreatRadarMeta } from "./templates/multi-select-threat-radar/multiSelectThreatRadar.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as multiSelectThreatRadarTemplate from "./templates/multi-select-threat-radar/multiSelectThreatRadar.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { multiSelectCollectionCaseMeta } from "./templates/multi-select-collection-case/multiSelectCollectionCase.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as multiSelectCollectionCaseTemplate from "./templates/multi-select-collection-case/multiSelectCollectionCase.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.231-platform-performance-release";
+import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.231-platform-performance-release";
+import { multiSelectSchema } from "./multiSelect.schema.js?v=1.1.231-platform-performance-release";
+import { multiSelectStandardMeta } from "./templates/multi-select-standard/multiSelectStandard.meta.js?v=1.1.231-platform-performance-release";
+import * as multiSelectStandardTemplate from "./templates/multi-select-standard/multiSelectStandard.template.js?v=1.1.231-platform-performance-release";
+import { multiSelectSafetyScanMeta } from "./templates/multi-select-safety-scan/multiSelectSafetyScan.meta.js?v=1.1.231-platform-performance-release";
+import * as multiSelectSafetyScanTemplate from "./templates/multi-select-safety-scan/multiSelectSafetyScan.template.js?v=1.1.231-platform-performance-release";
+import { multiSelectTeamDraftMeta } from "./templates/multi-select-team-draft/multiSelectTeamDraft.meta.js?v=1.1.231-platform-performance-release";
+import * as multiSelectTeamDraftTemplate from "./templates/multi-select-team-draft/multiSelectTeamDraft.template.js?v=1.1.231-platform-performance-release";
+import { multiSelectThreatRadarMeta } from "./templates/multi-select-threat-radar/multiSelectThreatRadar.meta.js?v=1.1.231-platform-performance-release";
+import * as multiSelectThreatRadarTemplate from "./templates/multi-select-threat-radar/multiSelectThreatRadar.template.js?v=1.1.231-platform-performance-release";
+import { multiSelectCollectionCaseMeta } from "./templates/multi-select-collection-case/multiSelectCollectionCase.meta.js?v=1.1.231-platform-performance-release";
+import * as multiSelectCollectionCaseTemplate from "./templates/multi-select-collection-case/multiSelectCollectionCase.template.js?v=1.1.231-platform-performance-release";
 
 export const multiSelectActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: CustomExperienceStep,

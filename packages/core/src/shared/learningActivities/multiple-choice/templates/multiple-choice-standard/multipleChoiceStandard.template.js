@@ -1,9 +1,9 @@
-import { getMultipleChoiceDefaultContent } from "../../multipleChoice.schema.js?v=1.1.228-learning-activity-drag-interactions";
+import { getMultipleChoiceDefaultContent } from "../../multipleChoice.schema.js?v=1.1.231-platform-performance-release";
 import {
   destroyMiniGameTemplate,
   mergeTemplateContent,
   renderMiniGameTemplate
-} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+} from "../../../miniGameTemplateRenderer.js?v=1.1.231-platform-performance-release";
 
 const TEMPLATE_ID = "multiple-choice-standard";
 const TEMPLATE_PATCH = {

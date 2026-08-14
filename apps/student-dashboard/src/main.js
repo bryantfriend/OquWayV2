@@ -1,6 +1,5 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.220-student-dashboard-timeout-helper";
-import { PracticeModePlayer } from "../../../packages/shared/player/index.js?v=1.1.220-student-dashboard-timeout-helper";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.231-platform-performance-release";
 import {
   calculateCourseCompletion as calculateSharedCourseCompletion,
   countCourseCompletedSteps as countSharedCourseCompletedSteps,
@@ -13,21 +12,25 @@ import {
   readModuleLearningStatus,
   readModuleLastOpenedAt,
   readSessionLearningStatus
-} from "../../../packages/domain/progress/index.js?v=1.1.220-student-dashboard-timeout-helper";
+} from "../../../packages/domain/progress/index.js?v=1.1.231-platform-performance-release";
 import {
   createEmptyState,
   createErrorState,
   createLoadingState,
   createStatusBadge,
   formatStatusLabel
-} from "../../../packages/ui/index.js?v=1.1.220-student-dashboard-timeout-helper";
-import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.220-student-dashboard-timeout-helper";
-import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.220-student-dashboard-timeout-helper";
+} from "../../../packages/ui/index.js?v=1.1.231-platform-performance-release";
+import { studentDashboardStore } from "./ui/state/studentDashboardState.js?v=1.1.231-platform-performance-release";
+import { studentDashboardService } from "./ui/services/studentDashboardService.js?v=1.1.231-platform-performance-release";
+import { completeStudentPortalJourney } from "../../../packages/shared/performance/studentPortalMetrics.js?v=1.1.231-platform-performance-release";
 
 var appElement = document.getElementById("app");
 var authInitialized = false;
 var practiceModePlayer = null;
 var practiceModePlayerSignature = "";
+var practiceModePlayerConstructor = null;
+var practiceModePlayerModulePromise = null;
+var dashboardInteractiveMarked = false;
 
 studentDashboardStore.subscribe(function (state) {
   render(state);
@@ -44,6 +47,18 @@ if (appElement) {
 onAuthStateChanged(auth, function (user) {
   handleStartupAuth(user);
 });
+
+registerStudentPortalServiceWorker();
+
+function registerStudentPortalServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("../../student-portal-sw.js", { scope: "../../" }).catch(function () {
+      return null;
+    });
+  });
+}
 
 async function handleStartupAuth(user) {
   if (authInitialized) {
@@ -68,15 +83,19 @@ async function handleStartupAuth(user) {
     return;
   }
 
-  var profile = await studentDashboardService.loadVerifiedStudentProfile();
-
-  if (!profile) {
-    await clearStudentSessionAndRedirect("We could not verify an active student profile for this account.");
+  if (!hasConfirmedStudentSession(user.uid)) {
+    await clearStudentSessionAndRedirect("Please choose your student card and enter your fruit password.");
     return;
   }
 
-  if (!hasConfirmedStudentSession(user.uid)) {
-    await clearStudentSessionAndRedirect("Please choose your student card and enter your fruit password.");
+  var profile = readStudentBootstrapProfile(user.uid);
+
+  if (!profile) {
+    profile = await studentDashboardService.loadVerifiedStudentProfile();
+  }
+
+  if (!profile) {
+    await clearStudentSessionAndRedirect("We could not verify an active student profile for this account.");
     return;
   }
 
@@ -120,6 +139,27 @@ function clearStudentSessionMarker() {
 
   window.sessionStorage.removeItem("oquwayStudentSessionUid");
   window.sessionStorage.removeItem("oquwayStudentSessionStartedAt");
+  window.sessionStorage.removeItem("oquwayStudentBootstrapProfile");
+}
+
+function readStudentBootstrapProfile(uid) {
+  if (!window.sessionStorage || !uid) {
+    return null;
+  }
+
+  try {
+    var cached = JSON.parse(window.sessionStorage.getItem("oquwayStudentBootstrapProfile") || "null");
+
+    if (!cached || cached.uid !== uid || Date.now() - cached.savedAt > 5 * 60 * 1000) {
+      window.sessionStorage.removeItem("oquwayStudentBootstrapProfile");
+      return null;
+    }
+
+    return cached.profile && typeof cached.profile === "object" ? cached.profile : null;
+  } catch (error) {
+    window.sessionStorage.removeItem("oquwayStudentBootstrapProfile");
+    return null;
+  }
 }
 
 function logStartupAuthUser(user) {
@@ -168,6 +208,11 @@ function render(state) {
   if (state.isLoading) {
     appElement.innerHTML = buildLoadingView();
     return;
+  }
+
+  if (!dashboardInteractiveMarked && !state.error && Array.isArray(state.courses)) {
+    dashboardInteractiveMarked = true;
+    completeStudentPortalJourney();
   }
 
   if (state.isCourseOpening) {
@@ -827,13 +872,27 @@ function disabled(value) {
 }
 
 function readCourseModuleCount(course) {
-  return Array.isArray(course && course.modules) ? course.modules.length : 0;
+  var modules = Array.isArray(course && course.modules) ? course.modules : [];
+
+  if (modules.length === 0 && course && typeof course.moduleCount === "number") {
+    return course.moduleCount;
+  }
+
+  if (modules.length === 0 && course && course.progressSummary && typeof course.progressSummary.totalModuleCount === "number") {
+    return course.progressSummary.totalModuleCount;
+  }
+
+  return modules.length;
 }
 
 function countCompletedModules(course) {
   var modules = course && Array.isArray(course.modules) ? course.modules : [];
   var count = 0;
   var moduleIndex = 0;
+
+  if (modules.length === 0 && course && course.progressSummary && typeof course.progressSummary.completedModuleCount === "number") {
+    return course.progressSummary.completedModuleCount;
+  }
 
   while (moduleIndex < modules.length) {
     if (readModuleLearningStatus(modules[moduleIndex]) === "complete") {
@@ -852,6 +911,16 @@ function buildCourseDetail(course, state) {
     return createEmptyState("Select a course", "Pick a course from the left to begin.", {
       className: "student-empty"
     });
+  }
+
+  if (course.isDashboardSummary === true) {
+    return '<div class="course-focus-shell"><div class="student-course-heading"><div><p class="student-eyebrow">Course</p><h2>'
+      + escapeHtml(readLocalizedText(course.title, "Untitled Course"))
+      + '</h2><p>' + escapeHtml(readLocalizedText(course.description, "Open this course when you are ready to learn."))
+      + '</p><div class="student-course-detail-meta"><span>' + readCourseProgressPercent(course)
+      + '% complete</span><span>' + readCourseModuleCount(course) + ' modules</span></div></div><div class="student-big-progress">'
+      + readCourseProgressPercent(course) + '%</div></div><button type="button" class="student-course-open-btn" data-course-id="'
+      + escapeHtml(course.id) + '">Open course</button></div>';
   }
 
   html += '<div class="course-focus-shell">';
@@ -1002,7 +1071,7 @@ function buildPlayerView(state) {
   return html;
 }
 
-function mountPracticeModePlayer(state) {
+async function mountPracticeModePlayer(state) {
   var target = document.getElementById("student-practice-player-root");
   var course = readSelectedCourse(state);
   var module = readSelectedModule(state);
@@ -1013,6 +1082,13 @@ function mountPracticeModePlayer(state) {
   var signature = "";
 
   if (!target || !course || !module || !session || !practiceMode) {
+    return;
+  }
+
+  var PracticeModePlayer = await loadPracticeModePlayerConstructor();
+  target = document.getElementById("student-practice-player-root");
+
+  if (!target || !studentDashboardStore.getState().playerMode) {
     return;
   }
 
@@ -1062,6 +1138,20 @@ function mountPracticeModePlayer(state) {
   }
 
   practiceModePlayer.mount(target);
+}
+
+async function loadPracticeModePlayerConstructor() {
+  if (practiceModePlayerConstructor) {
+    return practiceModePlayerConstructor;
+  }
+
+  if (!practiceModePlayerModulePromise) {
+    practiceModePlayerModulePromise = import("../../../packages/shared/player/index.js?v=1.1.231-platform-performance-release");
+  }
+
+  var playerModule = await practiceModePlayerModulePromise;
+  practiceModePlayerConstructor = playerModule.PracticeModePlayer;
+  return practiceModePlayerConstructor;
 }
 
 function resetPracticeModePlayer() {

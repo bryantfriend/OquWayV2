@@ -5,6 +5,9 @@
   "engines": {
     "node": "20"
   },
+  "scripts": {
+    "test": "node test/bos-integration.test.js"
+  },
   "dependencies": {
     "firebase-admin": "^12.7.0",
     "firebase-functions": "^6.3.2"

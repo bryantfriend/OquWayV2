@@ -1,16 +1,16 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.228-learning-activity-drag-interactions";
-import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.228-learning-activity-drag-interactions";
-import { roadmapSchema } from "./roadmap.schema.js?v=1.1.228-learning-activity-drag-interactions";
-import { roadmapStandardMeta } from "./templates/roadmap-standard/roadmapStandard.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as roadmapStandardTemplate from "./templates/roadmap-standard/roadmapStandard.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { roadmapSkillClimbMeta } from "./templates/roadmap-skill-climb/roadmapSkillClimb.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as roadmapSkillClimbTemplate from "./templates/roadmap-skill-climb/roadmapSkillClimb.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { roadmapProjectLaneMeta } from "./templates/roadmap-project-lane/roadmapProjectLane.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as roadmapProjectLaneTemplate from "./templates/roadmap-project-lane/roadmapProjectLane.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { roadmapBossPathMeta } from "./templates/roadmap-boss-path/roadmapBossPath.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as roadmapBossPathTemplate from "./templates/roadmap-boss-path/roadmapBossPath.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { roadmapMapTourMeta } from "./templates/roadmap-map-tour/roadmapMapTour.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as roadmapMapTourTemplate from "./templates/roadmap-map-tour/roadmapMapTour.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.231-platform-performance-release";
+import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.231-platform-performance-release";
+import { roadmapSchema } from "./roadmap.schema.js?v=1.1.231-platform-performance-release";
+import { roadmapStandardMeta } from "./templates/roadmap-standard/roadmapStandard.meta.js?v=1.1.231-platform-performance-release";
+import * as roadmapStandardTemplate from "./templates/roadmap-standard/roadmapStandard.template.js?v=1.1.231-platform-performance-release";
+import { roadmapSkillClimbMeta } from "./templates/roadmap-skill-climb/roadmapSkillClimb.meta.js?v=1.1.231-platform-performance-release";
+import * as roadmapSkillClimbTemplate from "./templates/roadmap-skill-climb/roadmapSkillClimb.template.js?v=1.1.231-platform-performance-release";
+import { roadmapProjectLaneMeta } from "./templates/roadmap-project-lane/roadmapProjectLane.meta.js?v=1.1.231-platform-performance-release";
+import * as roadmapProjectLaneTemplate from "./templates/roadmap-project-lane/roadmapProjectLane.template.js?v=1.1.231-platform-performance-release";
+import { roadmapBossPathMeta } from "./templates/roadmap-boss-path/roadmapBossPath.meta.js?v=1.1.231-platform-performance-release";
+import * as roadmapBossPathTemplate from "./templates/roadmap-boss-path/roadmapBossPath.template.js?v=1.1.231-platform-performance-release";
+import { roadmapMapTourMeta } from "./templates/roadmap-map-tour/roadmapMapTour.meta.js?v=1.1.231-platform-performance-release";
+import * as roadmapMapTourTemplate from "./templates/roadmap-map-tour/roadmapMapTour.template.js?v=1.1.231-platform-performance-release";
 
 export const roadmapActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: CustomExperienceStep,

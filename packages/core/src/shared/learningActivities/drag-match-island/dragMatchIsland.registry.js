@@ -1,16 +1,16 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.228-learning-activity-drag-interactions";
-import { DragMatchIslandStep } from "../../stepTypes/DragMatchIslandStep.js?v=1.1.228-learning-activity-drag-interactions";
-import { dragMatchIslandSchema } from "./dragMatchIsland.schema.js?v=1.1.228-learning-activity-drag-interactions";
-import { dragMatchIslandStandardMeta } from "./templates/drag-match-island-standard/dragMatchIslandStandard.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as dragMatchIslandStandardTemplate from "./templates/drag-match-island-standard/dragMatchIslandStandard.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { dragMatchIslandHarborPairsMeta } from "./templates/drag-match-island-harbor-pairs/dragMatchIslandHarborPairs.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as dragMatchIslandHarborPairsTemplate from "./templates/drag-match-island-harbor-pairs/dragMatchIslandHarborPairs.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { dragMatchIslandTreasureSortMeta } from "./templates/drag-match-island-treasure-sort/dragMatchIslandTreasureSort.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as dragMatchIslandTreasureSortTemplate from "./templates/drag-match-island-treasure-sort/dragMatchIslandTreasureSort.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { dragMatchIslandBridgeBuilderMeta } from "./templates/drag-match-island-bridge-builder/dragMatchIslandBridgeBuilder.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as dragMatchIslandBridgeBuilderTemplate from "./templates/drag-match-island-bridge-builder/dragMatchIslandBridgeBuilder.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { dragMatchIslandRescueRadarMeta } from "./templates/drag-match-island-rescue-radar/dragMatchIslandRescueRadar.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as dragMatchIslandRescueRadarTemplate from "./templates/drag-match-island-rescue-radar/dragMatchIslandRescueRadar.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.231-platform-performance-release";
+import { DragMatchIslandStep } from "../../stepTypes/DragMatchIslandStep.js?v=1.1.231-platform-performance-release";
+import { dragMatchIslandSchema } from "./dragMatchIsland.schema.js?v=1.1.231-platform-performance-release";
+import { dragMatchIslandStandardMeta } from "./templates/drag-match-island-standard/dragMatchIslandStandard.meta.js?v=1.1.231-platform-performance-release";
+import * as dragMatchIslandStandardTemplate from "./templates/drag-match-island-standard/dragMatchIslandStandard.template.js?v=1.1.231-platform-performance-release";
+import { dragMatchIslandHarborPairsMeta } from "./templates/drag-match-island-harbor-pairs/dragMatchIslandHarborPairs.meta.js?v=1.1.231-platform-performance-release";
+import * as dragMatchIslandHarborPairsTemplate from "./templates/drag-match-island-harbor-pairs/dragMatchIslandHarborPairs.template.js?v=1.1.231-platform-performance-release";
+import { dragMatchIslandTreasureSortMeta } from "./templates/drag-match-island-treasure-sort/dragMatchIslandTreasureSort.meta.js?v=1.1.231-platform-performance-release";
+import * as dragMatchIslandTreasureSortTemplate from "./templates/drag-match-island-treasure-sort/dragMatchIslandTreasureSort.template.js?v=1.1.231-platform-performance-release";
+import { dragMatchIslandBridgeBuilderMeta } from "./templates/drag-match-island-bridge-builder/dragMatchIslandBridgeBuilder.meta.js?v=1.1.231-platform-performance-release";
+import * as dragMatchIslandBridgeBuilderTemplate from "./templates/drag-match-island-bridge-builder/dragMatchIslandBridgeBuilder.template.js?v=1.1.231-platform-performance-release";
+import { dragMatchIslandRescueRadarMeta } from "./templates/drag-match-island-rescue-radar/dragMatchIslandRescueRadar.meta.js?v=1.1.231-platform-performance-release";
+import * as dragMatchIslandRescueRadarTemplate from "./templates/drag-match-island-rescue-radar/dragMatchIslandRescueRadar.template.js?v=1.1.231-platform-performance-release";
 
 export const dragMatchIslandActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: DragMatchIslandStep,

@@ -1,16 +1,16 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.228-learning-activity-drag-interactions";
-import { TextBriefingStep } from "../../stepTypes/TextBriefingStep.js?v=1.1.228-learning-activity-drag-interactions";
-import { introCardSchema } from "./introCard.schema.js?v=1.1.228-learning-activity-drag-interactions";
-import { introCardStandardMeta } from "./templates/intro-card-standard/introCardStandard.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as introCardStandardTemplate from "./templates/intro-card-standard/introCardStandard.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { introCardMissionBriefMeta } from "./templates/intro-card-mission-brief/introCardMissionBrief.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as introCardMissionBriefTemplate from "./templates/intro-card-mission-brief/introCardMissionBrief.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { introCardStoryHookMeta } from "./templates/intro-card-story-hook/introCardStoryHook.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as introCardStoryHookTemplate from "./templates/intro-card-story-hook/introCardStoryHook.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { introCardMysteryDoorMeta } from "./templates/intro-card-mystery-door/introCardMysteryDoor.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as introCardMysteryDoorTemplate from "./templates/intro-card-mystery-door/introCardMysteryDoor.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { introCardSkillTrailerMeta } from "./templates/intro-card-skill-trailer/introCardSkillTrailer.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as introCardSkillTrailerTemplate from "./templates/intro-card-skill-trailer/introCardSkillTrailer.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.231-platform-performance-release";
+import { TextBriefingStep } from "../../stepTypes/TextBriefingStep.js?v=1.1.231-platform-performance-release";
+import { introCardSchema } from "./introCard.schema.js?v=1.1.231-platform-performance-release";
+import { introCardStandardMeta } from "./templates/intro-card-standard/introCardStandard.meta.js?v=1.1.231-platform-performance-release";
+import * as introCardStandardTemplate from "./templates/intro-card-standard/introCardStandard.template.js?v=1.1.231-platform-performance-release";
+import { introCardMissionBriefMeta } from "./templates/intro-card-mission-brief/introCardMissionBrief.meta.js?v=1.1.231-platform-performance-release";
+import * as introCardMissionBriefTemplate from "./templates/intro-card-mission-brief/introCardMissionBrief.template.js?v=1.1.231-platform-performance-release";
+import { introCardStoryHookMeta } from "./templates/intro-card-story-hook/introCardStoryHook.meta.js?v=1.1.231-platform-performance-release";
+import * as introCardStoryHookTemplate from "./templates/intro-card-story-hook/introCardStoryHook.template.js?v=1.1.231-platform-performance-release";
+import { introCardMysteryDoorMeta } from "./templates/intro-card-mystery-door/introCardMysteryDoor.meta.js?v=1.1.231-platform-performance-release";
+import * as introCardMysteryDoorTemplate from "./templates/intro-card-mystery-door/introCardMysteryDoor.template.js?v=1.1.231-platform-performance-release";
+import { introCardSkillTrailerMeta } from "./templates/intro-card-skill-trailer/introCardSkillTrailer.meta.js?v=1.1.231-platform-performance-release";
+import * as introCardSkillTrailerTemplate from "./templates/intro-card-skill-trailer/introCardSkillTrailer.template.js?v=1.1.231-platform-performance-release";
 
 export const introCardActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: TextBriefingStep,

@@ -1,9 +1,9 @@
-import { getCustomExperienceDefaultContent } from "../../customExperience.schema.js?v=1.1.228-learning-activity-drag-interactions";
+import { getCustomExperienceDefaultContent } from "../../customExperience.schema.js?v=1.1.231-platform-performance-release";
 import {
   destroyMiniGameTemplate,
   mergeTemplateContent,
   renderMiniGameTemplate
-} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+} from "../../../miniGameTemplateRenderer.js?v=1.1.231-platform-performance-release";
 
 const TEMPLATE_ID = "customExperience-prototype-workbench";
 const TEMPLATE_PATCH = {

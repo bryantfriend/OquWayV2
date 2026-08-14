@@ -1,12 +1,12 @@
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../stepTypes/stepTypeRegistry.js?v=1.1.228-learning-activity-drag-interactions";
+} from "../stepTypes/stepTypeRegistry.js?v=1.1.231-platform-performance-release";
 import {
   getLearningActivityDefinition,
   getLearningActivityTemplateDefinition,
   normalizeLearningActivityTemplateId
-} from "../learningActivities/learningActivityRegistry.js?v=1.1.228-learning-activity-drag-interactions";
+} from "../learningActivities/learningActivityRegistry.js?v=1.1.231-platform-performance-release";
 
 export class PracticeModePlayer {
   constructor(options) {

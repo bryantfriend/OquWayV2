@@ -2,6 +2,11 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{db}/documents {
 
+    // BOS delivery outbox is server-only. Admin SDK access bypasses rules.
+    match /_bosOutbox/{eventId} {
+      allow read, write: if false;
+    }
+
     // 🔧 Helpers
   
     function hasRole(role) {

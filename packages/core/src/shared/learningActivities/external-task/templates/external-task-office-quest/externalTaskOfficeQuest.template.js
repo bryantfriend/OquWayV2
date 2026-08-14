@@ -1,9 +1,9 @@
-import { getExternalTaskDefaultContent } from "../../externalTask.schema.js?v=1.1.228-learning-activity-drag-interactions";
+import { getExternalTaskDefaultContent } from "../../externalTask.schema.js?v=1.1.231-platform-performance-release";
 import {
   destroyMiniGameTemplate,
   mergeTemplateContent,
   renderMiniGameTemplate
-} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+} from "../../../miniGameTemplateRenderer.js?v=1.1.231-platform-performance-release";
 
 const TEMPLATE_ID = "externalTask-office-quest";
 const TEMPLATE_PATCH = {

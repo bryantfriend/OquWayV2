@@ -1,20 +1,21 @@
-import { normalizeStepType } from "../stepTypes/stepTypeRegistry.js?v=1.1.228-learning-activity-drag-interactions";
-import { cardRevealActivityDefinition } from "./card-reveal/cardReveal.registry.js?v=1.1.228-learning-activity-drag-interactions";
-import { customExperienceActivityDefinition } from "./custom-experience/customExperience.registry.js?v=1.1.228-learning-activity-drag-interactions";
-import { cyberCodeMissionActivityDefinition } from "./cyber-code-mission/cyberCodeMission.registry.js?v=1.1.228-learning-activity-drag-interactions";
-import { dragMatchIslandActivityDefinition } from "./drag-match-island/dragMatchIsland.registry.js?v=1.1.228-learning-activity-drag-interactions";
-import { externalTaskActivityDefinition } from "./external-task/externalTask.registry.js?v=1.1.228-learning-activity-drag-interactions";
-import { introCardActivityDefinition } from "./intro-card/introCard.registry.js?v=1.1.228-learning-activity-drag-interactions";
-import { listeningActivityDefinition } from "./listening/listening.registry.js?v=1.1.228-learning-activity-drag-interactions";
-import { multiSelectActivityDefinition } from "./multi-select/multiSelect.registry.js?v=1.1.228-learning-activity-drag-interactions";
-import { multipleChoiceActivityDefinition } from "./multiple-choice/multipleChoice.registry.js?v=1.1.228-learning-activity-drag-interactions";
-import { phraseActivityDefinition } from "./phrase/phrase.registry.js?v=1.1.228-learning-activity-drag-interactions";
-import { reflectionActivityDefinition } from "./reflection/reflection.registry.js?v=1.1.228-learning-activity-drag-interactions";
-import { roadmapActivityDefinition } from "./roadmap/roadmap.registry.js?v=1.1.228-learning-activity-drag-interactions";
-import { sortingActivityDefinition } from "./sorting/sorting.registry.js?v=1.1.228-learning-activity-drag-interactions";
-import { speakingPromptActivityDefinition } from "./speaking-prompt/speakingPrompt.registry.js?v=1.1.228-learning-activity-drag-interactions";
-import { textBriefingActivityDefinition } from "./text-briefing/textBriefing.registry.js?v=1.1.228-learning-activity-drag-interactions";
-import { vocabularyActivityDefinition } from "./vocabulary/vocabulary.registry.js?v=1.1.228-learning-activity-drag-interactions";
+import { normalizeStepType } from "../stepTypes/stepTypeRegistry.js?v=1.1.231-platform-performance-release";
+import { enrichTemplateMetadata } from "./templateDistinctiveness.js?v=1.1.231-platform-performance-release";
+import { cardRevealActivityDefinition } from "./card-reveal/cardReveal.registry.js?v=1.1.231-platform-performance-release";
+import { customExperienceActivityDefinition } from "./custom-experience/customExperience.registry.js?v=1.1.231-platform-performance-release";
+import { cyberCodeMissionActivityDefinition } from "./cyber-code-mission/cyberCodeMission.registry.js?v=1.1.231-platform-performance-release";
+import { dragMatchIslandActivityDefinition } from "./drag-match-island/dragMatchIsland.registry.js?v=1.1.231-platform-performance-release";
+import { externalTaskActivityDefinition } from "./external-task/externalTask.registry.js?v=1.1.231-platform-performance-release";
+import { introCardActivityDefinition } from "./intro-card/introCard.registry.js?v=1.1.231-platform-performance-release";
+import { listeningActivityDefinition } from "./listening/listening.registry.js?v=1.1.231-platform-performance-release";
+import { multiSelectActivityDefinition } from "./multi-select/multiSelect.registry.js?v=1.1.231-platform-performance-release";
+import { multipleChoiceActivityDefinition } from "./multiple-choice/multipleChoice.registry.js?v=1.1.231-platform-performance-release";
+import { phraseActivityDefinition } from "./phrase/phrase.registry.js?v=1.1.231-platform-performance-release";
+import { reflectionActivityDefinition } from "./reflection/reflection.registry.js?v=1.1.231-platform-performance-release";
+import { roadmapActivityDefinition } from "./roadmap/roadmap.registry.js?v=1.1.231-platform-performance-release";
+import { sortingActivityDefinition } from "./sorting/sorting.registry.js?v=1.1.231-platform-performance-release";
+import { speakingPromptActivityDefinition } from "./speaking-prompt/speakingPrompt.registry.js?v=1.1.231-platform-performance-release";
+import { textBriefingActivityDefinition } from "./text-briefing/textBriefing.registry.js?v=1.1.231-platform-performance-release";
+import { vocabularyActivityDefinition } from "./vocabulary/vocabulary.registry.js?v=1.1.231-platform-performance-release";
 
 var learningActivityDefinitions = [
   cardRevealActivityDefinition,
@@ -174,13 +175,32 @@ function createLearningActivities() {
     var activityDefinition = learningActivityDefinitions[index];
 
     if (activityDefinition && activityDefinition.activityType) {
-      activities[activityDefinition.activityType] = activityDefinition;
+      activities[activityDefinition.activityType] = createDistinctActivityDefinition(activityDefinition);
     }
 
     index = index + 1;
   }
 
   return activities;
+}
+
+function createDistinctActivityDefinition(activityDefinition) {
+  var templates = Array.isArray(activityDefinition.templates) ? activityDefinition.templates : [];
+
+  return Object.assign({}, activityDefinition, {
+    templates: templates.map(function (templateDefinition) {
+      if (!templateDefinition || typeof templateDefinition !== "object") {
+        return templateDefinition;
+      }
+
+      return Object.assign({}, templateDefinition, {
+        meta: enrichTemplateMetadata(
+          templateDefinition.meta,
+          activityDefinition
+        )
+      });
+    })
+  });
 }
 
 function readActivityDefaultTemplate(activityDefinition) {

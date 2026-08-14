@@ -55,14 +55,11 @@ export async function getActiveAssignmentsForStudent(studentProfile) {
   var studentId = readTextValue(studentProfile && (studentProfile.id || studentProfile.studentId || studentProfile.uid || studentProfile.authUid));
   var targets = buildStudentAssignmentTargets(studentId, studentProfile);
   var result = createStudentAssignmentResult(studentProfile);
-  var targetIndex = 0;
 
   await appendResolvedClassIdentityTargets(targets, result);
-
-  while (targetIndex < targets.length) {
-    await appendTargetAssignments(result, targets[targetIndex]);
-    targetIndex = targetIndex + 1;
-  }
+  await Promise.all(targets.map(function (target) {
+    return appendTargetAssignments(result, target);
+  }));
 
   if (targets.length === 0) {
     result.warnings.push({
@@ -166,35 +163,47 @@ async function loadAssignmentsForTarget(target) {
 
 async function appendTargetAssignments(result, target) {
   var queries = buildAssignmentQueriesForTarget(target);
-  var queryIndex = 0;
   var appendedCount = 0;
-
-  while (queryIndex < queries.length) {
-    result.queryPaths.push(queries[queryIndex].queryPath);
+  var queryResults = await Promise.all(queries.map(async function (assignmentQuery) {
+    result.queryPaths.push(assignmentQuery.queryPath);
 
     try {
-      var assignments = await queries[queryIndex].loader();
+      return {
+        query: assignmentQuery,
+        assignments: await assignmentQuery.loader(),
+        error: null
+      };
+    } catch (error) {
+      return {
+        query: assignmentQuery,
+        assignments: [],
+        error: error
+      };
+    }
+  }));
+
+  queryResults.forEach(function (queryResult) {
+    if (!queryResult.error) {
+      var assignments = queryResult.assignments;
       var visibleAssignments = filterAssignmentsForTarget(assignments, target);
       var beforeCount = result.assignmentIds.length;
 
       appendAssignments(result, visibleAssignments, target);
       appendedCount = appendedCount + (result.assignmentIds.length - beforeCount);
-    } catch (error) {
+    } else {
       addReasonCount(result.rejectionReasons, "assignment-query-failed");
       result.warnings.push({
         code: "STUDENT_ASSIGNMENT_QUERY_FAILED",
-        message: queries[queryIndex].queryPath + " failed: " + readErrorMessage(error)
+        message: queryResult.query.queryPath + " failed: " + readErrorMessage(queryResult.error)
       });
       logAssignmentLoadWarning("STUDENT_ASSIGNMENT_QUERY_FAILED", {
-        queryPath: queries[queryIndex].queryPath,
+        queryPath: queryResult.query.queryPath,
         targetType: target.targetType,
         targetId: target.targetId,
-        errorMessage: readErrorMessage(error)
+        errorMessage: readErrorMessage(queryResult.error)
       });
     }
-
-    queryIndex = queryIndex + 1;
-  }
+  });
 
   if (appendedCount === 0) {
     addReasonCount(result.rejectionReasons, "no-assignment-for-target");
@@ -255,11 +264,9 @@ async function appendResolvedClassIdentityTargets(targets, result) {
     targetIndex = targetIndex + 1;
   }
 
-  var classIndex = 0;
-  while (classIndex < classTargetIds.length) {
-    await appendClassIdentityTargetsFromDocument(targets, result, classTargetIds[classIndex]);
-    classIndex = classIndex + 1;
-  }
+  await Promise.all(classTargetIds.map(function (classId) {
+    return appendClassIdentityTargetsFromDocument(targets, result, classId);
+  }));
 }
 
 async function appendClassIdentityTargetsFromDocument(targets, result, classId) {

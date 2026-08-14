@@ -1,5 +1,5 @@
-import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.219-course-creator-all-courses";
-import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.219-course-creator-all-courses";
+import { runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.231-platform-performance-release";
+import { getIntentDefinition } from "../../../../../packages/icf/index.js?v=1.1.231-platform-performance-release";
 import { courseEditorStore } from "../state/courseEditorState.js?v=1.1.219-course-creator-all-courses";
 import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.219-course-creator-all-courses";
 
@@ -163,6 +163,24 @@ export const courseEditorService = {
       });
     }
 
+    return result;
+  },
+
+  importCourseContent: async function (courseId, importData, applyCourseMetadata) {
+    var result = await runIntentPipeline(getIntentDefinition("ImportCourseContentIntent"), {
+      payload: {
+        courseId: courseId,
+        importData: importData,
+        applyCourseMetadata: applyCourseMetadata !== false
+      },
+      actor: getActor()
+    });
+
+    if (!result || !result.emitted || !result.emitted.success) {
+      throw new Error(readIntentErrorMessage(result));
+    }
+
+    await this.openCourseEditor(courseId);
     return result;
   },
 

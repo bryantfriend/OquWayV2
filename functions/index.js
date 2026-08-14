@@ -14,7 +14,14 @@ const callableOptions = {
   ]
 };
 
-exports.studentLogin = onCall(callableOptions, async function (request) {
+const studentLoginCallableOptions = Object.assign({}, callableOptions, {
+  region: "asia-east2",
+  minInstances: 1,
+  maxInstances: 20,
+  concurrency: 80
+});
+
+exports.studentLogin = onCall(studentLoginCallableOptions, async function (request) {
   const data = request.data || {};
   const action = data.action || "";
 
@@ -131,9 +138,10 @@ async function listStudents(data) {
   const db = admin.firestore();
   const students = [];
   const filteredReasons = {};
-  const snapshot = await db.collection("users").get();
+  const snapshots = await loadStudentRosterSnapshots(db, classId, className);
+  const studentDocuments = dedupeQueryDocuments(snapshots);
 
-  snapshot.forEach(function (studentDoc) {
+  studentDocuments.forEach(function (studentDoc) {
     const student = studentDoc.data() || {};
     const filterReason = readStudentFilterReason(student, locationId, classId, className);
 
@@ -157,8 +165,8 @@ async function listStudents(data) {
       selectedLocationId: locationId,
       selectedClassId: classId,
       selectedClassName: className,
-      queryCollection: "users",
-      rawResultCount: snapshot.size,
+      queryCollection: "users indexed roster queries",
+      rawResultCount: studentDocuments.length,
       filteredResultCount: students.length,
       filteredReasons: filteredReasons
     };
@@ -167,6 +175,51 @@ async function listStudents(data) {
   }
 
   return response;
+}
+
+async function loadStudentRosterSnapshots(db, classId, className) {
+  const users = db.collection("users");
+  const normalizedClassName = readText(className).trim();
+  const queries = [
+    users.where("classId", "==", classId),
+    users.where("classIds", "array-contains", classId),
+    users.where("assignedClassIds", "array-contains", classId)
+  ];
+
+  if (normalizedClassName) {
+    queries.push(users.where("className", "==", normalizedClassName));
+    queries.push(users.where("assignedClassName", "==", normalizedClassName));
+  }
+
+  const snapshots = await Promise.all(queries.map(function (studentQuery) {
+    return studentQuery.get().catch(function () {
+      return null;
+    });
+  }));
+
+  if (dedupeQueryDocuments(snapshots).length > 0) {
+    return snapshots;
+  }
+
+  // Temporary compatibility fallback for legacy profiles that only store class
+  // identity inside object arrays. Normalized profiles never use this path.
+  return [await users.get()];
+}
+
+function dedupeQueryDocuments(snapshots) {
+  const documentsById = new Map();
+
+  snapshots.forEach(function (snapshot) {
+    if (!snapshot || typeof snapshot.forEach !== "function") {
+      return;
+    }
+
+    snapshot.forEach(function (studentDoc) {
+      documentsById.set(studentDoc.id, studentDoc);
+    });
+  });
+
+  return Array.from(documentsById.values());
 }
 
 async function loginStudent(data) {
@@ -1337,3 +1390,9 @@ function readText(value) {
 
   return value;
 }
+
+const bosFirebaseFunctions = require("./bos/firebaseFunctions");
+
+exports.captureBosCoursePublished = bosFirebaseFunctions.captureBosCoursePublished;
+exports.captureBosLegacyCoursePublished = bosFirebaseFunctions.captureBosLegacyCoursePublished;
+exports.deliverBosOutboxEvent = bosFirebaseFunctions.deliverBosOutboxEvent;

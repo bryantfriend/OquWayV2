@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "1.0",
+  "eventId": "oquway-fde0cc634c5c8c6fdeaa39055129492f92d8a650eb8c6e5d8d58e1676e0245b6",
+  "projectKey": "oquway",
+  "eventType": "course_published",
+  "occurredAt": "2026-07-30T20:00:00.000Z",
+  "environment": "development",
+  "result": "succeeded",
+  "summary": "A course publication was committed successfully.",
+  "metrics": {
+    "courseVersion": 2
+  },
+  "evidenceRefs": ["firebase-event:firebase-event-123"],
+  "sourceSystem": "oquway",
+  "sourceVersion": "bos-integration-v1",
+  "correlationId": "firebase-event-123",
+  "sensitivity": "standard"
+}

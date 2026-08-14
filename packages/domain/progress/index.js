@@ -100,8 +100,13 @@ export function getModuleProgress(studentId, moduleId) {
 
 export function countCourseSteps(course) {
   var modules = course && Array.isArray(course.modules) ? course.modules : [];
+  var summary = course && course.progressSummary ? course.progressSummary : null;
   var total = 0;
   var moduleIndex = 0;
+
+  if (modules.length === 0 && summary && typeof summary.totalStepCount === "number") {
+    return summary.totalStepCount;
+  }
 
   while (moduleIndex < modules.length) {
     total = total + countModuleSteps(modules[moduleIndex]);
@@ -113,8 +118,13 @@ export function countCourseSteps(course) {
 
 export function countCourseCompletedSteps(course) {
   var modules = course && Array.isArray(course.modules) ? course.modules : [];
+  var summary = course && course.progressSummary ? course.progressSummary : null;
   var total = 0;
   var moduleIndex = 0;
+
+  if (modules.length === 0 && summary && typeof summary.completedStepCount === "number") {
+    return summary.completedStepCount;
+  }
 
   while (moduleIndex < modules.length) {
     total = total + countModuleCompletedSteps(modules[moduleIndex]);
@@ -183,6 +193,10 @@ export function readCourseLastOpenedAt(course) {
   var modules = course && Array.isArray(course.modules) ? course.modules : [];
   var lastOpenedAt = 0;
   var moduleIndex = 0;
+
+  if (modules.length === 0 && course && typeof course.lastOpenedAt === "number") {
+    return course.lastOpenedAt;
+  }
 
   while (moduleIndex < modules.length) {
     lastOpenedAt = Math.max(lastOpenedAt, readModuleLastOpenedAt(modules[moduleIndex]));

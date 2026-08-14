@@ -1,7 +1,7 @@
 import { auth } from "../../../../../packages/firebase/auth/index.js?v=1.1.220-student-dashboard-timeout-helper";
 import { getIntentDefinition, runIntentPipeline } from "../../../../../packages/icf/index.js?v=1.1.220-student-dashboard-timeout-helper";
 import { isStudentDashboardProfile, readStudentProfileRejectReason } from "../../../../../packages/domain/users/index.js?v=1.1.220-student-dashboard-timeout-helper";
-import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.220-student-dashboard-timeout-helper";
+import { studentDashboardStore } from "../state/studentDashboardState.js?v=1.1.231-platform-performance-release";
 
 export const studentDashboardService = {
   loadVerifiedStudentProfile: async function () {

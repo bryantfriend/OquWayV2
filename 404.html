@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Opening OquWay…</title>
+</head>
+<body>
+  <p>Opening your OquWay school login…</p>
+  <script>
+    (function () {
+      var path = window.location.pathname;
+      var routeIndex = path.indexOf("/l/");
+
+      if (routeIndex === -1) {
+        document.body.innerHTML = "<h1>Page not found</h1><p><a href='./'>Return to OquWay</a></p>";
+        return;
+      }
+
+      var basePath = path.slice(0, routeIndex + 1);
+      var slug = path.slice(routeIndex + 3).split("/")[0];
+      window.location.replace(basePath + "apps/student-login/?l=" + encodeURIComponent(decodeURIComponent(slug)));
+    }());
+  </script>
+</body>
+</html>

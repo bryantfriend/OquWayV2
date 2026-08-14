@@ -1,20 +1,20 @@
-import { cardRevealSchema } from "./cardReveal.schema.js?v=1.1.228-learning-activity-drag-interactions";
-import { classicCardRevealMeta } from "./templates/classic-card-reveal/classicCardReveal.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as classicCardRevealTemplate from "./templates/classic-card-reveal/classicCardReveal.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { mysteryFlipCardsMeta } from "./templates/mystery-flip-cards/mysteryFlipCards.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as mysteryFlipCardsTemplate from "./templates/mystery-flip-cards/mysteryFlipCards.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { speedRevealStackMeta } from "./templates/speed-reveal-stack/speedRevealStack.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as speedRevealStackTemplate from "./templates/speed-reveal-stack/speedRevealStack.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { treasureHuntMapMeta } from "./templates/treasure-hunt-map/treasureHuntMap.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as treasureHuntMapTemplate from "./templates/treasure-hunt-map/treasureHuntMap.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { digitalFileExplorerMeta } from "./templates/digital-file-explorer/digitalFileExplorer.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as digitalFileExplorerTemplate from "./templates/digital-file-explorer/digitalFileExplorer.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { xRayScannerMeta } from "./templates/x-ray-scanner/xRayScanner.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as xRayScannerTemplate from "./templates/x-ray-scanner/xRayScanner.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { detectiveBoardMeta } from "./templates/detective-board/detectiveBoard.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as detectiveBoardTemplate from "./templates/detective-board/detectiveBoard.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { timeMachineTimelineMeta } from "./templates/time-machine-timeline/timeMachineTimeline.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as timeMachineTimelineTemplate from "./templates/time-machine-timeline/timeMachineTimeline.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { cardRevealSchema } from "./cardReveal.schema.js?v=1.1.231-platform-performance-release";
+import { classicCardRevealMeta } from "./templates/classic-card-reveal/classicCardReveal.meta.js?v=1.1.231-platform-performance-release";
+import * as classicCardRevealTemplate from "./templates/classic-card-reveal/classicCardReveal.template.js?v=1.1.231-platform-performance-release";
+import { mysteryFlipCardsMeta } from "./templates/mystery-flip-cards/mysteryFlipCards.meta.js?v=1.1.231-platform-performance-release";
+import * as mysteryFlipCardsTemplate from "./templates/mystery-flip-cards/mysteryFlipCards.template.js?v=1.1.231-platform-performance-release";
+import { speedRevealStackMeta } from "./templates/speed-reveal-stack/speedRevealStack.meta.js?v=1.1.231-platform-performance-release";
+import * as speedRevealStackTemplate from "./templates/speed-reveal-stack/speedRevealStack.template.js?v=1.1.231-platform-performance-release";
+import { treasureHuntMapMeta } from "./templates/treasure-hunt-map/treasureHuntMap.meta.js?v=1.1.231-platform-performance-release";
+import * as treasureHuntMapTemplate from "./templates/treasure-hunt-map/treasureHuntMap.template.js?v=1.1.231-platform-performance-release";
+import { digitalFileExplorerMeta } from "./templates/digital-file-explorer/digitalFileExplorer.meta.js?v=1.1.231-platform-performance-release";
+import * as digitalFileExplorerTemplate from "./templates/digital-file-explorer/digitalFileExplorer.template.js?v=1.1.231-platform-performance-release";
+import { xRayScannerMeta } from "./templates/x-ray-scanner/xRayScanner.meta.js?v=1.1.231-platform-performance-release";
+import * as xRayScannerTemplate from "./templates/x-ray-scanner/xRayScanner.template.js?v=1.1.231-platform-performance-release";
+import { detectiveBoardMeta } from "./templates/detective-board/detectiveBoard.meta.js?v=1.1.231-platform-performance-release";
+import * as detectiveBoardTemplate from "./templates/detective-board/detectiveBoard.template.js?v=1.1.231-platform-performance-release";
+import { timeMachineTimelineMeta } from "./templates/time-machine-timeline/timeMachineTimeline.meta.js?v=1.1.231-platform-performance-release";
+import * as timeMachineTimelineTemplate from "./templates/time-machine-timeline/timeMachineTimeline.template.js?v=1.1.231-platform-performance-release";
 
 export const cardRevealActivityDefinition = {
   activityType: "cardReveal",

@@ -4,6 +4,8 @@ node_modules/
 # Firebase and local secrets
 .env
 .env.*
+!.env.example
+!functions/.env.example
 serviceAccountKey.json
 functions/serviceAccountKey.json
 

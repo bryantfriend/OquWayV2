@@ -1,9 +1,9 @@
-import { getTextBriefingDefaultContent } from "../../textBriefing.schema.js?v=1.1.228-learning-activity-drag-interactions";
+import { getTextBriefingDefaultContent } from "../../textBriefing.schema.js?v=1.1.231-platform-performance-release";
 import {
   destroyMiniGameTemplate,
   mergeTemplateContent,
   renderMiniGameTemplate
-} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+} from "../../../miniGameTemplateRenderer.js?v=1.1.231-platform-performance-release";
 
 const TEMPLATE_ID = "textBriefing-map-tour";
 const TEMPLATE_PATCH = {

@@ -1,7 +1,7 @@
 import {
   destroyLearningActivityTemplate,
   renderLearningActivityTemplate
-} from "../../../templateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+} from "../../../templateRenderer.js?v=1.1.231-platform-performance-release";
 
 export function renderTemplate(activityContext) {
   renderLearningActivityTemplate(activityContext, {

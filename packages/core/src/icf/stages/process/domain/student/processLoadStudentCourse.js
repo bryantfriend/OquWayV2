@@ -91,6 +91,10 @@ async function loadStudentCourses(actor, assignedCourseIds, executionState, assi
     return buildPreviewStudentCourses(actor);
   }
 
+  if (executionState.intentType === "LoadStudentDashboardIntent") {
+    return loadStudentCourseSummaries(actor, assignedCourseIds, executionState, assignmentIdByCourseId || {});
+  }
+
   if (assignedCourseIds.length > 0) {
     courseSnaps = await loadAssignedCourseSnaps(assignedCourseIds, executionState);
   } else if (isPreviewActor(actor)) {
@@ -117,6 +121,128 @@ async function loadStudentCourses(actor, assignedCourseIds, executionState, assi
 
   courses.sort(compareByOrderThenTitle);
   return courses;
+}
+
+async function loadStudentCourseSummaries(actor, assignedCourseIds, executionState, assignmentIdByCourseId) {
+  var summaries = await Promise.all(assignedCourseIds.map(async function (courseId) {
+    var courseSnap = await loadCourseSnap(courseId, executionState);
+
+    if (!courseSnap) {
+      return null;
+    }
+
+    var course = Object.assign({ id: courseSnap.id }, courseSnap.data() || {});
+    var progressSummary = await loadCourseProgressSummary(
+      actor,
+      course,
+      readCourseCollectionName(courseSnap),
+      executionState
+    );
+
+    return Object.assign({}, course, {
+      assignmentId: assignmentIdByCourseId[course.id] || course.assignmentId || "",
+      courseAssignmentId: assignmentIdByCourseId[course.id] || course.courseAssignmentId || course.assignmentId || "",
+      modules: [],
+      isDashboardSummary: true,
+      progressPercent: progressSummary.progressPercent,
+      lastOpenedAt: progressSummary.lastOpenedAt,
+      progressSummary: progressSummary
+    });
+  }));
+
+  return summaries.filter(Boolean).sort(compareByOrderThenTitle);
+}
+
+async function loadCourseProgressSummary(actor, course, courseCollectionName, executionState) {
+  var totalStepCount = readNonNegativeNumber(course.stepCount || course.totalStepCount);
+  var totalModuleCount = readNonNegativeNumber(course.moduleCount || course.totalModuleCount);
+  var completedStepIds = [];
+  var completedModuleIds = [];
+  var lastOpenedAt = 0;
+
+  if (totalStepCount === 0 || totalModuleCount === 0) {
+    try {
+      var moduleSnapshot = await getDocs(collection(db, courseCollectionName, course.id, "modules"));
+      var discoveredStepCount = 0;
+
+      moduleSnapshot.forEach(function (moduleDoc) {
+        var moduleData = moduleDoc.data() || {};
+        discoveredStepCount = discoveredStepCount + readNonNegativeNumber(moduleData.stepCount || moduleData.totalStepCount);
+      });
+
+      totalModuleCount = totalModuleCount || moduleSnapshot.size;
+      totalStepCount = totalStepCount || discoveredStepCount;
+    } catch (error) {
+      executionStateWarning(executionState, course.id, error);
+    }
+  }
+
+  try {
+    var progressSnapshot = await getDocs(collection(db, "studentProgress", actor.id, "courses", course.id, "sessions"));
+
+    progressSnapshot.forEach(function (progressDoc) {
+      var progress = progressDoc.data() || {};
+      var practiceModes = progress.practiceModes && typeof progress.practiceModes === "object" ? progress.practiceModes : {};
+      var modeKeys = Object.keys(practiceModes);
+      var allRecordedModesComplete = modeKeys.length > 0;
+
+      modeKeys.forEach(function (modeKey) {
+        var modeProgress = practiceModes[modeKey] || {};
+        var stepIds = Array.isArray(modeProgress.completedStepIds) ? modeProgress.completedStepIds : [];
+
+        stepIds.forEach(function (stepId) {
+          addUniqueText(completedStepIds, stepId);
+        });
+
+        if (modeProgress.completed !== true) {
+          allRecordedModesComplete = false;
+        }
+
+        lastOpenedAt = Math.max(lastOpenedAt, readTimestampMillis(modeProgress.updatedAt));
+      });
+
+      lastOpenedAt = Math.max(lastOpenedAt, readTimestampMillis(progress.updatedAt));
+
+      if (allRecordedModesComplete && progress.moduleId) {
+        addUniqueText(completedModuleIds, progress.moduleId);
+      }
+    });
+  } catch (error) {
+    executionStateWarning(executionState, course.id, error);
+  }
+
+  var completedStepCount = completedStepIds.length;
+  var progressPercent = totalStepCount > 0
+    ? Math.min(100, Math.round((completedStepCount / totalStepCount) * 100))
+    : 0;
+
+  return {
+    completedStepCount: completedStepCount,
+    totalStepCount: totalStepCount,
+    completedModuleCount: Math.min(totalModuleCount, completedModuleIds.length),
+    totalModuleCount: totalModuleCount,
+    progressPercent: progressPercent,
+    lastOpenedAt: lastOpenedAt
+  };
+}
+
+function executionStateWarning(executionState, courseId, error) {
+  executionState.warnings.push({
+    code: "STUDENT_PROGRESS_SUMMARY_READ_FAILED",
+    message: "Progress summary could not be loaded for " + courseId + ": " + readErrorMessage(error)
+  });
+}
+
+function readNonNegativeNumber(value) {
+  return typeof value === "number" && Number.isFinite(value) ? Math.max(0, Math.round(value)) : 0;
+}
+
+function readTimestampMillis(value) {
+  if (!value) return 0;
+  if (typeof value === "number") return value;
+  if (typeof value.toMillis === "function") return value.toMillis();
+  if (typeof value.seconds === "number") return value.seconds * 1000;
+  return 0;
 }
 
 async function attachExternalTaskSubmissionsToCourse(actor, course) {

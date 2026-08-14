@@ -1,9 +1,9 @@
-import { getPhraseDefaultContent } from "../../phrase.schema.js?v=1.1.228-learning-activity-drag-interactions";
+import { getPhraseDefaultContent } from "../../phrase.schema.js?v=1.1.231-platform-performance-release";
 import {
   destroyMiniGameTemplate,
   mergeTemplateContent,
   renderMiniGameTemplate
-} from "../../../miniGameTemplateRenderer.js?v=1.1.228-learning-activity-drag-interactions";
+} from "../../../miniGameTemplateRenderer.js?v=1.1.231-platform-performance-release";
 
 const TEMPLATE_ID = "phrase-response-radar";
 const TEMPLATE_PATCH = {

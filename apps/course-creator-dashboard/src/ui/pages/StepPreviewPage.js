@@ -1,9 +1,9 @@
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.228-learning-activity-drag-interactions";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.228-learning-activity-drag-interactions";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.231-platform-performance-release";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.231-platform-performance-release";
 import {
   createDefaultStepConfig,
   getStepTypeDefinition
-} from "../../../../../packages/domain/steps/index.js?v=1.1.228-learning-activity-drag-interactions";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.231-platform-performance-release";
 
 export class StepPreviewPage {
   constructor(courseId, moduleId, modeId, stepId) {

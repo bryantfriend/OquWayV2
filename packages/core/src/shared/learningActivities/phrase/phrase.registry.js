@@ -1,16 +1,16 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.228-learning-activity-drag-interactions";
-import { PhraseStep } from "../../stepTypes/PhraseStep.js?v=1.1.228-learning-activity-drag-interactions";
-import { phraseSchema } from "./phrase.schema.js?v=1.1.228-learning-activity-drag-interactions";
-import { phraseStandardMeta } from "./templates/phrase-standard/phraseStandard.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as phraseStandardTemplate from "./templates/phrase-standard/phraseStandard.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { phraseDialogBuilderMeta } from "./templates/phrase-dialog-builder/phraseDialogBuilder.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as phraseDialogBuilderTemplate from "./templates/phrase-dialog-builder/phraseDialogBuilder.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { phraseConfidenceRepeatMeta } from "./templates/phrase-confidence-repeat/phraseConfidenceRepeat.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as phraseConfidenceRepeatTemplate from "./templates/phrase-confidence-repeat/phraseConfidenceRepeat.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { phraseComicStripMeta } from "./templates/phrase-comic-strip/phraseComicStrip.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as phraseComicStripTemplate from "./templates/phrase-comic-strip/phraseComicStrip.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { phraseResponseRadarMeta } from "./templates/phrase-response-radar/phraseResponseRadar.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as phraseResponseRadarTemplate from "./templates/phrase-response-radar/phraseResponseRadar.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.231-platform-performance-release";
+import { PhraseStep } from "../../stepTypes/PhraseStep.js?v=1.1.231-platform-performance-release";
+import { phraseSchema } from "./phrase.schema.js?v=1.1.231-platform-performance-release";
+import { phraseStandardMeta } from "./templates/phrase-standard/phraseStandard.meta.js?v=1.1.231-platform-performance-release";
+import * as phraseStandardTemplate from "./templates/phrase-standard/phraseStandard.template.js?v=1.1.231-platform-performance-release";
+import { phraseDialogBuilderMeta } from "./templates/phrase-dialog-builder/phraseDialogBuilder.meta.js?v=1.1.231-platform-performance-release";
+import * as phraseDialogBuilderTemplate from "./templates/phrase-dialog-builder/phraseDialogBuilder.template.js?v=1.1.231-platform-performance-release";
+import { phraseConfidenceRepeatMeta } from "./templates/phrase-confidence-repeat/phraseConfidenceRepeat.meta.js?v=1.1.231-platform-performance-release";
+import * as phraseConfidenceRepeatTemplate from "./templates/phrase-confidence-repeat/phraseConfidenceRepeat.template.js?v=1.1.231-platform-performance-release";
+import { phraseComicStripMeta } from "./templates/phrase-comic-strip/phraseComicStrip.meta.js?v=1.1.231-platform-performance-release";
+import * as phraseComicStripTemplate from "./templates/phrase-comic-strip/phraseComicStrip.template.js?v=1.1.231-platform-performance-release";
+import { phraseResponseRadarMeta } from "./templates/phrase-response-radar/phraseResponseRadar.meta.js?v=1.1.231-platform-performance-release";
+import * as phraseResponseRadarTemplate from "./templates/phrase-response-radar/phraseResponseRadar.template.js?v=1.1.231-platform-performance-release";
 
 export const phraseActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: PhraseStep,

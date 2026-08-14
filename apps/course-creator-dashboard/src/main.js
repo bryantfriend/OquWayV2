@@ -1,12 +1,12 @@
-import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.228-learning-activity-drag-interactions";
+import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.231-platform-performance-release";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.228-learning-activity-drag-interactions";
-import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.228-learning-activity-drag-interactions";
-import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.228-learning-activity-drag-interactions";
-import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.228-learning-activity-drag-interactions";
-import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.228-learning-activity-drag-interactions";
-import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.228-learning-activity-drag-interactions";
-import { ActivityStudioPage } from "./ui/pages/ActivityStudioPage.js?v=1.1.228-learning-activity-drag-interactions";
+import { verifyCourseCreatorAccess, normalizeRole } from "./auth/courseCreatorAuth.js?v=1.1.231-platform-performance-release";
+import { CourseEditorPage } from "./ui/pages/CourseEditorPage.js?v=1.1.231-platform-performance-release";
+import { StepPreviewPage } from "./ui/pages/StepPreviewPage.js?v=1.1.231-platform-performance-release";
+import { CatalogCoursePage } from "./ui/pages/CatalogCoursePage.js?v=1.1.231-platform-performance-release";
+import { CourseOverviewPage } from "./ui/pages/CourseOverviewPage.js?v=1.1.231-platform-performance-release";
+import { LocationLoginSettingsPage } from "./ui/pages/LocationLoginSettingsPage.js?v=1.1.231-platform-performance-release";
+import { ActivityStudioPage } from "./ui/pages/ActivityStudioPage.js?v=1.1.231-platform-performance-release";
 
 console.warn("[course-creator-build-check] latest build active");
 

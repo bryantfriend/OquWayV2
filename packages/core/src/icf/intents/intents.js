@@ -138,6 +138,7 @@ export { CreateModuleIntent } from "./courseEditor/CreateModuleIntent.js?v=1.1.2
 export { OpenCreateModuleWizardIntent } from "./courseEditor/OpenCreateModuleWizardIntent.js?v=1.1.220-student-dashboard-timeout-helper";
 export { ParseLearningContentIntent } from "./courseEditor/ParseLearningContentIntent.js?v=1.1.220-student-dashboard-timeout-helper";
 export { CreateModuleFromWizardIntent } from "./courseEditor/CreateModuleFromWizardIntent.js?v=1.1.220-student-dashboard-timeout-helper";
+export { ImportCourseContentIntent } from "./courseEditor/ImportCourseContentIntent.js?v=1.1.231-platform-performance-release";
 export { GenerateModuleSkeletonIntent } from "./courseEditor/GenerateModuleSkeletonIntent.js?v=1.1.220-student-dashboard-timeout-helper";
 export { GenerateStarterStepsIntent } from "./courseEditor/GenerateStarterStepsIntent.js?v=1.1.220-student-dashboard-timeout-helper";
 export { ListModulesIntent } from "./courseEditor/ListModulesIntent.js?v=1.1.220-student-dashboard-timeout-helper";

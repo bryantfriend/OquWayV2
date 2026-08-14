@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "1.0",
+  "projectKey": "oquway",
+  "displayName": "OquWay",
+  "repository": "bryantfriend/OquWayV2",
+  "environments": ["development", "staging", "production"],
+  "allowedEventTypes": ["course_published"],
+  "integrationMode": "server-to-server"
+}

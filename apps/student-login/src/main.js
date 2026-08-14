@@ -1,6 +1,8 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../../../packages/firebase/auth/index.js?v=1.1.86-site-cache-refresh";
-import { getIntentDefinition, runIntentPipeline } from "../../../packages/icf/index.js?v=1.1.86-site-cache-refresh";
+import { runIntentPipeline } from "../../../packages/core/src/icf/engine/runIntentPipeline.js?v=1.1.231-platform-performance-release";
+import { getStudentLoginIntentDefinition } from "./studentLoginIntents.js?v=1.1.231-platform-performance-release";
+import { markStudentPortalJourney, startStudentPortalJourney } from "../../../packages/shared/performance/studentPortalMetrics.js?v=1.1.231-platform-performance-release";
 
 var appElement = document.getElementById("app");
 var startupMessage = consumeStartupMessage();
@@ -24,6 +26,7 @@ var state = {
 
 var fruits = ["apple", "watermelon", "banana", "strawberry", "pineapple", "mango", "kiwi", "orange", "cherry"];
 var startupOptionsLoading = false;
+var PUBLIC_CACHE_TTL_MS = 10 * 60 * 1000;
 var fruitLabels = {
   apple: "🍎",
   watermelon: "🍉",
@@ -35,6 +38,8 @@ var fruitLabels = {
   orange: "🍊",
   cherry: "🍒"
 };
+
+startStudentPortalJourney();
 
 if (appElement) {
   appElement.addEventListener("click", handleClick);
@@ -432,18 +437,38 @@ function handleFruitAction(action) {
 }
 
 async function loadLocations() {
-  var result = await runLoginIntent("LoadLocationsIntent", {}, "guest-student");
+  var cachedLocations = readPublicPortalCache("locations");
 
-  if (result && result.emitted && result.emitted.success) {
+  if (cachedLocations && Array.isArray(cachedLocations.locations)) {
     setState({
-      locations: result.emitted.data.locations || [],
+      locations: cachedLocations.locations,
       isLoading: false,
       message: state.message
     });
+    markStudentPortalJourney("schools-visible");
+    refreshLocations(true);
     return;
   }
 
-  setState({
+  await refreshLocations(false);
+}
+
+async function refreshLocations(silent) {
+  var result = await runLoginIntent("LoadLocationsIntent", {}, "guest-student");
+
+  if (result && result.emitted && result.emitted.success) {
+    var locations = result.emitted.data.locations || [];
+    writePublicPortalCache("locations", { locations: locations });
+    setState({
+      locations: locations,
+      isLoading: false,
+      message: state.message
+    });
+    markStudentPortalJourney("schools-visible");
+    return;
+  }
+
+  if (!silent) setState({
     locations: [],
     isLoading: false,
     message: readIntentErrorMessage(result),
@@ -471,7 +496,17 @@ async function loadStartupLoginOptions() {
   }
 }
 
-async function resolveLocationBySlug(loginSlug) {
+async function resolveLocationBySlug(loginSlug, forceRefresh) {
+  var cachedLocation = !forceRefresh ? readPublicPortalCache("location:" + loginSlug) : null;
+
+  if (cachedLocation && cachedLocation.location) {
+    applyResolvedLocation(loginSlug, cachedLocation.location);
+    await loadClasses(cachedLocation.location.id);
+    resolveLocationBySlug(loginSlug, true);
+    return;
+  }
+
+  if (!forceRefresh) {
   setState({
     isLoading: true,
     directLocationSlug: loginSlug,
@@ -479,6 +514,7 @@ async function resolveLocationBySlug(loginSlug) {
     message: state.message || "Loading your school login link...",
     messageType: "info"
   });
+  }
 
   var result = await runLoginIntent("ResolveLocationBySlugIntent", {
     loginSlug: loginSlug
@@ -486,30 +522,14 @@ async function resolveLocationBySlug(loginSlug) {
 
   if (result && result.emitted && result.emitted.success) {
     var location = result.emitted.data.location;
-    var loginMode = readLoginMode(location.loginMode);
-    var method = loginMode === "standard" ? "standard" : "fruit";
-
-    if (loginMode === "hybrid") {
-      method = "fruit";
-    }
-
-    setState({
-      locations: [location],
-      selectedLocationId: location.id,
-      selectedClassId: "",
-      selectedStudentId: "",
-      selectedLoginMethod: method,
-      directLocationSlug: loginSlug,
-      directLocationLocked: true,
-      fruitEntry: [],
-      classes: [],
-      students: [],
-      isLoading: false,
-      message: "",
-      messageType: "info"
-    });
+    writePublicPortalCache("location:" + loginSlug, { location: location });
+    applyResolvedLocation(loginSlug, location);
 
     await loadClasses(location.id);
+    return;
+  }
+
+  if (forceRefresh && state.directLocationLocked) {
     return;
   }
 
@@ -524,21 +544,63 @@ async function resolveLocationBySlug(loginSlug) {
   await loadLocations();
 }
 
+function applyResolvedLocation(loginSlug, location) {
+  var loginMode = readLoginMode(location.loginMode);
+  var method = loginMode === "standard" ? "standard" : "fruit";
+
+  if (loginMode === "hybrid") method = "fruit";
+
+  setState({
+    locations: [location],
+    selectedLocationId: location.id,
+    selectedClassId: "",
+    selectedStudentId: "",
+    selectedLoginMethod: method,
+    directLocationSlug: loginSlug,
+    directLocationLocked: true,
+    fruitEntry: [],
+    classes: [],
+    students: [],
+    isLoading: false,
+    message: "",
+    messageType: "info"
+  });
+}
+
 async function loadClasses(locationId) {
-  setState({ isBusy: true, message: "Loading classes...", messageType: "info" });
+  var cachedClasses = readPublicPortalCache("classes:" + locationId);
+
+  if (cachedClasses && Array.isArray(cachedClasses.classes)) {
+    setState({ classes: cachedClasses.classes, students: [], isBusy: false, message: "" });
+    markStudentPortalJourney("classes-visible");
+    refreshClasses(locationId, true);
+    return;
+  }
+
+  await refreshClasses(locationId, false);
+}
+
+async function refreshClasses(locationId, silent) {
+  if (!silent) {
+    setState({ isBusy: true, message: "Loading classes...", messageType: "info" });
+  }
   var result = await runLoginIntent("LoadClassesForLocationIntent", { locationId: locationId }, "guest-student");
 
   if (result && result.emitted && result.emitted.success) {
+    var classes = result.emitted.data.classes || [];
+    writePublicPortalCache("classes:" + locationId, { classes: classes });
+    if (state.selectedLocationId !== locationId) return;
     setState({
-      classes: result.emitted.data.classes || [],
+      classes: classes,
       students: [],
       isBusy: false,
       message: ""
     });
+    markStudentPortalJourney("classes-visible");
     return;
   }
 
-  setState({
+  if (!silent && state.selectedLocationId === locationId) setState({
     classes: [],
     students: [],
     isBusy: false,
@@ -548,7 +610,23 @@ async function loadClasses(locationId) {
 }
 
 async function loadStudents(locationId, classId, className) {
-  setState({ isBusy: true, isLoadingStudents: true, message: "Loading students...", messageType: "info" });
+  var cacheKey = "students:" + locationId + ":" + classId;
+  var cachedStudents = readPublicPortalCache(cacheKey);
+
+  if (cachedStudents && Array.isArray(cachedStudents.students)) {
+    setState({ students: cachedStudents.students, isBusy: false, isLoadingStudents: false, message: "" });
+    markStudentPortalJourney("students-visible");
+    refreshStudents(locationId, classId, className, cacheKey, true);
+    return;
+  }
+
+  await refreshStudents(locationId, classId, className, cacheKey, false);
+}
+
+async function refreshStudents(locationId, classId, className, cacheKey, silent) {
+  if (!silent) {
+    setState({ isBusy: true, isLoadingStudents: true, message: "Loading students...", messageType: "info" });
+  }
   var result = await runLoginIntent("LoadStudentsForClassIntent", {
     locationId: locationId,
     classId: classId,
@@ -556,16 +634,20 @@ async function loadStudents(locationId, classId, className) {
   }, "guest-student");
 
   if (result && result.emitted && result.emitted.success) {
+    var students = result.emitted.data.students || [];
+    writePublicPortalCache(cacheKey, { students: students });
+    if (state.selectedClassId !== classId || state.selectedLocationId !== locationId) return;
     setState({
-      students: result.emitted.data.students || [],
+      students: students,
       isBusy: false,
       isLoadingStudents: false,
       message: ""
     });
+    markStudentPortalJourney("students-visible");
     return;
   }
 
-  setState({
+  if (!silent && state.selectedClassId === classId && state.selectedLocationId === locationId) setState({
     students: [],
     isBusy: false,
     isLoadingStudents: false,
@@ -573,6 +655,40 @@ async function loadStudents(locationId, classId, className) {
     messageType: "error"
   });
 }
+
+function readPublicPortalCache(key) {
+  if (!window.sessionStorage) return null;
+
+  try {
+    var entry = JSON.parse(window.sessionStorage.getItem("oquwayPublic:" + key) || "null");
+    if (!entry || Date.now() - entry.savedAt > PUBLIC_CACHE_TTL_MS) return null;
+    return entry.value || null;
+  } catch (error) {
+    return null;
+  }
+}
+
+function writePublicPortalCache(key, value) {
+  if (!window.sessionStorage) return;
+
+  try {
+    window.sessionStorage.setItem("oquwayPublic:" + key, JSON.stringify({ savedAt: Date.now(), value: value }));
+  } catch (error) {
+    return;
+  }
+}
+
+function registerStudentPortalServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("../../student-portal-sw.js", { scope: "../../" }).catch(function () {
+      return null;
+    });
+  });
+}
+
+registerStudentPortalServiceWorker();
 
 async function submitFruitLogin() {
   if (!canSubmitFruitLogin()) {
@@ -590,7 +706,7 @@ async function submitFruitLogin() {
   }, "guest-student");
 
   if (result && result.emitted && result.emitted.success) {
-    await routeToStudentDashboardAfterSessionStart();
+    await routeToStudentDashboardAfterSessionStart(readIntentStudent(result));
     return;
   }
 
@@ -615,7 +731,7 @@ async function submitStandardLogin() {
   }, "guest-student");
 
   if (result && result.emitted && result.emitted.success) {
-    await routeToStudentDashboardAfterSessionStart();
+    await routeToStudentDashboardAfterSessionStart(readIntentStudent(result));
     return;
   }
 
@@ -630,7 +746,7 @@ async function verifyCurrentStudent() {
   var result = await runLoginIntent("LoadStudentProfileIntent", {}, auth.currentUser.uid);
 
   if (result && result.emitted && result.emitted.success) {
-    await routeToStudentDashboardAfterSessionStart();
+    await routeToStudentDashboardAfterSessionStart(readIntentStudent(result));
     return;
   }
 
@@ -666,13 +782,32 @@ async function startStudentSession() {
   };
 }
 
-async function routeToStudentDashboardAfterSessionStart() {
+async function routeToStudentDashboardAfterSessionStart(studentProfile) {
   var sessionResult = await startStudentSession();
 
   if (sessionResult.success) {
     markStudentSessionStarted();
+    storeStudentBootstrapProfile(studentProfile);
+    markStudentPortalJourney("authentication-complete");
     window.location.href = "../student-dashboard/index.html";
   }
+}
+
+function readIntentStudent(result) {
+  var data = result && result.emitted && result.emitted.data ? result.emitted.data : null;
+  return data && data.student && typeof data.student === "object" ? data.student : null;
+}
+
+function storeStudentBootstrapProfile(studentProfile) {
+  if (!window.sessionStorage || !auth.currentUser || !studentProfile) {
+    return;
+  }
+
+  window.sessionStorage.setItem("oquwayStudentBootstrapProfile", JSON.stringify({
+    uid: auth.currentUser.uid,
+    savedAt: Date.now(),
+    profile: studentProfile
+  }));
 }
 
 function markStudentSessionStarted() {
@@ -693,7 +828,7 @@ function hasConfirmedStudentSession(uid) {
 }
 
 async function runLoginIntent(intentType, payload, actorId) {
-  return runIntentPipeline(getIntentDefinition(intentType), {
+  return runIntentPipeline(getStudentLoginIntentDefinition(intentType), {
     payload: payload,
     actor: {
       id: actorId,

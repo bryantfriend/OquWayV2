@@ -1,16 +1,16 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.228-learning-activity-drag-interactions";
-import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.228-learning-activity-drag-interactions";
-import { multipleChoiceSchema } from "./multipleChoice.schema.js?v=1.1.228-learning-activity-drag-interactions";
-import { multipleChoiceStandardMeta } from "./templates/multiple-choice-standard/multipleChoiceStandard.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as multipleChoiceStandardTemplate from "./templates/multiple-choice-standard/multipleChoiceStandard.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { multipleChoiceScenarioMeta } from "./templates/multiple-choice-scenario/multipleChoiceScenario.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as multipleChoiceScenarioTemplate from "./templates/multiple-choice-scenario/multipleChoiceScenario.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { multipleChoiceCheckpointMeta } from "./templates/multiple-choice-checkpoint/multipleChoiceCheckpoint.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as multipleChoiceCheckpointTemplate from "./templates/multiple-choice-checkpoint/multipleChoiceCheckpoint.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { multipleChoiceBossBattleMeta } from "./templates/multiple-choice-boss-battle/multipleChoiceBossBattle.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as multipleChoiceBossBattleTemplate from "./templates/multiple-choice-boss-battle/multipleChoiceBossBattle.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { multipleChoiceMysteryDoorMeta } from "./templates/multiple-choice-mystery-door/multipleChoiceMysteryDoor.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as multipleChoiceMysteryDoorTemplate from "./templates/multiple-choice-mystery-door/multipleChoiceMysteryDoor.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.231-platform-performance-release";
+import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.231-platform-performance-release";
+import { multipleChoiceSchema } from "./multipleChoice.schema.js?v=1.1.231-platform-performance-release";
+import { multipleChoiceStandardMeta } from "./templates/multiple-choice-standard/multipleChoiceStandard.meta.js?v=1.1.231-platform-performance-release";
+import * as multipleChoiceStandardTemplate from "./templates/multiple-choice-standard/multipleChoiceStandard.template.js?v=1.1.231-platform-performance-release";
+import { multipleChoiceScenarioMeta } from "./templates/multiple-choice-scenario/multipleChoiceScenario.meta.js?v=1.1.231-platform-performance-release";
+import * as multipleChoiceScenarioTemplate from "./templates/multiple-choice-scenario/multipleChoiceScenario.template.js?v=1.1.231-platform-performance-release";
+import { multipleChoiceCheckpointMeta } from "./templates/multiple-choice-checkpoint/multipleChoiceCheckpoint.meta.js?v=1.1.231-platform-performance-release";
+import * as multipleChoiceCheckpointTemplate from "./templates/multiple-choice-checkpoint/multipleChoiceCheckpoint.template.js?v=1.1.231-platform-performance-release";
+import { multipleChoiceBossBattleMeta } from "./templates/multiple-choice-boss-battle/multipleChoiceBossBattle.meta.js?v=1.1.231-platform-performance-release";
+import * as multipleChoiceBossBattleTemplate from "./templates/multiple-choice-boss-battle/multipleChoiceBossBattle.template.js?v=1.1.231-platform-performance-release";
+import { multipleChoiceMysteryDoorMeta } from "./templates/multiple-choice-mystery-door/multipleChoiceMysteryDoor.meta.js?v=1.1.231-platform-performance-release";
+import * as multipleChoiceMysteryDoorTemplate from "./templates/multiple-choice-mystery-door/multipleChoiceMysteryDoor.template.js?v=1.1.231-platform-performance-release";
 
 export const multipleChoiceActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: CustomExperienceStep,

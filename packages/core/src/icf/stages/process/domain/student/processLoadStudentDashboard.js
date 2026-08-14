@@ -276,6 +276,10 @@ function readCourseLastOpenedAt(course) {
   var lastOpenedAt = 0;
   var moduleIndex = 0;
 
+  if (modules.length === 0 && course && typeof course.lastOpenedAt === "number") {
+    return course.lastOpenedAt;
+  }
+
   while (moduleIndex < modules.length) {
     lastOpenedAt = Math.max(lastOpenedAt, readModuleLastOpenedAt(modules[moduleIndex]));
     moduleIndex = moduleIndex + 1;

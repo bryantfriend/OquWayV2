@@ -1,16 +1,16 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.228-learning-activity-drag-interactions";
-import { VocabularyStep } from "../../stepTypes/VocabularyStep.js?v=1.1.228-learning-activity-drag-interactions";
-import { vocabularySchema } from "./vocabulary.schema.js?v=1.1.228-learning-activity-drag-interactions";
-import { vocabularyStandardMeta } from "./templates/vocabulary-standard/vocabularyStandard.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as vocabularyStandardTemplate from "./templates/vocabulary-standard/vocabularyStandard.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { vocabularyExampleBuilderMeta } from "./templates/vocabulary-example-builder/vocabularyExampleBuilder.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as vocabularyExampleBuilderTemplate from "./templates/vocabulary-example-builder/vocabularyExampleBuilder.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { vocabularyRapidReviewMeta } from "./templates/vocabulary-rapid-review/vocabularyRapidReview.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as vocabularyRapidReviewTemplate from "./templates/vocabulary-rapid-review/vocabularyRapidReview.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { vocabularyWordLabMeta } from "./templates/vocabulary-word-lab/vocabularyWordLab.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as vocabularyWordLabTemplate from "./templates/vocabulary-word-lab/vocabularyWordLab.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { vocabularyMemoryGridMeta } from "./templates/vocabulary-memory-grid/vocabularyMemoryGrid.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as vocabularyMemoryGridTemplate from "./templates/vocabulary-memory-grid/vocabularyMemoryGrid.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.231-platform-performance-release";
+import { VocabularyStep } from "../../stepTypes/VocabularyStep.js?v=1.1.231-platform-performance-release";
+import { vocabularySchema } from "./vocabulary.schema.js?v=1.1.231-platform-performance-release";
+import { vocabularyStandardMeta } from "./templates/vocabulary-standard/vocabularyStandard.meta.js?v=1.1.231-platform-performance-release";
+import * as vocabularyStandardTemplate from "./templates/vocabulary-standard/vocabularyStandard.template.js?v=1.1.231-platform-performance-release";
+import { vocabularyExampleBuilderMeta } from "./templates/vocabulary-example-builder/vocabularyExampleBuilder.meta.js?v=1.1.231-platform-performance-release";
+import * as vocabularyExampleBuilderTemplate from "./templates/vocabulary-example-builder/vocabularyExampleBuilder.template.js?v=1.1.231-platform-performance-release";
+import { vocabularyRapidReviewMeta } from "./templates/vocabulary-rapid-review/vocabularyRapidReview.meta.js?v=1.1.231-platform-performance-release";
+import * as vocabularyRapidReviewTemplate from "./templates/vocabulary-rapid-review/vocabularyRapidReview.template.js?v=1.1.231-platform-performance-release";
+import { vocabularyWordLabMeta } from "./templates/vocabulary-word-lab/vocabularyWordLab.meta.js?v=1.1.231-platform-performance-release";
+import * as vocabularyWordLabTemplate from "./templates/vocabulary-word-lab/vocabularyWordLab.template.js?v=1.1.231-platform-performance-release";
+import { vocabularyMemoryGridMeta } from "./templates/vocabulary-memory-grid/vocabularyMemoryGrid.meta.js?v=1.1.231-platform-performance-release";
+import * as vocabularyMemoryGridTemplate from "./templates/vocabulary-memory-grid/vocabularyMemoryGrid.template.js?v=1.1.231-platform-performance-release";
 
 export const vocabularyActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: VocabularyStep,

@@ -184,12 +184,10 @@ async function loadModulesFromSource(actor, source, courseId) {
 
   modules.sort(compareByOrderThenTitle);
 
-  var moduleIndex = 0;
-  while (moduleIndex < modules.length) {
-    modules[moduleIndex].learningModes = await loadLearningModes(source, courseId, modules[moduleIndex].id, modules[moduleIndex].learningModes);
-    modules[moduleIndex].sessions = await loadSessions(actor, source, courseId, modules[moduleIndex]);
-    moduleIndex = moduleIndex + 1;
-  }
+  await Promise.all(modules.map(async function (module) {
+    module.learningModes = await loadLearningModes(source, courseId, module.id, module.learningModes);
+    module.sessions = await loadSessions(actor, source, courseId, module);
+  }));
 
   return modules;
 }
@@ -203,12 +201,10 @@ async function loadLearningModes(source, courseId, moduleId, embeddedLearningMod
   });
 
   var modeIds = Object.keys(modes);
-  var modeIndex = 0;
 
-  while (modeIndex < modeIds.length) {
-    modes[modeIds[modeIndex]].steps = await loadLearningModeSteps(source, courseId, moduleId, modeIds[modeIndex], modes[modeIds[modeIndex]].steps);
-    modeIndex = modeIndex + 1;
-  }
+  await Promise.all(modeIds.map(async function (modeId) {
+    modes[modeId].steps = await loadLearningModeSteps(source, courseId, moduleId, modeId, modes[modeId].steps);
+  }));
 
   return modes;
 }
@@ -244,11 +240,9 @@ async function loadSessions(actor, source, courseId, module) {
 
   sessions.sort(compareSessionOrder);
 
-  var sessionIndex = 0;
-  while (sessionIndex < sessions.length) {
-    sessions[sessionIndex].progress = await loadProgress(actor, courseId, module.id, sessions[sessionIndex].id);
-    sessionIndex = sessionIndex + 1;
-  }
+  await Promise.all(sessions.map(async function (session) {
+    session.progress = await loadProgress(actor, courseId, module.id, session.id);
+  }));
 
   return sessions;
 }

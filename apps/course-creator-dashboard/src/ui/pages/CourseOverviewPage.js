@@ -1,5 +1,5 @@
 import { courseEditorStore } from '../state/courseEditorState.js?v=1.1.219-course-creator-all-courses';
-import { courseEditorService } from '../services/courseEditorService.js?v=1.1.219-course-creator-all-courses';
+import { courseEditorService } from '../services/courseEditorService.js?v=1.1.231-platform-performance-release';
 import { courseAssignmentService } from '../services/courseAssignmentService.js?v=1.1.219-course-creator-all-courses';
 import { externalTaskReviewService } from '../services/externalTaskReviewService.js?v=1.1.219-course-creator-all-courses';
 import {
@@ -8,6 +8,7 @@ import {
   createLoadingState,
   createStatusBadge
 } from '../../../../../packages/ui/index.js?v=1.1.219-course-creator-all-courses';
+import { attachCourseImportEvents, buildCourseImportModal } from '../courseImport/courseImportUi.js?v=1.1.231-platform-performance-release';
 
 export class CourseOverviewPage {
   constructor(courseId, options) {
@@ -20,6 +21,8 @@ export class CourseOverviewPage {
     this.moduleWizardStep = 1;
     this.moduleWizardTemplateKey = 'school';
     this.moduleWizardLoadingTimer = null;
+    this.courseImportPreview = null;
+    this.courseImportInProgress = false;
     this.lastLoggedCourseContext = "";
     this.assignments = [];
     this.assignmentsLoading = false;
@@ -73,6 +76,9 @@ export class CourseOverviewPage {
               <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Course Modules</h1>
               <div class="flex items-center gap-3">
                 <span id="moduleCreateStatusMsg" style="display:none" class="text-sm font-medium"></span>
+                <button id="importCourseContentBtn" class="bg-violet-600 border border-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg font-semibold transition shadow-sm flex items-center gap-2 text-sm">
+                  <i class="fa-solid fa-code"></i> Import ChatGPT JSON
+                </button>
                 <button id="addModuleBtn" class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg font-semibold transition shadow-sm flex items-center gap-2 text-sm">
                   <i class="fa-solid fa-plus text-gray-400"></i> New Module
                 </button>
@@ -289,6 +295,7 @@ export class CourseOverviewPage {
         </div>
 
         ${buildCreateModuleWizardModal()}
+        ${buildCourseImportModal()}
 
         <!-- Module Title Edit Modal -->
         <div id="moduleTitleModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 transition-opacity">
@@ -1072,6 +1079,8 @@ export class CourseOverviewPage {
         modal.classList.add('hidden');
       }, 300);
     });
+
+    attachCourseImportEvents(this.courseId);
 
     document.getElementById('addModuleBtn').addEventListener('click', function () {
       self.openCreateModuleWizard();

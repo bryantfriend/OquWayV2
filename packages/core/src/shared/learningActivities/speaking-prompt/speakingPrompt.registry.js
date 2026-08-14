@@ -1,16 +1,16 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.228-learning-activity-drag-interactions";
-import { SpeakingPromptStep } from "../../stepTypes/SpeakingPromptStep.js?v=1.1.228-learning-activity-drag-interactions";
-import { speakingPromptSchema } from "./speakingPrompt.schema.js?v=1.1.228-learning-activity-drag-interactions";
-import { speakingPromptStandardMeta } from "./templates/speaking-prompt-standard/speakingPromptStandard.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as speakingPromptStandardTemplate from "./templates/speaking-prompt-standard/speakingPromptStandard.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { speakingPromptPartnerCoachMeta } from "./templates/speaking-prompt-partner-coach/speakingPromptPartnerCoach.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as speakingPromptPartnerCoachTemplate from "./templates/speaking-prompt-partner-coach/speakingPromptPartnerCoach.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { speakingPromptTimedPitchMeta } from "./templates/speaking-prompt-timed-pitch/speakingPromptTimedPitch.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as speakingPromptTimedPitchTemplate from "./templates/speaking-prompt-timed-pitch/speakingPromptTimedPitch.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { speakingPromptNewsroomMeta } from "./templates/speaking-prompt-newsroom/speakingPromptNewsroom.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as speakingPromptNewsroomTemplate from "./templates/speaking-prompt-newsroom/speakingPromptNewsroom.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { speakingPromptPodcastBoothMeta } from "./templates/speaking-prompt-podcast-booth/speakingPromptPodcastBooth.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as speakingPromptPodcastBoothTemplate from "./templates/speaking-prompt-podcast-booth/speakingPromptPodcastBooth.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.231-platform-performance-release";
+import { SpeakingPromptStep } from "../../stepTypes/SpeakingPromptStep.js?v=1.1.231-platform-performance-release";
+import { speakingPromptSchema } from "./speakingPrompt.schema.js?v=1.1.231-platform-performance-release";
+import { speakingPromptStandardMeta } from "./templates/speaking-prompt-standard/speakingPromptStandard.meta.js?v=1.1.231-platform-performance-release";
+import * as speakingPromptStandardTemplate from "./templates/speaking-prompt-standard/speakingPromptStandard.template.js?v=1.1.231-platform-performance-release";
+import { speakingPromptPartnerCoachMeta } from "./templates/speaking-prompt-partner-coach/speakingPromptPartnerCoach.meta.js?v=1.1.231-platform-performance-release";
+import * as speakingPromptPartnerCoachTemplate from "./templates/speaking-prompt-partner-coach/speakingPromptPartnerCoach.template.js?v=1.1.231-platform-performance-release";
+import { speakingPromptTimedPitchMeta } from "./templates/speaking-prompt-timed-pitch/speakingPromptTimedPitch.meta.js?v=1.1.231-platform-performance-release";
+import * as speakingPromptTimedPitchTemplate from "./templates/speaking-prompt-timed-pitch/speakingPromptTimedPitch.template.js?v=1.1.231-platform-performance-release";
+import { speakingPromptNewsroomMeta } from "./templates/speaking-prompt-newsroom/speakingPromptNewsroom.meta.js?v=1.1.231-platform-performance-release";
+import * as speakingPromptNewsroomTemplate from "./templates/speaking-prompt-newsroom/speakingPromptNewsroom.template.js?v=1.1.231-platform-performance-release";
+import { speakingPromptPodcastBoothMeta } from "./templates/speaking-prompt-podcast-booth/speakingPromptPodcastBooth.meta.js?v=1.1.231-platform-performance-release";
+import * as speakingPromptPodcastBoothTemplate from "./templates/speaking-prompt-podcast-booth/speakingPromptPodcastBooth.template.js?v=1.1.231-platform-performance-release";
 
 export const speakingPromptActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: SpeakingPromptStep,

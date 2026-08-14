@@ -1,6 +1,6 @@
 // intentRegistry.js
 
-import * as IntentExports from "../intents/intents.js?v=1.1.220-student-dashboard-timeout-helper";
+import * as IntentExports from "../intents/intents.js?v=1.1.231-platform-performance-release";
 
 const registry = {
   // Demo Verification
@@ -124,6 +124,7 @@ const registry = {
   OpenCreateModuleWizardIntent: IntentExports.OpenCreateModuleWizardIntent,
   ParseLearningContentIntent: IntentExports.ParseLearningContentIntent,
   CreateModuleFromWizardIntent: IntentExports.CreateModuleFromWizardIntent,
+  ImportCourseContentIntent: IntentExports.ImportCourseContentIntent,
   GenerateModuleSkeletonIntent: IntentExports.GenerateModuleSkeletonIntent,
   GenerateStarterStepsIntent: IntentExports.GenerateStarterStepsIntent,
   ListModulesIntent: IntentExports.ListModulesIntent,

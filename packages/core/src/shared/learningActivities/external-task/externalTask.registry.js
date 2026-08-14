@@ -1,16 +1,16 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.228-learning-activity-drag-interactions";
-import { ExternalTaskStep } from "../../stepTypes/ExternalTaskStep.js?v=1.1.228-learning-activity-drag-interactions";
-import { externalTaskSchema } from "./externalTask.schema.js?v=1.1.228-learning-activity-drag-interactions";
-import { externalTaskStandardMeta } from "./templates/external-task-standard/externalTaskStandard.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as externalTaskStandardTemplate from "./templates/external-task-standard/externalTaskStandard.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { externalTaskScreenshotProofMeta } from "./templates/external-task-screenshot-proof/externalTaskScreenshotProof.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as externalTaskScreenshotProofTemplate from "./templates/external-task-screenshot-proof/externalTaskScreenshotProof.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { externalTaskOfflineProjectMeta } from "./templates/external-task-offline-project/externalTaskOfflineProject.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as externalTaskOfflineProjectTemplate from "./templates/external-task-offline-project/externalTaskOfflineProject.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { externalTaskOfficeQuestMeta } from "./templates/external-task-office-quest/externalTaskOfficeQuest.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as externalTaskOfficeQuestTemplate from "./templates/external-task-office-quest/externalTaskOfficeQuest.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { externalTaskReviewStationMeta } from "./templates/external-task-review-station/externalTaskReviewStation.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as externalTaskReviewStationTemplate from "./templates/external-task-review-station/externalTaskReviewStation.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.231-platform-performance-release";
+import { ExternalTaskStep } from "../../stepTypes/ExternalTaskStep.js?v=1.1.231-platform-performance-release";
+import { externalTaskSchema } from "./externalTask.schema.js?v=1.1.231-platform-performance-release";
+import { externalTaskStandardMeta } from "./templates/external-task-standard/externalTaskStandard.meta.js?v=1.1.231-platform-performance-release";
+import * as externalTaskStandardTemplate from "./templates/external-task-standard/externalTaskStandard.template.js?v=1.1.231-platform-performance-release";
+import { externalTaskScreenshotProofMeta } from "./templates/external-task-screenshot-proof/externalTaskScreenshotProof.meta.js?v=1.1.231-platform-performance-release";
+import * as externalTaskScreenshotProofTemplate from "./templates/external-task-screenshot-proof/externalTaskScreenshotProof.template.js?v=1.1.231-platform-performance-release";
+import { externalTaskOfflineProjectMeta } from "./templates/external-task-offline-project/externalTaskOfflineProject.meta.js?v=1.1.231-platform-performance-release";
+import * as externalTaskOfflineProjectTemplate from "./templates/external-task-offline-project/externalTaskOfflineProject.template.js?v=1.1.231-platform-performance-release";
+import { externalTaskOfficeQuestMeta } from "./templates/external-task-office-quest/externalTaskOfficeQuest.meta.js?v=1.1.231-platform-performance-release";
+import * as externalTaskOfficeQuestTemplate from "./templates/external-task-office-quest/externalTaskOfficeQuest.template.js?v=1.1.231-platform-performance-release";
+import { externalTaskReviewStationMeta } from "./templates/external-task-review-station/externalTaskReviewStation.meta.js?v=1.1.231-platform-performance-release";
+import * as externalTaskReviewStationTemplate from "./templates/external-task-review-station/externalTaskReviewStation.template.js?v=1.1.231-platform-performance-release";
 
 export const externalTaskActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: ExternalTaskStep,

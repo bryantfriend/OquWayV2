@@ -1,16 +1,16 @@
-import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.228-learning-activity-drag-interactions";
-import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.228-learning-activity-drag-interactions";
-import { customExperienceSchema } from "./customExperience.schema.js?v=1.1.228-learning-activity-drag-interactions";
-import { customExperienceStandardMeta } from "./templates/custom-experience-standard/customExperienceStandard.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as customExperienceStandardTemplate from "./templates/custom-experience-standard/customExperienceStandard.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { customExperienceQuestHubMeta } from "./templates/custom-experience-quest-hub/customExperienceQuestHub.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as customExperienceQuestHubTemplate from "./templates/custom-experience-quest-hub/customExperienceQuestHub.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { customExperienceLabSimulatorMeta } from "./templates/custom-experience-lab-simulator/customExperienceLabSimulator.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as customExperienceLabSimulatorTemplate from "./templates/custom-experience-lab-simulator/customExperienceLabSimulator.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { customExperienceMysteryBoxMeta } from "./templates/custom-experience-mystery-box/customExperienceMysteryBox.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as customExperienceMysteryBoxTemplate from "./templates/custom-experience-mystery-box/customExperienceMysteryBox.template.js?v=1.1.228-learning-activity-drag-interactions";
-import { customExperiencePrototypeWorkbenchMeta } from "./templates/custom-experience-prototype-workbench/customExperiencePrototypeWorkbench.meta.js?v=1.1.228-learning-activity-drag-interactions";
-import * as customExperiencePrototypeWorkbenchTemplate from "./templates/custom-experience-prototype-workbench/customExperiencePrototypeWorkbench.template.js?v=1.1.228-learning-activity-drag-interactions";
+import { createStepBackedActivityDefinition } from "../stepBackedActivityFactory.js?v=1.1.231-platform-performance-release";
+import { CustomExperienceStep } from "../../stepTypes/CustomExperienceStep.js?v=1.1.231-platform-performance-release";
+import { customExperienceSchema } from "./customExperience.schema.js?v=1.1.231-platform-performance-release";
+import { customExperienceStandardMeta } from "./templates/custom-experience-standard/customExperienceStandard.meta.js?v=1.1.231-platform-performance-release";
+import * as customExperienceStandardTemplate from "./templates/custom-experience-standard/customExperienceStandard.template.js?v=1.1.231-platform-performance-release";
+import { customExperienceQuestHubMeta } from "./templates/custom-experience-quest-hub/customExperienceQuestHub.meta.js?v=1.1.231-platform-performance-release";
+import * as customExperienceQuestHubTemplate from "./templates/custom-experience-quest-hub/customExperienceQuestHub.template.js?v=1.1.231-platform-performance-release";
+import { customExperienceLabSimulatorMeta } from "./templates/custom-experience-lab-simulator/customExperienceLabSimulator.meta.js?v=1.1.231-platform-performance-release";
+import * as customExperienceLabSimulatorTemplate from "./templates/custom-experience-lab-simulator/customExperienceLabSimulator.template.js?v=1.1.231-platform-performance-release";
+import { customExperienceMysteryBoxMeta } from "./templates/custom-experience-mystery-box/customExperienceMysteryBox.meta.js?v=1.1.231-platform-performance-release";
+import * as customExperienceMysteryBoxTemplate from "./templates/custom-experience-mystery-box/customExperienceMysteryBox.template.js?v=1.1.231-platform-performance-release";
+import { customExperiencePrototypeWorkbenchMeta } from "./templates/custom-experience-prototype-workbench/customExperiencePrototypeWorkbench.meta.js?v=1.1.231-platform-performance-release";
+import * as customExperiencePrototypeWorkbenchTemplate from "./templates/custom-experience-prototype-workbench/customExperiencePrototypeWorkbench.template.js?v=1.1.231-platform-performance-release";
 
 export const customExperienceActivityDefinition = createStepBackedActivityDefinition({
   StepTypeDefinition: CustomExperienceStep,

@@ -1,18 +1,18 @@
-import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.228-learning-activity-drag-interactions";
-import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.228-learning-activity-drag-interactions";
+import { moduleEditorStore } from "../state/moduleEditorState.js?v=1.1.231-platform-performance-release";
+import { moduleEditorService } from "../services/moduleEditorService.js?v=1.1.231-platform-performance-release";
 import {
   getStepTypeDefinition,
   normalizeStepType as normalizeRegisteredStepType,
   validateStepConfig
-} from "../../../../../packages/domain/steps/index.js?v=1.1.228-learning-activity-drag-interactions";
+} from "../../../../../packages/domain/steps/index.js?v=1.1.231-platform-performance-release";
 import {
   getLearningActivityDefinition,
   getLearningActivityTemplateDefinition,
   listLearningActivityDefinitions,
   normalizeLearningActivityTemplateId
-} from "../../../../../packages/domain/learningActivities/index.js?v=1.1.228-learning-activity-drag-interactions";
-import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.228-learning-activity-drag-interactions";
-import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.228-learning-activity-drag-interactions";
+} from "../../../../../packages/domain/learningActivities/index.js?v=1.1.231-platform-performance-release";
+import { PracticeModePlayer } from "../../../../../packages/shared/player/index.js?v=1.1.231-platform-performance-release";
+import { createStatusBadge } from "../../../../../packages/ui/index.js?v=1.1.231-platform-performance-release";
 
 export class CourseEditorPage {
   constructor(courseId, moduleId) {

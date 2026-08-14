@@ -1,3 +1,14 @@
+redirectDirectStudentLogin();
+
+function redirectDirectStudentLogin() {
+  const query = new URLSearchParams(window.location.search);
+  const loginSlug = (query.get("location") || query.get("l") || "").trim();
+
+  if (loginSlug) {
+    window.location.replace("./apps/student-login/?l=" + encodeURIComponent(loginSlug));
+  }
+}
+
 const apps = [
   {
     icon: "🎓",
